@@ -13,16 +13,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-class HoverEmoji extends React.Component<
-  {
-    name: string
-    onClick: () => void
-    isReacjiIcon?: boolean
-  },
-  {
-    hovering: boolean
-  }
-> {
+class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
@@ -36,31 +27,13 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {this.props.isReacjiIcon ? (
-          <Kb.Icon
-            color={Styles.globalColors.black_50}
-            fontSize={this.state.hovering ? 22 : 18}
-            style={Kb.iconCastPlatformStyles(styles.reacjiIcon)}
-            type="iconfont-reacji"
-          />
-        ) : (
-          <Kb.Emoji
-            disableSelecting={true}
-            size={this.state.hovering ? 22 : 18}
-            emojiName={this.props.name}
-          />
-        )}
+        <Kb.Emoji disableSelecting={true} size={this.state.hovering ? 22 : 18} emojiName={this.props.name} />
       </Kb.ClickableBox>
     )
   }
 }
 
-class EmojiRow extends React.Component<
-  Props,
-  {
-    showingPicker: boolean
-  }
-> {
+class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = showingPicker => {
@@ -78,7 +51,6 @@ class EmojiRow extends React.Component<
     return (
       <Kb.Box2
         direction="horizontal"
-        gap="tiny"
         ref={this._attachmentRef}
         style={Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
@@ -87,14 +59,26 @@ class EmojiRow extends React.Component<
           {this.props.emojis.map(e => (
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
-          <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} key="reacji-icon" />
         </Kb.Box2>
         {!!this.props.onReply && (
           <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Divider vertical={true} />
-            <Kb.Text type="BodySmallSecondaryLink" style={styles.reply} onClick={this.props.onReply}>
-              Reply
-            </Kb.Text>
+            <Kb.Divider style={styles.divider} vertical={true} />
+            <Kb.WithTooltip text="React">
+              <Kb.Icon
+                hoverColor={Styles.globalColors.blue}
+                onClick={this._showPicker}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-reacji"
+              />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Reply">
+              <Kb.Icon
+                hoverColor={Styles.globalColors.blue}
+                onClick={this.props.onReply}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-reply"
+              />
+            </Kb.WithTooltip>
           </Kb.Box2>
         )}
         {this.state.showingPicker && (
@@ -122,12 +106,21 @@ const styles = Styles.styleSheetCreate({
       height: Styles.globalMargins.medium,
     },
   }),
+  divider: {
+    marginLeft: Styles.globalMargins.xsmall,
+    marginRight: Styles.globalMargins.xtiny,
+  },
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     height: Styles.globalMargins.small,
     justifyContent: 'center',
+    marginRight: Styles.globalMargins.xxtiny,
     width: Styles.globalMargins.small,
+  },
+  icon: {
+    position: 'relative',
+    top: 1,
   },
   pickerContainer: Styles.platformStyles({
     isElectron: {
@@ -136,8 +129,6 @@ const styles = Styles.styleSheetCreate({
       margin: Styles.globalMargins.tiny,
     },
   }),
-  reacjiIcon: {position: 'relative', top: 1},
-  reply: {alignSelf: 'center'},
 })
 
 export default EmojiRow

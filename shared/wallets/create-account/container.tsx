@@ -6,13 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    fromSendForm?: boolean
-    showOnCreation?: boolean
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{fromSendForm?: boolean; showOnCreation?: boolean}>
 
 const mapStateToProps = state => ({
   createNewAccountError: state.wallets.createNewAccountError,
@@ -39,7 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
   onCancel: dispatchProps.onCancel,

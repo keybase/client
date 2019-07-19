@@ -28,7 +28,7 @@ export type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   let policy: RetentionPolicy = retentionPolicies.policyRetain
-  let teamPolicy: RetentionPolicy | null
+  let teamPolicy: RetentionPolicy | null = null
   let showInheritOption = false
   let showOverrideNotice = false
   let loading = false
@@ -119,15 +119,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (
-  dispatch,
-  {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
-) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, entityType, teamname}: OwnProps) => ({
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
-      RouteTreeGen.createNavigateTo({
+      RouteTreeGen.createNavigateAppend({
         path: [
           {
             props: {entityType, onCancel, onConfirm, policy},
@@ -161,5 +158,5 @@ export default compose(
   withHandlers({
     onShowWarning: ({_onShowWarning}) => (policy, onConfirm, onCancel) =>
       _onShowWarning(policy, onConfirm, onCancel),
-  })
+  } as any)
 )(RetentionPicker as any) as any

@@ -1,38 +1,32 @@
 /* eslint-env browser */
-import ImagePicker from 'react-native-image-picker'
+import * as ImagePicker from 'expo-image-picker'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta} from './shared'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {BotCommandUpdateStatus, ExplodingMeta} from './shared'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
-type State = {
-  hasText: boolean
-}
+type State = {hasText: boolean}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | Kb.PlainInput
-  _lastText: string | null
-  _whichMenu: menuType
-
-  constructor(props: PlatformInputPropsInternal) {
-    super(props)
-    this.state = {
-      hasText: false,
-    }
-  }
+  _input: null | Kb.PlainInput = null
+  _lastText?: string
+  _whichMenu?: menuType
+  state = {hasText: false}
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
@@ -50,8 +44,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
     switch (mediaType) {
-      case 'photo':
-        break
       case 'mixed':
         title = 'Select a Photo or Video'
         takePhotoButtonTitle = 'Take Photo or Video...'
@@ -66,21 +58,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
         break
     }
-    const permissionDenied = {
-      okTitle: 'deny',
-      reTryTitle: 'allow in settings',
-      text: permDeniedText,
-      title: 'Permissions needed',
-    }
-    const handleSelection = response => {
-      if (response.didCancel || !this.props.conversationIDKey) {
+    const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+      if (result.cancelled === true || !this.props.conversationIDKey) {
         return
       }
-      if (response.error) {
-        this.props.onFilePickerError(new Error(response.error))
-        return
-      }
-      const filename = isIOS ? response.uri.replace('file://', '') : response.path
+      const filename = parseUri(result)
       if (filename) {
         this.props.onAttach([filename])
       }
@@ -88,13 +70,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     switch (location) {
       case 'camera':
-        ImagePicker.launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
+        launchCameraAsync(mediaType)
+          .then(handleSelection)
+          .catch(error => this.props.onFilePickerError(new Error(error)))
         break
       case 'library':
-        ImagePicker.launchImageLibrary(
-          {mediaType, permissionDenied, takePhotoButtonTitle, title},
-          handleSelection
-        )
+        launchImageLibraryAsync(mediaType)
+          .then(handleSelection)
+          .catch(error => this.props.onFilePickerError(new Error(error)))
         break
     }
   }
@@ -125,7 +108,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   _onLayout = ({
     nativeEvent: {
-      layout: {x, y, width, height},
+      layout: {height},
     },
   }) => this.props.setHeight(height)
 
@@ -156,6 +139,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     return (
       <Kb.Box onLayout={this._onLayout}>
+        {this.props.suggestBotCommandsUpdateStatus !== undefined &&
+          (this.props.suggestionsVisible ||
+            this.props.suggestBotCommandsUpdateStatus ===
+              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}

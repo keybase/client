@@ -9,6 +9,7 @@ import (
 	"sort"
 	"unicode/utf8"
 
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -752,8 +753,9 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		return res, err
 	}
 	return stellar1.SendPaymentResLocal{
-		KbTxID:  sendRes.KbTxID,
-		Pending: sendRes.Pending,
+		KbTxID:     sendRes.KbTxID,
+		Pending:    sendRes.Pending,
+		JumpToChat: sendRes.JumpToChat,
 	}, nil
 }
 
@@ -1101,7 +1103,12 @@ func (s *Server) GetTrustlinesForRecipientLocal(ctx context.Context, arg stellar
 	if err != nil {
 		return ret, err
 	}
-	ret.Trustlines = trustlines
+	for _, t := range trustlines {
+		if !t.IsAuthorized {
+			continue
+		}
+		ret.Trustlines = append(ret.Trustlines, t)
+	}
 
 	if recipient.User != nil {
 		ret.RecipientType = stellar1.ParticipantType_KEYBASE
@@ -1223,4 +1230,12 @@ func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res
 
 	remoteArg := stellar1.ListPopularAssetsArg{}
 	return stellar.ListPopularAssets(mctx, s.remoter, remoteArg)
+}
+
+func (s *Server) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticConfig, err error) {
+	return stellar1.StaticConfig{
+		PaymentNoteMaxLength: libkb.MaxStellarPaymentNoteLength,
+		RequestNoteMaxLength: msgchecker.RequestPaymentTextMaxLength,
+		PublicMemoMaxLength:  libkb.MaxStellarPaymentPublicNoteLength,
+	}, nil
 }

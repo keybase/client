@@ -124,11 +124,12 @@ const AccountSettings = (props: Props) => (
   >
     <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
       {props.addedEmail && (
-        <Kb.Banner
-          color="green"
-          text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
-          onClose={props.onClearAddedEmail}
-        />
+        <Kb.Banner color="yellow" onClose={props.onClearAddedEmail}>
+          <Kb.BannerParagraph
+            bannerColor="yellow"
+            content={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+          />
+        </Kb.Banner>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <EmailPhone {...props} />

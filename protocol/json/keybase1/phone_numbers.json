@@ -145,6 +145,19 @@
       ],
       "response": null
     },
+    "resendVerificationForPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null
+    },
     "getPhoneNumbers": {
       "request": [
         {

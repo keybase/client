@@ -12,25 +12,19 @@ type OwnProps = {
   onFocusInput: () => void
 }
 
-const mapStateToProps = (state, {conversationIDKey}) => ({conversationIDKey})
-
-const mapDispatchToProps = dispatch => ({
-  onShowTracker: (username: string) =>
-    isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  conversationIDKey: stateProps.conversationIDKey,
-  onFocusInput: ownProps.onFocusInput,
-  scrollListDownCounter: ownProps.scrollListDownCounter,
-  scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
-  scrollListUpCounter: ownProps.scrollListUpCounter,
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  (_, {conversationIDKey}: OwnProps) => ({conversationIDKey}),
+  dispatch => ({
+    onShowTracker: (username: string) =>
+      isMobile
+        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
+  }),
+  (stateProps, _, ownProps: OwnProps) => ({
+    conversationIDKey: stateProps.conversationIDKey,
+    onFocusInput: ownProps.onFocusInput,
+    scrollListDownCounter: ownProps.scrollListDownCounter,
+    scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
+    scrollListUpCounter: ownProps.scrollListUpCounter,
+  })
 )(Normal)

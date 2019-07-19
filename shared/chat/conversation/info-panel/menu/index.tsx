@@ -13,7 +13,7 @@ export type ConvProps = {
 }
 
 export type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   badgeSubscribe: boolean
   canAddPeople: boolean
   convProps: ConvProps | null
@@ -21,7 +21,7 @@ export type Props = {
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   memberCount: number
-  teamname: string
+  teamname?: string
   visible: boolean
   hasCanPerform: boolean
   loadOperations: () => void
@@ -149,15 +149,15 @@ class InfoPanelMenu extends React.Component<Props> {
             fullname={props.convProps.fullname}
             participants={props.convProps.participants}
           />
-        ) : (
+        ) : props.teamname ? (
           <TeamHeader
             isMuted={
-              props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted
+              props.convProps === null || props.convProps === undefined ? false : props.convProps.muted
             }
             teamname={props.teamname}
             memberCount={props.memberCount}
           />
-        ),
+        ) : null,
     }
 
     return (

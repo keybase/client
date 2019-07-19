@@ -424,6 +424,7 @@ type _PreviewConversationPayload = {
     | 'memberView'
     | 'newChannel'
     | 'transaction'
+    | 'sentPayment'
     | 'requestedPayment'
     | 'teamMention'
 }
@@ -1893,4 +1894,4 @@ export type Actions =
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | UpdateUserReacjisPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

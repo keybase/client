@@ -1,11 +1,10 @@
 import * as React from 'react'
 import WalletRow from './wallet-row/container'
 import * as Types from '../../../../constants/types/wallets'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Flow from '../../../../util/flow'
 import * as Styles from '../../../../styles'
 import flags from '../../../../util/feature-flags'
-import {TouchableOpacity} from 'react-native'
 import {Props} from '.'
 
 type RowProps = {
@@ -18,12 +17,12 @@ type RowProps = {
 
 const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.containerStyle])}>
-    <TouchableOpacity
+    <Kb.NativeTouchableOpacity
       onPress={props.onPress}
       style={Styles.collapseStyles([styles.row, props.isLast && styles.lastRow, props.style])}
     >
       {props.children}
-    </TouchableOpacity>
+    </Kb.NativeTouchableOpacity>
   </Kb.Box2>
 )
 
@@ -105,7 +104,7 @@ export const WalletSwitcher = (props: Props) => {
           {
             key: 'airdrop',
             onPress: props.onJoinAirdrop,
-            title: 'Join the airdrop',
+            title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
             type: 'airdrop',
           },
         ] as const)

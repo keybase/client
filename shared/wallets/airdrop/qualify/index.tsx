@@ -106,14 +106,14 @@ class Qualified extends React.PureComponent<Props, State> {
   state = {
     rowIdxLoaded: -1,
   }
-  _loadingTimerID: NodeJS.Timeout | null
+  _loadingTimerID: NodeJS.Timeout | null = null
 
   _kickNextLoad = () => {
     if (__STORYSHOT__) {
       return
     }
     this._loadingTimerID && clearTimeout(this._loadingTimerID)
-    this._loadingTimerID = undefined
+    this._loadingTimerID = null
     if (this.state.rowIdxLoaded >= this.props.rows.length - 1) {
       return
     }
@@ -128,14 +128,14 @@ class Qualified extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this._loadingTimerID && clearTimeout(this._loadingTimerID)
-    this._loadingTimerID = undefined
+    this._loadingTimerID = null
   }
 
   componentDidMount() {
     this._kickNextLoad()
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     // got new rows or more to load
     if (!shallowEqual(this.props.rows, prevProps.rows)) {
       this.setState({rowIdxLoaded: -1})

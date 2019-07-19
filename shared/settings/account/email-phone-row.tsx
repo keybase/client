@@ -37,14 +37,14 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
-    subtitle = addSpacer(subtitle, 'Primary email')
+    subtitle = addSpacer(subtitle, 'Primary')
     // TODO 'Check your inbox' if verification email was just sent
   }
   if (!props.searchable && flags.sbsContacts) {
     subtitle = addSpacer(subtitle, 'Not searchable')
   }
 
-  const menuItems = []
+  const menuItems: Kb.MenuItems = []
   if (!props.verified) {
     menuItems.push({
       decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
@@ -79,7 +79,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
 
-  let gearIconBadge = null
+  let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
   } else if (!props.searchable && flags.sbsContacts) {
@@ -91,7 +91,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     view: (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
         <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
-        {props.primary && <Kb.Text type="BodySmall">Primary email</Kb.Text>}
+        {props.primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
       </Kb.Box2>
     ),
   }
@@ -119,7 +119,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
             containerStyle={styles.menuNoGrow}
             visible={props.showingMenu}
             position="bottom right"
-            header={Styles.isMobile ? header : null}
+            header={Styles.isMobile ? header : undefined}
             items={menuItems}
             closeOnSelect={true}
             onHidden={props.toggleShowingMenu}
@@ -174,17 +174,27 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
+    onDelete: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {address: ownProps.contactKey, type: 'email'}, selected: 'settingsDeleteAddress'}],
+        })
+      ),
     onMakePrimary: () =>
       dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    _onVerify: (phoneNumber, allowSearch) => {
-      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber}))
+    _onVerify: phoneNumber => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
-    onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
+    onDelete: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {address: ownProps.contactKey, type: 'phone'}, selected: 'settingsDeleteAddress'}],
+        })
+      ),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
@@ -194,19 +204,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     if (stateProps._phoneRow) {
-      const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
+      const pr = stateProps._phoneRow
       return {
-        address: stateProps._phoneRow.phoneNumber,
+        address: pr.displayNumber,
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber, searchable),
+        onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
-        searchable,
+        searchable: pr.searchable,
         type: 'phone' as const,
-        verified: stateProps._phoneRow.verified,
+        verified: pr.verified,
       }
     } else if (stateProps._emailRow) {
       const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public

@@ -38,7 +38,7 @@ const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
 class EditAvatar extends React.Component<_Props, State> {
-  _file: HTMLInputElement | null
+  _file: HTMLInputElement | null = null
   _image = React.createRef()
   constructor(props: _Props) {
     super(props)
@@ -83,7 +83,7 @@ class EditAvatar extends React.Component<_Props, State> {
   _pickFile = () => {
     this.setState({loading: true})
     const fileList = this._filePickerFiles()
-    const paths = fileList.length
+    const paths: Array<string> = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's not part of the File spec.
@@ -91,9 +91,10 @@ class EditAvatar extends React.Component<_Props, State> {
             return path
           })
           .filter(Boolean)
-      : []
+      : ([] as any)
     if (paths) {
-      this._paintImage(paths.pop())
+      const img = paths.pop()
+      img && this._paintImage(img)
     }
     this._filePickerSetValue('')
   }
@@ -108,7 +109,9 @@ class EditAvatar extends React.Component<_Props, State> {
       return
     }
     const fileList = e.dataTransfer.files
-    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
+    const paths: Array<string> = fileList.length
+      ? Array.prototype.map.call(fileList, f => f.path)
+      : ([] as any)
     if (paths.length) {
       // TODO: Show an error when there's more than one path.
       for (let path of paths) {
@@ -126,7 +129,8 @@ class EditAvatar extends React.Component<_Props, State> {
           // TODO: Show a red error banner on failure: https://zpl.io/2jlkMLm
         }
       }
-      this._paintImage(paths.pop())
+      const img = paths.pop()
+      img && this._paintImage(img)
     }
   }
 
@@ -288,7 +292,11 @@ class EditAvatar extends React.Component<_Props, State> {
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
-        {!!this.props.error && <Kb.Banner text={this.props.error} color="red" />}
+        {!!this.props.error && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
+          </Kb.Banner>
+        )}
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}
           onDragLeave={this._onDragLeave}
@@ -417,7 +425,6 @@ const HoverBox = Styles.styled(Kb.Box)({
   borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
-  flex: 0,
   height: AVATAR_CONTAINER_SIZE,
   marginBottom: Styles.globalMargins.small,
   marginTop: Styles.globalMargins.medium,

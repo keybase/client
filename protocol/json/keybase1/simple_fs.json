@@ -736,6 +736,13 @@
             "items": "string"
           },
           "name": "syncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DbStats"
+          },
+          "name": "runtimeDbStats"
         }
       ]
     }

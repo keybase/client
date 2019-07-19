@@ -65,7 +65,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: null}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: {}}
   `
 }
 
@@ -73,7 +73,7 @@ function canError(x: ActionDesc): x is ErrorPayload {
   return !!(x as ErrorPayload).canError
 }
 
-function compileAllActionsType(ns: ActionNS, actions: Actions): string {
+function compileAllActionsType(_: ActionNS, actions: Actions): string {
   const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
@@ -118,7 +118,7 @@ function printPayload(p: Object) {
     : 'void'
 }
 
-function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionPayloads(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
   return (
     `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
       actionName
@@ -133,7 +133,7 @@ function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: Actio
   )
 }
 
-function compilePayloadTypes(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compilePayloadTypes(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const {canError, ...noErrorPayload} = desc as ErrorPayload
 
   return (
@@ -142,7 +142,7 @@ function compilePayloadTypes(ns: ActionNS, actionName: ActionName, desc: ActionD
   )
 }
 
-function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const {canError: canErrorStr, ...noErrorPayload} = desc as ErrorPayload
   return (
     (desc._description
@@ -166,7 +166,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
   )
 }
 
-function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: ActionDesc) {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
@@ -183,7 +183,7 @@ function makeTypedActions(created) {
 function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
-  const created = []
+  const created: Array<string> = []
   files
     .filter(file => path.extname(file) === '.json')
     .forEach(file => {

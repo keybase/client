@@ -9,17 +9,15 @@ type SecretNoteProps = {
   secretNoteError?: string
   onChangeSecretNote: (note: string) => void
   toSelf: boolean
+  maxLength: number
 }
 
 type PublicMemoProps = {
   publicMemo: string // Initial value only
   publicMemoError?: string
   onChangePublicMemo: (memo: string) => void
+  maxLength: number
 }
-
-// TODO use wallet staticConfig to keep in sync with the service
-const secretNoteMaxLength = 500
-const publicMemoMaxLength = 28
 
 type SecretNoteState = {
   emojiPickerOpen: boolean
@@ -54,11 +52,16 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
         return
       }
       const secretNote =
-        this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
-      if (Buffer.byteLength(secretNote) > secretNoteMaxLength) {
+        this.state.secretNote.slice(0, selection.start || 0) +
+        emoji +
+        this.state.secretNote.slice(selection.end || 0)
+      if (Buffer.byteLength(secretNote) > this.props.maxLength) {
         return
       }
-      const newSelection = {end: selection.start + emoji.length, start: selection.start + emoji.length}
+      const newSelection = {
+        end: (selection.start || 0) + emoji.length,
+        start: (selection.start || 0) + emoji.length,
+      }
       this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
         const noteInput = this._note.current
@@ -100,7 +103,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               ref={!Styles.isMobile ? this._note : undefined}
               onChangeText={this._onChangeSecretNote}
               value={this.state.secretNote}
-              maxBytes={secretNoteMaxLength}
+              maxBytes={this.props.maxLength}
             />
             {this.state.emojiPickerOpen && !Styles.isMobile && (
               <Kb.Overlay
@@ -122,7 +125,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
               {!!this.state.secretNote && (
                 <Kb.Text type="BodyTiny">
-                  {secretNoteMaxLength - Buffer.byteLength(this.state.secretNote)} characters left
+                  {this.props.maxLength - Buffer.byteLength(this.state.secretNote)} characters left
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -169,11 +172,11 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
             value={this.state.publicMemo}
-            maxBytes={publicMemoMaxLength}
+            maxBytes={this.props.maxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodyTiny">
-              {publicMemoMaxLength - Buffer.byteLength(this.state.publicMemo)} characters left
+              {this.props.maxLength - Buffer.byteLength(this.state.publicMemo)} characters left
             </Kb.Text>
           )}
           {!!this.props.publicMemoError && (

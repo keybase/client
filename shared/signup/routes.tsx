@@ -35,6 +35,7 @@ export const newModalRoutes = {
     upgraded: true,
   },
   signupVerifyPhoneNumber: {
+    // @ts-ignore TODO fix me
     getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
     upgraded: true,
   },

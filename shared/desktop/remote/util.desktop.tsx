@@ -9,7 +9,8 @@ function autoResize() {
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now
   setTimeout(() => {
     try {
-      const element: any = window.document.getElementById('RemoteComponentRoot').firstChild
+      const el = window.document.getElementById('RemoteComponentRoot')
+      const element: any = el && el.firstChild
       const browserWindow = SafeElectron.getRemote().getCurrentWindow()
       if (
         element &&
@@ -57,7 +58,7 @@ const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
   const w = SafeElectron.BrowserWindow.getAllWindows().find(
     w => w.webContents.getURL().indexOf('/main.') !== -1
   )
-  return w
+  return w || null
 }
 
 const sendToMainWindow = (channel: string, ...args: Array<any>): boolean => {

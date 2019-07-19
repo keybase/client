@@ -16,8 +16,9 @@ import (
 
 func NewCmdBase62(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "base62",
-		Usage: "base62 operations",
+		Name: "base62",
+		// hide
+		// Usage: "base62 operations",
 		Subcommands: []cli.Command{
 			NewCmdBase62Decode(cl, g),
 			NewCmdBase62Encode(cl, g),

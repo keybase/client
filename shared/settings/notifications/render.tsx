@@ -55,7 +55,7 @@ const Group = (props: {
         <Text type="BodyBig">Or:</Text>
         <Checkbox
           style={{marginTop: globalMargins.small}}
-          onCheck={props.onToggleUnsubscribeAll}
+          onCheck={props.onToggleUnsubscribeAll || null}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe me from all ${props.unsub} notifications`}
@@ -119,7 +119,7 @@ const Notifications = (props: Props) =>
           <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
             <Checkbox
               style={{marginRight: 0, marginTop: globalMargins.tiny}}
-              onCheck={props.onToggleSound}
+              onCheck={props.onToggleSound || null}
               checked={!!props.sound}
               label="Desktop chat notification sound"
             />

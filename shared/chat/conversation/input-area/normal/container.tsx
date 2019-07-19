@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {namedConnect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -46,6 +47,10 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
   const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+  const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
+    conversationIDKey,
+    RPCChatTypes.UIBotCommandsUpdateStatus.updating
+  )
   return {
     _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
@@ -71,6 +76,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestAllChannels: Constants.getAllChannels(state),
+    suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
+    suggestBotCommandsUpdateStatus,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -96,6 +103,8 @@ const mapDispatchToProps = dispatch => ({
   },
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
+  _onCancelReply: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -160,6 +169,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   minWriterRole: stateProps.minWriterRole,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+  onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
   onRequestScrollDown: ownProps.onRequestScrollDown,
@@ -205,6 +215,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestAllChannels: stateProps.suggestAllChannels,
+  suggestBotCommands: stateProps.suggestBotCommands,
+  suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),

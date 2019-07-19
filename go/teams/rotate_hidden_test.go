@@ -174,3 +174,13 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.Seqno(2), ch.RatchetSet.Ratchets[keybase1.RatchetType_MAIN].Triple.Seqno)
 }
+
+func TestRotateHiddenImplicitAdmin(t *testing.T) {
+	tc, _, _, _, _, sub := memberSetupSubteam(t)
+	defer tc.Cleanup()
+	team, err := GetForTestByStringName(context.TODO(), tc.G, sub)
+	require.NoError(t, err)
+	require.EqualValues(t, 1, team.Generation())
+	err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+	require.NoError(t, err)
+}

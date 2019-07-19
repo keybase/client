@@ -1,6 +1,4 @@
-import {Props} from './index'
-
-function PlanDetails(props: Props) {
+function PlanDetails() {
   return null
 }
 

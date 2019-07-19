@@ -2,7 +2,7 @@ import * as React from 'react'
 
 export type Props = {
   canEditDescription: boolean
-  onEditIcon: (image?) => void
+  onEditIcon: (image?: string) => void
   onFilePickerError: (error: Error) => void
   teamname: string
   title: string | React.ReactNode

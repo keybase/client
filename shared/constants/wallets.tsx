@@ -10,6 +10,7 @@ import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
+import flags from '../util/feature-flags'
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
@@ -129,8 +130,8 @@ export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
   destinationAccount: Types.noAccountID,
   destinationDisplay: '',
   exchangeRate: '',
+  findPathError: '',
   fullPath: emptyPaymentPath,
-  noPathFoundError: false,
   readyToSend: false,
   sourceDisplay: '',
   sourceMaxDisplay: '',
@@ -158,7 +159,7 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
 })
 
 export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
-  fee: null,
+  fee: -1,
   memo: '',
   memoType: '',
   operations: null,
@@ -166,7 +167,7 @@ export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
 })
 
 export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
-  amount: null,
+  amount: '',
   assetCode: '',
   assetIssuer: '',
   availableToSendFiat: '',
@@ -228,6 +229,7 @@ export const makeState = I.Record<Types._State>({
   builtPayment: makeBuiltPayment(),
   builtPaymentAdvanced: emptyBuiltPaymentAdvanced,
   builtRequest: makeBuiltRequest(),
+  changeTrustlineError: '',
   createNewAccountError: '',
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),
@@ -253,7 +255,9 @@ export const makeState = I.Record<Types._State>({
   sentPaymentError: '',
   sep7ConfirmError: '',
   sep7ConfirmInfo: null,
+  sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
+  staticConfig: null,
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
@@ -689,7 +693,7 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = (state: TypedState) => {
+export const getAirdropSelected = () => {
   const path = Router2Constants.getVisibleScreen().routeName
   return path === 'airdrop' || path === 'airdropQualify'
 }
@@ -708,8 +712,8 @@ export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =
   state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
 
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  // @ts-ignore codemod issue
-  state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
+  state.wallets.paymentsMap.get(accountID, I.Map<Types.PaymentID, Types.Payment>()).get(paymentID) ||
+  makePayment()
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
   state.accountMap.get(accountID, unknownAccount)
@@ -735,10 +739,9 @@ export const getDefaultAccountID = (state: TypedState) => {
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
-export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.externalPartners
+export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
-export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
+export const getAssets = (state: TypedState, accountID: Types.AccountID): I.List<Types.Assets> =>
   state.wallets.assetsMap.get(accountID, I.List())
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
@@ -804,3 +807,11 @@ export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTa
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
+
+export const getShowAirdropBanner = (state: TypedState) =>
+  flags.airdrop &&
+  state.wallets.airdropDetails.isPromoted &&
+  state.wallets.airdropShowBanner &&
+  (state.wallets.airdropState === 'qualified' ||
+    state.wallets.airdropState === 'unqualified' ||
+    state.wallets.airdropState === 'needDisclaimer')

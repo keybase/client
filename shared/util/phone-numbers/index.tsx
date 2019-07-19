@@ -5,7 +5,10 @@ import supportedCodes from './sms-support/data.json'
 import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
 
 const PNF = libphonenumber.PhoneNumberFormat
+export const PhoneNumberFormat = PNF
+
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
+export const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
 const supported = phoneUtil.getSupportedRegions()
 
 export type CountryData = {
@@ -34,8 +37,8 @@ countries.forEach(curr => {
     countryDataRaw[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
-      emoji: curr.emoji,
-      emojiText: emojiIndexByChar[curr.emoji],
+      emoji: curr.emoji || '',
+      emojiText: emojiIndexByChar[curr.emoji || -1] || '',
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
       pickerText:
@@ -99,7 +102,7 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region: string) => {
+export const validateNumber = (rawNumber: string, region?: string) => {
   try {
     const number = phoneUtil.parse(rawNumber, region)
     const valid = phoneUtil.isValidNumberForRegion(number, region)
@@ -109,6 +112,23 @@ export const validateNumber = (rawNumber: string, region: string) => {
     }
   } catch (e) {
     return {e164: '', valid: false}
+  }
+}
+
+export const formatPhoneNumber = (rawNumber: string) => {
+  // TODO: support non-US numbers
+  const number = phoneUtil.parse(rawNumber, 'US')
+  return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+}
+
+// Return phone number in international format, e.g. +1 (800) 555 0123
+// or e.164 if parsing fails
+export const e164ToDisplay = (e164: string) => {
+  try {
+    const number = phoneUtil.parse(e164)
+    return phoneUtil.format(number, PNF.INTERNATIONAL)
+  } catch (e) {
+    return e164
   }
 }
 

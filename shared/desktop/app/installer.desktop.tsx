@@ -114,9 +114,9 @@ const darwinInstall = (callback: CB) => {
       )
       .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err, attempted, stdout, stderr) => {
+  const handleResults = (err, _, stdout, stderr) => {
     const loggingPromise = logOutput(stdout, stderr)
-    const errors = []
+    const errors: Array<string> = []
     const errorTypes = {
       cli: false,
       fuse: false,
@@ -146,7 +146,7 @@ const darwinInstall = (callback: CB) => {
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
       loggingPromise.then(() =>
-        SafeElectron.getDialog().showMessageBox(null, {buttons, detail, message}, resp => {
+        SafeElectron.getDialog().showMessageBox({buttons, detail, message}, resp => {
           if (resp === 1) {
             quit()
           } else {

@@ -63,11 +63,13 @@ const AssetInputBasic = (props: Props) => (
         . Please pick another asset.
       </Kb.Text>
     )}
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
-        {props.bottomLabel}
-      </Kb.Text>
-    </Kb.Box2>
+    {!!props.bottomLabel && (
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+        <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
+          {props.bottomLabel}
+        </Kb.Text>
+      </Kb.Box2>
+    )}
   </Kb.Box2>
 )
 

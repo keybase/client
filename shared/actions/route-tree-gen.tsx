@@ -8,34 +8,19 @@ export const typePrefix = 'route-tree:'
 export const clearModals = 'route-tree:clearModals'
 export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
-export const navigateTo = 'route-tree:navigateTo'
 export const navigateUp = 'route-tree:navigateUp'
-export const putActionIfOnPath = 'route-tree:putActionIfOnPath'
 export const resetStack = 'route-tree:resetStack'
-export const switchRouteDef = 'route-tree:switchRouteDef'
+export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
-export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
 type _ClearModalsPayload = void
 type _NavUpToScreenPayload = {readonly routeName: string}
-type _NavigateAppendPayload = {
-  readonly fromKey?: string
-  readonly path: any
-  readonly parentPath?: any
-  readonly replace?: boolean
-}
-type _NavigateToPayload = {readonly path: any; readonly parentPath?: any; readonly replace?: boolean}
+type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpPayload = {readonly fromKey?: string}
-type _PutActionIfOnPathPayload = {
-  readonly expectedPath: any
-  readonly otherAction: any
-  readonly parentPath?: any
-}
 type _ResetStackPayload = {readonly tab: Tabs.AppTab; readonly actions: Array<any>; readonly index: number}
-type _SwitchRouteDefPayload = {readonly loggedIn: boolean; readonly path?: any}
+type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
-type _SwitchToPayload = {readonly path: any; readonly parentPath?: any}
 
 // Action Creators
 /**
@@ -44,6 +29,13 @@ type _SwitchToPayload = {readonly path: any; readonly parentPath?: any}
 export const createNavUpToScreen = (payload: _NavUpToScreenPayload): NavUpToScreenPayload => ({
   payload,
   type: navUpToScreen,
+})
+/**
+ * ONLY used by the new nav. Switch login stacks
+ */
+export const createSwitchLoggedIn = (payload: _SwitchLoggedInPayload): SwitchLoggedInPayload => ({
+  payload,
+  type: switchLoggedIn,
 })
 /**
  * ONLY used by the new nav. Switch to a different tab.
@@ -63,30 +55,14 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
   payload,
   type: resetStack,
 })
-/**
- * TODO for this whole json. replace all these actions with a cleaned up version
- */
-export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload): SwitchRouteDefPayload => ({
-  payload,
-  type: switchRouteDef,
-})
 export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
   payload,
   type: navigateAppend,
-})
-export const createNavigateTo = (payload: _NavigateToPayload): NavigateToPayload => ({
-  payload,
-  type: navigateTo,
 })
 export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})): NavigateUpPayload => ({
   payload,
   type: navigateUp,
 })
-export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload): PutActionIfOnPathPayload => ({
-  payload,
-  type: putActionIfOnPath,
-})
-export const createSwitchTo = (payload: _SwitchToPayload): SwitchToPayload => ({payload, type: switchTo})
 
 // Action Payloads
 export type ClearModalsPayload = {readonly payload: _ClearModalsPayload; readonly type: typeof clearModals}
@@ -98,19 +74,13 @@ export type NavigateAppendPayload = {
   readonly payload: _NavigateAppendPayload
   readonly type: typeof navigateAppend
 }
-export type NavigateToPayload = {readonly payload: _NavigateToPayload; readonly type: typeof navigateTo}
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
-export type PutActionIfOnPathPayload = {
-  readonly payload: _PutActionIfOnPathPayload
-  readonly type: typeof putActionIfOnPath
-}
 export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
-export type SwitchRouteDefPayload = {
-  readonly payload: _SwitchRouteDefPayload
-  readonly type: typeof switchRouteDef
+export type SwitchLoggedInPayload = {
+  readonly payload: _SwitchLoggedInPayload
+  readonly type: typeof switchLoggedIn
 }
 export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: typeof switchTab}
-export type SwitchToPayload = {readonly payload: _SwitchToPayload; readonly type: typeof switchTo}
 
 // All Actions
 // prettier-ignore
@@ -118,11 +88,8 @@ export type Actions =
   | ClearModalsPayload
   | NavUpToScreenPayload
   | NavigateAppendPayload
-  | NavigateToPayload
   | NavigateUpPayload
-  | PutActionIfOnPathPayload
   | ResetStackPayload
-  | SwitchRouteDefPayload
+  | SwitchLoggedInPayload
   | SwitchTabPayload
-  | SwitchToPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

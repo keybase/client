@@ -5,9 +5,9 @@ import {compose, connect, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = state => {
   const currentDeviceAlreadyProvisioned = !!state.config.deviceName
   return {
     currentDeviceAlreadyProvisioned,
@@ -22,13 +22,13 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   currentDeviceAlreadyProvisioned: stateProps.currentDeviceAlreadyProvisioned,
   currentDeviceName: stateProps.currentDeviceName,
   currentDeviceType: stateProps.currentDeviceType,

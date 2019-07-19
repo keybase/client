@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -35,8 +37,12 @@ func (s *Headline) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if err != nil {
 		return err
 	}
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
 	return s.G().ChatHelper.SendMsgByID(ctx, convID, tlfName,
 		chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
 			Headline: msg,
-		}), chat1.MessageType_HEADLINE)
+		}), chat1.MessageType_HEADLINE, conv.Info.Visibility)
 }

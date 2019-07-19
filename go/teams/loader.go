@@ -332,9 +332,11 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		return nil, nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
-	// Only public teams are allowed to be behind on secrets.
-	// This is allowed because you can load a public team you're not in.
-	if !l.hasSyncedSecrets(mctx, ret.teamShim()) && !ret.team.Chain.Public {
+	// Public teams are allowed to be behind on secrets since you can load a
+	// public team you're not in. Bot members don't have any secrets and are
+	// also exempt.
+	if !l.hasSyncedSecrets(mctx, ret.teamShim()) &&
+		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsBot()) {
 		// this should not happen
 		return nil, nil, fmt.Errorf("missing secrets for team")
 	}
@@ -405,7 +407,8 @@ type load2ArgT struct {
 	// loading a subteam. This parameter helps the server figure out whether
 	// to give us a subteam-reader version of the team.
 	// If and only if this is set, load2 is allowed to return a secret-less TeamData.
-	// Load1 should never ever return a secret-less TeamData.
+	// Load1 can return secret-less TeamData if the team is public or the
+	// current user is a bot member.
 	readSubteamID *keybase1.TeamID
 
 	// If the user is logged out, this will be a nil UserVersion, meaning
@@ -707,9 +710,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
-	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
-	if err != nil {
-		return nil, err
+	if teamUpdate != nil {
+		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	preloadCancel()
@@ -763,16 +768,21 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("secrets")
 	if teamUpdate != nil {
-
 		if teamUpdate.SubteamReader {
 			// Only allow subteam-reader results if we are in a recursive load.
 			if arg.readSubteamID == nil {
 				return nil, fmt.Errorf("unexpected subteam reader result")
 			}
 		} else {
+			stateWrapper := newTeamSigChainState(teamShim())
+			role, err := stateWrapper.GetUserRole(arg.me)
+			if err != nil {
+				role = keybase1.TeamRole_NONE
+			}
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
-			if !ret.Chain.Public || (teamUpdate.Box != nil) {
+			// Bots don't have any team secrets, so we alos short circuit.
+			if !role.IsBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
@@ -872,15 +882,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
-		chain := TeamSigChainState{inner: ret.Chain}
+		chain := TeamSigChainState{inner: ret.Chain, hidden: hiddenPackage.ChainData()}
 		// Send a notification if we used to have the name cached and it has changed at all.
 		changeSet := keybase1.TeamChangeSet{Renamed: true}
 		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(),
-			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 	}
 
 	// Check request constraints
@@ -925,7 +935,8 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 	if err != nil {
 		return false, err
 	}
-	if role == keybase1.TeamRole_ADMIN || role == keybase1.TeamRole_WRITER || role == keybase1.TeamRole_OWNER {
+	switch role {
+	case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
 		mctx.Debug("user fits explicit role (%s)", role)
 		return true, nil
 	}

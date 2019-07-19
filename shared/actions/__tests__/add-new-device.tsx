@@ -7,13 +7,13 @@ import * as RouteTreeGen from '../route-tree-gen'
 import HiddenString from '../../util/hidden-string'
 import provisionSaga, {_testing} from '../provision'
 import {createStore, applyMiddleware} from 'redux'
-import rootReducer from '../../reducers'
+import rootReducer, {TypedState} from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
 
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({method, payload, initialStore}: {method: string; payload: any; initialStore?: Object}) => {
+const makeInit = ({method, payload, initialStore}: {method: string; payload: any; initialStore?: any}) => {
   const {dispatch, getState, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
   const callMap = manager.getCustomResponseIncomingCallMap()
@@ -25,7 +25,7 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   const effect: any = mockIncomingCall(payload as any, response as any)
   if (effect) {
     // Throws in the generator only, so we have to stash it
-    let thrown
+    let thrown: Error | null = null
     sagaMiddleware.run(function*(): IterableIterator<any> {
       try {
         yield effect
@@ -45,19 +45,21 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   }
 }
 
-const startReduxSaga = (initialStore = undefined) => {
+type MakeInit = ReturnType<typeof makeInit>
+
+const startReduxSaga = (initialStore?: TypedState) => {
   const sagaMiddleware = createSagaMiddleware({
     onError: e => {
       throw e
     },
   })
-  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+  const store = createStore(rootReducer as any, initialStore, applyMiddleware(sagaMiddleware))
   const getState = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+  dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+  dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
 
   return {
     dispatch,
@@ -88,7 +90,7 @@ describe('provisioningManagerAddingDevice', () => {
 describe('text code happy path', () => {
   const incoming = new HiddenString('incomingSecret')
   const outgoing = new HiddenString('outgoingSecret')
-  let init
+  let init: MakeInit
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
@@ -134,7 +136,7 @@ describe('text code happy path', () => {
 describe('text code error path', () => {
   const phrase = new HiddenString('incomingSecret')
   const error = new HiddenString('anerror')
-  let init
+  let init: MakeInit
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',

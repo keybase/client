@@ -11,37 +11,29 @@ type Props = {
   participants: string
 }
 
-type State = {
-  reportAbuse: boolean
-}
+const BlockConversationWarning = (props: Props) => {
+  const [reportAbuse, setReportAbuse] = React.useState(false)
 
-class BlockConversationWarning extends React.Component<Props, State> {
-  state = {
-    reportAbuse: false,
-  }
+  const _onConfirm = () => (reportAbuse ? props.onBlockAndReport() : props.onBlock())
 
-  _onConfirm = () => (this.state.reportAbuse ? this.props.onBlockAndReport() : this.props.onBlock())
-
-  render() {
-    return (
-      <Kb.ConfirmModal
-        icon="iconfont-block"
-        iconColor={Styles.globalColors.red}
-        confirmText="Yes, block them"
-        content={
-          <Kb.Checkbox
-            checked={this.state.reportAbuse}
-            label="Report abuse"
-            onCheck={checked => this.setState({reportAbuse: checked})}
-          />
-        }
-        description="You won’t see this conversation anymore. They won’t be notified or know you’ve blocked the conversation."
-        onCancel={this.props.onBack}
-        onConfirm={this._onConfirm}
-        prompt={`Block the conversation with ${this.props.participants}?`}
-      />
-    )
-  }
+  return (
+    <Kb.ConfirmModal
+      icon="iconfont-block"
+      iconColor={Styles.globalColors.red}
+      confirmText="Yes, block them"
+      content={
+        <Kb.Checkbox
+          checked={reportAbuse}
+          label="Report abuse"
+          onCheck={checked => setReportAbuse(checked)}
+        />
+      }
+      description="You won’t see this conversation anymore. They won’t be notified or know you’ve blocked the conversation."
+      onCancel={props.onBack}
+      onConfirm={_onConfirm}
+      prompt={`Block the conversation with ${props.participants}?`}
+    />
+  )
 }
 
 export default BlockConversationWarning

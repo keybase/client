@@ -7,8 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <React/RCTBridgeModule.h>
 
-@interface Utils : NSObject
-+ (BOOL)areWeBeingUnitTested; // in a test context
-+ (BOOL)areWeBeingUnitTestedRightNow; // currently in a test
+@interface Utils : NSObject<RCTBridgeModule>
 @end

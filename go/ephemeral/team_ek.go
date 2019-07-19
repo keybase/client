@@ -311,7 +311,7 @@ func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error
 			return err
 		}
 	}
-	return nil
+	return err
 }
 
 func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.TeamID,

@@ -52,6 +52,6 @@ const reducers = {
 const rootReducer = combineReducers(reducers)
 export type TypedState = ReturnType<typeof rootReducer>
 
-export default function(state: TypedState, action: any): TypedState {
+export default function(state: TypedState | undefined, action: any): TypedState {
   return rootReducer(state, action)
 }

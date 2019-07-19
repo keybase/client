@@ -109,7 +109,7 @@ type Row =
     }
 
 class WalletList extends React.Component<Props> {
-  _renderRow = (i: number, row: Row): React.ReactNode => {
+  _renderRow = (_: number, row: Row): React.ReactNode => {
     switch (row.type) {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />

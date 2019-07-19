@@ -4,11 +4,11 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect, TypedState, TypedDispatch} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
-import AccountSettings, {Props} from '.'
+import AccountSettings from '.'
 import {isMobile} from '../../styles'
 
 type OwnProps = {}
-const mapStateToProps = (state: TypedState, o: OwnProps) => ({
+const mapStateToProps = (state: TypedState) => ({
   _emails: state.settings.email.emails,
   _phones: state.settings.phoneNumbers.phones,
   addedEmail: state.settings.email.addedEmail,
@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, o): Props => ({
+  (stateProps, dispatchProps, _: OwnProps) => ({
     ...dispatchProps,
     addedEmail: stateProps.addedEmail,
     contactKeys: I.List([

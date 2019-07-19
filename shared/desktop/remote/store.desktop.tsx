@@ -9,9 +9,9 @@ import {createStore, applyMiddleware, Store} from 'redux'
 const updateStore = 'remoteStore:update'
 
 class RemoteStore {
-  _window: SafeElectron.BrowserWindowType | null
+  _window: SafeElectron.BrowserWindowType | null = null
   _store: Store<any, any>
-  _gotPropsCallback: () => void | null // let component know it loaded once so it can show itself. Set to null after calling once
+  _gotPropsCallback: (() => void) | null = null // let component know it loaded once so it can show itself. Set to null after calling once
   _deserialize: (arg0: any, arg1: any) => any
 
   getStore = () => this._store
@@ -70,7 +70,7 @@ class RemoteStore {
   }
 }
 
-const sendToRemoteMiddleware = ({getState, dispatch}) => next => action => {
+const sendToRemoteMiddleware = ({getState}) => next => action => {
   if (action.constructor === Function) {
     throw new Error('pure actions only allowed in remote store2')
   } else if (action.type === updateStore) {

@@ -58,8 +58,8 @@ const maxEmojiSearchResults = 50
 // Cache the width & sections after the first render so we
 // can render a good initial guess
 let cachedWidth = 0
-let cachedSections = null
-let cachedTopReacjis = null
+let cachedSections: Array<Section> = []
+let cachedTopReacjis: Array<String> | null = null
 const cacheSections = (width: number, sections: Array<Section>, topReacjis: Array<string> | null) => {
   cachedWidth = width
   cachedSections = sections
@@ -121,7 +121,7 @@ class EmojiPicker extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.width !== prevProps.width) {
       this._chunkData()
     }

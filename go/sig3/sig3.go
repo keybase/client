@@ -381,7 +381,7 @@ func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
 
 func genRandomBytes(i int) ([]byte, error) {
 	ret := make([]byte, i, i)
-	n, err := rand.Reader.Read(ret[:])
+	n, err := rand.Read(ret[:])
 	if err != nil {
 		return nil, err
 	}

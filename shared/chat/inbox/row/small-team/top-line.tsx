@@ -17,16 +17,16 @@ type Props = {
   participants: Array<string>
   showBold: boolean
   showGear: boolean
-  backgroundColor: string | null
+  backgroundColor?: string
   subColor: string
-  timestamp: string | null
-  usernameColor: string | null
+  timestamp?: string
+  usernameColor?: string
   hasBadge: boolean
 } & Kb.OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj, _, key) => {
       if (key === 'participants') {
         return shallowEqual(this.props.participants, nextProps.participants)
       }

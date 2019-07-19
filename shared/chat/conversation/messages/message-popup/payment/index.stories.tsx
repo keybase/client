@@ -31,7 +31,6 @@ const theyRequestProps = {
   ...commonProps,
   amountNominal: '$34',
   balanceChange: '',
-  balanceChangeColor: null,
   icon: receiveIcon,
   sender: 'kamel',
   topLine: 'requested Lumens worth',
@@ -54,7 +53,6 @@ const youRequestProps = {
   ...commonProps,
   amountNominal: '$34',
   balanceChange: '',
-  balanceChangeColor: null,
   cancelButtonLabel: 'Cancel request',
   icon: receiveIcon,
   onCancel,
@@ -73,20 +71,6 @@ const youSendProps = {
   sender: 'cecileb',
   topLine: 'you sent Lumens worth',
   txVerb: 'sent',
-} as Props
-
-const youRequestBTCProps = {
-  ...commonProps,
-  amountNominal: '3 BTC',
-  balanceChange: '',
-  balanceChangeColor: null,
-  bottomLine: 'stronghold.com',
-  cancelButtonLabel: 'Cancel request',
-  icon: receiveIcon,
-  onCancel,
-  sender: 'cecileb',
-  topLine: 'you requested',
-  txVerb: 'requested',
 } as Props
 
 const youReceiveBTCProps = {
@@ -115,6 +99,19 @@ const youSendBTCProps = {
   txVerb: 'sent',
 } as Props
 
+const youSendBTCFromXLMProps = {
+  ...commonProps,
+  amountNominal: '1 BTC',
+  balanceChange: '-10.2178468 XLM',
+  balanceChangeColor: S.globalColors.black,
+  bottomLine: 'stronghold.com',
+  icon: sendIcon,
+  onSeeDetails,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
+} as Props
+
 const youSendXLMProps = {
   ...commonProps,
   amountNominal: '1 XLM',
@@ -128,11 +125,16 @@ const youSendXLMProps = {
   txVerb: 'sent',
 } as Props
 
+const pendingPaymentProps = {
+  ...youSendXLMProps,
+  status: 'pending',
+  topLine: 'pending',
+}
+
 const loadingProps = {
   ...commonProps,
   amountNominal: '',
   balanceChange: '',
-  balanceChangeColor: null,
   icon: sendIcon,
   loading: true,
   sender: '',
@@ -156,10 +158,11 @@ const load = () => {
     .add('You receive Lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
     .add('You request Lumens', () => <PaymentPopupMoved {...youRequestProps} />)
     .add('You send Lumens', () => <PaymentPopupMoved {...youSendProps} />)
-    .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('You send BTC from XLM', () => <PaymentPopupMoved {...youSendBTCFromXLMProps} />)
     .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
+    .add('Pending', () => <PaymentPopupMoved {...pendingPaymentProps} />)
     .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
     .add('Canceled request', () => <PaymentPopupMoved {...canceledProps} />)
     .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)

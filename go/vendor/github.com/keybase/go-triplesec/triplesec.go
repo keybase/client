@@ -20,6 +20,7 @@ import (
 
 	"golang.org/x/crypto/salsa20"
 	"golang.org/x/crypto/scrypt"
+	//lint:ignore SA1019 needed for backward compatibility with V3
 	"golang.org/x/crypto/twofish"
 
 	"github.com/keybase/go-crypto/sha3"

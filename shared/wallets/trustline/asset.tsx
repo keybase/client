@@ -10,6 +10,7 @@ export type Props = {
   infoUrlText: string
   issuerAccountID: string
   issuerVerifiedDomain: string
+  thisDeviceIsLockedOut: boolean
   trusted: boolean // TODO add limit when we support it in GUI
 
   onAccept: () => void
@@ -71,45 +72,54 @@ const bodyExpanded = (props: Props) => (
   </Kb.Box2>
 )
 
-const Asset = (props: Props) => (
-  <Kb.ListItem2
-    firstItem={props.firstItem}
-    type="Small"
-    height={props.expanded ? expandedHeight : undefined}
-    body={
-      // We use this instead of the action prop on ListItem2 so that it
-      // "floats" on top of the content and the account ID can extend below it
-      // rather than being cut off by the action container's left border.
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
-        <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
-          {props.trusted ? (
-            <Kb.WaitingButton
-              mode="Secondary"
-              type="Danger"
-              small={true}
-              label="Remove"
-              onClick={stopPropagation(props.onRemove)}
-              disabled={props.waitingRefresh}
-              waitingKey={props.waitingKeyDelete}
-            />
-          ) : (
-            <Kb.WaitingButton
-              mode="Primary"
-              type="Success"
-              small={true}
-              label="Accept"
-              onClick={stopPropagation(props.onAccept)}
-              disabled={props.cannotAccept || props.waitingRefresh}
-              waitingKey={props.waitingKeyAdd}
-            />
-          )}
+const Asset = (props: Props) => {
+  const button = props.trusted ? (
+    <Kb.WaitingButton
+      mode="Secondary"
+      type="Danger"
+      small={true}
+      label="Remove"
+      onClick={stopPropagation(props.onRemove)}
+      disabled={props.waitingRefresh || props.thisDeviceIsLockedOut}
+      waitingKey={props.waitingKeyDelete}
+    />
+  ) : (
+    <Kb.WaitingButton
+      mode="Primary"
+      type="Success"
+      small={true}
+      label="Accept"
+      onClick={stopPropagation(props.onAccept)}
+      disabled={props.cannotAccept || props.waitingRefresh || props.thisDeviceIsLockedOut}
+      waitingKey={props.waitingKeyAdd}
+    />
+  )
+  return (
+    <Kb.ListItem2
+      firstItem={props.firstItem}
+      type="Small"
+      height={props.expanded ? expandedHeight : undefined}
+      body={
+        // We use this instead of the action prop on ListItem2 so that it
+        // "floats" on top of the content and the account ID can extend below it
+        // rather than being cut off by the action container's left border.
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+          {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
+          <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
+            {props.thisDeviceIsLockedOut ? (
+              <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
+                {button}
+              </Kb.WithTooltip>
+            ) : (
+              button
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    }
-    onClick={props.expanded ? props.onCollapse : props.onExpand}
-  />
-)
+      }
+      onClick={props.expanded ? props.onCollapse : props.onExpand}
+    />
+  )
+}
 
 const nonExpandedHeight = Styles.isMobile ? 56 : 48
 const expandedHeight = Styles.isMobile ? 160 : 140

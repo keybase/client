@@ -977,7 +977,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		// Send an additional notification to refresh the thread after we bump
 		// the local inbox version
 		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
-			s.Debug(ctx, "notifyEphemeralPurge: unablle to IncrementLocalConvVersion, err", err)
+			s.Debug(ctx, "notifyEphemeralPurge: unable to IncrementLocalConvVersion, err", err)
 		}
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
 			chat1.ConversationStaleUpdate{

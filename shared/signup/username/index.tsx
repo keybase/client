@@ -23,17 +23,19 @@ const EnterUsername = (props: Props) => {
       banners={[
         ...(props.usernameTaken
           ? [
-              <Kb.Banner
-                key="usernameTaken"
-                text="Sorry, this username is already taken. Did you mean to" // see `actions` title for the end of this sentence
-                actions={[
-                  {
-                    onClick: () => props.onLogin(props.usernameTaken),
-                    title: `log in as ${props.usernameTaken}?`,
-                  },
-                ]}
-                color="blue"
-              />,
+              <Kb.Banner key="usernameTaken" color="blue">
+                <Kb.BannerParagraph
+                  bannerColor="blue"
+                  content={[
+                    'Sorry, this username is already taken. Did you mean to ',
+                    {
+                      onClick: () => props.usernameTaken && props.onLogin(props.usernameTaken),
+                      text: `log in as ${props.usernameTaken}`,
+                    },
+                    '?',
+                  ]}
+                />
+              </Kb.Banner>,
             ]
           : []),
         ...errorBanner(props.error),

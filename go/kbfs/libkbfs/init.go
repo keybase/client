@@ -376,7 +376,7 @@ func parseRootDir(addr string) (string, bool) {
 	return serverRootDir, true
 }
 
-func makeMDServer(config Config, mdserverAddr string,
+func makeMDServer(kbCtx Context, config Config, mdserverAddr string,
 	rpcLogFactory rpc.LogFactory, log logger.Logger) (
 	MDServer, error) {
 	if mdserverAddr == memoryAddr {
@@ -403,7 +403,7 @@ func makeMDServer(config Config, mdserverAddr string,
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
 	log.Debug("Using remote mdserver %s", remote)
-	mdServer := NewMDServerRemote(config, remote, rpcLogFactory)
+	mdServer := NewMDServerRemote(kbCtx, config, remote, rpcLogFactory)
 	return mdServer, nil
 }
 
@@ -437,7 +437,7 @@ func makeKeyServer(
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, bserverAddr string,
+func makeBlockServer(kbCtx Context, config Config, bserverAddr string,
 	rpcLogFactory rpc.LogFactory,
 	log logger.Logger) (BlockServer, error) {
 	if bserverAddr == memoryAddr {
@@ -465,7 +465,7 @@ func makeBlockServer(config Config, bserverAddr string,
 		return nil, err
 	}
 	log.Debug("Using remote bserver %s", remote)
-	return NewBlockServerRemote(config, remote, rpcLogFactory), nil
+	return NewBlockServerRemote(kbCtx, config, remote, rpcLogFactory), nil
 }
 
 // InitLogWithPrefix sets up logging switching to a log file if
@@ -761,8 +761,7 @@ func doInit(
 	config.SetCrypto(crypto)
 
 	// Initialize MDServer connection.
-	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	mdServer, err := makeMDServer(kbCtx, config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
@@ -785,7 +784,7 @@ func doInit(
 
 	// Initialize BlockServer connection.
 	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+		kbCtx, config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}

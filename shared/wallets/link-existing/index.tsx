@@ -90,7 +90,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   componentWillUnmount() {
     this.props.onClearErrors()
   }
-  componentDidUpdate(prevProps: LinkWalletProps, prevState: LinkWalletState) {
+  componentDidUpdate() {
     if (this.props.secretKeyValidationState === 'valid' && this.state.view === 'key') {
       this.props.onClearErrors()
       this._onViewChange('name')
@@ -102,7 +102,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   }
 
   render() {
-    let content = null
+    let content: React.ReactNode = null
     switch (this.state.view) {
       case 'key':
         content = (

@@ -43,6 +43,10 @@ export type MessageTypes = {
     inParam: void
     outParam: AirdropStatus
   }
+  'stellar.1.local.approvePathURILocal': {
+    inParam: {readonly inputURI: String; readonly fullPath: PaymentPath; readonly fromCLI: Boolean}
+    outParam: TransactionID
+  }
   'stellar.1.local.approvePayURILocal': {
     inParam: {readonly inputURI: String; readonly amount: String; readonly fromCLI: Boolean}
     outParam: TransactionID
@@ -134,6 +138,10 @@ export type MessageTypes = {
   'stellar.1.local.getSendAssetChoicesLocal': {
     inParam: {readonly from: AccountID; readonly to: String}
     outParam: Array<SendAssetChoiceLocal> | null
+  }
+  'stellar.1.local.getStaticConfigLocal': {
+    inParam: void
+    outParam: StaticConfig
   }
   'stellar.1.local.getTrustlinesForRecipientLocal': {
     inParam: {readonly recipient: String}
@@ -370,7 +378,7 @@ export type Asset = {readonly type: String; readonly code: String; readonly issu
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
-export type Balance = {readonly asset: Asset; readonly amount: String; readonly limit: String}
+export type Balance = {readonly asset: Asset; readonly amount: String; readonly limit: String; readonly isAuthorized: Boolean}
 export type BatchPaymentArg = {readonly recipient: String; readonly amount: String; readonly message: String}
 export type BatchPaymentError = {readonly message: String; readonly code: Int}
 export type BatchPaymentResult = {readonly username: String; readonly startTime: TimeMs; readonly submittedTime: TimeMs; readonly endTime: TimeMs; readonly txID: TransactionID; readonly status: PaymentStatus; readonly statusDescription: String; readonly error?: BatchPaymentError | null}
@@ -431,7 +439,7 @@ export type PaymentPathQuery = {readonly source: AccountID; readonly destination
 export type PaymentRelayPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly toAssertion: String; readonly relayAccount: AccountID; readonly teamID: Keybase1.TeamID; readonly displayAmount: String; readonly displayCurrency: String; readonly boxB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null}
 export type PaymentResult = {readonly senderAccountID: AccountID; readonly keybaseID: KeybaseTransactionID; readonly stellarID: TransactionID; readonly pending: Boolean}
 export type PaymentStatusMsg = {readonly accountID: AccountID; readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
-export type PaymentSummary = {typ: PaymentSummaryType.stellar; stellar: PaymentSummaryStellar | null} | {typ: PaymentSummaryType.direct; direct: PaymentSummaryDirect | null} | {typ: PaymentSummaryType.relay; relay: PaymentSummaryRelay | null}
+export type PaymentSummary = {typ: PaymentSummaryType.stellar; stellar: PaymentSummaryStellar | null} | {typ: PaymentSummaryType.direct; direct: PaymentSummaryDirect | null} | {typ: PaymentSummaryType.relay; relay: PaymentSummaryRelay | null} | {typ: PaymentSummaryType.none}
 export type PaymentSummaryDirect = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID; readonly txStatus: TransactionStatus; readonly txErrMsg: String; readonly fromStellar: AccountID; readonly from: Keybase1.UserVersion; readonly fromDeviceID: Keybase1.DeviceID; readonly toStellar: AccountID; readonly to?: Keybase1.UserVersion | null; readonly amount: String; readonly asset: Asset; readonly displayAmount?: String | null; readonly displayCurrency?: String | null; readonly noteB64: String; readonly fromDisplayAmount: String; readonly fromDisplayCurrency: String; readonly toDisplayAmount: String; readonly toDisplayCurrency: String; readonly ctime: TimeMs; readonly rtime: TimeMs; readonly cursorToken: String; readonly unread: Boolean; readonly fromPrimary: Boolean; readonly batchID: String; readonly fromAirdrop: Boolean; readonly sourceAmountMax: String; readonly sourceAmountActual: String; readonly sourceAsset: Asset}
 export type PaymentSummaryRelay = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID; readonly txStatus: TransactionStatus; readonly txErrMsg: String; readonly fromStellar: AccountID; readonly from: Keybase1.UserVersion; readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly toAssertion: String; readonly relayAccount: AccountID; readonly amount: String; readonly displayAmount?: String | null; readonly displayCurrency?: String | null; readonly ctime: TimeMs; readonly rtime: TimeMs; readonly boxB64: String; readonly teamID: Keybase1.TeamID; readonly claim?: ClaimSummary | null; readonly cursorToken: String; readonly batchID: String; readonly fromAirdrop: Boolean}
 export type PaymentSummaryStellar = {readonly txID: TransactionID; readonly from: AccountID; readonly to: AccountID; readonly amount: String; readonly asset: Asset; readonly ctime: TimeMs; readonly cursorToken: String; readonly unread: Boolean; readonly isInflation: Boolean; readonly inflationSource?: String | null; readonly sourceAmountMax: String; readonly sourceAmountActual: String; readonly sourceAsset: Asset; readonly isAdvanced: Boolean; readonly summaryAdvanced: String; readonly operations?: Array<String> | null; readonly trustline?: PaymentTrustlineLocal | null}
@@ -451,9 +459,10 @@ export type RequestStatusMsg = {readonly reqID: KeybaseRequestID}
 export type SecretKey = String
 export type SendAssetChoiceLocal = {readonly asset: Asset; readonly enabled: Boolean; readonly left: String; readonly right: String; readonly subtext: String}
 export type SendBannerLocal = {readonly level: String; readonly message: String; readonly proofsChanged: Boolean; readonly offerAdvancedSendForm: AdvancedBanner}
-export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID; readonly pending: Boolean}
+export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID; readonly pending: Boolean; readonly jumpToChat: String}
 export type SendResultCLILocal = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
 export type SignXdrResult = {readonly singedTx: String; readonly accountID: AccountID; readonly submitErr?: String | null; readonly submitTxID?: TransactionID | null}
+export type StaticConfig = {readonly paymentNoteMaxLength: Int; readonly requestNoteMaxLength: Int; readonly publicMemoMaxLength: Int}
 export type StellarServerDefinitions = {readonly revision: Int; readonly currencies: {[key: string]: OutsideCurrencyDefinition}}
 export type SubmitMultiRes = {readonly txID: TransactionID}
 export type TimeMs = Long
@@ -484,6 +493,7 @@ export const localAddTrustlineLocalRpcPromise = (params: MessageTypes['stellar.1
 export const localAirdropDetailsLocalRpcPromise = (params: MessageTypes['stellar.1.local.airdropDetailsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.airdropDetailsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.airdropDetailsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAirdropRegisterLocalRpcPromise = (params: MessageTypes['stellar.1.local.airdropRegisterLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.airdropRegisterLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.airdropRegisterLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAirdropStatusLocalRpcPromise = (params: MessageTypes['stellar.1.local.airdropStatusLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.airdropStatusLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.airdropStatusLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localApprovePathURILocalRpcPromise = (params: MessageTypes['stellar.1.local.approvePathURILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.approvePathURILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.approvePathURILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localApprovePayURILocalRpcPromise = (params: MessageTypes['stellar.1.local.approvePayURILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.approvePayURILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.approvePayURILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localApproveTxURILocalRpcPromise = (params: MessageTypes['stellar.1.local.approveTxURILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.approveTxURILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.approveTxURILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBuildPaymentLocalRpcPromise = (params: MessageTypes['stellar.1.local.buildPaymentLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.buildPaymentLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.buildPaymentLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -507,6 +517,7 @@ export const localGetPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.
 export const localGetPendingPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPendingPaymentsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPendingPaymentsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPendingPaymentsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPredefinedInflationDestinationsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPredefinedInflationDestinationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPredefinedInflationDestinationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPredefinedInflationDestinationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetSendAssetChoicesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getSendAssetChoicesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getSendAssetChoicesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getSendAssetChoicesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetStaticConfigLocalRpcPromise = (params: MessageTypes['stellar.1.local.getStaticConfigLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getStaticConfigLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getStaticConfigLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTrustlinesForRecipientLocalRpcPromise = (params: MessageTypes['stellar.1.local.getTrustlinesForRecipientLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getTrustlinesForRecipientLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getTrustlinesForRecipientLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTrustlinesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getTrustlinesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getTrustlinesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getTrustlinesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.getWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -555,7 +566,6 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.local.makeRequestCLILocal'
 // 'stellar.1.local.lookupCLILocal'
 // 'stellar.1.local.batchLocal'
-// 'stellar.1.local.approvePathURILocal'
 // 'stellar.1.local.signTransactionXdrLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'

@@ -16,7 +16,7 @@ const apiSearch = (
   service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean
-): Promise<Array<TeamBuildingTypes.User>> => {
+) => {
   return RPCTypes.userSearchUserSearchRpcPromise({
     includeContacts: flags.sbsContacts && service === 'keybase',
     includeServicesSummary,
@@ -24,7 +24,13 @@ const apiSearch = (
     query,
     service,
   })
-    .then(results => results.map(r => Constants.parseRawResultToUser(r, service)).filter(Boolean))
+    .then(results =>
+      (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
+        const u = Constants.parseRawResultToUser(r, service)
+        u && arr.push(u)
+        return arr
+      }, [])
+    )
     .catch(err => {
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
       return []
@@ -46,9 +52,14 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
-  const isStillInSameQuery = (state: TypedState): boolean =>
-    teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-    teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+  const isStillInSameQuery = (state: TypedState): boolean => {
+    const teamBuildingState = state[namespace].teamBuilding
+
+    return (
+      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
+      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+    )
+  }
 
   // Defer so we aren't conflicting with the main search
   yield Saga.callUntyped(Saga.delay, 100)
@@ -149,7 +160,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       }
       return suggestions.concat(contacts)
     })
-    .catch(e => {
+    .catch(() => {
       logger.error(`Error in fetching recs`)
       return []
     })
@@ -166,7 +177,7 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L, R>(
+function filterGenForNs<S, A, L>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
 ) {

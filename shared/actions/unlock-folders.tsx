@@ -10,7 +10,7 @@ function* checkPaperKey(_, action: UnlockFoldersGen.CheckPaperKeyPayload) {
   const {paperKey} = action.payload
   yield Saga.put(UnlockFoldersGen.createWaiting({waiting: true}))
   try {
-    yield* Saga.callPromise(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
+    yield Saga.callUntyped(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone())
   } catch (e) {
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDoneError({error: e.message}))
@@ -41,7 +41,7 @@ const refresh = (_, action: EngineGen.Keybase1RekeyUIRefreshPayload) => {
 
 const registerRekeyUI = () =>
   RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
-    .then(response => {
+    .then(() => {
       logger.info('Registered rekey ui')
     })
     .catch(error => {
@@ -55,7 +55,7 @@ const delegateRekeyUI = (_, action: EngineGen.Keybase1RekeyUIDelegateRekeyUIPayl
   const session = getEngine().createSession({
     dangling: true,
     incomingCallMap: {
-      'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) =>
+      'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) =>
         UnlockFoldersGen.createNewRekeyPopup({
           devices: problemSetDevices.devices || [],
           problemSet: problemSetDevices.problemSet,

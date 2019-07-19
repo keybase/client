@@ -8,13 +8,14 @@ const Kb = {
 
 type Props = {
   children: React.ReactNode
-  side: 'bottom' | 'middle' | 'top'
+  side?: 'bottom' | 'middle' | 'top'
 }
 
 const RoundedBox = (props: Props) => (
   <Kb.Box2
     direction="vertical"
     style={Styles.collapseStyles([
+      styles.default,
       props.side === 'bottom' && styles.bottom,
       props.side === 'middle' && styles.middle,
       props.side === 'top' && styles.top,
@@ -30,6 +31,7 @@ const roundedBox: Styles.StylesCrossPlatform = {
   borderBottomWidth: 1,
   borderColor: Styles.globalColors.greyDark,
   borderLeftWidth: 1,
+  borderRadius: Styles.borderRadius,
   borderRightWidth: 1,
   borderStyle: 'solid',
   borderTopWidth: 1,
@@ -39,18 +41,22 @@ const roundedBox: Styles.StylesCrossPlatform = {
 const styles = Styles.styleSheetCreate({
   bottom: {
     ...roundedBox,
-    borderBottomLeftRadius: Styles.borderRadius,
-    borderBottomRightRadius: Styles.borderRadius,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     borderTopWidth: 0,
+  },
+  default: {
+    ...roundedBox,
   },
   middle: {
     ...roundedBox,
+    borderRadius: 0,
     borderTopWidth: 0,
   },
   top: {
     ...roundedBox,
-    borderTopLeftRadius: Styles.borderRadius,
-    borderTopRightRadius: Styles.borderRadius,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
 })
 

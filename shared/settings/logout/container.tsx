@@ -36,7 +36,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
 })
@@ -44,4 +44,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 export default Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.safeSubmitPerMount(['onLogout'])
-)(Kb.HeaderOrPopup(LogOut))
+)(LogOut)

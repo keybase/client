@@ -52,6 +52,7 @@ const (
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
 	ChatActivityType_REACTION_UPDATE               ChatActivityType = 11
 	ChatActivityType_MESSAGES_UPDATED              ChatActivityType = 12
+	ChatActivityType_CONVS_UPDATED                 ChatActivityType = 13
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -70,6 +71,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"EPHEMERAL_PURGE":               10,
 	"REACTION_UPDATE":               11,
 	"MESSAGES_UPDATED":              12,
+	"CONVS_UPDATED":                 13,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -86,6 +88,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	10: "EPHEMERAL_PURGE",
 	11: "REACTION_UPDATE",
 	12: "MESSAGES_UPDATED",
+	13: "CONVS_UPDATED",
 }
 
 func (e ChatActivityType) String() string {
@@ -381,6 +384,26 @@ func (o MessagesUpdated) DeepCopy() MessagesUpdated {
 	}
 }
 
+type ConvsUpdated struct {
+	Items []InboxUIItem `codec:"items" json:"items"`
+}
+
+func (o ConvsUpdated) DeepCopy() ConvsUpdated {
+	return ConvsUpdated{
+		Items: (func(x []InboxUIItem) []InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]InboxUIItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Items),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -395,6 +418,7 @@ type ChatActivity struct {
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
 	ReactionUpdate__             *ReactionUpdateNotif            `codec:"reactionUpdate,omitempty" json:"reactionUpdate,omitempty"`
 	MessagesUpdated__            *MessagesUpdated                `codec:"messagesUpdated,omitempty" json:"messagesUpdated,omitempty"`
+	ConvsUpdated__               *ConvsUpdated                   `codec:"convsUpdated,omitempty" json:"convsUpdated,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -457,6 +481,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_MESSAGES_UPDATED:
 		if o.MessagesUpdated__ == nil {
 			err = errors.New("unexpected nil value for MessagesUpdated__")
+			return ret, err
+		}
+	case ChatActivityType_CONVS_UPDATED:
+		if o.ConvsUpdated__ == nil {
+			err = errors.New("unexpected nil value for ConvsUpdated__")
 			return ret, err
 		}
 	}
@@ -583,6 +612,16 @@ func (o ChatActivity) MessagesUpdated() (res MessagesUpdated) {
 	return *o.MessagesUpdated__
 }
 
+func (o ChatActivity) ConvsUpdated() (res ConvsUpdated) {
+	if o.ActivityType__ != ChatActivityType_CONVS_UPDATED {
+		panic("wrong case accessed")
+	}
+	if o.ConvsUpdated__ == nil {
+		return
+	}
+	return *o.ConvsUpdated__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -664,6 +703,13 @@ func NewChatActivityWithMessagesUpdated(v MessagesUpdated) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_MESSAGES_UPDATED,
 		MessagesUpdated__: &v,
+	}
+}
+
+func NewChatActivityWithConvsUpdated(v ConvsUpdated) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_CONVS_UPDATED,
+		ConvsUpdated__: &v,
 	}
 }
 
@@ -754,6 +800,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.MessagesUpdated__),
+		ConvsUpdated__: (func(x *ConvsUpdated) *ConvsUpdated {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvsUpdated__),
 	}
 }
 

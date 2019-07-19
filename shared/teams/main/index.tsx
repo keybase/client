@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as I from 'immutable'
 import Header from './header'
 import Banner from './banner'
-import BetaNote from './beta-note'
+import NoTeamsPlaceholder from './no-teams-placeholder'
 import {memoize} from '../../util/memoize'
 
 type DeletedTeam = {
@@ -110,11 +110,11 @@ type State = {
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: this.props.sawChatBanner}
 
-  _teamsAndExtras = memoize((deletedTeams, sawChatBanner, teamnames) => [
+  _teamsAndExtras = memoize((deletedTeams, teamnames) => [
     {key: '_banner', type: '_banner'},
     ...deletedTeams.map(t => ({key: 'deletedTeam' + t.teamName, team: t, type: 'deletedTeam'})),
     ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
-    {key: '_note', type: '_note'},
+    ...(teamnames.length === 0 ? [{key: '_placeholder', type: '_placeholder'}] : []),
   ])
 
   _onHideChatBanner = () => {
@@ -131,21 +131,23 @@ class Teams extends React.PureComponent<Props, State> {
         return this.state.sawChatBanner ? null : (
           <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
         )
-      case '_note':
-        return <BetaNote onReadMore={this.props.onReadMore} />
+      case '_placeholder':
+        return <NoTeamsPlaceholder />
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
-          <Kb.Banner
-            color="blue"
-            key={'deletedTeamBannerFor' + teamName}
-            text={`The ${teamName} team was deleted by ${deletedBy}.`}
-          />
+          <Kb.Banner color="blue" key={'deletedTeamBannerFor' + teamName}>
+            <Kb.BannerParagraph
+              bannerColor="blue"
+              content={`The ${teamName} team was deleted by ${deletedBy}.`}
+            />
+          </Kb.Banner>
         )
       }
       case 'team': {
         const name = item.team
-        const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
+        const reset = this.props.teamresetusers[name]
+        const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow
             firstItem={index === 1}
@@ -186,11 +188,7 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )}
         <Kb.List
-          items={this._teamsAndExtras(
-            this.props.deletedTeams,
-            this.state.sawChatBanner,
-            this.props.teamnames
-          )}
+          items={this._teamsAndExtras(this.props.deletedTeams, this.props.teamnames)}
           renderItem={this._renderItem}
         />
       </Kb.Box2>

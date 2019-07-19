@@ -26,8 +26,10 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from 'util/container'
+import {TypedState} from '../../util/container'
+import * as Contacts from 'expo-contacts'
+import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 
 type NextURI = string
 
@@ -86,6 +88,13 @@ function showShareActionSheetFromURL(options: {
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
+    if (!options.url && options.message) {
+      return NativeModules.ShareFiles.shareText(options.message, options.mimeType).then(
+        () => ({completed: true, method: ''}),
+        () => ({completed: false, method: ''})
+      )
+    }
+
     return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
       () => ({completed: true, method: ''}),
       () => ({completed: false, method: ''})
@@ -247,13 +256,13 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
-const updateMobileNetState = (state, action) => {
+const updateMobileNetState = (_, action) => {
   RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
     console.warn('Error sending mobileNetStateUpdate', err)
   })
 }
 
-const initOsNetworkStatus = (state, action) =>
+const initOsNetworkStatus = () =>
   NetInfo.fetch().then(({type}) =>
     ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
   )
@@ -281,7 +290,7 @@ function* loadStartupDetails() {
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGetValueRpcPromise({path: 'ui.routeState2'})
       .then(v => v.s || '')
-      .catch(e => {})
+      .catch(() => {})
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
@@ -372,29 +381,23 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<TypedActions> =>
-  new Promise((resolve, reject) => {
-    ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
-      if (response.didCancel) {
-        resolve()
-      } else if (response.error) {
-        resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
-      } else {
-        resolve(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: response}, selected: 'profileEditAvatar'}],
+const editAvatar = (): Promise<Saga.MaybeAction> =>
+  launchImageLibraryAsync('photo')
+    .then(result => {
+      result.cancelled === true
+        ? null
+        : RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
-        )
-      }
     })
-  })
+    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
   Linking.openURL(
     isAndroid
       ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
-  ).catch(e => {})
+  ).catch(() => {})
 
 const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
@@ -402,53 +405,59 @@ const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
 }
 
+const loadContactPermissionFromNative = async () => {
+  if (isIOS) {
+    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+  }
+  return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
+    ? 'granted'
+    : 'undetermined'
+}
+
 const loadContactPermissions = async (
-  _,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
-  logger
+  state: TypedState,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger: Saga.SagaLogger
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
     return
   }
-  let status = null
-  if (isIOS) {
-    status = expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
-  } else {
-    status = (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
-      ? 'granted'
-      : 'undetermined'
-  }
+  const status = await loadContactPermissionFromNative()
   logger.info(`OS status: ${status}`)
+  if (
+    isAndroid &&
+    status === 'undetermined' &&
+    ['never_ask_again', 'undetermined'].includes(state.settings.contacts.permissionStatus)
+  ) {
+    // Workaround PermissionsAndroid.check giving only a boolean. If
+    // `requestPermissions` previously told us never_ask_again that is still the
+    // status
+    return null
+  }
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
-const askForContactPermissionsAndroid = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsAndroid = async () => {
   const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS)
   // status is 'granted' | 'denied' | 'never_ask_again'
   // map 'denied' -> 'undetermined' since 'undetermined' means we can show the prompt again
   return status === 'denied' ? 'undetermined' : status
 }
 
-const askForContactPermissionsIOS = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsIOS = async () => {
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap[status]
 }
 
-const askForContactPermissions = (state: TypedState, logger: Saga.SagaLogger) => {
-  return isAndroid
-    ? askForContactPermissionsAndroid(state, logger)
-    : askForContactPermissionsIOS(state, logger)
+const askForContactPermissions = () => {
+  return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(
-  state: TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload,
-  logger: Saga.SagaLogger
-) {
+function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result = yield Saga.callPromise(askForContactPermissions, state, logger)
+  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
     yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
@@ -456,6 +465,93 @@ function* requestContactPermissions(
     Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
     Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})),
   ])
+}
+
+async function manageContactsCache(
+  state: TypedState,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger: Saga.SagaLogger
+) {
+  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
+    return
+  }
+
+  if (state.settings.contacts.importEnabled === false) {
+    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
+      SettingsGen.createSetContactImportedCount({count: null})
+    )
+  }
+
+  // get permissions if we haven't loaded them for some reason
+  let {permissionStatus} = state.settings.contacts
+  if (permissionStatus === 'unknown') {
+    permissionStatus = await loadContactPermissionFromNative()
+  }
+  const perm = permissionStatus === 'granted'
+
+  const enabled = state.settings.contacts.importEnabled
+  if (!enabled || !perm) {
+    if (enabled && !perm) {
+      logger.info('contact import enabled but no contact permissions')
+    }
+    if (enabled === null) {
+      logger.info("haven't loaded contact import enabled")
+    }
+    return
+  }
+
+  // feature enabled and permission granted
+  const contacts = await Contacts.getContactsAsync()
+  let defaultCountryCode: string
+  try {
+    defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+  } catch (e) {
+    logger.warn(`Error loading default country code: ${e.message}`)
+  }
+  const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      const formatted = getE164(pn.number || '', pn.countryCode || defaultCountryCode)
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
+
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    if (components.length) {
+      ret.push({components, name})
+    }
+
+    return ret
+  }, [])
+  logger.info(`Importing ${mapped.length} contacts.`)
+  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    .then(() => {
+      logger.info(`Success`)
+      return SettingsGen.createSetContactImportedCount({count: mapped.length})
+    })
+    .catch(e => {
+      logger.error('Error saving contacts list: ', e.message)
+    })
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+const getE164 = (phoneNumber: string, countryCode?: string) => {
+  try {
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+  } catch (e) {
+    return null
+  }
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -476,8 +572,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
   )
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
   )
@@ -485,6 +581,11 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.requestContactPermissions,
     requestContactPermissions,
     'requestContactPermissions'
+  )
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    manageContactsCache,
+    'manageContactsCache'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

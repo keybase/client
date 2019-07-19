@@ -1,6 +1,4 @@
-import {Props} from './index'
-
-function InviteGenerated(props: Props) {
+function InviteGenerated() {
   return null
 }
 

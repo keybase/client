@@ -1,6 +1,4 @@
-import {Props} from './index'
-
-function DeleteConfirm(props: Props) {
+function DeleteConfirm() {
   return null
 }
 

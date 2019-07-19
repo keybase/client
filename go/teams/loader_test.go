@@ -3,6 +3,7 @@ package teams
 import (
 	"bytes"
 	"encoding/hex"
+	"strings"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -113,8 +114,9 @@ func TestLoaderByName(t *testing.T) {
 // User A creates a team and rotate the key several times.
 // User B caches the team at generation 1, and then loads with NeedKeyGeneration later.
 //   which should get the latest generation that exists.
+// User C is a bot and never has access to keys.
 func TestLoaderKeyGen(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
 
 	// Require that a team is at this key generation
@@ -126,6 +128,7 @@ func TestLoaderKeyGen(t *testing.T) {
 
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
+
 	t.Logf("add B to the team so they can load it")
 	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
@@ -138,6 +141,21 @@ func TestLoaderKeyGen(t *testing.T) {
 	requireGen(team, 1)
 	require.Equal(t, keybase1.Seqno(2), team.Chain.LastSeqno, "chain seqno")
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 1, "number of kbfs rkms")
+
+	t.Logf("add C to the team so they can load it")
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	require.NoError(t, err)
+
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	t.Logf("C's first load at gen 1, expect no secrets")
+	require.NotNil(t, team)
+	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Len(t, team.Chain.PerTeamKeys, 1)
+	require.Equal(t, keybase1.Seqno(3), team.Chain.LastSeqno, "chain seqno")
+	require.Zero(t, len(team.ReaderKeyMasks))
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
@@ -156,7 +174,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	requireGen(team, 4)
-	require.Equal(t, keybase1.Seqno(8), team.Chain.LastSeqno)
+	require.Equal(t, keybase1.Seqno(9), team.Chain.LastSeqno)
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 
 	t.Logf("B loads and hits its cache")
@@ -178,6 +196,44 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.NoError(t, err)
 	requireGen(team, 4)
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
+
+	t.Logf("C loads with NeedKeyGeneration and errors out")
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedKeyGeneration: 3,
+		},
+	})
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "team key secret missing"))
+
+	t.Logf("C loads and never has keys")
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, team)
+	require.Equal(t, keybase1.Seqno(9), team.Chain.LastSeqno, "chain seqno")
+	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Len(t, team.Chain.PerTeamKeys, 4)
+	require.Zero(t, len(team.ReaderKeyMasks))
+
+	t.Logf("C becomes a reader and gets access")
+	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedKeyGeneration: 3,
+		},
+	})
+	require.NoError(t, err)
+	requireGen(team, 5)
+	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 5, "number of kbfs rkms")
 }
 
 func TestLoaderKBFSKeyGen(t *testing.T) {

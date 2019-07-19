@@ -34,12 +34,13 @@ const receiveIcon = Styles.isMobile
   : 'icon-fancy-stellar-receiving-desktop-98-86'
 
 const headerIconHeight = Styles.isMobile ? 129 : 86
+const pendingIconSize = 40
 
 type HeaderProps = {
   amountNominal: string
   approxWorth: string
   balanceChange: string
-  balanceChangeColor: AllowedColors | null
+  balanceChangeColor?: AllowedColors
   bottomLine: string
   errorDetails: string
   icon: 'sending' | 'receiving'
@@ -55,14 +56,29 @@ type HeaderProps = {
 export type Props = {
   attachTo?: () => React.Component<any> | null
   cancelButtonLabel: string
-  onCancel: () => void | null
-  onClaimLumens: () => void | null
+  onCancel: (() => void) | null
+  onClaimLumens: (() => void) | null
   onHidden: () => void
-  onSeeDetails: () => void | null
+  onSeeDetails: (() => void) | null
   position: Position
   style?: Styles.StylesCrossPlatform
   visible: boolean
 } & HeaderProps
+
+const headerIcon = (props: HeaderProps) =>
+  props.status === 'pending' ? (
+    <Kb.Icon
+      type="iconfont-time"
+      color={Styles.globalColors.black_50}
+      fontSize={pendingIconSize}
+      style={Kb.iconCastPlatformStyles(styles.pendingHeaderIcon)}
+    />
+  ) : (
+    <Kb.Icon
+      type={props.icon === 'sending' ? sendIcon : receiveIcon}
+      style={Kb.iconCastPlatformStyles(styles.headerIcon)}
+    />
+  )
 
 const Header = (props: HeaderProps) =>
   props.loading ? (
@@ -73,24 +89,21 @@ const Header = (props: HeaderProps) =>
     </Kb.Box2>
   ) : (
     <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical" style={styles.popupContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
-        <Kb.Icon
-          type={props.icon === 'sending' ? sendIcon : receiveIcon}
-          style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-        />
-        <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={headerTop(props)}>
+        {headerIcon(props)}
+        <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
           {toUpper(props.topLine)}
         </Kb.Text>
-        <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
+        <Kb.Text type="HeaderExtrabold" style={headerTextStyle(props)}>
           {props.amountNominal}
         </Kb.Text>
         {!!props.bottomLine && (
-          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+          <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
             {toUpper(props.bottomLine)}
           </Kb.Text>
         )}
         {!!props.approxWorth && (
-          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+          <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
             (APPROXIMATELY {props.approxWorth})
           </Kb.Text>
         )}
@@ -113,7 +126,9 @@ const Header = (props: HeaderProps) =>
             type="BodySmallSemibold"
           />
         </Kb.Box2>
-        <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          using device {props.senderDeviceName}
+        </Kb.Text>
         <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.status && (
@@ -198,7 +213,6 @@ const PaymentPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  colorWhite: {color: Styles.globalColors.white},
   errorDetails: {
     maxWidth: 200,
     paddingLeft: Styles.globalMargins.tiny,
@@ -215,6 +229,8 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.small,
     },
   }),
+  headerTextNotPending: {color: Styles.globalColors.white},
+  headerTextPending: {color: Styles.globalColors.black_50},
   headerTop: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -244,9 +260,41 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
+  pendingHeaderIcon: Styles.platformStyles({
+    common: {height: pendingIconSize},
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      display: 'inline-block',
+      marginBottom: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
+  pendingHeaderTop: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.black_05,
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
 })
+
+const headerTop = (props: HeaderProps) => {
+  return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop
+}
+
+const headerTextStyle = (props: HeaderProps) => {
+  return props.status === 'pending' ? styles.headerTextPending : styles.headerTextNotPending
+}
 
 export default PaymentPopup

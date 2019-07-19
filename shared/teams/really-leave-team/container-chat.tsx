@@ -7,12 +7,7 @@ import {getCanPerform, hasCanPerform, leaveTeamWaitingKey} from '../../constants
 import {Teamname} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 type Props = {
   _canLeaveTeam: boolean
@@ -42,7 +37,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _) => {
   return {
     _canLeaveTeam: stateProps._canLeaveTeam,
     _leaving: stateProps._leaving,

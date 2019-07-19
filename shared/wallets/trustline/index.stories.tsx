@@ -65,6 +65,7 @@ const commonTrustlineProps = {
   balanceAvailableToSend: '2',
   canAddTrustline: true,
   clearTrustlineModal: Sb.action('clearTrustlineModal'),
+  error: '',
   loaded: true,
   onDone: Sb.action('onDone'),
   onSearchChange: Sb.action('onSearchChange'),

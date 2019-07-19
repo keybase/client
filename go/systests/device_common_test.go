@@ -128,18 +128,18 @@ type backupKey struct {
 // testDevice wraps a mock "device", meaning an independent running service and
 // some connected clients. It's forked from deviceWrapper in rekey_test.
 type testDevice struct {
-	t          *testing.T
-	tctx       *libkb.TestContext
-	clones     []*libkb.TestContext
-	stopCh     chan error
-	service    *service.Service
-	testUI     *testUI
-	deviceID   keybase1.DeviceID
-	deviceName string
-	deviceKey  keybase1.PublicKey
-	cli        *rpc.Client
-	srv        *rpc.Server
-	userClient keybase1.UserClient
+	t                  *testing.T
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	stopCh             chan error
+	service            *service.Service
+	testUI             *testUI
+	deviceID           keybase1.DeviceID
+	deviceName         string
+	deviceKey          keybase1.PublicKey
+	cli                *rpc.Client
+	srv                *rpc.Server
+	userClient         keybase1.UserClient
 }
 
 type testDeviceSet struct {
@@ -205,6 +205,8 @@ func (d *testDevice) popClone() *libkb.TestContext {
 		panic("ran out of cloned environments")
 	}
 	ret := d.clones[0]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	d.clones = d.clones[1:]
 	return ret
 }
@@ -227,6 +229,9 @@ func (s *testDeviceSet) cleanup() {
 			od.stop()
 		}
 		for _, cl := range od.clones {
+			cl.Cleanup()
+		}
+		for _, cl := range od.usedClones {
 			cl.Cleanup()
 		}
 	}

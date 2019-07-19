@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => {
   const showLoading = state.config.daemonHandshakeState !== 'done'

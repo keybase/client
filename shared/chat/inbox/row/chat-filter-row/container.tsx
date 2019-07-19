@@ -24,7 +24,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {focusFilter}) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(appendNewChatBuilder())
@@ -57,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default
 
 export default compose(
+  // @ts-ignore TODO remove compose
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
   withProps<any, any>((props: any) => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),

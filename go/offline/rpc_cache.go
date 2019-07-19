@@ -4,14 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/client/go/chat/storage"
+	"sync"
+	"time"
+
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"sync"
-	"time"
 )
 
 type RPCCache struct {
@@ -25,7 +25,12 @@ const (
 
 func newEncryptedDB(g *libkb.GlobalContext) *encrypteddb.EncryptedDB {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		// Use EncryptionReasonChatLocalStorage for legacy reasons. This
+		// function used to use chat/storage.GetSecretBoxKey in the past, and
+		// we didn't want users to lose encrypted data after we switched to
+		// more generic encrypteddb.GetSecretBoxKey.
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonChatLocalStorage, "offline rpc cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
@@ -39,11 +44,15 @@ func NewRPCCache(g *libkb.GlobalContext) *RPCCache {
 	}
 }
 
-func hash(rpcName string, arg interface{}) ([]byte, error) {
+type hashStruct struct {
+	UID     keybase1.UID
+	RPCName string
+	Arg     interface{}
+}
+
+func hash(rpcName string, uid keybase1.UID, arg interface{}) ([]byte, error) {
 	h := sha256.New()
-	h.Write([]byte(rpcName))
-	h.Write([]byte{0})
-	raw, err := msgpack.Encode(arg)
+	raw, err := msgpack.Encode(hashStruct{uid, rpcName, arg})
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +60,9 @@ func hash(rpcName string, arg interface{}) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-func dbKey(rpcName string, arg interface{}) (libkb.DbKey, error) {
-	raw, err := hash(rpcName, arg)
+func dbKey(rpcName string, uid keybase1.UID, arg interface{}) (libkb.DbKey,
+	error) {
+	raw, err := hash(rpcName, uid, arg)
 	if err != nil {
 		return libkb.DbKey{}, err
 	}
@@ -75,7 +85,7 @@ func (c *RPCCache) get(mctx libkb.MetaContext, version Version, rpcName string, 
 	c.Lock()
 	defer c.Unlock()
 
-	dbk, err := dbKey(rpcName, arg)
+	dbk, err := dbKey(rpcName, mctx.G().GetMyUID(), arg)
 	if err != nil {
 		return false, err
 	}
@@ -108,7 +118,7 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 	c.Lock()
 	defer c.Unlock()
 
-	dbk, err := dbKey(rpcName, arg)
+	dbk, err := dbKey(rpcName, mctx.G().GetMyUID(), arg)
 	if err != nil {
 		return err
 	}

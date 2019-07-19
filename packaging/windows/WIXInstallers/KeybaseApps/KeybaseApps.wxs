@@ -12,7 +12,7 @@
     <Property Id="EXECUTABLETARGET" Value="bin"/>
     <Property Id="MsiLogging" Value="oicewarmup"/>
     <PropertyRef Id="WIX_IS_NETFRAMEWORK_452_OR_LATER_INSTALLED"/>
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />
 
     <Condition Message="This application requires .NET Framework 4.5.2. Please install the .NET Framework then run this installer again.">
       <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_452_OR_LATER_INSTALLED]]>
@@ -67,15 +67,12 @@
       <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
     </Directory>
   </Fragment>
-  
+
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
+			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyApp" On="uninstall" />
-        <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
-        and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
-        <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -98,7 +95,7 @@
         </RegistryKey>
         <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
-			
+
       <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
         <CreateFolder />
         <RemoveFolder Id="RemoveGitHelper" On="uninstall" />
@@ -108,7 +105,7 @@
         <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
         <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
       </Component>
-      
+
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
@@ -139,7 +136,7 @@
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-    </ComponentGroup>    
+    </ComponentGroup>
   </Fragment>
   <Fragment>
     <ComponentGroup Id="GuiStartMenuTileColors" Directory="GuiDir">
@@ -151,12 +148,12 @@
         </RegistryKey>
         <File Id="GUIShortcutVisualElementManifest.xml" Source="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\Keybase.visualelementsmanifest.xml" Checksum="yes"/>
       </Component>
-    </ComponentGroup>    
+    </ComponentGroup>
   </Fragment>
-  
+
   <Fragment>
     <ComponentGroup Id="BrowserExtensionKbnm" Directory="INSTALLFOLDER">
-      
+
       <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyBrowserExtensionExe" On="uninstall" />
@@ -203,7 +200,7 @@
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog2"
               Execute="commit"
-              Return="ignore"/>    
+              Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopMainApp"

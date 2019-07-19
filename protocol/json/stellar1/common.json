@@ -132,6 +132,10 @@
         {
           "type": "string",
           "name": "limit"
+        },
+        {
+          "type": "boolean",
+          "name": "isAuthorized"
         }
       ]
     },

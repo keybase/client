@@ -89,6 +89,11 @@ func DefaultLoader(g *libkb.GlobalContext) *Loader {
 	return defaultLoader
 }
 
+func (p *Loader) GetPaymentLocal(ctx context.Context, paymentID stellar1.PaymentID) (*stellar1.PaymentLocal, bool) {
+	pmt, ok := p.payments[paymentID]
+	return pmt, ok
+}
+
 func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
 	defer libkb.CTrace(ctx, p.G().GetLog(), fmt.Sprintf("Loader.LoadPayment(cid=%s,mid=%s,pid=%s)", convID, msgID, paymentID), func() error { return nil })()
 
@@ -120,7 +125,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		m.Warning("existing payment message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
-	payment, ok := p.payments[paymentID]
+	payment, ok := p.GetPaymentLocal(ctx, paymentID)
 	if ok {
 		info := p.uiPaymentInfo(m, payment, msg)
 		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), p.G().ActiveDevice.UID(), convID, msgID, *info)
@@ -324,6 +329,7 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		WorthAtSendTime:   summary.WorthAtSendTime,
 		Delta:             summary.Delta,
 		Note:              summary.Note,
+		IssuerDescription: summary.IssuerDescription,
 		PaymentID:         summary.Id,
 		SourceAmount:      summary.SourceAmountActual,
 		SourceAsset:       summary.SourceAsset,

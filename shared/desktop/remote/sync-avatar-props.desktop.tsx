@@ -49,8 +49,8 @@ export const deserialize = (state: any = initialState, props: any) => {
   if (!props) return state
 
   const pa = props.avatars || {}
-  const arrs = Object.keys(pa).reduce((arr, name) => {
-    const sizes = Object.keys(pa[name]).reduce((arr, size) => {
+  const arrs = Object.keys(pa).reduce<Array<[string, I.Map<string, string | undefined>]>>((arr, name) => {
+    const sizes = Object.keys(pa[name]).reduce<Array<[string, string | undefined]>>((arr, size) => {
       arr.push([size, pa[name][size]])
       return arr
     }, [])
@@ -71,7 +71,7 @@ export const deserialize = (state: any = initialState, props: any) => {
 function SyncAvatarProps(ComposedComponent: any) {
   class RemoteAvatarConnected extends React.PureComponent<Props> {
     _onRemoteActionFired = (
-      event: any,
+      _: any,
       action: {
         type: string
         payload: any

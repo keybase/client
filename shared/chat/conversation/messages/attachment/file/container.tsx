@@ -1,11 +1,11 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, isMobile} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 type OwnProps = {
   message: Types.MessageAttachment
@@ -25,7 +25,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const arrowColor = message.downloadPath
     ? globalColors.green
@@ -51,16 +51,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     errorMsg: message.transferErrMsg || '',
     fileName: message.fileName,
     hasProgress,
-    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
+    onDownload:
+      !Container.isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
+    onShowInFinder:
+      !Container.isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     progress: message.transferProgress,
     progressLabel,
     title: message.title || message.fileName,
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(File)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(File)

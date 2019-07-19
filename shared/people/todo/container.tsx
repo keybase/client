@@ -10,6 +10,7 @@ import {connect, isMobile} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import openURL from '../../util/open-url'
 
 type TodoOwnProps = {
@@ -17,9 +18,8 @@ type TodoOwnProps = {
   confirmLabel: string
   icon: IconType
   instructions: string
-  subText: string
+  metadata: Types.TodoMeta
   todoType: Types.TodoType
-  buttons: Array<TaskButton>
 }
 
 const installLinkURL = 'https://keybase.io/download'
@@ -46,7 +46,11 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
 const AddEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    onConfirm: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
+    },
     onDismiss: onSkipTodo('addEmail', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -58,7 +62,11 @@ const AddEmailConnector = connect(
 const AddPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    onConfirm: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+    },
     onDismiss: onSkipTodo('addPhoneNumber', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -181,8 +189,8 @@ const TeamConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.teamsTab], path: ['teamNewTeamDialog']}))
-      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['teamNewTeamDialog']}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.teamsTab]}))
     },
     onDismiss: onSkipTodo('team', dispatch),
   }),
@@ -252,17 +260,31 @@ const TeamShowcaseConnector = connect(
 const VerifyAllEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
-    onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
+    _onConfirm: email => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(SettingsGen.createEditEmail({email, verify: true}))
+    },
+    onManage: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    },
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Verify',
-        onClick: dispatchProps.onConfirm,
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Verify',
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+              },
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'Manage email',
         mode: 'Secondary',
@@ -275,17 +297,30 @@ const VerifyAllEmailConnector = connect(
 const VerifyAllPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
-    onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
+    _onConfirm: (phoneNumber: string) => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    },
+    onManage: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    },
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Verify',
-        onClick: dispatchProps.onConfirm,
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Verify',
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'phone' && dispatchProps._onConfirm(meta.phone)
+              },
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'Manage numbers',
         mode: 'Secondary',
@@ -298,17 +333,28 @@ const VerifyAllPhoneNumberConnector = connect(
 const LegacyEmailVisibilityConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    _onConfirm: email => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
+    },
     onDismiss: onSkipTodo('legacyEmailVisibility', dispatch),
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Make searchable',
-        onClick: dispatchProps.onConfirm,
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Make searchable',
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+              },
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'No',
         mode: 'Secondary',

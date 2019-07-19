@@ -32,24 +32,34 @@ const SecretNoteAndPublicMemo = () => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const secretNote = buildingAdvanced.secretNote.stringValue()
   const publicMemo = buildingAdvanced.publicMemo.stringValue()
+
+  // We currently don't support path payment requests, so no need to check if this is a request
+  const secretNoteMaxLength = Container.useSelector(state =>
+    state.wallets.staticConfig ? state.wallets.staticConfig.paymentNoteMaxLength : 0
+  )
+  const publicMemoMaxLength = Container.useSelector(state =>
+    state.wallets.staticConfig ? state.wallets.staticConfig.publicMemoMaxLength : 0
+  )
   return (
     <>
       <SecretNote
         secretNote={secretNote}
         onChangeSecretNote={onChangeSecretNote}
         toSelf={buildingAdvanced.recipientType === 'otherAccount'}
-        secretNoteError={null /* TODO PICNIC-142 */}
+        secretNoteError={'' /* TODO PICNIC-142 */}
+        maxLength={secretNoteMaxLength}
       />
       <PublicMemo
         publicMemo={publicMemo}
         onChangePublicMemo={onChangePublicMemo}
-        publicMemoError={null /* TODO PICNIC-142 */}
+        publicMemoError={'' /* TODO PICNIC-142 */}
+        maxLength={publicMemoMaxLength}
       />
     </>
   )
 }
 
-const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
+const SendBodyAdvanced = (_: SendBodyAdvancedProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.ScrollView style={sharedStyles.scrollView}>
       <AssetInputRecipientAdvanced />

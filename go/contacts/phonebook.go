@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/libkb"
@@ -22,9 +21,14 @@ type SavedContactsStore struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
+var _ libkb.SyncedContactListProvider = (*SavedContactsStore)(nil)
+
+// NewSavedContactsStore creates a new SavedContactsStore for global context.
+// The store is used to securely store list of resolved contacts.
 func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonContactsLocalStorage, "encrypting local contact list")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
@@ -32,6 +36,10 @@ func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
 	return &SavedContactsStore{
 		encryptedDB: encrypteddb.New(g, dbFn, keyFn),
 	}
+}
+
+func ServiceInit(g *libkb.GlobalContext) {
+	g.SyncedContactList = NewSavedContactsStore(g)
 }
 
 func savedContactsDbKey(uid keybase1.UID) libkb.DbKey {
@@ -48,11 +56,12 @@ type savedContactsCache struct {
 
 const savedContactsCurrentVer = 1
 
-func (s *SavedContactsStore) SaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
 	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
 	if err != nil {
 		return err
 	}
+	s := mctx.G().SyncedContactList
 	return s.SaveProcessedContacts(mctx, results)
 }
 
@@ -66,14 +75,6 @@ func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, conta
 	return err
 }
 
-type NoSavedContactsErr struct {
-	Msg string
-}
-
-func (e NoSavedContactsErr) Error() string {
-	return e.Msg
-}
-
 func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []keybase1.ProcessedContact, err error) {
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())
 	var cache savedContactsCache
@@ -82,13 +83,12 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 		return nil, err
 	}
 	if !found {
-		return nil, NoSavedContactsErr{Msg: "contact list not found in encrypted DB"}
+		return ret, nil
 	}
 	if cache.Version != savedContactsCurrentVer {
-		return nil, NoSavedContactsErr{
-			Msg: fmt.Sprintf("contact list found but old version (found: %d, need: %d)",
-				cache.Version, savedContactsCurrentVer),
-		}
+		mctx.Warning("synced contact list found but had an old version (found: %d, need: %d), returning empty list",
+			cache.Version, savedContactsCurrentVer)
+		return ret, nil
 	}
 	return cache.Contacts, nil
 }

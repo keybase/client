@@ -190,6 +190,55 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
+// AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
+	var contacts []keybase1.ProcessedContact
+	var err error
+	contactsFetched := false
+	for _, participant := range participants {
+		if isPhoneOrEmail(participant.Username) {
+			if !contactsFetched {
+				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
+				if err != nil {
+					mctx.Debug("Error fetching contacts: %s", err)
+					return participants
+				}
+			}
+			// todo separate phone / email from assertion
+			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
+			if err == nil {
+				phoneOrEmail := assertion.GetValue()
+				isPhone := assertion.GetKey() == "phone"
+				contactName := findContactName(contacts, phoneOrEmail, isPhone)
+				participant.ContactName = contactName
+			} else {
+				mctx.Debug("Error parsing assertion: %s", err)
+			}
+		}
+		withContacts = append(withContacts, participant)
+	}
+	return withContacts
+}
+
+var nonDigits = regexp.MustCompile("[^\\d]")
+
+func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
+	for _, contact := range contacts {
+		cPhoneOrEmail := contact.Component.ValueString()
+		if isPhone {
+			cPhoneOrEmail = nonDigits.ReplaceAllString(cPhoneOrEmail, "")
+		}
+		if cPhoneOrEmail == phoneOrEmail {
+			return &contact.ContactName
+		}
+	}
+	return nil
+}
+
+func isPhoneOrEmail(username string) bool {
+	return strings.HasSuffix(username, "@phone") || strings.HasSuffix(username, "@email")
+}
+
 const (
 	ChatTopicIDLen    = 16
 	ChatTopicIDSuffix = 0x20
@@ -1148,13 +1197,18 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 }
 
 func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
-	var writerNames []string
-	fullNames := make(map[string]string)
+	var writerNames []chat1.UIParticipant
 	for _, p := range rawConv.Info.Participants {
-		writerNames = append(writerNames, p.Username)
-		if p.Fullname != nil {
-			fullNames[p.Username] = *p.Fullname
+		participantType := chat1.UIParticipantType_USER
+		if isPhoneOrEmail(p.Username) {
+			participantType = chat1.UIParticipantType_CONTACT
 		}
+		writerNames = append(writerNames, chat1.UIParticipant{
+			Assertion:   p.Username,
+			ContactName: p.ContactName,
+			FullName:    p.Fullname,
+			Type:        participantType,
+		})
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
@@ -1165,7 +1219,6 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
 	res.Participants = writerNames
-	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1188,6 +1241,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.TeamRetention = rawConv.TeamRetention
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
+	res.BotCommands = rawConv.BotCommands
 	return res
 }
 
@@ -1944,13 +1998,14 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
 			return conn, token, err
 		}
-		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log},
-			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{})
+			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{},
+			libkb.NewProxyDialable(g.Env))
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
+		t := rpc.NewConnectionTransportWithDialable(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength, libkb.NewProxyDialable(g.GetEnv()))
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})

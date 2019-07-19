@@ -6,7 +6,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
-  airdropSelected: Constants.getAirdropSelected(state),
+  airdropSelected: Constants.getAirdropSelected(),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
   username: state.config.username,
 })
@@ -30,7 +30,7 @@ export const HeaderTitle = Container.namedConnect(
 
 const mapStateToPropsHeaderRightActions = state => ({
   _accountID: Constants.getSelectedAccount(state),
-  airdropSelected: Constants.getAirdropSelected(state),
+  airdropSelected: Constants.getAirdropSelected(),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
 })
 const mapDispatchToPropsHeaderRightActions = dispatch => ({
@@ -45,11 +45,13 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
         ],
       })
     ),
+  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
-const mergePropsHeaderRightActions = (s, d, o) => ({
+const mergePropsHeaderRightActions = (s, d, _) => ({
   airdropSelected: s.airdropSelected,
   noDisclaimer: s.noDisclaimer,
   onReceive: () => d._onReceive(s._accountID),
+  onSettings: d.onSettings,
 })
 
 export const HeaderRightActions = Container.namedConnect(

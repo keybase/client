@@ -78,7 +78,13 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		}
 
 		g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
-		if err := team.Rotate(ctx, keybase1.RotationType_VISIBLE); err != nil {
+
+		rotationType := keybase1.RotationType_CLKR
+		if teamID.IsPublic() {
+			rotationType = keybase1.RotationType_VISIBLE
+		}
+
+		if err := team.Rotate(ctx, rotationType); err != nil {
 			g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
 			return err
 		}
@@ -191,7 +197,8 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 				if err != nil {
 					continue
 				}
-				if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
+				switch role {
+				case keybase1.TeamRole_BOT, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 					changeReq.None = append(changeReq.None, memberUV)
 				}
 			}
@@ -258,7 +265,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	}
 	// Send teamID and teamName in two separate notifications. It is
 	// server-trust that they are the same team.
-	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change, row.LatestHiddenSeqno)
 
 	if change.Renamed || change.MembershipChanged || change.Misc {
 		// this notification is specifically for the UI
@@ -480,7 +487,9 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		joinAsRole := team.chain().inner.OpenTeamJoinAs
-		if joinAsRole != keybase1.TeamRole_READER && joinAsRole != keybase1.TeamRole_WRITER {
+		switch joinAsRole {
+		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
+		default:
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 

@@ -12,6 +12,7 @@ export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
+  botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
   commands: RPCChatTypes.ConversationCommandGroups
@@ -29,6 +30,7 @@ export type _ConversationMeta = {
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
+  participantToContactName: I.Map<string, string>
   participants: I.List<string> // was OrderedSet but is quite slow,
   readMsgID: number
   rekeyers: I.Set<string>

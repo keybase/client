@@ -3,13 +3,13 @@ import {connect} from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
 import GPGSign from '.'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   importError: state.provision.gpgImportError,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
   // TODO remove
   onBack: () => {},
@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 // If we are asked to switch to gpg sign, we either accept or reject.
-const mergeProps = ({importError}, dispatchProps) =>
+const mergeProps = ({importError}, dispatchProps, _: OwnProps) =>
   importError
     ? {
         importError,

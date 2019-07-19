@@ -18,7 +18,7 @@ export type Options = {
 
 export type Managed = {
   winRef: any | null
-  debounceChangeTimer: NodeJS.Timer
+  debounceChangeTimer?: NodeJS.Timer
   showHandlers: Array<Function>
   resizeHandlers: Array<Function>
   moveHandlers: Array<Function>
@@ -56,7 +56,7 @@ export default class AppState {
     this.managed = {
       closeHandlers: [],
       closedHandlers: [],
-      debounceChangeTimer: null,
+      debounceChangeTimer: undefined,
       moveHandlers: [],
       resizeHandlers: [],
       showHandlers: [],
@@ -68,7 +68,7 @@ export default class AppState {
       event.sender.send('getAppStateReply', this.state)
     })
 
-    SafeElectron.getIpcMain().on('setAppState', (event, data) => {
+    SafeElectron.getIpcMain().on('setAppState', (_, data) => {
       this.state = {
         ...this.state,
         ...data,

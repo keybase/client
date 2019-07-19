@@ -10,8 +10,9 @@ import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
+import {TypedState, TypedActions} from '../../util/container'
 
-const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
+const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -37,7 +38,6 @@ const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
             ? []
             : [
                 RouteTreeGen.createNavigateAppend({
-                  parentPath: [peopleTab],
                   path: ['profileConfirmOrPending'],
                 }),
               ]),
@@ -53,31 +53,27 @@ const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
     })
 }
 
-const recheckProof = (state, action: ProfileGen.RecheckProofPayload) =>
+const recheckProof = (state: TypedState, action: ProfileGen.RecheckProofPayload) =>
   RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(state, action: ProfileGen.AddProofPayload) {
+function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   const service = More.asPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
   switch (service) {
     case 'dnsOrGenericWebSite':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']}))
       return
     case 'zcash': //  fallthrough
     case 'btc':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePgp']}))
       return
   }
 
@@ -137,7 +133,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
             errorText: '',
           })
         )
-        const state = yield* Saga.selectState()
+        const state: TypedState = yield* Saga.selectState()
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates
@@ -154,18 +150,14 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
     }
 
     _promptUsernameResponse = response
-    const actions = []
+    const actions: Array<Saga.PutEffect> = []
     if (prevError) {
       actions.push(
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
     if (service) {
-      actions.push(
-        Saga.put(
-          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-        )
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']})))
     } else if (genericService && parameters) {
       actions.push(
         Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
@@ -181,7 +173,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
       return
     }
 
-    const actions = []
+    const actions: Array<Saga.PutEffect> = []
     _outputInstructionsResponse = response
     // @ts-ignore propbably a real thing
     if (service === 'dnsOrGenericWebSite') {
@@ -199,9 +191,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
 
     if (service) {
       actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-      actions.push(
-        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']})))
     } else if (proof) {
       actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
       openURL(proof)
@@ -232,6 +222,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
   })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
+      // @ts-ignore TODO fix
       customResponseIncomingCallMap: {
         'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.continueChecking': continueChecking,
@@ -307,7 +298,7 @@ const submitCryptoAddress = (
   )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
-      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
+      RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {
       logger.warn('Error making proof')

@@ -73,14 +73,15 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string
 	defer mctx.TraceTimed("postNewTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek",
+		Endpoint:    "teambot/key",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(teamID)},
-			"sig":     libkb.S{Val: sig},
-			"box":     libkb.S{Val: box},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"sig":          libkb.S{Val: sig},
+			"box":          libkb.S{Val: box},
+			"is_ephemeral": libkb.B{Val: true},
 		},
-		AppStatusCodes: []int{libkb.SCOk, libkb.SCEphemeralTeambotGenerationExists},
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCTeambotKeyGenerationExists},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
 	return err
@@ -161,10 +162,11 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metad
 	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek",
+		Endpoint:    "teambot/key",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(teamID)},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"is_ephemeral": libkb.B{Val: true},
 		},
 	}
 	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
@@ -217,11 +219,11 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	// from cache, but if the KID doesn't match, we try a forced reload to see
 	// if the cache might've been stale. Only if the KID still doesn't match
 	// after the reload do we complain.
-	teamSigningKey, err := team.SigningKey(mctx.Ctx())
+	teamSigningKID, err := team.SigningKID(mctx.Ctx())
 	if err != nil {
 		return nil, err
 	}
-	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+	if !teamSigningKID.Equal(signerKey.GetKID()) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
 		team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 			ID:          team.ID,
@@ -230,13 +232,13 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamI
 		if err != nil {
 			return nil, err
 		}
-		teamSigningKey, err = team.SigningKey(mctx.Ctx())
+		teamSigningKID, err = team.SigningKID(mctx.Ctx())
 		if err != nil {
 			return nil, err
 		}
-		if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+		if !teamSigningKID.Equal(signerKey.GetKID()) {
 			return nil, fmt.Errorf("teambotEK returned for PTK signing KID %s, but latest is %s",
-				signerKey.GetKID(), teamSigningKey.GetKID())
+				signerKey.GetKID(), teamSigningKID)
 		}
 	}
 
@@ -306,11 +308,12 @@ type teambotEKBoxedResponse struct {
 func (*TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (teambotEK keybase1.TeamEphemeralKeyBoxed, err error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek_box",
+		Endpoint:    "teambot/box",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id":    libkb.S{Val: string(teamID)},
-			"generation": libkb.U{Val: uint64(generation)},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"generation":   libkb.U{Val: uint64(generation)},
+			"is_ephemeral": libkb.B{Val: true},
 		},
 	}
 

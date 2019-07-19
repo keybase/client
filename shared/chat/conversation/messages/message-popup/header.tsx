@@ -35,7 +35,7 @@ const headerIconHeight = Styles.isMobile ? 96 : 72
 const MessagePopupHeader = (props: {
   author: string
   deviceName: string
-  deviceRevokedAt: number | null
+  deviceRevokedAt?: number
   deviceType: DeviceType
   isLast?: boolean
   timestamp: number

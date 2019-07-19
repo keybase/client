@@ -7,15 +7,12 @@ import {connect, getRouteProps} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {RouteProps} from '../../../route-tree/render-route'
 
-type OwnProps = RouteProps<
-  {
-    pathAndOutboxIDs: Array<Types.PathAndOutboxID>
-    conversationIDKey: Types.ConversationIDKey
-  },
-  {}
->
+type OwnProps = RouteProps<{
+  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+  conversationIDKey: Types.ConversationIDKey
+}>
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (_, ownProps: OwnProps) => ({
   _conversationIDKey: getRouteProps(ownProps, 'conversationIDKey'),
   pathAndOutboxIDs: getRouteProps(ownProps, 'pathAndOutboxIDs'),
 })
@@ -40,7 +37,7 @@ const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   onCancel: dispatchProps.onCancel,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
   pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {

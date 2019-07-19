@@ -10,6 +10,7 @@ import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {ServiceId, serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
+import {TypedState} from '../util/container'
 
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
@@ -40,7 +41,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
     const {keybase, service} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
 
@@ -55,7 +56,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
     const {keybase} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
 
@@ -74,7 +75,7 @@ function _parseThirdPartyRawResult(result: RPCTypes.APIUserSearchResult): Types.
     const {service, keybase} = result
     return {
       id: _rawResultToId(service.serviceName, service.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
       leftService: Constants.serviceIdToService(service.serviceName),
 
@@ -129,7 +130,7 @@ function callSearch(
   searchTerm: string,
   service: string = '',
   limit: number = 20
-): Promise<Array<RPCTypes.APIUserSearchResult>> {
+): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
   return RPCTypes.userSearchUserSearchRpcPromise({
     includeContacts: false,
     includeServicesSummary: false,
@@ -169,8 +170,11 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults = yield* Saga.callPromise(callSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.map((result: RPCTypes.APIUserSearchResult) =>
+    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
+      term,
+      _serviceToApiServiceName(service)
+    )
+    const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 
@@ -289,7 +293,7 @@ function* addResultsToUserInput(state, {payload: {searchKey, searchResults}}) {
       keyPath: ['search', 'searchKeyToUserInputItemIds'],
     })
   )
-  const newState = yield* Saga.selectState()
+  const newState: TypedState = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(newState, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -304,7 +308,7 @@ function* removeResultsToUserInput(state, {payload: {searchKey, searchResults}})
       keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-  const newState = yield* Saga.selectState()
+  const newState: TypedState = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(newState, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -347,7 +351,7 @@ const finishedSearch = (_, {payload: {searchKey, searchResultTerm, service}}) =>
     keyPath: ['search', 'searchKeyToSearchResultQuery'],
   })
 
-const maybeNewSearch = (state, {payload: {searchKey}}) => {
+const maybeNewSearch = (_, {payload: {searchKey}}) => {
   // When you select a search result, we want to clear the shown results and
   // start back with new recommendations, *unless* you're building a convo,
   // in which case we're showing any convo you selected by choosing a result.

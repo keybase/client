@@ -6,7 +6,11 @@ import {Props} from './index.types'
 
 const CreateChannel = (props: Props) => (
   <Kb.Box>
-    {!!props.errorText && <Kb.Banner color="red" text={props.errorText} />}
+    {!!props.errorText && (
+      <Kb.Banner color="red">
+        <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
+      </Kb.Banner>
+    )}
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_inputStyle}>
         <Kb.Input
@@ -20,6 +24,12 @@ const CreateChannel = (props: Props) => (
         <Kb.Input
           autoCorrect={true}
           autoFocus={false}
+          autoCapitalize="sentences"
+          multiline={true}
+          rowsMin={1}
+          rowsMax={4}
+          // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+          maxLength={280}
           hintText="Description or topic (optional)"
           value={props.description}
           onChangeText={description => props.onDescriptionChange(description)}

@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 	hidden "github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -195,6 +196,15 @@ func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation 
 	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
+func (t *Team) SigningKID(ctx context.Context) (kid keybase1.KID, err error) {
+	gen := t.chain().GetLatestGeneration()
+	chainKey, err := newTeamSigChainState(t).GetPerTeamKeyAtGeneration(gen)
+	if err != nil {
+		return kid, err
+	}
+	return chainKey.SigKID, nil
+}
+
 func (t *Team) SigningKey(ctx context.Context) (key libkb.NaclSigningKeyPair, err error) {
 	km, err := t.getKeyManager(ctx)
 	if err != nil {
@@ -295,6 +305,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
 
 	return members, nil
 }
@@ -485,11 +500,9 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
 	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	if rt == keybase1.RotationType_HIDDEN {
-		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
-		if err != nil {
-			return err
-		}
+	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, true /* isWrite */, rt)
+	if err != nil {
+		return err
 	}
 
 	// initialize key manager
@@ -616,6 +629,26 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	return err
 }
 
+func teamAdminToSig3ChainLocation(admin *SCTeamAdmin) (*sig3.ChainLocation, error) {
+	if admin == nil {
+		return nil, nil
+	}
+	id, err := admin.TeamID.ToTeamID()
+	if err != nil {
+		return nil, err
+	}
+	s3id, err := sig3.ImportTeamID(id)
+	if err != nil {
+		return nil, err
+	}
+	return &sig3.ChainLocation{
+		TeamID:    *s3id,
+		Seqno:     admin.Seqno,
+		ChainType: sig3.ChainType(admin.SeqType),
+	}, nil
+
+}
+
 func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
 	currentSeqno := t.CurrentSeqno()
@@ -650,6 +683,11 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		return nil, nil, err
 	}
 
+	admin, err := teamAdminToSig3ChainLocation(section.Admin)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	ret, ratchets, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
 		TeamID:           t.ID,
 		IsPublic:         t.IsPublic(),
@@ -663,6 +701,7 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		NewSigningKey:    sk,
 		NewEncryptionKey: ek,
 		Check:            t.keyManager.Check(),
+		Admin:            admin,
 	})
 
 	return ret, ratchets, err
@@ -1294,14 +1333,19 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &invList
-	case keybase1.TeamRole_WRITER:
-		invites.Writers = &invList
+	case keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
 	case keybase1.TeamRole_OWNER:
 		invites.Owners = &invList
+	}
+	if invites.Len() == 0 {
+		return fmt.Errorf("invalid invite, 0 members invited")
 	}
 
 	return t.postTeamInvites(ctx, invites)
@@ -1683,7 +1727,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing members, so remove them from the set
+	// don't need keys for existing or bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1705,7 +1749,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members
+	// rotate the team key for all current members except bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err
@@ -2024,11 +2068,19 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
 		err = post(ctx, i)
 		if isSigOldSeqnoError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError", i)
+			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError %d", i)
 			continue
 		}
 		if isStaleBoxError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError", i)
+			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError %d", i)
+			continue
+		}
+		if isSigBadTotalOrder(err) {
+			g.Log.CDebugf(ctx, "| retrying since update would violate total ordering for team %d", i)
+			continue
+		}
+		if isSigMissingRatchet(err) {
+			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 			continue
 		}
 		return err
@@ -2044,6 +2096,14 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 
 func isSigOldSeqnoError(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigOldSeqno)
+}
+
+func isSigBadTotalOrder(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigBadTotalOrder)
+}
+
+func isSigMissingRatchet(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigMissingRatchet)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
@@ -2232,7 +2292,7 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet, lates
 	if latestSeqno > 0 {
 		err = HintLatestSeqno(m, t.ID, latestSeqno)
 	}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes, keybase1.Seqno(0))
 	return err
 }
 

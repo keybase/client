@@ -19,12 +19,16 @@ const SendFeedback = (props: Props) => {
       buttons={[]}
       banners={[
         ...(feedbackSent
-          ? [<Kb.Banner key="feedbackSent" text="Thanks! Your feedback was sent." color="green" />]
+          ? [
+              <Kb.Banner key="feedbackSent" color="green">
+                <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+              </Kb.Banner>,
+            ]
           : []),
         ...(props.sendError ? errorBanner(props.sendError.message) : []),
       ]}
       title="Send feedback"
-      onBack={!props.loggedOut ? props.onBack : null}
+      onBack={!props.loggedOut ? props.onBack : undefined}
       showHeaderInfoicon={false}
       showHeaderInfoiconRow={!props.loggedOut}
     >

@@ -54,12 +54,26 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
             verifyAllEmail: 'user@example.com',
             verifyAllPhoneNumber: '+1555000111',
           } as any)
+          let metadata
+          if (
+            avdlType === RPCTypes.HomeScreenTodoType.verifyAllEmail ||
+            avdlType === RPCTypes.HomeScreenTodoType.legacyEmailVisibility
+          ) {
+            metadata = Constants.makeTodoMetaEmail({
+              email: 'user@example.com',
+            })
+          } else if (avdlType === RPCTypes.HomeScreenTodoType.verifyAllPhoneNumber) {
+            metadata = Constants.makeTodoMetaPhone({
+              phone: '+1555000111',
+            })
+          }
           newItems = newItems.push(
             Constants.makeTodo({
               badged: true,
               confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
               icon: Constants.todoTypeToIcon[todoType],
               instructions,
+              metadata,
               todoType,
               type: 'todo',
             })
@@ -92,7 +106,7 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
       })
       // never throw black bars
     })
-    .catch(e => {})
+    .catch(() => {})
 }
 
 const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
@@ -121,7 +135,7 @@ const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
   )
 
 let _wasOnPeopleTab = false
-const homeUIRefresh = (_, action: EngineGen.Keybase1HomeUIHomeUIRefreshPayload) =>
+const homeUIRefresh = () =>
   _wasOnPeopleTab &&
   PeopleGen.createGetPeopleData({
     markViewed: false,

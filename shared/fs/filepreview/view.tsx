@@ -16,6 +16,7 @@ type Props = {
   path: Types.Path
   type: Types.PathType
   routePath: I.List<string>
+  tooLargeForText: boolean
   url: string
 }
 
@@ -64,12 +65,12 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
 
     const reloadBanner = this.state.loadedLastModifiedTimestamp !== this.props.lastModifiedTimestamp && (
       <Kb.Box style={styles.bannerContainer}>
-        <Kb.Banner
-          color="blue"
-          text="The content of this file has updated."
-          actions={[{onClick: this._reload, title: 'Reload'}]}
-          style={styles.banner}
-        />
+        <Kb.Banner color="blue" style={styles.banner}>
+          <Kb.BannerParagraph
+            bannerColor="blue"
+            content={['The content of this file has updated. ', {onClick: this._reload, text: 'Reload'}, '.']}
+          />
+        </Kb.Banner>
       </Kb.Box>
     )
 
@@ -82,7 +83,9 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
       case Types.FileViewType.Default:
         return <DefaultView path={this.props.path} routePath={this.props.routePath} />
       case Types.FileViewType.Text:
-        return (
+        return this.props.tooLargeForText ? (
+          <DefaultView path={this.props.path} routePath={this.props.routePath} />
+        ) : (
           <>
             {reloadBanner}
             <TextView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />

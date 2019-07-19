@@ -8,7 +8,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {}
-const mapStateToProps = (state, ownProps: {}) => ({
+const mapStateToProps = state => ({
   allowEdit: state.settings.notifications.allowEdit,
   groups: state.settings.notifications.groups.toJS(),
   mobileHasPermissions: state.push.hasPermissions,
@@ -16,7 +16,7 @@ const mapStateToProps = (state, ownProps: {}) => ({
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
@@ -40,5 +40,5 @@ const ReloadableNotifications = props => (
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ReloadableNotifications)

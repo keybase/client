@@ -8,11 +8,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type encoder interface {
-	EncodeAndWrite(context.Context, interface{}, func()) <-chan error
-	EncodeAndWriteAsync(interface{}) <-chan error
-}
-
 func newCodecMsgpackHandle() codec.Handle {
 	return &codec.MsgpackHandle{
 		WriteExt:    true,

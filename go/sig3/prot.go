@@ -75,9 +75,16 @@ type Signer struct {
 }
 
 type Team struct {
-	TeamID     TeamID `codec:"i"`
-	IsImplicit bool   `codec:"m"`
-	IsPublic   bool   `codec:"p"`
+	Admin      *ChainLocation `codec:"a,omitempty"` // If working as an implicit admin, where that permission comes from
+	TeamID     TeamID         `codec:"i"`
+	IsImplicit bool           `codec:"m"`
+	IsPublic   bool           `codec:"p"`
+}
+
+type ChainLocation struct {
+	TeamID    TeamID    `codec:"i"`
+	Seqno     Seqno     `codec:"s"`
+	ChainType ChainType `codec:"t"`
 }
 
 type MerkleRoot struct {

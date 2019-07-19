@@ -16,6 +16,7 @@ const ScrollView = (props: Props) => {
     maximumZoomScale,
     minimumZoomScale,
     onLayout,
+    onScroll,
     ref,
     refreshControl,
     scrollEventThrottle,
@@ -33,7 +34,11 @@ const ScrollView = (props: Props) => {
   )
   const overflowStyle = hideVerticalScroll ? styles.overflowHidden : styles.overflowAuto
   return (
-    <div className={cn} style={Styles.collapseStyles([overflowStyle, style])} onScroll={props.onScroll}>
+    <div
+      className={cn}
+      style={Styles.collapseStyles([overflowStyle, style])}
+      onScroll={props.onScroll || undefined}
+    >
       <div style={contentContainerStyle as any} {...rest} />
     </div>
   )

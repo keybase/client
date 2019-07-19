@@ -3,6 +3,7 @@ import * as Saga from '../../util/saga'
 export declare function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
+  mimeType?: string | null
 }): Promise<{
   completed: boolean
   method: string

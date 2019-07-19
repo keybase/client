@@ -3,7 +3,7 @@ import WaitingButton from '../waiting-button'
 import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
-import Banner from '../banner'
+import {Banner, BannerParagraph} from '../banner'
 import Icon from '../icon'
 import ScrollView from '../scroll-view'
 import Text from '../text'
@@ -20,8 +20,8 @@ export type Props = {
   header?: React.ReactNode
   icon?: IconType
   iconColor?: Styles.Color
-  onCancel: () => void | null
-  onConfirm: () => void | null
+  onCancel?: () => void
+  onConfirm?: () => void
   prompt: string
   waitingKey?: string
 }
@@ -41,7 +41,15 @@ class ConfirmModal extends React.PureComponent<Props> {
               }
             : undefined
         }
-        banners={this.props.error ? [<Banner key="error" color="red" text={this.props.error} />] : []}
+        banners={
+          this.props.error
+            ? [
+                <Banner key="error" color="red">
+                  <BannerParagraph bannerColor="red" content={this.props.error} />
+                </Banner>,
+              ]
+            : []
+        }
         footer={{
           content: (
             <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
@@ -53,7 +61,7 @@ class ConfirmModal extends React.PureComponent<Props> {
                   label="Cancel"
                   onClick={this.props.onCancel}
                   style={styles.button}
-                  waitingKey={this.props.waitingKey}
+                  waitingKey={this.props.waitingKey || null}
                 />
               )}
               <WaitingButton
@@ -63,13 +71,13 @@ class ConfirmModal extends React.PureComponent<Props> {
                 label={this.props.confirmText || 'Confirm'}
                 onClick={this.props.onConfirm}
                 style={styles.button}
-                waitingKey={this.props.waitingKey}
+                waitingKey={this.props.waitingKey || null}
               />
             </ButtonBar>
           ),
           hideBorder: true,
         }}
-        onClose={this.props.onCancel}
+        onClose={this.props.onCancel || undefined}
         mode="Wide"
       >
         <Box2

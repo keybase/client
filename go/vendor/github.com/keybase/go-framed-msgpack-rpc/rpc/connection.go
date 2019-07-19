@@ -35,6 +35,16 @@ const (
 	StartingNonFirstConnection
 )
 
+// Dialable is a custom interface that can be used to replace net.Dial inside this library if desired
+// This is most likely useful for the purpose of routing connections through a proxy
+type Dialable interface {
+	// Set the timeout and keepalive options for this Dialable
+	SetOpts(timeout time.Duration, keepAlive time.Duration)
+
+	// Dial a connection to the given address
+	Dial(ctx context.Context, network string, addr string) (net.Conn, error)
+}
+
 // ConnectionTransport is a container for an underlying transport to be
 // used by a Connection instance.
 type ConnectionTransport interface {
@@ -56,6 +66,7 @@ type connTransport struct {
 	l               LogFactory
 	wef             WrapErrorFunc
 	maxFrameLength  int32
+	dialable        Dialable
 	conn            net.Conn
 	transport       Transporter
 	stagedTransport Transporter
@@ -73,12 +84,27 @@ func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc, maxFra
 	}
 }
 
-func (t *connTransport) Dial(context.Context) (Transporter, error) {
+// NewConnectionTransportWithDialable creates a ConnectionTransport for a given FMPURI via the given Dialable
+func NewConnectionTransportWithDialable(uri *FMPURI, l LogFactory, wef WrapErrorFunc, maxFrameLength int32, dialable Dialable) ConnectionTransport {
+	return &connTransport{
+		uri:            uri,
+		l:              l,
+		wef:            wef,
+		maxFrameLength: maxFrameLength,
+		dialable:       dialable,
+	}
+}
+
+func (t *connTransport) Dial(ctx context.Context) (Transporter, error) {
 	var err error
 	if t.conn != nil {
 		t.conn.Close()
 	}
-	t.conn, err = t.uri.Dial()
+	if t.dialable != nil {
+		t.conn, err = t.dialable.Dial(ctx, "tcp", t.uri.HostPort)
+	} else {
+		t.conn, err = t.uri.Dial()
+	}
 	if err != nil {
 		// If we get a DNS error, it could be because glibc has cached an old
 		// version of /etc/resolv.conf. The res_init() libc function busts that
@@ -168,6 +194,7 @@ type ConnectionTransportTLS struct {
 	srvRemote      Remote
 	tlsConfig      *tls.Config
 	maxFrameLength int32
+	dialable       Dialable
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -219,11 +246,18 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		LogField{Key: ConnectionLogMsgKey, Value: "Dialing"},
 		LogField{Key: "remote-addr", Value: addr})
 	// connect
-	dialer := net.Dialer{
-		Timeout:   ct.dialerTimeout,
-		KeepAlive: keepAlive,
+	var baseConn net.Conn
+	if ct.dialable != nil {
+		ct.dialable.SetOpts(ct.dialerTimeout, keepAlive)
+		baseConn, err = ct.dialable.Dial(ctx, "tcp", addr)
+	} else {
+		dialer := net.Dialer{
+			Timeout:   ct.dialerTimeout,
+			KeepAlive: keepAlive,
+		}
+		baseConn, err = dialer.DialContext(ctx, "tcp", addr)
 	}
-	baseConn, err := dialer.DialContext(ctx, "tcp", addr)
+
 	if err != nil {
 		// If we get a DNS error, it could be because glibc has cached an
 		// old version of /etc/resolv.conf. The res_init() libc function
@@ -303,7 +337,6 @@ type LogTagsFromContext func(ctx context.Context) (map[interface{}]string, bool)
 
 // Connection encapsulates all client connection handling.
 type Connection struct {
-	srvAddr          string
 	handler          ConnectionHandler
 	transport        ConnectionTransport
 	errorUnwrapper   ErrorUnwrapper
@@ -434,6 +467,32 @@ func NewTLSConnectionWithTLSConfig(
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
 
+// NewTLSConnection returns a connection that tries to connect to the
+// given server address with TLS.
+func NewTLSConnectionWithDialable(
+	srvRemote Remote,
+	rootCerts []byte,
+	errorUnwrapper ErrorUnwrapper,
+	handler ConnectionHandler,
+	logFactory LogFactory,
+	logOutput LogOutputWithDepthAdder,
+	maxFrameLength int32,
+	opts ConnectionOpts,
+	dialable Dialable,
+) *Connection {
+	transport := &ConnectionTransportTLS{
+		rootCerts:      rootCerts,
+		srvRemote:      srvRemote,
+		maxFrameLength: maxFrameLength,
+		logFactory:     logFactory,
+		wef:            opts.WrapErrorFunc,
+		dialerTimeout:  opts.DialerTimeout,
+		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		dialable:       dialable,
+	}
+	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
+}
+
 // NewConnectionWithTransport allows for connections with a custom
 // transport.
 func NewConnectionWithTransport(
@@ -471,11 +530,11 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		wef:                           opts.WrapErrorFunc,
-		tagsFunc:                      opts.TagsFunc,
-		log:                           log,
-		protocols:                     opts.Protocols,
-		reconnectedBefore:             opts.ForceInitialBackoff,
+		wef:               opts.WrapErrorFunc,
+		tagsFunc:          opts.TagsFunc,
+		log:               log,
+		protocols:         opts.Protocols,
+		reconnectedBefore: opts.ForceInitialBackoff,
 	}
 	if !opts.DontConnectNow {
 		// start connecting now

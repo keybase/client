@@ -1,7 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/wallets'
 import {WalletBackButton} from '../common'
+import {AssetPathIntermediate} from '../send-form/asset-input/asset-input-advanced'
 import AssetInput from './asset-input-container'
 
 type Summary = {
@@ -14,6 +16,7 @@ type Summary = {
 
 type Props = {
   amount: string | null
+  assetCode: string
   availableToSendNative: string
   callbackURL: string | null
   displayAmountFiat: string
@@ -21,12 +24,16 @@ type Props = {
   memo: string | null
   memoType: string | null
   message: string | null
+  onAcceptPath: () => void
   onAcceptPay: (amount: string) => void
   onAcceptTx: () => void
   onBack: () => void
   onChangeAmount: (amount: string) => void
+  onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
+  path: Types._BuiltPaymentAdvanced
+  readyToSend: boolean
   recipient: string | null
   summary: Summary
   userAmount: string | null
@@ -50,13 +57,7 @@ type LoadingProps = {
 const Loading = (props: LoadingProps) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-        style={styles.dialog}
-      >
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
         <Kb.ProgressIndicator />
       </Kb.Box2>
     </Kb.Box2>
@@ -92,7 +93,6 @@ const InfoRow = (props: InfoRowProps) => (
 )
 
 type HeaderProps = {
-  onBack: () => void
   originDomain: string
   isPayment: boolean
 }
@@ -123,14 +123,15 @@ const Header = (props: HeaderProps) => (
         Keybase verified the request's signature.
       </Kb.Text>
     </Kb.Box2>
-    {Styles.isMobile && <WalletBackButton onBack={props.onBack} showCancelInsteadOfBackOnMobile={true} />}
   </Kb.Box2>
 )
 
 type PaymentInfoProps = {
   amount: string
+  assetCode: string
   availableToSendNative: string
   displayAmountFiat: string
+  exchangeRate: string
   memo: string | null
   message: string | null
   onChangeAmount: (amount: string) => void
@@ -144,22 +145,41 @@ const PaymentInfo = (props: PaymentInfoProps) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         Amount
       </Kb.Text>
-      {!!props.amount && (
-        <>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
-            {props.amount} XLM
-          </Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
-            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
-              (Approximately {props.displayAmountFiat})
+      {!!props.amount &&
+        (props.assetCode ? (
+          <>
+            <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
+              {props.amount} {props.assetCode}
             </Kb.Text>
-            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
-              Your primary account has {props.availableToSendNative} available to send.
+            {props.exchangeRate ? (
+              <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+                <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                  (Exchange rate: {props.exchangeRate})
+                </Kb.Text>
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+                <Kb.ProgressIndicator type="Small" />
+              </Kb.Box2>
+            )}
+          </>
+        ) : (
+          <>
+            <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
+              {props.amount} XLM
             </Kb.Text>
-          </Kb.Box2>
-        </>
-      )}
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+              <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                (Approximately {props.displayAmountFiat})
+              </Kb.Text>
+              <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                Your primary account has {props.availableToSendNative} available to send.
+              </Kb.Text>
+            </Kb.Box2>
+          </>
+        ))}
     </Kb.Box2>
+    {!!props.assetCode && <AssetPathIntermediate forSEP7={true} />}
     {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
@@ -189,19 +209,30 @@ const TxInfo = (props: TxInfoProps) => (
 const SEP7Confirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
-      <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} onBack={props.onBack} />
-      {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
-      <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
+      {Styles.isMobile && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.backButtonBox}>
+          <WalletBackButton onBack={props.onBack} showCancelInsteadOfBackOnMobile={true} />
+        </Kb.Box2>
+      )}
+      <Kb.ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContents}
+        alwaysBounceVertical={false}
+      >
+        <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} />
+        {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
           <PaymentInfo
-            amount={props.amount}
+            amount={props.amount || ''}
+            assetCode={props.assetCode}
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
+            exchangeRate={props.path.exchangeRate}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
-            recipient={props.recipient}
-            userAmount={props.userAmount}
+            recipient={props.recipient || ''}
+            userAmount={props.userAmount || ''}
           />
         ) : (
           <TxInfo
@@ -223,14 +254,16 @@ const SEP7Confirm = (props: Props) => (
           type="Success"
           onClick={
             props.operation === 'pay'
-              ? () => props.onAcceptPay(props.amount || props.userAmount)
+              ? props.assetCode
+                ? () => props.onAcceptPath()
+                : () => props.onAcceptPay(props.amount || props.userAmount || '')
               : props.onAcceptTx
           }
           waitingKey={props.waitingKey}
           fullWidth={true}
           style={styles.button}
           label={props.operation === 'pay' ? 'Pay' : 'Sign'}
-          disabled={!props.amount && !props.userAmount}
+          disabled={!props.readyToSend}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -238,16 +271,23 @@ const SEP7Confirm = (props: Props) => (
   </Kb.MaybePopup>
 )
 
-const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
+const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
+  React.useEffect(() => {
+    props.assetCode && !props.path.exchangeRate && props.onLookupPath()
+  }, [props.assetCode, props.path.exchangeRate])
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (
-    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} />
+    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} readyToSend={props.assetCode ? !!props.path.exchangeRate : (!!props.amount || !!userAmount)} />
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  backButtonBox: {
+    backgroundColor: Styles.globalColors.purpleDark,
+    minHeight: 46,
+  },
   bodyText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black,
@@ -270,6 +310,8 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'space-between',
     },
     isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
       borderTopColor: Styles.globalColors.black_10,
       borderTopStyle: 'solid',
       borderTopWidth: 1,
@@ -333,10 +375,24 @@ const styles = Styles.styleSheetCreate({
   purpleText: Styles.platformStyles({
     common: {color: Styles.globalColors.purple},
   }),
-  scrollView: {
-    flexBasis: 'auto',
-    flexGrow: 0,
-    flexShrink: 1,
+  scrollView: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purpleDark,
+      flexBasis: 'auto',
+      flexGrow: 1,
+      flexShrink: 1,
+    },
+    isElectron: {
+      borderTopLeftRadius: Styles.borderRadius,
+      borderTopRightRadius: Styles.borderRadius,
+      display: 'flex',
+    },
+  }),
+  scrollViewContents: {
+    backgroundColor: Styles.globalColors.white,
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
   },
   stellarIcon: {
     alignSelf: 'flex-start',

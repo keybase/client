@@ -7,14 +7,14 @@ import {RouteProps} from '../../route-tree/render-route'
 type OwnProps = {
   deviceName: string
   onChange: (text: string) => void
-} & RouteProps<{}, {}>
+} & RouteProps
 
 const mapStateToProps = state => ({
   _existingDevices: state.provision.existingDevices,
   error: state.provision.error.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
   // TODO remove
   onBack: () => {},
@@ -35,9 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export default compose(
   withStateHandlers<any, any, any>(
     {deviceName: ''},
-    {
-      onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
-    }
+    {onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)})}
   ),
   connect(
     mapStateToProps,

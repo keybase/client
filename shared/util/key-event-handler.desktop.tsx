@@ -105,11 +105,11 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
 }
 
 type EscapeHandlerProps = {
-  onESC: () => void | null
+  onESC: (() => void) | null
   children: React.ReactNode | null
 }
 
-const handleESC = (onESC: () => void | null, ev: KeyboardEvent) => {
+const handleESC = (onESC: (() => void) | null, ev: KeyboardEvent) => {
   if (ev.key !== 'Escape') {
     return
   }

@@ -64,8 +64,6 @@ type Stellar struct {
 	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
-	migrationLock sync.Mutex
-
 	badger *badges.Badger
 }
 
@@ -313,12 +311,13 @@ func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBa
 	}
 
 	paymentID := stellar1.NewPaymentID(msg.TxID)
-	if err = s.refreshPaymentFromNotification(mctx, msg.AccountID, paymentID); err != nil {
+	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, paymentID)
+	if err != nil {
 		mctx.Debug("refreshPaymentFromNotification error: %s", err)
 		return
 	}
 
-	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), notifiedAccountID, paymentID)
 }
 
 func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
@@ -330,21 +329,58 @@ func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.O
 		return
 	}
 
-	if err = s.refreshPaymentFromNotification(mctx, msg.AccountID, msg.PaymentID); err != nil {
+	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, msg.PaymentID)
+	if err != nil {
 		mctx.Debug("refreshPaymentFromNotification error: %s", err)
 		return
 	}
-	s.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
+	s.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), notifiedAccountID, msg.PaymentID)
 }
 
-func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	// load the payment and then refresh the wallet state for the account.
-	DefaultLoader(s.G()).LoadPaymentSync(mctx.Ctx(), paymentID)
-	if err := s.walletState.Refresh(mctx, accountID, "notification received"); err != nil {
-		return err
+func (s *Stellar) findAccountFromPayment(mctx libkb.MetaContext, payment *stellar1.PaymentLocal) (stellar1.AccountID, error) {
+	var emptyAccountID stellar1.AccountID
+	ok, _, err := getGlobal(mctx.G()).OwnAccountCached(mctx, payment.FromAccountID)
+	if err != nil {
+		return emptyAccountID, err
 	}
+	if ok {
+		// the running user is the sender of this payment
+		return payment.FromAccountID, nil
+	}
+	if payment.ToAccountID == nil {
+		return emptyAccountID, ErrAccountNotFound
+	}
+	ok, _, err = getGlobal(mctx.G()).OwnAccountCached(mctx, *payment.ToAccountID)
+	if err != nil {
+		return emptyAccountID, err
+	}
+	if ok {
+		// the running user is the recipient of this payment
+		return *payment.ToAccountID, nil
+	}
+	return emptyAccountID, ErrAccountNotFound
+}
 
-	return nil
+func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, paymentID stellar1.PaymentID) (notifiedAccountID stellar1.AccountID, err error) {
+	var emptyAccountID stellar1.AccountID
+
+	// load the payment
+	loader := DefaultLoader(s.G())
+	loader.LoadPaymentSync(mctx.Ctx(), paymentID)
+	payment, ok := loader.GetPaymentLocal(mctx.Ctx(), paymentID)
+	if !ok {
+		return emptyAccountID, fmt.Errorf("couldn't find the payment immediately after loading it %v", paymentID)
+	}
+	// find the accountID for the running user in the payment (could be sender, recipient, neither)
+	notifiedAccountID, err = s.findAccountFromPayment(mctx, payment)
+	if err != nil {
+		return emptyAccountID, err
+	}
+	// refresh the wallet state for this accountID
+	if err := s.walletState.Refresh(mctx, notifiedAccountID, "notification received"); err != nil {
+		return notifiedAccountID, err
+	}
+	return notifiedAccountID, nil
 }
 
 func (s *Stellar) handleRequestStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
@@ -585,6 +621,12 @@ func (s *Stellar) InformBundle(mctx libkb.MetaContext, rev stellar1.BundleRevisi
 			Revision: rev,
 			Accounts: accounts,
 		}
+	}()
+}
+
+func (s *Stellar) InformDefaultCurrencyChange(mctx libkb.MetaContext) {
+	go func() {
+		s.getBuildPaymentCache().InformDefaultCurrencyChange(mctx)
 	}()
 }
 

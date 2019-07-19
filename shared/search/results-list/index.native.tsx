@@ -30,7 +30,7 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
 
-    let headerComponent = null
+    let headerComponent: React.ReactNode | null = null
     if (showSearchSuggestions) {
       headerComponent = (
         <Kb.Box style={{padding: globalMargins.tiny}}>

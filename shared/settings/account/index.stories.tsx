@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
-import ConfirmDelete from './confirm-delete'
+import {ConfirmDeleteAddress} from './confirm-delete'
 import * as I from 'immutable'
 
 const props = {
@@ -55,10 +55,10 @@ const load = () => {
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
     .add('With email/phone', () => <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />)
     .add('Confirm delete email', () => (
-      <ConfirmDelete {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
+      <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
     ))
     .add('Confirm delete phone', () => (
-      <ConfirmDelete {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
+      <ConfirmDeleteAddress {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
     ))
 }
 

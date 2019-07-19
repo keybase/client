@@ -18,13 +18,12 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
       return (
         <Todo
           badged={item.badged}
-          todoType={item.todoType}
-          instructions={item.instructions}
           confirmLabel={item.confirmLabel}
           icon={item.icon}
+          instructions={item.instructions}
           key={item.todoType}
-          subText={''}
-          buttons={[]}
+          metadata={item.metadata}
+          todoType={item.todoType}
         />
       )
     case 'notification':
@@ -60,17 +59,15 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 
 const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
   return (
-    <Kb.Banner
-      color="green"
-      text={`Welcome to Keybase! A verification link was sent to ${email}.`}
-      onClose={clearJustSignedUpEmail}
-    />
+    <Kb.Banner color="green" onClose={clearJustSignedUpEmail}>
+      {`Welcome to Keybase! A verification link was sent to ${email}.`}
+    </Kb.Banner>
   )
 }
 
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-    {Styles.isMobile && <AirdropBanner />}
+    {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     {!!props.signupEmail && (
       <EmailVerificationBanner
         email={props.signupEmail}

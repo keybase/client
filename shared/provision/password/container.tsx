@@ -10,9 +10,9 @@ import * as WaitingConstants from '../../constants/waiting'
 
 type OwnProps = {
   prompt: string
-  username: string | null
+  username?: string
   waitingForResponse: boolean
-} & RouteProps<{}, {}>
+} & RouteProps
 
 type State = {
   showTyping: boolean
@@ -26,7 +26,7 @@ type Props = {
   onForgotPassword: () => void
   waitingForResponse: boolean
   error?: string | null
-  username: string | null
+  username?: string
 }
 
 // TODO remove this class
@@ -69,7 +69,7 @@ const mapStateToProps = state => ({
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   // TODO remove
   onBack: () => {},
   onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
@@ -80,5 +80,5 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(_Password)

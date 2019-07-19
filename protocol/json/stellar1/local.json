@@ -608,6 +608,10 @@
         {
           "type": "boolean",
           "name": "pending"
+        },
+        {
+          "type": "string",
+          "name": "jumpToChat"
         }
       ]
     },
@@ -1413,6 +1417,24 @@
             "TransactionID"
           ],
           "name": "submitTxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StaticConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "paymentNoteMaxLength"
+        },
+        {
+          "type": "int",
+          "name": "requestNoteMaxLength"
+        },
+        {
+          "type": "int",
+          "name": "publicMemoMaxLength"
         }
       ]
     }
@@ -2683,6 +2705,10 @@
         }
       ],
       "response": "SignXdrResult"
+    },
+    "getStaticConfigLocal": {
+      "request": [],
+      "response": "StaticConfig"
     }
   },
   "namespace": "stellar.1"

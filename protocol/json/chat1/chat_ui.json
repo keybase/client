@@ -236,6 +236,43 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIParticipantType",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "CONTACT_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIParticipant",
+      "fields": [
+        {
+          "type": "UIParticipantType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fullName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "contactName"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "InboxUIItem",
       "fields": [
@@ -286,17 +323,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UIParticipant"
           },
           "name": "participants"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "string",
-            "keys": "string"
-          },
-          "name": "fullNames"
         },
         {
           "type": {
@@ -404,6 +433,10 @@
         {
           "type": "ConversationCommandGroups",
           "name": "commands"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "botCommands"
         }
       ]
     },
@@ -573,6 +606,10 @@
         {
           "type": "stellar1.Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "string",
+          "name": "issuerDescription"
         }
       ]
     },
@@ -1563,6 +1600,15 @@
       "symbols": [
         "APPSETTINGS_0"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UIBotCommandsUpdateStatus",
+      "symbols": [
+        "UPTODATE_0",
+        "UPDATING_1",
+        "FAILED_2"
+      ]
     }
   ],
   "messages": {
@@ -1995,6 +2041,23 @@
             "type": "array",
             "items": "UICommandStatusActionTyp"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatBotCommandsUpdateStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "UIBotCommandsUpdateStatus"
         }
       ],
       "response": null

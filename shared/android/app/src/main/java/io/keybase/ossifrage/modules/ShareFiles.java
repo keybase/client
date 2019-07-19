@@ -75,4 +75,20 @@ public class ShareFiles extends ReactContextBaseJavaModule {
             promise.reject(new Exception("Invalid chooser"));
         }
     }
+
+    @ReactMethod
+    public void shareText(String text, String mimeType, Promise promise) {
+        Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+
+        if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
+            Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+            // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            reactContext.startActivity(chooser);
+            promise.resolve(true);
+        } else {
+            promise.reject(new Exception("Invalid chooser"));
+        }
+    }
 }

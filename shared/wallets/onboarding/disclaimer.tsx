@@ -229,7 +229,9 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
 
         <Kb.Box style={styles.gradient} />
         {!!this.props.acceptDisclaimerError && (
-          <Kb.Banner inline={true} color="red" text={this.props.acceptDisclaimerError} />
+          <Kb.Banner inline={true} color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.acceptDisclaimerError} />
+          </Kb.Banner>
         )}
       </WalletPopup>
     )

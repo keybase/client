@@ -15,9 +15,9 @@ type Props = {
 } & OverlayParentProps
 
 const _AddPeople = (props: Props) => {
-  let menu = null
-  let directAction = null
-  let directLabel = null
+  let menu: React.ReactNode = null
+  let directAction: null | (() => void) = null
+  let directLabel: string | null = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items = [
@@ -82,7 +82,7 @@ const AddPeople = compose(
   connect(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o: any) => ({
+    (_, d, o: any) => ({
       isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,
       onAddPeople: () => d._onAddPeople(o.teamname),

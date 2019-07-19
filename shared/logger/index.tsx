@@ -105,7 +105,7 @@ const devLoggers = () => ({
   action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
   debug: new TeeLogger(
     isMobile
-      ? new NativeLogger('e')
+      ? new NativeLogger('d')
       : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Info'),
     new ConsoleLogger('log', 'DEBUG:')
   ),

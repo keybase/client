@@ -14,7 +14,7 @@ import * as I from 'immutable'
 type OwnProps = {
   routeSelected: Types.Tab
   children: React.ReactNode
-} & RouteProps<{}, {}>
+} & RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
@@ -25,7 +25,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
@@ -33,7 +33,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
       return
     }
-    dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
+    if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
+      dispatch(SettingsGen.createClearAddedEmail())
+    }
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
 })
 
@@ -59,7 +62,7 @@ const Connected = compose(
       requestIdleCallback(loadHasRandomPW)
     },
   })
-)(SettingsContainer)
+)(SettingsContainer as any)
 
 // @ts-ignore TODO fix
 Connected.navigationOptions = {

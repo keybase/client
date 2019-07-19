@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type Props = {
   error: string
@@ -17,14 +18,23 @@ const VerifyPhoneNumber = (props: Props) => {
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = () => (disabled ? {} : props.onContinue(code))
+  const displayPhone = e164ToDisplay(props.phoneNumber)
   return (
     <SignupScreen
       onBack={props.onBack}
-      banners={props.error ? [<Kb.Banner key="error" color="red" text={props.error} />] : []}
+      banners={
+        props.error
+          ? [
+              <Kb.Banner key="error" color="red">
+                <Kb.BannerParagraph bannerColor="red" content={props.error} />
+              </Kb.Banner>,
+            ]
+          : []
+      }
       buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.verifyWaiting}]}
       titleComponent={
         <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-          {props.phoneNumber}
+          {displayPhone}
         </Kb.Text>
       }
       containerStyle={styles.container}
@@ -35,7 +45,7 @@ const VerifyPhoneNumber = (props: Props) => {
             Back
           </Kb.Text>
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-            {props.phoneNumber}
+            {displayPhone}
           </Kb.Text>
           <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne} />
         </Kb.Box2>

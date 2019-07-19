@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   _proofSuggestions: state.tracker2.proofSuggestions,
@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
   providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onCancel: dispatchProps.onCancel,
   onClickLearn: () => openURL('https://keybase.io/docs/proof_integration_guide'),
   providerClicked: dispatchProps.providerClicked,

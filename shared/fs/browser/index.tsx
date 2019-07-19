@@ -27,7 +27,7 @@ const WithContent = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
     <PublicReminder path={props.path} />
     {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
-    <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
+    <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach || null}>
       {flags.conflictResolution && <ConflictBanner path={props.path} />}
       <Rows
         path={props.path}
@@ -46,10 +46,12 @@ const WithContent = (props: Props) => (
 
 const SelfReset = (props: Props) => (
   <Kb.Box2 direction="vertical" fullHeight={true}>
-    <Kb.Banner
-      color="red"
-      text="Since you reset your account, participants have to accept to let you back in."
-    />
+    <Kb.Banner color="red">
+      <Kb.BannerParagraph
+        bannerColor="red"
+        content="Since you reset your account, participants have to accept to let you back in."
+      />
+    </Kb.Banner>
     <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
       <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
       <Kb.Icon type="icon-access-denied-266" />

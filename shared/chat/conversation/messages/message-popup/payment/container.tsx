@@ -12,7 +12,7 @@ import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText
   paymentID?: WalletTypes.PaymentID
   onHidden: () => void
@@ -69,15 +69,17 @@ const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClaimLumens: () =>
     dispatch(
       Container.isMobile
-        ? RouteTreeGen.createNavigateTo({path: WalletConstants.rootWalletPath})
-        : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
+        ? RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
+        : RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
     ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
     dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })
 
 const getTopLineUser = (paymentInfo, sender, you: string) => {
-  if (paymentInfo.fromUsername === you) {
+  if (paymentInfo.status === 'pending') {
+    return 'pending'
+  } else if (paymentInfo.fromUsername === you) {
     return 'you sent'
   } else if (paymentInfo.toUsername === you) {
     return 'you received'
@@ -108,13 +110,20 @@ const sendMergeProps = (
   const {_you: you} = stateProps
   const youAreSender = you === paymentInfo.fromUsername
   const youAreReceiver = you === paymentInfo.toUsername
+
+  const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
+  const balanceChangeAmount =
+    paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
+      ? sourceAmountDesc
+      : paymentInfo.amountDescription
+
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     approxWorth: paymentInfo.worthAtSendTime,
     attachTo: ownProps.attachTo,
-    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
+    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`,
     balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-    bottomLine: '', // TODO on asset support in payment
+    bottomLine: paymentInfo.issuerDescription,
     cancelButtonLabel: 'Cancel',
     errorDetails:
       paymentInfo.status === 'error' ||
@@ -130,6 +139,7 @@ const sendMergeProps = (
     onSeeDetails:
       (paymentInfo.status === 'completed' ||
         paymentInfo.status === 'error' ||
+        paymentInfo.status === 'pending' ||
         paymentInfo.status === 'claimable' ||
         paymentInfo.status === 'canceled') &&
       (youAreSender || youAreReceiver)
@@ -138,7 +148,7 @@ const sendMergeProps = (
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
-    status: '',
+    status: paymentInfo.status,
     style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${getTopLineUser(paymentInfo, ownProps.message.author, you)}${

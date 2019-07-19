@@ -5,7 +5,7 @@ import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import ProfileSearch from '../profile/search/bar-container'
 
-export const Header = (props: Props) => (
+export const Header = (_: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.header}>
     <ProfileSearch />
   </Kb.Box2>

@@ -12,7 +12,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => ({
   accounts: Constants.getAccountIDs(state),
   airdropIsLive: state.wallets.airdropDetails.isPromoted,
-  airdropSelected: Constants.getAirdropSelected(state),
+  airdropSelected: Constants.getAirdropSelected(),
   inAirdrop: state.wallets.airdropState === 'accepted',
   loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
 })
@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     )
   },
   onJoinAirdrop: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop'], replace: true}))
   },
   onLinkExisting: () => {
     dispatch(

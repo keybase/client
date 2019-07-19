@@ -32,7 +32,7 @@ func TestEphemeralNewTeamEKNotif(t *testing.T) {
 
 	expectedArg := keybase1.NewTeamEkArg{
 		Id:         teamID,
-		Generation: teamEK.Metadata.Generation,
+		Generation: teamEK.Generation(),
 	}
 
 	checkNewTeamEKNotifications(user1.tc, user1.notifications, expectedArg)
@@ -71,7 +71,7 @@ func TestEphemeralNewTeambotEKNotif(t *testing.T) {
 
 	expectedArg := keybase1.NewTeambotEkArg{
 		Id:         teamID,
-		Generation: teambotEK.Metadata.Generation,
+		Generation: teambotEK.Generation(),
 	}
 
 	checkNewTeambotEKNotifications(botUser.tc, botUser.notifications, expectedArg)
@@ -121,13 +121,13 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
 	require.NoError(t, err)
 	require.True(t, created)
-	require.Equal(t, teamEK.Metadata.Generation, teambotEK.Metadata.Generation)
+	require.Equal(t, teamEK.Generation(), teambotEK.Generation())
 
 	// now created = false
 	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Equal(t, teamEK.Metadata.Generation, teambotEK.Metadata.Generation)
+	require.Equal(t, teamEK.Generation(), teambotEK.Generation())
 
 	// bot can access the key
 	teambotEK2, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botUID)
@@ -142,7 +142,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
 	require.NoError(t, err)
 	require.True(t, created)
-	require.Equal(t, teamEK.Metadata.Generation+1, teambotEK.Metadata.Generation)
+	require.Equal(t, teamEK.Generation()+1, teambotEK.Generation())
 
 	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botUID)
 	require.NoError(t, err)
@@ -155,22 +155,22 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	// created is True since we attempt to publish but the generation remains
 	require.True(t, created)
-	require.Equal(t, teambotEK.Metadata.Generation, teambotEKNoCache.Metadata.Generation)
+	require.Equal(t, teambotEK.Generation(), teambotEKNoCache.Generation())
 
 	// Make sure we can access the teambotEK at various generations
-	for i := keybase1.EkGeneration(1); i < teambotEK.Metadata.Generation; i++ {
+	for i := keybase1.EkGeneration(1); i < teambotEK.Generation(); i++ {
 		teambotEKBot, err := ekLib3.GetTeambotEK(mctx3, teamID, botUID, i, nil)
 		require.NoError(t, err)
 
 		teambotEKNonBot1, err := ekLib1.GetTeambotEK(mctx1, teamID, botUID, i, nil)
 		require.NoError(t, err)
-		require.Equal(t, teambotEKBot.Metadata.Generation, teambotEKNonBot1.Metadata.Generation)
-		require.Equal(t, teambotEKBot.Seed, teambotEKNonBot1.Seed)
+		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot1.Generation())
+		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot1.Material())
 
 		teambotEKNonBot2, err := ekLib2.GetTeambotEK(mctx2, teamID, botUID, i, nil)
 		require.NoError(t, err)
-		require.Equal(t, teambotEKBot.Metadata.Generation, teambotEKNonBot2.Metadata.Generation)
-		require.Equal(t, teambotEKBot.Seed, teambotEKNonBot2.Seed)
+		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot2.Generation())
+		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot2.Material())
 	}
 }
 
@@ -221,9 +221,13 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 	var expectedGeneration keybase1.EkGeneration
 	if createTeamEK {
 		ekLib := annMctx.G().GetEKLib()
-		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+		ek, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 		require.NoError(t, err)
 		require.True(t, created)
+		typ, err := ek.KeyType()
+		require.NoError(t, err)
+		require.True(t, typ.IsTeam())
+		teamEK := ek.Team()
 
 		expectedMetadata = teamEK.Metadata
 		expectedGeneration = expectedMetadata.Generation
@@ -281,16 +285,21 @@ func TestEphemeralResetMember(t *testing.T) {
 	bob.reset()
 
 	annEkLib := annMctx.G().GetEKLib()
-	teamEK, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+	ek, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 	require.NoError(t, err)
 	require.True(t, created)
+
+	typ, err := ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK := ek.Team()
 
 	expectedMetadata := teamEK.Metadata
 	expectedGeneration := expectedMetadata.Generation
 
 	annTeamEK, annErr := getTeamEK(annMctx, teamID, expectedGeneration)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 	require.NoError(t, annErr)
+	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 
 	// Bob should not have access to this teamEK since he's no longer in the
 	// team after resetting.
@@ -307,9 +316,13 @@ func TestEphemeralResetMember(t *testing.T) {
 	ann.addWriter(team, joe)
 
 	// ann gets the new teamEk which joe can access but bob cannot after he reset.
-	teamEK2, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+	ek2, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 	require.NoError(t, err)
 	require.False(t, created)
+	typ, err = ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK2 := ek2.Team()
 
 	expectedMetadata2 := teamEK2.Metadata
 	expectedGeneration2 := expectedMetadata2.Generation
@@ -318,8 +331,8 @@ func TestEphemeralResetMember(t *testing.T) {
 	require.True(t, expectedGeneration < expectedGeneration2)
 
 	annTeamEK, annErr = getTeamEK(annMctx, teamID, expectedGeneration2)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
 	require.NoError(t, annErr)
+	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
 
 	bobTeamEK, bobErr = getTeamEK(bobMctx, teamID, expectedGeneration2)
 	require.NoError(t, bobErr)
@@ -359,7 +372,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 		require.NoError(t, err)
 		require.True(t, created)
-		expectedGeneration = teamEK.Metadata.Generation + 1
+		expectedGeneration = teamEK.Generation() + 1
 	} else {
 		expectedGeneration = 1
 	}
@@ -420,12 +433,8 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	teamEKBoxStorage.ClearCache()
 	_, err = annMctx.G().LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	ekPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Metadata.Generation, nil)
+	teamEKPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Generation(), nil)
 	require.NoError(t, err)
-	typ, err := ekPostRoll.KeyType()
-	require.NoError(t, err)
-	require.True(t, typ.IsTeam())
-	teamEKPostRoll := ekPostRoll.Team()
 	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
 
 	// After rotating, ensure we can create a new TeamEK without issue.
@@ -437,7 +446,7 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	require.NoError(t, err)
 	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(annMctx, teamID, *merkleRoot)
 	require.NoError(t, err)
-	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
+	require.Equal(t, teamEKPreRoll.Generation()+1, metadata.Generation)
 }
 
 func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
@@ -525,7 +534,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.NoError(t, err)
 	require.True(t, created)
 
-	currentGen := teamEK.Metadata.Generation
+	currentGen := teamEK.Generation()
 	var expectedGen keybase1.EkGeneration
 	if leave {
 		user2.leave(teamName.String())

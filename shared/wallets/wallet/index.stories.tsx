@@ -7,7 +7,7 @@ import settings from './settings/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
-  Header: props => ({
+  Header: () => ({
     accountID: stringToAccountID('fakeAccountID'),
     isDefaultWallet: true,
     keybaseUser: 'cecileb',

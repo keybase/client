@@ -14,16 +14,20 @@ type Props = {
 }
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
-const disabledDescription =
-  'Import your phone contacts and start encrypted chats with your friends. Your contacts never leave this device.'
+const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
-const ManageContacts = (props: Props) => {
+const ManageContacts = (_: Props) => {
+  const dispatch = Container.useDispatch()
+
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
-  const dispatch = Container.useDispatch()
+  const importedCount = Container.useSelector(s => s.settings.contacts.importedCount)
+  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
+
   if (contactsImported === null) {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
+
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onToggle = React.useCallback(
     () =>
@@ -35,23 +39,27 @@ const ManageContacts = (props: Props) => {
     [dispatch, contactsImported, status]
   )
   const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
-  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
-        {/* TODO banner for after you've successfully imported contacts + hook up to service Y2K-192 */}
+        {importedCount !== null && (
+          <Kb.Banner color="green">{`You imported ${importedCount} contacts.`}</Kb.Banner>
+        )}
         {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
-          <Kb.Banner
-            color="red"
-            text={
-              contactsImported
-                ? "Contact importing is paused because Keybase doesn't have permission to access your contacts."
-                : "Keybase doesn't have permission to access your contacts."
-            }
-            actions={[{onClick: onOpenAppSettings, title: 'Enable in settings.'}]}
-          />
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content={[
+                contactsImported
+                  ? "Contact importing is paused because Keybase doesn't have permission to access your contacts. "
+                  : "Keybase doesn't have permission to access your contacts. ",
+                {onClick: onOpenAppSettings, text: 'Enable in settings'},
+                '.',
+              ]}
+            />
+          </Kb.Banner>
         )}
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>

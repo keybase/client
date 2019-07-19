@@ -74,8 +74,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
     },
     isElectron: {
-      left: 0,
+      left: 12,
       position: 'absolute',
+      top: 55,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,

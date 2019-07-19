@@ -47,6 +47,7 @@ type Context interface {
 	GetRunMode() kbconst.RunMode
 	GetLogDir() string
 	GetDataDir() string
+	GetEnv() *libkb.Env
 	GetMountDir() (string, error)
 	ConfigureSocketInfo() (err error)
 	CheckService() error
@@ -108,6 +109,11 @@ func (c *KBFSContext) GetDataDir() string {
 // GetMountDir returns mount dir
 func (c *KBFSContext) GetMountDir() (string, error) {
 	return c.g.Env.GetMountDir()
+}
+
+// GetEnv returns the global Env
+func (c *KBFSContext) GetEnv() *libkb.Env {
+	return c.g.Env
 }
 
 // GetRunMode returns run mode

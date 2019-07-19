@@ -17,11 +17,10 @@ import com.facebook.react.shell.MainPackageConfig;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
-import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
-//import com.dylanvann.fastimage.FastImageViewPackage;
+import com.dylanvann.fastimage.FastImageViewPackage;
 
 import org.reactnative.camera.RNCameraPackage;
 
@@ -113,7 +112,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new ImagePickerPackage())
             packages.add(new RNFetchBlobPackage())
             packages.add(new ReactNativeContacts())
-            packages.add(//new FastImageViewPackage())
+            packages.add(new FastImageViewPackage())
             packages.add(new LottiePackage())
             packages.add(new RNGestureHandlerPackage())
             packages.add(new RNScreensPackage())

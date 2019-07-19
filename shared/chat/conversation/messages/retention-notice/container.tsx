@@ -9,7 +9,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  measure: () => void | null
+  measure: (() => void)| null
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _) => {
   const explanation = makeRetentionNotice(stateProps._policy, stateProps._teamPolicy, stateProps._teamType)
   return {
     ...stateProps,

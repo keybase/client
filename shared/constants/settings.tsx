@@ -5,6 +5,8 @@ import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
+import {e164ToDisplay} from '../util/phone-numbers'
+
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
   unsubscribedFromAll: false,
@@ -17,7 +19,7 @@ export const makeNotifications = I.Record<Types._NotificationsState>({
 
 export const makeUnfurl = I.Record<Types._ChatUnfurlState>({
   unfurlError: undefined,
-  unfurlMode: null,
+  unfurlMode: undefined,
   unfurlWhitelist: I.List(),
 })
 
@@ -41,12 +43,21 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
 })
 
 export const makePhoneRow = I.Record<Types._PhoneRow>({
-  ctime: 0,
-  phoneNumber: '',
+  displayNumber: '',
+  e164: '',
+  searchable: false,
   superseded: false,
   verified: false,
-  visibility: RPCTypes.IdentityVisibility.private,
 })
+
+export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) =>
+  makePhoneRow({
+    displayNumber: e164ToDisplay(p.phoneNumber),
+    e164: p.phoneNumber,
+    searchable: p.visibility === RPCTypes.IdentityVisibility.public,
+    superseded: p.superseded,
+    verified: p.verified,
+  })
 
 export const makeFeedback = I.Record<Types._FeedbackState>({
   error: null,
@@ -72,13 +83,13 @@ export const makePassword = I.Record<Types._PasswordState>({
 export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   error: '',
   pendingVerification: '',
-  pendingVerificationAllowSearch: null,
   phones: null,
   verificationState: null,
 })
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importedCount: null,
   permissionStatus: 'unknown',
 })
 
@@ -87,7 +98,7 @@ export const makeState = I.Record<Types._State>({
   chat: makeChat(),
   checkPasswordIsCorrect: null,
   contacts: makeContacts(),
-  didToggleCertificatePinning: null,
+  didToggleCertificatePinning: false,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),
@@ -188,6 +199,7 @@ export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const resendVerificationForPhoneWaitingKey = 'settings:resendVerificationForPhone'
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
 export const addEmailWaitingKey = 'settings:addPhoneNumber'

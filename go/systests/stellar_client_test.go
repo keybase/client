@@ -746,4 +746,8 @@ func (s *stellarRetryClient) ListPopularAssetsLocal(ctx context.Context, session
 	return s.cli.ListPopularAssetsLocal(ctx, sessionID)
 }
 
+func (s *stellarRetryClient) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticConfig, err error) {
+	return s.cli.GetStaticConfigLocal(ctx)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

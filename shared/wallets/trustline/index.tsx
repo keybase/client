@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -7,12 +6,12 @@ import * as Constants from '../../constants/wallets'
 import Asset from './asset-container'
 
 type _Props = {
-  accountID: Types.AccountID
   acceptedAssets: Array<Types.AssetID>
+  accountID: Types.AccountID
   balanceAvailableToSend: string
   canAddTrustline: boolean
   clearTrustlineModal: () => void
-  errorMessage?: string
+  error: string
   loaded: boolean
   onSearchChange: (text: string) => void
   popularAssets: Array<Types.AssetID>
@@ -108,6 +107,7 @@ const Body = (props: BodyProps) => {
     props.refresh()
     return () => props.clearTrustlineModal()
   }, [])
+  const {onFocusChange} = props
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
       {props.loaded ? (
@@ -119,19 +119,29 @@ const Body = (props: BodyProps) => {
               placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
               hotkey="f"
               onChange={props.onSearchChange}
-              onFocus={props.onFocusChange && (() => props.onFocusChange(true))}
-              onBlur={props.onFocusChange && (() => props.onFocusChange(false))}
+              onFocus={onFocusChange ? () => onFocusChange(true) : null}
+              onBlur={onFocusChange ? () => onFocusChange(false) : null}
               waiting={props.waitingSearch}
             />
           </Kb.Box2>
           <Kb.Divider />
           {!props.canAddTrustline && (
-            <Kb.Banner
-              color="red"
-              text={`Stellar holds ${
-                Constants.trustlineHoldingBalance
-              } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
-            />
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph
+                bannerColor="red"
+                content={`Stellar holds ${
+                  Constants.trustlineHoldingBalance
+                } XLM per trustline, and your available Lumens balance is ${
+                  props.balanceAvailableToSend
+                } XLM.`}
+              />
+            </Kb.Banner>
+          )}
+          {!props.canAddTrustline && !!props.error && <Kb.Divider />}
+          {!!props.error && (
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph bannerColor="red" content={props.error} />
+            </Kb.Banner>
           )}
           {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>

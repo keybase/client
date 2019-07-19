@@ -19,8 +19,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberAdd()),
-  onResend: () =>
-    dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+  onResend: (phoneNumber: string) =>
+    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber})),
   onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
@@ -31,7 +31,7 @@ type WatcherProps = Props & {
 }
 // Watches for verification to succeed and exits
 class WatchForSuccess extends React.Component<WatcherProps> {
-  componentDidUpdate(prevProps: WatcherProps) {
+  componentDidUpdate() {
     if (this.props.verificationStatus === 'success') {
       this.props.onSuccess()
     }

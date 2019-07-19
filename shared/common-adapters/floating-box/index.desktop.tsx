@@ -17,13 +17,11 @@ class FloatingBox extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {
-      targetRect: this._getTargetRect(props),
-    }
+    this.state = {targetRect: this._getTargetRect()}
   }
 
-  _getTargetRect = (p: Props) => {
-    let targetRect = null
+  _getTargetRect = () => {
+    let targetRect: ClientRect | null = null
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
       if (attachTo) {
@@ -48,7 +46,7 @@ class FloatingBox extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    const targetRect = this._getTargetRect(this.props)
+    const targetRect = this._getTargetRect()
     this.setState(p => {
       if (p.targetRect === targetRect) {
         return null

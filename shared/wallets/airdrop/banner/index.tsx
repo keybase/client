@@ -1,22 +1,31 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Platform from '../../../constants/platform'
 import * as Styles from '../../../styles'
+import {SystemButtons} from '../../../router-v2/header/index'
 
 type Props = {
   headerBody: string
   onCheckQualify: () => void
   onCancel: () => void
   show: boolean
+  showSystemButtons: boolean
 }
 
 const Banner = (p: Props) => {
   if (!p.show) return null
 
   const join = (
-    <Kb.Button backgroundColor="purple" label="Join the airdrop" onClick={p.onCheckQualify} small={true} />
+    <Kb.Button
+      backgroundColor="purple"
+      label="Join the airdrop"
+      onClick={p.onCheckQualify}
+      small={true}
+      style={styles.button}
+    />
   )
 
-  const textAndButtons = Styles.isMobile ? (
+  const textAndButtons = (
     <Kb.Box2 direction="horizontal" style={styles.grow}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
@@ -30,24 +39,15 @@ const Banner = (p: Props) => {
             label="Later"
             onClick={p.onCancel}
             small={true}
+            style={styles.button}
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.grow}
-      centerChildren={true}
-      alignItems="flex-start"
-      gap="small"
-    >
-      <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
-        {p.headerBody}
-      </Kb.Markdown>
-      {join}
-      <Kb.Box2 direction="vertical" style={styles.grow} />
-      <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
+      {p.showSystemButtons && (
+        <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <SystemButtons />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 
@@ -74,6 +74,9 @@ const markdownOverride = {
 }
 
 const styles = Styles.styleSheetCreate({
+  button: Styles.platformStyles({
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   buttonContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -85,12 +88,22 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   close: {padding: Styles.globalMargins.xxtiny},
-  container: {
-    backgroundColor: Styles.globalColors.purple,
-    padding: Styles.globalMargins.tiny,
-  },
+  container: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purple,
+      padding: Styles.globalMargins.tiny,
+    },
+    isElectron: Styles.desktopStyles.windowDragging,
+  }),
   grow: {flexGrow: 1, flexShrink: 1},
-  markdown: {alignSelf: 'center'},
+  markdown: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'flex-start',
+      maxWidth: Platform.isMac ? undefined : 400,
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+    isMobile: {alignSelf: 'center'},
+  }),
   textContainer: {
     flexGrow: 1,
     flexShrink: 1,

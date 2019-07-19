@@ -76,7 +76,7 @@ const requestCommon = {
   ...common,
   action: 'requested Lumens worth',
   balanceChange: '',
-  balanceChangeColor: null,
+  balanceChangeColor: undefined,
   icon: 'iconfont-stellar-request',
   loading: false,
   pending: false,
@@ -97,25 +97,54 @@ const theyRequestProps = {
   sendButtonLabel: 'Send Lumens worth',
 } as const
 
-const sentAssetProps = {
+const sentAssetFromXLMProps = {
   ...common,
   action: 'sent',
   amount: '1 BTC/Abc.def',
-  balanceChange: '-1 BTC',
+  balanceChange: '- 10.2602048 XLM',
   balanceChangeColor: globalColors.black,
   icon: null,
   loading: false,
   memo: '₿',
   pending: false,
   showCoinsIcon: true,
+  sourceAmount: '10.2602048 XLM',
 } as const
+
+const receivedAssetFromXLMProps = {
+  ...common,
+  action: 'sent',
+  amount: '1 USD/www.anchor.com',
+  balanceChange: '+ 1 USD',
+  balanceChangeColor: globalColors.greenDark,
+  icon: null,
+  loading: false,
+  memo: "dolla dolla bill ya'll",
+  pending: false,
+  showCoinsIcon: true,
+  sourceAmount: '10.2602048 XLM',
+}
+
+const sentAssetFromAssetProps = {
+  ...common,
+  action: 'sent',
+  amount: '1 USD/www.anchor.com',
+  balanceChange: '- 32.48 DRA',
+  balanceChangeColor: globalColors.black,
+  icon: null,
+  loading: false,
+  memo: "dolla dolla bill ya'll",
+  pending: false,
+  showCoinsIcon: true,
+  sourceAmount: '32.48 DRA',
+}
 
 const loadingProps = {
   ...common,
   action: '',
   amount: '',
   balanceChange: '',
-  balanceChangeColor: null,
+  balanceChangeColor: undefined,
   icon: null,
   loading: true,
   memo: '',
@@ -133,7 +162,9 @@ const load = () => {
     .add(`Relay from recipient's perspective`, () => <Payment {...claimableProps} />)
     .add('You request', () => <Payment {...youRequestProps} />)
     .add('They request', () => <Payment {...theyRequestProps} />)
-    .add('Sent non-native', () => <Payment {...sentAssetProps} />)
+    .add('Sent non-native from XLM', () => <Payment {...sentAssetFromXLMProps} />)
+    .add('Received non-native from XLM', () => <Payment {...receivedAssetFromXLMProps} />)
+    .add('Sent non-native from non-native', () => <Payment {...sentAssetFromAssetProps} />)
     .add('Loading', () => <Payment {...loadingProps} />)
 }
 

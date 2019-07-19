@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
@@ -131,7 +130,7 @@ type DetailProps = {
 
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
-  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : undefined
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
@@ -272,6 +271,13 @@ const Detail = (props: DetailProps) => {
         </Text>
       )
     }
+    case 'none': {
+      return (
+        <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
+        {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
+      </Text>
+      )
+    }
     default:
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
@@ -311,6 +317,7 @@ const getAmount = (role: Types.Role, amount: string, sourceAmount?: string): str
     case 'receiverOnly':
       return `+ ${amount}`
     case 'senderAndReceiver':
+    case 'none':
       return '0 XLM'
     default:
       throw new Error(`Unexpected role ${role}`)
@@ -367,7 +374,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
-  let status = capitalize(props.status)
+  let status: string | null = capitalize(props.status)
   // 'claimable' -> show 'pending' and completed -> show nothing
   switch (status) {
     case 'Completed':
@@ -383,7 +390,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text
       selectable={props.selectableText}
-      style={props.reverseColor && {color: globalColors.white}}
+      style={props.reverseColor ? {color: globalColors.white} : undefined}
       title={tooltip}
       type="BodySmall"
     >
@@ -408,7 +415,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
-type ReadState = 'read' | 'unread' | 'oldestUnread'
+export type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {
   amountUser: string // empty if sent with no display currency
@@ -423,10 +430,10 @@ export type Props = {
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string
-  onCancelPayment: (() => void) | null
+  onCancelPayment?: () => void
   onCancelPaymentWaitingKey: string
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
-  onSelectTransaction?: (() => void) | null
+  onSelectTransaction?: () => void
   onShowProfile: (username: string) => void
   readState: ReadState
   selectableText: boolean
@@ -485,7 +492,7 @@ export const Transaction = (props: Props) => {
           )}
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
-              detailView={props.detailView}
+              detailView={props.detailView || false}
               error={props.status === 'error' ? props.statusDetail : ''}
               reverseColor={props.fromAirdrop}
               selectableText={props.selectableText}
@@ -571,7 +578,7 @@ const styles = styleSheetCreate({
   flexOne: {flex: 1},
   lineThrough: {
     textDecorationLine: 'line-through',
-  },
+  } as const,
   marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,

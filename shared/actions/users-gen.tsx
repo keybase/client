@@ -40,4 +40,4 @@ export type Actions =
   | BlockUserPayload
   | UpdateBrokenStatePayload
   | UpdateFullnamesPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

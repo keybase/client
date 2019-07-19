@@ -28,9 +28,9 @@ type Props = {
 type State = {
   clickCount: number
   email: string | null
-  showSuccessBanner: boolean
-  sendLogs: boolean
   feedback: string
+  sendLogs: boolean
+  showSuccessBanner: boolean
 }
 
 const clickThreshold = 7
@@ -39,7 +39,7 @@ class Feedback extends React.Component<Props, State> {
   state = {
     clickCount: 0,
     email: null,
-    feedback: this.props.feedback,
+    feedback: this.props.feedback || '',
     sendLogs: true,
     showSuccessBanner: false,
   }
@@ -81,7 +81,7 @@ class Feedback extends React.Component<Props, State> {
     const sendMaxBytes = this._sendMaxBytes()
     this.setState({clickCount: 0, showSuccessBanner: false})
     this.props.onSendFeedback(
-      this.state.email ? `${this.state.feedback} (email: ${this.state.email} )` : this.state.feedback,
+      this.state.email ? `${this.state.feedback} (email: ${this.state.email || ''} )` : this.state.feedback,
       this.state.sendLogs,
       sendMaxBytes
     )
@@ -92,7 +92,11 @@ class Feedback extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         <Kb.ScrollView>
-          {this.state.showSuccessBanner && <Kb.Banner color="green" text="Thanks! Your feedback was sent." />}
+          {this.state.showSuccessBanner && (
+            <Kb.Banner color="green">
+              <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+            </Kb.Banner>
+          )}
           <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Input
@@ -110,14 +114,18 @@ class Feedback extends React.Component<Props, State> {
                 onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
-            {this._sendMaxBytes() && <Kb.Banner color="green" text="next send will include full logs" />}
+            {this._sendMaxBytes() && (
+              <Kb.Banner color="green">
+                <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
+              </Kb.Banner>
+            )}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., file sizes, but not names or contents) but it will
-                  help the developers fix bugs more quickly.
+                  This includes some private metadata info (e.g., file sizes, but not names or contents) but
+                  it will help the developers fix bugs more quickly.
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
@@ -156,25 +164,13 @@ export default Feedback
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
+    common: {flex: 1},
   }),
-  mainBox: {
-    padding: Styles.globalMargins.small,
-  },
-  outerStyle: {
-    backgroundColor: 'white',
-  },
-  smallLabel: {
-    color: 'black',
-  },
+  mainBox: {padding: Styles.globalMargins.small},
+  outerStyle: {backgroundColor: 'white'},
+  smallLabel: {color: 'black'},
   text: Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-    },
+    isElectron: {cursor: 'default'},
   }),
-  textBox: {
-    flex: 1,
-  },
+  textBox: {flex: 1},
 })

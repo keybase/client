@@ -8,13 +8,7 @@ import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-    ordinal: Types.Ordinal
-  },
-  {}
->
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
 
 type WrapperProps = {
   topReacjis: Array<string>
@@ -27,7 +21,7 @@ type WrapperState = {
   width: number
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 
@@ -43,7 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
 })

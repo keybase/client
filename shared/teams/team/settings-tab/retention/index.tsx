@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import {MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -28,7 +27,7 @@ export type Props = {
 type State = {
   saving: boolean
   selected: RetentionPolicy
-  items: Array<MenuItem | 'Divider' | null>
+  items: Kb.MenuItems
 }
 
 type PropsWithOverlay<P> = {} & P & Kb.OverlayParentProps
@@ -39,8 +38,8 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     saving: false,
     selected: retentionPolicies.policyRetain,
   }
-  _timeoutID: NodeJS.Timeout | null
-  _showSaved: boolean
+  _timeoutID: NodeJS.Timeout | undefined
+  _showSaved: boolean = false
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -92,18 +91,21 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     if (this.props.showInheritOption) {
       policies.unshift(retentionPolicies.policyInherit)
     }
-    const items = policies.reduce((arr, policy) => {
+    const items = policies.reduce<State['items']>((arr, policy) => {
       switch (policy.type) {
         case 'retain':
         case 'expire':
-          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}]
+          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}] as Kb.MenuItems
         case 'inherit':
           if (this.props.teamPolicy) {
             return [
-              {onClick: () => this._onSelect(policy), title: `Team default (${this.props.teamPolicy.title})`},
+              {
+                onClick: () => this._onSelect(policy),
+                title: `Team default (${this.props.teamPolicy.title})`,
+              },
               'Divider',
               ...arr,
-            ]
+            ] as Kb.MenuItems
           } else {
             throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
           }
@@ -124,14 +126,14 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
                   <Kb.Icon type="iconfont-timer" />
                   <Kb.Text
                     type={Styles.isMobile ? 'BodyBig' : 'Body'}
-                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : null}
+                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : undefined}
                   >
                     {policy.title}
                   </Kb.Text>
                 </Kb.Box2>
               ),
             },
-          ]
+          ] as Kb.MenuItems
       }
       return arr
     }, [])
@@ -146,7 +148,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
   }
 
   _label = () => {
-    return policyToLabel(this.state.selected, this.props.teamPolicy)
+    return policyToLabel(this.state.selected, this.props.teamPolicy || null)
   }
 
   _init = () => {
@@ -158,7 +160,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     this._init()
   }
 
-  componentDidUpdate(prevProps: PropsWithOverlay<Props>, prevState: State) {
+  componentDidUpdate(prevProps: PropsWithOverlay<Props>) {
     if (
       !policyEquals(this.props.policy, prevProps.policy) ||
       !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)

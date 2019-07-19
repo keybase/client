@@ -118,8 +118,8 @@ export type _BuiltPaymentAdvanced = {
   destinationAccount: AccountID
   destinationDisplay: string
   exchangeRate: string
+  findPathError: string
   fullPath: PaymentPath
-  noPathFoundError: boolean
   readyToSend: boolean
   sourceDisplay: string
   sourceMaxDisplay: string
@@ -301,7 +301,8 @@ export type AccountInflationDestination = I.RecordOf<_AccountInflationDestinatio
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
-export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified'
+export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified' | 'needDisclaimer'
+
 export type _AirdropQualification = {
   title: string
   subTitle: string
@@ -359,6 +360,8 @@ export type _Trustline = {
 }
 export type Trustline = I.RecordOf<_Trustline>
 
+export type StaticConfig = I.RecordOf<StellarRPCTypes.StaticConfig>
+
 export type _State = {
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
@@ -377,20 +380,22 @@ export type _State = {
   builtPayment: BuiltPayment
   builtPaymentAdvanced: BuiltPaymentAdvanced
   builtRequest: BuiltRequest
+  changeTrustlineError: string
   createNewAccountError: string
   currencies: I.List<Currency>
-  externalPartners: I.List<PartnerUrl>
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
-  inflationDestinations: I.List<InflationDestination>
-  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>
+  externalPartners: I.List<PartnerUrl>
   inflationDestinationError: string
+  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>
+  inflationDestinations: I.List<InflationDestination>
   lastSentXLM: boolean
   linkExistingAccountError: string
-  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
+  mobileOnlyMap: I.Map<AccountID, boolean>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>
+  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   reviewCounter: number // increments when we call reviewPayment,
   reviewLastSeqno: number | null // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString
@@ -401,10 +406,11 @@ export type _State = {
   sentPaymentError: string
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
+  staticConfig: StaticConfig | null
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
-  mobileOnlyMap: I.Map<AccountID, boolean>
 }
 
 export type State = I.RecordOf<_State>

@@ -6,13 +6,7 @@ import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    fromSendForm?: boolean
-    showOnCreation?: boolean
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{fromSendForm?: boolean; showOnCreation?: boolean}>
 
 const mapStateToProps = state => ({
   keyError: state.wallets.secretKeyError,
@@ -56,7 +50,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   keyError: stateProps.keyError,
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,

@@ -61,7 +61,7 @@ export const InfoIcon = Container.namedConnect(
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {
-  onBack: () => void
+  onBack?: (() => void) | null
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
@@ -128,7 +128,7 @@ type SignupScreenProps = {
   titleComponent?: React.ReactNode
   header?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: () => void | null
+  onRightAction?: (() => void) | null
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean
@@ -145,7 +145,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
         showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={props.headerStyle}
+        style={props.headerStyle || null}
         negative={!!props.negativeHeader}
       />
     )}
@@ -187,7 +187,13 @@ SignupScreen.defaultProps = {
 }
 
 export const errorBanner = (error: string) =>
-  error.trim() ? [<Kb.Banner key="generalError" color="red" text={error} />] : []
+  error.trim()
+    ? [
+        <Kb.Banner key="generalError" color="red">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>,
+      ]
+    : []
 
 const styles = Styles.styleSheetCreate({
   backButton: {

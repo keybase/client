@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/bots"
+
 	"golang.org/x/net/context"
 
 	"encoding/base64"
@@ -435,6 +437,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
+	g.BotCommandManager.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -2012,6 +2016,7 @@ type serverChatListener struct {
 	reactionUpdate          chan chat1.ReactionUpdateNotif
 	messagesUpdated         chan chat1.MessagesUpdated
 	readMessage             chan chat1.ReadMessageInfo
+	convsUpdated            chan []chat1.InboxUIItem
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -2079,6 +2084,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.messagesUpdated <- activity.MessagesUpdated()
 	case chat1.ChatActivityType_SET_STATUS:
 		n.setStatus <- activity.SetStatus()
+	case chat1.ChatActivityType_CONVS_UPDATED:
+		n.convsUpdated <- activity.ConvsUpdated().Items
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2131,6 +2138,7 @@ func newServerChatListener() *serverChatListener {
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
+		convsUpdated:            make(chan []chat1.InboxUIItem, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -3818,7 +3826,6 @@ func TestChatSrvMakePreview(t *testing.T) {
 	typ, err := res.Location.Ltyp()
 	require.NoError(t, err)
 	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
-	require.True(t, strings.Contains(res.Location.Url(), outboxID.String()))
 	resp, err := http.Get(res.Location.Url())
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
@@ -4369,7 +4376,7 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
 			}
 			require.Equal(t, 1, len(getTLFRes.Convs[1].Participants))
-			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0])
+			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0].Assertion)
 		}
 
 		// delete the channel make sure it's gone from both inboxes

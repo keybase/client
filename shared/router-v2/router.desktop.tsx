@@ -73,6 +73,8 @@ class AppView extends React.PureComponent<any> {
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
+          {/*
+          // @ts-ignore Header typing not finished yet */}
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
@@ -187,7 +189,7 @@ const LoggedOutStackNavigator = createNavigator(
   StackRouter(
     {...Shim.shim(loggedOutRoutes)},
     {
-      defaultNavigationOptions: p => ({headerHideBorder: true}),
+      defaultNavigationOptions: () => ({headerHideBorder: true}),
       initialRouteName: 'login',
     }
   ),
@@ -202,7 +204,7 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
-type Subscriber = (data: {action: Object; lastState: Object; state: any; type: string}) => void
+type Subscriber = (data: {action: Object | null; lastState: Object | null; state: any; type: string}) => void
 
 const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js

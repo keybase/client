@@ -24,6 +24,8 @@ export type SettingsProps = {
   mobileOnlyWaiting: boolean
   onBack: () => void
   onDelete: () => void
+  onLoadSecretKey: () => void
+  onSecretKeySeen: () => void
   onSetDefault: () => void
   onEditName: () => void
   onSetupInflation: () => void
@@ -31,6 +33,7 @@ export type SettingsProps = {
   onMobileOnlyModeChange: (enabled: boolean) => void
   refresh: () => void
   saveCurrencyWaiting: boolean
+  secretKey: string
   showExternalPartners: boolean
   thisDeviceIsLockedOut: boolean
 }
@@ -54,25 +57,31 @@ const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
-      <Kb.Text onClickURL={props.url} style={styles.partnerLink} type="BodyPrimaryLink">
-        {props.title}
-      </Kb.Text>
+      <Kb.ClickableBox
+        className="hover-underline-container"
+        onClick={() => openUrl(props.url)}
+        style={styles.partnerLinkContainer}
+      >
+        <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
+          {props.title}
+        </Kb.Text>
+        <Kb.Icon fontSize={Styles.isMobile ? 16 : 12} style={styles.openIcon} type="iconfont-open-browser" />
+      </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.noShrink}>
-      <Kb.Icon
-        onClick={() => openUrl(props.url)}
-        fontSize={Styles.isMobile ? 16 : 12}
-        type="iconfont-open-browser"
-      />
-    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.noShrink} />
   </Kb.Box2>
 )
 
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
     this.props.refresh()
+    this.props.onLoadSecretKey()
   }
+  componentWillUnmount() {
+    this.props.onSecretKeySeen()
+  }
+
   render() {
     const props = this.props
     return (
@@ -106,7 +115,21 @@ class AccountSettings extends React.Component<SettingsProps> {
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true} gap="tiny">
               <Kb.Text type="BodySmallSemibold">Stellar address</Kb.Text>
-              <Kb.CopyText text={props.accountID} containerStyle={styles.accountIDContainer} />
+              <Kb.CopyText text={props.accountID} containerStyle={styles.copyTextContainer} />
+            </Kb.Box2>
+            <Divider />
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Secret Key</Kb.Text>
+              <Kb.Banner color="yellow" inline={true}>Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar&nbsp;account.</Kb.Banner>
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
+                <Kb.CopyText containerStyle={styles.copyTextContainer} multiline={true} withReveal={true} text={this.props.secretKey} />
+                {!this.props.secretKey && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.progressContainer}>
+                    <Kb.ProgressIndicator style={styles.progressIndicator} type="Small" />
+                    <Kb.Text type="BodySmall">fetching and decrypting secret key...</Kb.Text>
+                  </Kb.Box2>
+                )}
+              </Kb.Box2>
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
@@ -288,7 +311,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                   label="Remove account"
                   fullWidth={true}
                   type="Danger"
-                  onClick={props.isDefault ? null : props.onDelete}
+                  onClick={props.isDefault ? undefined : props.onDelete}
                 />
                 {props.isDefault && (
                   <Kb.Text center={true} type="BodySmall">
@@ -305,11 +328,11 @@ class AccountSettings extends React.Component<SettingsProps> {
 }
 
 const styles = Styles.styleSheetCreate({
-  accountIDContainer: {
+  alignSelfFlexStart: {alignSelf: 'flex-start'},
+  copyTextContainer: {
     alignSelf: 'flex-start',
     maxWidth: '100%',
   },
-  alignSelfFlexStart: {alignSelf: 'flex-start'},
   deleteOpacity: {opacity: 0.3},
   divider: {
     marginBottom: Styles.globalMargins.tiny,
@@ -333,6 +356,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
   },
   noShrink: {flexShrink: 0},
+  openIcon: Styles.platformStyles({
+    common: {
+      left: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: Styles.globalMargins.xtiny,
+    },
+  }),
   partnerDivider: {
     marginBottom: Styles.globalMargins.tiny,
     marginLeft: 40,
@@ -340,6 +372,29 @@ const styles = Styles.styleSheetCreate({
   },
   partnerIcon: {flexShrink: 0, height: 32, width: 32},
   partnerLink: {color: Styles.globalColors.black},
+  partnerLinkContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
+  },
+  progressContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.fillAbsolute,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.white_90,
+      display: 'flex',
+      justifyContent: 'center',
+    },
+  }),
+  progressIndicator: Styles.platformStyles({
+    isElectron: {
+      height: 17,
+      width: 17,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
   red: {color: Styles.globalColors.redDark},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
@@ -359,6 +414,9 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
     width: '100%',
+  },
+  secretKeyContainer: {
+    position: 'relative',
   },
   section: {
     alignItems: 'flex-start',

@@ -1967,6 +1967,9 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Readers {
 		m[u.Uid] = true
 	}
+	for _, u := range t.Bots {
+		m[u.Uid] = true
+	}
 	var all []UID
 	for u := range m {
 		all = append(all, u)
@@ -1986,6 +1989,9 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 		m[u.Uid] = u
 	}
 	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Bots {
 		m[u.Uid] = u
 	}
 	var all []UserVersion
@@ -2310,16 +2316,31 @@ func (r TeamRole) IsAdminOrAbove() bool {
 	return r.IsOrAbove(TeamRole_ADMIN)
 }
 
-func (r TeamRole) IsReaderOrAbove() bool {
-	return r.IsOrAbove(TeamRole_READER)
-}
-
 func (r TeamRole) IsWriterOrAbove() bool {
 	return r.IsOrAbove(TeamRole_WRITER)
 }
 
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r.IsOrAbove(TeamRole_READER)
+}
+
+func (r TeamRole) IsBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_BOT)
+}
+
+func (r TeamRole) IsBot() bool {
+	return r == TeamRole_BOT
+}
+
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
-	return int(r) >= int(min)
+	switch r {
+	case TeamRole_NONE:
+		return min == TeamRole_NONE
+	case TeamRole_BOT:
+		return min == TeamRole_NONE || min == TeamRole_BOT
+	default:
+		return int(r) >= int(min) || min == TeamRole_BOT
+	}
 }
 
 type idSchema struct {
@@ -2537,6 +2558,8 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	switch role {
+	case TeamRole_BOT:
+		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
 		req.Readers = append(req.Readers, uv)
 	case TeamRole_WRITER:
@@ -2559,6 +2582,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
 	ret = append(ret, req.Admins...)
@@ -3104,6 +3128,15 @@ func (h *TeamData) KeySummary() string {
 	return fmt.Sprintf("{ptksu:%v, rkms:%v, sigchain:%s}", p, r, h.Chain.KeySummary())
 }
 
+func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
+	points := s.UserLog[user]
+	if len(points) == 0 {
+		return TeamRole_NONE
+	}
+	role := points[len(points)-1].Role
+	return role
+}
+
 func (s TeamSigChainState) KeySummary() string {
 	var v []PerTeamKeyGeneration
 	for k := range s.PerTeamKeys {
@@ -3113,10 +3146,17 @@ func (s TeamSigChainState) KeySummary() string {
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
-	if h == nil || h.LatestSeqnoHint == Seqno(0) {
+	if h == nil {
 		return false
 	}
-	_, fresh := h.Outer[h.LatestSeqnoHint]
+	max := h.RatchetSet.Max()
+	if max < h.LatestSeqnoHint {
+		max = h.LatestSeqnoHint
+	}
+	if max == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[max]
 	return !fresh
 }
 
@@ -3162,6 +3202,21 @@ func (k TeamEphemeralKey) Generation() EkGeneration {
 		return k.Teambot().Metadata.Generation
 	default:
 		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Material() Bytes32 {
+	typ, err := k.KeyType()
+	if err != nil {
+		return [32]byte{}
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Seed
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Seed
+	default:
+		return [32]byte{}
 	}
 }
 

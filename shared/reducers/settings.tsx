@@ -13,6 +13,7 @@ const initialState: Types.State = Constants.makeState()
 type Actions =
   | SettingsGen.Actions
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
+  | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
 
 function reducer(state: Types.State = initialState, action: Actions): Types.State {
@@ -95,10 +96,20 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         ['email', 'emails'],
         I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
       )
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+      return state
+        .updateIn(['email', 'emails'], emails =>
+          emails.update(action.payload.params.emailAddress, email =>
+            email.merge({
+              isVerified: true,
+            })
+          )
+        )
+        .update('email', emailState => emailState.merge({addedEmail: null}))
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
       return state.setIn(
         ['phoneNumbers', 'phones'],
-        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
+        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)]))
       )
     case SettingsGen.loadedRememberPassword:
     case SettingsGen.onChangeRememberPassword:
@@ -112,7 +123,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadedProxyData:
       return state.merge({proxyData: action.payload.proxyData})
     case SettingsGen.certificatePinningToggled:
-      return state.merge({didToggleCertificatePinning: action.payload.toggled})
+      return state.merge({didToggleCertificatePinning: action.payload.toggled || false})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})
@@ -156,21 +167,15 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
-        pn.merge(
-          action.payload.error
-            ? {
-                error: action.payload.error,
-                pendingVerification: '',
-                pendingVerificationAllowSearch: null,
-                verificationState: null,
-              }
-            : {
-                error: '',
-                pendingVerification: action.payload.phoneNumber,
-                pendingVerificationAllowSearch: action.payload.allowSearch,
-                verificationState: null,
-              }
-        )
+        pn.merge({
+          error: action.payload.error || '',
+          pendingVerification: action.payload.phoneNumber,
+          verificationState: null,
+        })
+      )
+    case SettingsGen.resendVerificationForPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
       )
     case SettingsGen.clearPhoneNumberErrors:
       return state.update('phoneNumbers', pn => pn.merge({error: ''}))
@@ -179,7 +184,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         pn.merge({
           error: '',
           pendingVerification: '',
-          pendingVerificationAllowSearch: null,
           verificationState: null,
         })
       )
@@ -195,6 +199,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
     case SettingsGen.loadedContactPermissions:
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.setContactImportedCount:
+      return state.update('contacts', contacts => contacts.set('importedCount', action.payload.count))
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)

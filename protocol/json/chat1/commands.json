@@ -41,7 +41,8 @@
       "name": "ConversationCommandGroupsTyp",
       "symbols": [
         "BUILTIN_0",
-        "CUSTOM_1"
+        "CUSTOM_1",
+        "NONE_2"
       ]
     },
     {
@@ -89,6 +90,13 @@
             "def": false
           },
           "body": "ConversationCommandGroupsCustom"
+        },
+        {
+          "label": {
+            "name": "NONE",
+            "def": false
+          },
+          "body": null
         }
       ]
     }

@@ -2,8 +2,8 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
+import * as Platforms from '../../constants/platform'
 import KeyHandler from '../../util/key-handler.desktop'
-import {isDarwin} from '../../constants/platform'
 import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 
@@ -66,32 +66,14 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = () =>
-    [
-      {
-        onClick: this.props.onProfileClick,
-        title: 'View profile',
-      },
-      'Divider',
-      {
-        onClick: this.props.onSettings,
-        title: 'Settings',
-      },
-      {
-        onClick: this.props.onHelp,
-        title: 'Help',
-      },
-      {
-        danger: true,
-        onClick: this.props.onSignOut,
-        title: 'Sign out',
-      },
-      {
-        danger: true,
-        onClick: this.props.onQuit,
-        title: 'Quit Keybase',
-      },
-    ] as const
+  _menuItems = () => [
+    {onClick: this.props.onProfileClick, title: 'View profile'},
+    'Divider' as const,
+    {onClick: this.props.onSettings, title: 'Settings'},
+    {onClick: this.props.onHelp, title: 'Help'},
+    {danger: true, onClick: this.props.onSignOut, title: 'Sign out'},
+    {danger: true, onClick: this.props.onQuit, title: 'Quit Keybase'},
+  ]
 
   render() {
     const p = this.props
@@ -141,9 +123,12 @@ class TabBar extends React.PureComponent<Props, State> {
               onHidden={this._hideMenu}
             />
           </Kb.Box2>
-          {tabs.map(t => (
+          {tabs.map((t, i) => (
             <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
-              <Kb.WithTooltip text={data[t].label} toastClassName="tab-tooltip">
+              <Kb.WithTooltip
+                text={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
+                toastClassName="tab-tooltip"
+              >
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}
@@ -209,7 +194,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
-  map[`${isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
+  map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
   return map
 }, {})
 const hotkeys = Object.keys(keysMap)

@@ -681,6 +681,7 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().GetStellar().InformDefaultCurrencyChange(mctx)
 	return err
 }
 

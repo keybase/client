@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 
@@ -95,8 +96,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
       )
-    case WalletsGen.paymentsReceived:
-      return state
+    case WalletsGen.paymentsReceived: {
+      let newState = state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
           Constants.updatePaymentsReceived(paymentsMap, [
             ...action.payload.payments,
@@ -105,7 +106,20 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
-        .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
+      // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.
+      // GetPaymentsLocal can erroneously return an empty oldestUnread value when a non-latest page is requested
+      // and oldestUnread points into the latest page.
+      if (
+        action.payload.allowClearOldestUnread ||
+        (action.payload.oldestUnread || Types.noPaymentID) !== Types.noPaymentID
+      ) {
+        newState = newState.setIn(
+          ['paymentOldestUnreadMap', action.payload.accountID],
+          action.payload.oldestUnread
+        )
+      }
+      return newState
+    }
     case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
@@ -349,12 +363,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyError: actionHasError(action) ? action.payload.error : '',
         secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
       })
+    case WalletsGen.changedTrustline:
+      return actionHasError(action)
+        ? state.merge({changeTrustlineError: action.payload.error})
+        : state.merge({changeTrustlineError: ''})
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
         builtPayment: state.get('builtPayment').merge({readyToSend: 'spinning'}),
+        changeTrustlineError: '',
         createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
@@ -369,6 +388,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountName: '',
             accountNameError: '',
             accountNameValidationState: 'none',
+            changeTrustlineError: '',
             createNewAccountError: '',
             linkExistingAccountError: '',
             secretKey: new HiddenString(''),
@@ -438,6 +458,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         sep7ConfirmError: '',
         sep7ConfirmInfo: null,
+        sep7ConfirmPath: Constants.emptyBuiltPaymentAdvanced,
         sep7ConfirmURI: '',
       })
     case WalletsGen.validateSEP7LinkError:
@@ -514,7 +535,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
-      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+      return action.payload.forSEP7
+        ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
+        : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+    case WalletsGen.staticConfigLoaded:
+      return state.set('staticConfig', action.payload.staticConfig)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
@@ -553,6 +578,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
+    case WalletsGen.acceptSEP7Path:
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:

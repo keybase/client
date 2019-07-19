@@ -30,27 +30,24 @@ const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 const showUserOnNoErrors = (state: TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterUsername']}),
+    RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}),
   ]
 
-const showInviteScreen = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
+const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
 
 const showEmailScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
-    : RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
+    : RouteTreeGen.createNavigateAppend({path: ['signupError']})
 
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
 const setEmailVisibilityAfterSignup = (state: TypedState) =>
@@ -113,7 +110,7 @@ const checkUsername = (state: TypedState, _, logger) => {
           error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
           username: state.signup.username,
           usernameTaken:
-            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : null,
+            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
         })
       })
   )

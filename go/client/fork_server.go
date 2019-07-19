@@ -144,6 +144,7 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 		"no-debug",
 		"api-dump-unsafe",
 		"plain-logging",
+		"disable-cert-pinning",
 	}
 
 	strings := []string{
@@ -166,7 +167,6 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 		"tor-proxy",
 		"tor-hidden-address",
 		"proxy-type",
-		"disable-cert-pinning",
 	}
 	args = append(args, arg0)
 

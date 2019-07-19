@@ -32,6 +32,7 @@ const (
 // blockServerRemoteAuthTokenRefresher is a helper struct for
 // refreshing auth tokens and managing connections.
 type blockServerRemoteClientHandler struct {
+	kbCtx         Context
 	name          string
 	log           logger.Logger
 	deferLog      logger.Logger
@@ -47,7 +48,7 @@ type blockServerRemoteClientHandler struct {
 	client keybase1.BlockInterface
 }
 
-func newBlockServerRemoteClientHandler(name string, log logger.Logger,
+func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Logger,
 	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
 	srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
@@ -59,6 +60,7 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 		csg:           csg,
 		srvRemote:     srvRemote,
 		rpcLogFactory: rpcLogFactory,
+		kbCtx:         kbCtx,
 	}
 
 	b.pinger = pinger{
@@ -93,12 +95,13 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 		b.conn.Shutdown()
 	}
 
-	b.conn = rpc.NewTLSConnection(
+	b.conn = rpc.NewTLSConnectionWithDialable(
 		b.srvRemote, kbfscrypto.GetRootCerts(
 			b.srvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsblock.ServerErrorUnwrapper{}, b, b.rpcLogFactory,
 		logger.LogOutputWithDepthAdder{Logger: b.log},
-		rpc.DefaultMaxFrameLength, b.connOpts)
+		rpc.DefaultMaxFrameLength, b.connOpts,
+		libkb.NewProxyDialable(b.kbCtx.GetEnv()))
 	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
 }
 
@@ -318,7 +321,7 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config blockServerRemoteConfig,
+func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
 	blkSrvRemote rpc.Remote, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -332,10 +335,10 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 	// reads.  This allows small reads to avoid getting trapped behind
 	// large asynchronous writes.  TODO: use some real network QoS to
 	// achieve better prioritization within the actual network.
-	bs.putConn = newBlockServerRemoteClientHandler(
+	bs.putConn = newBlockServerRemoteClientHandler(kbCtx,
 		"BlockServerRemotePut", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
-	bs.getConn = newBlockServerRemoteClientHandler(
+	bs.getConn = newBlockServerRemoteClientHandler(kbCtx,
 		"BlockServerRemoteGet", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 
@@ -347,7 +350,7 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 }
 
 // For testing.
-func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
+func newBlockServerRemoteWithClient(kbCtx Context, config blockServerRemoteConfig,
 	client keybase1.BlockInterface) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -359,11 +362,13 @@ func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
 			log:      log,
 			deferLog: deferLog,
 			client:   client,
+			kbCtx:    kbCtx,
 		},
 		getConn: &blockServerRemoteClientHandler{
 			log:      log,
 			deferLog: deferLog,
 			client:   client,
+			kbCtx:    kbCtx,
 		},
 	}
 	return bs

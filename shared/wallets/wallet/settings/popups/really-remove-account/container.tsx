@@ -7,12 +7,7 @@ import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state, ownProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')
@@ -27,8 +22,8 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onClose: (accountID: Types.AccountID) => dispatch(RouteTreeGen.createNavigateUp()),
+const mapDispatchToProps = dispatch => ({
+  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
   _onFinish: (accountID: Types.AccountID) =>
     dispatch(
@@ -40,10 +35,10 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
-  onCancel: () => dispatchProps._onClose(stateProps.accountID),
+  onCancel: () => dispatchProps._onClose(),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),

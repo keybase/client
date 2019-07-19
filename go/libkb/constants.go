@@ -342,7 +342,6 @@ const (
 	SCEphemeralMemberAfterEK                    = int(keybase1.StatusCode_SCEphemeralMemberAfterEK)
 	SCEphemeralDeviceStale                      = int(keybase1.StatusCode_SCEphemeralDeviceStale)
 	SCEphemeralUserStale                        = int(keybase1.StatusCode_SCEphemeralUserStale)
-	SCEphemeralTeambotGenerationExists          = int(keybase1.StatusCode_SCEphemeralTeambotGenerationExists)
 	SCStellarNeedDisclaimer                     = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
 	SCStellarDeviceNotMobile                    = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
@@ -354,6 +353,7 @@ const (
 	SCPhoneNumberWrongVerificationCode          = int(keybase1.StatusCode_SCPhoneNumberWrongVerificationCode)
 	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
+	SCTeambotKeyGenerationExists                = int(keybase1.StatusCode_SCTeambotKeyGenerationExists)
 )
 
 const (
@@ -599,6 +599,8 @@ const (
 	EncryptionReasonTeamsHiddenLocalStorage EncryptionReason = "Keybase-Teams-Hidden-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage  EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 	EncryptionReasonTeambotEphemeralKey     EncryptionReason = "Keybase-Teambot-Ephemeral-Key-1"
+	EncryptionReasonContactsLocalStorage    EncryptionReason = "Keybase-Contacts-Local-Storage-1"
+	EncryptionReasonKBFSFavorites           EncryptionReason = "kbfs.favorites" // legacy const for kbfs favorites
 )
 
 type DeriveReason string
@@ -706,8 +708,9 @@ const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInt
 const MaxTeamMembersForPairwiseMAC = 100
 
 const (
-	MaxStellarPaymentNoteLength      = 500
-	MaxStellarPaymentBoxedNoteLength = 2000
+	MaxStellarPaymentNoteLength       = 500
+	MaxStellarPaymentBoxedNoteLength  = 2000
+	MaxStellarPaymentPublicNoteLength = 28
 )
 
 const ClientTriplesecVersion = 3

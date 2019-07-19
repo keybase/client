@@ -4,12 +4,7 @@ import * as Types from '../../../../../constants/types/wallets'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import RemoveAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state, ownProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')
@@ -27,18 +22,13 @@ const mapDispatchToProps = dispatch => ({
   _onDelete: (accountID: Types.AccountID) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {accountID},
-            selected: 'reallyRemoveAccount',
-          },
-        ],
+        path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
       })
     )
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   balance: stateProps.balance,
   name: stateProps.name,
   onClose: () => dispatchProps._onClose(),

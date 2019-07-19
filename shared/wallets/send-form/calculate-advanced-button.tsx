@@ -12,7 +12,7 @@ type CalculateAdvancedButtonProps = {
 const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {
-    dispatch(WalletsGen.createCalculateBuildingAdvanced())
+    dispatch(WalletsGen.createCalculateBuildingAdvanced({forSEP7: false}))
   }, [dispatch])
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
@@ -23,7 +23,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   return !isLoading ? (
     props.isIcon ? (
-      builtPaymentAdvanced.noPathFoundError ? (
+      builtPaymentAdvanced.findPathError ? (
         <Kb.Icon type="iconfont-remove" sizeType="Big" color={Styles.globalColors.red} />
       ) : (
         <Kb.WithTooltip
@@ -35,7 +35,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
             type="iconfont-calculate"
             sizeType="Big"
             color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
-            onClick={isDisabled ? null : onClick}
+            onClick={isDisabled ? undefined : onClick}
           />
         </Kb.WithTooltip>
       )

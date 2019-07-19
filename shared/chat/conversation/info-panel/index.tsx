@@ -20,7 +20,7 @@ export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
   renderItem: ({item: any, index: number}) => void
-  renderSectionHeader: (any) => void
+  renderSectionHeader: (i: any) => void
 }
 
 type Thumb = {
@@ -33,7 +33,7 @@ type Thumb = {
 }
 
 type MediaProps = {
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   thumbs: Array<Thumb>
   status: Types.AttachmentViewStatus
 }
@@ -45,13 +45,13 @@ type Doc = {
   fileName: string
   name: string
   progress: number
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onDownload?: () => void
+  onShowInFinder?: () => void
 }
 
 type DocProps = {
   docs: Array<Doc>
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   status: Types.AttachmentViewStatus
 }
 
@@ -65,7 +65,7 @@ type Link = {
 
 type LinkProps = {
   links: Array<Link>
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   status: Types.AttachmentViewStatus
 }
 
@@ -73,8 +73,8 @@ export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
   isPreview: boolean
-  teamname: string | null
-  channelname: string | null
+  teamname?: string
+  channelname?: string
   smallTeam: boolean
   admin: boolean
   ignored: boolean
@@ -109,7 +109,7 @@ export type InfoPanelProps = {
   // Used for big teams.
   canEditChannel: boolean
   canDeleteHistory: boolean
-  description: string | null
+  description?: string
   onEditChannel: () => void
   onLeaveConversation: () => void
   onJoinChannel: () => void
@@ -142,7 +142,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   _getTabs = (entityType: EntityType) => {
-    const res = []
+    const res: Array<React.ReactNode> = []
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
@@ -228,17 +228,23 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
   _renderTabs = () => {
     const tabs = this._getTabs(this._getEntityType())
-    const selected = tabs.find(tab => this._isSelected(tab.key)) || null
+    const selected = tabs.find((tab: any) => tab && this._isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} style={styles.tabStyle} />
+        <Kb.Tabs
+          tabs={tabs}
+          selected={selected}
+          onSelect={this._onSelectTab}
+          style={styles.tabContainerStyle}
+          tabStyle={styles.tabStyle}
+        />
       </Kb.Box2>
     )
   }
   _tabsSection = (): Section => {
     return {
       data: ['tabs'],
-      renderItem: ({item}) => null,
+      renderItem: () => null,
       renderSectionHeader: this._renderTabs,
     }
   }
@@ -249,7 +255,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
   render() {
     const entityType = this._getEntityType()
-    let sections = []
+    let sections: Array<unknown> = []
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
     let itemSizeEstimator
@@ -366,8 +372,12 @@ const styles = Styles.styleSheetCreate({
       borderLeft: border,
     },
   }),
-  tabStyle: {
+  tabContainerStyle: {
     backgroundColor: Styles.globalColors.white,
+  },
+  tabStyle: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   tabTextContainer: {
     justifyContent: 'center',

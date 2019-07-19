@@ -36,7 +36,6 @@ target 'Keybase' do
 
   pod 'lottie-ios', :path => '../node_modules/lottie-ios'
   pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
-  pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
   pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
   pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
   pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'

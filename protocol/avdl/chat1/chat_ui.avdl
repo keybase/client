@@ -60,6 +60,19 @@ protocol chatUi {
     boolean offline;
   }
 
+    enum UIParticipantType {
+    NONE_0,
+    USER_1,
+    CONTACT_2 // phone number or email address
+  }
+
+  record UIParticipant {
+    UIParticipantType type;
+    string assertion;
+    union { null, string } fullName;
+    union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
+  }
+
   record InboxUIItem {
     string convID;
     TopicType topicType;
@@ -72,8 +85,7 @@ protocol chatUi {
     string headline;
     string headlineDecorated;
     keybase1.TLFVisibility visibility;
-    array<string> participants;
-    map<string, string> fullNames;
+    array<UIParticipant> participants;
     array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -96,7 +108,9 @@ protocol chatUi {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
+    // Command support
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record InboxUIItemError {
@@ -143,8 +157,9 @@ protocol chatUi {
     string fromUsername;
     string toUsername;
     // for path payments
-    string sourceAmount;  
+    string sourceAmount;
     stellar1.Asset sourceAsset;
+    string issuerDescription;
   }
 
   record UIRequestInfo {
@@ -444,4 +459,10 @@ protocol chatUi {
     APPSETTINGS_0
   }
   void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
+  enum UIBotCommandsUpdateStatus {
+    UPTODATE_0,
+    UPDATING_1,
+    FAILED_2
+  }
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
 }

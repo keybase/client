@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
+import {TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const maxAvatarsPerLoad = 50
@@ -12,7 +13,10 @@ const avatarsToLoad = {
   users: I.Set(),
 }
 
-const addToAvatarQueue = (state, action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) => {
+const addToAvatarQueue = (
+  _: TypedState,
+  action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload
+) => {
   if (action.type === ConfigGen.loadAvatars) {
     const usernames = _validNames(action.payload.usernames)
     avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
@@ -23,19 +27,17 @@ const addToAvatarQueue = (state, action: ConfigGen.LoadAvatarsPayload | ConfigGe
 }
 
 const avatarSizes = [960, 256, 192]
-function* avatarCallAndHandle<T, Args extends {formats: string[]; names: string[]}>(
-  names: Array<string>,
-  method: (...args: Array<Args>) => Promise<T>
-) {
+// TODO just make the call and pass to this
+function* avatarCallAndHandle(names: Array<string>, method: any) {
   try {
-    const resp = yield* Saga.callPromise(method, {
+    const resp: any = yield method({
       formats: avatarSizes.map(s => `square_${s}`),
       names,
     })
 
-    const state = yield* Saga.selectState()
+    const state: TypedState = yield* Saga.selectState()
     const old = state.config.avatars
-    const vals = []
+    const vals: Array<[string, I.Map<number, string>]> = []
     Object.keys(resp.picmap).forEach(name => {
       const map = resp.picmap[name] || {}
       const sizes = I.Map(avatarSizes.map(size => [size, map[`square_${size}`]]))

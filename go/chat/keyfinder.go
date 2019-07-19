@@ -148,16 +148,16 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (ek keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (ek types.EphemeralCryptKey, err error) {
 	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralEncryptionKey(
-		mctx, tlfName, tlfID, membersType, public)
+		mctx, tlfName, tlfID, membersType, public, botUID)
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (types.EphemeralCryptKey, error) {
 	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralDecryptionKey(
-		mctx, tlfName, tlfID, membersType, public, generation, contentCtime)
+		mctx, tlfName, tlfID, membersType, public, botUID, generation, contentCtime)
 }
 
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -200,13 +200,13 @@ func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 }
 
 func (k *KeyFinderMock) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (types.EphemeralCryptKey, error) {
 	panic("unimplemented")
 }
 
 func (k *KeyFinderMock) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (types.EphemeralCryptKey, error) {
 	panic("unimplemented")
 }
 

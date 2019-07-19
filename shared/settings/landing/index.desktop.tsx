@@ -13,10 +13,7 @@ import {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../c
 const ROW_HEIGHT = 48
 
 type PlanActionVariantsProps =
-  | {
-      type: 'change'
-      changeType: ChangeType
-    }
+  | {type: 'change'; changeType: ChangeType}
   | {
       type: 'spaceInfo'
       freeSpace: string
@@ -210,7 +207,9 @@ function Plan({
 }: PlanProps & {
   plans: Array<AvailablePlan>
 }) {
-  const from: AvailablePlan | null = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
+  const from: AvailablePlan | undefined = plans.find(
+    (plan: AvailablePlan) => plan.planLevel === selectedLevel
+  )
   if (!from) {
     throw new Error("Can't find existing plan")
   }
@@ -247,15 +246,7 @@ function Plan({
   )
 }
 
-function AccountEmail({
-  email,
-  onChangeEmail,
-  isVerified,
-}: {
-  email: string
-  isVerified: boolean
-  onChangeEmail: () => void
-}) {
+function AccountEmail({email, onChangeEmail}: {email: string; onChangeEmail: () => void}) {
   return (
     <Box
       style={{
@@ -321,7 +312,6 @@ function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}
 
 function Account({
   email,
-  isVerified,
   onChangeEmail,
   onChangePassword,
   onChangeRememberPassword,
@@ -332,7 +322,7 @@ function Account({
   const Email = email ? AccountEmail : AccountFirstEmail
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-      <Email email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
+      <Email email={email} onChangeEmail={onChangeEmail} />
       <Divider />
       <Password onChangePassword={onChangePassword} />
       <Divider />

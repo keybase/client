@@ -28,7 +28,7 @@ type RoleRowProps = {
   icon: React.ReactNode | null
   selected: boolean
   title: React.ReactNode
-  onSelect: (() => void) | null
+  onSelect?: () => void
 }
 
 const RoleRow = (p: RoleRowProps) => (
@@ -63,7 +63,7 @@ type RolesMetaInfo = {
   extra?: Array<string>
   icon: React.ReactNode | null
 }
-const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaInfo => {
+const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -132,8 +132,7 @@ const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaI
 const roleAbilities = (
   abilities: Array<string>,
   canDo: boolean,
-  addFinalPadding: boolean,
-  selected: boolean
+  addFinalPadding: boolean
 ): Array<React.ReactNode> => {
   return abilities.map((ability, i) => (
     <Kb.Box2
@@ -159,7 +158,7 @@ const roleAbilities = (
 
 const roleElementHelper = (selectedRole: Role | null) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(role as Role, selectedRole)])
+    .map(role => [role, rolesMetaInfo(role as Role)])
     .map(([role, info]) => {
       // Using as to avoid lots of ts-ignore
       const roleInfo = info as RolesMetaInfo
@@ -167,8 +166,8 @@ const roleElementHelper = (selectedRole: Role | null) =>
         body:
           selectedRole === role
             ? [
-                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
-                roleAbilities(roleInfo.cants, false, true, selectedRole === role),
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+                roleAbilities(roleInfo.cants, false, true),
               ]
             : undefined,
         icon: roleInfo.icon,
@@ -187,7 +186,7 @@ const disabledTextHelper = (text: string) => (
   </Kb.Text>
 )
 
-const headerTextHelper = (text: string | null) =>
+const headerTextHelper = (text: string | undefined) =>
   !!text && (
     <>
       <Kb.Text type="BodySmall" style={styles.headerText}>
@@ -219,14 +218,12 @@ const RolePicker = (props: Props) => {
     <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
       {headerTextHelper(props.headerText)}
       {map(
-        roleElementHelper(selectedRole),
+        roleElementHelper(selectedRole || null),
         ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
           // Using as to avoid lots of ts-ignore.
           const disabledRole = role as Role
-          const onSelect =
-            props.disabledRoles && props.disabledRoles[disabledRole]
-              ? undefined
-              : () => props.onSelectRole(disabledRole)
+          const disabled = props.disabledRoles && props.disabledRoles[disabledRole]
+          const onSelect = disabled ? undefined : () => props.onSelectRole(disabledRole)
           return (
             <Kb.ClickableBox key={role as string} onClick={onSelect}>
               <RoleRow
@@ -235,11 +232,7 @@ const RolePicker = (props: Props) => {
                 body={nodeMap.body}
                 icon={nodeMap.icon}
                 onSelect={onSelect}
-                disabledReason={
-                  props.disabledRoles && props.disabledRoles[disabledRole]
-                    ? disabledTextHelper(props.disabledRoles[disabledRole])
-                    : undefined
-                }
+                disabledReason={disabled ? disabledTextHelper(disabled) : undefined}
               />
             </Kb.ClickableBox>
           )
@@ -250,9 +243,9 @@ const RolePicker = (props: Props) => {
         {footerButtonsHelper(
           props.onCancel,
           selectedRole && props.selectedRole !== props.presetRole
-            ? () => props.onConfirm(selectedRole)
+            ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
+          props.confirmLabel || confirmLabelHelper(props.presetRole || null, selectedRole || null)
         )}
       </Kb.Box2>
     </Kb.Box2>
@@ -357,14 +350,10 @@ export type FloatingProps = {
   open: boolean
 } & Props
 
-type S = {
-  ref: any | null
-}
-
-export class FloatingRolePicker extends React.Component<FloatingProps, S> {
+export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.Box2 | null}> {
   state = {ref: null}
   _returnRef = () => this.state.ref
-  _setRef = ref => this.setState({ref})
+  _setRef = (ref: Kb.Box2 | null) => this.setState({ref})
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     const picker = <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
@@ -378,7 +367,7 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
         <Kb.Box ref={this._setRef}>{children}</Kb.Box>
         {open && (
           <Kb.FloatingBox
-            attachTo={this.state.ref && this._returnRef}
+            attachTo={this._returnRef}
             position={position || 'top center'}
             onHidden={onCancel}
             hideKeyboard={true}

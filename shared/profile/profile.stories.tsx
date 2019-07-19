@@ -6,7 +6,7 @@ import {BioTeamProofs, BackgroundColorType} from './user'
 
 const provider = (cfProps =>
   Sb.createPropProviderWithCommon({
-    Actions: props => ({
+    Actions: () => ({
       followThem: false,
       onAccept: () => Sb.action('onAccept'),
       onAddToTeam: () => Sb.action('onAddToTeam'),
@@ -28,7 +28,7 @@ const provider = (cfProps =>
         username: 'Chris',
       },
     }),
-    Bio: props => ({
+    Bio: () => ({
       bio: 'biographical information',
       followThem: false,
       followersCount: 0,
@@ -48,10 +48,10 @@ const provider = (cfProps =>
         {...cfProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
       ],
     }),
-    Teams: props => ({
+    Teams: () => ({
       onEdit: Sb.action('onEditAvatarClick'),
       onJoinTeam: Sb.action('onEditAvatarClick'),
-      teamMeta: [].reduce((map, t) => {
+      teamMeta: ([] as Array<any>).reduce((map, t) => {
         map[t.name] = {
           inTeam: false,
         }
