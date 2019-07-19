@@ -27,14 +27,10 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
       .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(logPath, '', 'utf8')))
       .then(() => writeStream(logPath, 'utf8', true))
       .then(stream => {
-        const writeLogsPromises = lines.map((log, idx) => {
-          return () => {
-            return stream.write(JSON.stringify(log) + '\n')
-          }
-        })
+        const writeLogsPromises = lines.map(log => () => stream.write(JSON.stringify(log) + '\n'))
         return serialPromises(writeLogsPromises).then(() => stream.close())
       })
-      .then(success => {
+      .then(() => {
         console.log('Log write done')
         resolve()
       })

@@ -56,6 +56,8 @@ export type InputProps = {
     channelname: string
   }>
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
+  suggestBotCommands: Array<RPCChatTypes.ConversationCommand>
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
 } & CommonProps
 
 export type PlatformInputProps = {
@@ -63,4 +65,5 @@ export type PlatformInputProps = {
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
   setHeight: (inputHeight: number) => void
+  suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatus
 } & CommonProps

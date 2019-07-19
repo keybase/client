@@ -3199,6 +3199,26 @@
     },
     {
       "type": "record",
+      "name": "UserBotExtendedDescription",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "desktopBody",
+          "jsonkey": "desktop_body"
+        },
+        {
+          "type": "string",
+          "name": "mobileBody",
+          "jsonkey": "mobile_body"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserBotCommandOutput",
       "fields": [
         {
@@ -3216,9 +3236,10 @@
         {
           "type": [
             null,
-            "string"
+            "UserBotExtendedDescription"
           ],
-          "name": "extendedDescription"
+          "name": "extendedDescription",
+          "jsonkey": "extended_description"
         },
         {
           "type": "string",
@@ -3245,9 +3266,10 @@
         {
           "type": [
             null,
-            "string"
+            "UserBotExtendedDescription"
           ],
-          "name": "extendedDescription"
+          "name": "extendedDescription",
+          "jsonkey": "extended_description"
         }
       ]
     },

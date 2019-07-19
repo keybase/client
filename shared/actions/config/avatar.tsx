@@ -13,7 +13,10 @@ const avatarsToLoad = {
   users: I.Set(),
 }
 
-const addToAvatarQueue = (state, action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) => {
+const addToAvatarQueue = (
+  _: TypedState,
+  action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload
+) => {
   if (action.type === ConfigGen.loadAvatars) {
     const usernames = _validNames(action.payload.usernames)
     avatarsToLoad.users = avatarsToLoad.users.concat(usernames)

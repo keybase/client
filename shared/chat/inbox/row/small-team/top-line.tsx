@@ -26,7 +26,7 @@ type Props = {
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj, _, key) => {
       if (key === 'participants') {
         return shallowEqual(this.props.participants, nextProps.participants)
       }

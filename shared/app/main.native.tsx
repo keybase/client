@@ -56,7 +56,7 @@ const mapStateToProps = state => ({
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
 const Connected = connect(
   mapStateToProps,

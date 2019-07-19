@@ -5,13 +5,8 @@ import * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
 
-type State = {
-  assertions?: I.Map<string, Types.Assertion>
-}
-
-type OwnProps = {
-  assertionKey: string
-}
+type State = {assertions?: I.Map<string, Types.Assertion>}
+type OwnProps = {assertionKey: string}
 
 const mapStateToProps = (state, ownProps) => {
   const a = state.assertions
@@ -30,9 +25,10 @@ const mapStateToProps = (state, ownProps) => {
     value: a.value,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+// mapDispatch returns nothing, YET, dispatchProps is referred to??? TODO seems wrong
+const mergeProps = (stateProps, dispatchProps, __) => ({
   color: stateProps.color,
   isSuggestion: false,
   isYours: false, // no edit controls on tracker

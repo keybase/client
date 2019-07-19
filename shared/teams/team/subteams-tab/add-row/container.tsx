@@ -17,7 +17,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (_, dispatchProps) => ({
   onCreateSubteam: dispatchProps.onCreateSubteam,
 })
 

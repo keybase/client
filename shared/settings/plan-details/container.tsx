@@ -11,7 +11,7 @@ import {TypedState} from '../../constants/reducer'
 type OwnProps = RouteProps<{selectedLevel: PlanLevel}>
 
 export default connect(
-  (state: TypedState, ownProps: OwnProps) => {
+  (_: TypedState, ownProps: OwnProps) => {
     const selectedLevel = ownProps.routeProps.get('selectedLevel')
     const availablePlan = null // AvailablePlan | null = state.planBilling.availablePlans
     // ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
@@ -33,7 +33,7 @@ export default connect(
       price: priceToString(availablePlan.price_pennies),
     }
   },
-  (dispatch: any, ownProps: {}) => ({
+  (dispatch: any) => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps) => ({

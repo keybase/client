@@ -260,6 +260,9 @@ func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
 func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
 func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func (j *JSONLocalDb) CompactionStats() (bool, bool, error) {
+	return j.engine.CompactionStats()
+}
 func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	return j.engine.KeysWithPrefixes(prefixes...)
 }

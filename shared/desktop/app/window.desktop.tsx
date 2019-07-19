@@ -33,7 +33,7 @@ export default class Window {
     })
 
     ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {
-      const relayRemoteUnmount = (e, otherRemoteWindowId) => {
+      const relayRemoteUnmount = (_, otherRemoteWindowId) => {
         if (remoteWindowId === otherRemoteWindowId) {
           remoteComponentLoaderEvent.sender.send('remoteUnmount')
           ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)

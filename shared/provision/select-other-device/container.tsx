@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   devices: stateProps.devices.toArray(),
   onBack: dispatchProps.onBack,
   onResetAccount: dispatchProps.onResetAccount,

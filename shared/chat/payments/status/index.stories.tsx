@@ -8,7 +8,7 @@ import PaymentStatus from '.'
 import PaymentStatusError from './error'
 
 const provider = Sb.createPropProviderWithCommon({
-  PaymentPopup: p => ({
+  PaymentPopup: () => ({
     attachTo: Sb.action('mocked'),
     message: Constants.makeMessageText(),
     onHidden: Sb.action('onHidden'),

@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
       dispatch(SettingsGen.createClearAddedEmail())
     }
-    dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
 })
 

@@ -303,7 +303,8 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 		}
 		var teamName *string
 		if ad.TeamName != "" {
-			teamName = &ad.TeamName
+			adTeamName := ad.TeamName
+			teamName = &adTeamName
 		}
 		ads = append(ads, chat1.AdvertiseCommandsParam{
 			Typ:      typ,

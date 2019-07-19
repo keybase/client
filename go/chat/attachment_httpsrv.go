@@ -574,8 +574,9 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		r.servePendingPreview(ctx, w, req)
 	case r.attachmentPrefix:
 		r.serveAttachment(ctx, w, req)
+	default:
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 	}
-	r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 }
 
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.

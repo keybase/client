@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
   providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onCancel: dispatchProps.onCancel,
   onClickLearn: () => openURL('https://keybase.io/docs/proof_integration_guide'),
   providerClicked: dispatchProps.providerClicked,

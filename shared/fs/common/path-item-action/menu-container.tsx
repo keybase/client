@@ -42,8 +42,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, rout
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [fsTab],
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {mode, path}, selected: 'confirmDelete'}],
       })
     )

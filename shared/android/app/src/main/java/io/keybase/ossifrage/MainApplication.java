@@ -16,7 +16,6 @@ import com.facebook.react.shell.MainPackageConfig;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
-import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
@@ -108,7 +107,6 @@ public class MainApplication extends Application implements ReactApplication {
                     },
                     new ReactNativePushNotificationPackage(),
                     new RNCameraPackage(),
-                    new ImagePickerPackage(),
                     new RNFetchBlobPackage(),
                     new ReactNativeContacts(),
                     new FastImageViewPackage(),

@@ -22,8 +22,11 @@ func NewMemDb(size int) *MemDb {
 	}
 }
 
-func (m *MemDb) Open() error      { return nil }
-func (m *MemDb) Stats() string    { return "" }
+func (m *MemDb) Open() error   { return nil }
+func (m *MemDb) Stats() string { return "" }
+func (m *MemDb) CompactionStats() (bool, bool, error) {
+	return false, false, nil
+}
 func (m *MemDb) ForceOpen() error { return nil }
 func (m *MemDb) Close() error {
 	m.lru.Purge()

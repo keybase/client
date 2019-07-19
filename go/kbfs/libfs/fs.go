@@ -1093,6 +1093,11 @@ func (fs *FS) RootNode() libkbfs.Node {
 	return fs.root
 }
 
+// Handle returns the TLF handle corresponding to this FS.
+func (fs *FS) Handle() *tlfhandle.Handle {
+	return fs.h
+}
+
 type folderHandleChangeObserver func()
 
 func (folderHandleChangeObserver) LocalChange(

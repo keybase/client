@@ -326,7 +326,7 @@ class User extends React.Component<Props, State> {
   }
 
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
-  _keyExtractor = (item, index) => index
+  _keyExtractor = (_, index) => index
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {
@@ -426,7 +426,7 @@ export const styles = Styles.styleSheetCreate({
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    height: (avatarSize / 2) + Styles.globalMargins.tiny,
+    height: avatarSize / 2 + Styles.globalMargins.tiny,
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},

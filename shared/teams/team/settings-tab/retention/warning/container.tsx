@@ -5,16 +5,14 @@ import {RetentionEntityType} from '..'
 import {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 import {TypedState} from '../../../../../constants/reducer'
 
-type OwnProps = Container.RouteProps<
-  {
-    policy: RetentionPolicy
-    entityType: RetentionEntityType
-    onCancel: (() => void) | null
-    onConfirm: (() => void) | null
-  }
->
+type OwnProps = Container.RouteProps<{
+  policy: RetentionPolicy
+  entityType: RetentionEntityType
+  onCancel: (() => void) | null
+  onConfirm: (() => void) | null
+}>
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (_: TypedState, ownProps: OwnProps) => {
   const policy = Container.getRouteProps(ownProps, 'policy')
   return {
     entityType: Container.getRouteProps(ownProps, 'entityType'),

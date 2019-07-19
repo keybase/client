@@ -1273,7 +1273,19 @@ func (k *SimpleFS) doRemove(
 		return err
 	}
 	if !recursive {
+		if finalElem == "" {
+			// If this is trying to remove a TLF, use favorite removal
+			// instead.
+			if asLibFS, ok := fs.(*libfs.FS); ok {
+				h := asLibFS.Handle()
+				return k.config.KBFSOps().DeleteFavorite(ctx, h.ToFavorite())
+			}
+		}
 		return fs.Remove(finalElem)
+	} else if finalElem == "" {
+		// Give a nice error in the case where we're trying to
+		// recursively delete a TLF.
+		return errors.Errorf("Cannot recursively delete %s", fs.Root())
 	}
 	fi, err := fs.Stat(finalElem)
 	if err != nil {
@@ -2699,9 +2711,34 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 	statusMap := dbc.Status(ctx)
 	if status, ok := statusMap["SyncBlockCache"]; ok {
 		res.SyncCacheDbStats = status.BlockDBStats
+
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_SYNC_BLOCK_CACHE,
+				MemCompActive:   status.MemCompActive,
+				TableCompActive: status.TableCompActive,
+			})
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_SYNC_BLOCK_CACHE_META,
+				MemCompActive:   status.MetaMemCompActive,
+				TableCompActive: status.MetaTableCompActive,
+			})
 	}
 	if status, ok := statusMap["WorkingSetBlockCache"]; ok {
 		res.BlockCacheDbStats = status.BlockDBStats
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_BLOCK_CACHE,
+				MemCompActive:   status.MemCompActive,
+				TableCompActive: status.TableCompActive,
+			})
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_BLOCK_CACHE_META,
+				MemCompActive:   status.MetaMemCompActive,
+				TableCompActive: status.MetaTableCompActive,
+			})
 	}
 	return res, nil
 }

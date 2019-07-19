@@ -12,7 +12,10 @@ PODS:
   - EXFileSystem (5.0.0):
     - UMCore
     - UMFileSystemInterface
-  - EXPermissions (5.0.0):
+  - EXImagePicker (5.0.2):
+    - UMCore
+    - UMFileSystemInterface
+  - EXPermissions (5.0.1):
     - UMCore
     - UMPermissionsInterface
   - EXSMS (5.0.0):
@@ -42,8 +45,6 @@ PODS:
   - react-native-fast-image (6.1.1):
     - React
     - SDWebImage (~> 5.0)
-  - react-native-image-picker (0.27.1):
-    - React
   - react-native-netinfo (1.2.3):
     - React
   - react-native-video (4.4.1):
@@ -143,6 +144,7 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
+  - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSMS (from `../node_modules/expo-sms/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
@@ -152,7 +154,6 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
   - react-native-fast-image (from `../node_modules/react-native-fast-image`)
-  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -208,6 +209,9 @@ EXTERNAL SOURCES:
   EXFileSystem:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-file-system/ios"
+  EXImagePicker:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-image-picker/ios"
   EXPermissions:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-permissions/ios"
@@ -230,8 +234,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-contacts"
   react-native-fast-image:
     :path: "../node_modules/react-native-fast-image"
-  react-native-image-picker:
-    :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-video:
@@ -292,7 +294,8 @@ SPEC CHECKSUMS:
   EXConstants: f1d63f5bcf9a790fea747ceba6411b7814005191
   EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
-  EXPermissions: db2fa0f23edd57e65735f3edbdf0668c5c0e04f0
+  EXImagePicker: 80ebecae5905b1d642ef5b12a592cf8af9f051dc
+  EXPermissions: 8e05008ed4fc8c9be6c17ea95301fc3f3f005a7b
   EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
@@ -302,7 +305,6 @@ SPEC CHECKSUMS:
   react-native-camera: 4b810becdf9bebf269b252552ee9a074f5f03bd4
   react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
   react-native-fast-image: fdfc612dba58fd73136cf5efdaeb8cfcad7f63b2
-  react-native-image-picker: 3fac3bf5b8ec802785c884c5bde0239ad8433b34
   react-native-netinfo: 8b18f11bd389677d79eca48a07cedd4b3cc10f15
   react-native-video: 9aecbfc4628128838187df9d9c9f630670cfb1d1
   react-native-webview: 45010be37680adba5ffb0e5a9e8822c6ca117049
@@ -325,6 +327,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: af2485f8bb9f854bfe6883511b056cae391d73be
+PODFILE CHECKSUM: 4af7acae0df5c99e54c8dc325f2ba1014c50c367
 
 COCOAPODS: 1.7.4

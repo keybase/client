@@ -11,10 +11,10 @@ import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
 
 const cancelDesc = 'Canceling RPC'
-const cancelOnCallback = (params, response) => {
+const cancelOnCallback = (_, response) => {
   response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
 }
-const ignoreCallback = params => {}
+const ignoreCallback = () => {}
 
 const getPasswordHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
@@ -48,7 +48,7 @@ const moveToProvisioning = (username: string) => (params, response) => {
 }
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-function* login(state, action: LoginGen.LoginPayload) {
+function* login(_, action: LoginGen.LoginPayload) {
   try {
     yield* Saga.callRPCs(
       RPCTypes.loginLoginRpcSaga({
