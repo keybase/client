@@ -50,17 +50,14 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 	}
 }
 
-func deduperKey(details stellar1.PaymentDetailsLocal) string {
-	return fmt.Sprintf("%s:%s", details.Summary.TxID, details.Summary.StatusSimplified)
+func deduperKey(details stellar1.PaymentCLILocal) string {
+	return fmt.Sprintf("%s:%s", details.TxID, details.Status)
 }
 
 func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, source string,
 	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
 	notif := newWalletNotification(source)
-	details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
-		AccountID: accountID,
-		Id:        paymentID,
-	})
+	details, err := d.cli.PaymentDetailCLILocal(ctx, paymentID.String())
 	if err != nil {
 		errStr := err.Error()
 		notif.Error = &errStr
@@ -72,6 +69,7 @@ func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, s
 	}
 
 	d.deduper[deduperKey(details)] = true
+
 	notif.Notification = details
 	d.printJSON(notif)
 	return nil
