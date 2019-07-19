@@ -34,6 +34,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
@@ -143,11 +144,16 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		DecryptionKeyNotFoundError,
 		NotAuthenticatedForThisDeviceError,
 		InvalidMACError,
-		ImpteamBadteamError:
+		ImpteamBadteamError,
+		teambot.TeambotPermanentKeyError:
 		return NewPermanentUnboxingError(err)
 	case ephemeral.EphemeralKeyError:
 		// Normalize error message with EphemeralUnboxingError
-		return NewPermanentUnboxingError(NewEphemeralUnboxingError(err))
+		ekErr := NewEphemeralUnboxingError(err)
+		if err.IsPermanent() {
+			return NewPermanentUnboxingError(ekErr)
+		}
+		return NewTransientUnboxingError(ekErr)
 	}
 
 	// Check for no space left on device errors

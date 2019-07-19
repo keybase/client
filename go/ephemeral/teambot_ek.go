@@ -260,7 +260,7 @@ func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.Tea
 		mctx.Debug("unable to get from userEKStorage %v", err)
 		switch err.(type) {
 		case EphemeralKeyError:
-			return ek, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
+			return ek, newEKUnboxErr(mctx, TeambotEKKind, teambotEKGeneration, UserEKKind,
 				teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 		}
 		return ek, err
@@ -272,7 +272,7 @@ func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.Tea
 	msg, _, err := userKeypair.DecryptFromString(teambotEKBoxed.Box)
 	if err != nil {
 		mctx.Debug("unable to decrypt teambotEKBoxed %v", err)
-		return ek, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
+		return ek, newEKUnboxErr(mctx, TeambotEKKind, teambotEKGeneration, UserEKKind,
 			teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 	}
 
@@ -316,7 +316,7 @@ func (k *TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.Te
 	}
 
 	if resp.Result == nil {
-		err = newEKMissingBoxErr(mctx, TeambotEKStr, generation)
+		err = newEKMissingBoxErr(mctx, TeambotEKKind, generation)
 		return teambotEK, err
 	}
 
@@ -335,7 +335,7 @@ func (k *TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.Te
 
 	if generation != metadata.Generation {
 		// sanity check that we got the right generation
-		return teambotEK, newEKCorruptedErr(mctx, TeambotEKStr, generation, metadata.Generation)
+		return teambotEK, newEKCorruptedErr(mctx, TeambotEKKind, generation, metadata.Generation)
 	}
 	teambotEKBoxed := keybase1.TeambotEkBoxed{
 		Box:      resp.Result.Box,
