@@ -49,7 +49,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
     conversationIDKey,
-    RPCChatTypes.UIBotCommandsUpdateStatus.updating
+    RPCChatTypes.UIBotCommandsUpdateStatus.blank
   )
   return {
     _containsLatestMessage,

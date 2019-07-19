@@ -92,7 +92,7 @@ const suggestorToMarker = {
 }
 
 const suggestorKeyExtractors = {
-  commands: (c: RPCChatTypes.ConversationCommand) => c.name,
+  commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
   emoji: (item: {id: string}) => item.id,
   users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
     if (teamname) {
@@ -554,9 +554,7 @@ class Input extends React.Component<InputProps, InputState> {
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
-          suggestBotCommandsUpdateStatus={
-            this.state.showBotCommandUpdateStatus ? this.props.suggestBotCommandsUpdateStatus : undefined
-          }
+          suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
           onKeyDown={this._onKeyDown}

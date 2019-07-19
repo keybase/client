@@ -65,5 +65,5 @@ export type PlatformInputProps = {
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
   setHeight: (inputHeight: number) => void
-  suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatus
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
 } & CommonProps
