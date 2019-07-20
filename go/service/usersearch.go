@@ -62,6 +62,7 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	for i, row := range response.List {
 		if row.Keybase != nil {
 			response.List[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
+			response.List[i].RawScore = row.Keybase.RawScore
 		}
 		if row.Service != nil {
 			response.List[i].Service.Username = strings.ToLower(row.Service.Username)
@@ -132,7 +133,7 @@ var fieldsAndScores = []struct {
 	multiplier float64
 	getter     func(*keybase1.ProcessedContact) string
 }{
-	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
+	{1.5, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
 	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.Component.ValueString() }},
 	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.DisplayName }},
 	{0.8, func(contact *keybase1.ProcessedContact) string { return contact.DisplayLabel }},
@@ -171,19 +172,11 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		found, score := matchAndScoreContact(query, c)
 		if found {
 			contact := c
-			contact.RawScore = score
 			res = append(res, keybase1.APIUserSearchResult{
-				Score:   score,
-				Contact: &contact,
+				Contact:  &contact,
+				RawScore: score,
 			})
 		}
-	}
-
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Score > res[j].Score
-	})
-	for i := range res {
-		res[i].Score = 1.0 / float64(1+i)
 	}
 
 	return res, nil
@@ -198,18 +191,51 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		return res, nil
 	}
 
+	if arg.Service != "keybase" && arg.Service != "" {
+		// If this is a social search, we just return API results.
+		return doSearchRequest(mctx, arg)
+	}
+
 	res, err = doSearchRequest(mctx, arg)
+	if err != nil {
+		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
+	}
+
 	if arg.IncludeContacts {
 		contactsRes, err := contactSearch(mctx, arg)
 		if err != nil {
-			return nil, err
-		}
-		if len(contactsRes) > 0 {
-			var res2 []keybase1.APIUserSearchResult
-			res2 = append(res2, contactsRes...)
-			res2 = append(res2, res...)
-			res = res2
+			mctx.Warning("Failed to do contacts search: %s", err)
+		} else {
+			res = append(res, contactsRes...)
+			// Sort first - we are going to be deduplicating on usernames,
+			// entries with higher score have precedence.
+			sort.Slice(res, func(i, j int) bool {
+				return res[i].RawScore > res[j].RawScore
+			})
 
+			// Filter `res` list using `outputRes`.
+			usernameSet := make(map[string]struct{}) // set of usernames
+			outputRes := make([]keybase1.APIUserSearchResult, 0, len(res))
+			for i, v := range res {
+				var username string
+				if v.Keybase != nil {
+					username = v.Keybase.Username
+				} else if v.Contact != nil && v.Contact.Resolved {
+					username = v.Contact.Username
+				}
+				if username != "" {
+					// Only deduplicate resolved contacts or keybase users.
+					if _, found := usernameSet[username]; found {
+						continue
+					}
+					usernameSet[username] = struct{}{}
+				}
+				v.Score = 1.0 / float64(1+i)
+				outputRes = append(outputRes, v)
+			}
+			res = outputRes
+
+			// Trim the whole result to MaxResult.
 			maxRes := arg.MaxResults
 			if maxRes > 0 && len(res) > maxRes {
 				res = res[:maxRes]

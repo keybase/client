@@ -100,6 +100,7 @@ type APIUserSearchResult struct {
 	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
 	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
 	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
+	RawScore        float64                                               `codec:"rawScore" json:"rawScore"`
 }
 
 func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
@@ -138,6 +139,7 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			}
 			return ret
 		})(o.ServicesSummary),
+		RawScore: o.RawScore,
 	}
 }
 

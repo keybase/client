@@ -46,6 +46,7 @@ protocol userSearch {
         union { null, ProcessedContact } contact;
         @jsonkey("services_summary")
         map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
+        double rawScore;
     }
 
     array<APIUserSearchResult> userSearch(int sessionID, string query, string service, int maxResults, boolean includeServicesSummary, boolean includeContacts);
