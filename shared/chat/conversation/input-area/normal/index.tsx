@@ -300,8 +300,9 @@ class Input extends React.Component<InputProps, InputState> {
         return
       }
 
-      if (this.props.unsentTextRefresh) {
+      if (this.props.unsentTextRefresh !== prevProps.unsentTextRefresh) {
         this._setText(this.props.getUnsentText(), true)
+        this._inputFocus()
         return
       }
     }

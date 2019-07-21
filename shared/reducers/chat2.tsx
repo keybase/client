@@ -1052,10 +1052,28 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.toggleReplyToMessage:
-      return action.payload.ordinal
-        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
-        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
+    case Chat2Gen.setPrependText:
+      return state.update('prependTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
+    case Chat2Gen.toggleReplyToMessage: {
+      const {conversationIDKey, ordinal} = action.payload
+      if (action.payload.ordinal) {
+        let nextState = state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
+        const message = state.messageMap.getIn([conversationIDKey, ordinal])
+        if (message) {
+          nextState = nextState.setIn(
+            ['prependTextMap', conversationIDKey],
+            new HiddenString(`@${message.author} `)
+          )
+        }
+        return nextState
+      } else {
+        return state
+          .deleteIn(['replyToMap', action.payload.conversationIDKey])
+          .deleteIn(['prependTextMap', action.payload.conversationIDKey])
+      }
+    }
     case Chat2Gen.replyJump:
       return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResults:
