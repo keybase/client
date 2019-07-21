@@ -131,17 +131,18 @@ func (q *compiledQuery) scoreString(str string) (bool, float64) {
 
 var fieldsAndScores = []struct {
 	multiplier float64
+	plumb      bool // plumb the matched value to displayLabel
 	getter     func(*keybase1.ProcessedContact) string
 }{
-	{1.5, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
-	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.Component.ValueString() }},
-	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.DisplayName }},
-	{0.8, func(contact *keybase1.ProcessedContact) string { return contact.DisplayLabel }},
-	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.FullName }},
-	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.Username }},
+	{1.5, true, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
+	{1.0, true, func(contact *keybase1.ProcessedContact) string { return contact.Component.ValueString() }},
+	{1.0, false, func(contact *keybase1.ProcessedContact) string { return contact.DisplayName }},
+	{0.8, false, func(contact *keybase1.ProcessedContact) string { return contact.DisplayLabel }},
+	{0.7, false, func(contact *keybase1.ProcessedContact) string { return contact.FullName }},
+	{0.7, false, func(contact *keybase1.ProcessedContact) string { return contact.Username }},
 }
 
-func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
+func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (found bool, score float64, plumbMatchedVal string) {
 	for _, v := range fieldsAndScores {
 		str := v.getter(&contact)
 		if str == "" {
@@ -149,11 +150,15 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 		}
 		found, score := query.scoreString(str)
 		if found {
-			return true, score * v.multiplier
+			plumbMatchedVal = ""
+			if v.plumb {
+				plumbMatchedVal = str
+			}
+			return true, score * v.multiplier, plumbMatchedVal
 		}
 
 	}
-	return false, 0
+	return false, 0, ""
 }
 
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
@@ -169,9 +174,16 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 	}
 
 	for _, c := range contactsRes {
-		found, score := matchAndScoreContact(query, c)
+		found, score, matchedVal := matchAndScoreContact(query, c)
 		if found {
 			contact := c
+			if contact.Resolved && matchedVal != "" {
+				// If contact is resolved, make sure to plumb matched query to
+				// display label. This is not needed for unresolved contacts,
+				// which can only match on ContactName or Component Value, and
+				// both of them always appear as name and label.
+				contact.DisplayLabel = matchedVal
+			}
 			res = append(res, keybase1.APIUserSearchResult{
 				Contact:  &contact,
 				RawScore: score,
