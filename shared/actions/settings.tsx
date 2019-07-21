@@ -670,7 +670,7 @@ const loadContactImportEnabled = async (
   }
   let enabled = false
   try {
-    const res = await RPCTypes.configGetValueRpcPromise(
+    const res = await RPCTypes.configGuiGetValueRpcPromise(
       {
         path: Constants.importContactsConfigKey(state.config.username),
       },
@@ -690,7 +690,7 @@ const editContactImportEnabled = (
   logger: Saga.SagaLogger
 ) =>
   state.config.username
-    ? RPCTypes.configSetValueRpcPromise(
+    ? RPCTypes.configGuiSetValueRpcPromise(
         {
           path: Constants.importContactsConfigKey(state.config.username),
           value: {b: action.payload.enable, isNull: false},

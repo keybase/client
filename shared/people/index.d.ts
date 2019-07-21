@@ -8,6 +8,7 @@ export type Props = {
   followSuggestions: Array<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
+  onOpenAccountSwitcher?: () => void
   signupEmail: string
   showAirdrop: boolean
   myUsername: string

@@ -41,6 +41,7 @@ export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
+export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
@@ -111,7 +112,8 @@ type _OsNetworkStatusChangedPayload = {
 type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RestartHandshakePayload = void
-type _SetAccountsPayload = {readonly defaultUsername: string; readonly usernames: Array<string>}
+type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
+type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
 type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
@@ -291,6 +293,10 @@ export const createSetAccounts = (payload: _SetAccountsPayload): SetAccountsPayl
   payload,
   type: setAccounts,
 })
+export const createSetDefaultUsername = (payload: _SetDefaultUsernamePayload): SetDefaultUsernamePayload => ({
+  payload,
+  type: setDefaultUsername,
+})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload): SetDeletedSelfPayload => ({
   payload,
   type: setDeletedSelf,
@@ -404,6 +410,10 @@ export type RestartHandshakePayload = {
   readonly type: typeof restartHandshake
 }
 export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
+export type SetDefaultUsernamePayload = {
+  readonly payload: _SetDefaultUsernamePayload
+  readonly type: typeof setDefaultUsername
+}
 export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
   readonly type: typeof setDeletedSelf
@@ -471,6 +481,7 @@ export type Actions =
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
+  | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload

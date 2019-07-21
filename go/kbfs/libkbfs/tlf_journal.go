@@ -2331,9 +2331,10 @@ func (j *tlfJournal) getMDRange(
 	return j.mdJournal.getRange(ctx, bid, start, stop)
 }
 
-func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
+func (j *tlfJournal) doPutMD(
+	ctx context.Context, rmd *RootMetadata,
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -2374,8 +2375,11 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// the journal, to guarantee it will be replaced if the journal is
 	// converted into a branch before any of the upper layer have a
 	// chance to cache it.
+	rmd = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
+
 	// Revisions created locally should always override anything else
 	// in the cache, so use `Replace` rather than `Put`.
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2443,8 +2447,10 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 	return nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (irmd ImmutableRootMetadata, err error) {
+func (j *tlfJournal) putMD(
+	ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+	irmd ImmutableRootMetadata, err error) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -2453,7 +2459,7 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doPutMD(
-				ctx, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, rmd, mdInfo, perRevMap, verifyingKey, bps)
 			return retry, err
 		})
 	if err != nil {
@@ -2490,10 +2496,11 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	return nil
 }
 
-func (j *tlfJournal) doResolveBranch(ctx context.Context,
-	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+func (j *tlfJournal) doResolveBranch(
+	ctx context.Context, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID,
+	rmd *RootMetadata, mdInfo unflushedPathMDInfo,
+	perRevMap unflushedPathsPerRevMap, verifyingKey kbfscrypto.VerifyingKey,
+	bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -2546,6 +2553,8 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// chance to cache it. Revisions created locally should always
 	// override anything else in the cache, so use `Replace` rather
 	// than `Put`.
+	rmd = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2623,7 +2632,7 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, err error) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
@@ -2633,7 +2642,8 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doResolveBranch(
-				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey,
+				bps)
 			return retry, err
 		})
 	if err != nil {

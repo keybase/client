@@ -254,7 +254,7 @@ const monsterStorageKey = 'shownMonsterPushPrompt'
 function* neverShowMonsterAgain(state) {
   if (!state.push.showPushPrompt) {
     yield Saga.spawn(() =>
-      RPCTypes.configSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
+      RPCTypes.configGuiSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
     )
   }
 }
@@ -295,7 +295,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   } else {
     const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
     const shownMonsterPushPromptTask = yield Saga._fork(() =>
-      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+      RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
         .then(v => !!v.b)
         .catch(() => false)
     )

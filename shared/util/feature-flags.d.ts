@@ -4,6 +4,7 @@ export type FeatureFlags = {
   chatIndexProfilingEnabled: boolean
   conflictResolution: boolean
   dbCleanEnabled: boolean
+  fastAccountSwitch: boolean
   foldersInProfileTab: boolean
   kbfsOfflineMode: boolean
   moveOrCopy: boolean

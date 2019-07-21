@@ -14,6 +14,12 @@ export type _OutOfDate = {
 export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
+export type _ConfiguredAccount = {
+  hasStoredSecret: boolean
+  username: string
+}
+export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
+
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
@@ -23,7 +29,7 @@ export type _State = {
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
   avatars: I.Map<string, I.Map<number, string>>
-  configuredAccounts: I.List<string>
+  configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string

@@ -10,6 +10,7 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
+import flags from '../util/feature-flags'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
@@ -396,6 +397,7 @@ function* startProvisioning(state) {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
+        doUserSwitch: flags.fastAccountSwitch,
         paperKey: '',
         username: username,
       },

@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
+import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
@@ -23,11 +24,11 @@ import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
-import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import * as Container from '../../util/container'
 import flags from '../../util/feature-flags'
 
-const onLoggedIn = (state: TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
+const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
   if (!state.config.loggedIn) {
@@ -35,7 +36,7 @@ const onLoggedIn = (state: TypedState, action: EngineGen.Keybase1NotifySessionLo
   }
 }
 
-const onLoggedOut = (state: TypedState) => {
+const onLoggedOut = (state: Container.TypedState) => {
   logger.info('keybase.1.NotifySession.loggedOut')
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
   if (state.config.loggedIn) {
@@ -43,7 +44,7 @@ const onLoggedOut = (state: TypedState) => {
   }
 }
 
-const onLog = (_: TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (_: Container.TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -53,7 +54,10 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (_: TypedState, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
+const onTrackingInfo = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
+) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
@@ -63,7 +67,7 @@ const onTrackingInfo = (_: TypedState, action: EngineGen.Keybase1NotifyTrackingT
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
-  _: TypedState,
+  _: Container.TypedState,
   action:
     | ConfigGen.LoggedInPayload
     | ConfigGen.DaemonHandshakePayload
@@ -100,7 +104,7 @@ function* loadDaemonBootstrapStatus(
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState: TypedState = yield* Saga.selectState()
+      const newState: Container.TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -147,7 +151,7 @@ function* loadDaemonBootstrapStatus(
 }
 
 let _firstTimeConnecting = true
-const startHandshake = (state: TypedState) => {
+const startHandshake = (state: Container.TypedState) => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
   if (firstTimeConnecting) {
@@ -160,7 +164,10 @@ const startHandshake = (state: TypedState) => {
 }
 
 let _firstTimeBootstrapDone = true
-const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const maybeDoneWithDaemonHandshake = (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakeWaitPayload
+) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
     return
@@ -187,8 +194,12 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
 const getAccountsWaitKey = 'config.getAccounts'
 
 function* loadDaemonAccounts(
-  state: TypedState,
-  action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
+  state: Container.TypedState,
+  action:
+    | DevicesGen.RevokedPayload
+    | ConfigGen.DaemonHandshakePayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.LoggedInPayload
 ) {
   let handshakeWait = false
   let handshakeVersion = 0
@@ -212,17 +223,18 @@ function* loadDaemonAccounts(
       )
     }
 
-    const result: Saga.RPCPromiseType<
-      typeof RPCTypes.configGetAllProvisionedUsernamesRpcPromise
-    > = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise()
-    let usernames = result.provisionedUsernames || []
-    let defaultUsername = result.defaultUsername
-    usernames = usernames.sort()
-    const loadedAction = ConfigGen.createSetAccounts({defaultUsername, usernames})
-    yield Saga.put(loadedAction)
+    // only reload in the user-switching case
+    const loadConfiguredAccountsAgain = state.config.loggedIn && flags.fastAccountSwitch
+    if (loadConfiguredAccountsAgain) {
+      const configuredAccounts: Array<
+        RPCTypes.ConfiguredAccount
+      > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+      const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
+      yield Saga.put(loadedAction)
+    }
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: TypedState = yield* Saga.selectState()
+      const newState: Container.TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -236,7 +248,7 @@ function* loadDaemonAccounts(
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: TypedState = yield* Saga.selectState()
+      const newState: Container.TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -257,7 +269,7 @@ const showDeletedSelfRootPage = () => [
 ]
 
 const switchRouteDef = (
-  state: TypedState,
+  state: Container.TypedState,
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
   if (state.config.loggedIn) {
@@ -280,7 +292,7 @@ const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set password screen.
-const startLogoutHandshakeIfAllowed = (state: TypedState) =>
+const startLogoutHandshakeIfAllowed = (state: Container.TypedState) =>
   RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
     if (canLogoutRes.canLogout) {
       return startLogoutHandshake(state)
@@ -301,7 +313,7 @@ const startLogoutHandshakeIfAllowed = (state: TypedState) =>
     }
   })
 
-const startLogoutHandshake = (state: TypedState) =>
+const startLogoutHandshake = (state: Container.TypedState) =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
@@ -314,7 +326,7 @@ function* maybeDoneWithLogoutHandshake(state) {
 
 let routeToInitialScreenOnce = false
 
-const routeToInitialScreen2 = (state: TypedState) => {
+const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
     return
@@ -327,7 +339,7 @@ const routeToInitialScreen2 = (state: TypedState) => {
 }
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
-const routeToInitialScreen = (state: TypedState) => {
+const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
     return
   }
@@ -405,7 +417,7 @@ const routeToInitialScreen = (state: TypedState) => {
   }
 }
 
-const handleAppLink = (_: TypedState, action: ConfigGen.LinkPayload) => {
+const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
@@ -421,10 +433,10 @@ const handleAppLink = (_: TypedState, action: ConfigGen.LinkPayload) => {
   }
 }
 
-const emitInitialLoggedIn = (state: TypedState) =>
+const emitInitialLoggedIn = (state: Container.TypedState) =>
   state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 
-function* allowLogoutWaiters(_: TypedState, action: ConfigGen.LogoutHandshakePayload) {
+function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
   yield Saga.put(
     ConfigGen.createLogoutHandshakeWait({
       increment: true,
@@ -442,7 +454,7 @@ function* allowLogoutWaiters(_: TypedState, action: ConfigGen.LogoutHandshakePay
   )
 }
 
-const updateServerConfig = (state: TypedState) =>
+const updateServerConfig = (state: Container.TypedState) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
     endpoint: 'user/features',
   })
@@ -472,13 +484,13 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
-const setNavigator = (_: TypedState, action: ConfigGen.SetNavigatorPayload) => {
+const setNavigator = (_: Container.TypedState, action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
 }
 
 const newNavigation = (
-  _: TypedState,
+  _: Container.TypedState,
   action:
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
@@ -541,8 +553,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   >([ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
-    DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
-  >([DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut], loadDaemonAccounts)
+    | DevicesGen.RevokedPayload
+    | ConfigGen.DaemonHandshakePayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.LoggedInPayload
+  >(
+    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
+    loadDaemonAccounts
+  )
   // Switch between login or app routes
   yield* Saga.chainAction<ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload>(
     [ConfigGen.loggedIn, ConfigGen.loggedOut],
