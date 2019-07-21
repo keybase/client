@@ -3706,6 +3706,55 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 	})
 }
 
+var errGetInboxNonblockFailingUI = errors.New("get outta here")
+
+type getInboxNonblockFailingUI struct {
+	*kbtest.ChatUI
+}
+
+func (u *getInboxNonblockFailingUI) ChatInboxUnverified(ctx context.Context,
+	arg chat1.ChatInboxUnverifiedArg) error {
+	return errGetInboxNonblockFailingUI
+}
+
+func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvGetInboxNonblockChatUIError", 2)
+	defer ctc.cleanup()
+
+	timeout := 2 * time.Second
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	tui := kbtest.NewChatUI()
+	ui := &getInboxNonblockFailingUI{ChatUI: tui}
+	ctc.as(t, users[0]).h.mockChatUI = ui
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "HIIHIHIHI",
+	}))
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.Error(t, err)
+	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case <-listener0.inboxStale:
+	case <-time.After(timeout):
+		require.Fail(t, "no inbox stale")
+	}
+}
+
 func TestChatSrvGetInboxNonblockError(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
