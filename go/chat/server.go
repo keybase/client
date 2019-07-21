@@ -314,8 +314,6 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
 						convRes.Conv.GetConvID(), time.Now().Sub(start))
 				}
-				convLocalsCh <- convRes.ConvLocal
-
 				// Send a note to the retrier that we actually loaded this guy successfully
 				if isSuccess {
 					h.G().FetchRetrier.Success(ctx, uid,
@@ -325,6 +323,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to transmit conv, retrying")
 					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Metadata.IdTriple.Tlfid)
 				}
+				convLocalsCh <- convRes.ConvLocal
 			}
 			wg.Done()
 		}(convRes)
