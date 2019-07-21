@@ -1061,10 +1061,14 @@ const rootReducer = (
       if (action.payload.ordinal) {
         let nextState = state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
         const message = state.messageMap.getIn([conversationIDKey, ordinal])
+        const meta = state.metaMap.get(conversationIDKey)
         if (message) {
           nextState = nextState.setIn(
             ['prependTextMap', conversationIDKey],
-            new HiddenString(`@${message.author} `)
+            // we always put something in prepend to trigger the focus regain on the input bar
+            meta && meta.participants.size > 2
+              ? new HiddenString(`@${message.author} `)
+              : new HiddenString('')
           )
         }
         return nextState
