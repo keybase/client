@@ -213,7 +213,7 @@ func (s *DeviceEKStorage) Put(mctx libkb.MetaContext, generation keybase1.EkGene
 
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return newEKCorruptedErr(mctx, DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return newEKCorruptedErr(mctx, DeviceEKKind, generation, deviceEK.Metadata.Generation)
 	}
 
 	key, err := s.key(mctx, generation)
@@ -289,7 +289,7 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 	}
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return deviceEK, newEKCorruptedErr(mctx, DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return deviceEK, newEKCorruptedErr(mctx, DeviceEKKind, generation, deviceEK.Metadata.Generation)
 	}
 	return deviceEK, nil
 }
