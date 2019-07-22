@@ -1,9 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
-import * as TrackerConstants from '../constants/tracker2'
 import proofsList from './generic/proofs-list/index.stories'
 import {BioTeamProofs, BackgroundColorType} from './user'
-import * as Assertion from '../tracker2/assertion'
 
 const providerUser = (cfProps =>
   Sb.createPropProviderWithCommon({
@@ -94,54 +92,50 @@ const notAUserAssertion = {
   timestamp: 0,
 }
 
-const providerSBS = (cfProps =>
-  Sb.createPropProviderWithCommon({
-    Actions: props => ({
-      _guiID: 'd.guiID',
-      _you: 'test',
-      followThem: false,
-      followsYou: false,
-      onAccept: () => Sb.action('onAccept'),
-      onAddToTeam: () => Sb.action('onAddToTeam'),
-      onBrowsePublicFolder: () => Sb.action('onBrowsePublicFolder'),
-      onChat: () => Sb.action('onEditAvatarClick'),
-      onFollow: () => Sb.action('onEditAvatarClick'),
-      onIgnoreFor24Hours: Sb.action('onEditAvatarClick'),
-      onOpenPrivateFolder: Sb.action('onEditAvatarClick'),
-      onReload: () => Sb.action('onEditAvatarClick'),
-      onRequestLumens: () => Sb.action('onEditAvatarClick'),
-      onSendLumens: () => Sb.action('onEditAvatarClick'),
-      onUnfollow: () => Sb.action('onEditAvatarClick'),
-      state: 'notAUserYet',
-    }),
-    Assertion: props => ({
-      ...notAUserAssertion,
-      type: 'twitter',
-      value: 'chris',
-    }),
-    Bio: props => ({
-      bio: 'biographical information',
-      followThem: false,
-      followersCount: null,
-      followingCount: null,
-      followsYou: false,
-      fullname: 'Twitter Chris',
-      inTracker: false,
-      registeredForAirdrop: false,
-      sbsDescription: 'Twitter user',
-    }),
-    ConnectedFolders: () => ({
-      loadTlfs: Sb.action('loadTlfs'),
-      tlfs: [],
-    }),
-    Teams: props => ({
-      onJoinTeam: Sb.action('onEditAvatarClick'),
-      teamMeta: {},
-      teamShowcase: [],
-    }),
-  }))({
-  openInFilesTab: Sb.action('openInFilesTab'),
-  style: {maxWidth: 256},
+const providerSBS = Sb.createPropProviderWithCommon({
+  Actions: () => ({
+    _guiID: 'd.guiID',
+    _you: 'test',
+    followThem: false,
+    followsYou: false,
+    onAccept: () => Sb.action('onAccept'),
+    onAddToTeam: () => Sb.action('onAddToTeam'),
+    onBrowsePublicFolder: () => Sb.action('onBrowsePublicFolder'),
+    onChat: () => Sb.action('onEditAvatarClick'),
+    onFollow: () => Sb.action('onEditAvatarClick'),
+    onIgnoreFor24Hours: Sb.action('onEditAvatarClick'),
+    onOpenPrivateFolder: Sb.action('onEditAvatarClick'),
+    onReload: () => Sb.action('onEditAvatarClick'),
+    onRequestLumens: () => Sb.action('onEditAvatarClick'),
+    onSendLumens: () => Sb.action('onEditAvatarClick'),
+    onUnfollow: () => Sb.action('onEditAvatarClick'),
+    state: 'notAUserYet',
+  }),
+  Assertion: () => ({
+    ...notAUserAssertion,
+    type: 'twitter',
+    value: 'chris',
+  }),
+  Bio: () => ({
+    bio: 'biographical information',
+    followThem: false,
+    followersCount: null,
+    followingCount: null,
+    followsYou: false,
+    fullname: 'Twitter Chris',
+    inTracker: false,
+    registeredForAirdrop: false,
+    sbsDescription: 'Twitter user',
+  }),
+  ConnectedFolders: () => ({
+    loadTlfs: Sb.action('loadTlfs'),
+    tlfs: [],
+  }),
+  Teams: () => ({
+    onJoinTeam: Sb.action('onEditAvatarClick'),
+    teamMeta: {},
+    teamShowcase: [],
+  }),
 })
 
 const bioPropsSBS = {

@@ -34,10 +34,6 @@ const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === state.config.username
-  const followersCount =
-    (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followersCount'])) || 0
-  const followingCount =
-    (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followingCount'])) || 0
   const showAirdropBanner = getShowAirdropBanner(state)
 
   const commonProps = {

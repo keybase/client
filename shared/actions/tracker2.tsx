@@ -222,7 +222,7 @@ const refreshSelf = (state, action: EngineGen.Keybase1NotifyUsersUserChangedPayl
     Tracker2Gen.createGetProofSuggestions(),
   ]
 
-const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload) => {
+const loadNonUserProfile = (_, action: Tracker2Gen.LoadNonUserProfilePayload) => {
   const {assertion} = action.payload
   return RPCTypes.userSearchGetNonUserDetailsRpcPromise({assertion}, Constants.nonUserProfileLoadWaitingKey)
     .then(res => {
@@ -253,6 +253,7 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
           })
         }
       }
+      return null
     })
     .catch(e => {
       logger.warn(`Error loading non user profile: ${e.message}`)
