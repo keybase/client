@@ -136,9 +136,13 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
-  _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+  _onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
     this._calculateShowUnreadShortcut()
+    this._onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+  }
+
+  _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<Types.ConversationIDKey>>((arr, r) => {
