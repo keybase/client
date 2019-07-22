@@ -84,7 +84,6 @@ class SelectOtherDevice extends React.Component<Props> {
             <Kb.Button label="Back to my existing account" onClick={this.props.onBack} />
           </Kb.Box2>
         )}
-        }
       </Kb.Box2>
     )
   }
