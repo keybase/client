@@ -7,7 +7,7 @@ import {Props} from './render'
 
 function SettingsRender(props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <SettingsNav
           badgeNumbers={props.badgeNumbers}
@@ -17,7 +17,9 @@ function SettingsRender(props: Props) {
           onLogout={props.onLogout}
           hasRandomPW={props.hasRandomPW || null}
         />
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>{props.children}</Box>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto', height: '100%'}}>
+          {props.children}
+        </Box>
       </Box>
     </Box>
   )
