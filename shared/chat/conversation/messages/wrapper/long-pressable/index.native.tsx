@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 
-const _renderLeftActions = () => {
+const _renderRightActions = () => {
   return (
     <Kb.Box2 direction="horizontal">
       <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
@@ -21,7 +21,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
   return (
     <Kb.Swipeable
       ref={swipeable}
-      renderRightActions={_renderLeftActions}
+      renderRightActions={_renderRightActions}
       onSwipeableRightWillOpen={onRightOpen}
     >
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
