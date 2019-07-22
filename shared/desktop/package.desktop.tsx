@@ -58,7 +58,7 @@ const packagerOpts: any = {
   name: appName,
   protocols: [{
     name: 'Keybase',
-    schemes: ['web+stellar'],
+    schemes: ['keybase', 'web+stellar'],
   }],
 }
 

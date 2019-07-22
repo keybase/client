@@ -423,7 +423,10 @@ const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) =
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
+  } else if (action.payload.link.startsWith('keybase:')) {
+    console.warn('Got Keybase link:', action.payload.link)
   } else {
+    // Normal deeplink
     const username = Constants.urlToUsername(url)
     if (username) {
       return [

@@ -73,8 +73,11 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
 
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
-  if (commandLine.length > 1 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
-    sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
+  if (commandLine.length > 1 && commandLine[1]) {
+    const link = commandLine[1]
+    if (link.startsWith('web+stellar:') || link.startsWith('keybase:')) {
+      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+    }
   }
 }
 
