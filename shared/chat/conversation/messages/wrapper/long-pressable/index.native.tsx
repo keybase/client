@@ -14,14 +14,14 @@ const _renderLeftActions = () => {
 // See '.js.flow' for explanation
 const LongPressable = (props: {children: React.ElementType; onSwipeRight: () => void}) => {
   const {children, ...rest} = props
-  const swipeable = React.useRef(null)
+  const swipeable = React.useRef()
   const _onLeftOpen = () => {
     props.onSwipeRight()
     // @ts-ignore the type returned by useRef doesn't seem to work, it always thinks current can be null
     swipeable.current && swipeable.current.close()
   }
   return (
-    <Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftOpen={_onLeftOpen}>
+    <Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftWillOpen={_onLeftOpen}>
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
         <Kb.NativeView key="longPressable" style={styles.view}>
           {children}
