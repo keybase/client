@@ -17,7 +17,7 @@ function SettingsRender(props: Props) {
           onLogout={props.onLogout}
           hasRandomPW={props.hasRandomPW || null}
         />
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto', height: '100%'}}>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, height: '100%', overflow: 'auto'}}>
           {props.children}
         </Box>
       </Box>
