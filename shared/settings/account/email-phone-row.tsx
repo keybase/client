@@ -16,6 +16,7 @@ export type Props = {
   onVerify: () => void
   primary: boolean
   searchable: boolean
+  superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
 }
@@ -35,6 +36,11 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 )
 
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
+  // Short circuit superseded phone numbers - they get their own banner instead
+  if (props.superseded) {
+    return null
+  }
+
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
     subtitle = addSpacer(subtitle, 'Primary')
@@ -217,6 +223,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
         searchable: pr.searchable,
+        superseded: pr.superseded,
         type: 'phone' as const,
         verified: pr.verified,
       }
