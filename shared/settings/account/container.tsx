@@ -20,7 +20,9 @@ const mapStateToProps = (state: TypedState) => {
     addedEmail: state.settings.email.addedEmail,
     bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
     hasPassword: !state.settings.password.randomPW,
-    supersededPhoneNumber: supersededPhoneNumberRecord && supersededPhoneNumberRecord.displayNumber,
+    supersededPhoneNumber: supersededPhoneNumberRecord
+      ? supersededPhoneNumberRecord.displayNumber
+      : undefined,
     waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
   }
 }
