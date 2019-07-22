@@ -588,15 +588,15 @@ func TestBotMember(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
-	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_BOT)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 	team, err := Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
 	require.NoError(t, err)
 
 	members, err := team.Members()
 	require.NoError(t, err)
-	require.Len(t, members.Bots, 1)
-	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, botua.User.GetUID(), members.RestrictedBots[0].Uid)
 
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
 	require.NoError(t, err)
@@ -605,7 +605,7 @@ func TestBotMember(t *testing.T) {
 	require.NoError(t, err)
 	members, err = team.Members()
 	require.NoError(t, err)
-	require.Len(t, members.Bots, 0)
+	require.Len(t, members.RestrictedBots, 0)
 }
 
 func TestGetTeamIDRPC(t *testing.T) {

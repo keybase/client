@@ -10,7 +10,7 @@ import (
 func TestRoleOrder(t *testing.T) {
 	require.Len(t, keybase1.TeamRoleMap, 6, "you added a new role. Does the IsOrAbove relation still work?")
 	n := keybase1.TeamRole_NONE
-	b := keybase1.TeamRole_BOT
+	b := keybase1.TeamRole_RESTRICTEDBOT
 	r := keybase1.TeamRole_READER
 	w := keybase1.TeamRole_WRITER
 	a := keybase1.TeamRole_ADMIN

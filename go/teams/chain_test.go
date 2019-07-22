@@ -100,7 +100,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
 	// Adding a new bot is not a high link, so the lastest high seq won't change.
-	_, err = AddMember(ctx, tc.G, teamName, u4.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(ctx, tc.G, teamName, u4.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
@@ -337,7 +337,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		xs, err = state.GetUsersWithRole(keybase1.TeamRole_READER)
 		require.NoError(t, err)
 		require.Len(t, xs, 0)
-		xs, err = state.GetUsersWithRole(keybase1.TeamRole_BOT)
+		xs, err = state.GetUsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
 		require.NoError(t, err)
 		require.Len(t, xs, 0)
 

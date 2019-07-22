@@ -23,7 +23,7 @@ func TestTeambotNewTeambotKeyNotif(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(*user1.tc)
 
 	teamID, teamName := user1.createTeam2()
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	teambot.ServiceInit(mctx)
 	memberKeyer := user1.tc.G.GetTeambotMemberKeyer()
@@ -106,7 +106,7 @@ func TestTeambotKey(t *testing.T) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	// bot gets a key on addition to the team
 	newKeyArg := keybase1.NewTeambotKeyArg{

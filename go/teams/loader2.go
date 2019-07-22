@@ -267,13 +267,13 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	case keybase1.TeamRole_NONE:
 		// Anyone can make this link. These didn't exist at the time.
 		return &signer, nil
-	case keybase1.TeamRole_BOT:
-		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_BOT)
+	case keybase1.TeamRole_RESTRICTEDBOT:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_RESTRICTEDBOT)
 		if err == nil {
 			return &signer, err
 		}
 		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_BOT, err)
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_RESTRICTEDBOT, err)
 		}
 		// Fall through to a higher role check
 		fallthrough

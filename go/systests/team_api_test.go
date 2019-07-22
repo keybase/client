@@ -37,7 +37,7 @@ func TestTeamAPI(t *testing.T) {
 		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[1].username+`", "role": "reader"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[1].uid.String()+`","username":"`+tt.users[1].username+`"},"emailSent":false,"chatSending":false}]}`)
 	assertTeamAPIOutput(t, tt.users[0],
-		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "bot"}]}}}`,
+		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "restricted_bot"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[2].uid.String()+`","username":"`+tt.users[2].username+`"},"emailSent":false,"chatSending":false}]}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
