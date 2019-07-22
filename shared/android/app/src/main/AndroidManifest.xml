@@ -11,6 +11,11 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <meta-data  android:name="com.dieam.reactnativepushnotification.notification_channel_name"
+                android:value="Keybase"/>
+    <meta-data  android:name="com.dieam.reactnativepushnotification.notification_channel_description"
+                android:value="Keybase"/>
+
     <application
       android:name=".MainApplication"
       android:allowBackup="true"
