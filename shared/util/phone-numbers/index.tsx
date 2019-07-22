@@ -123,7 +123,7 @@ export const formatPhoneNumber = (rawNumber: string) => {
 
 // Return phone number in international format, e.g. +1 (800) 555 0123
 // or e.164 if parsing fails
-export const e164ToDisplay = (e164: string) => {
+export const e164ToDisplay = (e164: string): string => {
   try {
     const number = phoneUtil.parse(e164)
     return phoneUtil.format(number, PNF.INTERNATIONAL)
