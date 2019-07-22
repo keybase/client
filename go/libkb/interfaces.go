@@ -867,6 +867,8 @@ type TeambotBotKeyer interface {
 	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeambotKey, error)
 	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID,
 		generation keybase1.TeambotKeyGeneration) (keybase1.TeambotKey, error)
+
+	DeleteTeambotKeyForTest(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) error
 }
 
 type TeambotMemberKeyer interface {

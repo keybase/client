@@ -8,6 +8,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+type storeMemberKind int
+
+const (
+	storeMemberKindNone = iota
+	storeMemberKindRecipient
+	storeMemberKindBotRecipient
+)
+
 type member struct {
 	version    keybase1.UserVersion
 	perUserKey keybase1.PerUserKey
@@ -24,11 +32,15 @@ type memberSet struct {
 	None    []member
 
 	// the per-user-keys of everyone in the lists above
-	recipients MemberMap
+	recipients    MemberMap
+	botRecipients MemberMap
 }
 
 func newMemberSet() *memberSet {
-	return &memberSet{recipients: make(MemberMap)}
+	return &memberSet{
+		recipients:    make(MemberMap),
+		botRecipients: make(MemberMap),
+	}
 }
 
 func (m MemberMap) Eq(n MemberMap) bool {
@@ -65,6 +77,14 @@ func (m *memberSet) recipientUids() []keybase1.UID {
 	return uids
 }
 
+func (m *memberSet) botRecipientUids() []keybase1.UID {
+	uids := make([]keybase1.UID, 0, len(m.botRecipients))
+	for uv := range m.botRecipients {
+		uids = append(uids, uv.Uid)
+	}
+	return uids
+}
+
 func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Owners = append(m.Owners, other.Owners...)
 	m.Admins = append(m.Admins, other.Admins...)
@@ -75,6 +95,9 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 
 	for k, v := range other.recipients {
 		m.recipients[k] = v
+	}
+	for k, v := range other.botRecipients {
+		m.botRecipients[k] = v
 	}
 }
 
@@ -99,44 +122,45 @@ func (m *memberSet) adminAndOwnerRecipients() MemberMap {
 
 func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq, forcePoll bool) error {
 	var err error
-	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, forcePoll)
+	m.Owners, err = m.loadGroup(ctx, g, req.Owners, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true, forcePoll)
+	m.Admins, err = m.loadGroup(ctx, g, req.Admins, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true, forcePoll)
+	m.Writers, err = m.loadGroup(ctx, g, req.Writers, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, forcePoll)
+	m.Readers, err = m.loadGroup(ctx, g, req.Readers, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
 	// bots are not recipients of of the PTK
-	m.Bots, err = m.loadGroup(ctx, g, req.Bots, false, forcePoll)
+	m.Bots, err = m.loadGroup(ctx, g, req.Bots, storeMemberKindBotRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.None, err = m.loadGroup(ctx, g, req.None, false, false)
+	m.None, err = m.loadGroup(ctx, g, req.None, storeMemberKindNone, false)
 	return err
 }
 
 func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
-	group []keybase1.UserVersion, storeRecipient, forcePoll bool) ([]member, error) {
+	group []keybase1.UserVersion, storeMemberKind storeMemberKind, forcePoll bool) ([]member, error) {
 
 	var members []member
 	for _, uv := range group {
-		mem, err := m.loadMember(ctx, g, uv, storeRecipient, forcePoll)
+		mem, err := m.loadMember(ctx, g, uv, storeMemberKind, forcePoll)
 		if _, reset := err.(libkb.AccountResetError); reset {
-			if !storeRecipient {
+			switch storeMemberKind {
+			case storeMemberKindNone:
 				// If caller doesn't care about keys, it probably expects
 				// reset users to be passed through as well. This is used
 				// in reading reset users in impteams.
 				members = append(members, member{version: uv})
-			} else {
+			default:
 				g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
 			}
 			continue
@@ -210,14 +234,18 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 	}, nun, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, forcePoll bool) (res member, err error) {
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion,
+	storeMemberKind storeMemberKind, forcePoll bool) (res member, err error) {
 	res, _, err = loadMember(ctx, g, uv, forcePoll)
 	if err != nil {
 		return res, err
 	}
 	// store the key in a recipients table
-	if storeRecipient {
+	switch storeMemberKind {
+	case storeMemberKindRecipient:
 		m.recipients[res.version] = res.perUserKey
+	case storeMemberKindBotRecipient:
+		m.botRecipients[res.version] = res.perUserKey
 	}
 	return res, nil
 }
@@ -228,14 +256,19 @@ type MemberChecker interface {
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
 	for k := range m.recipients {
-		if !checker.IsMember(ctx, k) {
-			continue
+		if checker.IsMember(ctx, k) {
+			delete(m.recipients, k)
 		}
-		delete(m.recipients, k)
+	}
+	for k := range m.botRecipients {
+		if checker.IsMember(ctx, k) {
+			delete(m.botRecipients, k)
+		}
 	}
 }
 
-// AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None or m.Bots.
+// AddRemainingRecipients adds everyone in existing to m.recipients or
+// m.botRecipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
 
 	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
@@ -245,11 +278,10 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	for _, n := range m.None {
 		filtered[n.version] = true
 	}
-	for _, n := range m.Bots {
-		filtered[n.version] = true
-	}
+
+	existingBots := make(map[keybase1.UserVersion]bool)
 	for _, uv := range existing.Bots {
-		filtered[uv] = true
+		existingBots[uv] = true
 	}
 
 	auv := existing.AllUserVersions()
@@ -265,7 +297,18 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, uv, true, forceUserPoll); err != nil {
+		if _, ok := m.botRecipients[uv]; ok {
+			continue
+		}
+
+		var storeMemberKind storeMemberKind
+		if _, ok := existingBots[uv]; ok {
+			storeMemberKind = storeMemberKindBotRecipient
+		} else {
+			storeMemberKind = storeMemberKindRecipient
+		}
+
+		if _, err := m.loadMember(ctx, g, uv, storeMemberKind, forceUserPoll); err != nil {
 			if _, reset := err.(libkb.AccountResetError); reset {
 				g.Log.CDebugf(ctx, "Skipping user who was reset: %s", uv.String())
 				continue
