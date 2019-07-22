@@ -11,7 +11,7 @@ export type Props = {
   addedEmail: string | null
   contactKeys: I.List<string>
   hasPassword: boolean
-  supersededPhoneNumber?: ContactRowProps
+  supersededPhoneNumber?: string
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
@@ -138,7 +138,7 @@ const AccountSettings = (props: Props) => (
           <Kb.BannerParagraph
             bannerColor="yellow"
             content={`Your unverified phone number ${
-              props.supersededPhoneNumber.address
+              props.supersededPhoneNumber
             } is now associated with another Keybase user.`}
           />
         </Kb.Banner>

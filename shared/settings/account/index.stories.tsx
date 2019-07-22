@@ -59,7 +59,7 @@ const load = () => {
       <AccountSettings
         {...props}
         contactKeys={I.List(Object.keys(contacts))}
-        supersededPhoneNumber={contacts.i}
+        supersededPhoneNumber={contacts.i.address}
       />
     ))
     .add('Confirm delete email', () => (

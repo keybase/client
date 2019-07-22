@@ -9,31 +9,18 @@ import {isMobile} from '../../styles'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
-  const phoneNumberRecord =
+  const supersededPhoneNumberRecord =
     state.settings.phoneNumbers.phones &&
     state.settings.phoneNumbers.phones.find(phoneNumber => phoneNumber.superseded)
 
   return {
     _emails: state.settings.email.emails,
     _phones: state.settings.phoneNumbers.phones,
-    _supersededPhoneNumberKey: phoneNumberRecord && phoneNumberRecord.e164,
+    _supersededPhoneNumberKey: supersededPhoneNumberRecord && supersededPhoneNumberRecord.e164,
     addedEmail: state.settings.email.addedEmail,
     bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
     hasPassword: !state.settings.password.randomPW,
-    supersededPhoneNumber: phoneNumberRecord
-      ? {
-          address: phoneNumberRecord.displayNumber,
-          onDelete: () => null,
-          onMakePrimary: () => null,
-          onToggleSearchable: () => null,
-          onVerify: () => null,
-          primary: false,
-          searchable: phoneNumberRecord.searchable,
-          superseded: phoneNumberRecord.superseded,
-          type: 'phone' as const,
-          verified: phoneNumberRecord.verified,
-        }
-      : undefined,
+    supersededPhoneNumber: supersededPhoneNumberRecord && supersededPhoneNumberRecord.displayNumber,
     waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
   }
 }
