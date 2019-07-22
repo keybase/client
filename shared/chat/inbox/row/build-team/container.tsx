@@ -14,7 +14,7 @@ const mapDispatchToProps = dispatch => ({
   _onBuildTeam: () => dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab})),
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onBuildTeam: dispatchProps._onBuildTeam,
   showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
 })

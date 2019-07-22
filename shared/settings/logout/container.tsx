@@ -1,4 +1,3 @@
-import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'

@@ -551,6 +551,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString | null"
     },
+    "setPrependText": {
+      "_description": "Set prepend text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString | null"
+    },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",

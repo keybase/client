@@ -10,7 +10,6 @@ import * as Constants from '../../constants/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
-import {RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = Container.RouteProps<{teamname: string}> & {
   selectedTab: string

@@ -32,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const otherParticipants = stateProps._meta.participants.filter(u => u !== stateProps._you)
   if (otherParticipants.size !== 1) {
     logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')

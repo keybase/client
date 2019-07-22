@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
-import {SmallAccountID, SendButton, DropdownButton} from '../common'
+import {SmallAccountID, SendButton} from '../common'
 import AddAccount from './add-account'
 
 type HeaderTitleProps = {

@@ -93,6 +93,6 @@ const mapDispatchToProps = dispatch => ({
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d, nextDisabled: !s.email1 || !s.fullName || !!s.errorText}),
+    (s, d, o: OwnProps) => ({...o, ...s, ...d, nextDisabled: !s.email1 || !s.fullName || !!s.errorText}),
   'Info'
 )(Info)

@@ -43,7 +43,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   airdropSelected: stateProps.airdropSelected,
   contents: stateProps.contents,
   isSelected: !isMobile && stateProps.isSelected,

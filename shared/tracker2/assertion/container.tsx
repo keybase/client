@@ -94,7 +94,7 @@ const mapDispatchToProps = dispatch => ({
   _onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     color: stateProps.color,
     isSuggestion: !!ownProps.isSuggestion,

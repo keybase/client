@@ -5,7 +5,6 @@ import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
-import {teamsTab} from '../../../constants/tabs'
 
 type Props = {
   isAdmin: boolean
@@ -82,7 +81,7 @@ const AddPeople = compose(
   connect(
     () => ({}),
     mapDispatchToProps,
-    (_, d, o: any) => ({
+    (_, d, o: OwnProps) => ({
       isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,
       onAddPeople: () => d._onAddPeople(o.teamname),

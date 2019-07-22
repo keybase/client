@@ -97,11 +97,9 @@ func TestNewTeambotEK(t *testing.T) {
 	require.True(t, typ.IsTeam())
 	teamEK = ek.Team()
 	require.NoError(t, err)
-	expectedSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, botuaUID)
-	require.NoError(t, err)
+	expectedSeed := deriveTeambotEKFromTeamEK(mctx, teamEK, botuaUID)
 	require.Equal(t, keybase1.Bytes32(expectedSeed), teambotEK.Teambot().Seed)
 
-	badSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, "")
-	require.NoError(t, err)
+	badSeed := deriveTeambotEKFromTeamEK(mctx, teamEK, "")
 	require.NotEqual(t, keybase1.Bytes32(badSeed), teambotEK.Teambot().Seed)
 }

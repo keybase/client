@@ -6,9 +6,6 @@ import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import AppState from '../../app/app-state'
-import * as Types from '../../constants/types/wallets'
-import {maxUsernameLength} from '../../constants/signup'
 import {ProxySettings} from '../proxy/container'
 
 type Props = {

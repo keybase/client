@@ -20,6 +20,7 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 const trackerMapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
   return {
+    airdropIsLive: state.wallets.airdropDetails.isPromoted,
     assertions: d.assertions,
     bio: d.bio,
     followThem: Constants.followThem(state, ownProps.username),
@@ -35,11 +36,12 @@ const trackerMapStateToProps = (state, ownProps) => {
     state: d.state,
     teamShowcase: d.teamShowcase,
     waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
+    youAreInAirdrop: false,
     yourUsername: state.config.username,
   }
 }
 
-const trackerMergeProps = (stateProps, _, ownProps) => {
+const trackerMergeProps = (stateProps, _, ownProps: OwnProps) => {
   return {
     assertions: stateProps.assertions,
     bio: stateProps.bio,

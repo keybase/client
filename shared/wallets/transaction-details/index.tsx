@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'

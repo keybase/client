@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/wallets'
-import {anyWaiting} from '../../../constants/waiting'
 import * as Container from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Kb from '../../../common-adapters'

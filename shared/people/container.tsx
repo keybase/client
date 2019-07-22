@@ -23,7 +23,7 @@ const mapDispatchToPropsHeader = dispatch => ({
   onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
 })
 
-const mergePropsHeader = (stateProps, dispatchProps) => ({
+const mergePropsHeader = (stateProps, dispatchProps, _: OwnProps) => ({
   myUsername: stateProps.myUsername,
   ...dispatchProps,
 })

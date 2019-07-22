@@ -265,6 +265,7 @@ const reviewPayment = (state: TypedState) =>
     if (error instanceof RPCError && error.code === RPCTypes.StatusCode.sccanceled) {
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
+      return undefined
     } else {
       return WalletsGen.createSentPaymentError({error: error.desc})
     }
@@ -395,16 +396,7 @@ type LoadAssetsActions =
   | WalletsGen.LinkedExistingAccountPayload
   | WalletsGen.AccountUpdateReceivedPayload
   | WalletsGen.AccountsReceivedPayload
-const loadAssets = (
-  state: TypedState,
-  action:
-    | WalletsGen.LoadAssetsPayload
-    | WalletsGen.SelectAccountPayload
-    | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.AccountUpdateReceivedPayload
-    | WalletsGen.AccountsReceivedPayload,
-  logger: Saga.SagaLogger
-) => {
+const loadAssets = (state: TypedState, action: LoadAssetsActions, logger: Saga.SagaLogger) => {
   if (actionHasError(action)) {
     return
   }
@@ -444,6 +436,7 @@ const loadAssets = (
       )
       .catch(err => handleSelectAccountError(action, 'selecting account', err))
   }
+  return undefined
 }
 
 const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread) =>
@@ -839,6 +832,7 @@ const maybeSelectDefaultAccount = (
       })
     }
   }
+  return undefined
 }
 
 const cancelPayment = (
@@ -862,6 +856,7 @@ const cancelPayment = (
           show: true,
         })
       }
+      return undefined
     })
     .catch(err => {
       logger.error(`failed to cancel payment with ID ${pid}. Error: ${err.message}`)
@@ -1061,6 +1056,7 @@ const writeLastSentXLM = (
       value: {b: state.wallets.lastSentXLM, isNull: false},
     }).catch(err => logger.error(`Error: ${err.message}`))
   }
+  return undefined
 }
 
 const readLastSentXLM = (
@@ -1185,6 +1181,7 @@ const updateAirdropState = (
           airdropState: 'needDisclaimer',
         })
       }
+      return undefined
     })
 
 const hideAirdropBanner = (): TypedActions =>

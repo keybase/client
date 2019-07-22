@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {namedConnect} from '../../util/container'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -19,8 +18,6 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _tlfsLoaded: !!state.fs.tlfs.private.size,
 })
-
-const emptySet = I.Set()
 
 const mergeProps = (stateProps, _, {path}: OwnProps) => {
   const parsedPath = Constants.parsePath(path)

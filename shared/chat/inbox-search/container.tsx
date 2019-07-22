@@ -3,7 +3,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
 import {namedConnect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
-import InboxSearch, {Props} from '.'
+import InboxSearch from '.'
 
 type OwnProps = {
   header?: React.ReactNode

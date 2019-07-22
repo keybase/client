@@ -13,7 +13,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let header = 'Ah Shoot! Something went wrong, try again?'
   let body = stateProps.error ? stateProps.error.desc : ''
   if (!!stateProps.error && isNetworkErr(stateProps.error.code)) {

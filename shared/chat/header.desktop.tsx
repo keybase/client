@@ -190,7 +190,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const meta = stateProps._meta
   const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
   // If it's a one-on-one chat, use the user's fullname as the description

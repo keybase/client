@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, _, ownProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
   children: ownProps.children,
   navigateAppend: ownProps.navigateAppend,

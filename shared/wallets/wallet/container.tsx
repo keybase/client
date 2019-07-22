@@ -46,7 +46,7 @@ const sortAndStripTimestamps = (
 const WalletOrOnboarding = (props: Props) =>
   !Container.isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+    export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
   const sections: Props['sections'] = []
   // layout is
   // 1. assets header and list of assets

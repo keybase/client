@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
@@ -34,6 +33,7 @@ const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1Notif
   if (!state.config.loggedIn) {
     return ConfigGen.createLoggedIn({causedBySignup: action.payload.params.signedUp, causedByStartup: false})
   }
+  return undefined
 }
 
 const onLoggedOut = (state: Container.TypedState) => {
@@ -42,6 +42,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   if (state.config.loggedIn) {
     return ConfigGen.createLoggedOut()
   }
+  return undefined
 }
 
 const onLog = (_: Container.TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
@@ -187,6 +188,7 @@ const maybeDoneWithDaemonHandshake = (
       return ConfigGen.createDaemonHandshakeDone()
     }
   }
+  return undefined
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -223,15 +225,12 @@ function* loadDaemonAccounts(
       )
     }
 
-    // only reload in the user-switching case
-    const loadConfiguredAccountsAgain = state.config.loggedIn && flags.fastAccountSwitch
-    if (loadConfiguredAccountsAgain) {
-      const configuredAccounts: Array<
-        RPCTypes.ConfiguredAccount
-      > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
-      const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
-      yield Saga.put(loadedAction)
-    }
+    const configuredAccounts: Array<
+      RPCTypes.ConfiguredAccount
+    > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
+    yield Saga.put(loadedAction)
+
     if (handshakeWait) {
       // someone dismissed this already?
       const newState: Container.TypedState = yield* Saga.selectState()
@@ -259,6 +258,7 @@ function* loadDaemonAccounts(
           })
         )
       }
+      return undefined
     }
   }
 }
@@ -285,6 +285,7 @@ const switchRouteDef = (
   } else {
     return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
   }
+  return undefined
 }
 
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
@@ -431,6 +432,7 @@ const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) =
       ]
     }
   }
+  return undefined
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>

@@ -139,6 +139,15 @@ class UpdatePassword extends Component<Props, State> {
               keyboardType={keyboardType}
               value={this.state.passwordConfirm}
               onChangeText={password => this._handlePasswordConfirmChange(password)}
+              onEnterKeyDown={() => {
+                if (
+                  !this.state.errorSaving &&
+                  this.state.password.length >= 8 &&
+                  this.state.password === this.state.passwordConfirm
+                ) {
+                  this.props.onSave(this.state.password, this.state.passwordConfirm)
+                }
+              }}
             />
           </Kb.RoundedBox>
           <Kb.Text style={styles.passwordFormat} type="BodySmall">

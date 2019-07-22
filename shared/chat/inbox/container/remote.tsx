@@ -1,6 +1,5 @@
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
-import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
