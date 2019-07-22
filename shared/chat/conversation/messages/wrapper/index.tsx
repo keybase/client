@@ -58,6 +58,7 @@ export type Props = {
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
+  onSwipeRight: () => void
   orangeLineAbove: boolean
   previous?: Types.Message
   shouldShowPopup: boolean
@@ -319,6 +320,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ...props,
             onLongPress: this.props.toggleShowingMenu,
             onPress: this._dismissKeyboard,
+            onSwipeRight: this.props.onSwipeRight,
             underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
@@ -556,9 +558,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
     return (
       <>
-        {LongPressable({
-          ...this._containerProps(),
-          children: [
+        <LongPressable
+          {...this._containerProps()}
+          children={[
             this._authorAndContent([
               this._messageAndButtons(),
               this._isEdited(),
@@ -570,8 +572,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ]),
             this._sendIndicator(),
             this._orangeLine(),
-          ],
-        })}
+          ]}
+        />
         {this._popup()}
       </>
     )
