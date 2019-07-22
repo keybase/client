@@ -323,7 +323,7 @@ func WriteB64(str string) (err error) {
 	return nil
 }
 
-const targetBufferSize = 50 * 1024
+const targetBufferSize = 300 * 1024
 
 // bufferSize must be divisible by 3 to ensure that we don't split
 // our b64 encode across a payload boundary if we go over our buffer
@@ -342,6 +342,10 @@ func ReadB64() (res string, err error) {
 	}
 	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
+		if n == bufferSize {
+			kbCtx.Log.Info("ReadB64 %d bytes (full buffer)", n)
+			fmt.Printf("ReadB64 %d bytes (full buffer)\n", n)
+		}
 		str := base64.StdEncoding.EncodeToString(buffer[0:n])
 		return str, nil
 	}
