@@ -375,7 +375,8 @@ class User extends React.Component<Props, State> {
           fullWidth={true}
           fullHeight={true}
           style={Styles.collapseStyles([
-            {...styles.container, paddingTop},
+            styles.container,
+            {paddingTop},
             colorTypeToStyle(this.props.backgroundColorType),
           ])}
         >
