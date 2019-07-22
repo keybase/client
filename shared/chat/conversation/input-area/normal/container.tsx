@@ -196,6 +196,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       ownProps.jumpToRecent()
     }
   },
+  prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
@@ -239,12 +240,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
-
+  unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
-
-  unsentTextRefresh: !!stateProps.unsentText || !!stateProps.prependText,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Input')(Input)

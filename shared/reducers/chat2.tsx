@@ -1066,7 +1066,7 @@ const rootReducer = (
           nextState = nextState.setIn(
             ['prependTextMap', conversationIDKey],
             // we always put something in prepend to trigger the focus regain on the input bar
-            meta && meta.participants.size > 2
+            meta && (meta.participants.size > 2 || meta.teamType === 'big')
               ? new HiddenString(`@${message.author} `)
               : new HiddenString('')
           )
