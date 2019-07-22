@@ -11,6 +11,7 @@ const pushOutOfBandMessages = (_, action: EngineGen.Keybase1GregorUIPushOutOfBan
   if (filteredOOBM.length) {
     return GregorGen.createPushOOBM({messages: filteredOOBM})
   }
+    return undefined
 }
 
 const pushState = (_, action: EngineGen.Keybase1GregorUIPushStatePayload) => {

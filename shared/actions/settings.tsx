@@ -429,6 +429,7 @@ const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLog
     })
   }
   logger.warn('Empty editEmail action')
+  return undefined
 }
 const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
@@ -447,6 +448,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.Sag
     })
   }
   logger.warn('Empty editPhone action')
+    return undefined
 }
 
 const getRememberPassword = () =>

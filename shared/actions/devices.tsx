@@ -51,6 +51,7 @@ const requestEndangeredTLFsLoad = (state, action: DevicesGen.ShowRevokePagePaylo
         console.error(e)
       })
   }
+    return undefined
 }
 
 const revoke = (state, action: DevicesGen.RevokePayload) => {

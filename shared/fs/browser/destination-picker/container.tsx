@@ -76,6 +76,7 @@ const canCopy = memoize((stateProps: StateProps, ownProps: OwnPropsWithSafeNavig
     const source: Types.MoveOrCopySource = stateProps._destinationPicker.source
     return getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(source.path)
   }
+    return undefined
 })
 
 const canMove = memoize(

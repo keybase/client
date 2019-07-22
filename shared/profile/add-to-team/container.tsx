@@ -67,6 +67,7 @@ const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRol
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
       }
+        return ''
     })
     .find(v => !!v)
 })

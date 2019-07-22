@@ -18,6 +18,7 @@ function* generatePgp(state) {
   const onKeyGenerated = ({key}, response) => {
     if (canceled) {
       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+        return undefined
     } else {
       response.result()
       return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
