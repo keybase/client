@@ -108,13 +108,12 @@ const Header = (p: Props) => {
                           colorFollowing={true}
                           underline={true}
                           inline={true}
-                          commaColor={Styles.globalColors.black_50}
                           type="Header"
                           usernames={[part]}
                           onUsernameClicked="profile"
                         />
                       )}
-                      {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
+                      {i !== participants.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
                     </Kb.Text>
                   ))}
                 </Kb.Text>

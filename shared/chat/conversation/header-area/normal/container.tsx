@@ -30,6 +30,7 @@ const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversati
     pendingWaiting: conversationIDKey === Constants.pendingWaitingConversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
+    username: state.config.username,
   }
 }
 
@@ -82,5 +83,6 @@ export default Container.withSafeNavigation(
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,
     unMuteConversation: dispatchProps._onUnMuteConversation,
+    username: stateProps.username,
   }))(HeaderBranch)
 )
