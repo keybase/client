@@ -397,12 +397,7 @@ type LoadAssetsActions =
   | WalletsGen.AccountsReceivedPayload
 const loadAssets = (
   state: TypedState,
-  action:
-    | WalletsGen.LoadAssetsPayload
-    | WalletsGen.SelectAccountPayload
-    | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.AccountUpdateReceivedPayload
-    | WalletsGen.AccountsReceivedPayload,
+  action: LoadAssetsActions,
   logger: Saga.SagaLogger
 ) => {
   if (actionHasError(action)) {

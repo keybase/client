@@ -40,24 +40,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-    let title = 'Select a Photo'
-    let takePhotoButtonTitle = 'Take Photo...'
-    let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
-    switch (mediaType) {
-      case 'mixed':
-        title = 'Select a Photo or Video'
-        takePhotoButtonTitle = 'Take Photo or Video...'
-        // 'mixed' never happens on Android, which is when the
-        // permissions denied dialog box is shown, but fill it out
-        // anyway.
-        permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
-        break
-      case 'video':
-        title = 'Select a Video'
-        takePhotoButtonTitle = 'Take Video...'
-        permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
-        break
-    }
     const handleSelection = (result: ImagePicker.ImagePickerResult) => {
       if (result.cancelled === true || !this.props.conversationIDKey) {
         return

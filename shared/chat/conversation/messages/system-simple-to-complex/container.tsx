@@ -22,7 +22,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   message: ownProps.message,
   onManageChannels: () => dispatchProps._onManageChannels(ownProps.message.team),
   onViewTeam: dispatchProps.onViewTeam,

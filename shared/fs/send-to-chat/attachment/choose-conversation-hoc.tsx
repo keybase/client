@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as FsGen from '../../../actions/fs-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
@@ -22,8 +21,6 @@ type InjectedProps = {
   onSetFilter?: (filter: string) => void
   selected: ChatTypes.ConversationIDKey
 }
-
-type WithInjectedProps<OriginalProps> = OriginalProps & InjectedProps
 
 export default function(component: any) {
   return Container.namedConnect(

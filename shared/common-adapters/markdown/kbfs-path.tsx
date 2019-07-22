@@ -1,5 +1,4 @@
 import React from 'react'
-import * as Styles from '../../styles'
 import Text, {StylesTextCrossPlatform} from '../text'
 import * as Types from '../../constants/types/fs'
 

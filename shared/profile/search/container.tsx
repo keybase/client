@@ -12,7 +12,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onClose: ownProps.onClose || (() => dispatch(createNavigateUp())),
 })
 
-const mergeProps = (_, dispatchProps, __) => {
+const mergeProps = (_, dispatchProps, __: OwnProps) => {
   return {
     onClick: username => {
       dispatchProps.onClose()

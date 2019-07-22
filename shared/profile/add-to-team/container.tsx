@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const {teamProfileAddList, _them} = stateProps
   const title = `Add ${_them} to...`
 

@@ -11,8 +11,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
-import * as Tabs from '../constants/tabs'
-import * as NotificationsGen from '../actions/notifications-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -670,12 +668,11 @@ const loadContactImportEnabled = async (
   }
   let enabled = false
   try {
-    const res = await RPCTypes.configGuiGetValueRpcPromise(
-      {
-        path: Constants.importContactsConfigKey(state.config.username),
-      },
+    const value = await RPCTypes.configGuiGetValueRpcPromise(
+      {path: Constants.importContactsConfigKey(state.config.username)},
       Constants.importContactsWaitingKey
-    ).then(value => (enabled = !!value.b && !value.isNull))
+    )
+    enabled = !!value.b && !value.isNull
   } catch (err) {
     if (!err.message.includes('no such key')) {
       logger.error(`Error reading config: ${err.message}`)

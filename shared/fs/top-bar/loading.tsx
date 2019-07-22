@@ -20,8 +20,6 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _tlfsLoaded: !!state.fs.tlfs.private.size,
 })
 
-const emptySet = I.Set()
-
 const mergeProps = (stateProps, _, {path}: OwnProps) => {
   const parsedPath = Constants.parsePath(path)
   switch (parsedPath.kind) {

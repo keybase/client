@@ -5,22 +5,13 @@ import Pinentry from './index.desktop'
 
 type OwnProps = {}
 
-type State = {
-  showTyping: RPCTypes.Feature
-  type: RPCTypes.PassphraseType
-  prompt: string
-  retryLabel?: string
-  submitLabel?: string
-  sessionID: number
-}
-
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
   _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
   _onSubmit: (password: string, sessionID: number) =>
     dispatch(PinentryGen.createOnSubmit({password, sessionID})),
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   onCancel: () => dispatchProps._onCancel(stateProps.sessionID),

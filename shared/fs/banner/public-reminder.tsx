@@ -43,13 +43,11 @@ const PublicBanner = (props: Props) => {
   )
 }
 
-type StateProps = {lastPublicBannerClosedTlf: string; writable: boolean}
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   lastPublicBannerClosedTlf: state.fs.lastPublicBannerClosedTlf,
   writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
 })
 
-type DispatchProps = {setLastPublicBannerClosedTlf: (string) => () => void}
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   setLastPublicBannerClosedTlf: tlf => () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf})),
 })

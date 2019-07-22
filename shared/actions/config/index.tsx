@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'

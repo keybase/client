@@ -30,7 +30,7 @@ export type DispatchProps = {
 export function connectedPropsToProps<T>(
   stateProps: T,
   dispatchProps: DispatchProps,
-  connectedProps: ConnectedProps,
+  connectedProps: OwnProps,
   userDataFromState: (t: T, array: Array<string>) => UserList
 ): Props {
   const userData = userDataFromState(stateProps, connectedProps.usernames).filter(

@@ -39,5 +39,5 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d) => ({...s, ...d})
+    (s, d, _: OwnProps) => ({...s, ...d})
 )(Revoke)
