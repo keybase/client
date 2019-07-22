@@ -13,6 +13,7 @@ export const newRoutes = {
   error: {getScreen: (): typeof ErrorView => require('./error/container').default, upgraded: true},
   forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default},
   gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default, upgraded: true},
+  // @ts-ignore
   paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default, upgraded: true},
   password: {getScreen: (): typeof Password => require('./password/container').default, upgraded: true},
   selectOtherDevice: {

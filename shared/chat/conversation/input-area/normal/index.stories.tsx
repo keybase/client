@@ -114,6 +114,7 @@ const InputContainer = (props: Props) => {
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
+    prependText: null,
     quoteCounter: 0,
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
@@ -164,8 +165,8 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
+    unsentText: null,
     unsentTextChanged: Sb.action('unsentTextChanged'),
-    unsentTextRefresh: false,
   }
 
   return (

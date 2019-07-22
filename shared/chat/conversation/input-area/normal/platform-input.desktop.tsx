@@ -188,7 +188,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
         onKeyDown={this._globalKeyDownPressHandler}
         onKeyPress={this._globalKeyDownPressHandler}
       >
-        {this.props.suggestBotCommandsUpdateStatus !== undefined &&
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
           (this.props.suggestionsVisible ||
             this.props.suggestBotCommandsUpdateStatus ===
               RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (

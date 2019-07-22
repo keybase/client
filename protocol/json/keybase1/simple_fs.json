@@ -724,6 +724,10 @@
       "name": "SimpleFSStats",
       "fields": [
         {
+          "type": "ProcessRuntimeStats",
+          "name": "processStats"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"

@@ -1,28 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
+import {Props} from './user-result'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
 // * Use ListItem2
 // * maybe move realCSS up?
-
-export type Props = {
-  // They are already a member in the actual team, not this temporary set.
-  isPreExistingTeamMember: boolean
-  resultForService: ServiceIdWithContact
-  username: string
-  prettyName: string
-  services: {[K in ServiceIdWithContact]?: string}
-  fixedHeight?: number
-  inTeam: boolean
-  followingState: FollowingState
-  highlight: boolean
-  onAdd: () => void
-  onRemove: () => void
-}
 
 const realCSS = (inTeam: boolean) => `
     .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
@@ -105,7 +91,7 @@ const Avatar = ({
   keybaseUsername,
 }: {
   keybaseUsername: string | null
-  resultForService: ServiceIdWithContact
+  resultForService: Types.ServiceIdWithContact
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
@@ -127,7 +113,7 @@ const Username = (props: {
   username: string
   prettyName: string
   isPreExistingTeamMember?: boolean
-  followingState: FollowingState
+  followingState: Types.FollowingState
   keybaseResult: boolean
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
@@ -151,10 +137,10 @@ const Services = ({
   keybaseUsername,
   followingState,
 }: {
-  services: {[K in ServiceIdWithContact]?: string}
+  services: {[K in Types.ServiceIdWithContact]?: string}
   keybaseResult: boolean
   keybaseUsername: string | null
-  followingState: FollowingState
+  followingState: Types.FollowingState
 }) => {
   if (keybaseResult) {
     return (
@@ -164,7 +150,7 @@ const Services = ({
           .map(service => (
             <Kb.WithTooltip key={service} text={services[service]} position="top center">
               <Kb.Icon
-                type={serviceIdToIconFont(service as ServiceIdWithContact)}
+                type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
                 style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
               />
             </Kb.WithTooltip>

@@ -141,7 +141,8 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
           id: x.assertion,
-          prettyName: x.displayLabel,
+          label: x.displayLabel,
+          prettyName: x.displayName,
           serviceMap: {keybase: x.username},
         })
       )

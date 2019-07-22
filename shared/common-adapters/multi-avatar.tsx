@@ -16,7 +16,7 @@ export type Props = {
 
 class MultiAvatar extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (_, __, key) => {
       if (key === 'avatarProps') {
         return shallowEqual(this.props.avatarProps, nextProps.avatarProps)
       }

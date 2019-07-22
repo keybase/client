@@ -16,7 +16,7 @@ const mapStateToProps = (state, {routeProps, navigation}) => ({
   waitingKey: Constants.loadingWaitingKey,
 })
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps, navigation}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateUp, routeProps, navigation}) => ({
   loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),

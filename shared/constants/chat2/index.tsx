@@ -52,6 +52,7 @@ export const makeState = I.Record<Types._State>({
   paymentConfirmInfo: null,
   paymentStatusMap: I.Map(),
   pendingOutboxToOrdinal: I.Map(),
+  prependTextMap: I.Map(),
   quote: null,
   replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,

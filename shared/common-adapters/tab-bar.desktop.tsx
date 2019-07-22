@@ -19,7 +19,7 @@ class TabBarItem extends React.Component<ItemProps> {
 }
 
 class SimpleTabBarButton extends React.Component<ItemProps> {
-  shouldComponentUpdate(nextProps: ItemProps, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: ItemProps): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'styleContainer', 'children'].includes(key as string)) {
         return shallowEqual(obj, oth)
@@ -76,7 +76,7 @@ const HighlightLine = () => (
 )
 
 class TabBarButton extends React.Component<TabBarButtonProps> {
-  shouldComponentUpdate(nextProps: TabBarButtonProps, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: TabBarButtonProps): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (
         [
@@ -95,7 +95,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
     })
   }
 
-  _renderAvatar(color: string, badgeNumber: number) {
+  _renderAvatar(_: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return null // needed to make flow happy
     return (
       <Box
@@ -241,7 +241,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
 }
 
 class TabBar extends React.Component<Props> {
-  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'styleTabBar', 'children'].includes(key as string)) {
         return shallowEqual(obj, oth)

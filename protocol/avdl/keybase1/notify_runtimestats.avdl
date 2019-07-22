@@ -14,7 +14,13 @@ protocol NotifyRuntimeStats {
     boolean tableCompActive;
   }
 
-  record RuntimeStats {
+  enum ProcessType {
+    MAIN_0,
+    KBFS_1
+  }
+
+  record ProcessRuntimeStats {
+    ProcessType type;
     string cpu;
     string resident;
     string virt;
@@ -24,11 +30,16 @@ protocol NotifyRuntimeStats {
     string goreleased;
     StatsSeverityLevel cpuSeverity;
     StatsSeverityLevel residentSeverity;
+  }
+
+  record RuntimeStats {
+    array<ProcessRuntimeStats> processStats;
+
     array<DbStats> dbStats;
 
     // Chat specific
     boolean convLoaderActive;
     boolean selectiveSyncActive;
   }
-  void runtimeStatsUpdate(union { null, RuntimeStats } stats) oneway; 
+  void runtimeStatsUpdate(union { null, RuntimeStats } stats) oneway;
 }

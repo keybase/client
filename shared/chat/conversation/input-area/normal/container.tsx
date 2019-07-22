@@ -42,6 +42,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
+  const prependText = state.chat2.prependTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey, null)
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
@@ -49,7 +50,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
     conversationIDKey,
-    RPCChatTypes.UIBotCommandsUpdateStatus.updating
+    RPCChatTypes.UIBotCommandsUpdateStatus.blank
   )
   return {
     _containsLatestMessage,
@@ -67,6 +68,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isExploding,
     isSearching,
     minWriterRole: meta.minWriterRole,
+    prependText,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
@@ -87,6 +89,9 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _clearPrependText: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
+  },
   _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: null}))
   },
@@ -158,8 +163,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
 
-  getUnsentText: () =>
-    stateProps.unsentText ? stateProps.unsentText.stringValue() : getUnsentText(stateProps.conversationIDKey),
+  getUnsentText: () => {
+    const unsentText = stateProps.unsentText
+      ? stateProps.unsentText.stringValue()
+      : getUnsentText(stateProps.conversationIDKey)
+    return stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
+  },
 
   isActiveForFocus: stateProps.isActiveForFocus,
   isEditExploded: stateProps.isEditExploded,
@@ -187,6 +196,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       ownProps.jumpToRecent()
     }
   },
+  prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
@@ -205,6 +215,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     if (stateProps.unsentText) {
       dispatchProps._clearUnsentText(stateProps.conversationIDKey)
     }
+    if (stateProps.prependText) {
+      if (text !== stateProps.prependText.stringValue()) {
+        dispatchProps._clearPrependText(stateProps.conversationIDKey)
+      } else {
+        // don't set the uncontrolled text tracker to the prepend text by itself, since we want to be
+        // able to remove it if the person doesn't change it at all.
+        return
+      }
+    }
     setUnsentText(stateProps.conversationIDKey, text)
   },
 
@@ -221,12 +240,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
-
+  unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
-
-  unsentTextRefresh: !!stateProps.unsentText,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Input')(Input)

@@ -1,22 +1,7 @@
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  Icon,
-  ProgressIndicator,
-  Text,
-  WaitingButton,
-  IconType,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {AllowedColors} from '../../../../common-adapters/text'
-import {
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {
@@ -29,7 +14,7 @@ export type Props = {
   cancelButtonLabel: string
   canceled: boolean
   claimButtonLabel: string
-  icon: IconType | null
+  icon: Kb.IconType | null
   loading: boolean
   memo: string
   onCancel: () => void
@@ -42,84 +27,88 @@ export type Props = {
 }
 
 const ButtonText = (props: {text: string; amount: string}) => (
-  <Text style={styles.buttonText} type="BodySemibold">
+  <Kb.Text style={styles.buttonText} type="BodySemibold">
     {props.text}{' '}
-    <Text style={styles.buttonText} type="BodyExtrabold">
+    <Kb.Text style={styles.buttonText} type="BodyExtrabold">
       {props.amount}
-    </Text>
-  </Text>
+    </Kb.Text>
+  </Kb.Text>
 )
 
 const AccountPayment = (props: Props) => {
   const balanceChange = (
-    <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={Styles.isMobile}
+      style={styles.amountContainer}
+      gap={Styles.isMobile ? 'tiny' : 'small'}
+    >
       {!!props.balanceChange && (
-        <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
+        <Kb.Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
           {props.balanceChange}
-        </Text>
+        </Kb.Text>
       )}
-      {props.showCoinsIcon && <Icon type="icon-stellar-coins-stacked-16" />}
-    </Box2>
+      {props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+    </Kb.Box2>
   )
-  const balanceChangeSeparateRow = isMobile && !!props.memo
   const contents = props.loading ? (
-    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
-      <ProgressIndicator style={styles.progressIndicator} />
-      <Text type="BodySmall">loading...</Text>
-    </Box2>
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
+      <Kb.ProgressIndicator style={styles.progressIndicator} />
+      <Kb.Text type="BodySmall">loading...</Kb.Text>
+    </Kb.Box2>
   ) : (
-    <React.Fragment>
-      <Box2
+    <>
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           styles.alignItemsCenter,
           styles.flexWrap,
-          {marginBottom: globalMargins.xtiny},
+          {marginBottom: Styles.globalMargins.xtiny},
         ])}
       >
-        <Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          {!!props.icon && <Icon type={props.icon} color={globalColors.purple} fontSize={12} />}
-          <Text
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
+          {!!props.icon && <Kb.Icon type={props.icon} color={Styles.globalColors.purple} fontSize={12} />}
+          <Kb.Text
             type="BodySmall"
-            style={collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
+            style={Styles.collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
           >
             {props.action}{' '}
-            <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
+            <Kb.Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {`${props.amount}${props.sourceAmount ? ` (by converting ${props.sourceAmount})` : ''}`}
-            </Text>
+            </Kb.Text>
             {props.approxWorth && (
-              <Text type="BodySmall" style={styles.purple}>
+              <Kb.Text type="BodySmall" style={styles.purple}>
                 {' '}
                 (approximately{' '}
-                <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
+                <Kb.Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
                   {props.approxWorth}
-                </Text>
+                </Kb.Text>
                 )
-              </Text>
+              </Kb.Text>
             )}
             {props.pending ? '...' : '.'}
-          </Text>
-        </Box2>
-        {props.canceled && <Text type="BodySmall">CANCELED</Text>}
-        {!balanceChangeSeparateRow && balanceChange}
-      </Box2>
+          </Kb.Text>
+        </Kb.Box2>
+        {props.canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
+        {!Styles.isMobile && balanceChange}
+      </Kb.Box2>
       <MarkdownMemo memo={props.memo} />
-      {balanceChangeSeparateRow && balanceChange}
+      {Styles.isMobile && balanceChange}
       {!!props.sendButtonLabel && (
-        <Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
+        <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
-        </Button>
+        </Kb.Button>
       )}
       {!!props.claimButtonLabel && (
-        <Button type="Wallet" onClick={props.onClaim} small={true} style={styles.button}>
+        <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.button}>
           <ButtonText text={props.claimButtonLabel} amount={props.amount} />
-        </Button>
+        </Kb.Button>
       )}
       {!!props.cancelButtonLabel && (
-        <Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Text type="BodySmall">{props.cancelButtonInfo}</Text>
-          <WaitingButton
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmall">{props.cancelButtonInfo}</Kb.Text>
+          <Kb.WaitingButton
             waitingKey={null}
             type="Danger"
             label={props.cancelButtonLabel}
@@ -127,31 +116,36 @@ const AccountPayment = (props: Props) => {
             small={true}
             style={styles.button}
           />
-        </Box2>
+        </Kb.Box2>
       )}
-    </React.Fragment>
+    </>
   )
   return (
-    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       {contents}
-    </Box2>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
   },
-  amountContainer: {
-    alignItems: 'center',
-    marginLeft: 'auto',
-  },
+  amountContainer: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      marginLeft: 'auto',
+    },
+    isMobile: {
+      justifyContent: 'space-between',
+    },
+  }),
   button: {
     alignSelf: 'flex-start',
-    marginTop: globalMargins.xtiny,
+    marginTop: Styles.globalMargins.xtiny,
   },
   buttonText: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
   },
   flexWrap: {
     flexWrap: 'wrap',
@@ -159,7 +153,7 @@ const styles = styleSheetCreate({
   lineThrough: {
     textDecorationLine: 'line-through',
   },
-  progressIndicator: platformStyles({
+  progressIndicator: Styles.platformStyles({
     // Match height of a line of text
     isElectron: {
       height: 17,
@@ -170,8 +164,8 @@ const styles = styleSheetCreate({
       width: 22,
     },
   }),
-  purple: {color: globalColors.purpleDark},
-  tooltipText: platformStyles({
+  purple: {color: Styles.globalColors.purpleDark},
+  tooltipText: Styles.platformStyles({
     isElectron: {wordBreak: 'normal'},
   }),
 })

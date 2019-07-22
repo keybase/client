@@ -33,7 +33,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
 export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
 class Rows extends React.PureComponent<Props> {
-  _rowRenderer = (index: number, item: RowTypes.RowItem) => {
+  _rowRenderer = (_: number, item: RowTypes.RowItem) => {
     switch (item.rowType) {
       case RowTypes.RowType.Placeholder:
         return (

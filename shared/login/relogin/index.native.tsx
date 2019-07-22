@@ -65,7 +65,7 @@ class LoginRender extends React.Component<Props> {
               value={this.props.selectedUser}
               onClick={this._selectedUserChange}
               onOther={this.props.onSomeoneElse}
-              options={this.props.users}
+              options={this.props.users.map(u => u.username)}
             />
             <Kb.FormWithCheckbox
               style={{alignSelf: 'stretch'}}

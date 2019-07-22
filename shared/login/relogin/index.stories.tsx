@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Login, {Props} from '.'
+import * as Constants from '../../constants/config'
 
+const makeAccount = (username: string) =>
+  Constants.makeConfiguredAccount({hasStoredSecret: username !== 'no_secret', username})
 const commonProps: Props = {
   bannerError: false,
   error: '',
@@ -19,7 +22,7 @@ const commonProps: Props = {
   selectedUserChange: Sb.action('selectedUserChange'),
   showTyping: false,
   showTypingChange: Sb.action('showTypingChange'),
-  users: ['awendland'],
+  users: ['awendland'].map(makeAccount),
 }
 
 const load = () => {
@@ -27,9 +30,14 @@ const load = () => {
     .add('Single previous user', () => <Login {...commonProps} />)
     .add('Input Error', () => <Login {...commonProps} inputError={true} error="Oh, no! What a mess!" />)
     .add('Banner Error', () => <Login {...commonProps} bannerError={true} error="Oh, no! What a mess!" />)
-    .add('3 previous users', () => <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />)
+    .add('3 previous users', () => (
+      <Login {...commonProps} users={['awendland', 'mgood', 'no_secret'].map(makeAccount)} />
+    ))
     .add('5 previous users', () => (
-      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo', 'trex', 'chrisnojima']} />
+      <Login
+        {...commonProps}
+        users={['awendland', 'no_secret', 'marcopolo', 'trex', 'chrisnojima'].map(makeAccount)}
+      />
     ))
 }
 

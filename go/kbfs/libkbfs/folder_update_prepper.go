@@ -580,8 +580,8 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 	md.SetMDDiskUsage(mostRecentMergedMD.MDDiskUsage())
 
 	localBlocks := make(map[data.BlockPointer]data.Block)
-	for _, ptr := range bps.ptrs() {
-		if block, err := bps.getBlock(ctx, ptr); err == nil && block != nil {
+	for _, ptr := range bps.Ptrs() {
+		if block, err := bps.GetBlock(ctx, ptr); err == nil && block != nil {
 			localBlocks[ptr] = block
 		}
 	}
@@ -1427,7 +1427,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 
 	if len(unmergedChains.resOps) > 0 {
 		newBlocks := make(map[data.BlockPointer]bool)
-		for _, ptr := range bps.ptrs() {
+		for _, ptr := range bps.Ptrs() {
 			newBlocks[ptr] = true
 		}
 

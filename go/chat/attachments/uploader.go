@@ -633,11 +633,11 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 func (u *Uploader) OnDbNuke(mctx libkb.MetaContext) error {
 	baseDir := u.getBaseDir()
 	previewsDir := filepath.Join(baseDir, uploadedPreviewsDir)
-	if err := u.previewsLRU.Clean(mctx, previewsDir); err != nil {
+	if err := u.previewsLRU.CleanOutOfSync(mctx, previewsDir); err != nil {
 		u.Debug(mctx.Ctx(), "unable to run clean for uploadedPreviews: %v", err)
 	}
 	fullsDir := filepath.Join(baseDir, uploadedFullsDir)
-	if err := u.fullsLRU.Clean(mctx, fullsDir); err != nil {
+	if err := u.fullsLRU.CleanOutOfSync(mctx, fullsDir); err != nil {
 		u.Debug(mctx.Ctx(), "unable to run clean for uploadedFulls: %v", err)
 	}
 	return nil

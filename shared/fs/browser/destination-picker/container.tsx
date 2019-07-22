@@ -93,7 +93,7 @@ const canBackUp = isMobile
       (stateProps, ownProps: OwnPropsWithSafeNavigation) =>
         Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1
     )
-  : (s, o) => false
+  : () => false
 
 const mergeProps = (
   stateProps: StateProps,

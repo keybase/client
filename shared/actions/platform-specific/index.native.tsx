@@ -212,12 +212,6 @@ const getStartupDetailsFromShare = (): Promise<
       })
     : Promise.resolve(null)
 
-function* clearRouteState() {
-  yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
-  )
-}
-
 let _lastPersist = ''
 function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
@@ -249,7 +243,7 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const s = JSON.stringify({param, routeName})
   _lastPersist = routeName
   yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s},
     }).catch(() => {})
@@ -288,7 +282,7 @@ function* loadStartupDetails() {
   let startupSharePath = null
 
   const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState2'})
+    RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
       .then(v => v.s || '')
       .catch(() => {})
   )
@@ -299,7 +293,7 @@ function* loadStartupDetails() {
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(() => {
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
@@ -329,9 +323,6 @@ function* loadStartupDetails() {
         startupConversation = item.param && item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
-
-      // immediately clear route state in case this is a bad route
-      yield clearRouteState()
     } catch (_) {
       startupConversation = null
       startupTab = null
@@ -454,7 +445,7 @@ const askForContactPermissions = () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
+function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
@@ -557,7 +548,6 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
   yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(

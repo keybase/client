@@ -1104,7 +1104,7 @@ const teamAvatarUpdated = (_: TypedState, action: EngineGen.Keybase1NotifyTeamAv
 }
 
 const teamChangedByName = (
-  state: TypedState,
+  _: TypedState,
   action: EngineGen.Keybase1NotifyTeamTeamChangedByNamePayload,
   logger
 ) => {

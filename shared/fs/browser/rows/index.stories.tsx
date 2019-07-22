@@ -165,7 +165,7 @@ export const rowsProvider = {
     path,
     syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
-  SortBar: ({path}: {path: Types.Path}) => ({
+  SortBar: () => ({
     folderIsPending: true,
     sortSetting: Types.SortSetting.NameAsc,
     sortSettingToAction: Sb.action('sortSettingToAction'),

@@ -1320,9 +1320,10 @@ type MDOps interface {
 	// that journalMDOps doesn't support any priority other than
 	// MDPriorityNormal for now. If journaling is enabled, use FinishSinbleOp
 	// to override priority.
-	Put(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey,
-		lockContext *keybase1.LockContext, priority keybase1.MDPriority) (
+	Put(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+		priority keybase1.MDPriority, bps data.BlockPutState) (
 		ImmutableRootMetadata, error)
 
 	// PutUnmerged is the same as the above but for unmerged metadata
@@ -1332,8 +1333,10 @@ type MDOps interface {
 	// the verifying key, which might not be the same as the local
 	// user's verifying key if the MD has been copied from a previous
 	// update.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+	PutUnmerged(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
@@ -1348,9 +1351,11 @@ type MDOps interface {
 	// ImmutableRootMetadata requires knowing the verifying key, which
 	// might not be the same as the local user's verifying key if the
 	// MD has been copied from a previous update.
-	ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+	ResolveBranch(
+		ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest
 	// handle for the TLF, which may not yet be reflected in the MD if
@@ -2379,8 +2384,6 @@ type Chat interface {
 type blockPutState interface {
 	data.BlockPutState
 	oldPtr(ctx context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error)
-	ptrs() []data.BlockPointer
-	getBlock(ctx context.Context, blockPtr data.BlockPointer) (data.Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error)
 	synced(blockPtr data.BlockPointer) error

@@ -10,7 +10,7 @@ type OwnProps = {
   tlfPath: Types.Path
 }
 
-const mapStateToProps = (state, {tlfPath}: OwnProps) => ({
+const mapStateToProps = (state) => ({
   _tlfs: state.fs.tlfs,
   waiting: anyWaiting(state, Constants.syncToggleWaitingKey),
 })

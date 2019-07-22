@@ -18,7 +18,7 @@ export default class Window {
     const ipcMain = SafeElectron.getIpcMain()
     // Listen for remote windows to show a dock icon for, we'll bind them on close to
     // hide the dock icon too
-    ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
+    ipcMain.on('showDockIconForRemoteWindow', () => {
       showDockIcon()
     })
 

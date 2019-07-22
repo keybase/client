@@ -14,6 +14,7 @@ type SearchResult = {
   userId: string
   username: string
   prettyName: string
+  displayLabel: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
@@ -156,7 +157,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             selectedIndex={props.highlightedIndex || 0}
             style={styles.list}
             contentContainerStyle={styles.listContentContainer}
-            keyProperty={'userId'}
+            keyProperty={'key'}
             onEndReached={props.onSearchForMore}
             renderItem={(index, result) => (
               <UserResult
@@ -164,11 +165,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 fixedHeight={400}
                 username={result.username}
                 prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
                 services={result.services}
                 inTeam={result.inTeam}
                 isPreExistingTeamMember={result.isPreExistingTeamMember}
                 followingState={result.followingState}
-                highlight={index === props.highlightedIndex}
+                highlight={!Styles.isMobile && index === props.highlightedIndex}
                 onAdd={() => props.onAdd(result.userId)}
                 onRemove={() => props.onRemove(result.userId)}
               />

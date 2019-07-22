@@ -4,6 +4,7 @@ import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import ProfileSearch from '../profile/search/bar-container'
+import ff from '../util/feature-flags.native'
 
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
@@ -14,7 +15,9 @@ export const Header = (props: Props) => (
         custom: (
           <Kb.Avatar
             username={props.myUsername}
-            onClick={() => props.onClickUser(props.myUsername)}
+            onClick={
+              ff.fastAccountSwitch ? props.onOpenAccountSwitcher : () => props.onClickUser(props.myUsername)
+            }
             size={32}
           />
         ),

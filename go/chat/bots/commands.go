@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 
@@ -26,6 +27,7 @@ type commandUpdaterJob struct {
 	convID     chat1.ConversationID
 	info       *chat1.BotInfo
 	completeCh chan error
+	uiCh       chan error
 }
 
 type userCommandAdvertisement struct {
@@ -214,9 +216,14 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 	if !found {
 		return nil, nil
 	}
+	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
 		for _, cmd := range ad.Advertisement.Commands {
-			res = append(res, cmd.ToOutput(ad.Username))
+			key := cmd.Name + ad.Username
+			if !cmdDedup[key] {
+				res = append(res, cmd.ToOutput(ad.Username))
+				cmdDedup[key] = true
+			}
 		}
 	}
 	sort.Slice(res, func(i, j int) bool {
@@ -237,10 +244,12 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 	info *chat1.BotInfo) (completeCh chan error, err error) {
 	defer b.Trace(ctx, func() error { return err }, "UpdateCommands")()
 	completeCh = make(chan error, 1)
+	uiCh := make(chan error, 1)
 	return completeCh, b.queueCommandUpdate(ctx, commandUpdaterJob{
 		convID:     convID,
 		info:       info,
 		completeCh: completeCh,
+		uiCh:       uiCh,
 	})
 }
 
@@ -262,6 +271,29 @@ func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
 	return ui
 }
 
+func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job commandUpdaterJob) {
+	b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+		chat1.UIBotCommandsUpdateStatus_BLANK)
+	sentUpdating := false
+	for {
+		select {
+		case err := <-job.uiCh:
+			if sentUpdating {
+				updateStatus := chat1.UIBotCommandsUpdateStatus_UPTODATE
+				if err != nil {
+					updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
+				}
+				b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
+			}
+			return
+		case <-time.After(800 * time.Millisecond):
+			b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+				chat1.UIBotCommandsUpdateStatus_UPDATING)
+			sentUpdating = true
+		}
+	}
+}
+
 func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job commandUpdaterJob) error {
 	b.queuedUpdatedMu.Lock()
 	defer b.queuedUpdatedMu.Unlock()
@@ -271,8 +303,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job c
 	}
 	select {
 	case b.commandUpdateCh <- job:
-		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
-			chat1.UIBotCommandsUpdateStatus_UPDATING)
+		go b.runCommandUpdateUI(globals.BackgroundChatCtx(ctx, b.G()), job)
 		b.queuedUpdates[job.convID.String()] = true
 	default:
 		return errors.New("queue full")
@@ -359,11 +390,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 		b.queuedUpdatedMu.Lock()
 		delete(b.queuedUpdates, job.convID.String())
 		b.queuedUpdatedMu.Unlock()
-		updateStatus := chat1.UIBotCommandsUpdateStatus_UPTODATE
-		if err != nil {
-			updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
-		}
-		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
+		job.uiCh <- err
 		job.completeCh <- err
 	}()
 	botInfo, doUpdate, err := b.getBotInfo(ctx, job)

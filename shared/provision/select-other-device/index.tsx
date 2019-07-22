@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/provision'
-import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
 
 type Props = {
@@ -35,20 +35,20 @@ class SelectOtherDevice extends React.Component<Props> {
     const isBackup = type === 'backup'
 
     return (
-      <ListItem2
+      <Kb.ListItem2
         type="Small"
         firstItem={index === 0}
         key={name}
         onClick={() => this.props.onSelect(name)}
-        icon={<Icon type={iconType} />}
+        icon={<Kb.Icon type={iconType} />}
         body={
-          <Box2 direction="vertical" fullWidth={true}>
-            <Text type="BodySemibold">
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySemibold">
               {name}
               {isBackup ? '...' : ''}
-            </Text>
-            {isBackup && <Text type="BodySmall">Paper key</Text>}
-          </Box2>
+            </Kb.Text>
+            {isBackup && <Kb.Text type="BodySmall">Paper key</Kb.Text>}
+          </Kb.Box2>
         }
       />
     )
@@ -57,46 +57,51 @@ class SelectOtherDevice extends React.Component<Props> {
   render() {
     const items = [...this.props.devices, {name: 'troubleshooting'}]
     return (
-      <Box2
+      <Kb.Box2
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
         gap={isMobile ? undefined : 'medium'}
         gapEnd={true}
       >
-        <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
-          <List
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
+          <Kb.List
             style={styles.list}
             items={items}
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Text center={true} type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+              <Kb.Text center={true} type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
                 For security reasons, you need to authorize with an existing device. Which of your existing
                 devices would you like to use?
-              </Text>
+              </Kb.Text>
             }
             fixedHeight={isMobile ? 48 : 40}
           />
-        </Box2>
-      </Box2>
+        </Kb.Box2>
+        {this.props.onBack && (
+          <Kb.Box2 direction="horizontal">
+            <Kb.Button label="Back to my existing account" onClick={this.props.onBack} />
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
     )
   }
 }
 
 const Troubleshooting = ({onResetAccount}) => (
-  <Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
-    <Box2 direction="horizontal" fullWidth={true} gap="tiny">
-      <Icon type="iconfont-wrenches" />
-      <Text type="BodySmallSemibold">Troubleshooting</Text>
-    </Box2>
-    <Text type="BodySemibold">
+  <Kb.Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+      <Kb.Icon type="iconfont-wrenches" />
+      <Kb.Text type="BodySmallSemibold">Troubleshooting</Kb.Text>
+    </Kb.Box2>
+    <Kb.Text type="BodySemibold">
       If you have lost all of your devices, or if you uninstalled Keybase from all of them, you can{' '}
-      <Text type="BodySemiboldLink" onClick={onResetAccount}>
+      <Kb.Text type="BodySemiboldLink" onClick={onResetAccount}>
         reset your account.
-      </Text>
-    </Text>
-  </Box2>
+      </Kb.Text>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 const styles = styleSheetCreate({

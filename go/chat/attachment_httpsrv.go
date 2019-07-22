@@ -882,12 +882,12 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 }
 
 func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
-	go disklru.CleanAfterDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
+	go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
 }
 
 func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(mctx, c.getCacheDir()); err != nil {
+		if err := c.diskLRU.CleanOutOfSync(mctx, c.getCacheDir()); err != nil {
 			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
 		}
 	}

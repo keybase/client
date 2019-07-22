@@ -794,6 +794,7 @@ export enum UIBotCommandsUpdateStatus {
   uptodate = 0,
   updating = 1,
   failed = 2,
+  blank = 3,
 }
 
 export enum UICoinFlipErrorTyp {

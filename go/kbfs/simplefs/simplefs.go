@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/runtimestats"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -2707,6 +2708,8 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 	if dbc == nil {
 		return keybase1.SimpleFSStats{}, nil
 	}
+
+	res.ProcessStats = runtimestats.GetProcessStats(keybase1.ProcessType_KBFS)
 
 	statusMap := dbc.Status(ctx)
 	if status, ok := statusMap["SyncBlockCache"]; ok {
