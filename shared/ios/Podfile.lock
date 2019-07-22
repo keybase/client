@@ -55,8 +55,8 @@ PODS:
   - libwebp/utils (1.0.2):
     - libwebp/core
   - libwebp/webp (1.0.2)
-  - lottie-ios (3.0.7)
-  - lottie-react-native (3.0.2):
+  - lottie-ios (3.0.3)
+  - lottie-react-native (3.0.3):
     - lottie-ios (~> 3.0.3)
     - React
   - React (0.60.4):
@@ -113,9 +113,9 @@ PODS:
     - React
   - react-native-camera/RN (3.0.0):
     - React
-  - react-native-contacts (5.0.1):
+  - react-native-contacts (5.0.2):
     - React
-  - react-native-netinfo (4.1.2):
+  - react-native-netinfo (4.1.3):
     - React
   - react-native-video (4.4.4):
     - React
@@ -196,6 +196,7 @@ DEPENDENCIES:
   - EXSMS (from `../node_modules/expo-sms/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - React (from `../node_modules/react-native/`)
   - React-Core (from `../node_modules/react-native/React`)
@@ -244,7 +245,6 @@ SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - boost-for-react-native
     - libwebp
-    - lottie-ios
     - SDWebImage
     - SDWebImageWebPCoder
 
@@ -276,6 +276,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  lottie-ios:
+    :path: "../node_modules/lottie-ios"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   React:
@@ -388,8 +390,8 @@ SPEC CHECKSUMS:
   Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
   glog: 1f3da668190260b06b429bb211bfbee5cd790c28
   libwebp: b068a3bd7c45f7460f6715be7bed1a18fd5d6b48
-  lottie-ios: c38c3178ae8c4a8f200661aa5f80b9f1ca7f56b3
-  lottie-react-native: 9b29b0a4fcd9cd7a2b168d09c3202bfd36c85f67
+  lottie-ios: 6037add6441183d4ffd100d2ac78724aa8d919d4
+  lottie-react-native: 8d26d9d9c227e37e7de6754005828e22a5c44a96
   React: ff7ee2ae5ee1c1d9ae2183b4111045b25294bb01
   React-Core: 8e0ea421cae5609d2562850f98421b15030476fa
   React-cxxreact: 326880209990151a7182a813311054e9772ba510
@@ -399,8 +401,8 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 7549641e48bafae7bfee3f3ea19bf4901639c5de
   React-jsinspector: 73f24a02fa684ed6a2b828ba116874a2191ded88
   react-native-camera: 53e453fd5e6501afbac79d6b21a5fbfd84950eda
-  react-native-contacts: 160fba93e4faf7ac9db16312c3f50d964af9c1cd
-  react-native-netinfo: 88a4003f68c6f979c1f439e7bd7c5c0b2e819160
+  react-native-contacts: b08f96846ebd82f16c92c039b0da7a379067498a
+  react-native-netinfo: e2c8a843bb18ab6c3f1e6cbead694491b36e3ffd
   react-native-video: 8c49eca5a6087de968a05b340933b10e3b58169a
   react-native-webview: 5036ed4a973ad1deeeff118262d2df7b60b3419d
   React-RCTActionSheet: 9f71d7ae3e8fb10e08d162cbf14c621349dbfab3
