@@ -126,6 +126,9 @@ export const formatPhoneNumber = (rawNumber: string) => {
 export const e164ToDisplay = (e164: string): string => {
   try {
     const number = phoneUtil.parse(e164)
+    if (number.getCountryCode() === 1) {
+      return '+1 ' + phoneUtil.format(number, PNF.NATIONAL)
+    }
     return phoneUtil.format(number, PNF.INTERNATIONAL)
   } catch (e) {
     return e164
