@@ -13,6 +13,7 @@ export type BrokenTrackerProps = {
 export type InviteProps = {
   openShareSheet: () => void
   openSMS: (phoneNumber: string) => void
+  usernameToContactName: {[username: string]: string}
   users: Array<string>
 }
 
@@ -75,7 +76,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     </BannerBox>
   )
 
-const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
+const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: InviteProps) => {
   if (!flags.sbsContacts) {
     return (
       <BannerBox color={Styles.globalColors.blue}>
@@ -84,11 +85,14 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
     )
   }
 
+  const theirName =
+    users.length === 1 ? usernameToContactName[users[0]] || users[0] : `these ${users.length} people`
+
   // On mobile, single recipient, a phone number
   if (isMobile && users.length === 1 && users[0].endsWith('@phone')) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
-        <BannerText>Last step: summon Firstname Lastman!</BannerText>
+        <BannerText>Last step: summon {theirName}!</BannerText>
         <Button label="Send install link" onClick={() => openSMS(users[0].slice(0, -6))} mode="Secondary" />
       </BannerBox>
     )
@@ -98,11 +102,7 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
   if (isMobile) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
-        <BannerText>
-          {users.length === 1
-            ? 'Last step: summon Firstname Lastman!'
-            : `Last step: summon these ${users.length} people!`}
-        </BannerText>
+        <BannerText>Last step: summon {theirName}!</BannerText>
         <Button label="Send install link" onClick={openShareSheet} mode="Secondary" />
       </BannerBox>
     )
