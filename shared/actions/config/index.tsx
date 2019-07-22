@@ -33,6 +33,7 @@ const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1Notif
   if (!state.config.loggedIn) {
     return ConfigGen.createLoggedIn({causedBySignup: action.payload.params.signedUp, causedByStartup: false})
   }
+  return undefined
 }
 
 const onLoggedOut = (state: Container.TypedState) => {
@@ -41,6 +42,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   if (state.config.loggedIn) {
     return ConfigGen.createLoggedOut()
   }
+  return undefined
 }
 
 const onLog = (_: Container.TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
@@ -186,6 +188,7 @@ const maybeDoneWithDaemonHandshake = (
       return ConfigGen.createDaemonHandshakeDone()
     }
   }
+  return undefined
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -258,6 +261,7 @@ function* loadDaemonAccounts(
           })
         )
       }
+      return undefined
     }
   }
 }
@@ -284,6 +288,7 @@ const switchRouteDef = (
   } else {
     return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
   }
+  return undefined
 }
 
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
@@ -430,6 +435,7 @@ const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) =
       ]
     }
   }
+  return undefined
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>

@@ -16,4 +16,5 @@ export function urlHelper(type: string, params?: any): string | undefined {
   } else {
     console.warn(`No openURL handler for ${type}`, params)
   }
+    return undefined
 }

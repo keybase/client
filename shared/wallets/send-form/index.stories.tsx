@@ -5,7 +5,6 @@ import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
 import participants from './participants/index.stories'
-import {Props as AvailableProps} from './available'
 
 import SendRequestForm from '.'
 import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'

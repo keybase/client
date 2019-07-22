@@ -32,19 +32,6 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
-  icon: Styles.platformStyles({
-    isElectron: {
-      height: 48,
-      width: 48,
-    },
-    isMobile: {
-      height: 64,
-      width: 64,
-    },
-  }),
-})
-
 type OwnProps = RouteProps<{address: string; type: string}>
 
 const DeleteModal = (props: OwnProps) => {

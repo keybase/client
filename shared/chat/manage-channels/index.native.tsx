@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Props, RowProps} from './index.types'
 import {pluralize} from '../../util/string'
 

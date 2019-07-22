@@ -15,13 +15,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, _: OwnProps) => (
   onSetFilter: (filter: string) => dispatch(FsGen.createSetSendAttachmentToChatFilter({filter})),
 })
 
-type InjectedProps = {
-  filter?: string
-  onSelect: (convID: ChatTypes.ConversationIDKey) => void
-  onSetFilter?: (filter: string) => void
-  selected: ChatTypes.ConversationIDKey
-}
-
 export default function(component: any) {
   return Container.namedConnect(
     mapStateToProps,

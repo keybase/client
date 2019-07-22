@@ -20,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
   onDelete: teamname => dispatch(TeamsGen.createDeleteTeam({teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   _deleting: stateProps._deleting,
   onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
   onDelete: () => dispatchProps.onDelete(stateProps.teamname),

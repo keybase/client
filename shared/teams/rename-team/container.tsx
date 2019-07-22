@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   // Auto generated from flowToTs. Please clean me!
   error:
     (stateProps.error === null || stateProps.error === undefined ? undefined : stateProps.error.message) ||

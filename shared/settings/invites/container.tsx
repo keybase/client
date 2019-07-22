@@ -31,7 +31,7 @@ const mapDispatchToProps = dispatch => ({
   onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...ownProps,
   ...stateProps,
   ...dispatchProps,

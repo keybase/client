@@ -18,5 +18,5 @@ const dispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   dispatchToProps,
-  (s, d, _) => ({...s, ...d})
+    (s, d, _: OwnProps) => ({...s, ...d})
 )(ForgotUsername)

@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createNavigateUp())
   },
 })
-const mergeProps = (_, dispatchProps) => ({
+const mergeProps = (_, dispatchProps, __: OwnProps) => ({
   ...dispatchProps,
 })
 

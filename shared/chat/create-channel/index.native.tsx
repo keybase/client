@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalMargins} from '../../styles'
 import {Props} from './index.types'
 
 const CreateChannel = (props: Props) => (

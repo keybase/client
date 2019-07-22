@@ -60,6 +60,8 @@ class Transitions extends React.Component<any, any> {
             rows: [],
             state: 'loading',
           }
+          default:
+              return undefined
       }
     })
   }

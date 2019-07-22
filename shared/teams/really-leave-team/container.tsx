@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   _lastOwner: stateProps._lastOwner,
   _leaving: stateProps._leaving,
   name: stateProps.name,
