@@ -23,9 +23,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeRight: () => 
   return (
     <Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftWillOpen={_onLeftOpen}>
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
-        <Kb.NativeView key="longPressable" style={styles.view}>
-          {children}
-        </Kb.NativeView>
+        <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
       </Kb.NativeTouchableHighlight>
     </Swipeable>
   )
