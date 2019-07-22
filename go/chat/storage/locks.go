@@ -8,11 +8,12 @@ import (
 
 type locksRepo struct {
 	Inbox, Outbox, ReadOutbox, Version, ConvFailures sync.Mutex
-	StorageLockTab                                   libkb.LockTable
+	StorageLockTab                                   *libkb.LockTable
 }
 
 var locks *locksRepo
 
 func init() {
 	locks = &locksRepo{}
+	locks.StorageLockTab = libkb.NewLockTable()
 }

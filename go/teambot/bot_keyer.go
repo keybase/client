@@ -16,10 +16,10 @@ import (
 const botKeyStorageVersion = 1
 
 type BotKeyer struct {
-	storeLocks, libLocks libkb.LockTable
-	lru                  *lru.Cache
-	edb                  *encrypteddb.EncryptedDB
-	clock                clockwork.Clock
+	locktab *libkb.LockTable
+	lru     *lru.Cache
+	edb     *encrypteddb.EncryptedDB
+	clock   clockwork.Clock
 }
 
 var _ libkb.TeambotBotKeyer = (*BotKeyer)(nil)
@@ -38,9 +38,10 @@ func NewBotKeyer(mctx libkb.MetaContext) *BotKeyer {
 		log.Panicf("Could not create lru cache: %v", err)
 	}
 	return &BotKeyer{
-		edb:   encrypteddb.New(mctx.G(), dbFn, keyFn),
-		lru:   nlru,
-		clock: clockwork.NewRealClock(),
+		edb:     encrypteddb.New(mctx.G(), dbFn, keyFn),
+		lru:     nlru,
+		locktab: libkb.NewLockTable(),
+		clock:   clockwork.NewRealClock(),
 	}
 }
 
@@ -75,20 +76,17 @@ func (k *BotKeyer) get(mctx libkb.MetaContext, teamID keybase1.TeamID, generatio
 	defer mctx.TraceTimed(fmt.Sprintf("botKeyer#get: teamID:%v, generation:%v", teamID, generation),
 		func() error { return err })()
 
-	lock := k.storeLocks.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
-	key, found, err := k.getLocked(mctx, teamID, generation)
-	lock.Release(mctx.Ctx())
+	key, found, err := k.getFromStorage(mctx, teamID, generation)
 	if err != nil {
 		return key, false, err
 	} else if found {
 		return key, false, nil
 	}
 
-	// no lock while we fetch
 	return k.fetchAndStore(mctx, teamID, generation)
 }
 
-func (k *BotKeyer) getLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
+func (k *BotKeyer) getFromStorage(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.TeambotKeyGeneration) (key keybase1.TeambotKey, found bool, err error) {
 	boxKey, err := k.cacheKey(mctx, teamID, generation)
 	if err != nil {
@@ -120,8 +118,6 @@ func (k *BotKeyer) getLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func (k *BotKeyer) put(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.TeambotKeyGeneration, key keybase1.TeambotKey) error {
-	lock := k.storeLocks.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
-	defer lock.Release(mctx.Ctx())
 
 	boxKey, err := k.cacheKey(mctx, teamID, generation)
 	if err != nil {
@@ -267,7 +263,7 @@ func (k *BotKeyer) GetLatestTeambotKey(mctx libkb.MetaContext, teamID keybase1.T
 	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetLatestTeambotKey teamID: %v", teamID),
 		func() error { return err })()
 
-	lock := k.libLocks.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
+	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
 	defer lock.Release(mctx.Ctx())
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -334,7 +330,7 @@ func (k *BotKeyer) GetTeambotKeyAtGeneration(mctx libkb.MetaContext, teamID keyb
 	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetLatestTeambotKey teamID: %v", teamID),
 		func() error { return err })()
 
-	lock := k.libLocks.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
+	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
 	defer lock.Release(mctx.Ctx())
 
 	key, _, err = k.get(mctx, teamID, generation)

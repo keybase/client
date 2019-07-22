@@ -16,7 +16,7 @@ import (
 )
 
 type MemberKeyer struct {
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 	sync.Mutex
 	lru *lru.Cache
 }
@@ -30,7 +30,8 @@ func NewMemberKeyer(mctx libkb.MetaContext) *MemberKeyer {
 		log.Panicf("Could not create lru cache: %v", err)
 	}
 	return &MemberKeyer{
-		lru: nlru,
+		lru:     nlru,
+		locktab: libkb.NewLockTable(),
 	}
 }
 
