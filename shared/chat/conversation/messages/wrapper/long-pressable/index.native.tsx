@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import Swipeable from 'react-native-gesture-handler/Swipeable'
 
 const _renderLeftActions = () => {
   return (
@@ -14,18 +13,17 @@ const _renderLeftActions = () => {
 // See '.js.flow' for explanation
 const LongPressable = (props: {children: React.ElementType; onSwipeRight: () => void}) => {
   const {children, ...rest} = props
-  const swipeable = React.useRef()
-  const _onLeftOpen = () => {
+  const swipeable = React.useRef<Kb.Swipeable>()
+  const onLeftOpen = () => {
     props.onSwipeRight()
-    // @ts-ignore the type returned by useRef doesn't seem to work, it always thinks current can be null
     swipeable.current && swipeable.current.close()
   }
   return (
-    <Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftWillOpen={_onLeftOpen}>
+    <Kb.Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftWillOpen={onLeftOpen}>
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
         <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
       </Kb.NativeTouchableHighlight>
-    </Swipeable>
+    </Kb.Swipeable>
   )
 }
 
