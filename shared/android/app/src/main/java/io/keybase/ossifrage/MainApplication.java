@@ -2,9 +2,9 @@ package io.keybase.ossifrage;
 
 import android.app.Application;
 import android.content.Context;
-import android.support.multidex.MultiDex;
 
-import com.reactnativecommunity.netinfo.NetInfoPackage;
+import androidx.multidex.MultiDex;
+
 import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
@@ -14,27 +14,11 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.shell.MainPackageConfig;
-import com.facebook.react.shell.MainReactPackage;
-import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
-import com.RNFetchBlob.RNFetchBlobPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.rt2zz.reactnativecontacts.ReactNativeContacts;
-import com.dylanvann.fastimage.FastImageViewPackage;
-
-import org.reactnative.camera.RNCameraPackage;
-
 import com.airbnb.android.react.lottie.LottiePackage;
-import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-import com.swmansion.reanimated.ReanimatedPackage;
-import com.swmansion.rnscreens.RNScreensPackage;
-import com.brentvatne.react.ReactVideoPackage;
 
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import io.keybase.ossifrage.modules.StorybookConstants;
@@ -106,23 +90,12 @@ public class MainApplication extends Application implements ReactApplication {
                         return super.createNativeModules(reactApplicationContext);
                     }
                 }
-            })
-            packages.add(new ReactNativePushNotificationPackage())
-            packages.add(new RNCameraPackage())
-            packages.add(new ImagePickerPackage())
-            packages.add(new RNFetchBlobPackage())
-            packages.add(new ReactNativeContacts())
-            packages.add(new FastImageViewPackage())
-            packages.add(new LottiePackage())
-            packages.add(new RNGestureHandlerPackage())
-            packages.add(new RNScreensPackage())
-            packages.add(new NetInfoPackage())
-            packages.add(new RNCWebViewPackage())
-            packages.add(new ReactVideoPackage())
-            packages.add(new ReanimatedPackage())
-            packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider))
+            });
 
-            return packages
+            packages.add(new LottiePackage());
+            packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+
+            return packages;
         }
         @Override
         protected String getJSMainModuleName() {

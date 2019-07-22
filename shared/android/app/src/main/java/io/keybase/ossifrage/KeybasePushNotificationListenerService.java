@@ -1,8 +1,7 @@
 package io.keybase.ossifrage;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.NotificationManagerCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService;
@@ -22,7 +21,6 @@ import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
-import keybase.PushNotifier;
 
 import static keybase.Keybase.initOnce;
 

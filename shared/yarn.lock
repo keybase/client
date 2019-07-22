@@ -7928,7 +7928,7 @@ jest@24.8.0:
     import-local "^2.0.0"
     jest-cli "^24.8.0"
 
-jetifier@^1.6.2:
+jetifier@1.6.3, jetifier@^1.6.2:
   version "1.6.3"
   resolved "https://registry.yarnpkg.com/jetifier/-/jetifier-1.6.3.tgz#61a95b29aefddfe3b6d81ee956f5e99f8b9cba19"
   integrity sha512-i0rb2nHVPZDPzFhgs9+yYxEDMh2z0iSHRD3vBQmvn98wlgWKwhmU2F3MUEEXfK+MLnKwLKqsCTvlcS1+CpDTUg==
@@ -8399,7 +8399,7 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.3.1, loose-envify@^1.4
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-"lottie-api@github:bodymovin/lottie-api#master":
+lottie-api@bodymovin/lottie-api#master:
   version "1.0.2"
   resolved "https://codeload.github.com/bodymovin/lottie-api/tar.gz/793fcfc4d8f2da1b868977c1a2c36eaf696e28c0"
 
@@ -10891,7 +10891,7 @@ react-native-mime-types@2.2.1:
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#nojima/keybase-fixes-off-master":
   version "3.1.7"
-  resolved "git://github.com/keybase/react-native-push-notification#35a11b9de48ef79e4fa21441175440d913f575e6"
+  resolved "git://github.com/keybase/react-native-push-notification#663b8f870826b024a16e4b40d01bbb16bd0f6444"
 
 react-native-reanimated@1.1.0:
   version "1.1.0"

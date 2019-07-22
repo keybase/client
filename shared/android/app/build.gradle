@@ -261,25 +261,25 @@ dependencies {
       implementation jscFlavor
     }
 
-    implementation "com.android.support:multidex:1.0.3"
+    implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:17.3.0" // sync with firebaseVersion in gradle.properties
     implementation "com.facebook.fresco:animated-gif:1.13.0"
     implementation "com.facebook.fresco:fresco:1.13.0"
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
-    implementation project(':react-native-push-notification')
-    implementation project(':react-native-camera')
-    implementation project(':react-native-fetch-blob')
-    implementation project(':react-native-contacts')
-    implementation project(':react-native-fast-image')
+    // implementation project(':react-native-push-notification')
+    // implementation project(':react-native-camera')
+    // implementation project(':react-native-fetch-blob')
+    // implementation project(':react-native-contacts')
+    // implementation project(':react-native-fast-image')
     implementation project(':lottie-react-native')
-    implementation project(':react-native-gesture-handler')
-    implementation project(':react-native-screens')
-    implementation project(':react-native-webview')
-    implementation project(':react-native-community-netinfo')
-    implementation project(':react-native-reanimated')
-    implementation project(':react-native-video')
+    // implementation project(':react-native-gesture-handler')
+    // implementation project(':react-native-screens')
+    // implementation project(':react-native-webview')
+    // implementation project(':react-native-community-netinfo')
+    // implementation project(':react-native-reanimated')
+    // implementation project(':react-native-video')
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }
