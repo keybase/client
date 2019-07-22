@@ -223,15 +223,12 @@ function* loadDaemonAccounts(
       )
     }
 
-    // only reload in the user-switching case
-    const loadConfiguredAccountsAgain = state.config.loggedIn && flags.fastAccountSwitch
-    if (loadConfiguredAccountsAgain) {
-      const configuredAccounts: Array<
-        RPCTypes.ConfiguredAccount
-      > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
-      const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
-      yield Saga.put(loadedAction)
-    }
+    const configuredAccounts: Array<
+      RPCTypes.ConfiguredAccount
+    > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
+    yield Saga.put(loadedAction)
+
     if (handshakeWait) {
       // someone dismissed this already?
       const newState: Container.TypedState = yield* Saga.selectState()
