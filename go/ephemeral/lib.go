@@ -691,7 +691,7 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	}
 
 	// We are the bot, try to access our latest key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
 		if err != nil {
@@ -889,7 +889,7 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		return ek, err
 	}
 	// We are the bot, try to access the key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
 			switch err.(type) {

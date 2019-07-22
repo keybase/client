@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 )
@@ -23,7 +24,7 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 		return publicCryptKey, nil
 	}
 
-	if utils.CurrentUserIsBot(mctx, botUID) {
+	if teambot.CurrentUserIsBot(mctx, botUID) {
 		if kbfsEncrypted {
 			return res, fmt.Errorf("TeambotKeys not supported by KBFS")
 		}
@@ -374,7 +375,7 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID))()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if !utils.CurrentUserIsBot(mctx, botUID) && !public && membersType == chat1.ConversationMembersType_TEAM &&
+	if !teambot.CurrentUserIsBot(mctx, botUID) && !public && membersType == chat1.ConversationMembersType_TEAM &&
 		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureFTL) {
 		res, ni, err = encryptionKeyViaFTL(mctx, name, teamID)
 		if shouldFallbackToSlowLoadAfterFTLError(mctx, err) {
@@ -415,7 +416,7 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 			keyGeneration, kbfsEncrypted, botUID))()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if !utils.CurrentUserIsBot(mctx, botUID) && !kbfsEncrypted && !public &&
+	if !teambot.CurrentUserIsBot(mctx, botUID) && !kbfsEncrypted && !public &&
 		membersType == chat1.ConversationMembersType_TEAM &&
 		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureFTL) {
 		res, err = decryptionKeyViaFTL(mctx, teamID, keyGeneration)
