@@ -80,7 +80,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	require.NoError(t, err)
 	u3, err := kbtest.CreateAndSignupFakeUser("ji", tc.G) //non-admin
 	require.NoError(t, err)
-	u4, err := kbtest.CreateAndSignupFakeUser("bot", tc.G) // bot
+	u4, err := kbtest.CreateAndSignupFakeUser("botua", tc.G) // bot
 	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) //owner
 	require.NoError(t, err)
