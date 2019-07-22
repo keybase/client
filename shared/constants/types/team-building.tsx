@@ -23,6 +23,7 @@ export type User = {
   serviceMap: ServiceMap
   id: UserID
   prettyName: string
+  label?: string
 }
 
 // Treating this as a tuple

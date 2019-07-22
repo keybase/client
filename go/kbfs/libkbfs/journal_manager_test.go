@@ -414,8 +414,8 @@ func TestJournalManagerRestart(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = mdOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	// Simulate a restart.
@@ -489,8 +489,8 @@ func TestJournalManagerLogOutLogIn(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = mdOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	// Simulate a log out.
@@ -602,8 +602,8 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd1, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = mdOps.Put(
+		ctx, rmd1, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	// Log in user 2.
@@ -654,8 +654,8 @@ func TestJournalManagerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd2, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = mdOps.Put(
+		ctx, rmd2, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	// Log out.
@@ -958,8 +958,8 @@ func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(kbfsmd.FirstValidKeyGen)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = mdOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	// Simulate a restart.

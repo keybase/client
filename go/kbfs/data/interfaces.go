@@ -214,6 +214,8 @@ type BlockPutState interface {
 		ctx context.Context, blockPtr BlockPointer, block Block,
 		readyBlockData ReadyBlockData, syncedCb func() error) error
 	SaveOldPtr(ctx context.Context, oldPtr BlockPointer) error
+	Ptrs() []BlockPointer
+	GetBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
 }
 
 // DirtyBlockCacheSimple is a bare-bones interface for a dirty block

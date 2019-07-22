@@ -1056,7 +1056,7 @@ const writeLastSentXLM = (
 ) => {
   if (action.payload.writeFile) {
     logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
-    return RPCTypes.configSetValueRpcPromise({
+    return RPCTypes.configGuiSetValueRpcPromise({
       path: 'stellar.lastSentXLM',
       value: {b: state.wallets.lastSentXLM, isNull: false},
     }).catch(err => logger.error(`Error: ${err.message}`))
@@ -1069,7 +1069,7 @@ const readLastSentXLM = (
   logger: Saga.SagaLogger
 ) => {
   logger.info(`Reading config`)
-  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+  return RPCTypes.configGuiGetValueRpcPromise({path: 'stellar.lastSentXLM'})
     .then(result => {
       const value = !result.isNull && !!result.b
       logger.info(`Successfully read config: ${String(value)}`)

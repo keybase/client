@@ -60,6 +60,7 @@ class PaperKey extends React.Component<
               waitingKey={Constants.waitingKey}
             />
           </Kb.ButtonBar>
+          {props.onBack && <Kb.Button label="Back to my existing account" onClick={props.onBack} />}
         </Kb.Box2>
       </Kb.Box2>
     )

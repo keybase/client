@@ -160,6 +160,8 @@ type GlobalContext struct {
 	MobileOsVersion string
 
 	SyncedContactList SyncedContactListProvider
+
+	GUIConfig *JSONFile
 }
 
 type GlobalTestOptions struct {
@@ -402,7 +404,79 @@ func (g *GlobalContext) ConfigureConfig() error {
 
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
+	guiConfigErr := g.ConfigureGUIConfig()
+	if guiConfigErr != nil {
+		g.Log.Debug("Failed to open gui config: %s", guiConfigErr)
+	}
 	g.ConfigureUpdaterConfig()
+	return err
+}
+
+// migrateGUIConfig does not delete old values from service's config.
+func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
+	var errs []error
+
+	p := "ui.routeState2"
+	if uiRouteState2, isSet := serviceConfig.GetStringAtPath(p); isSet {
+		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.shownMonsterPushPrompt"
+	if uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "stellar.lastSentXLM"
+	if stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.importContacts"
+	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		syncSettings, ok := syncSettings.(map[string]interface{})
+		if !ok {
+			errs = append(errs, fmt.Errorf("Failed to coerce ui.importContacts in migration"))
+		} else {
+			for username, syncEnabled := range syncSettings {
+				syncEnabled, ok := syncEnabled.(bool)
+				if !ok {
+					errs = append(errs, fmt.Errorf("Failed to coerce syncEnabled in migration for %s", username))
+				}
+				err := guiConfig.SetBoolAtPath(fmt.Sprintf("%s.%s", p, username), syncEnabled)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+	}
+	return CombineErrors(errs...)
+}
+
+func (g *GlobalContext) ConfigureGUIConfig() error {
+	guiConfig := NewJSONFile(g, g.Env.GetGUIConfigFilename(), "gui config")
+	found, err := guiConfig.LoadCheckFound()
+	if err == nil {
+		if !found {
+			guiConfig.SetBoolAtPath("gui", true)
+			// If this is the first time creating this file, manually migrate
+			// old GUI config values from the main config file best-effort.
+			serviceConfig := g.Env.GetConfig()
+			if migrateErr := migrateGUIConfig(serviceConfig, guiConfig); migrateErr != nil {
+				g.Log.Warning("Failed to migrate config to new GUI config file: %s", migrateErr)
+			}
+
+		}
+		g.Env.SetGUIConfig(guiConfig)
+	}
 	return err
 }
 
