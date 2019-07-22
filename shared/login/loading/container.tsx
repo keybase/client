@@ -17,7 +17,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onRetry: () => dispatch(ConfigGen.createStartHandshake()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let status = ''
   let failed = ''
 

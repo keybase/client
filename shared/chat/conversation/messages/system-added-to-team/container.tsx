@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   addee: stateProps.addee,
   adder: stateProps.adder,
   isAdmin: stateProps.isAdmin,

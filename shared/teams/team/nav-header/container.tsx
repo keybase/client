@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
-import * as SearchGen from '../../../actions/search-gen'
 import {
   HeaderRightActions as _HeaderRightActions,
   HeaderTitle as _HeaderTitle,
@@ -29,7 +28,7 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   canAddPeople: stateProps.canAddPeople,
   canChat: stateProps.canChat,
   loading: stateProps.loading,

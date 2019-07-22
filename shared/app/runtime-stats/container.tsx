@@ -1,6 +1,5 @@
 import {connect, TypedState} from '../../util/container'
 import RuntimeStats from '.'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const blank = {
   convLoaderActive: false,

@@ -1,4 +1,4 @@
-import {namedConnect, RouteProps} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'

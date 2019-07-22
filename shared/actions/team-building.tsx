@@ -175,6 +175,7 @@ export function filterForNs<S, A, L, R>(
     if (a && a.payload && a.payload.namespace === namespace) {
       return fn(s, a, l)
     }
+      return undefined
   }
 }
 

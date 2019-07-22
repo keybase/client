@@ -15,7 +15,6 @@ import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
-import {TypedActions} from 'util/container'
 
 type pathType = 'file' | 'directory'
 

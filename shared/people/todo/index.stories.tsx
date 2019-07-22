@@ -2,13 +2,6 @@ import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
 import {Task, TaskButton} from '.'
 import {Provider as SearchBarProvider} from '../../profile/search/index.stories'
-import {
-  todoTypes,
-  todoTypeToConfirmLabel,
-  todoTypeToIcon,
-  makeDescriptionForTodoItem,
-} from '../../constants/people'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const defaultButtons = (label, dismissLabel?) => {
   const ret = [
@@ -193,7 +186,7 @@ const legacyEmailVisibilityProps = {
 } as const
 
 const load = () => {
-  const stories = storiesOf('People/Todos', module)
+  storiesOf('People/Todos', module)
     .addDecorator(SearchBarProvider)
     .add('Edit team avatar', () => <Task {...avatarTeamTaskProps} />)
     .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)

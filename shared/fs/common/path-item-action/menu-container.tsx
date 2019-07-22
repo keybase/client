@@ -12,7 +12,6 @@ import Menu from './menu'
 import {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {fsTab} from '../../../constants/tabs'
 import * as Util from '../../../util/kbfs'
 
 type OwnProps = {

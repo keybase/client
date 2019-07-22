@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,

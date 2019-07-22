@@ -1,5 +1,3 @@
-import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'

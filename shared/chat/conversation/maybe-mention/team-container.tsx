@@ -69,7 +69,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const convID = stateProps._convID ? Types.stringToConversationIDKey(stateProps._convID) : undefined
   return {
     allowFontScaling: stateProps.allowFontScaling,

@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch) => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   device: stateProps.device,
   endangeredTLFs: stateProps._endangeredTLFs.toArray(),
   onCancel: dispatchProps.onCancel,

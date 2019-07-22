@@ -139,6 +139,7 @@ export default compose(
               return recPhoneNumber === cleanPhoneNumber(phoneNo || '')
             }
           }
+          return undefined
         })
         if (relevantInvite) {
           return loadingInvites.get(relevantInvite.id)
@@ -183,6 +184,7 @@ export default compose(
                   return recPhoneNumber === cleanPhoneNumber(contact.phoneNo || '')
                 }
               }
+              return undefined
             })
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
@@ -191,6 +193,7 @@ export default compose(
             }
           }
         }
+        return undefined
       },
     } as any),
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.

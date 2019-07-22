@@ -78,7 +78,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (_, dispatchProps, ownProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   badged: ownProps.badged,
   confirmLabel: ownProps.confirmLabel,
   iconUrl: ownProps.iconUrl,

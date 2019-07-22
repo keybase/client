@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
   loadTlfs: () => dispatch(FsGen.createFavoritesLoad()),
 })
 
-const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
+const mergeProps = (stateProps, dispatchProps, {profileUsername}: OwnProps) => ({
   loadTlfs: dispatchProps.loadTlfs,
   tlfs:
     profileUsername === stateProps._ownUsername // are we showing user's own profile?

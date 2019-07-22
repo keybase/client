@@ -7,8 +7,6 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
-import * as Types from '../../constants/types/wallets'
-import {maxUsernameLength} from '../../constants/signup'
 
 type Props = {
   openAtLogin: boolean

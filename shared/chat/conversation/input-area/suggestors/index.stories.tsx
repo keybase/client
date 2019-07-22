@@ -37,14 +37,14 @@ class _TestArea extends React.Component<TestAreaProps> {
 }
 const TestArea = AddSuggestors(_TestArea)
 
-// eslint-disable-next-line no-unused-vars
+// @ts-ignore
 const typingTests = () => {
-  // eslint-disable-next-line no-unused-vars
-  let test
+  let test: unknown
   // @ts-ignore should error (bad other prop)
   test = <TestArea {...props} somethingElse="not this" />
   // @ts-ignore should error (bad suggestor prop)
   test = <TestArea {...props} dataSources={[1, 2]} />
+  console.log(test)
 
   const missingSug = {
     renderers: {},
@@ -114,8 +114,7 @@ const props = {
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
     fruit: (fruit, _, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
-    users: (username, _, tData, preview) =>
-      Suggestors.standardTransformer(`@${username}`, tData, preview),
+    users: (username, _, tData, preview) => Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }
 

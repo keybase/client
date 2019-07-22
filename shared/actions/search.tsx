@@ -9,7 +9,7 @@ import * as Saga from '../util/saga'
 import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
-import {ServiceId, serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
+import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
 
 function _serviceToApiServiceName(service: Types.Service): string {

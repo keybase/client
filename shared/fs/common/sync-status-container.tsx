@@ -16,7 +16,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, _, ownProps) => {
+const mergeProps = (stateProps, _, ownProps: OwnProps) => {
   const status = Constants.getSyncStatusInMergeProps(
     stateProps._kbfsDaemonStatus,
     stateProps._tlf,

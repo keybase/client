@@ -37,6 +37,7 @@ const getPasswordHandler = passphrase => (params, response) => {
   } else {
     cancelOnCallback(params, response)
   }
+    return undefined
 }
 
 const moveToProvisioning = (username: string) => (params, response) => {

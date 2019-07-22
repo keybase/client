@@ -3,7 +3,6 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Container from '../../../util/container'
-import * as Platform from '../../../constants/platform'
 
 type OwnProps = {
   showSystemButtons: boolean

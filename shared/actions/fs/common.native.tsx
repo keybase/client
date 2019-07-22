@@ -42,6 +42,7 @@ const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload
       return
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
+      return undefined
   }
 }
 

@@ -72,6 +72,7 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
     return ProfileGen.createShowUserProfile({username: action.payload.username})
   } else {
     openURL(`${keybaseUrl}/${action.payload.username}`)
+      return undefined
   }
 }
 

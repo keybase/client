@@ -59,7 +59,7 @@ const mapDispatchToProps = dispatch => ({
     : (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let type
   let users
 

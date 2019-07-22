@@ -100,7 +100,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let type
   switch (stateProps.conversationIDKey) {
     case Constants.noConversationIDKey:

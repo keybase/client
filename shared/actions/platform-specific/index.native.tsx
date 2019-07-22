@@ -20,7 +20,7 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-import NetInfo, {ConnectionType} from '@react-native-community/netinfo'
+import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
@@ -209,6 +209,7 @@ const getStartupDetailsFromShare = (): Promise<
         if (p.text) {
           return {text: p.text}
         }
+        return null
       })
     : Promise.resolve(null)
 

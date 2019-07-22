@@ -13,7 +13,7 @@ const mapStateToProps = (state, {message}) => ({
   you: state.config.username,
 })
 
-const mergeProps = (stateProps, _, ownProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   added: ownProps.message.usernames,
   author: ownProps.message.author,
   channelname: stateProps.channelname,

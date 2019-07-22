@@ -41,7 +41,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let error = ''
   if (stateProps.error) {
     error =

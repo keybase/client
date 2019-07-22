@@ -1075,6 +1075,7 @@ const checkKbfsServerReachabilityIfNeeded = (
       logger.warn(`failed to check KBFS reachability: ${err.message}`)
     )
   }
+    return undefined
 }
 
 const onFSOnlineStatusChanged = (

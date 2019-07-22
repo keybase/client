@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import * as Kb from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {globalColors, globalMargins} from '../../../../styles'
 import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
