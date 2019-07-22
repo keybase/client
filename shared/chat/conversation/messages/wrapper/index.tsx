@@ -335,6 +335,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           },
           'WrapperMessage-hoverBox'
         ),
+        onContextMenu: this.props.toggleShowingMenu,
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
