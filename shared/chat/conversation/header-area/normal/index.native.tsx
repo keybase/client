@@ -78,23 +78,39 @@ const ChannelHeader = (props: Props) => (
   </Wrapper>
 )
 
-const UsernameHeader = (props: Props) => (
-  <Wrapper {...props}>
-    <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
-      <ConnectedUsernames
-        colorFollowing={true}
-        inline={false}
-        commaColor={Styles.globalColors.black_50}
-        type="BodyBig"
-        usernames={props.participants}
-        containerStyle={styles.center}
-        onUsernameClicked={props.onShowProfile}
-        skipSelf={props.participants.length > 1}
-      />
-      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
-  </Wrapper>
-)
+const UsernameHeader = (props: Props) => {
+  const withoutSelf =
+    props.participants && props.participants.length > 1
+      ? props.participants.filter(part => part !== props.username)
+      : props.participants
+  return (
+    <Wrapper {...props}>
+      <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
+        <Text type="BodyBig" lineClamp={1}>
+          {withoutSelf.map((part, i, participants) => (
+            <Text type="BodyBig" key={part}>
+              {props.participantToDisplayName[part] ? (
+                <Text type="BodyBig" onClick={() => props.onShowProfile(part)}>
+                  {props.participantToDisplayName[part]}
+                </Text>
+              ) : (
+                <ConnectedUsernames
+                  colorFollowing={true}
+                  inline={true}
+                  type="BodyBig"
+                  usernames={[part]}
+                  onUsernameClicked="profile"
+                />
+              )}
+              {i !== participants.length - 1 && <Text type="Header">, </Text>}
+            </Text>
+          ))}
+        </Text>
+        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+      </Box2>
+    </Wrapper>
+  )
+}
 
 const PhoneOrEmailHeader = (props: Props) => {
   const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''

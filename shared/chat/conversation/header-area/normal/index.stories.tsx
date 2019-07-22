@@ -19,6 +19,7 @@ const defaultProps = {
   smallTeam: true,
   teamName: 'keybase',
   unMuteConversation: Sb.action('unMuteConversation'),
+  username: 'ayoubd',
 }
 const phones = ['ayoubd', '+15558675309@phone']
 const contactNames = {'+15558675309@phone': 'Max Goodman'}

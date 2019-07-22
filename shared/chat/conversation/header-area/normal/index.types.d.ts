@@ -15,4 +15,5 @@ export type Props = {
   pendingWaiting: boolean
   smallTeam: boolean
   unMuteConversation: () => void
+  username: string
 }
