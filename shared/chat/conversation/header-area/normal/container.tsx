@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'

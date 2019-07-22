@@ -10,7 +10,6 @@ import {
 } from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {Props} from './index.types'
-import {formatPhoneNumber} from '../../../../util/phone-numbers'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
