@@ -641,7 +641,6 @@ const setAccountAsDefault = (_: TypedState, action: WalletsGen.SetAccountAsDefau
     Constants.setAccountAsDefaultWaitingKey
   ).then(accountsAfterUpdate =>
     WalletsGen.createDidSetAccountAsDefault({
-      // @ts-ignore codemod-issue
       accounts: (accountsAfterUpdate || []).map(account => {
         if (!account.accountID) {
           logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
