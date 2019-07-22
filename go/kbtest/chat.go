@@ -259,7 +259,11 @@ func (m *TlfMock) LookupID(ctx context.Context, tlfName string, public bool) (re
 }
 
 func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (key types.CryptKey, ni types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool,
+	botUID *gregor1.UID) (key types.CryptKey, ni types.NameInfo, err error) {
+	if botUID != nil {
+		return key, ni, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
 	if ni, err = m.LookupID(ctx, tlfName, public); err != nil {
 		return key, ni, err
 	}
@@ -280,7 +284,10 @@ func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1
 
 func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (types.CryptKey, error) {
+	if botUID != nil {
+		return nil, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
 	if public {
 		var zero [libkb.NaclDHKeySecretSize]byte
 		return keybase1.CryptKey{

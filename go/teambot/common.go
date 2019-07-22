@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 )
@@ -127,4 +128,8 @@ func verifyTeambotKeySigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.Te
 
 	// If we didn't short circuit above, then the signing key is correct.
 	return metadata, false, nil
+}
+
+func CurrentUserIsBot(mctx libkb.MetaContext, botUID *gregor1.UID) bool {
+	return botUID != nil && botUID.Eq(gregor1.UID(mctx.ActiveDevice().UID().ToBytes()))
 }

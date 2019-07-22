@@ -691,7 +691,7 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	}
 
 	// We are the bot, try to access our latest key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
 		if err != nil {
@@ -700,6 +700,14 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 				// Ping team members to generate the latest key for us
 				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
 					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				}
+				// See if we should downgrade this to a transient error. Since
+				// bot members get a key when added to the team this should
+				// only happen in a tight race before the key is created or if
+				// the TeamEK has been purged and we don't have a new one.
+				ekErr := err.(EphemeralKeyError)
+				if ekErr.AllowTransient() {
+					err = newTransientEphemeralKeyError(ekErr)
 				}
 			}
 			return ek, false, err
@@ -832,7 +840,7 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	// was signed by the latest PTK and otherwise fails with wrongKID set.
 	metadata, wrongKID, err := fetchLatestTeambotEK(mctx, teamID)
 	if metadata == nil {
-		err = newEKMissingBoxErr(mctx, TeambotEKStr, -1)
+		err = newEKMissingBoxErr(mctx, TeambotEKKind, -1)
 		return ek, err
 	} else if wrongKID {
 		now := keybase1.ToTime(e.clock.Now())
@@ -881,7 +889,7 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		return ek, err
 	}
 	// We are the bot, try to access the key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
 			switch err.(type) {
@@ -890,6 +898,10 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
 					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
 				}
+				// NOTE we don't downgrade this errors to transient since a bot
+				// should have access to keys for decryption unless there is a
+				// bug, members check that the key is created before encrypting
+				// content.
 			}
 			return ek, err
 		}

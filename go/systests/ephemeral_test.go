@@ -292,12 +292,17 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	}
 
 	// bot asks for a non-existent generation, no new key is created.
-	badGen := teambotEK.Generation() + 1
+	badGen := teambotEK.Generation() + 50
 	_, err = ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, badGen, nil)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
-	noTeambotEKNeeded(user1.tc, user1.notifications)
-	noTeambotEKNeeded(user2.tc, user2.notifications)
+	ekNeededArg = keybase1.TeambotEkNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: badGen,
+	}
+	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
+	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
 	noNewTeambotEKNotification(botua.tc, botua.notifications)
 }
 
