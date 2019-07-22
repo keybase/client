@@ -71,7 +71,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
-  _onSwipeRight: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+  _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
 })
 
@@ -195,7 +195,7 @@ export default Container.namedConnect(
         ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal)
         : undefined,
       onRetry,
-      onSwipeRight: () => dispatchProps._onSwipeRight(message.conversationIDKey, message.ordinal),
+      onSwipeLeft: () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal),
       orangeLineAbove: stateProps.orangeLineAbove,
       previous: stateProps.previous,
       shouldShowPopup: stateProps.shouldShowPopup,

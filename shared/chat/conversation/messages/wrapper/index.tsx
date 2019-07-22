@@ -58,7 +58,7 @@ export type Props = {
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
-  onSwipeRight: () => void
+  onSwipeLeft: () => void
   orangeLineAbove: boolean
   previous?: Types.Message
   shouldShowPopup: boolean
@@ -320,7 +320,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ...props,
             onLongPress: this.props.toggleShowingMenu,
             onPress: this._dismissKeyboard,
-            onSwipeRight: this.props.onSwipeRight,
+            onSwipeLeft: this.props.onSwipeLeft,
             underlayColor: Styles.globalColors.blueLighter3,
           }
         : props

@@ -11,15 +11,19 @@ const _renderLeftActions = () => {
 }
 
 // See '.js.flow' for explanation
-const LongPressable = (props: {children: React.ElementType; onSwipeRight: () => void}) => {
+const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => void}) => {
   const {children, ...rest} = props
   const swipeable = React.useRef<Kb.Swipeable>()
-  const onLeftOpen = () => {
-    props.onSwipeRight()
+  const onRightOpen = () => {
+    props.onSwipeLeft()
     swipeable.current && swipeable.current.close()
   }
   return (
-    <Kb.Swipeable ref={swipeable} renderLeftActions={_renderLeftActions} onSwipeableLeftWillOpen={onLeftOpen}>
+    <Kb.Swipeable
+      ref={swipeable}
+      renderRightActions={_renderLeftActions}
+      onSwipeableRightWillOpen={onRightOpen}
+    >
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
         <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
       </Kb.NativeTouchableHighlight>
