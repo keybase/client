@@ -212,6 +212,8 @@ protocol constants {
     SCPhoneNumberWrongVerificationCode_3403,
     SCPhoneNumberLimitExceeded_3404,
     SCNoPaperKeys_3605,
-    SCTeambotKeyGenerationExists_3800
+    SCTeambotKeyGenerationExists_3800,
+    SCTeambotKeyOldBoxedGeneration_3801,
+    SCTeambotKeyBadGeneration_3802
   }
 }

@@ -11,37 +11,31 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const teamEKBoxStorageDBVersion = 4
+const teamEKBoxStorageDBVersion = 5
 
 type teamEKBoxCacheItem struct {
 	TeamEKBoxed keybase1.TeamEphemeralKeyBoxed
-	ErrMsg      string
-	HumanMsg    string
+	Err         *EphemeralKeyError
 }
 
 func newTeamEKBoxCacheItem(teamEKBoxed keybase1.TeamEphemeralKeyBoxed, err error) teamEKBoxCacheItem {
-	errMsg := ""
-	humanMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-		if ekErr, ok := err.(EphemeralKeyError); ok {
-			humanMsg = ekErr.HumanError()
-		}
+	var ekErr *EphemeralKeyError
+	if e, ok := err.(EphemeralKeyError); ok {
+		ekErr = &e
 	}
 	return teamEKBoxCacheItem{
 		TeamEKBoxed: teamEKBoxed,
-		ErrMsg:      errMsg,
-		HumanMsg:    humanMsg,
+		Err:         ekErr,
 	}
 }
 
 func (c teamEKBoxCacheItem) HasError() bool {
-	return c.ErrMsg != ""
+	return c.Err != nil
 }
 
 func (c teamEKBoxCacheItem) Error() error {
 	if c.HasError() {
-		return newEphemeralKeyError(c.ErrMsg, c.HumanMsg)
+		return *c.Err
 	}
 	return nil
 }
@@ -189,7 +183,7 @@ func (s *TeamEKBoxStorage) putLocked(mctx libkb.MetaContext, teamID keybase1.Tea
 
 	// sanity check that we got the right generation
 	if teamEKBoxed.Generation() != generation && ekErr == nil {
-		return newEKCorruptedErr(mctx, TeamEKStr, generation, teamEKBoxed.Generation())
+		return newEKCorruptedErr(mctx, TeamEKKind, generation, teamEKBoxed.Generation())
 	}
 
 	key, err := s.dbKey(mctx, teamID)

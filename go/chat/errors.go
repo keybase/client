@@ -175,7 +175,9 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
+type EphemeralUnboxingError struct {
+	inner ephemeral.EphemeralKeyError
+}
 
 func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}

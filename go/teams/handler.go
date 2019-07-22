@@ -240,6 +240,9 @@ func invalidateCaches(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
 		ekLib.PurgeTeambotEKCachesForTeamID(mctx, teamID)
 	}
+	if keyer := mctx.G().GetTeambotMemberKeyer(); keyer != nil {
+		keyer.PurgeCache(mctx)
+	}
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {

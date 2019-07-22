@@ -1,0 +1,44 @@
+{
+  "protocol": "NotifyTeambot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "newTeambotKey": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "generation",
+          "type": "TeambotKeyGeneration"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "teambotKeyNeeded": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "generation",
+          "type": "TeambotKeyGeneration"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
