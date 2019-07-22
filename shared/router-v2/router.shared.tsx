@@ -122,5 +122,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         }),
       ]
     }
+      default:
+          return undefined
   }
 }

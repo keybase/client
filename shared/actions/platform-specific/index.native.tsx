@@ -209,6 +209,7 @@ const getStartupDetailsFromShare = (): Promise<
         if (p.text) {
           return {text: p.text}
         }
+        return null
       })
     : Promise.resolve(null)
 

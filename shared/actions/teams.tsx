@@ -272,6 +272,7 @@ const addReAddErrorHandler = (username, e) => {
       return Tracker2Gen.createShowUser({asTracker: true, username})
     }
   }
+    return undefined
 }
 
 const addToTeam = (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
