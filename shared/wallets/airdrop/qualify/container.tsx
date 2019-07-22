@@ -18,7 +18,7 @@ const mapDispatchToProps = dispatch => ({
 
 const injectSmile = rows =>
   rows.length ? [...rows, {subTitle: '', title: 'A beautiful smile', valid: true}] : rows
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   rows: injectSmile(stateProps._rows.toArray().map(r => r.toObject())),
   state: stateProps.state,
   ...dispatchProps,

@@ -12,7 +12,7 @@
     "noImplicitAny": false,
     "noImplicitReturns": false,
     "noImplicitThis": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "resolveJsonModule": true,

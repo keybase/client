@@ -1,4 +1,3 @@
-import * as Kb from '../../common-adapters'
 import {connect} from '../../util/container'
 import ConfirmDisableCertPinningModal from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'

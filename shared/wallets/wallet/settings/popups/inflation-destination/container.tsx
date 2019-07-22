@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   error: stateProps.error,
   inflationDestination: stateProps.inflationDestination,
   onClose: () => dispatchProps._onClose(),

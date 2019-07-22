@@ -65,7 +65,7 @@ const makeTeamToRequest = memoize(tr =>
   }, {})
 )
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     deletedTeams: stateProps._deletedTeams.toArray(),
     loaded: stateProps.loaded,

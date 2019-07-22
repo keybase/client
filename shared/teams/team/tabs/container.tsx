@@ -31,7 +31,7 @@ const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, _, __) => {
+const mergeProps = (stateProps, _, __: OwnProps) => {
   return {
     admin: stateProps.admin,
     loading: stateProps.loading,

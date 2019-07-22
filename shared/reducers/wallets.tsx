@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
 import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 

@@ -1,5 +1,4 @@
 import {remoteConnect, compose, renderNothing, branch} from '../util/container'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 

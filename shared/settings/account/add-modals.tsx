@@ -8,7 +8,6 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email/'
 import {EnterPhoneNumberBody} from '../../signup/phone-number/'
 import {VerifyBody} from '../../signup/phone-number/verify'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {

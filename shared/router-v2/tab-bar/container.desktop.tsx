@@ -1,9 +1,7 @@
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
-import * as LoginGen from '../../actions/login-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
@@ -12,7 +10,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
-import TabBar, {Props} from './index.desktop'
+import TabBar from './index.desktop'
 import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
@@ -85,7 +83,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 
 const getBadges = memoize(b => b.toObject())
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   badgeNumbers: getBadges(stateProps._badgeNumbers),
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,

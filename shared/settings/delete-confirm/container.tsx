@@ -44,7 +44,7 @@ export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+      (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
   HOCTimers
 )(DeleteConfirmContainer)

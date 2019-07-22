@@ -83,7 +83,7 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
     dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username')})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, _: OwnProps) => {
   // Gather contextual team membership info
   const yourInfo = stateProps._memberInfo.get(stateProps._you)
   const userInfo: Types.MemberInfo | undefined = stateProps._memberInfo.get(stateProps._username)

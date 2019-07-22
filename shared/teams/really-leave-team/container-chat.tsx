@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     _canLeaveTeam: stateProps._canLeaveTeam,
     _leaving: stateProps._leaving,

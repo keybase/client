@@ -27,7 +27,7 @@ export default Container.compose(
     {deviceName: ''},
     {onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)})}
   ),
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
+    Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
     const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
     const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
     const loggedInAccounts = stateProps.configuredAccounts

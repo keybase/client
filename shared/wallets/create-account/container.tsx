@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
   onCancel: dispatchProps.onCancel,

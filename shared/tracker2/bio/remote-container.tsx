@@ -4,7 +4,8 @@ import Bio from '.'
 type OwnProps = {username: string}
 
 const mapDispatchToProps = () => ({})
-const mergeProps = (stateProps, _, __) => ({
+const mergeProps = (stateProps, _, __: OwnProps) => ({
+  airdropIsLive: stateProps.airdropIsLive,
   bio: stateProps.bio,
   followThem: stateProps.followThem,
   followersCount: stateProps.followersCount,
@@ -14,6 +15,7 @@ const mergeProps = (stateProps, _, __) => ({
   inTracker: true,
   location: stateProps.location,
   registeredForAirdrop: stateProps.registeredForAirdrop,
+  youAreInAirdrop: stateProps.youAreInAirdrop,
 })
 
 // Just to get the stories working short term. TODO remove and use newer story wrapper
