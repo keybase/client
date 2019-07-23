@@ -1,14 +1,7 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Box2,
-  HeaderHocHeader,
-  Icon,
-  iconCastPlatformStyles,
-  Text,
-  ConnectedUsernames,
-} from '../../../../common-adapters'
+import {Avatar, Box2, HeaderHocHeader, Icon, iconCastPlatformStyles, Text} from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import Participants from './participants'
 import {Props} from './index.types'
 
 const shhIconColor = Styles.globalColors.black_20
@@ -87,24 +80,12 @@ const UsernameHeader = (props: Props) => {
     <Wrapper {...props}>
       <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
         <Text type="BodyBig" lineClamp={1}>
-          {withoutSelf.map((part, i, participants) => (
-            <Text type="BodyBig" key={part}>
-              {props.participantToDisplayName[part] ? (
-                <Text type="BodyBig" onClick={() => props.onShowProfile(part)}>
-                  {props.participantToDisplayName[part]}
-                </Text>
-              ) : (
-                <ConnectedUsernames
-                  colorFollowing={true}
-                  inline={true}
-                  type="BodyBig"
-                  usernames={[part]}
-                  onUsernameClicked="profile"
-                />
-              )}
-              {i !== participants.length - 1 && <Text type="Header">, </Text>}
-            </Text>
-          ))}
+          <Participants
+            participants={withoutSelf}
+            participantToDisplayName={props.participantToDisplayName}
+            onShowProfile={props.onShowProfile}
+            textType="BodyBig"
+          />
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>

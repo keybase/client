@@ -9,6 +9,7 @@ import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
+import Participants from './conversation/header-area/normal/participants'
 
 type OwnProps = {}
 
@@ -97,25 +98,12 @@ const Header = (p: Props) => {
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
                 <Kb.Text type="Header" lineClamp={1}>
-                  {withoutSelf.map((part, i, participants) => (
-                    <Kb.Text type="Header" key={part}>
-                      {p.displayNames[part] ? (
-                        <Kb.Text type="Header" onClick={() => p.onGoToProfile(part)}>
-                          {p.displayNames[part]}
-                        </Kb.Text>
-                      ) : (
-                        <Kb.ConnectedUsernames
-                          colorFollowing={true}
-                          underline={true}
-                          inline={true}
-                          type="Header"
-                          usernames={[part]}
-                          onUsernameClicked="profile"
-                        />
-                      )}
-                      {i !== participants.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
-                    </Kb.Text>
-                  ))}
+                  <Participants
+                    participants={withoutSelf}
+                    participantToDisplayName={p.displayNames}
+                    onShowProfile={p.onGoToProfile}
+                    textType="Header"
+                  />
                 </Kb.Text>
               </Kb.Box2>
             ) : null}
