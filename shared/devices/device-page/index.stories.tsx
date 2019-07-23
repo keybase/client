@@ -69,7 +69,7 @@ const load = () => {
     .add('Paper key Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'backup revoked'})} />)
   Sb.storiesOf('Devices/Device/NOPW', module)
     .addDecorator((story: any) => <Sb.MockStore store={storeNOPW}>{story()}</Sb.MockStore>)
-    .add('Desktop', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop last nopw'})} />)
+    .add('Desktop only device', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop last nopw'})} />)
 }
 
 export default load
