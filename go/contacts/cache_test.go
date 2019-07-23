@@ -5,6 +5,7 @@ package contacts
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/clockwork"
@@ -22,7 +23,7 @@ type anotherMockContactsProvider struct {
 }
 
 func (c *anotherMockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
 
 	if c.disabled {
 		require.FailNow(c.t, "unexpected call to provider, after being disabled")
@@ -51,7 +52,7 @@ func TestCacheProvider(t *testing.T) {
 
 	res, err := cacheProvider.LookupAll(libkb.NewMetaContextForTest(tc), []keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{}, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 0)
+	require.Len(t, res.Results, 0)
 }
 
 func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anotherMockContactsProvider,
@@ -184,13 +185,25 @@ func TestLookupCacheExpiration(t *testing.T) {
 	provider.disabled = false
 	provider.queryCount = 0
 
-	// Push us over contact cache expiration time.
-	clock.Advance(contactCacheFreshness + 1)
+	// Push us over unresolved contact cache expiration time.
+	clock.Advance(25 * time.Hour) // see *MockContactsProvider::LookupAll for correct value
 
 	res3, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Equal(t, res1, res3)
 
-	// Expect to look up all components again.
+	// Expect to look up unresolved components (unresolved freshness is shorter than resolved)
+	require.Equal(t, 3, provider.queryCount)
+
+	provider.queryCount = 0
+
+	// Push us over resolved contact cache expiration time.
+	clock.Advance(10*24*time.Hour + time.Hour) // see *MockContactsProvider::LookupAll for correct value
+
+	res4, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Equal(t, res1, res4)
+
+	// Expect to look up all components
 	require.Equal(t, 4, provider.queryCount)
 }
