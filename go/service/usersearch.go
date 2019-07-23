@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -213,6 +214,77 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			if maxRes > 0 && len(res) > maxRes {
 				res = res[:maxRes]
 			}
+		}
+	}
+
+	return res, nil
+}
+
+func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.GetNonUserDetailsArg) (res keybase1.NonUserDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#GetNonUserDetails(%q)", arg.Assertion),
+		func() error { return err })()
+
+	actx := mctx.G().MakeAssertionContext(mctx)
+	url, err := libkb.ParseAssertionURL(actx, arg.Assertion, true /* strict */)
+	if err != nil {
+		return res, err
+	}
+
+	username := url.GetValue()
+	service := url.GetKey()
+	res.AssertionValue = username
+	res.AssertionKey = service
+
+	if url.IsKeybase() {
+		res.IsNonUser = false
+		res.Description = "Keybase user"
+		return res, nil
+	}
+
+	res.IsNonUser = true
+	assertion := url.String()
+
+	if url.IsSocial() {
+		res.Description = fmt.Sprintf("%s user", strings.Title(service))
+		apiRes, err := doSearchRequest(mctx, keybase1.UserSearchArg{
+			Query:                  username,
+			Service:                service,
+			IncludeServicesSummary: false,
+			MaxResults:             1,
+		})
+		if err == nil {
+			for _, v := range apiRes {
+				s := v.Service
+				if s != nil && strings.ToLower(s.Username) == strings.ToLower(username) && string(s.ServiceName) == service {
+					res.Service = s
+				}
+			}
+		} else {
+			mctx.Warning("Can't get external profile data with: %s", err)
+		}
+
+		res.SiteIcon = externals.MakeIcons(mctx, service, "logo_black", 16)
+		res.SiteIconFull = externals.MakeIcons(mctx, service, "logo_full", 64)
+	} else if service == "phone" || service == "email" {
+		contacts, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
+		if err == nil {
+			for _, v := range contacts {
+				if v.Assertion == assertion {
+					contact := v
+					res.Contact = &contact
+					break
+				}
+			}
+		} else {
+			mctx.Warning("Can't get contact list to match assertion: %s", err)
+		}
+
+		switch service {
+		case "phone":
+			res.Description = "Phone contact"
+		case "email":
+			res.Description = "E-mail contact"
 		}
 	}
 

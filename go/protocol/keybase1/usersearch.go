@@ -141,7 +141,64 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 	}
 }
 
+type NonUserDetails struct {
+	IsNonUser      bool                  `codec:"isNonUser" json:"isNonUser"`
+	AssertionValue string                `codec:"assertionValue" json:"assertionValue"`
+	AssertionKey   string                `codec:"assertionKey" json:"assertionKey"`
+	Description    string                `codec:"description" json:"description"`
+	Contact        *ProcessedContact     `codec:"contact,omitempty" json:"contact,omitempty"`
+	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
+	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
+	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
+}
+
+func (o NonUserDetails) DeepCopy() NonUserDetails {
+	return NonUserDetails{
+		IsNonUser:      o.IsNonUser,
+		AssertionValue: o.AssertionValue,
+		AssertionKey:   o.AssertionKey,
+		Description:    o.Description,
+		Contact: (func(x *ProcessedContact) *ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Contact),
+		Service: (func(x *APIUserServiceResult) *APIUserServiceResult {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Service),
+		SiteIcon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIcon),
+		SiteIconFull: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconFull),
+	}
+}
+
 type UserSearchArg struct {
+	SessionID              int    `codec:"sessionID" json:"sessionID"`
 	Query                  string `codec:"query" json:"query"`
 	Service                string `codec:"service" json:"service"`
 	MaxResults             int    `codec:"maxResults" json:"maxResults"`
@@ -149,8 +206,14 @@ type UserSearchArg struct {
 	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
 }
 
+type GetNonUserDetailsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
 type UserSearchInterface interface {
 	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
+	GetNonUserDetails(context.Context, GetNonUserDetailsArg) (NonUserDetails, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
@@ -172,6 +235,21 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getNonUserDetails": {
+				MakeArg: func() interface{} {
+					var ret [1]GetNonUserDetailsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetNonUserDetailsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetNonUserDetailsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetNonUserDetails(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -182,5 +260,10 @@ type UserSearchClient struct {
 
 func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUserDetailsArg) (res NonUserDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res)
 	return
 }

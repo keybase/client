@@ -55,6 +55,20 @@
       "asTracker": "boolean",
       "username": "string",
       "skipNav?": "boolean"
+    },
+    "loadNonUserProfile": {"assertion": "string"},
+    "loadedNonUserProfile": {
+      "assertion": "string",
+      "assertionKey": "string",
+      "assertionValue": "string",
+      "formattedName?": "string",
+      "bio?": "string",
+      "description": "string",
+      "fullName?": "string",
+      "location?": "string",
+      "pictureUrl?": "string",
+      "siteIcon": "Array<Types.SiteIcon>",
+      "siteIconFull": "Array<Types.SiteIcon>"
     }
   }
 }

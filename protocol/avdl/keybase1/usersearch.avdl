@@ -48,5 +48,17 @@ protocol userSearch {
         map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
     }
 
-    array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary, boolean includeContacts);
+    array<APIUserSearchResult> userSearch(int sessionID, string query, string service, int maxResults, boolean includeServicesSummary, boolean includeContacts);
+
+    record NonUserDetails {
+        boolean isNonUser;
+        string assertionValue; // name
+        string assertionKey; // service
+        string description; // "Twitter user", "Phone contact"
+        union { null, ProcessedContact } contact;
+        union { null, APIUserServiceResult } service;
+        array<SizedImage> siteIcon;
+        array<SizedImage> siteIconFull;
+    }
+    NonUserDetails getNonUserDetails(int sessionID, string assertion);
 }

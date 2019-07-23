@@ -59,12 +59,7 @@ export function connectedPropsToProps<T>(
 
 const userDataFromState = (stateProps, usernames) =>
   usernames.map(username => ({
-    // Auto generated from flowToTs. Please clean me!
-    broken:
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== null &&
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== undefined
-        ? UsersConstants.getIsBroken(stateProps._userInfo, username)
-        : false,
+    broken: UsersConstants.getIsBroken(stateProps._userInfo, username) || false,
     following: stateProps._following.has(username),
     username,
     you: stateProps._you === username,
