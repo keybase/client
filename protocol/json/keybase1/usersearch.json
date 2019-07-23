@@ -156,6 +156,10 @@
           },
           "name": "servicesSummary",
           "jsonkey": "services_summary"
+        },
+        {
+          "type": "double",
+          "name": "rawScore"
         }
       ]
     },
