@@ -152,7 +152,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 
 	for _, email := range emails {
 		key := makeEmailLookupKey(email)
-		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, ContactLookupKey(key))
+		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later
 			res[key] = cache.ContactLookupResult
