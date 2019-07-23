@@ -1039,6 +1039,7 @@ func postXDRToCallback(signed, callbackURL string) error {
 	if err != nil {
 		return err
 	}
+
 	// take any values that are in the URL
 	values := u.Query()
 	// remove the RawQuery so we can POST them all as a form
