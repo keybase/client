@@ -127,7 +127,7 @@ const _Icon = (p: Props, ref: any) => {
     logger.warn('Null iconType passed')
     return null
   }
-  if (!iconMeta[iconType]) {
+  if (!Shared.isValidIconType(iconType)) {
     logger.warn(`Invalid icon type passed in: ${iconType}`)
     return null
   }
