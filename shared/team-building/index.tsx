@@ -71,6 +71,7 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
   const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const isImportPromptDismissed = Container.useSelector(s => s.settings.contacts.importPromptDismissed)
   const numContactsImported = Container.useSelector(s => s.settings.contacts.importedCount)
+  const prevNumContactsImported = Container.usePrevious(numContactsImported)
   // Although we won't use this if we early exit after subsequent checks, React
   // won't let us use hooks unless the execution is the same every time.
   const onImportContacts = React.useCallback(
@@ -83,14 +84,13 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
     [dispatch, arePermissionsGranted]
   )
   const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
-
   // Redo search if # of imported contacts changes
-  const prevNumContactsImported = Container.usePrevious(numContactsImported)
   React.useEffect(() => {
     if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
       onRedoSearch()
     }
   }, [numContactsImported, prevNumContactsImported, onRedoSearch])
+
   if (!Flags.sbsContacts) return null
   if (!Styles.isMobile) return null
 
@@ -102,7 +102,7 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
   }
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
-  if (contactsImported || isImportPromptDismissed) return null
+  if (contactsImported || isImportPromptDismissed || arePermissionsGranted === 'never_ask_again') return null
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner}>
