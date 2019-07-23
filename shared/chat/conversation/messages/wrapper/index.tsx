@@ -74,6 +74,7 @@ type State = {
 
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
   _mounted = false
+  _swipeable = React.createRef<Kb.Swipeable>()
   state = {
     disableCenteredHighlight: false,
     showMenuButton: false,
@@ -131,6 +132,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
     this.props.message.exploding
 
+  _onRightOpen = () => {
+    this.props.onSwipeLeft()
+    this._swipeable.current && this._swipeable.current.close()
+  }
+
+  _renderRightActions = () => {
+    return (
+      <Kb.Box2 direction="horizontal">
+        <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
+      </Kb.Box2>
+    )
+  }
+
   _authorAndContent = children => {
     let result
     if (this.props.showUsername) {
@@ -175,7 +189,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             fullWidth={true}
             style={styles.contentUnderAuthorContainer}
           >
-            {children}
+            <Kb.Swipeable
+              ref={this._swipeable}
+              renderRightActions={this._renderRightActions}
+              onSwipeableRightWillOpen={this._onRightOpen}
+            >
+              {children}
+            </Kb.Swipeable>
           </Kb.Box2>
         </React.Fragment>
       )
@@ -693,6 +713,9 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
+  },
+  replyIcon: {
+    padding: Styles.globalMargins.xtiny,
   },
   send: Styles.platformStyles({
     common: {position: 'absolute'},
