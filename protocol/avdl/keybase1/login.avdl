@@ -93,4 +93,10 @@ protocol login {
    paperkey
    */
   void loginOneshot(int sessionID, string username, string paperKey);
+
+  /**
+   isOnline returns whether the device is able to open a connection to keybase.io.
+   Used for determining whether to offer proxy settings on the login screen.
+   */
+  bool isOnline();
 }

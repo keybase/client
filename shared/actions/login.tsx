@@ -37,7 +37,7 @@ const getPasswordHandler = passphrase => (params, response) => {
   } else {
     cancelOnCallback(params, response)
   }
-    return undefined
+  return undefined
 }
 
 const moveToProvisioning = (username: string) => (params, response) => {
@@ -101,6 +101,11 @@ const launchAccountResetWebPage = () => {
   openURL('https://keybase.io/#account-reset')
 }
 
+const loadIsOnline = _ =>
+  RPCTypes.loginIsOnlineRpcPromise(undefined)
+    .then((result: boolean) => LoginGen.createLoadedIsOnline({result: result}))
+    .catch(err => logger.warn('Error in checking whether we are online', err))
+
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
@@ -112,6 +117,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
     LoginGen.launchAccountResetWebPage,
     launchAccountResetWebPage
   )
+  yield* Saga.chainAction<LoginGen.LoadIsOnlinePayload>(LoginGen.loadIsOnline, loadIsOnline)
 }
 
 export default loginSaga
