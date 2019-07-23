@@ -9,7 +9,6 @@ import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
-import * as SettingsGen from './settings-gen'
 import flags from '../util/feature-flags'
 
 const cancelDesc = 'Canceling RPC'

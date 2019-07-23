@@ -1,23 +1,11 @@
-import * as ConfigGen from '../../actions/config-gen'
 import {
-  createTrace,
-  createProcessorProfile,
-  createLoadLockdownMode,
-  createLoadHasRandomPw,
-  createOnChangeLockdownMode,
-  createOnChangeUseNativeFrame,
-  createOnChangeRememberPassword,
   createLoadProxyData,
-  createLoadRememberPassword,
   createSaveProxyData,
   createCertificatePinningToggled,
-  createToggleRuntimeStats,
 } from '../../actions/settings-gen'
-import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
-import {compose} from 'recompose'
-import {connect, lifecycle, TypedState} from '../../util/container'
+import {connect, TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from './index'
 
