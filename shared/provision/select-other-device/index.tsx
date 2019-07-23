@@ -7,7 +7,7 @@ type Props = {
   devices: Array<Types.Device>
   onSelect: (name: string) => void
   onResetAccount: () => void
-  onBack: () => void
+  onBack?: () => void
 }
 
 class SelectOtherDevice extends React.Component<Props> {
