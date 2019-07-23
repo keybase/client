@@ -1827,7 +1827,7 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
       if (action.payload.reason === 'appLink') {
         return [
           ConfigGen.createSetKeybaseLinkError({error: "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."}),
-          RouteTreeGen.createNavigateAppend({path: ['keybaseLinkError']}),
+          RouteTreeGen.createNavigateAppend({path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}]}),
         ]
       } else {
         return undefined

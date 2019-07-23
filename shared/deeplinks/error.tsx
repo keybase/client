@@ -18,9 +18,13 @@ const ErrorBody = (props: ErrorBodyProps) => {
   )
 }
 
-const Error = () => {
+type OwnProps = {
+  errorSource: 'app' | 'sep7'
+}
+
+const Error = (props: OwnProps) => {
   const Body = Kb.HeaderOrPopup(ErrorBody)
-  const error = Container.useSelector(s => s.wallets.sep7ConfirmError)
+  const error = Container.useSelector(s => props.errorSource === 'app' ? s.config.keybaseLinkError : s.wallets.sep7ConfirmError)
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return <Body onCancel={onClose} customCancelText="Close" errorText={error} />
