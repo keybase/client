@@ -11,6 +11,7 @@ export type Props = {
   equivBalance: string // non-empty only if native currency
   expanded?: boolean // for testing
   infoUrlText: string
+  isNative: boolean
   issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string // issuing public key
   name: string // Asset code or 'Lumens'
@@ -73,7 +74,7 @@ export default class Asset extends React.Component<Props, State> {
         </Kb.ClickableBox>
         {this.state.expanded && (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
-            {this.props.code === 'XLM' && (
+            {this.props.isNative && (
               <BalanceSummary
                 availableToSend={this.props.availableToSend}
                 equivAvailableToSend={this.props.equivAvailableToSend}
