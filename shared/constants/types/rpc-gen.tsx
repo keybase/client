@@ -1915,6 +1915,7 @@ export enum StatusCode {
   scratelimit = 602,
   scbadsignupusernametaken = 701,
   scbadinvitationcode = 707,
+  scbadsignupteamname = 711,
   scfeatureflag = 712,
   scmissingresult = 801,
   sckeynotfound = 901,
