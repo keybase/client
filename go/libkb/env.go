@@ -403,11 +403,12 @@ func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
 		func() string {
-			home, err := filepath.Abs(e.cmd.GetHome())
+			home := e.cmd.GetHome()
+			absHome, err := filepath.Abs(home)
 			if err != nil {
-				return e.cmd.GetHome()
+				return home
 			}
-			return home
+			return absHome
 		},
 	)
 }
