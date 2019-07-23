@@ -108,6 +108,7 @@ const ContactsBanner = () => {
             backgroundColor="blue"
             onClick={onImportContacts}
             style={styles.bannerImportButton}
+            small={true}
           />
           <Kb.Button
             label="Later"
@@ -115,6 +116,7 @@ const ContactsBanner = () => {
             mode="Secondary"
             onClick={onLater}
             style={styles.bannerLaterButton}
+            small={true}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -252,16 +254,18 @@ const styles = Styles.styleSheetCreate({
   banner: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.blue,
-    paddingBottom: 24,
-    paddingLeft: 8,
-    paddingRight: 8,
-    paddingTop: 24,
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.small,
   },
   bannerButtonContainer: {
+    flexWrap: 'wrap',
     paddingBottom: 8,
     paddingTop: 8,
   },
   bannerImportButton: {
+    marginBottom: 4,
     marginRight: 8,
   },
   bannerLaterButton: {
@@ -274,6 +278,7 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 240,
   },
   bannerTextContainer: {
+    flex: 1,
     justifyContent: 'center',
   },
   container: Styles.platformStyles({
