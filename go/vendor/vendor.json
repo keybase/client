@@ -729,14 +729,14 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "5aefee10b79ea182c611de34d5f4fa4d70f84dc9",
-			"revisionTime": "2019-07-22T20:37:27Z"
+			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
+			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
 			"checksumSHA1": "K2RHbS6KvZvxN0YnMflLBMdF4T8=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "5aefee10b79ea182c611de34d5f4fa4d70f84dc9",
-			"revisionTime": "2019-07-22T20:37:27Z"
+			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
+			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
 			"checksumSHA1": "KLtP59e4Bqmy3A/8kQ++bJ5XAKs=",
