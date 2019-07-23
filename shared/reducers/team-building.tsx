@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {TypedActions} from '../actions/typed-actions-gen'
 import {trim} from 'lodash-es'
 
 export default function(

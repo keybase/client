@@ -71,6 +71,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+  _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
 })
 
 // Used to decide whether to show the author for sequential messages
@@ -193,6 +195,7 @@ export default Container.namedConnect(
         ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal)
         : undefined,
       onRetry,
+      onSwipeLeft: () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal),
       orangeLineAbove: stateProps.orangeLineAbove,
       previous: stateProps.previous,
       shouldShowPopup: stateProps.shouldShowPopup,

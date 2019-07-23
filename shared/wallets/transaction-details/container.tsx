@@ -60,7 +60,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const tx = stateProps._transaction
   if (stateProps.loading) {
     return {

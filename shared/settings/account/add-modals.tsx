@@ -8,7 +8,6 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email/'
 import {EnterPhoneNumberBody} from '../../signup/phone-number/'
 import {VerifyBody} from '../../signup/phone-number/verify'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {
@@ -188,7 +187,10 @@ export const VerifyPhone = () => {
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
-  const resendWaiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+  const resendWaiting = Container.useAnyWaiting(
+    Constants.addPhoneNumberWaitingKey,
+    Constants.resendVerificationForPhoneWaitingKey
+  )
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
 
   // clean everything on unmount

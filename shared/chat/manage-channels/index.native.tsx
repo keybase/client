@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Props, RowProps} from './index.types'
 import {pluralize} from '../../util/string'
 
@@ -127,40 +127,6 @@ const ManageChannels = (props: Props) => (
     </Kb.Box>
   </Kb.Box>
 )
-
-const Header = (props: Props) => {
-  let channelDisplay
-  if (props.channels.length === 0 || props.waitingForGet) {
-    channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
-  } else {
-    channelDisplay = (
-      <Kb.Text type="BodyBig">
-        {props.channels.length} {pluralize('chat channel', props.channels.length)}
-      </Kb.Text>
-    )
-  }
-  return (
-    <Kb.Box style={_headerStyle}>
-      <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-        <Kb.Avatar isTeam={true} teamname={props.teamname} size={16} />
-        <Kb.Text
-          type="BodySmallSemibold"
-          style={platformStyles({isMobile: {fontSize: 11, lineHeight: 16, marginLeft: globalMargins.xtiny}})}
-          lineClamp={1}
-        >
-          {props.teamname}
-        </Kb.Text>
-      </Kb.Box>
-      {channelDisplay}
-    </Kb.Box>
-  )
-}
-
-const _headerStyle = {
-  ...globalStyles.fillAbsolute,
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-}
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,

@@ -27,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (
   _stateProps,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: ConnectedNameWithIconProps
+  ownProps: OwnProps
 ) => {
   const {onClick, username, teamname, ...props} = ownProps
 

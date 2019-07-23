@@ -54,7 +54,7 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: () => dispatch(ProfileGen.createSubmitUsername()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   error: stateProps.error,
   onBack: dispatchProps.onBack,
   onCancel: dispatchProps.onBack,

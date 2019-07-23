@@ -1,5 +1,4 @@
 import * as SettingsGen from '../../actions/settings-gen'
-import * as Kb from '../../common-adapters'
 import UpdatePassword from '.'
 import {compose, lifecycle, connect, RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
@@ -35,7 +34,7 @@ export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+      (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
   lifecycle({
     componentDidMount() {

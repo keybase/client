@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import Text from './text'
-import {Props, DefaultProps} from './header'
+import {Props} from './header'
 import Icon from './icon'
 import * as Styles from '../styles'
 

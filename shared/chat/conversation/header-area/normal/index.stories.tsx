@@ -20,7 +20,6 @@ const defaultProps = {
   unMuteConversation: Sb.action('unMuteConversation'),
 }
 const phones = ['ayoubd', '+15558675309@phone']
-const contactNames = {'+15558675309@phone': 'Max Goodman'}
 
 const load = () => {
   Sb.storiesOf('Chat/Header', module)

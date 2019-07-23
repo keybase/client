@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import Joined from '.'
 import {connect, isMobile} from '../../../../util/container'
-import {chatTab} from '../../../../constants/tabs'
 
 type OwnProps = {
   message: Types.MessageSystemJoined
@@ -35,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const {_meta} = stateProps
   return {
     author: stateProps.author,

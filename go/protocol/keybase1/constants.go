@@ -43,6 +43,7 @@ const (
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
 	StatusCode_SCBadInvitationCode                         StatusCode = 707
+	StatusCode_SCBadSignupTeamName                         StatusCode = 711
 	StatusCode_SCFeatureFlag                               StatusCode = 712
 	StatusCode_SCMissingResult                             StatusCode = 801
 	StatusCode_SCKeyNotFound                               StatusCode = 901
@@ -221,6 +222,8 @@ const (
 	StatusCode_SCPhoneNumberLimitExceeded                  StatusCode = 3404
 	StatusCode_SCNoPaperKeys                               StatusCode = 3605
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
+	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
+	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -259,6 +262,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCRateLimit":                602,
 	"SCBadSignupUsernameTaken":   701,
 	"SCBadInvitationCode":        707,
+	"SCBadSignupTeamName":        711,
 	"SCFeatureFlag":              712,
 	"SCMissingResult":            801,
 	"SCKeyNotFound":              901,
@@ -437,6 +441,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCPhoneNumberLimitExceeded":                  3404,
 	"SCNoPaperKeys":                               3605,
 	"SCTeambotKeyGenerationExists":                3800,
+	"SCTeambotKeyOldBoxedGeneration":              3801,
+	"SCTeambotKeyBadGeneration":                   3802,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -473,6 +479,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
+	711:  "SCBadSignupTeamName",
 	712:  "SCFeatureFlag",
 	801:  "SCMissingResult",
 	901:  "SCKeyNotFound",
@@ -651,6 +658,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3404: "SCPhoneNumberLimitExceeded",
 	3605: "SCNoPaperKeys",
 	3800: "SCTeambotKeyGenerationExists",
+	3801: "SCTeambotKeyOldBoxedGeneration",
+	3802: "SCTeambotKeyBadGeneration",
 }
 
 func (e StatusCode) String() string {

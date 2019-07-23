@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   keyError: stateProps.keyError,
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,

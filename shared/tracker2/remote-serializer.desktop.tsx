@@ -6,6 +6,7 @@ import shallowEqual from 'shallowequal'
 // We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
 export const serialize: any = {
   ...Avatar.serialize,
+  airdropIsLive: v => v,
   assertions: v => (v ? v.toJS() : v),
   bio: v => v,
   followThem: v => v,
@@ -28,11 +29,12 @@ export const serialize: any = {
   windowParam: v => v,
   windowPositionBottomRight: v => v,
   windowTitle: v => v,
+  youAreInAirdrop: v => v,
 }
 
 const initialState = {
   assertions: I.Map(),
-  config: {},
+  config: {following: I.Set()},
   users: {infoMap: I.Map()},
   waiting: {counts: I.Map()},
 }

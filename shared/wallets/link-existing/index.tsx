@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import {ValidationState} from '../../constants/types/wallets'

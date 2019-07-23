@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -99,16 +100,16 @@ func checkTeambotEKNeededNotifications(tc *libkb.TestContext, notifications *tea
 
 func noNewTeambotEKNotification(tc *libkb.TestContext, notifications *teamNotifyHandler) {
 	select {
-	case <-notifications.newTeambotEKCh:
-		require.Fail(tc.T, "unexpected newTeambotEK notification")
+	case arg := <-notifications.newTeambotEKCh:
+		require.Fail(tc.T, "unexpected newTeambotEK notification", arg)
 	default:
 	}
 }
 
 func noTeambotEKNeeded(tc *libkb.TestContext, notifications *teamNotifyHandler) {
 	select {
-	case <-notifications.teambotEKNeededCh:
-		require.Fail(tc.T, "unexpected teambotEKNeeded notification")
+	case arg := <-notifications.teambotEKNeededCh:
+		require.Fail(tc.T, "unexpected teambotEKNeeded notification", arg)
 	default:
 	}
 }
@@ -181,17 +182,17 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	user1.waitForRotateByID(teamID, keybase1.Seqno(4))
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
-	key := ephemeral.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
+	key := teambot.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
 	expired := keybase1.ToTime(fc.Now())
 	mctx3.G().GetKVStore().PutObj(key, nil, expired)
-	permitted, ctime, err := ephemeral.TeambotWrongKIDPermitted(mctx3, teamID, botua.uid,
+	permitted, ctime, err := teambot.TeambotEKWrongKIDPermitted(mctx3, teamID, botua.uid,
 		teambotEK2.Generation(), keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
 	require.True(t, permitted)
 	require.Equal(t, expired, ctime)
 
-	fc.Advance(ephemeral.MaxTeambotEKWrongKIDPermitted) // expire wrong KID cache
-	permitted, ctime, err = ephemeral.TeambotWrongKIDPermitted(mctx3, teamID, botua.uid,
+	fc.Advance(teambot.MaxTeambotKeyWrongKIDPermitted) // expire wrong KID cache
+	permitted, ctime, err = teambot.TeambotEKWrongKIDPermitted(mctx3, teamID, botua.uid,
 		teambotEK2.Generation(), keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
 	require.False(t, permitted)
@@ -291,12 +292,17 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	}
 
 	// bot asks for a non-existent generation, no new key is created.
-	badGen := teambotEK.Generation() + 1
+	badGen := teambotEK.Generation() + 50
 	_, err = ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, badGen, nil)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
-	noTeambotEKNeeded(user1.tc, user1.notifications)
-	noTeambotEKNeeded(user2.tc, user2.notifications)
+	ekNeededArg = keybase1.TeambotEkNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: badGen,
+	}
+	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
+	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
 	noNewTeambotEKNotification(botua.tc, botua.notifications)
 }
 

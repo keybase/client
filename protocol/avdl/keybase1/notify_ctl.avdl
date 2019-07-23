@@ -23,6 +23,7 @@ protocol notifyCtl {
     boolean reachability;
     boolean team;
     boolean ephemeral;
+    boolean teambot;
     boolean chatkbfsedits;
     boolean chatdev;
     boolean deviceclone;

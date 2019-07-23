@@ -3,7 +3,7 @@ import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, tabRoots} from './routes'
+import {modalRoutes, tabRoots} from './routes'
 import logger from '../logger'
 import {getActiveKey} from './util'
 
@@ -122,5 +122,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         }),
       ]
     }
+      default:
+          return undefined
   }
 }

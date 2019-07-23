@@ -84,7 +84,7 @@ export default Container.compose(
   Container.namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d}),
+    (s, d, o: OwnProps) => ({...o, ...s, ...d}),
     'PushPrompt'
   ),
   Container.safeSubmitPerMount(['onRequestPermissions', 'onNoPermissions'])

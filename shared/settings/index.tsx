@@ -4,12 +4,11 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Constants from '../constants/settings'
 import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import SettingsContainer, {Props} from './render'
+import SettingsContainer from './render'
 import {compose} from 'recompose'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {RouteProps} from '../route-tree/render-route'
-import * as I from 'immutable'
 
 type OwnProps = {
   routeSelected: Types.Tab

@@ -14,7 +14,7 @@ const mapStateToProps = state => ({
   badgeCount: getBadgeCount(state.chat2.metaMap, state.chat2.badgeMap),
 })
 
-const mergeProps = (stateProps, _, ownProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   badgeCount: stateProps.badgeCount,
   toggle: ownProps.toggle,
 })

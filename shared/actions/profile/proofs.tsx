@@ -8,9 +8,8 @@ import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
-import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import {TypedState, TypedActions} from '../../util/container'
+import {TypedState} from '../../util/container'
 
 const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID

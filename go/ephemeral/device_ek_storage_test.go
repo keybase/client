@@ -84,7 +84,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
-	expectedErr := newEKCorruptedErr(mctx, DeviceEKStr, corruptedGeneration, 100)
+	expectedErr := newEKCorruptedErr(mctx, DeviceEKKind, corruptedGeneration, 100)
 	require.Equal(t, expectedErr.Error(), ekErr.Error())
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 

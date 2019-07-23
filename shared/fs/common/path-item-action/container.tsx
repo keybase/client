@@ -1,8 +1,8 @@
 import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
-import {namedConnect, TypedState} from '../../../util/container'
-import PathItemAction, {Props, Clickable} from '.'
+import {namedConnect} from '../../../util/container'
+import PathItemAction, {Clickable} from '.'
 
 type OwnProps = {
   clickable: Clickable

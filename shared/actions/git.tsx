@@ -95,6 +95,7 @@ const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
       return GitGen.createLoadGit()
     }
   }
+    return undefined
 }
 
 function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {

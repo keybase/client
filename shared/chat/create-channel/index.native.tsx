@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalMargins} from '../../styles'
 import {Props} from './index.types'
 
 const CreateChannel = (props: Props) => (
@@ -45,24 +45,6 @@ const CreateChannel = (props: Props) => (
     </Kb.Box>
   </Kb.Box>
 )
-
-const Header = (props: Props) => (
-  <Kb.Box style={_headerStyle}>
-    <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-      <Kb.Avatar isTeam={true} teamname={props.teamname} size={16} />
-      <Kb.Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}} lineClamp={1}>
-        {props.teamname}
-      </Kb.Text>
-    </Kb.Box>
-    <Kb.Text type="BodyBig">New channel</Kb.Text>
-  </Kb.Box>
-)
-
-const _headerStyle = {
-  ...globalStyles.fillAbsolute,
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-}
 
 const _boxStyle = {
   padding: 16,
