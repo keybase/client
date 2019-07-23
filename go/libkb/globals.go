@@ -426,21 +426,21 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 
 	p := "ui.routeState2"
 	if uiRouteState2, isSet := serviceConfig.GetStringAtPath(p); isSet {
-		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil && !isJSONNoSuchKeyError(err) {
+		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	p = "ui.shownMonsterPushPrompt"
 	if uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p); isSet {
-		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil && !isJSONNoSuchKeyError(err) {
+		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	p = "stellar.lastSentXLM"
 	if stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p); isSet {
-		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil && !isJSONNoSuchKeyError(err) {
+		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -448,9 +448,9 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	p = "ui.importContacts"
 	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
 	if err != nil {
-		if !isJSONNoSuchKeyError(err) {
-			errs = append(errs, err)
-		}
+		// if !isJSONNoSuchKeyError(err) {
+		errs = append(errs, err)
+		// }
 	} else {
 		syncSettings, ok := syncSettings.(map[string]interface{})
 		if !ok {
@@ -462,7 +462,7 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 					errs = append(errs, fmt.Errorf("Failed to coerce syncEnabled in migration for %s", username))
 				}
 				err := guiConfig.SetBoolAtPath(fmt.Sprintf("%s.%s", p, username), syncEnabled)
-				if err != nil && !isJSONNoSuchKeyError(err) {
+				if err != nil {
 					errs = append(errs, err)
 				}
 			}
