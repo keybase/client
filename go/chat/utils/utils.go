@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/externals"
-
 	"github.com/keybase/xurls"
 
 	"github.com/keybase/client/go/chat/pager"
@@ -1234,16 +1232,9 @@ func getParticipantType(username string) chat1.UIParticipantType {
 func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
-		displayName := ""
-		if participantType == chat1.UIParticipantType_PHONENO || participantType == chat1.UIParticipantType_EMAIL {
-			if parsedAssertion, ok := externals.NormalizeSocialAssertionStatic(ctx, p.Username); ok {
-				displayName = parsedAssertion.User
-			}
-		}
 		participants = append(participants, chat1.UIParticipant{
 			Assertion:   p.Username,
 			ContactName: p.ContactName,
-			DisplayName: &displayName,
 			FullName:    p.Fullname,
 			Type:        participantType,
 		})

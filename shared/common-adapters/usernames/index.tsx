@@ -110,7 +110,7 @@ function UsernameText(props: Props) {
               }
               style={userStyle}
             >
-              {displayFormat(u.username)}
+              {assertionToDisplay(u.username)}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
@@ -219,7 +219,7 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
 
 // 15550123456@phone => +1 (555) 012-3456
 // [test@example.com]@email => test@example.com
-const displayFormat = (assertion: string): string => {
+export const assertionToDisplay = (assertion: string): string => {
   if (assertion.includes('@email') || assertion.includes('@phone')) {
     const noSuffix = assertion.substring(0, assertion.length - 6)
     if (assertion.includes('@email')) {

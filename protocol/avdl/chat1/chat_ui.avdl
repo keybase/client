@@ -72,7 +72,6 @@ protocol chatUi {
     string assertion;
     union { null, string } fullName;
     union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
-    union { null, string } displayName; // if this is a phone / email participant, this is the phone / email alone
   }
 
   record InboxUIItem {

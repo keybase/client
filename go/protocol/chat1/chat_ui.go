@@ -241,7 +241,6 @@ type UIParticipant struct {
 	Assertion   string            `codec:"assertion" json:"assertion"`
 	FullName    *string           `codec:"fullName,omitempty" json:"fullName,omitempty"`
 	ContactName *string           `codec:"contactName,omitempty" json:"contactName,omitempty"`
-	DisplayName *string           `codec:"displayName,omitempty" json:"displayName,omitempty"`
 }
 
 func (o UIParticipant) DeepCopy() UIParticipant {
@@ -262,13 +261,6 @@ func (o UIParticipant) DeepCopy() UIParticipant {
 			tmp := (*x)
 			return &tmp
 		})(o.ContactName),
-		DisplayName: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.DisplayName),
 	}
 }
 
