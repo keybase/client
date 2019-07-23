@@ -21,6 +21,8 @@ export type Props = {
   isMuted: boolean
   isSelected: boolean
   isTypingSnippet: boolean
+  onHideConversation: () => void
+  onMuteConversation: () => void
   onSelectConversation: () => void
   participantNeedToRekey: boolean
   participants: Array<string>
@@ -51,6 +53,7 @@ const SmallTeamBox = Styles.isMobile
     })
 
 class SmallTeam extends React.PureComponent<Props, State> {
+  _swipeRef = React.createRef<Kb.Swipeable>()
   state = {
     isHovered: false,
     showMenu: false,
@@ -71,6 +74,51 @@ class SmallTeam extends React.PureComponent<Props, State> {
       ? Styles.globalColors.blueGreyDark
       : this.props.backgroundColor
 
+  _onMute = () => {
+    this._swipeRef.current && this._swipeRef.current.close()
+    this.props.onMuteConversation()
+  }
+
+  _onHide = () => {
+    this._swipeRef.current && this._swipeRef.current.close()
+    this.props.onHideConversation()
+  }
+
+  _renderRightActions = () => {
+    return (
+      <Kb.Box2 direction="horizontal">
+        <Kb.ClickableBox onClick={this._onMute}>
+          <Kb.Box2
+            direction="vertical"
+            style={styles.rightActionBoxMute}
+            alignItems="center"
+            fullHeight={true}
+            centerChildren={true}
+          >
+            <Kb.Icon type="iconfont-shh" color={Styles.globalColors.white} />
+            <Kb.Text type="BodySmall" style={styles.rightActionText}>
+              {this.props.isMuted ? 'Unmute' : 'Mute'}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        <Kb.ClickableBox onClick={this._onHide}>
+          <Kb.Box2
+            direction="vertical"
+            style={styles.rightActionBoxHide}
+            alignItems="center"
+            fullHeight={true}
+            centerChildren={true}
+          >
+            <Kb.Icon type="iconfont-hide" color={Styles.globalColors.white} />
+            <Kb.Text type="BodySmall" style={styles.rightActionText}>
+              Hide
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+    )
+  }
+
   render() {
     const props = this.props
     const clickProps = {
@@ -80,82 +128,84 @@ class SmallTeam extends React.PureComponent<Props, State> {
       onMouseOver: this._onMouseOver,
     }
     return (
-      <SmallTeamBox
-        {...clickProps}
-        style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
-      >
-        <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
-          {props.teamname ? (
-            <TeamAvatar
-              teamname={props.teamname}
-              isMuted={props.isMuted}
-              isSelected={this.props.isSelected}
-              isHovered={this.state.isHovered}
-            />
-          ) : (
-            <Avatars
-              backgroundColor={this._backgroundColor()}
-              isHovered={this.state.isHovered}
-              isMuted={props.isMuted}
-              isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
-              isSelected={props.isSelected}
-              participants={props.participants}
-            />
-          )}
-          <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Kb.Box
-              style={Styles.collapseStyles([
-                Styles.globalStyles.flexBoxColumn,
-                styles.flexOne,
-                {justifyContent: props.hasBottomLine ? 'flex-end' : 'center'},
-              ])}
-            >
-              <SimpleTopLine
-                backgroundColor={props.backgroundColor}
-                hasUnread={props.hasUnread}
-                hasBadge={props.hasBadge}
-                iconHoverColor={props.iconHoverColor}
-                isSelected={props.isSelected}
-                participants={props.teamname ? [props.teamname] : props.participants}
-                showBold={props.showBold}
-                showGear={!props.isInWidget}
-                forceShowMenu={this.state.showMenu}
-                onForceHideMenu={this._onForceHideMenu}
-                subColor={props.subColor}
-                timestamp={props.timestamp}
-                usernameColor={props.usernameColor}
+      <Kb.Swipeable ref={this._swipeRef} renderRightActions={this._renderRightActions}>
+        <SmallTeamBox
+          {...clickProps}
+          style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
+        >
+          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
+            {props.teamname ? (
+              <TeamAvatar
                 teamname={props.teamname}
-                conversationIDKey={props.conversationIDKey}
-                {...(props.channelname ? {channelname: props.channelname} : {})}
+                isMuted={props.isMuted}
+                isSelected={this.props.isSelected}
+                isHovered={this.state.isHovered}
               />
-            </Kb.Box>
-            {props.hasBottomLine && (
+            ) : (
+              <Avatars
+                backgroundColor={this._backgroundColor()}
+                isHovered={this.state.isHovered}
+                isMuted={props.isMuted}
+                isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
+                isSelected={props.isSelected}
+                participants={props.participants}
+              />
+            )}
+            <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
               <Kb.Box
                 style={Styles.collapseStyles([
                   Styles.globalStyles.flexBoxColumn,
                   styles.flexOne,
-                  {justifyContent: 'flex-start'},
+                  {justifyContent: props.hasBottomLine ? 'flex-end' : 'center'},
                 ])}
               >
-                <BottomLine
+                <SimpleTopLine
                   backgroundColor={props.backgroundColor}
-                  participantNeedToRekey={props.participantNeedToRekey}
-                  youAreReset={props.youAreReset}
-                  showBold={props.showBold}
-                  snippet={props.snippet}
-                  snippetDecoration={props.snippetDecoration}
-                  subColor={props.subColor}
-                  hasResetUsers={props.hasResetUsers}
-                  youNeedToRekey={props.youNeedToRekey}
+                  hasUnread={props.hasUnread}
+                  hasBadge={props.hasBadge}
+                  iconHoverColor={props.iconHoverColor}
                   isSelected={props.isSelected}
-                  isDecryptingSnippet={props.isDecryptingSnippet}
-                  isTypingSnippet={props.isTypingSnippet}
+                  participants={props.teamname ? [props.teamname] : props.participants}
+                  showBold={props.showBold}
+                  showGear={!props.isInWidget}
+                  forceShowMenu={this.state.showMenu}
+                  onForceHideMenu={this._onForceHideMenu}
+                  subColor={props.subColor}
+                  timestamp={props.timestamp}
+                  usernameColor={props.usernameColor}
+                  teamname={props.teamname}
+                  conversationIDKey={props.conversationIDKey}
+                  {...(props.channelname ? {channelname: props.channelname} : {})}
                 />
               </Kb.Box>
-            )}
+              {props.hasBottomLine && (
+                <Kb.Box
+                  style={Styles.collapseStyles([
+                    Styles.globalStyles.flexBoxColumn,
+                    styles.flexOne,
+                    {justifyContent: 'flex-start'},
+                  ])}
+                >
+                  <BottomLine
+                    backgroundColor={props.backgroundColor}
+                    participantNeedToRekey={props.participantNeedToRekey}
+                    youAreReset={props.youAreReset}
+                    showBold={props.showBold}
+                    snippet={props.snippet}
+                    snippetDecoration={props.snippetDecoration}
+                    subColor={props.subColor}
+                    hasResetUsers={props.hasResetUsers}
+                    youNeedToRekey={props.youNeedToRekey}
+                    isSelected={props.isSelected}
+                    isDecryptingSnippet={props.isDecryptingSnippet}
+                    isTypingSnippet={props.isTypingSnippet}
+                  />
+                </Kb.Box>
+              )}
+            </Kb.Box>
           </Kb.Box>
-        </Kb.Box>
-      </SmallTeamBox>
+        </SmallTeamBox>
+      </Kb.Swipeable>
     )
   }
 }
@@ -177,6 +227,17 @@ const styles = Styles.styleSheetCreate({
   }),
   flexOne: {
     flex: 1,
+  },
+  rightActionBoxHide: {
+    backgroundColor: Styles.globalColors.black_20,
+    width: 80,
+  },
+  rightActionBoxMute: {
+    backgroundColor: Styles.globalColors.orange,
+    width: 80,
+  },
+  rightActionText: {
+    color: Styles.globalColors.white,
   },
   rowContainer: Styles.platformStyles({
     common: {

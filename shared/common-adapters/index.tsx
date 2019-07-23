@@ -109,3 +109,4 @@ export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
 export {default as WithTooltip} from './with-tooltip'
+export {default as Swipeable} from './swipeable'
