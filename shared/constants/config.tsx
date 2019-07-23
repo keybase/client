@@ -108,6 +108,7 @@ export const makeState = I.Record<Types._State>({
   following: I.Set(),
   globalError: null,
   justDeletedSelf: '',
+  keybaseLinkError: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: I.Map(),

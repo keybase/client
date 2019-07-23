@@ -1823,7 +1823,16 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
       .filter(Boolean)
 
     const first = resultMetas[0]
-    if (!first) return
+    if (!first) {
+      if (action.payload.reason === 'appLink') {
+        return [
+          ConfigGen.createSetKeybaseLinkError({error: "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."}),
+          RouteTreeGen.createNavigateAppend({path: ['keybaseLinkError']}),
+        ]
+      } else {
+        return undefined
+      }
+    }
 
     const conversationIDKey = first.conversationIDKey
     RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({

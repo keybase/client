@@ -418,6 +418,57 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   }
 }
 
+const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeybaseLinkPayload) => {
+  const parts = action.payload.link.split('/')
+  // List guaranteed to contain at least one elem.
+  switch (parts[0]) {
+    case 'profile':
+      if (parts.length !== 3) {
+        console.warn('Malformed profile link')
+        return undefined
+      }
+      if (parts[1] === 'new-proof') {
+        return ProfileGen.createAddProof({platform: parts[2]})
+      }
+      break
+    // Fall-through
+    case 'private':
+    case 'public':
+    case 'team':
+      return [
+        RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+        RouteTreeGen.createNavigateAppend({path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}]}),
+      ]
+    case 'chat':
+      if (parts.length !== 2) {
+        console.warn('Malformed Chat link')
+        return undefined
+      }
+      if (parts[1].includes('#')) {
+        const teamChat = parts[1].split('#')
+        if (teamChat.length !== 2) {
+          console.warn('Extra # in team chat link')
+          return undefined
+        }
+        const [teamname, channelname] = teamChat
+        console.warn('in team', teamname, channelname)
+        return [
+          RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+          ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname})
+        ]
+      } else {
+        return [
+          RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+          ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')})
+        ]
+      }
+    default:
+      console.warn('Unknown Keybase link type')
+      return undefined
+  }
+  return undefined
+}
+
 const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
@@ -425,52 +476,7 @@ const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) =
   } else if (action.payload.link.startsWith('keybase://')) {
     const link = action.payload.link.replace('keybase://', '')
     console.warn('Got Keybase link:', link)
-    const parts = link.split('/')
-    // List guaranteed to contain at least one elem.
-    switch (parts[0]) {
-      case 'profile':
-        if (parts.length !== 3) {
-          console.warn('Malformed profile link')
-          return undefined
-        }
-        if (parts[1] === 'new-proof') {
-          return ProfileGen.createAddProof({platform: parts[2]})
-        }
-        break
-      // Fall-through
-      case 'private':
-      case 'public':
-      case 'team':
-        return [
-          RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
-          RouteTreeGen.createNavigateAppend({path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}]}),
-        ]
-      case 'chat':
-        if (parts.length !== 2) {
-          console.warn('Malformed Chat link')
-          return undefined
-        }
-        if (parts[1].includes('#')) {
-          const teamChat = parts[1].split('#')
-          if (teamChat.length !== 2) {
-            console.warn('Extra # in team chat link')
-            return undefined
-          }
-          const [teamname, channelname] = teamChat
-          return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-            ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname})
-          ]
-        } else {
-          return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-            ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')})
-          ]
-        }
-      default:
-        console.warn('Unknown Keybase link type')
-        return undefined
-    }
+    return ConfigGen.createHandleKeybaseLink({link})
   } else {
     // Normal deeplink
     const url = new URL(action.payload.link)
@@ -679,6 +685,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
+  yield* Saga.chainAction<ConfigGen.HandleKeybaseLinkPayload>(ConfigGen.handleKeybaseLink, handleKeybaseLink)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingInfoPayload>(
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo

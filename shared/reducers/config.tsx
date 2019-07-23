@@ -267,6 +267,14 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         appOutOfDateMessage: action.payload.message,
         appOutOfDateStatus: action.payload.status,
       })
+    case ConfigGen.handleKeybaseLink: 
+      return state.merge({
+        keybaseLinkError: '',
+      })
+    case ConfigGen.setKeybaseLinkError:
+      return state.merge({
+        keybaseLinkError: action.payload.error,
+      })
     case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
       return state.merge({
         runtimeStats: action.payload.params.stats,
