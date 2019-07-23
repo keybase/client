@@ -110,11 +110,7 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
-	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
-	if err != nil {
-		return nil, err
-	}
+func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreAll, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
 	if !currentUsername.IsNil() {
 		allUsernames = append(allUsernames, currentUsername)
 	}
@@ -183,6 +179,14 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 	}
 
 	return configuredAccounts, nil
+}
+
+func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
+	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
+	if err != nil {
+		return nil, err
+	}
+	return GetConfiguredAccountsFromProvisionedUsernames(m, s, currentUsername, allUsernames)
 }
 
 func ClearStoredSecret(m MetaContext, username NormalizedUsername) error {

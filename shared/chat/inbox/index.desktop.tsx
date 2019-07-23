@@ -10,7 +10,7 @@ import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
-import {debounce} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 import * as T from './index.types.d'
 import UnreadShortcut from './unread-shortcut'
 import {virtualListMarks} from '../../local-debug'
@@ -123,6 +123,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
+  _calculateShowUnreadShortcutThrottled = throttle(this._calculateShowUnreadShortcut, 100)
+
   _calculateShowFloating = () => {
     if (this._lastVisibleIdx < 0) {
       return
@@ -136,9 +138,13 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
-  _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+  _onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
-    this._calculateShowUnreadShortcut()
+    this._calculateShowUnreadShortcutThrottled()
+    this._onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+  }
+
+  _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<Types.ConversationIDKey>>((arr, r) => {
