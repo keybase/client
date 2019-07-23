@@ -419,14 +419,61 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 }
 
 const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
-  const url = new URL(action.payload.link)
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
-  } else if (action.payload.link.startsWith('keybase:')) {
-    console.warn('Got Keybase link:', action.payload.link)
+  } else if (action.payload.link.startsWith('keybase://')) {
+    const link = action.payload.link.replace('keybase://', '')
+    console.warn('Got Keybase link:', link)
+    const parts = link.split('/')
+    // List guaranteed to contain at least one elem.
+    switch (parts[0]) {
+      case 'profile':
+        if (parts.length !== 3) {
+          console.warn('Malformed profile link')
+          return undefined
+        }
+        if (parts[1] === 'new-proof') {
+          return ProfileGen.createAddProof({platform: parts[2]})
+        }
+        break
+      // Fall-through
+      case 'private':
+      case 'public':
+      case 'team':
+        return [
+          RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+          RouteTreeGen.createNavigateAppend({path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}]}),
+        ]
+      case 'chat':
+        if (parts.length !== 2) {
+          console.warn('Malformed Chat link')
+          return undefined
+        }
+        if (parts[1].includes('#')) {
+          const teamChat = parts[1].split('#')
+          if (teamChat.length !== 2) {
+            console.warn('Extra # in team chat link')
+            return undefined
+          }
+          const [teamname, channelname] = teamChat
+          return [
+            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname})
+          ]
+        } else {
+          return [
+            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')})
+          ]
+        }
+      default:
+        console.warn('Unknown Keybase link type')
+        return undefined
+    }
   } else {
     // Normal deeplink
+    const url = new URL(action.payload.link)
     const username = Constants.urlToUsername(url)
     if (username) {
       return [
