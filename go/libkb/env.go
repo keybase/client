@@ -402,7 +402,13 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
-		func() string { return e.cmd.GetHome() },
+		func() string {
+			home, err := filepath.Abs(e.cmd.GetHome())
+			if err != nil {
+				return e.cmd.GetHome()
+			}
+			return home
+		},
 	)
 }
 
