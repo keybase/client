@@ -53,7 +53,6 @@ const styles = styleSheetCreate({
     },
   }),
   contents: {
-    maxWidth: isMobile ? undefined : 460,
     width: '100%',
   },
 })
