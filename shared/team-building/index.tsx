@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as SettingsGen from '../actions/settings-gen'
 import TeamBox from './team-box'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
-import flags from '../util/feature-flags'
+import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
@@ -62,6 +64,65 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
+const BannerBox = (props: {
+  children?: React.ReactNode
+  color: string
+  gap?: keyof typeof Styles.globalMargins
+}) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
+    gap={props.gap}
+  >
+    {props.children}
+  </Kb.Box2>
+)
+
+const ContactsBanner = () => {
+  const dispatch = Container.useDispatch()
+
+  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
+  const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
+  // Although we won't use this if we early exit after subsequent checks, React
+  // won't let us use hooks unless the execution is the same every time.
+  const onImportContacts = React.useCallback(
+    () =>
+      dispatch(
+        arePermissionsGranted !== 'granted'
+          ? SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})
+          : SettingsGen.createEditContactImportEnabled({enable: true})
+      ),
+    [dispatch, arePermissionsGranted]
+  )
+  if (!Flags.sbsContacts) return null
+  if (!Styles.isMobile) return null
+
+  // Ensure that we know whether contacts are loaded, and if not, that we load
+  // the current config setting.
+  if (contactsImported === null) {
+    dispatch(SettingsGen.createLoadContactImportEnabled())
+    return null
+  }
+  // If we've imported contacts already, then there's nothing for us to do.
+  if (contactsImported) return null
+
+  return (
+    <BannerBox color={Styles.globalColors.blue}>
+      <Kb.Box direction="horizontal" fullWidth={true}>
+        <Kb.Icon type="icon-fancy-user-card-mobile-120-149" />
+        <Kb.Text type="BodyBig">
+          Import your phone contacts and start encrypted chats with your friends.
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Box direction="horizontal" fullWidth={true}>
+        <Kb.Button label="Import contacts" backgroundColor="blue" onClick={onImportContacts} />
+        <Kb.Button label="Later" backgroundColor="blue" mode="Secondary" onClick={undefined /* TODO */} />
+      </Kb.Box>
+    </BannerBox>
+  )
+}
+
 class TeamBuilding extends React.PureComponent<Props, {}> {
   componentDidMount = () => {
     this.props.fetchUserRecs()
@@ -103,7 +164,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             rolePickerProps={props.rolePickerProps}
           />
         )}
-        {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
+        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
             <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
@@ -118,6 +179,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
+        <ContactsBanner />
         {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
@@ -188,6 +250,22 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 }
 
 const styles = Styles.styleSheetCreate({
+  bannerStyle: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.red,
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      paddingBottom: 8,
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingTop: 8,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.tiny,
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       flex: 1,
