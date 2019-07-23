@@ -287,7 +287,7 @@
 .text_BodySmallError {
   font-size: 13px;
   line-height: 17px;
-  color: #d72236;
+  color: #eb253b;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -297,7 +297,7 @@
 .text_BodySmallSuccess {
   font-size: 13px;
   line-height: 17px;
-  color: #289a72;
+  color: #189e7a;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -307,7 +307,7 @@
 .text_BodySmallWallet {
   font-size: 13px;
   line-height: 17px;
-  color: #704eba;
+  color: #6d3fd1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -373,7 +373,7 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
-  font-style: italic
+  font-style: italic;
 }
 
 .text_BodySmallSemibold {
