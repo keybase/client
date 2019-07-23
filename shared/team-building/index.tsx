@@ -64,26 +64,12 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const BannerBox = (props: {
-  children?: React.ReactNode
-  color: string
-  gap?: keyof typeof Styles.globalMargins
-}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
-    gap={props.gap}
-  >
-    {props.children}
-  </Kb.Box2>
-)
-
 const ContactsBanner = () => {
   const dispatch = Container.useDispatch()
 
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
   const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
+  const isImportPromptDismissed = Container.useSelector(s => s.settings.contacts.importPromptDismissed)
   // Although we won't use this if we early exit after subsequent checks, React
   // won't let us use hooks unless the execution is the same every time.
   const onImportContacts = React.useCallback(
@@ -95,6 +81,7 @@ const ContactsBanner = () => {
       ),
     [dispatch, arePermissionsGranted]
   )
+  const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
   if (!Flags.sbsContacts) return null
   if (!Styles.isMobile) return null
 
@@ -104,22 +91,34 @@ const ContactsBanner = () => {
     dispatch(SettingsGen.createLoadContactImportEnabled())
     return null
   }
-  // If we've imported contacts already, then there's nothing for us to do.
-  if (contactsImported) return null
+  // If we've imported contacts already, or the user has dismissed the message,
+  // then there's nothing for us to do.
+  if (contactsImported || isImportPromptDismissed) return null
 
   return (
-    <BannerBox color={Styles.globalColors.blue}>
-      <Kb.Box direction="horizontal" fullWidth={true}>
-        <Kb.Icon type="icon-fancy-user-card-mobile-120-149" />
-        <Kb.Text type="BodyBig">
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner}>
+      <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={{maxHeight: 96}} />
+      <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
+        <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
-      </Kb.Box>
-      <Kb.Box direction="horizontal" fullWidth={true}>
-        <Kb.Button label="Import contacts" backgroundColor="blue" onClick={onImportContacts} />
-        <Kb.Button label="Later" backgroundColor="blue" mode="Secondary" onClick={undefined /* TODO */} />
-      </Kb.Box>
-    </BannerBox>
+        <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
+          <Kb.Button
+            label="Import contacts"
+            backgroundColor="blue"
+            onClick={onImportContacts}
+            style={styles.bannerImportButton}
+          />
+          <Kb.Button
+            label="Later"
+            backgroundColor="blue"
+            mode="Secondary"
+            onClick={onLater}
+            style={styles.bannerLaterButton}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -250,22 +249,33 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bannerStyle: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.red,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      paddingBottom: 8,
-      paddingLeft: 24,
-      paddingRight: 24,
-      paddingTop: 8,
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-    },
-  }),
+  banner: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.blue,
+    paddingBottom: 24,
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingTop: 24,
+  },
+  bannerButtonContainer: {
+    paddingBottom: 8,
+    paddingTop: 8,
+  },
+  bannerImportButton: {
+    marginRight: 8,
+  },
+  bannerLaterButton: {
+    // FIXME: why isn't this working?
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  bannerText: {
+    flexWrap: 'wrap',
+    maxWidth: 240,
+  },
+  bannerTextContainer: {
+    justifyContent: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       flex: 1,

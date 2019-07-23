@@ -89,6 +89,7 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
 })
