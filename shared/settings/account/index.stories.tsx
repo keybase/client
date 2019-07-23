@@ -62,11 +62,37 @@ const load = () => {
         supersededPhoneNumber={contacts.i.address}
       />
     ))
-    .add('Confirm delete email', () => (
-      <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
+    .add('Confirm delete email searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="cecile@keyba.se"
+        searchable={true}
+        type="email"
+      />
     ))
-    .add('Confirm delete phone', () => (
-      <ConfirmDeleteAddress {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
+    .add('Confirm delete email not searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="cecile@keyba.se"
+        searchable={false}
+        type="email"
+      />
+    ))
+    .add('Confirm delete phone searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="+33 6 76 38 86 97"
+        searchable={true}
+        type="phone"
+      />
+    ))
+    .add('Confirm delete phone not searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="+33 6 76 38 86 97"
+        searchable={false}
+        type="phone"
+      />
     ))
 }
 
