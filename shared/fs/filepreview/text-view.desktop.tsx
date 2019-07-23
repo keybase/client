@@ -50,7 +50,7 @@ const styles = Styles.styleSheetCreate({
   },
   text: {
     color: Styles.globalColors.black_on_white,
-    whiteSpace: 'pre',
+    whiteSpace: 'pre-wrap',
   },
 })
 
