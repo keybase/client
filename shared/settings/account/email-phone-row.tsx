@@ -205,10 +205,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    _onVerify: phoneNumber => {
-      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
-    },
     _onDelete: (address: string, discoverable: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -224,6 +220,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
           ],
         })
       ),
+    _onVerify: phoneNumber => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    },
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
