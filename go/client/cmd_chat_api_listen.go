@@ -65,9 +65,9 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "filter-channels",
 				Usage: "Only show notifications for specified list of channels.",
 			},
-			cli.StringFlag{
+			cli.BoolFlag{
 				Name:  "force-v1",
-				Usage: "Use version version 1 of the API, which is deprecated and soon to be removed. Version 2 is the default and reccomended.",
+				Usage: "Use version version 1 of the API, which is deprecated and soon to be removed. Version 2 is the default and reccomended. Changes only affect wallet notifications.",
 			},
 		},
 		Description: `"keybase chat api-listen" is a command that will print incoming chat messages or
@@ -192,7 +192,7 @@ func (c *CmdChatAPIListen) Run() error {
 	errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: hideExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
 		c.hideExploding, c.showLocal, c.subscribeDev)))
 	if c.subscribeWallet {
-		errWriter.Write([]byte("Listening for wallet notifications\n"))
+		errWriter.Write([]byte(fmt.Sprintf("Listening for wallet notifications. Config: forceV1: %v\n", c.useV1)))
 	}
 
 	for {
