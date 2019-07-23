@@ -106,7 +106,7 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner}>
-      <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={{maxHeight: 96}} />
+      <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
         <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
@@ -263,29 +263,32 @@ const styles = Styles.styleSheetCreate({
   banner: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.blue,
-    paddingBottom: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
   },
   bannerButtonContainer: {
     flexWrap: 'wrap',
-    paddingBottom: 8,
-    paddingTop: 8,
+    marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
+  },
+  bannerIcon: {
+    maxHeight: 112,
   },
   bannerImportButton: {
-    marginBottom: 4,
-    marginRight: 8,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
+    marginBottom: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   bannerLaterButton: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   bannerText: {
     flexWrap: 'wrap',
-    maxWidth: 240,
+    marginTop: Styles.globalMargins.xsmall,
   },
   bannerTextContainer: {
     flex: 1,
