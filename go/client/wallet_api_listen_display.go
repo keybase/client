@@ -36,9 +36,10 @@ type walletNotificationDisplay struct {
 	*baseNotificationDisplay
 	cli     stellar1.LocalClient
 	deduper map[string]bool
+	useV1   bool
 }
 
-func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDisplay {
+func newWalletNotificationDisplay(g *libkb.GlobalContext, useV1 bool) *walletNotificationDisplay {
 	cli, err := GetWalletClient(g)
 	if err != nil {
 		panic(err.Error())
@@ -47,30 +48,53 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
 		cli:                     cli,
 		deduper:                 make(map[string]bool),
+		useV1:                   useV1,
 	}
 }
 
-func deduperKey(details stellar1.PaymentCLILocal) string {
+func deduperCLIKey(details stellar1.PaymentCLILocal) string {
 	return fmt.Sprintf("%s:%s", details.TxID, details.Status)
+}
+
+func deduperFrontendKey(details stellar1.PaymentDetailsLocal) string {
+	return fmt.Sprintf("%s:%s", details.Summary.TxID, details.Summary.StatusSimplified)
 }
 
 func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, source string,
 	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
 	notif := newWalletNotification(source)
-	details, err := d.cli.PaymentDetailCLILocal(ctx, paymentID.String())
-	if err != nil {
-		errStr := err.Error()
-		notif.Error = &errStr
-		d.printJSON(notif)
-		return nil
-	}
-	if _, dupeMsg := d.deduper[deduperKey(details)]; dupeMsg {
-		return nil
+
+	if d.useV1 {
+		details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
+			AccountID: accountID,
+			Id:        paymentID,
+		})
+		if err != nil {
+			errStr := err.Error()
+			notif.Error = &errStr
+			d.printJSON(notif)
+			return nil
+		}
+		if _, dupeMsg := d.deduper[deduperFrontendKey(details)]; dupeMsg {
+			return nil
+		}
+		d.deduper[deduperFrontendKey(details)] = true
+		notif.Notification = details
+	} else {
+		details, err := d.cli.PaymentDetailCLILocal(ctx, paymentID.String())
+		if err != nil {
+			errStr := err.Error()
+			notif.Error = &errStr
+			d.printJSON(notif)
+			return nil
+		}
+		if _, dupeMsg := d.deduper[deduperCLIKey(details)]; dupeMsg {
+			return nil
+		}
+		d.deduper[deduperCLIKey(details)] = true
+		notif.Notification = details
 	}
 
-	d.deduper[deduperKey(details)] = true
-
-	notif.Notification = details
 	d.printJSON(notif)
 	return nil
 }
