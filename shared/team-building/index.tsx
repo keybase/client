@@ -267,11 +267,12 @@ const styles = Styles.styleSheetCreate({
   bannerImportButton: {
     marginBottom: 4,
     marginRight: 8,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   bannerLaterButton: {
-    // FIXME: why isn't this working?
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   bannerText: {
     flexWrap: 'wrap',
