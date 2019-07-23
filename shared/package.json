@@ -42,9 +42,9 @@
     "rn-test-ios": "xcodebuild test -project ./ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
     "rn-jsbuild-ios": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
     "rn-jsbuild-android": "mkdir -p android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/dist/main.jsbundle --sourcemap-output android/dist/main.jsbundle.sourcemap",
-    "storybook": "cross-env-shell BABEL_ENV=yarn start-storybook -s . -p 6006",
+    "storybook": "cross-env-shell BABEL_ENV=yarn node_modules/@storybook/react/bin/index.js -s . -p 6006",
     "storybook-build": "cross-env-shell build-storybook -c .storybook -o .static-storybook",
-    "rn-storybook": "cross-env-shell start-storybook -p 7007",
+    "rn-storybook": "cross-env-shell node_modules/@storybook/react-native-server/bin/index.js -p 7007",
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc ",
     "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
     "tsc-fast": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.fast.json ",
@@ -61,7 +61,7 @@
       "<rootDir>/.tsOut"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation/.*).+\\.js"
+      "node_modules/(?!universalify|react-spring|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation)"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
@@ -79,6 +79,7 @@
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
       "typed-connect": "<rootDir>/util/__mocks__/typed-connect.tsx",
+      "react-spring": "<rootDir>/__mocks__/empty.tsx",
       "react-list": "<rootDir>/__mocks__/react-list.tsx",
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.tsx",
       "^electron$": "<rootDir>/__mocks__/electron.tsx",
@@ -291,9 +292,8 @@
     "webfonts-generator": "0.4.0"
   },
   "resolutions": {
-    "**/lottie-react-web/**/minimatch": "3.0.4",
-    "**/lottie-react-web/**/lodash": "4.17.15",
     "**/@babel/cli": "7.5.5",
+    "**/@babel/code-frame": "7.5.5",
     "**/@babel/core": "7.5.5",
     "**/@babel/generator": "7.5.5",
     "**/@babel/helper-replace-supers": "7.5.5",
@@ -308,6 +308,8 @@
     "**/@babel/plugin-transform-block-scoping": "7.5.5",
     "**/@babel/plugin-transform-classes": "7.5.5",
     "**/@babel/plugin-transform-destructuring": "7.5.0",
+    "**/@babel/plugin-transform-flow-strip-types": "7.4.4",
+    "**/@babel/plugin-transform-react-constant-elements": "7.5.0",
     "**/@babel/plugin-transform-regenerator": "7.4.5",
     "**/@babel/plugin-transform-runtime": "7.5.5",
     "**/@babel/preset-env": "7.5.5",
@@ -315,8 +317,10 @@
     "**/@babel/runtime": "7.5.5",
     "**/@babel/traverse": "7.5.5",
     "**/@babel/types": "7.5.5",
-    "babel-core": "7.0.0-bridge.0",
+    "**/lottie-react-web/**/lodash": "4.17.15",
+    "**/lottie-react-web/**/minimatch": "3.0.4",
     "**/node-gyp/tar": "4.4.8",
+    "babel-core": "7.0.0-bridge.0",
     "react-native-screens": "git://github.com/keybase/react-native-screens#keybase-changes-off-alpha-23"
   }
 }
