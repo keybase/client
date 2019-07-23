@@ -448,9 +448,9 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	p = "ui.importContacts"
 	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
 	if err != nil {
-		// if !isJSONNoSuchKeyError(err) {
-		errs = append(errs, err)
-		// }
+		if !isJSONNoSuchKeyError(err) {
+			errs = append(errs, err)
+		}
 	} else {
 		syncSettings, ok := syncSettings.(map[string]interface{})
 		if !ok {
