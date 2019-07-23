@@ -520,7 +520,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	memSet := newMemberSet()
-	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, storeMemberKindRecipient, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -540,7 +540,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		case keybase1.TeamRole_BOT:
 			return nil, nil, errors.New("Cannot add self as bot to a subteam")
 		}
-		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
+		memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
 	}
 
 	// These boxes will get posted along with the sig below.

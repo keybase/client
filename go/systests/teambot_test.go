@@ -108,21 +108,7 @@ func TestTeambotKey(t *testing.T) {
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
 
-	// initial get, bot has no key to access
-	_, err := botKeyer.GetLatestTeambotKey(mctx3, teamID)
-	require.Error(t, err)
-	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
-
-	// cry for help has been issued.
-	keyNeededArg := keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botua.uid,
-		Generation: 1,
-	}
-	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
-	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
-
-	// and answered.
+	// bot gets a key on addition to the team
 	newKeyArg := keybase1.NewTeambotKeyArg{
 		Id:         teamID,
 		Generation: 1,
@@ -136,17 +122,46 @@ func TestTeambotKey(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	appKey1, err := team.ApplicationKey(mctx1.Ctx(), keybase1.TeamApplication_CHAT)
+	appKey1, err := team.ChatKey(mctx1.Ctx())
 	require.NoError(t, err)
 
-	// now created = false since we published after receiving the teambot_key_needed notif
+	// now created = false since we published on member addition
 	teambotKey, created, err := memberKeyer1.GetOrCreateTeambotKey(mctx1, teamID, botuaUID, appKey1)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, appKey1.Generation(), teambotKey.Generation())
 
-	// bot can access the key
 	teambotKey2, err := botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	require.NoError(t, err)
+	require.Equal(t, teambotKey, teambotKey2)
+
+	// delete the initial key to check regeneration flows
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, teambotKey.Metadata.Generation)
+	require.NoError(t, err)
+
+	// initial get, bot has no key to access
+	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	require.Error(t, err)
+	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
+
+	// cry for help has been issued.
+	keyNeededArg := keybase1.TeambotKeyNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: 1,
+	}
+	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
+	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
+
+	// and answered.
+	newKeyArg = keybase1.NewTeambotKeyArg{
+		Id:         teamID,
+		Generation: 1,
+	}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+
+	// bot can access the key
+	teambotKey2, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey, teambotKey2)
 	noTeambotKeyNeeded(user1.tc, user1.notifications)
@@ -164,6 +179,17 @@ func TestTeambotKey(t *testing.T) {
 	// force a PTK rotation
 	user2.revokePaperKey()
 	user1.waitForRotateByID(teamID, keybase1.Seqno(4))
+
+	// bot gets a new key on rotation
+	newKeyArg = keybase1.NewTeambotKeyArg{
+		Id:         teamID,
+		Generation: 2,
+	}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+
+	// delete to check regeneration flow
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, 2)
+	require.NoError(t, err)
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotKeyWrongKIDCacheKey(teamID, botua.uid, teambotKey2.Metadata.Generation)
@@ -208,6 +234,16 @@ func TestTeambotKey(t *testing.T) {
 	user1.removeTeamMember(teamName.String(), user2.username)
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
+	botua.waitForNewlyAddedToTeamByID(teamID)
+
+	newKeyArg = keybase1.NewTeambotKeyArg{
+		Id:         teamID,
+		Generation: 3,
+	}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, 3)
+	require.NoError(t, err)
 
 	// bot can access the old teambotKey, but asks for a new one to
 	// be created since it was signed by the old PTK
