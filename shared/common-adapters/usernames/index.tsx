@@ -3,6 +3,7 @@ import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type UserListItem = {
   username: string
@@ -109,7 +110,7 @@ function UsernameText(props: Props) {
               }
               style={userStyle}
             >
-              {u.username}
+              {displayFormat(u.username)}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
@@ -214,6 +215,24 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
       </Text>
     )
   }
+}
+
+// 15550123456@phone => +1 (555) 012-3456
+// [test@example.com]@email => test@example.com
+const displayFormat = (assertion: string): string => {
+  if (assertion.includes('@email') || assertion.includes('@phone')) {
+    const noSuffix = assertion.substring(0, assertion.length - 6)
+    if (assertion.includes('@email')) {
+      return noSuffix.substring(1, noSuffix.length - 1)
+    }
+    // phone number
+    try {
+      return e164ToDisplay('+' + noSuffix)
+    } catch (e) {
+      return '+' + noSuffix
+    }
+  }
+  return assertion
 }
 
 const styles = Styles.styleSheetCreate({
