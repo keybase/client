@@ -206,8 +206,8 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.newQueue()
 	b.started = true
 	b.uid = uid
-	b.eg.Go(b.loop)
-	b.eg.Go(b.loadLoop)
+	b.eg.Go(func() error { return b.loop(uid, b.stopCh) })
+	b.eg.Go(func() error { return b.loadLoop(uid, b.stopCh) })
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
@@ -315,9 +315,8 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	return b.queue.Push(task)
 }
 
-func (b *BackgroundConvLoader) loop() error {
+func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error {
 	bgctx := context.Background()
-	uid := b.uid
 	b.Debug(bgctx, "loop: starting conv loader loop for %s", uid)
 
 	// waitForResume is called on suspend. It will wait for a resume event, and then pause
@@ -326,7 +325,7 @@ func (b *BackgroundConvLoader) loop() error {
 		b.Debug(bgctx, "waitForResume: suspending loop")
 		select {
 		case <-ch:
-		case <-b.stopCh:
+		case <-stopCh:
 			return false
 		}
 		b.clock.Sleep(b.resumeWait)
@@ -338,11 +337,6 @@ func (b *BackgroundConvLoader) loop() error {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
 		b.clock.Sleep(b.resumeWait)
 	}
-
-	// Only access stopCh under lock to avoid racing with b.stopCh = make(chan{}) above.
-	b.Lock()
-	stopCh := b.stopCh
-	b.Unlock()
 
 	// Main loop
 	for {
@@ -394,14 +388,9 @@ func (b *BackgroundConvLoader) loop() error {
 	}
 }
 
-func (b *BackgroundConvLoader) loadLoop() error {
+func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) error {
 	bgctx := context.Background()
-	uid := b.uid
 	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
-
-	b.Lock()
-	stopCh := b.stopCh
-	b.Unlock()
 
 	for {
 		select {
