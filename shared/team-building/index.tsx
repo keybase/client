@@ -64,12 +64,13 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const ContactsBanner = () => {
+const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
   const dispatch = Container.useDispatch()
 
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
   const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const isImportPromptDismissed = Container.useSelector(s => s.settings.contacts.importPromptDismissed)
+  const numContactsImported = Container.useSelector(s => s.settings.contacts.importedCount)
   // Although we won't use this if we early exit after subsequent checks, React
   // won't let us use hooks unless the execution is the same every time.
   const onImportContacts = React.useCallback(
@@ -82,6 +83,14 @@ const ContactsBanner = () => {
     [dispatch, arePermissionsGranted]
   )
   const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
+
+  // Redo search if # of imported contacts changes
+  const prevNumContactsImported = Container.usePrevious(numContactsImported)
+  React.useEffect(() => {
+    if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
+      onRedoSearch()
+    }
+  }, [numContactsImported, prevNumContactsImported, onRedoSearch])
   if (!Flags.sbsContacts) return null
   if (!Styles.isMobile) return null
 
@@ -180,7 +189,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        <ContactsBanner />
+        <ContactsBanner onRedoSearch={() => props.onChangeText(props.searchString)} />
         {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
