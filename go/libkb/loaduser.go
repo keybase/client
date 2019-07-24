@@ -55,7 +55,7 @@ type LoadUserArg struct {
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
 	stubMode                 StubMode // by default, this is StubModeStubbed, meaning, stubbed links are OK
-	noMerkleServerPolling    bool
+	forceMerkleServerPolling bool     // can be used to force or suppress server merkle polling, if set
 
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
@@ -172,8 +172,8 @@ func (arg LoadUserArg) WithName(n string) LoadUserArg {
 	return arg
 }
 
-func (arg LoadUserArg) WithNoServerMerklePolling() LoadUserArg {
-	arg.noMerkleServerPolling = true
+func (arg LoadUserArg) WithForceMerkleServerPolling(b bool) LoadUserArg {
+	arg.forceMerkleServerPolling = b
 	return arg
 }
 
@@ -232,6 +232,14 @@ func (arg LoadUserArg) WithForceReload() LoadUserArg {
 func (arg LoadUserArg) WithStubMode(sm StubMode) LoadUserArg {
 	arg.stubMode = sm
 	return arg
+}
+
+func (arg LoadUserArg) ToMerkleOpts() MerkleOpts {
+	ret := MerkleOpts{}
+	if !arg.forceReload && !arg.forcePoll && !arg.forceMerkleServerPolling {
+		ret.NoServerPolling = true
+	}
+	return ret
 }
 
 func (arg *LoadUserArg) checkUIDName() error {
@@ -373,7 +381,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// load user from local, remote
-	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf, MerkleOpts{NoServerPolling: arg.noMerkleServerPolling})
+	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf, arg.WithForceMerkleServerPolling(true).ToMerkleOpts())
 	if err != nil {
 		return nil, err
 	}
