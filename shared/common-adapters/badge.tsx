@@ -4,7 +4,7 @@ import Text from './text'
 import * as Styles from '../styles'
 
 export type Badge2Props = {
-  badgeNumber: number
+  badgeNumber?: number
   className?: string
   fontSize: number
   height: number
