@@ -1,6 +1,7 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/profile'
 import {RPCError} from '../../util/errors'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -257,6 +258,19 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     logger.warn('Error making proof')
     yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
+      yield Saga.put(
+        DeeplinksGen.createSetKeybaseLinkError({
+          error:
+            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+        })
+      )
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
+      )
+    }
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }

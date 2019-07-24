@@ -3,6 +3,7 @@ import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as ProfileGen from './profile-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
@@ -27,7 +28,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
       if (parts[1] === 'new-proof') {
         return [
           parts.length === 4 && parts[3] ? ProfileGen.createUpdateUsername({username: parts[3]}) : null,
-          ProfileGen.createAddProof({platform: parts[2]}),
+          ProfileGen.createAddProof({platform: parts[2], reason: 'appLink'}),
         ]
       }
       break
