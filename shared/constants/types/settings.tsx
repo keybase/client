@@ -159,6 +159,7 @@ type ScreenprotectorTab = 'settingsTabs.screenprotector'
 type LogOutTab = 'settingsTabs.logOutTab'
 type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 type WalletsTab = 'settingsTabs.walletsTab'
+type ContactsTab = 'settingsTabs.contactsTab'
 
 export type Tab =
   | AccountTab
@@ -178,5 +179,6 @@ export type Tab =
   | PasswordTab
   | WalletsTab
   | ChatTab
+  | ContactsTab
 
 export type PlanLevel = string

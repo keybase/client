@@ -4,6 +4,7 @@ import {action, storiesOf} from '../../stories/storybook'
 
 const defaultProps = {
   badgeNumbers: {},
+  contactsLabel: 'Import contacts',
   hasRandomPW: null,
   logoutInProgress: false,
   onLogout: action('onlogout'),

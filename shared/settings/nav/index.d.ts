@@ -4,6 +4,7 @@ import * as TabConstants from '../../constants/tabs'
 export type Props = {
   badgeNotifications?: boolean
   badgeNumbers: {[K in TabConstants.Tab]?: number}
+  contactsLabel: string
   hasRandomPW: boolean | null
   logoutInProgress: boolean
   onLogout: () => void

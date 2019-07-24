@@ -191,6 +191,7 @@ export const screenprotectorTab = 'settingsTabs.screenprotector'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs.walletsTab'
+export const contactsTab = 'settingsTabs.contactsTab'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
