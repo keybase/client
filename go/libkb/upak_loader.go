@@ -418,7 +418,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		var sigHints *SigHints
 		var leaf *MerkleUserLeaf
 
-		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true)
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true, MerkleOpts{NoServerPolling: (!arg.forcePoll && !arg.forceReload)})
 		if err != nil {
 			return nil, nil, err
 		}

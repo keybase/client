@@ -55,6 +55,7 @@ type LoadUserArg struct {
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
 	stubMode                 StubMode // by default, this is StubModeStubbed, meaning, stubbed links are OK
+	noMerkleServerPolling    bool
 
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
@@ -168,6 +169,11 @@ func (arg LoadUserArg) WithResolveBody(r *jsonw.Wrapper) LoadUserArg {
 
 func (arg LoadUserArg) WithName(n string) LoadUserArg {
 	arg.name = n
+	return arg
+}
+
+func (arg LoadUserArg) WithNoServerMerklePolling() LoadUserArg {
+	arg.noMerkleServerPolling = true
 	return arg
 }
 
@@ -367,7 +373,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// load user from local, remote
-	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
+	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf, MerkleOpts{NoServerPolling: arg.noMerkleServerPolling})
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +428,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return ret, err
 }
 
-func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, string, error) {
+func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf, merkleOpts MerkleOpts) (*User, bool, string, error) {
 	local, err := LoadUserFromLocalStorage(m, uid)
 	var refresh bool
 	var refreshReason string
@@ -431,7 +437,7 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	}
 
 	if leaf == nil {
-		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints)
+		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints, merkleOpts)
 		if err != nil {
 			return nil, refresh, refreshReason, err
 		}
@@ -579,7 +585,7 @@ func myUID(g *GlobalContext, uider UIDer) keybase1.UID {
 	return g.GetMyUID()
 }
 
-func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHints *SigHints) (f *MerkleUserLeaf, err error) {
+func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHints *SigHints, merkleOpts MerkleOpts) (f *MerkleUserLeaf, err error) {
 	if uid.IsNil() {
 		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
@@ -588,7 +594,7 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints)
+	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints, merkleOpts)
 	if err == nil && f == nil && localExists {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
@@ -596,14 +602,14 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 	return
 }
 
-func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
+func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, merkleOpts MerkleOpts) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
 	defer m.Trace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
 	sigHints, err = LoadSigHints(m, uid)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	leaf, err = lookupMerkleLeaf(m, uid, true, sigHints)
+	leaf, err = lookupMerkleLeaf(m, uid, true, sigHints, merkleOpts)
 	if err != nil {
 		return nil, nil, err
 	}
