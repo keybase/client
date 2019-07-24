@@ -1266,6 +1266,7 @@ type AuditHistory struct {
 	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
 	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
 	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
+	SkipUntil        Time             `codec:"skipUntil" json:"skipUntil"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -1321,6 +1322,7 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.Tails),
+		SkipUntil: o.SkipUntil.DeepCopy(),
 	}
 }
 
@@ -2440,6 +2442,7 @@ type LoadTeamArg struct {
 	ForceRepoll               bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
+	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2454,6 +2457,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceRepoll:               o.ForceRepoll,
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
+		SkipAudit:                 o.SkipAudit,
 	}
 }
 
