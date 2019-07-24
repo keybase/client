@@ -1194,7 +1194,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
-				if !(r.satisfied || prevState.getUserRole(r.uv).IsRestrictedBot()) {
+				role := prevState.getUserRole(r.uv)
+				if !(r.satisfied || role.IsRestrictedBot() || role.IsBot()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1298,6 +1299,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 		switch signerRole {
 		case keybase1.TeamRole_RESTRICTEDBOT,
+			keybase1.TeamRole_BOT,
 			keybase1.TeamRole_READER,
 			keybase1.TeamRole_WRITER,
 			keybase1.TeamRole_ADMIN,
@@ -1998,6 +2000,12 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
+	}
+	if members.Bots != nil && len(*members.Bots) > 0 {
+		res[keybase1.TeamRole_BOT] = nil
+		for _, m := range *members.Bots {
+			all = append(all, assignment{m, keybase1.TeamRole_BOT})
 		}
 	}
 	if members.RestrictedBots != nil && len(*members.RestrictedBots) > 0 {

@@ -19,6 +19,7 @@ func TestTeamAPI(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 	tt.addUser("botua")
+	tt.addUser("restricted_botua")
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "list-self-memberships"}`,
@@ -35,8 +36,11 @@ func TestTeamAPI(t *testing.T) {
 		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[1].username+`", "role": "reader"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[1].uid.String()+`","username":"`+tt.users[1].username+`"},"emailSent":false,"chatSending":false}]}`)
 	assertTeamAPIOutput(t, tt.users[0],
-		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "restrictedbot"}]}}}`,
+		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "bot"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[2].uid.String()+`","username":"`+tt.users[2].username+`"},"emailSent":false,"chatSending":false}]}`)
+	assertTeamAPIOutput(t, tt.users[0],
+		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[3].username+`", "role": "restrictedbot"}]}}}`,
+		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[3].uid.String()+`","username":"`+tt.users[3].username+`"},"emailSent":false,"chatSending":false}]}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "create-team", "params": {"options": {"team": "`+teamName+`.sub"}}}`,
@@ -55,6 +59,9 @@ func TestTeamAPI(t *testing.T) {
 		`{}`)
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "remove-member", "params": {"options": {"team": "`+teamName+`", "username": "`+tt.users[2].username+`"}}}`,
+		`{}`)
+	assertTeamAPIOutput(t, tt.users[0],
+		`{"method": "remove-member", "params": {"options": {"team": "`+teamName+`", "username": "`+tt.users[3].username+`"}}}`,
 		`{}`)
 }
 

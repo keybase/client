@@ -198,7 +198,11 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 					continue
 				}
 				switch role {
-				case keybase1.TeamRole_RESTRICTEDBOT, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
+				case
+					keybase1.TeamRole_RESTRICTEDBOT,
+					keybase1.TeamRole_BOT,
+					keybase1.TeamRole_READER,
+					keybase1.TeamRole_WRITER:
 					changeReq.None = append(changeReq.None, memberUV)
 				}
 			}

@@ -16,7 +16,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 		return fmt.Errorf("getting team details: %v", err)
 	}
 
-	var ownerNames, adminNames, writerNames, readerNames, restrictedBotNames []string
+	var ownerNames, adminNames, writerNames, readerNames, botNames, restrictedBotNames []string
 	for _, owner := range teamDetails.Members.Owners {
 		ownerNames = append(ownerNames, owner.Username)
 	}
@@ -28,6 +28,9 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	}
 	for _, reader := range teamDetails.Members.Readers {
 		readerNames = append(readerNames, reader.Username)
+	}
+	for _, bot := range teamDetails.Members.Bots {
+		botNames = append(botNames, bot.Username)
 	}
 	for _, restrictedBot := range teamDetails.Members.RestrictedBots {
 		restrictedBotNames = append(restrictedBotNames, restrictedBot.Username)
@@ -41,6 +44,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 		Admins:         adminNames,
 		Writers:        writerNames,
 		Readers:        readerNames,
+		Bots:           botNames,
 		RestrictedBots: restrictedBotNames,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
