@@ -26,7 +26,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
       }
       if (parts[1] === 'new-proof') {
         return [
-          (parts.length === 4 && parts[3]) ?  ProfileGen.createUpdateUsername({username: parts[3]}) : null,
+          parts.length === 4 && parts[3] ? ProfileGen.createUpdateUsername({username: parts[3]}) : null,
           ProfileGen.createAddProof({platform: parts[2]}),
         ]
       }
