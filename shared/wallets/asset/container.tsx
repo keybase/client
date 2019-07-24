@@ -13,26 +13,25 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 
-const mergeProps = (stateProps, _, __) => {
-  const asset = stateProps._asset
-  return {
-    availableToSend: asset.balanceAvailableToSend,
-    balance: asset.balanceTotal,
-    code: asset.assetCode,
-    equivAvailableToSend: `${asset.availableToSendWorth}`,
-    equivBalance: `${asset.worth}`,
-    infoUrlText: asset.infoUrlText,
-    issuerAccountID: asset.issuerAccountID,
-    issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
-    name: asset.name,
-    openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
-    openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
-    reserves: asset.reserves.toArray(),
-  }
-}
-
 export default connect(
   mapStateToProps,
   () => ({}),
-  mergeProps
+  (stateProps, _, __) => {
+    const asset = stateProps._asset
+    return {
+      availableToSend: asset.balanceAvailableToSend,
+      balance: asset.balanceTotal,
+      code: asset.assetCode,
+      equivAvailableToSend: `${asset.availableToSendWorth}`,
+      equivBalance: `${asset.worth}`,
+      infoUrlText: asset.infoUrlText,
+      isNative: asset.assetCode === 'XLM' && asset.issuerAccountID === '',
+      issuerAccountID: asset.issuerAccountID,
+      issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
+      name: asset.name,
+      openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
+      openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
+      reserves: asset.reserves.toArray(),
+    }
+  }
 )(Asset)
