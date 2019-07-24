@@ -190,7 +190,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         {Flags.sbsContacts && Styles.isMobile && (
           <ContactsBanner
             onRedoSearch={() => props.onChangeText(props.searchString)}
-            onRedoRecs={() => props.fetchUserRecs()}
+            onRedoRecs={props.fetchUserRecs}
           />
         )}
         {showRecPending || showLoading ? (
