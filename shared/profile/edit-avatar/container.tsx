@@ -4,29 +4,29 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
-import {connect, getRouteProps, isNetworkErr} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
-import {RouteProps} from '../../route-tree/render-route'
 import * as ImagePicker from 'expo-image-picker'
 
-type OwnProps = RouteProps<{
+type OwnProps = Container.RouteProps<{
   createdTeam: boolean
   image: ImagePicker.ImagePickerResult
   sendChatNotification: boolean
   teamname: string
 }>
 
-const mapStateToProps = (state, ownProps) => ({
-  createdTeam: getRouteProps(ownProps, 'createdTeam'),
+const cancelledImage = {cancelled: true as const}
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  createdTeam: Container.getRouteProps(ownProps, 'createdTeam', false),
   error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-  image: getRouteProps(ownProps, 'image'),
-  sendChatNotification: getRouteProps(ownProps, 'sendChatNotification') || false,
+  image: Container.getRouteProps(ownProps, 'image', cancelledImage),
+  sendChatNotification: Container.getRouteProps(ownProps, 'sendChatNotification', false),
   submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
-  teamname: getRouteProps(ownProps, 'teamname'),
+  teamname: Container.getRouteProps(ownProps, 'teamname', ''),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClose: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
     dispatch(RouteTreeGen.createNavigateUp())
@@ -67,8 +67,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(EditAvatar)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditAvatar)

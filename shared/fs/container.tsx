@@ -13,7 +13,7 @@ import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
+  const path = getRouteProps(ownProps, 'path', Constants.defaultPath)
   return {
     _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
     _softErrors: state.fs.softErrors,
@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
+  const path = getRouteProps(ownProps, 'path', Constants.defaultPath)
   const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),

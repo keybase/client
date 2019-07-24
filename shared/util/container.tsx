@@ -23,7 +23,7 @@ export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R>(
   ownProps: O,
   key: K,
-  notSetVal: R[K]
+  notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
 ): R[K] {
   const val = ownProps.navigation.getParam(key)
   return val === undefined ? notSetVal : val

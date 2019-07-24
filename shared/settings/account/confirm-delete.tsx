@@ -37,8 +37,8 @@ type OwnProps = RouteProps<{address: string; type: string}>
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
 
-  const itemAddress = Container.getRouteProps(props, 'address')
-  const itemType = Container.getRouteProps(props, 'type')
+  const itemAddress = Container.getRouteProps(props, 'address', '')
+  const itemType = Container.getRouteProps(props, 'type', 'email')
 
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onConfirm = React.useCallback(() => {
