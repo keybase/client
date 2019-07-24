@@ -10,6 +10,7 @@ import Username from './username-or-email/container'
 
 export const newRoutes = {
   codePage: {
+    // @TODO broken connect
     getScreen: (): typeof CodePage => require('./code-page/container').default,
     upgraded: true as const,
   },
