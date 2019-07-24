@@ -407,3 +407,40 @@ func TestAddUserToTlfName(t *testing.T) {
 	s = AddUserToTLFName(g, "alice,bob", pub, mem)
 	require.Equal(t, "alice,bob", s)
 }
+
+func TestPresentConversationParticipantsLocal(t *testing.T) {
+	tofurkeyhq := "Tofurkey HQ"
+	tofurus := "Tofu-R-Us"
+	danny := "Danny"
+	rawParticipants := []chat1.ConversationLocalParticipant{
+		chat1.ConversationLocalParticipant{
+			Username:    "[tofurkey@example.com]@email",
+			ContactName: &tofurkeyhq,
+		},
+		chat1.ConversationLocalParticipant{
+			Username:    "18005558638@phone",
+			ContactName: &tofurus,
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "ayoubd",
+			Fullname: &danny,
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "example@twitter",
+		},
+	}
+	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
+
+	require.Equal(t, res[0].ContactName, &tofurkeyhq)
+	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)
+
+	require.Equal(t, res[1].ContactName, &tofurus)
+	require.Equal(t, res[1].Type, chat1.UIParticipantType_PHONENO)
+
+	require.Equal(t, res[2].Assertion, "ayoubd")
+	require.Equal(t, res[2].FullName, &danny)
+	require.Equal(t, res[2].Type, chat1.UIParticipantType_USER)
+
+	require.Equal(t, res[3].Assertion, "example@twitter")
+	require.Equal(t, res[3].Type, chat1.UIParticipantType_USER)
+}
