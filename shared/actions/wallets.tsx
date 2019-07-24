@@ -935,11 +935,10 @@ const accountDetailsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyAcc
 
 const accountsUpdate = (
   _: TypedState,
-  action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload,
+  action: EngineGen.Stellar1NotifyAccountsUpdatePayload,
   logger: Saga.SagaLogger
 ) =>
   WalletsGen.createAccountsReceived({
-    // @ts-ignore codemod-issue
     accounts: (action.payload.params.accounts || []).map(account => {
       if (!account.accountID) {
         logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
