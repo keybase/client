@@ -4,7 +4,6 @@ import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ProfileGen from '../actions/profile-gen'
 import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -19,7 +18,6 @@ type Props = {
   infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
-  onGoToProfile: (username: string) => void
   onOpenFolder: () => void
   onNewChat: () => void
   onToggleInfoPanel: () => void
@@ -107,7 +105,7 @@ const Header = (p: Props) => {
                         usernames={[part]}
                         onUsernameClicked="profile"
                       />
-                      {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
+                      {i !== participants.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
                     </Kb.Text>
                   ))}
                 </Kb.Text>
@@ -200,7 +198,6 @@ const Connected = Container.connect(
   },
   dispatch => ({
     _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-    onGoToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
     onToggleThreadSearch: conversationIDKey =>
@@ -228,7 +225,6 @@ const Connected = Container.connect(
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,
-      onGoToProfile: dispatchProps.onGoToProfile,
       onNewChat: dispatchProps.onNewChat,
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,

@@ -75,7 +75,7 @@ export default Container.namedConnect(
       // Don't allow you to select yourself
       onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
       participantNeedToRekey,
-      participants: Constants.getRowParticipants(stateProps._meta, stateProps._username, true).toArray(),
+      participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
       showBold: styles.showBold,
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,

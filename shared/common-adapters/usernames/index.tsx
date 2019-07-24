@@ -211,7 +211,7 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
         title={this.props.title}
         {...inlineProps}
       >
-        {rwers.map(u => u.username).join(divider)}
+        {rwers.map(u => assertionToDisplay(u.username)).join(divider)}
       </Text>
     )
   }
