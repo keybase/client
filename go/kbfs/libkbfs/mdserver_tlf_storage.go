@@ -64,7 +64,6 @@ import (
 type mdServerTlfStorage struct {
 	tlfID          tlf.ID
 	codec          kbfscodec.Codec
-	crypto         cryptoPure
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
 	mdVer          kbfsmd.MetadataVer

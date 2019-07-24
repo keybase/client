@@ -377,7 +377,8 @@ func TestBlockJournalDuplicateRemove(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dataLen, removedBytes)
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
-	j.unstoreBlocks(removedBytes, removedFiles)
+	err = j.unstoreBlocks(removedBytes, removedFiles)
+	require.NoError(t, err)
 
 	// This violates the invariant that UnflushedBytes <=
 	// StoredBytes, but that's because we're manually removing the
@@ -530,11 +531,11 @@ func TestBlockJournalFlush(t *testing.T) {
 	require.Equal(t, int64(0), removedFiles)
 
 	// Check they're all gone.
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	length := j.length()
@@ -692,7 +693,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	flushOneZero()
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	end, err := j.end()

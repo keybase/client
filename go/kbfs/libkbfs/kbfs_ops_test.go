@@ -192,11 +192,11 @@ func kbfsTestShutdown(
 	config.ctr.CheckForFailures()
 	err := config.conflictResolutionDB.Close()
 	require.NoError(t, err)
-	config.KBFSOps().(*KBFSOpsStandard).Shutdown(ctx)
+	err = config.KBFSOps().(*KBFSOpsStandard).Shutdown(ctx)
+	require.NoError(t, err)
 	if config.mockDirtyBcache == nil {
-		if err := config.DirtyBlockCache().Shutdown(); err != nil {
-			// Ignore error; some tests intentionally leave around dirty data.
-		}
+		// Ignore error; some tests intentionally leave around dirty data.
+		_ = config.DirtyBlockCache().Shutdown()
 	}
 	select {
 	case <-config.mockBops.BlockRetriever().(*blockRetrievalQueue).Shutdown():
@@ -263,15 +263,17 @@ func kbfsTestShutdownNoMocks(
 	config *ConfigLocal, cancel context.CancelFunc) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
-	libcontext.CleanupCancellationDelayer(ctx)
+	err := libcontext.CleanupCancellationDelayer(ctx)
+	require.NoError(t, err)
 }
 
 // TODO: Get rid of all users of this.
 func kbfsTestShutdownNoMocksNoCheck(ctx context.Context, t *testing.T,
 	config *ConfigLocal, cancel context.CancelFunc) {
-	config.Shutdown(ctx)
+	_ = config.Shutdown(ctx)
 	cancel()
-	libcontext.CleanupCancellationDelayer(ctx)
+	err := libcontext.CleanupCancellationDelayer(ctx)
+	require.NoError(t, err)
 }
 
 func checkBlockCache(
@@ -336,8 +338,9 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	// dup for testing
 	handles := []*tlfhandle.Handle{handle1, handle2, handle2}
 	for _, h := range handles {
-		config.KeybaseService().FavoriteAdd(
+		err := config.KeybaseService().FavoriteAdd(
 			context.Background(), h.ToFavorite().ToKBFolderHandle(false))
+		require.NoError(t, err)
 	}
 
 	// The favorites list contains our own public dir by default, even
@@ -442,9 +445,10 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 		t, config, rmd, kbfsmd.FakeID(tlf.FakeIDByte(id)))
 	ops.headStatus = headTrusted
 	rmd.SetSerializedPrivateMetadata(make([]byte, 1))
-	config.Notifier().RegisterForChanges(
+	err := config.Notifier().RegisterForChanges(
 		[]data.FolderBranch{{Tlf: id, Branch: data.MasterBranch}},
 		config.observer)
+	require.NoError(t, err)
 	wid := h.FirstResolvedWriter()
 	rmd.data.Dir.Creator = wid
 	return wid, id, rmd
@@ -569,8 +573,8 @@ func expectBlock(config *ConfigMock, kmd libkey.KeyMetadata, blockPtr data.Block
 		Do(func(ctx context.Context, kmd libkey.KeyMetadata,
 			blockPtr data.BlockPointer, getBlock data.Block, lifetime data.BlockCacheLifetime) {
 			getBlock.Set(block)
-			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime,
-				data.DoCacheHash)
+			_ = config.BlockCache().Put(
+				blockPtr, kmd.TlfID(), getBlock, lifetime, data.DoCacheHash)
 		}).Return(err)
 }
 
@@ -621,7 +625,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", ty)
+	id, _, rmd := createNewRMD(t, config, "alice", ty)
 	fillInNewMD(t, config, rmd)
 
 	// create a new MD
@@ -715,14 +719,6 @@ func makeBP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 			// Refnonces not needed; explicit refnonce
 			// testing happens elsewhere.
 		},
-	}
-}
-
-func makeBI(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
-	u keybase1.UserOrTeamID, encodedSize uint32) data.BlockInfo {
-	return data.BlockInfo{
-		BlockPointer: makeBP(id, kmd, config, u),
-		EncodedSize:  encodedSize,
 	}
 }
 
@@ -1475,9 +1471,6 @@ func TestCreateLinkFailKBFSPrefix(t *testing.T) {
 	testCreateEntryFailKBFSPrefix(t, data.Sym)
 }
 
-// TODO: Currently only the remove tests use makeDirTree(),
-// makeFile(), et al. Make the other tests use these functions, too.
-
 // makeDirTree creates a block tree for the given path components and
 // returns the DirEntry for the root block, a path, and the
 // corresponding list of blocks. If n components are given, then the
@@ -1535,52 +1528,6 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         nodes,
 	}, blocks
-}
-
-func makeFile(
-	dir data.Path, parentDirBlock *data.DirBlock, name string,
-	et data.EntryType, directType data.BlockDirectType) (
-	data.Path, *data.FileBlock) {
-	if et != data.File && et != data.Exec {
-		panic(fmt.Sprintf("Unexpected type %s", et))
-	}
-	bid := kbfsblock.FakeIDAdd(dir.TailPointer().ID, 1)
-	bi := makeBIFromID(bid, dir.TailPointer().Creator)
-	bi.DirectType = directType
-
-	parentDirBlock.Children[name] = data.DirEntry{
-		BlockInfo: bi,
-		EntryInfo: data.EntryInfo{
-			Type: et,
-		},
-	}
-
-	p := dir.ChildPath(testPPS(name), bi.BlockPointer, nil)
-	return p, data.NewFileBlock().(*data.FileBlock)
-}
-
-func makeDir(dir data.Path, parentDirBlock *data.DirBlock, name string) (
-	data.Path, *data.DirBlock) {
-	bid := kbfsblock.FakeIDAdd(dir.TailPointer().ID, 1)
-	bi := makeBIFromID(bid, dir.TailPointer().Creator)
-
-	parentDirBlock.Children[name] = data.DirEntry{
-		BlockInfo: bi,
-		EntryInfo: data.EntryInfo{
-			Type: data.Dir,
-		},
-	}
-
-	p := dir.ChildPath(testPPS(name), bi.BlockPointer, nil)
-	return p, data.NewDirBlock().(*data.DirBlock)
-}
-
-func makeSym(dir data.Path, parentDirBlock *data.DirBlock, name string) {
-	parentDirBlock.Children[name] = data.DirEntry{
-		EntryInfo: data.EntryInfo{
-			Type: data.Sym,
-		},
-	}
 }
 
 func TestRemoveDirFailNonEmpty(t *testing.T) {
@@ -1644,8 +1591,10 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	// Remove block from the server directly, and clear caches.
-	config.BlockOps().Delete(ctx, rootNode.GetFolderBranch().Tlf,
+	_, err = config.BlockOps().Delete(
+		ctx, rootNode.GetFolderBranch().Tlf,
 		[]data.BlockPointer{ops.nodeCache.PathFromNode(nodeA).TailPointer()})
+	require.NoError(t, err)
 	config.ResetCaches()
 
 	err = config.KBFSOps().RemoveEntry(ctx, rootNode, testPPS("a"))
@@ -1783,7 +1732,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	n := len(fileBlock.Contents)
-	dest := make([]byte, n, n)
+	dest := make([]byte, n)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
@@ -1820,7 +1769,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
-	dest := make([]byte, 4, 4)
+	dest := make([]byte, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil {
 		t.Errorf("Got error on read: %+v", err)
 	} else if n != 4 {
@@ -1880,7 +1829,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileBlock.IPtrs[3].BlockPointer, id, block4)
 
 	n := 20
-	dest := make([]byte, n, n)
+	dest := make([]byte, n)
 	fullContents := append(block1.Contents, block2.Contents...)
 	fullContents = append(fullContents, block3.Contents...)
 	fullContents = append(fullContents, block4.Contents...)
@@ -1943,7 +1892,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileBlock.IPtrs[2].BlockPointer, id, block3)
 
 	n := 10
-	dest := make([]byte, n, n)
+	dest := make([]byte, n)
 	contents := append(block1.Contents[3:], block2.Contents...)
 	contents = append(contents, block3.Contents[:3]...)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil {
@@ -1982,7 +1931,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
-	dest := make([]byte, 4, 4)
+	dest := make([]byte, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 10); err != nil {
 		t.Errorf("Got error on read: %+v", err)
 	} else if n != 0 {
@@ -2017,7 +1966,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	expectBlock(config, rmd, fileBlockPtr, fileBlock, nil)
 
 	n := len(fileBlock.Contents)
-	dest := make([]byte, n, n)
+	dest := make([]byte, n)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
@@ -2055,7 +2004,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	expectBlock(config, rmd, fileBlockPtr, fileBlock, err)
 
 	n := len(fileBlock.Contents)
-	dest := make([]byte, n, n)
+	dest := make([]byte, n)
 	if _, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0); err2 == nil {
 		t.Errorf("Got no expected error")
 	} else if err2 != err {
@@ -3123,24 +3072,6 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	}
 }
 
-func getOrCreateSyncInfo(
-	ops *folderBranchOps, lState *kbfssync.LockState, de data.DirEntry) (
-	*syncInfo, error) {
-	ops.blocks.blockLock.Lock(lState)
-	defer ops.blocks.blockLock.Unlock(lState)
-	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
-}
-
-func makeBlockStateDirty(config Config, kmd libkey.KeyMetadata, p data.Path,
-	ptr data.BlockPointer) {
-	ops := getOps(config, kmd.TlfID())
-	lState := makeFBOLockState()
-	ops.blocks.blockLock.Lock(lState)
-	defer ops.blocks.blockLock.Unlock(lState)
-	df := ops.blocks.getOrCreateDirtyFileLocked(lState, p)
-	df.SetBlockDirty(ptr)
-}
-
 // SetMtime failure cases are all the same as any other block sync
 
 func TestSyncCleanSuccess(t *testing.T) {
@@ -3250,25 +3181,6 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	}
 
 	// TODO: Sync succeeds, but it should fail. Fix this!
-}
-
-type testBGObserver struct {
-	c chan<- struct{}
-}
-
-func (t *testBGObserver) LocalChange(ctx context.Context, node Node,
-	write WriteRange) {
-	// ignore
-}
-
-func (t *testBGObserver) BatchChanges(ctx context.Context,
-	changes []NodeChange) {
-	t.c <- struct{}{}
-}
-
-func (t *testBGObserver) TlfHandleChange(ctx context.Context,
-	newHandle *tlfhandle.Handle) {
-	return
 }
 
 // Tests that the background flusher will sync a dirty file if the
@@ -4470,7 +4382,7 @@ func (b bserverPutToDiskCache) Get(
 		return buf, serverHalf, err
 	}
 
-	b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+	_ = b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	return buf, serverHalf, nil
 }
 
@@ -4484,7 +4396,7 @@ func (b bserverPutToDiskCache) Put(
 		return err
 	}
 
-	b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+	_ = b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	return nil
 }
 
@@ -4499,7 +4411,8 @@ func enableDiskCacheForTest(
 	require.NoError(t, err)
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
-	config.loadSyncedTlfsLocked()
+	err = config.loadSyncedTlfsLocked()
+	require.NoError(t, err)
 	return dbc
 }
 
@@ -4534,10 +4447,11 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
-	config.SetTlfSyncState(
+	_, err = config.SetTlfSyncState(
 		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
+	require.NoError(t, err)
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -4635,7 +4549,10 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 	_ = enableDiskCacheForTest(t, config, tempdir)
 
 	t.Log("Sync should start off as disabled.")
@@ -4773,7 +4690,10 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 	dbc := enableDiskCacheForTest(t, config, tempdir)
 
 	// config2 is the writer.
@@ -4995,7 +4915,10 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 	dbc := enableDiskCacheForTest(t, config, tempdir)
 
 	// config2 is the writer.

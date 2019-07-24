@@ -479,7 +479,7 @@ func TestNodeCacheGCReal(t *testing.T) {
 	runtime.SetFinalizer(childNode1, nil)
 	runtime.SetFinalizer(childNode1, testNodeStandardFinalizer)
 
-	childNode1 = nil
+	childNode1 = nil // nolint
 	runtime.GC()
 	<-finalizerChan
 

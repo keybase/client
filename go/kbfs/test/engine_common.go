@@ -42,8 +42,8 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 
 func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 	if bwKBps > 0 {
-		config.SetBlockOps(libkbfs.NewBlockOpsConstrained(
-			config.BlockOps(), bwKBps))
+		// TODO: reinstate constrained bandwidth tests.
+
 		// Looks like we're testing big transfers, so let's do
 		// background flushes.
 		config.SetDoBackgroundFlushes(true)

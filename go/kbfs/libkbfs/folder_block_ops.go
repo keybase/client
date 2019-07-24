@@ -1051,11 +1051,11 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 		if wasDirty {
 			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
-			dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
+			_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
 			delete(fbo.dirtyDirs, ptr)
 		}
 		for _, unref := range unrefs {
-			dirtyBcache.Delete(fbo.id(), unref.BlockPointer, fbo.branch())
+			_ = dirtyBcache.Delete(fbo.id(), unref.BlockPointer, fbo.branch())
 		}
 	}
 }
@@ -1132,7 +1132,7 @@ func (fbo *folderBlockOps) addDirEntryInCacheLocked(
 	parentUndo, err := fbo.updateParentDirEntryLocked(
 		ctx, lState, dir, kmd, true, true)
 	if err != nil {
-		dd.RemoveEntry(ctx, newName)
+		_, _ = dd.RemoveEntry(ctx, newName)
 		return nil, err
 	}
 
@@ -1193,7 +1193,7 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 		ctx, lState, dir, kmd, true, true)
 	if err != nil {
 		unlinkUndoFn()
-		dd.AddEntry(ctx, oldName, oldDe)
+		_, _ = dd.AddEntry(ctx, oldName, oldDe)
 		return nil, err
 	}
 
@@ -2271,8 +2271,8 @@ func (fbo *folderBlockOps) truncateLocked(
 	} else if currLen < iSize {
 		moreNeeded := iSize - currLen
 		latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err :=
-			fbo.writeDataLocked(ctx, lState, kmd, file,
-				make([]byte, moreNeeded, moreNeeded), currLen)
+			fbo.writeDataLocked(
+				ctx, lState, kmd, file, make([]byte, moreNeeded), currLen)
 		if err != nil {
 			return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err
 		}
@@ -2510,8 +2510,7 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 	unrefs := make([]data.BlockInfo, 0, len(si.unrefs))
 	for _, unref := range si.unrefs {
 		if newIndirect[unref.BlockPointer] {
-			fbo.vlog.CLogf(
-				nil, libkb.VLog1, "Dropping unref %v", unref)
+			fbo.vlog.CLogf(ctx, libkb.VLog1, "Dropping unref %v", unref)
 			continue
 		}
 		unrefs = append(unrefs, unref)

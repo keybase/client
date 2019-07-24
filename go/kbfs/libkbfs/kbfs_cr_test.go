@@ -197,7 +197,8 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	require.NoError(t, err)
 	jManager.onBranchChange = nil
 	jManager.onMDFlush = nil
-	jManager.EnableAuto(ctx)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -215,7 +216,8 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	_, err = DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
-	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+	err = DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	// Wait for "a" to flush to the server.
 	err = jManager.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
@@ -261,7 +263,8 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	jManager.onBranchChange = nil
 	jManager.onMDFlush = nil
 
-	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
+	err = DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	tlfHandle, err := tlfhandle.ParseHandle(
 		ctx, config1B.KBPKI(), config1B.MDOps(), nil, name, tlf.Private)
@@ -297,7 +300,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	_, err = DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
-	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+	err = DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	// then user2 write to the file
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
@@ -338,7 +342,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	config2B := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2B)
 
-	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
+	err = DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	// Keep the config1B node in memory, so it doesn't get garbage
 	// collected (preventing notifications)
@@ -359,8 +364,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// register as a listener before the unstaging happens
 	c := make(chan struct{}, 2)
 	cro := &testCRObserver{c, nil}
-	config1B.Notifier().RegisterForChanges(
+	err = config1B.Notifier().RegisterForChanges(
 		[]data.FolderBranch{rootNode1B.GetFolderBranch()}, cro)
+	require.NoError(t, err)
 
 	ops1B := getOps(config1B, fileNode1B.GetFolderBranch().Tlf)
 	ops2B := getOps(config2B, fileNode1B.GetFolderBranch().Tlf)
@@ -1144,8 +1150,10 @@ func TestCRDouble(t *testing.T) {
 	ops := getOps(config2, rootNode.GetFolderBranch().Tlf)
 	// Wait for the processor to try to delete the failed revision
 	// (which pulls the unmerged MD ops back into the cache).
-	ops.fbm.waitForArchives(ctx)
-	ops.fbm.waitForDeletingBlocks(ctx)
+	err = ops.fbm.waitForArchives(ctx)
+	require.NoError(t, err)
+	err = ops.fbm.waitForDeletingBlocks(ctx)
+	require.NoError(t, err)
 
 	// Sync user 1, then start another round of CR.
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1224,8 +1232,9 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	require.NoError(t, err)
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
-	// we don't check the config because this device can't read all of the md blocks.
-	defer config2Dev2.Shutdown(ctx)
+	// we don't check the config because this device can't read all of
+	// the md blocks.
+	defer func() { _ = config2Dev2.Shutdown(ctx) }()
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -1260,9 +1269,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 
 	// User 2 dev 2 should set the rekey bit
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+	_, _ = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode2.GetFolderBranch().Tlf)
-	require.NoError(t, err)
 
 	// User 1 syncs
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1287,7 +1295,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	// wait for the rekey to happen
-	RequestRekeyAndWaitForOneFinishEvent(ctx,
+	_, _ = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config2.KBFSOps(), rootNode2.GetFolderBranch().Tlf)
 
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1366,8 +1374,9 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	require.NoError(t, err)
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
-	// we don't check the config because this device can't read all of the md blocks.
-	defer config2Dev2.Shutdown(ctx)
+	// we don't check the config because this device can't read all of
+	// the md blocks.
+	defer func() { _ = config2Dev2.Shutdown(ctx) }()
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -1395,9 +1404,8 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 
 	// User 2 dev 2 should set the rekey bit
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+	_, _ = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode2.GetFolderBranch().Tlf)
-	require.NoError(t, err)
 
 	// User 1 writes the file
 	data1 := []byte{1, 2, 3, 4, 5}
@@ -1416,9 +1424,8 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	require.NoError(t, err)
 	// wait for the rekey to happen
-	RequestRekeyAndWaitForOneFinishEvent(ctx,
+	_, _ = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config1.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
 
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1537,7 +1544,10 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	wg.Add(1)
 	syncCtx, cancel := context.WithCancel(
 		libcontext.BackgroundContextWithCancellationDelayer())
-	defer libcontext.CleanupCancellationDelayer(syncCtx)
+	defer func() {
+		err := libcontext.CleanupCancellationDelayer(syncCtx)
+		require.NoError(t, err)
+	}()
 
 	// Now user 2 makes a big write where most of the blocks get canceled.
 	// We only need to know the first time we stall.

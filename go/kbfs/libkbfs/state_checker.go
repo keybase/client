@@ -398,13 +398,19 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
 			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID].put(ptr.Context, liveBlockRef, "")
+		err := blockRefsByID[ptr.ID].put(ptr.Context, liveBlockRef, "")
+		if err != nil {
+			return err
+		}
 	}
 	for ptr := range archivedBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
 			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID].put(ptr.Context, archivedBlockRef, "")
+		err := blockRefsByID[ptr.ID].put(ptr.Context, archivedBlockRef, "")
+		if err != nil {
+			return err
+		}
 	}
 
 	if g, e := bserverKnownBlocks, blockRefsByID; !reflect.DeepEqual(g, e) {

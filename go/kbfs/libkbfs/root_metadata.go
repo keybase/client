@@ -78,7 +78,10 @@ func DumpPrivateMetadata(
 		indent := strings.Repeat(c.Indent, 4)
 
 		var pmdCopy PrivateMetadata
-		kbfscodec.Update(codec, &pmdCopy, pmd)
+		err := kbfscodec.Update(codec, &pmdCopy, pmd)
+		if err != nil {
+			return "", err
+		}
 		ops := pmdCopy.Changes.Ops
 		for i, op := range ops {
 			ops[i] = verboseOp{op, indent}
@@ -424,11 +427,11 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.
-	valid := true
 	newBareHandle, err := newHandle.ToBareHandle()
 	if err != nil {
 		return err
 	}
+	var valid bool
 	switch md.TypeForKeying() {
 	case tlf.PrivateKeying:
 		// Private-keyed TLFs can move to team keying, but not to

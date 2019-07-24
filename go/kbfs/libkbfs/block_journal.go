@@ -1169,7 +1169,10 @@ func (j *blockJournal) clearDeferredGCRange(
 	// If we crash before calling this, the journal bytes/files
 	// counts will be inaccurate. But this will be resolved when
 	// the journal goes empty in the clause above.
-	j.unstoreBlocks(removedBytes, removedFiles)
+	err = j.unstoreBlocks(removedBytes, removedFiles)
+	if err != nil {
+		return false, blockAggregateInfo{}, err
+	}
 
 	aggregateInfo = j.aggregateInfo
 

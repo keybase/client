@@ -138,12 +138,6 @@ func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
 	return dbcg.cache
 }
 
-func (dbcg *testDiskBlockCacheGetter) setDiskBlockCache(c DiskBlockCache) {
-	dbcg.lock.Lock()
-	defer dbcg.lock.Unlock()
-	dbcg.cache = c
-}
-
 func newTestDiskBlockCacheGetter(t *testing.T,
 	cache DiskBlockCache) *testDiskBlockCacheGetter {
 	return &testDiskBlockCacheGetter{cache: cache}
@@ -705,7 +699,10 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfscache")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 
 	// Use a real config, since we need the real SetTlfSyncState
 	// implementation.
@@ -715,8 +712,10 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
-	config.EnableDiskLimiter(tempdir)
-	config.loadSyncedTlfsLocked()
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.loadSyncedTlfsLocked()
+	require.NoError(t, err)
 	config.diskCacheMode = DiskCacheModeLocal
 	err = config.MakeDiskBlockCacheIfNotExists()
 	require.NoError(t, err)

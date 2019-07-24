@@ -200,7 +200,8 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	}
 
 	if newStatus == nil {
-		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+		fs.log.CDebugf(
+			context.TODO(), "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
 		go fs.initSyncedTlfs()
@@ -211,7 +212,8 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.currentStatus.PushStatusChange()
 
-	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
+	fs.log.CDebugf(
+		context.TODO(), "Asking for an edit re-init after status change")
 	fs.editActivity.Add(1)
 	go fs.initTlfsForEditHistories()
 	go fs.initSyncedTlfs()
@@ -620,7 +622,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	if err := ops.doFavoritesOp(ctx, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
-		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+		fs.log.CDebugf(ctx, "Couldn't add favorite: %+v", err)
 	}
 
 	fs.opsLock.Lock()
@@ -635,10 +637,13 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	// Track under its name, so we can later tell it to remove itself
 	// from the favorites list.
 	fs.opsByFav[fav] = ops
-	ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
+	err := ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
 		kbfsOps: fs,
 		currFav: fav,
 	})
+	if err != nil {
+		fs.log.CDebugf(ctx, "Couldn't register for changes: %+v", err)
+	}
 	return ops
 }
 
