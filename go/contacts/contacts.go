@@ -5,6 +5,7 @@ package contacts
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -23,7 +24,9 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 		// ContactComponent has the PhoneNumber type which is E164 phone
 		// number starting with `+`, we need to remove all non-digits for
 		// the assertion.
-		value = keybase1.PhoneNumberToAssertion(value)
+		value = keybase1.PhoneNumberToAssertionValue(value)
+	} else {
+		value = strings.TrimSpace(strings.ToLower(value))
 	}
 	if key == "" || value == "" {
 		return "", errors.New("invalid variant value in contact component")

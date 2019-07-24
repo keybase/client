@@ -2710,12 +2710,12 @@ func (p PhoneNumber) String() string {
 
 var nonDigits = regexp.MustCompile("[^\\d]")
 
-func PhoneNumberToAssertion(phoneNumber string) string {
+func PhoneNumberToAssertionValue(phoneNumber string) string {
 	return nonDigits.ReplaceAllString(phoneNumber, "")
 }
 
 func (p PhoneNumber) AssertionValue() string {
-	return PhoneNumberToAssertion(p.String())
+	return PhoneNumberToAssertionValue(p.String())
 }
 
 func (d TeamData) ID() TeamID {

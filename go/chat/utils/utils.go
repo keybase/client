@@ -224,7 +224,7 @@ func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, 
 	for _, contact := range contacts {
 		cPhoneOrEmail := contact.Component.ValueString()
 		if isPhone {
-			cPhoneOrEmail = keybase1.PhoneNumberToAssertion(cPhoneOrEmail)
+			cPhoneOrEmail = keybase1.PhoneNumberToAssertionValue(cPhoneOrEmail)
 		}
 		if cPhoneOrEmail == phoneOrEmail {
 			return &contact.ContactName
