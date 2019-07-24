@@ -33,7 +33,6 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
           path: [{props: {path: `/keybase/${action.payload.link}`}, selected: 'main'}],
         }),
       ]
-      break
     case 'chat':
       if (parts.length === 2) {
         if (parts[1].includes('#')) {

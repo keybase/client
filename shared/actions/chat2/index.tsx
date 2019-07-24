@@ -1862,7 +1862,7 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
           }),
         ]
       } else {
-        throw e
+        throw err
       }
     })
 }
