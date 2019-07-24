@@ -16,7 +16,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
   // List guaranteed to contain at least one elem.
   switch (parts[0]) {
     case 'profile':
-      if (parts.length !== 3) {
+      if (parts.length !== 3 && parts.length !== 4) {
         return [
           DeeplinksGen.createSetKeybaseLinkError({error}),
           RouteTreeGen.createNavigateAppend({
@@ -25,7 +25,10 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
         ]
       }
       if (parts[1] === 'new-proof') {
-        return ProfileGen.createAddProof({platform: parts[2]})
+        return [
+          (parts.length === 4 && parts[3]) ?  ProfileGen.createUpdateUsername({username: parts[3]}) : null,
+          ProfileGen.createAddProof({platform: parts[2]}),
+        ]
       }
       break
     // Fall-through
