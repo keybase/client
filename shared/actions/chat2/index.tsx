@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
@@ -1826,8 +1827,13 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
     if (!first) {
       if (action.payload.reason === 'appLink') {
         return [
-          ConfigGen.createSetKeybaseLinkError({error: "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."}),
-          RouteTreeGen.createNavigateAppend({path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}]}),
+          DeeplinksGen.createSetKeybaseLinkError({
+            error:
+              "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+          }),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          }),
         ]
       } else {
         return undefined

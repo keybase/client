@@ -1,15 +1,15 @@
-import * as ConfigGen from './config-gen'
 import * as ChatGen from './chat2-gen'
-import * as ProfileGen from './profile-gen'
-import * as WalletsGen from './wallets-gen'
 import * as Constants from '../constants/config'
-import * as Saga from '../util/saga'
-import * as RouteTreeGen from './route-tree-gen'
-import * as Tabs from '../constants/tabs'
-import URL from 'url-parse'
 import * as Container from '../util/container'
+import * as DeeplinksGen from './deeplinks-gen'
+import * as ProfileGen from './profile-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Saga from '../util/saga'
+import * as Tabs from '../constants/tabs'
+import * as WalletsGen from './wallets-gen'
+import URL from 'url-parse'
 
-const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeybaseLinkPayload) => {
+const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
     "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
   const parts = action.payload.link.split('/')
@@ -18,7 +18,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
     case 'profile':
       if (parts.length !== 3) {
         return [
-          ConfigGen.createSetKeybaseLinkError({error}),
+          DeeplinksGen.createSetKeybaseLinkError({error}),
           RouteTreeGen.createNavigateAppend({
             path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
           }),
@@ -41,7 +41,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
     case 'chat':
       if (parts.length !== 2) {
         return [
-          ConfigGen.createSetKeybaseLinkError({error}),
+          DeeplinksGen.createSetKeybaseLinkError({error}),
           RouteTreeGen.createNavigateAppend({
             path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
           }),
@@ -51,7 +51,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
         const teamChat = parts[1].split('#')
         if (teamChat.length !== 2) {
           return [
-            ConfigGen.createSetKeybaseLinkError({error}),
+            DeeplinksGen.createSetKeybaseLinkError({error}),
             RouteTreeGen.createNavigateAppend({
               path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
             }),
@@ -70,7 +70,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
       }
     default:
       return [
-        ConfigGen.createSetKeybaseLinkError({error}),
+        DeeplinksGen.createSetKeybaseLinkError({error}),
         RouteTreeGen.createNavigateAppend({
           path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
         }),
@@ -79,14 +79,14 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
   return undefined
 }
 
-const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
+const handleAppLink = (_: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {
     const link = action.payload.link.replace('keybase://', '')
     console.warn('Got Keybase link:', link)
-    return ConfigGen.createHandleKeybaseLink({link})
+    return DeeplinksGen.createHandleKeybaseLink({link})
   } else {
     // Normal deeplink
     const url = new URL(action.payload.link)
@@ -102,8 +102,11 @@ const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) =
 }
 
 function* deeplinksSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
-  yield* Saga.chainAction<ConfigGen.HandleKeybaseLinkPayload>(ConfigGen.handleKeybaseLink, handleKeybaseLink)
+  yield* Saga.chainAction<DeeplinksGen.LinkPayload>(DeeplinksGen.link, handleAppLink)
+  yield* Saga.chainAction<DeeplinksGen.HandleKeybaseLinkPayload>(
+    DeeplinksGen.handleKeybaseLink,
+    handleKeybaseLink
+  )
 }
 
 export default deeplinksSaga

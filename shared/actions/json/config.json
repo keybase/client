@@ -55,12 +55,6 @@
     },
     "changedFocus": {"appFocused": "boolean"},
     "changedActive": {"userActive": "boolean"},
-    "handleKeybaseLink": {"link": "string"},
-    "link": {"link": "string"},
-    "setKeybaseLinkError": {
-      "_description": "Set the error field for a Keybase URL scheme link.",
-      "error": "string"
-    },
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "loadAvatars": {"usernames": "Array<string>"},

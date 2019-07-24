@@ -267,14 +267,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         appOutOfDateMessage: action.payload.message,
         appOutOfDateStatus: action.payload.status,
       })
-    case ConfigGen.handleKeybaseLink: 
-      return state.merge({
-        keybaseLinkError: '',
-      })
-    case ConfigGen.setKeybaseLinkError:
-      return state.merge({
-        keybaseLinkError: action.payload.error,
-      })
     case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
       return state.merge({
         runtimeStats: action.payload.params.stats,
@@ -286,7 +278,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
-    case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:

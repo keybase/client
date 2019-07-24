@@ -23,9 +23,7 @@ export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
-export const handleKeybaseLink = 'config:handleKeybaseLink'
 export const installerRan = 'config:installerRan'
-export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
@@ -44,7 +42,6 @@ export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
 export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
-export const setKeybaseLinkError = 'config:setKeybaseLinkError'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -89,9 +86,7 @@ type _FollowerInfoUpdatedPayload = {
   readonly followees: Array<string>
 }
 type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
-type _HandleKeybaseLinkPayload = {readonly link: string}
 type _InstallerRanPayload = void
-type _LinkPayload = {readonly link: string}
 type _LoadAvatarsPayload = {readonly usernames: Array<string>}
 type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
 type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
@@ -118,7 +113,6 @@ type _RestartHandshakePayload = void
 type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
-type _SetKeybaseLinkErrorPayload = {readonly error: string}
 type _SetNavigatorPayload = {readonly navigator: any}
 type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
 type _SetOpenAtLoginPayload = {readonly open: boolean; readonly writeFile: boolean}
@@ -165,12 +159,6 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
   payload,
   type: filePickerError,
 })
-/**
- * Set the error field for a Keybase URL scheme link.
- */
-export const createSetKeybaseLinkError = (
-  payload: _SetKeybaseLinkErrorPayload
-): SetKeybaseLinkErrorPayload => ({payload, type: setKeybaseLinkError})
 /**
  * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
  */
@@ -270,11 +258,6 @@ export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayl
   payload,
   type: globalError,
 })
-export const createHandleKeybaseLink = (payload: _HandleKeybaseLinkPayload): HandleKeybaseLinkPayload => ({
-  payload,
-  type: handleKeybaseLink,
-})
-export const createLink = (payload: _LinkPayload): LinkPayload => ({payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload): LoadAvatarsPayload => ({
   payload,
   type: loadAvatars,
@@ -382,12 +365,7 @@ export type FollowerInfoUpdatedPayload = {
   readonly type: typeof followerInfoUpdated
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
-export type HandleKeybaseLinkPayload = {
-  readonly payload: _HandleKeybaseLinkPayload
-  readonly type: typeof handleKeybaseLink
-}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LinkPayload = {readonly payload: _LinkPayload; readonly type: typeof link}
 export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: typeof loadAvatars}
 export type LoadTeamAvatarsPayload = {
   readonly payload: _LoadTeamAvatarsPayload
@@ -436,10 +414,6 @@ export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
   readonly type: typeof setDeletedSelf
 }
-export type SetKeybaseLinkErrorPayload = {
-  readonly payload: _SetKeybaseLinkErrorPayload
-  readonly type: typeof setKeybaseLinkError
-}
 export type SetNavigatorPayload = {readonly payload: _SetNavigatorPayload; readonly type: typeof setNavigator}
 export type SetNotifySoundPayload = {
   readonly payload: _SetNotifySoundPayload
@@ -485,9 +459,7 @@ export type Actions =
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
-  | HandleKeybaseLinkPayload
   | InstallerRanPayload
-  | LinkPayload
   | LoadAvatarsPayload
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload
@@ -506,7 +478,6 @@ export type Actions =
   | SetAccountsPayload
   | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
-  | SetKeybaseLinkErrorPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
