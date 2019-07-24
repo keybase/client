@@ -15,7 +15,7 @@ type DispatchProps = {
   loadFolderList: () => void
   loadPathMetadata: () => void
 }
-const mapStateToProps = (state, {path}: OwnProps): StateProps => ({
+const mapStateToProps = (state): StateProps => ({
   _pathItems: state.fs.pathItems,
 })
 

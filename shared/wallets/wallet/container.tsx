@@ -22,7 +22,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigateUp}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
@@ -46,14 +46,14 @@ const sortAndStripTimestamps = (
 const WalletOrOnboarding = (props: Props) =>
   !Container.isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+    export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
   const sections: Props['sections'] = []
   // layout is
   // 1. assets header and list of assets
   // 2. transactions header and transactions
   // Formatted in a SectionList
   const assets =
-    stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
+    stateProps.assets.count() > 0 ? stateProps.assets.map((_, index) => index).toArray() : ['notLoadedYet']
   sections.push({
     data: assets,
     title: (

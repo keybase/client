@@ -29,7 +29,7 @@ const mapDispatchToProps = dispatch => ({
   _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   banners: (stateProps.banners || []).map(banner => ({
     action: () =>
       dispatchProps._onGoAdvanced(

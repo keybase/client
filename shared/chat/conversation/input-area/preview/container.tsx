@@ -23,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   channelname: stateProps._meta.channelname,
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._conversationIDKey),
   onLeaveChannel: () => dispatchProps._onLeaveChannel(stateProps._conversationIDKey),

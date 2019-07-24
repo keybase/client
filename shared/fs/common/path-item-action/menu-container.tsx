@@ -12,7 +12,6 @@ import Menu from './menu'
 import {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {fsTab} from '../../../constants/tabs'
 import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
@@ -31,9 +30,9 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
-  _confirmSaveMedia: (toCancel: string | null) =>
+  _confirmSaveMedia: () =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
   _confirmSendToOtherApp: () =>
     dispatch(
@@ -42,8 +41,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, rout
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [fsTab],
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {mode, path}, selected: 'confirmDelete'}],
       })
     )
@@ -79,9 +77,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, rout
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
   },
   _sendAttachmentToChat: () =>
-    Constants.makeActionsForShowSendAttachmentToChat(path, routePath).forEach(action => dispatch(action)),
-  _sendLinkToChat: () =>
-    Constants.makeActionsForShowSendLinkToChat(path, routePath).forEach(action => dispatch(action)),
+    Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
+  _sendLinkToChat: () => Constants.makeActionsForShowSendLinkToChat(path).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createShareNative({key, path}))

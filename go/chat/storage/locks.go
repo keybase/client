@@ -15,5 +15,5 @@ var locks *locksRepo
 
 func init() {
 	locks = &locksRepo{}
-	locks.StorageLockTab = &libkb.LockTable{}
+	locks.StorageLockTab = libkb.NewLockTable()
 }

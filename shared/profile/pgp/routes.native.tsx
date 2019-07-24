@@ -20,7 +20,7 @@ const NoPGPView = props => (
 const NoPGP = connect(
   () => ({}),
   dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
-  (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(NoPGPView)
 
 export const newRoutes = {

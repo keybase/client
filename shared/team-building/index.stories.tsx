@@ -17,7 +17,7 @@ const generateTeamSofar = (count: number) => {
   const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
   const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
   const services: Array<Types.ServiceIdWithContact> = ['keybase', 'twitter', 'reddit']
-  return new Array(count).fill('').map((v, i) => {
+  return new Array(count).fill('').map((_, i) => {
     const adj = adjs[i % adjs.length]
     const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
     const service = services[i % services.length]
@@ -80,7 +80,8 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -96,7 +97,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -111,7 +113,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -174,7 +177,8 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -190,7 +194,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -205,7 +210,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -321,7 +327,8 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -337,7 +344,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -352,7 +360,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -396,7 +405,8 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -412,7 +422,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -427,7 +438,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -471,7 +483,8 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -487,7 +500,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -502,7 +516,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -627,6 +642,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
         resultForService={'keybase'}
         services={{
@@ -638,7 +654,7 @@ const load = () => {
         }}
         inTeam={false}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -647,6 +663,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
         resultForService={'keybase'}
         services={{
@@ -658,7 +675,7 @@ const load = () => {
         }}
         inTeam={true}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -668,11 +685,12 @@ const load = () => {
         resultForService={'github'}
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -682,10 +700,11 @@ const load = () => {
         resultForService={'github'}
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState={'NoState'}
+        followingState={'NoState' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         isPreExistingTeamMember={false}
@@ -696,6 +715,7 @@ const load = () => {
         isPreExistingTeamMember={false}
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -704,7 +724,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}

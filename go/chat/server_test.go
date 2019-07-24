@@ -2016,6 +2016,7 @@ type serverChatListener struct {
 	reactionUpdate          chan chat1.ReactionUpdateNotif
 	messagesUpdated         chan chat1.MessagesUpdated
 	readMessage             chan chat1.ReadMessageInfo
+	convsUpdated            chan []chat1.InboxUIItem
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -2083,6 +2084,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.messagesUpdated <- activity.MessagesUpdated()
 	case chat1.ChatActivityType_SET_STATUS:
 		n.setStatus <- activity.SetStatus()
+	case chat1.ChatActivityType_CONVS_UPDATED:
+		n.convsUpdated <- activity.ConvsUpdated().Items
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2135,6 +2138,7 @@ func newServerChatListener() *serverChatListener {
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
+		convsUpdated:            make(chan []chat1.InboxUIItem, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -3700,6 +3704,90 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		require.Equal(t, 1, len(updates))
 		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 	})
+}
+
+var errGetInboxNonblockFailingUI = errors.New("get outta here")
+
+type getInboxNonblockFailingUI struct {
+	*kbtest.ChatUI
+	failUnverified, failVerified bool
+}
+
+func (u *getInboxNonblockFailingUI) ChatInboxUnverified(ctx context.Context,
+	arg chat1.ChatInboxUnverifiedArg) error {
+	if u.failUnverified {
+		return errGetInboxNonblockFailingUI
+	}
+	return u.ChatUI.ChatInboxUnverified(ctx, arg)
+}
+
+func (u *getInboxNonblockFailingUI) ChatInboxConversation(ctx context.Context,
+	arg chat1.ChatInboxConversationArg) error {
+	if u.failVerified {
+		return errGetInboxNonblockFailingUI
+	}
+	return u.ChatUI.ChatInboxConversation(ctx, arg)
+}
+
+func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvGetInboxNonblockChatUIError", 2)
+	defer ctc.cleanup()
+
+	timeout := 2 * time.Second
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	tui := kbtest.NewChatUI()
+	ui := &getInboxNonblockFailingUI{ChatUI: tui, failUnverified: true, failVerified: true}
+	ctc.as(t, users[0]).h.mockChatUI = ui
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "HIIHIHIHI",
+	}))
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.Error(t, err)
+	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case <-listener0.inboxStale:
+	case <-time.After(timeout):
+		require.Fail(t, "no inbox stale")
+	}
+
+	ui.failUnverified = false
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	select {
+	case <-ui.InboxCb:
+	case <-time.After(timeout):
+		require.Fail(t, "no untrusted inbox")
+	}
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case upds := <-listener0.threadsStale:
+		require.Equal(t, 1, len(upds))
+		require.Equal(t, conv.Id, upds[0].ConvID)
+	case <-time.After(timeout):
+		require.Fail(t, "no conv stale")
+	}
 }
 
 func TestChatSrvGetInboxNonblockError(t *testing.T) {

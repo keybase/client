@@ -3,15 +3,13 @@ import * as Container from '../../../util/container'
 import ReallyLeaveTeam from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = Container.RouteProps<
-  {
-    username: string
-    teamname: string
-    email: string
-  }
->
+type OwnProps = Container.RouteProps<{
+  username: string
+  teamname: string
+  email: string
+}>
 
-const mapStateToProps = (state, ownProps) => ({
+const mapStateToProps = (_, ownProps) => ({
   member: Container.getRouteProps(ownProps, 'username') || Container.getRouteProps(ownProps, 'email'),
   name: Container.getRouteProps(ownProps, 'teamname'),
 })
@@ -37,6 +35,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}))(
   ReallyLeaveTeam
 )

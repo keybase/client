@@ -18,7 +18,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onClick: () =>
-    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]})),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamname}, selected: 'team'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

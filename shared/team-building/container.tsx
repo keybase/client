@@ -18,7 +18,7 @@ import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../co
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
-import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
@@ -60,9 +60,11 @@ const deriveSearchResults = memoize(
   ) =>
     searchResults &&
     searchResults.map(info => ({
-      followingState: followStateHelperWithId(myUsername, followingState, info.id),
+      displayLabel: info.label || '',
+      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      key: [info.id, info.prettyName, info.label].join('&'),
       prettyName: info.prettyName,
       services: info.serviceMap,
       userId: info.id,

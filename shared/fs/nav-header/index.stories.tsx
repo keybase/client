@@ -33,7 +33,7 @@ const provider = Sb.createPropProviderWithCommon({
   ...headerProvider,
 })
 
-const TestWrapper = ({path, offline}: {path: Types.Path; offline?: boolean | null}) =>
+const TestWrapper = ({path}: {path: Types.Path}) =>
   isMobile ? (
     <MobileHeader path={path} onBack={Sb.action('onBack')} />
   ) : (

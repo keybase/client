@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const {teamProfileAddList, _them} = stateProps
   const title = `Add ${_them} to...`
 
@@ -67,6 +67,7 @@ const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRol
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
       }
+        return ''
     })
     .find(v => !!v)
 })

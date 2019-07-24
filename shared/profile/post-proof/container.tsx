@@ -67,7 +67,7 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: () => dispatch(ProfileGen.createCheckProof()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   copyToClipboard: dispatchProps.copyToClipboard,
   errorMessage: stateProps.errorMessage,
   onCancel: dispatchProps.onCancel,

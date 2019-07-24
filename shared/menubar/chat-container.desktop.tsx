@@ -20,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
   onViewAll: () => dispatch(Chat2Gen.createOpenChatFromWidget({})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   convRows: __STORYBOOK__
     ? []
     : stateProps.conversations

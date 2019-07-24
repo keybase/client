@@ -8,9 +8,8 @@ import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
-import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import {TypedState, TypedActions} from '../../util/container'
+import {TypedState} from '../../util/container'
 
 const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
@@ -38,7 +37,6 @@ const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
             ? []
             : [
                 RouteTreeGen.createNavigateAppend({
-                  parentPath: [peopleTab],
                   path: ['profileConfirmOrPending'],
                 }),
               ]),
@@ -67,18 +65,14 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   // Special cases
   switch (service) {
     case 'dnsOrGenericWebSite':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']}))
       return
     case 'zcash': //  fallthrough
     case 'btc':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePgp']}))
       return
   }
 
@@ -138,7 +132,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
             errorText: '',
           })
         )
-        const state : TypedState = yield* Saga.selectState()
+        const state: TypedState = yield* Saga.selectState()
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates
@@ -162,11 +156,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       )
     }
     if (service) {
-      actions.push(
-        Saga.put(
-          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-        )
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']})))
     } else if (genericService && parameters) {
       actions.push(
         Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
@@ -200,9 +190,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
 
     if (service) {
       actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-      actions.push(
-        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']})))
     } else if (proof) {
       actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
       openURL(proof)
@@ -309,7 +297,7 @@ const submitCryptoAddress = (
   )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
-      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
+      RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {
       logger.warn('Error making proof')

@@ -36,7 +36,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const users = stateProps._allMembers
     .map(username => ({
       alreadyAdded: stateProps._alreadyAdded.includes(username),

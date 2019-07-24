@@ -98,7 +98,7 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 	}
 	res.ProvisionedUsernames = p
 
-	accounts, err := libkb.GetConfiguredAccounts(mctx, mctx.G().SecretStore())
+	accounts, err := libkb.GetConfiguredAccountsFromProvisionedUsernames(mctx, mctx.G().SecretStore(), current, all)
 	if err != nil {
 		mctx.Debug("| died in GetConfiguredAccounts()")
 		return res, err

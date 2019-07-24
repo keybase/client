@@ -6,7 +6,6 @@ import * as Constants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import logger from '../../logger'
 import {anyWaiting} from '../../constants/waiting'
 import EnterUsername from '.'
 import {InfoIcon} from '../common'
@@ -14,6 +13,7 @@ import {InfoIcon} from '../common'
 type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
+  _users: state.config.configuredAccounts,
   error: state.signup.usernameError,
   initialUsername: state.signup.username,
   usernameTaken: state.signup.usernameTaken,
@@ -21,9 +21,12 @@ const mapStateToProps = (state: Container.TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onBack: () => {
+  _onBack: () => {
     dispatch(SignupGen.createRestartSignup())
     dispatch(RouteTreeGen.createNavigateUp())
+  },
+  _onReturnToMain: () => {
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   },
   onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
   onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
@@ -32,7 +35,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 const ConnectedEnterUsername = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...s, ...d, ...o})
+  (s, d, o: OwnProps) => ({
+    ...s,
+    ...d,
+    ...o,
+    onBack: s._users.some(account => account.hasStoredSecret) ? d._onReturnToMain : d._onBack,
+  })
 )(EnterUsername)
 
 // @ts-ignore fix this

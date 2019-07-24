@@ -5,10 +5,8 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
 import * as FsConstants from '../../constants/fs'
-import {namedConnect, compose, withHandlers, isMobile} from '../../util/container'
+import {namedConnect, compose, withHandlers} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
-import {gitTab, settingsTab} from '../../constants/tabs'
-import {gitTab as settingsGitTab} from '../../constants/settings'
 import openURL from '../../util/open-url'
 
 type OwnProps = {
@@ -34,7 +32,6 @@ const mapDispatchToProps = dispatch => ({
   _onOpenChannelSelection: (repoID: string, teamname: string | null, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
         path: [{props: {repoID, selected, teamname}, selected: 'gitSelectChannel'}],
       })
     ),

@@ -18,6 +18,7 @@ function* generatePgp(state) {
   const onKeyGenerated = ({key}, response) => {
     if (canceled) {
       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+        return undefined
     } else {
       response.result()
       return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
@@ -27,7 +28,7 @@ function* generatePgp(state) {
   const onShouldPushPrivate = ({prompt}, response) => {
     return Saga.callUntyped(function*() {
       yield Saga.put(
-        RouteTreeGen.createNavigateTo({
+        RouteTreeGen.createNavigateAppend({
           path: [
             peopleTab,
             'profile',
@@ -48,7 +49,7 @@ function* generatePgp(state) {
   const onFinished = () => {}
 
   yield Saga.put(
-    RouteTreeGen.createNavigateTo({
+    RouteTreeGen.createNavigateAppend({
       path: [peopleTab, 'profile', 'profilePgp', 'profileProvideInfo', 'profileGenerate'],
     })
   )

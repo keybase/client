@@ -14,12 +14,12 @@ const mapStateToProps = state => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   device: stateProps.device,
   endangeredTLFs: stateProps._endangeredTLFs.toArray(),
   onCancel: dispatchProps.onCancel,

@@ -76,6 +76,9 @@ type DB struct {
 	compWriteLocking bool
 	compStats        cStats
 	memdbMaxLevel    int // For testing.
+	compActiveLk     sync.RWMutex
+	memCompActive    bool
+	tableCompActive  bool
 
 	// Close.
 	closeW sync.WaitGroup
@@ -1034,6 +1037,9 @@ type DBStats struct {
 	LevelRead         Sizes
 	LevelWrite        Sizes
 	LevelDurations    []time.Duration
+
+	MemCompactionActive   bool
+	TableCompactionActive bool
 }
 
 // Stats populates s with database statistics.
@@ -1064,6 +1070,13 @@ func (db *DB) Stats(s *DBStats) error {
 	s.LevelWrite = s.LevelWrite[:0]
 	s.LevelSizes = s.LevelSizes[:0]
 	s.LevelTablesCounts = s.LevelTablesCounts[:0]
+
+	func() {
+		db.compActiveLk.RLock()
+		defer db.compActiveLk.RUnlock()
+		s.MemCompactionActive = db.memCompActive
+		s.TableCompactionActive = db.tableCompActive
+	}()
 
 	v := db.s.version()
 	defer v.release()

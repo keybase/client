@@ -1,16 +1,9 @@
 import * as ProfileGen from '../../actions/profile-gen'
 import {Usernames} from '.'
-import {remoteConnect, compose} from '../../util/container'
+import {remoteConnect} from '../../util/container'
 import * as Container from './container'
-import * as UsersTypes from '../../constants/types/users'
 
 type OwnProps = Container.ConnectedProps
-
-type State = {
-  following: Set<string>
-  userInfo: {[K in string]: UsersTypes._UserInfo}
-  username: string
-}
 
 // Connected username component
 const mapStateToProps = props => ({

@@ -6,7 +6,7 @@ import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
-import {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: {
   runWithData: (arg0: string) => void
@@ -98,7 +98,7 @@ function createClient(
   return client
 }
 
-function resetClient(client: createClientType) {
+function resetClient() {
   // Tell the RN bridge to reset itself
   nativeBridge.reset()
 }

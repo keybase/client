@@ -137,6 +137,10 @@ func (s *CmdSignup) SetNoInvitationCodeBypass() {
 	s.noInvitationCodeBypass = true
 }
 
+func (s *CmdSignup) SetNoEmail() {
+	s.noEmail = true
+}
+
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 

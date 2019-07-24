@@ -9,7 +9,7 @@ import * as Saga from '../util/saga'
 import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
-import {ServiceId, serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
+import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
 
 function _serviceToApiServiceName(service: Types.Service): string {
@@ -351,7 +351,7 @@ const finishedSearch = (_, {payload: {searchKey, searchResultTerm, service}}) =>
     keyPath: ['search', 'searchKeyToSearchResultQuery'],
   })
 
-const maybeNewSearch = (state, {payload: {searchKey}}) => {
+const maybeNewSearch = (_, {payload: {searchKey}}) => {
   // When you select a search result, we want to clear the shown results and
   // start back with new recommendations, *unless* you're building a convo,
   // in which case we're showing any convo you selected by choosing a result.

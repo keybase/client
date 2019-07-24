@@ -184,7 +184,7 @@ const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActio
       <Icon fontSize={22} onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
         visible={floatingMenuVisible}
-        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
+        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
           onClick: action.onPress,
           title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
         }))}
@@ -210,7 +210,12 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
       type={action.icon}
     />
   ) : (
-    <Text key={action.label} type="BodyBigLink" style={styles.action} onClick={action.onPress}>
+    <Text
+      key={action.label}
+      type="BodyBigLink"
+      style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
+      onClick={action.onPress}
+    >
       {action.label}
     </Text>
   )

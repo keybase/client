@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 
-type OwnProps = RouteProps< { isTeam: boolean } >
+type OwnProps = RouteProps<{isTeam: boolean}>
 
 const mapStateToProps = (state, {routeProps, navigation}) => ({
   error: Constants.getError(state),
@@ -16,7 +16,7 @@ const mapStateToProps = (state, {routeProps, navigation}) => ({
   waitingKey: Constants.loadingWaitingKey,
 })
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps, navigation}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateUp, routeProps, navigation}) => ({
   loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
@@ -29,11 +29,11 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
     dispatch(createAction)
     dispatch(navigateUp())
   },
-  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(NewRepo)

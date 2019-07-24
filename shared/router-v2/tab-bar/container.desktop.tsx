@@ -1,9 +1,13 @@
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as SignupGen from '../../actions/signup-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
@@ -13,9 +17,6 @@ import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit, hideWindow} from '../../util/quit-helper'
 import {tabRoots} from '../routes'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SignupGen from '../../actions/signup-gen'
 
 type OwnProps = {
   navigation: any
@@ -24,8 +25,10 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
+  _fullnames: state.users.infoMap,
   _peopleJustSignedUpEmail: state.signup.justSignedUpEmail,
   _settingsEmailBanner: state.settings.email.addedEmail,
+  configuredAccounts: state.config.configuredAccounts,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
@@ -57,6 +60,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ownProps.navigation.navigate(tab)
     }
   },
+  onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
+  onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()), // TODO make this route
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {
     if (!__DEV__) {
@@ -78,10 +83,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 
 const getBadges = memoize(b => b.toObject())
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   badgeNumbers: getBadges(stateProps._badgeNumbers),
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
+  onAddAccount: dispatchProps.onAddAccount,
+  onCreateAccount: dispatchProps.onCreateAccount,
   onHelp: dispatchProps.onHelp,
   onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
   onQuit: dispatchProps.onQuit,

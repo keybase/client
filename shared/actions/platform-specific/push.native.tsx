@@ -60,13 +60,14 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}))
+    emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
     logger.debug('[ShareTextIntent]', evt)
-    emitter(RouteTreeGen.createNavigateTo({path: FsConstants.fsRootRouteForNav1}))
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     // TODO: implement
   })
 }
@@ -247,14 +248,13 @@ const requestPermissionsFromNative = () =>
   isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () =>
-  new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
+const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 function* neverShowMonsterAgain(state) {
   if (!state.push.showPushPrompt) {
     yield Saga.spawn(() =>
-      RPCTypes.configSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
+      RPCTypes.configGuiSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
     )
   }
 }
@@ -295,7 +295,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   } else {
     const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
     const shownMonsterPushPromptTask = yield Saga._fork(() =>
-      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+      RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
         .then(v => !!v.b)
         .catch(() => false)
     )

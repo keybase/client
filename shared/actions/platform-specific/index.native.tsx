@@ -20,16 +20,16 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-import NetInfo, {ConnectionType} from '@react-native-community/netinfo'
+import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from '../../util/container'
+import {TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 
 type NextURI = string
 
@@ -209,14 +209,9 @@ const getStartupDetailsFromShare = (): Promise<
         if (p.text) {
           return {text: p.text}
         }
+        return null
       })
     : Promise.resolve(null)
-
-function* clearRouteState() {
-  yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
-  )
-}
 
 let _lastPersist = ''
 function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
@@ -249,20 +244,20 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const s = JSON.stringify({param, routeName})
   _lastPersist = routeName
   yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s},
     }).catch(() => {})
   )
 }
 
-const updateMobileNetState = (state, action) => {
+const updateMobileNetState = (_, action) => {
   RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
     console.warn('Error sending mobileNetStateUpdate', err)
   })
 }
 
-const initOsNetworkStatus = (state, action) =>
+const initOsNetworkStatus = () =>
   NetInfo.getConnectionInfo().then(({type}) =>
     ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
   )
@@ -288,9 +283,9 @@ function* loadStartupDetails() {
   let startupSharePath = null
 
   const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState2'})
+    RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
       .then(v => v.s || '')
-      .catch(e => {})
+      .catch(() => {})
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
@@ -299,7 +294,7 @@ function* loadStartupDetails() {
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(() => {
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
@@ -329,9 +324,6 @@ function* loadStartupDetails() {
         startupConversation = item.param && item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
-
-      // immediately clear route state in case this is a bad route
-      yield clearRouteState()
     } catch (_) {
       startupConversation = null
       startupTab = null
@@ -381,29 +373,23 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<TypedActions> =>
-  new Promise((resolve, reject) => {
-    ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
-      if (response.didCancel) {
-        resolve()
-      } else if (response.error) {
-        resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
-      } else {
-        resolve(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: response}, selected: 'profileEditAvatar'}],
+const editAvatar = (): Promise<Saga.MaybeAction> =>
+  launchImageLibraryAsync('photo')
+    .then(result => {
+      result.cancelled === true
+        ? null
+        : RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
-        )
-      }
     })
-  })
+    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
   Linking.openURL(
     isAndroid
       ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
-  ).catch(e => {})
+  ).catch(() => {})
 
 const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
@@ -444,35 +430,26 @@ const loadContactPermissions = async (
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
-const askForContactPermissionsAndroid = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsAndroid = async () => {
   const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS)
   // status is 'granted' | 'denied' | 'never_ask_again'
   // map 'denied' -> 'undetermined' since 'undetermined' means we can show the prompt again
   return status === 'denied' ? 'undetermined' : status
 }
 
-const askForContactPermissionsIOS = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsIOS = async () => {
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap[status]
 }
 
-const askForContactPermissions = (state: TypedState, logger: Saga.SagaLogger) => {
-  return isAndroid
-    ? askForContactPermissionsAndroid(state, logger)
-    : askForContactPermissionsIOS(state, logger)
+const askForContactPermissions = () => {
+  return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(
-  state: TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload,
-  logger: Saga.SagaLogger
-) {
+function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions(
-    state,
-    logger
-  )
+  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
     yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
@@ -572,7 +549,6 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
   yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(

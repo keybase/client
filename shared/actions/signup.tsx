@@ -3,9 +3,7 @@ import * as Constants from '../constants/signup'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
-import {loginTab} from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import {TypedState} from '../constants/reducer'
@@ -30,27 +28,24 @@ const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 const showUserOnNoErrors = (state: TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterUsername']}),
+    RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}),
   ]
 
-const showInviteScreen = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
+const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
 
 const showEmailScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
-    : RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
+    : RouteTreeGen.createNavigateAppend({path: ['signupError']})
 
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
 const setEmailVisibilityAfterSignup = (state: TypedState) =>

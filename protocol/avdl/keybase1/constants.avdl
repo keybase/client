@@ -35,6 +35,7 @@ protocol constants {
     SCRateLimit_602,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
+    SCBadSignupTeamName_711,
     SCFeatureFlag_712,
     SCMissingResult_801,
     SCKeyNotFound_901,
@@ -212,6 +213,8 @@ protocol constants {
     SCPhoneNumberWrongVerificationCode_3403,
     SCPhoneNumberLimitExceeded_3404,
     SCNoPaperKeys_3605,
-    SCTeambotKeyGenerationExists_3800
+    SCTeambotKeyGenerationExists_3800,
+    SCTeambotKeyOldBoxedGeneration_3801,
+    SCTeambotKeyBadGeneration_3802
   }
 }

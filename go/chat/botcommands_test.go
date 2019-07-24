@@ -1,15 +1,27 @@
 package chat
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
+
+type dummyUIRouter struct {
+	libkb.UIRouter
+}
+
+func (d dummyUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return nil, nil
+}
+
+func (d dummyUIRouter) Shutdown() {}
 
 func TestBotCommandManager(t *testing.T) {
 	useRemoteMock = false
@@ -20,7 +32,9 @@ func TestBotCommandManager(t *testing.T) {
 	timeout := 20 * time.Second
 	users := ctc.users()
 	tc := ctc.world.Tcs[users[0].Username]
+	tc.G.UIRouter = dummyUIRouter{}
 	tc1 := ctc.world.Tcs[users[1].Username]
+	tc1.G.UIRouter = dummyUIRouter{}
 	ctx := ctc.as(t, users[0]).startCtx
 	ctx1 := ctc.as(t, users[1]).startCtx
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
@@ -61,11 +75,21 @@ func TestBotCommandManager(t *testing.T) {
 	errCh1, err := tc1.Context().BotCommandManager.UpdateCommands(ctx1, impConv1.Id, nil)
 	require.NoError(t, err)
 
+	readErrCh := func(errCh chan error) error {
+		select {
+		case err := <-errCh:
+			return err
+		case <-time.After(timeout):
+			return errors.New("timeout")
+		}
+	}
 	select {
-	case updates := <-listener0.threadsStale:
-		require.Equal(t, 1, len(updates))
-		require.Equal(t, impConv.Id, updates[0].ConvID)
-		require.Equal(t, chat1.StaleUpdateType_CONVUPDATE, updates[0].UpdateType)
+	case items := <-listener0.convsUpdated:
+		require.Equal(t, 1, len(items))
+		require.Equal(t, impConv.Id.String(), items[0].ConvID)
+		typ, err := items[0].BotCommands.Typ()
+		require.NoError(t, err)
+		require.Equal(t, chat1.ConversationCommandGroupsTyp_CUSTOM, typ)
 	case <-time.After(timeout):
 		require.Fail(t, "no stale")
 	}
@@ -77,12 +101,12 @@ func TestBotCommandManager(t *testing.T) {
 	require.Equal(t, chat1.ConversationCommandGroupsTyp_CUSTOM, typ)
 	require.Equal(t, 1, len(impConvLocal.BotCommands.Custom().Commands))
 	require.Equal(t, "status", impConvLocal.BotCommands.Custom().Commands[0].Name)
-	require.NoError(t, <-errCh)
+	require.NoError(t, readErrCh(errCh))
 	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
 	require.Equal(t, "status", cmds[0].Name)
-	require.NoError(t, <-errCh1)
+	require.NoError(t, readErrCh(errCh1))
 	cmds, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
@@ -107,11 +131,11 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	errChT, err := tc.Context().BotCommandManager.UpdateCommands(ctx, teamConv.Id, nil)
 	require.NoError(t, err)
-	errCh1, err = tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
+	errCh1, err = tc1.Context().BotCommandManager.UpdateCommands(ctx, impConv1.Id, nil)
 	require.NoError(t, err)
-	require.NoError(t, <-errCh)
-	require.NoError(t, <-errCh1)
-	require.NoError(t, <-errChT)
+	require.NoError(t, readErrCh(errCh))
+	require.NoError(t, readErrCh(errCh1))
+	require.NoError(t, readErrCh(errChT))
 	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(cmds))

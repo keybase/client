@@ -78,6 +78,9 @@ func (p CommandLine) GetServerURI() (string, error) {
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")
 }
+func (p CommandLine) GetGUIConfigFilename() string {
+	return p.GetGString("gui-config-file")
+}
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
 }
@@ -721,6 +724,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "updater-config-file",
 			Usage: "Specify a path to the updater config file",
+		},
+		cli.StringFlag{
+			Name:  "gui-config-file",
+			Usage: "Specify a path to the GUI config file",
 		},
 		cli.BoolFlag{
 			Name:  "upgrade-per-user-key",

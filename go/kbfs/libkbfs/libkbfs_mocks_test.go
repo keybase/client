@@ -2963,48 +2963,48 @@ func (mr *MockMDOpsMockRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // Put mocks base method
-func (m *MockMDOps) Put(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey, arg3 *keybase1.LockContext, arg4 keybase1.MDPriority) (ImmutableRootMetadata, error) {
+func (m *MockMDOps) Put(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey, arg3 *keybase1.LockContext, arg4 keybase1.MDPriority, arg5 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Put indicates an expected call of Put
-func (mr *MockMDOpsMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockMDOpsMockRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDOps)(nil).Put), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDOps)(nil).Put), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // PutUnmerged mocks base method
-func (m *MockMDOps) PutUnmerged(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+func (m *MockMDOps) PutUnmerged(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey, arg3 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutUnmerged", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "PutUnmerged", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PutUnmerged indicates an expected call of PutUnmerged
-func (mr *MockMDOpsMockRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockMDOpsMockRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutUnmerged", reflect.TypeOf((*MockMDOps)(nil).PutUnmerged), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutUnmerged", reflect.TypeOf((*MockMDOps)(nil).PutUnmerged), arg0, arg1, arg2, arg3)
 }
 
 // ResolveBranch mocks base method
-func (m *MockMDOps) ResolveBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3 []kbfsblock.ID, arg4 *RootMetadata, arg5 kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+func (m *MockMDOps) ResolveBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3 []kbfsblock.ID, arg4 *RootMetadata, arg5 kbfscrypto.VerifyingKey, arg6 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResolveBranch", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ResolveBranch", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ResolveBranch indicates an expected call of ResolveBranch
-func (mr *MockMDOpsMockRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+func (mr *MockMDOpsMockRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveBranch", reflect.TypeOf((*MockMDOps)(nil).ResolveBranch), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveBranch", reflect.TypeOf((*MockMDOps)(nil).ResolveBranch), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // ValidateLatestHandleNotFinal mocks base method

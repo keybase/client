@@ -110,6 +110,7 @@ export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
+export const setPrependText = 'chat2:setPrependText'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
@@ -516,6 +517,10 @@ type _SetMinWriterRolePayload = {
 }
 type _SetPaymentConfirmInfoPayload = {readonly summary: RPCChatTypes.UIChatPaymentSummary}
 type _SetPaymentConfirmInfoPayloadError = {readonly error: RPCTypes.Status}
+type _SetPrependTextPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly text: HiddenString | null
+}
 type _SetThreadSearchQueryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
@@ -836,6 +841,13 @@ export const createSetCommandStatusInfo = (
 export const createInboxSearchSetIndexPercent = (
   payload: _InboxSearchSetIndexPercentPayload
 ): InboxSearchSetIndexPercentPayload => ({payload, type: inboxSearchSetIndexPercent})
+/**
+ * Set prepend text for a conversation
+ */
+export const createSetPrependText = (payload: _SetPrependTextPayload): SetPrependTextPayload => ({
+  payload,
+  type: setPrependText,
+})
 /**
  * Set team mention info
  */
@@ -1642,6 +1654,10 @@ export type SetPaymentConfirmInfoPayloadError = {
   readonly payload: _SetPaymentConfirmInfoPayloadError
   readonly type: typeof setPaymentConfirmInfo
 }
+export type SetPrependTextPayload = {
+  readonly payload: _SetPrependTextPayload
+  readonly type: typeof setPrependText
+}
 export type SetThreadSearchQueryPayload = {
   readonly payload: _SetThreadSearchQueryPayload
   readonly type: typeof setThreadSearchQuery
@@ -1863,6 +1879,7 @@ export type Actions =
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
+  | SetPrependTextPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload

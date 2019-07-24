@@ -10,11 +10,11 @@ type OwnProps = {
   alwaysShow?: boolean | null
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onDisable: () => dispatch(FsGen.createDriverDisable()),
   onDismiss: () => dispatch(FsGen.createHideSystemFileManagerIntegrationBanner()),
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
@@ -23,15 +23,15 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 const ConnectedBanner = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'SystemFileManagerIntegrationBanner'
 )(Banner)
 
 export default ConnectedBanner
 
 export const asRows = isMobile
-  ? (path: Types.Path, showBanner: boolean) => []
-  : (path: Types.Path, showBanner: boolean): Array<RowTypes.HeaderRowItem> =>
+  ? () => []
+  : (_: Types.Path, showBanner: boolean): Array<RowTypes.HeaderRowItem> =>
       showBanner
         ? [
             {

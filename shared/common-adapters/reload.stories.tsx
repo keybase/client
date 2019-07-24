@@ -16,7 +16,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
 })
 
-const Child = p => <Text type="Body">I dont need reload</Text>
+const Child = () => <Text type="Body">I dont need reload</Text>
 
 const props = {
   onReload: Sb.action('onReload'),

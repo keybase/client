@@ -3252,3 +3252,11 @@ func (s MobileNetworkState) IsLimited() bool {
 		return true
 	}
 }
+
+func (k TeambotKey) Generation() int {
+	return int(k.Metadata.Generation)
+}
+
+func (k TeambotKey) Material() Bytes32 {
+	return k.Seed
+}

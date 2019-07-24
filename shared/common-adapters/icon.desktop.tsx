@@ -14,7 +14,7 @@ class Icon extends Component<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
   }
-  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)

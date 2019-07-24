@@ -43,12 +43,15 @@ const mapStateToProps = (state, ownProps) => {
     const d = Constants.getDetails(state, ownProps.username)
     notAUser = d.state === 'notAUserYet'
     if (notAUser) {
-      const parts = ownProps.username.split('@')
+      const nonUserDetails = Constants.getNonUserDetails(state, ownProps.username)
       // @ts-ignore codemod issue
       a = {
         ...notAUserAssertion,
-        type: parts[1],
-        value: parts[0],
+        siteIcon: nonUserDetails.siteIcon,
+        siteIconFull: nonUserDetails.siteIconFull,
+        siteURL: nonUserDetails.siteURL,
+        type: nonUserDetails.assertionKey,
+        value: nonUserDetails.assertionValue,
       }
     } else if (d.assertions) {
       a = d.assertions.get(ownProps.assertionKey, Constants.noAssertion)
@@ -94,7 +97,7 @@ const mapDispatchToProps = dispatch => ({
   _onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     color: stateProps.color,
     isSuggestion: !!ownProps.isSuggestion,

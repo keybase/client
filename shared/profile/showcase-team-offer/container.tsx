@@ -26,7 +26,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
+  loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,

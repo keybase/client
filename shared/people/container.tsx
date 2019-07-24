@@ -10,6 +10,7 @@ import {createClearJustSignedUpEmail} from '../actions/signup-gen'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 type OwnProps = RouteProps
 
@@ -19,9 +20,10 @@ const mapStateToPropsHeader = state => ({
 
 const mapDispatchToPropsHeader = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+  onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
 })
 
-const mergePropsHeader = (stateProps, dispatchProps) => ({
+const mergePropsHeader = (stateProps, dispatchProps, _: OwnProps) => ({
   myUsername: stateProps.myUsername,
   ...dispatchProps,
 })
@@ -38,6 +40,7 @@ type Props = {
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
+  onOpenAccountSwitcher: () => void
   signupEmail: string
   showAirdrop: boolean
   myUsername: string

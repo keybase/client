@@ -11,8 +11,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
-import * as Tabs from '../constants/tabs'
-import * as NotificationsGen from '../actions/notifications-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -364,7 +362,7 @@ function* refreshNotifications() {
 
 const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccountForeverPayload) => {
+const deleteAccountForever = (state: TypedState) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -408,7 +406,7 @@ const loadSettings = (
 const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
   searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
 
-const editEmail = (state, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
+const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -431,6 +429,7 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger: Saga.Sag
     })
   }
   logger.warn('Empty editEmail action')
+  return undefined
 }
 const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
@@ -449,6 +448,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.Sag
     })
   }
   logger.warn('Empty editPhone action')
+    return undefined
 }
 
 const getRememberPassword = () =>
@@ -497,7 +497,7 @@ const loadLockdownMode = (state: TypedState) =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const loadProxyData = state =>
+const loadProxyData = () =>
   RPCTypes.configGetProxyDataRpcPromise(undefined)
     .then((result: RPCTypes.ProxyData) => SettingsGen.createLoadedProxyData({proxyData: result}))
     .catch(err => logger.warn('Error in loading proxy data', err))
@@ -549,7 +549,7 @@ const sendFeedback = (
     })
 }
 
-const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+const unfurlSettingsRefresh = (state: TypedState) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -597,7 +597,7 @@ const stop = (_: TypedState, action: SettingsGen.StopPayload) =>
   RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 const addPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.AddPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -619,7 +619,7 @@ const addPhoneNumber = (
 }
 
 const resendVerificationForPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.ResendVerificationForPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -670,12 +670,11 @@ const loadContactImportEnabled = async (
   }
   let enabled = false
   try {
-    const res = await RPCTypes.configGetValueRpcPromise(
-      {
-        path: Constants.importContactsConfigKey(state.config.username),
-      },
+    const value = await RPCTypes.configGuiGetValueRpcPromise(
+      {path: Constants.importContactsConfigKey(state.config.username)},
       Constants.importContactsWaitingKey
-    ).then(value => (enabled = !!value.b && !value.isNull))
+    )
+    enabled = !!value.b && !value.isNull
   } catch (err) {
     if (!err.message.includes('no such key')) {
       logger.error(`Error reading config: ${err.message}`)
@@ -690,7 +689,7 @@ const editContactImportEnabled = (
   logger: Saga.SagaLogger
 ) =>
   state.config.username
-    ? RPCTypes.configSetValueRpcPromise(
+    ? RPCTypes.configGuiSetValueRpcPromise(
         {
           path: Constants.importContactsConfigKey(state.config.username),
           value: {b: action.payload.enable, isNull: false},

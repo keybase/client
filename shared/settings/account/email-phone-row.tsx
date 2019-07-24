@@ -16,6 +16,7 @@ export type Props = {
   onVerify: () => void
   primary: boolean
   searchable: boolean
+  superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
 }
@@ -35,6 +36,11 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 )
 
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
+  // Short circuit superseded phone numbers - they get their own banner instead
+  if (props.superseded) {
+    return null
+  }
+
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
     subtitle = addSpacer(subtitle, 'Primary')
@@ -72,7 +78,10 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 
   // TODO: Drop this `if` once Y2K-180 is done.
   if (!props.primary) {
-    menuItems.push('Divider', {
+    if (menuItems.length > 0) {
+      menuItems.push('Divider')
+    }
+    menuItems.push({
       danger: true,
       onClick: props.onDelete,
       title: 'Delete',
@@ -99,7 +108,9 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
-        <Kb.Text type="BodySemibold">{props.address}</Kb.Text>
+        <Kb.Text type="BodySemibold" selectable={true}>
+          {props.address}
+        </Kb.Text>
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
@@ -174,10 +185,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    onDelete: () =>
+    _onDelete: (address: string, discoverable: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {address: ownProps.contactKey, type: 'email'}, selected: 'settingsDeleteAddress'}],
+          path: [
+            {
+              props: {
+                address,
+                discoverable,
+                type: 'email',
+              },
+              selected: 'settingsDeleteAddress',
+            },
+          ],
         })
       ),
     onMakePrimary: () =>
@@ -185,16 +205,25 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
+    _onDelete: (address: string, discoverable: boolean) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                address,
+                discoverable,
+                type: 'phone',
+              },
+              selected: 'settingsDeleteAddress',
+            },
+          ],
+        })
+      ),
     _onVerify: phoneNumber => {
       dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
-    onDelete: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {address: ownProps.contactKey, type: 'phone'}, selected: 'settingsDeleteAddress'}],
-        })
-      ),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
@@ -204,17 +233,18 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps._phoneRow) {
       const pr = stateProps._phoneRow
       return {
         address: pr.displayNumber,
-        onDelete: dispatchProps.phone.onDelete,
+        onDelete: () => dispatchProps.phone._onDelete(ownProps.contactKey, pr.searchable),
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
         onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
         searchable: pr.searchable,
+        superseded: pr.superseded,
         type: 'phone' as const,
         verified: pr.verified,
       }
@@ -223,7 +253,10 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
+        onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
+        onVerify: dispatchProps.email.onVerify,
         primary: stateProps._emailRow.isPrimary,
         searchable,
         type: 'email' as const,

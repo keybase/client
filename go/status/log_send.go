@@ -19,13 +19,13 @@ import (
 const (
 	// After gzipping the logs we compress by this factor on avg. We use this
 	// to calculate the amount of raw log bytes we should read when sending.
-	AvgCompressionRatio        = 10
-	LogSendDefaultBytesDesktop = 1024 * 1024 * 16 * AvgCompressionRatio
+	AvgCompressionRatio        = 5
+	LogSendDefaultBytesDesktop = 1024 * 1024 * 16
 	// NOTE: On mobile we may store less than the number of bytes we attempt to
 	// send. See go/libkb/env.go:Env.GetLogFileConfig
-	LogSendDefaultBytesMobileWifi   = 1024 * 1024 * 10 * AvgCompressionRatio
-	LogSendDefaultBytesMobileNoWifi = 1024 * 1024 * 1 * AvgCompressionRatio
-	LogSendMaxBytes                 = 1024 * 1024 * 128 * AvgCompressionRatio
+	LogSendDefaultBytesMobileWifi   = 1024 * 1024 * 10
+	LogSendDefaultBytesMobileNoWifi = 1024 * 1024 * 1
+	LogSendMaxBytes                 = 1024 * 1024 * 128
 )
 
 // Logs is the struct to specify the path of log files
@@ -235,15 +235,14 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 // LogSend sends the tails of log files to kb, and also the last few trace
 // output files.
 func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatus bool) (id keybase1.LogSendID, err error) {
-	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
-	defer mctx.TraceTimed(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
-		sendLogs, humanize.Bytes(uint64(numBytes))), func() error { return err })()
-
 	if numBytes < 1 {
 		numBytes = LogSendDefaultBytesDesktop
 	} else if numBytes > LogSendMaxBytes {
 		numBytes = LogSendMaxBytes
 	}
+	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
+	defer mctx.TraceTimed(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
+		sendLogs, humanize.Bytes(uint64(numBytes))), func() error { return err })()
 
 	logs := l.Logs
 	// So far, install logs are Windows only
@@ -256,9 +255,11 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 	}
 
 	if sendLogs {
-		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+		// Increase some log files by the average compression ratio size
+		// so we have more comprehensive coverage there.
+		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
-		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
+		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
 		l.desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		// We don't use the systemd journal to store regular logs, since on

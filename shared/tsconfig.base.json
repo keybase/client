@@ -10,10 +10,10 @@
     "module": "commonjs",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
-    "noImplicitReturns": false,
-    "noImplicitThis": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "resolveJsonModule": true,
     "sourceMap": true,
@@ -24,7 +24,6 @@
   "include": ["globals.d.ts"],
   "exclude": [
     "node_modules",
-    "node_modules/popper.js/index.d.ts",
     "react-native",
     "desktop/dist",
     "desktop/build"

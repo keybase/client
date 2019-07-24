@@ -259,7 +259,11 @@ func (m *TlfMock) LookupID(ctx context.Context, tlfName string, public bool) (re
 }
 
 func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (key types.CryptKey, ni types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool,
+	botUID *gregor1.UID) (key types.CryptKey, ni types.NameInfo, err error) {
+	if botUID != nil {
+		return key, ni, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
 	if ni, err = m.LookupID(ctx, tlfName, public); err != nil {
 		return key, ni, err
 	}
@@ -280,7 +284,10 @@ func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1
 
 func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (types.CryptKey, error) {
+	if botUID != nil {
+		return nil, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
 	if public {
 		var zero [libkb.NaclDHKeySecretSize]byte
 		return keybase1.CryptKey{
@@ -1212,6 +1219,11 @@ func (c *ChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string
 	return nil
 }
 
+func (c *ChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID,
+	chat1.UIBotCommandsUpdateStatus) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
@@ -1386,6 +1398,12 @@ func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keyba
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
+}
+
+func (m *MockChatHelper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
 	return chat1.ConversationLocal{}, nil

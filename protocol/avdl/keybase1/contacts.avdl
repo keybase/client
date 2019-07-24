@@ -47,9 +47,6 @@ protocol contacts {
         // Keybase full name, and contact name, depending what's available.
         string displayName;
         string displayLabel;
-
-        // If ProcessedContact comes from people search, raw match score goes here.
-        double rawScore;
     }
 
     // lookupContactList transforms contact list (where every contact may have

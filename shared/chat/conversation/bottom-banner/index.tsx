@@ -33,7 +33,7 @@ const BannerBox = (props: {
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
-function brokenSeparator(idx, item, arr) {
+function brokenSeparator(idx, _, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
@@ -64,7 +64,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
       <BannerText>
         {intersperseFn(
           brokenSeparator,
-          users.map((user, idx) => (
+          users.map(user => (
             <BannerText type="BodySmallSemiboldPrimaryLink" key={user} onClick={() => onClick(user)}>
               {user}
             </BannerText>
@@ -109,12 +109,21 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
   }
 
   const hasPhoneNumber = users.some(user => user.endsWith('@phone'))
+  const hasEmailAddress = users.some(user => user.endsWith('@email'))
+
+  let caption = 'Your messages will unlock once they join Keybase'
+  if (hasPhoneNumber && hasEmailAddress) {
+    caption += ' and verify their phone number or email address'
+  } else if (hasPhoneNumber) {
+    caption += ' and verify their phone number'
+  } else if (hasEmailAddress) {
+    caption += ' and verify their email address'
+  }
+  caption += '.'
+
   return (
     <BannerBox color={Styles.globalColors.blue}>
-      <BannerText>
-        Your messages will unlock once they join Keybase
-        {hasPhoneNumber && ' and verify their phone number'}.
-      </BannerText>
+      <BannerText>{caption}</BannerText>
       <BannerText>
         Send them this link:
         <BannerText

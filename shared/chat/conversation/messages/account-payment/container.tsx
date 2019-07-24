@@ -75,10 +75,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
           ? sourceAmountDesc
           : paymentInfo.amountDescription
+
+      const amountDescription = paymentInfo.sourceAmount
+        ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
+        : paymentInfo.amountDescription
+      const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
-        amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        amount,
         approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
@@ -146,7 +151,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   action: stateProps.action,
   amount: stateProps.amount,
   approxWorth: stateProps.approxWorth,

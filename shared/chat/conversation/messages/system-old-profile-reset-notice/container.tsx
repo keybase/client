@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const nextConversationIDKey = stateProps.nextConversationIDKey
 
   return {

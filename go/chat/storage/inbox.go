@@ -350,7 +350,9 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("MergeLocalMetadata: num convs: %d", len(convs)))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
+	if len(convs) == 0 {
+		return nil
+	}
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {

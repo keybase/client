@@ -27,6 +27,7 @@ type NotificationChannels struct {
 	Reachability    bool `codec:"reachability" json:"reachability"`
 	Team            bool `codec:"team" json:"team"`
 	Ephemeral       bool `codec:"ephemeral" json:"ephemeral"`
+	Teambot         bool `codec:"teambot" json:"teambot"`
 	Chatkbfsedits   bool `codec:"chatkbfsedits" json:"chatkbfsedits"`
 	Chatdev         bool `codec:"chatdev" json:"chatdev"`
 	Deviceclone     bool `codec:"deviceclone" json:"deviceclone"`
@@ -56,6 +57,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Reachability:    o.Reachability,
 		Team:            o.Team,
 		Ephemeral:       o.Ephemeral,
+		Teambot:         o.Teambot,
 		Chatkbfsedits:   o.Chatkbfsedits,
 		Chatdev:         o.Chatdev,
 		Deviceclone:     o.Deviceclone,

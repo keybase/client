@@ -33,7 +33,7 @@ type FastTeamChainLoader struct {
 	world LoaderContext
 
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
@@ -58,6 +58,7 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
+		locktab:         libkb.NewLockTable(),
 	}
 	ret.storage = storage.NewFTLStorage(g, func(mctx libkb.MetaContext, s *keybase1.FastTeamData) (bool, error) {
 		return ret.upgradeStoredState(mctx, s)
@@ -996,7 +997,7 @@ func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state 
 	if last == nil {
 		return NewAuditError("cannot run audit, no last chain data")
 	}
-	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, last.Seqno)
+	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, last.Seqno, false)
 }
 
 // readDownPointer reads a down pointer out of a given link, if it's unstubbed. Down pointers
@@ -1290,16 +1291,20 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (hp *hidden.LoaderPackage, err error) {
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#hiddenPackage(%+v)", arg), func() error { return err })()
 	return hidden.NewLoaderPackage(m, arg.ID,
-		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, err error) {
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
+			// Always return TeamRole_NONE since ftl does not have access to
+			// member roles. The hidden chain uses the role to skip checks bot
+			// members are not able to perform. Bot members should never FTL,
+			// however since they don't have key access.
 			if state == nil || len(state.Chain.PerTeamKeys) == 0 {
-				return encKID, gen, nil
+				return encKID, gen, keybase1.TeamRole_NONE, nil
 			}
 			var ptk keybase1.PerTeamKey
 			for _, tmp := range state.Chain.PerTeamKeys {
 				ptk = tmp
 				break
 			}
-			return ptk.EncKID, ptk.Gen, nil
+			return ptk.EncKID, ptk.Gen, keybase1.TeamRole_NONE, nil
 		})
 }
 

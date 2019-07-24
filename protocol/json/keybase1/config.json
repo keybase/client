@@ -941,6 +941,37 @@
       ],
       "response": "ConfigValue"
     },
+    "guiSetValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "ConfigValue"
+        }
+      ],
+      "response": null
+    },
+    "guiClearValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "guiGetValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "ConfigValue"
+    },
     "checkAPIServerOutOfDateWarning": {
       "request": [],
       "response": "OutOfDateInfo",

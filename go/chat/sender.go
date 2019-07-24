@@ -597,7 +597,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
+			uid, conv.GetConvID(), msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -1700,19 +1700,26 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
 	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	if err != nil {
+		return nil, nil, err
+	}
+	// The strategy here is to select the larger prev between what the UI provides, and what we have
+	// stored locally. If we just use the UI version, then we can race for creating ordinals in
+	// Outbox.PushMessage. However, in rare cases we might not have something locally, in that case just
+	// fallback to the UI provided number.
+	var storedPrev chat1.MessageID
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		s.Debug(ctx, "Send: failed to get local inbox info: %s", err)
+	} else {
+		storedPrev = conv.Conv.GetMaxMessageID()
+	}
+	if storedPrev > clientPrev {
+		clientPrev = storedPrev
+	}
 	if clientPrev == 0 {
-		uid, err := utils.AssertLoggedInUID(ctx, s.G())
-		if err != nil {
-			return nil, nil, err
-		}
-		s.Debug(ctx, "Send: clientPrev not specified using local storage")
-		thread, err := s.G().ConvSource.PullLocalOnly(ctx, convID, uid, nil, &chat1.Pagination{Num: 1}, 0)
-		if err != nil || len(thread.Messages) == 0 {
-			s.Debug(ctx, "Send: unable to read local storage, setting ClientPrev to 1")
-			clientPrev = 1
-		} else {
-			clientPrev = thread.Messages[0].GetMessageID()
-		}
+		clientPrev = 1
 	}
 	s.Debug(ctx, "Send: using prevMsgID: %d", clientPrev)
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{

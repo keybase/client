@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import {ValidationState} from '../../constants/types/wallets'
@@ -90,7 +89,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   componentWillUnmount() {
     this.props.onClearErrors()
   }
-  componentDidUpdate(prevProps: LinkWalletProps, prevState: LinkWalletState) {
+  componentDidUpdate() {
     if (this.props.secretKeyValidationState === 'valid' && this.state.view === 'key') {
       this.props.onClearErrors()
       this._onViewChange('name')

@@ -1,16 +1,18 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
-import {connect, compose, safeSubmitPerMount} from '../../util/container'
+import {connect, compose, safeSubmitPerMount, TypedDispatch, TypedState} from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
+import HiddenString from '../../util/hidden-string'
 
 type OwnProps = RouteProps
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
+  configuredAccounts: state.config.configuredAccounts,
   devices: state.provision.devices,
 })
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => {},
+const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
+  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
     dispatch(ownProps.navigateUp())
@@ -20,18 +22,21 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  devices: stateProps.devices.toArray(),
-  onBack: dispatchProps.onBack,
-  onResetAccount: dispatchProps.onResetAccount,
-  onSelect: dispatchProps.onSelect,
-})
-
 export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
+    (stateProps, dispatchProps, _: OwnProps) => {
+      const loggedInAccounts = stateProps.configuredAccounts
+        .filter(account => account.hasStoredSecret)
+        .map(account => account.username)
+      return {
+        devices: stateProps.devices.toArray(),
+        onBack: loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : null,
+        onResetAccount: dispatchProps.onResetAccount,
+        onSelect: dispatchProps.onSelect,
+      }
+    }
   ),
   safeSubmitPerMount(['onSelect', 'onBack'])
 )(SelectOtherDevice)

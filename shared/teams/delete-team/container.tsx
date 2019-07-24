@@ -15,12 +15,12 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onDelete: teamname => dispatch(TeamsGen.createDeleteTeam({teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   _deleting: stateProps._deleting,
   onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
   onDelete: () => dispatchProps.onDelete(stateProps.teamname),

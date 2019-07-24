@@ -1095,18 +1095,27 @@ protocol local {
   void locationDenied(ConversationID convID);
 
   // Bot commands
+  record UserBotExtendedDescription {
+    string title;
+    @jsonkey("desktop_body")
+    string desktopBody;
+    @jsonkey("mobile_body")
+    string mobileBody;
+  }
   record UserBotCommandOutput {
     string name;
     string description;
     string usage;
-    union { null, string } extendedDescription;
+    @jsonkey("extended_description")
+    union { null, UserBotExtendedDescription } extendedDescription;
     string username; 
   }
   record UserBotCommandInput {
     string name;
     string description;
     string usage;
-    union { null, string } extendedDescription;
+    @jsonkey("extended_description")
+    union { null, UserBotExtendedDescription } extendedDescription;
   }
   record AdvertiseCommandsParam {
     BotCommandsAdvertisementTyp typ;

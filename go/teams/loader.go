@@ -66,7 +66,7 @@ type TeamLoader struct {
 	storage *storage.Storage
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
@@ -88,6 +88,7 @@ func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage
 		world:                world,
 		storage:              storage,
 		nameLookupBurstCache: libkb.NewBurstCache(g, 100, 10*time.Second, "SubteamNameToID"),
+		locktab:              libkb.NewLockTable(),
 	}
 }
 
@@ -307,6 +308,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceRepoll:                           mungedForceRepoll,
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
+		skipAudit:                             lArg.SkipAudit,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -401,6 +403,7 @@ type load2ArgT struct {
 	forceRepoll     bool
 	staleOK         bool
 	public          bool
+	skipAudit       bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -527,7 +530,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		cachedName = &ret.Name
 	}
 
-	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret)
+	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret, arg.me)
 	if err != nil {
 		return nil, err
 	}
@@ -867,7 +870,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ret.LatestSeqnoHint = 0
 
 	tracer.Stage("audit")
-	err = l.audit(ctx, readSubteamID, &ret.Chain)
+	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.skipAudit)
 	if err != nil {
 		return nil, err
 	}
@@ -912,17 +915,24 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	return &load2res, nil
 }
 
-func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData) (ret *hidden.LoaderPackage, err error) {
+func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) (ret *hidden.LoaderPackage, err error) {
 	return hidden.NewLoaderPackage(mctx, id,
-		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, err error) {
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration,
+			role keybase1.TeamRole, err error) {
 			if team == nil {
-				return encKID, gen, nil
+				return encKID, gen, keybase1.TeamRole_NONE, nil
 			}
-			ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey(mctx)
+			state := TeamSigChainState{inner: team.Chain}
+
+			ptk, err := state.GetLatestPerTeamKey(mctx)
 			if err != nil {
-				return encKID, gen, err
+				return encKID, gen, keybase1.TeamRole_NONE, err
 			}
-			return ptk.EncKID, ptk.Gen, nil
+			role, err = state.GetUserRole(me)
+			if err != nil {
+				return encKID, gen, keybase1.TeamRole_NONE, err
+			}
+			return ptk.EncKID, ptk.Gen, role, nil
 		})
 }
 
@@ -1835,7 +1845,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, skipAudit bool) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -1848,7 +1858,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, skipAudit)
 	return err
 }
 

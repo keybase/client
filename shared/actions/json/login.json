@@ -1,6 +1,5 @@
 {
-  "prelude": [
-    "import HiddenString from '../util/hidden-string'",
+  "prelude": ["import HiddenString from '../util/hidden-string'",
     "import {RPCError} from '../util/errors'",
   ],
   "actions": {
@@ -10,6 +9,10 @@
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": {"error": "RPCError | null"}
+    "loginError": {"error": "RPCError | null"},
+    "loadIsOnline": {},
+    "loadedIsOnline": {
+      "result": "boolean"
+    }
   }
 }

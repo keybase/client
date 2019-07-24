@@ -150,9 +150,11 @@ export type _State = {
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  prependTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>
+  botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>

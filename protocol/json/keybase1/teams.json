@@ -1059,6 +1059,10 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": "Time",
+          "name": "skipUntil"
         }
       ]
     },
@@ -2046,6 +2050,10 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        },
+        {
+          "type": "boolean",
+          "name": "skipAudit"
         }
       ]
     },

@@ -7,7 +7,7 @@ import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
 
-type OwnProps = Container.RouteProps< { conversationIDKey: Types.ConversationIDKey } >
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 const mapStateToProps = state => ({
   baseTeam: '',
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   Container.withStateHandlers(
     {name: ''},
     {

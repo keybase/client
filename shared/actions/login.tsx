@@ -9,12 +9,13 @@ import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 const cancelDesc = 'Canceling RPC'
-const cancelOnCallback = (params, response) => {
+const cancelOnCallback = (_, response) => {
   response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
 }
-const ignoreCallback = params => {}
+const ignoreCallback = () => {}
 
 const getPasswordHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
@@ -36,6 +37,7 @@ const getPasswordHandler = passphrase => (params, response) => {
   } else {
     cancelOnCallback(params, response)
   }
+  return undefined
 }
 
 const moveToProvisioning = (username: string) => (params, response) => {
@@ -48,7 +50,7 @@ const moveToProvisioning = (username: string) => (params, response) => {
 }
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-function* login(state, action: LoginGen.LoginPayload) {
+function* login(_, action: LoginGen.LoginPayload) {
   try {
     yield* Saga.callRPCs(
       RPCTypes.loginLoginRpcSaga({
@@ -72,6 +74,7 @@ function* login(state, action: LoginGen.LoginPayload) {
           clientType: RPCTypes.ClientType.guiMain,
           deviceName: '',
           deviceType: isMobile ? 'mobile' : 'desktop',
+          doUserSwitch: flags.fastAccountSwitch,
           paperKey: '',
           username: action.payload.username,
         },
@@ -81,8 +84,10 @@ function* login(state, action: LoginGen.LoginPayload) {
     logger.info('login call succeeded')
     yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
   } catch (e) {
-    // If we're canceling then ignore the error
-    if (e.desc !== cancelDesc) {
+    if (e.code === RPCTypes.StatusCode.scalreadyloggedin) {
+      yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
+    } else if (e.desc !== cancelDesc) {
+      // If we're canceling then ignore the error
       e.desc = niceError(e)
       yield Saga.put(LoginGen.createLoginError({error: e}))
     }
@@ -96,6 +101,11 @@ const launchAccountResetWebPage = () => {
   openURL('https://keybase.io/#account-reset')
 }
 
+const loadIsOnline = _ =>
+  RPCTypes.loginIsOnlineRpcPromise(undefined)
+    .then((result: boolean) => LoginGen.createLoadedIsOnline({result: result}))
+    .catch(err => logger.warn('Error in checking whether we are online', err))
+
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
@@ -107,6 +117,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
     LoginGen.launchAccountResetWebPage,
     launchAccountResetWebPage
   )
+  yield* Saga.chainAction<LoginGen.LoadIsOnlinePayload>(LoginGen.loadIsOnline, loadIsOnline)
 }
 
 export default loginSaga

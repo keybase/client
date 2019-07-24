@@ -303,7 +303,6 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    if (this.props.notAUser) return null
     const set = full ? this.props.siteIconFull : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />

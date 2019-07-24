@@ -3,15 +3,15 @@ import WalletsAndDetails from '.'
 import Onboarding from '../onboarding/container'
 import {connect, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps & { children: React.ReactNode }
+type OwnProps = RouteProps & {children: React.ReactNode}
 
 const mapStateToProps = state => ({
   acceptedDisclaimer: state.wallets.acceptedDisclaimer,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
   children: ownProps.children,
   navigateAppend: ownProps.navigateAppend,

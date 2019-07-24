@@ -68,7 +68,7 @@ export default class AppState {
       event.sender.send('getAppStateReply', this.state)
     })
 
-    SafeElectron.getIpcMain().on('setAppState', (event, data) => {
+    SafeElectron.getIpcMain().on('setAppState', (_, data) => {
       this.state = {
         ...this.state,
         ...data,

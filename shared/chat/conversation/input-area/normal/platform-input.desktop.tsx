@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
@@ -11,6 +12,7 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
+import {BotCommandUpdateStatus} from './shared'
 
 type State = {
   emojiPickerOpen: boolean
@@ -186,6 +188,12 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
         onKeyDown={this._globalKeyDownPressHandler}
         onKeyPress={this._globalKeyDownPressHandler}
       >
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
+          (this.props.suggestionsVisible ||
+            this.props.suggestBotCommandsUpdateStatus ===
+              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          )}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={Styles.collapseStyles([

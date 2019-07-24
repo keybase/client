@@ -11,7 +11,7 @@ if (!__STORYBOOK__) {
 // In vanilla connect, this function takes in the map*ToProps functions (via options)
 // and composes them to expose output of mergeProps to the component. Here, we ignore
 // the maps and just try to access the prop factory closures in the store directly.
-const selectorDelegatorFactory = (dispatch, options) => {
+const selectorDelegatorFactory = (_, options) => {
   // keep the wrapped displayName for later
   const name = options.wrappedComponentName
   return (state, ownProps) => {

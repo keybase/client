@@ -14,7 +14,9 @@ import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
-type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+type EngineActions =
+  | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+  | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -866,6 +868,11 @@ const rootReducer = (
         })
       )
     }
+    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+      return state.setIn(
+        ['botCommandsUpdateStatusMap', Types.stringToConversationIDKey(action.payload.params.convID)],
+        action.payload.params.status
+      )
     case EngineGen.chat1NotifyChatChatTypingUpdate: {
       const {typingUpdates} = action.payload.params
       const typingMap = I.Map(
@@ -1045,10 +1052,24 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.toggleReplyToMessage:
-      return action.payload.ordinal
-        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
-        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
+    case Chat2Gen.setPrependText:
+      return state.update('prependTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
+    case Chat2Gen.toggleReplyToMessage: {
+      const {conversationIDKey, ordinal} = action.payload
+      if (ordinal) {
+        let nextState = state.setIn(['replyToMap', conversationIDKey], ordinal)
+        nextState = nextState.setIn(
+          ['prependTextMap', conversationIDKey],
+          // we always put something in prepend to trigger the focus regain on the input bar
+          new HiddenString('')
+        )
+        return nextState
+      } else {
+        return state.deleteIn(['replyToMap', conversationIDKey])
+      }
+    }
     case Chat2Gen.replyJump:
       return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResults:

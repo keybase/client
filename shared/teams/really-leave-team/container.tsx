@@ -7,7 +7,7 @@ import LastOwnerDialog from './last-owner'
 import {isLastOwner, leaveTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps< { teamname: string } >
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state, ownProps) => {
   const name = Container.getRouteProps(ownProps, 'teamname')
@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   _lastOwner: stateProps._lastOwner,
   _leaving: stateProps._leaving,
   name: stateProps.name,

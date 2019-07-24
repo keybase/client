@@ -4,12 +4,11 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Constants from '../constants/settings'
 import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import SettingsContainer, {Props} from './render'
+import SettingsContainer from './render'
 import {compose} from 'recompose'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {RouteProps} from '../route-tree/render-route'
-import * as I from 'immutable'
 
 type OwnProps = {
   routeSelected: Types.Tab
@@ -36,7 +35,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
       dispatch(SettingsGen.createClearAddedEmail())
     }
-    dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
 })
 

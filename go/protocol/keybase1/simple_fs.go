@@ -1234,12 +1234,15 @@ func (o FSSettings) DeepCopy() FSSettings {
 }
 
 type SimpleFSStats struct {
-	BlockCacheDbStats []string `codec:"blockCacheDbStats" json:"blockCacheDbStats"`
-	SyncCacheDbStats  []string `codec:"syncCacheDbStats" json:"syncCacheDbStats"`
+	ProcessStats      ProcessRuntimeStats `codec:"processStats" json:"processStats"`
+	BlockCacheDbStats []string            `codec:"blockCacheDbStats" json:"blockCacheDbStats"`
+	SyncCacheDbStats  []string            `codec:"syncCacheDbStats" json:"syncCacheDbStats"`
+	RuntimeDbStats    []DbStats           `codec:"runtimeDbStats" json:"runtimeDbStats"`
 }
 
 func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 	return SimpleFSStats{
+		ProcessStats: o.ProcessStats.DeepCopy(),
 		BlockCacheDbStats: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -1262,6 +1265,17 @@ func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 			}
 			return ret
 		})(o.SyncCacheDbStats),
+		RuntimeDbStats: (func(x []DbStats) []DbStats {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DbStats, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RuntimeDbStats),
 	}
 }
 

@@ -255,6 +255,7 @@ func isDupImplicitTeamError(ctx context.Context, err error) bool {
 // LookupOrCreateImplicitTeam by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	ctx = libkb.WithLogTag(ctx, "LOCIT")
 	defer g.CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
 		func() error { return err })()
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
@@ -286,6 +287,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 				ID:          teamID,
 				Public:      impTeamName.IsPublic,
 				ForceRepoll: true,
+				SkipAudit:   true,
 			})
 			return res, teamName, impTeamName, err
 		}

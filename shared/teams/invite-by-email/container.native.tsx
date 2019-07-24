@@ -20,7 +20,7 @@ import {
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
-type OwnProps = RouteProps< { teamname: string } >
+type OwnProps = RouteProps<{teamname: string}>
 
 const cleanPhoneNumber: (arg0: string) => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
@@ -139,13 +139,14 @@ export default compose(
               return recPhoneNumber === cleanPhoneNumber(phoneNo || '')
             }
           }
+          return undefined
         })
         if (relevantInvite) {
           return loadingInvites.get(relevantInvite.id)
         }
         return false
       },
-      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
+      isSelected: ({_pendingInvites}) => (addr: string): boolean => {
         return !!_pendingInvites.find(rec => {
           if (rec.email) {
             return rec.email === addr
@@ -162,15 +163,9 @@ export default compose(
     } as any),
     // Delegate to add / remove
     withHandlers({
-      onSelectContact: ({
-        _pendingInvites,
-        isSelected,
-        invited,
-        role,
-        onUninvite,
-        onInviteEmail,
-        onInvitePhone,
-      }) => (contact: ContactDisplayProps) => {
+      onSelectContact: ({_pendingInvites, isSelected, role, onUninvite, onInviteEmail, onInvitePhone}) => (
+        contact: ContactDisplayProps
+      ) => {
         if (!isSelected(contact.email || contact.phoneNo)) {
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
@@ -189,6 +184,7 @@ export default compose(
                   return recPhoneNumber === cleanPhoneNumber(contact.phoneNo || '')
                 }
               }
+              return undefined
             })
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
@@ -197,6 +193,7 @@ export default compose(
             }
           }
         }
+        return undefined
       },
     } as any),
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.

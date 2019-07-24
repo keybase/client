@@ -157,7 +157,7 @@ const getSyncConfigFromRPC = (
   }
 }
 
-const loadTlfSyncConfig = (state: TypedState, action: FsGen.LoadTlfSyncConfigPayload) => {
+const loadTlfSyncConfig = (_: TypedState, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
@@ -177,7 +177,7 @@ const loadTlfSyncConfig = (state: TypedState, action: FsGen.LoadTlfSyncConfigPay
     .catch(makeUnretriableErrorHandler(action, tlfPath))
 }
 
-const setTlfSyncConfig = (state: TypedState, action: FsGen.SetTlfSyncConfigPayload) =>
+const setTlfSyncConfig = (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) =>
   RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
     {
       config: {
@@ -192,7 +192,7 @@ const setTlfSyncConfig = (state: TypedState, action: FsGen.SetTlfSyncConfigPaylo
     })
   )
 
-const loadSettings = (state: TypedState, action: FsGen.LoadSettingsPayload) =>
+const loadSettings = () =>
   RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
     .then(settings =>
       FsGen.createSettingsLoaded({
@@ -204,7 +204,7 @@ const loadSettings = (state: TypedState, action: FsGen.LoadSettingsPayload) =>
     .catch(() => FsGen.createSettingsLoaded({}))
 
 const setSpaceNotificationThreshold = (
-  state: TypedState,
+  _: TypedState,
   action: FsGen.SetSpaceAvailableNotificationThresholdPayload
 ) =>
   RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
@@ -277,7 +277,7 @@ const clearRefreshTags = () => {
   pathMetadataRefreshTags.clear()
 }
 
-const clearRefreshTag = (state: TypedState, action: FsGen.ClearRefreshTagPayload) => {
+const clearRefreshTag = (_: TypedState, action: FsGen.ClearRefreshTagPayload) => {
   folderListRefreshTags.delete(action.payload.refreshTag)
   pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
@@ -589,7 +589,7 @@ const getWaitDuration = (endEstimate: number | null, lower: number, upper: numbe
 }
 
 let polling = false
-function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSFSSyncActivityPayload) {
+function* pollJournalFlushStatusUntilDone() {
   if (polling) {
     return
   }
@@ -634,10 +634,7 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
   }
 }
 
-const onTlfUpdate = (
-  state,
-  action: FsGen.NotifyTlfUpdatePayload | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) => {
+const onTlfUpdate = () => {
   // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
@@ -721,7 +718,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
     )
   )
 
-const refreshLocalHTTPServerInfo = (state: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) =>
+const refreshLocalHTTPServerInfo = (_: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) =>
   RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
     .then(({address, token}) => FsGen.createLocalHTTPServerInfo({address, token}))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -822,14 +819,14 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 const letResetUserBackIn = (_, {payload: {id, username}}) =>
   RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
 
-const updateFsBadge = (state: TypedState, action: FsGen.FavoritesLoadedPayload) =>
+const updateFsBadge = (state: TypedState) =>
   NotificationsGen.createSetBadgeCounts({
     counts: I.Map({
       [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
     }) as I.Map<Tabs.Tab, number>,
   })
 
-const deleteFile = (state: TypedState, action: FsGen.DeleteFilePayload) => {
+const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
     opID,
@@ -876,12 +873,10 @@ const moveOrCopy = (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPay
   )
 }
 
-const showMoveOrCopy = (
-  state: TypedState,
-  action: FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload
-) => RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+const showMoveOrCopy = () =>
+  RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
-const closeDestinationPicker = (state: TypedState, action: FsGen.CloseDestinationPickerPayload) => {
+const closeDestinationPicker = () => {
   const currentRoutes = I.List()
   // const currentRoutes = getPathProps(state.routeTree.routeState)
   const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
@@ -894,11 +889,11 @@ const closeDestinationPicker = (state: TypedState, action: FsGen.CloseDestinatio
   return [
     // TODO use as const
     FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}),
-    RouteTreeGen.createNavigateTo({path: newRoute}),
+    RouteTreeGen.createNavigateAppend({path: newRoute}),
   ]
 }
 
-const initSendLinkToChat = (state: TypedState, action: FsGen.InitSendLinkToChatPayload) => {
+const initSendLinkToChat = (state: TypedState) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   if (elems.length < 3 || elems[1] === 'public') {
     // Not a TLF, or a public TLF; just let user copy the path.
@@ -963,7 +958,7 @@ const initSendLinkToChat = (state: TypedState, action: FsGen.InitSendLinkToChatP
   )
 }
 
-const triggerSendLinkToChat = (state: TypedState, action: FsGen.TriggerSendLinkToChatPayload) => {
+const triggerSendLinkToChat = (state: TypedState) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   if (elems.length < 3 || elems[1] === 'public') {
     // Not a TLF, or a public TLF; no-op
@@ -1001,17 +996,14 @@ const triggerSendLinkToChat = (state: TypedState, action: FsGen.TriggerSendLinkT
         tlfPublic: false,
       },
       ChatConstants.waitingKeyPost
-    ).then(result => FsGen.createSentLinkToChat({convID: conversationIDKey}))
+    ).then(() => FsGen.createSentLinkToChat({convID: conversationIDKey}))
   )
 }
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (
-  state,
-  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
-) => {
+const waitForKbfsDaemon = () => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -1034,12 +1026,12 @@ const waitForKbfsDaemon = (
     })
 }
 
-const startManualCR = (state: TypedState, action) =>
+const startManualCR = (_: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
-const finishManualCR = (state: TypedState, action) =>
+const finishManualCR = (_: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   }).then(() => FsGen.createFavoritesLoad())
@@ -1064,10 +1056,7 @@ const checkIfWeReConnectedToMDServerUpToNTimes = (n: number) =>
           }
     )
 
-const updateKbfsDaemonOnlineStatus = (
-  state,
-  action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
-) =>
+const updateKbfsDaemonOnlineStatus = state =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && state.config.osNetworkOnline
     ? checkIfWeReConnectedToMDServerUpToNTimes(6)
     : Promise.resolve(FsGen.createKbfsDaemonOnlineStatusChanged({online: false}))
@@ -1078,7 +1067,7 @@ const updateKbfsDaemonOnlineStatus = (
 // load around app releases). So only do that when OS network status changes
 // after we're up.
 const checkKbfsServerReachabilityIfNeeded = (
-  state: TypedState,
+  _: TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   if (!action.payload.isInit) {
@@ -1086,10 +1075,11 @@ const checkKbfsServerReachabilityIfNeeded = (
       logger.warn(`failed to check KBFS reachability: ${err.message}`)
     )
   }
+    return undefined
 }
 
 const onFSOnlineStatusChanged = (
-  state: TypedState,
+  _: TypedState,
   action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload
 ) => FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 

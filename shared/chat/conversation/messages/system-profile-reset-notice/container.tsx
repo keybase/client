@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpToReset'})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onOpenOlderConversation: () => {
     stateProps.prevConversationIDKey &&
       dispatchProps._onOpenOlderConversation(stateProps.prevConversationIDKey)

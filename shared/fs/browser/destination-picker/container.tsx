@@ -76,6 +76,7 @@ const canCopy = memoize((stateProps: StateProps, ownProps: OwnPropsWithSafeNavig
     const source: Types.MoveOrCopySource = stateProps._destinationPicker.source
     return getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(source.path)
   }
+    return undefined
 })
 
 const canMove = memoize(
@@ -93,7 +94,7 @@ const canBackUp = isMobile
       (stateProps, ownProps: OwnPropsWithSafeNavigation) =>
         Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1
     )
-  : (s, o) => false
+  : () => false
 
 const mergeProps = (
   stateProps: StateProps,

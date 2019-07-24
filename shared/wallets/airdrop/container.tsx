@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch => ({
   onReject: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   headerBody: stateProps._details.header.body,
   headerTitle: stateProps._details.header.title,
   loading: stateProps.loading,
