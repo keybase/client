@@ -33,7 +33,7 @@ type FastTeamChainLoader struct {
 	world LoaderContext
 
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
@@ -58,6 +58,7 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
+		locktab:         libkb.NewLockTable(),
 	}
 	ret.storage = storage.NewFTLStorage(g, func(mctx libkb.MetaContext, s *keybase1.FastTeamData) (bool, error) {
 		return ret.upgradeStoredState(mctx, s)

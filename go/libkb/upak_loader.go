@@ -45,7 +45,7 @@ type CachedUPAKLoader struct {
 	Contextified
 	sync.Mutex
 	cache          *lru.Cache
-	locktab        LockTable
+	locktab        *LockTable
 	Freshness      time.Duration
 	noCache        bool
 	TestDeadlocker func()
@@ -63,6 +63,7 @@ func NewCachedUPAKLoader(g *GlobalContext, f time.Duration) *CachedUPAKLoader {
 		Freshness:    f,
 		cache:        c,
 		noCache:      false,
+		locktab:      NewLockTable(),
 	}
 }
 
