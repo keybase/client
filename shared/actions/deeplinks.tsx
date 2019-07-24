@@ -16,15 +16,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
   // List guaranteed to contain at least one elem.
   switch (parts[0]) {
     case 'profile':
-      if (parts.length !== 3 && parts.length !== 4) {
-        return [
-          DeeplinksGen.createSetKeybaseLinkError({error}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-          }),
-        ]
-      }
-      if (parts[1] === 'new-proof') {
+      if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
         return [
           parts.length === 4 && parts[3] ? ProfileGen.createUpdateUsername({username: parts[3]}) : null,
           ProfileGen.createAddProof({platform: parts[2], reason: 'appLink'}),
@@ -41,45 +33,41 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
           path: [{props: {path: `/keybase/${action.payload.link}`}, selected: 'main'}],
         }),
       ]
+      break
     case 'chat':
-      if (parts.length !== 2) {
-        return [
-          DeeplinksGen.createSetKeybaseLinkError({error}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-          }),
-        ]
-      }
-      if (parts[1].includes('#')) {
-        const teamChat = parts[1].split('#')
-        if (teamChat.length !== 2) {
+      if (parts.length === 2) {
+        if (parts[1].includes('#')) {
+          const teamChat = parts[1].split('#')
+          if (teamChat.length !== 2) {
+            return [
+              DeeplinksGen.createSetKeybaseLinkError({error}),
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+              }),
+            ]
+          }
+          const [teamname, channelname] = teamChat
           return [
-            DeeplinksGen.createSetKeybaseLinkError({error}),
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-            }),
+            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            ChatGen.createPreviewConversation({channelname, reason: 'appLink', teamname}),
+          ]
+        } else {
+          return [
+            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            ChatGen.createPreviewConversation({participants: parts[1].split(','), reason: 'appLink'}),
           ]
         }
-        const [teamname, channelname] = teamChat
-        return [
-          RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({channelname, reason: 'appLink', teamname}),
-        ]
-      } else {
-        return [
-          RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({participants: parts[1].split(','), reason: 'appLink'}),
-        ]
       }
+      break
     default:
-      return [
-        DeeplinksGen.createSetKeybaseLinkError({error}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-        }),
-      ]
+    // Fall through to the error return below.
   }
-  return undefined
+  return [
+    DeeplinksGen.createSetKeybaseLinkError({error}),
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+    }),
+  ]
 }
 
 const handleAppLink = (_: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
