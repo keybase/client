@@ -67,7 +67,7 @@ const Avatar = ({
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
   } else if (resultForService === 'keybase' || resultForService === 'contact') {
-    return <Kb.Avatar size={AvatarSize} username={'invalid username for placeholder avatar'} />
+    return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (

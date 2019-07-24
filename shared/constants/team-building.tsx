@@ -79,14 +79,14 @@ const parseRawResultToUser = (
       id: result.contact.assertion,
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
-      serviceMap: {keybase: result.contact.username},
+      serviceMap: {...serviceMap, keybase: result.contact.username},
     }
   } else if (result.imptofu) {
     return {
       id: result.imptofu.assertion,
       label: result.imptofu.label,
       prettyName: result.imptofu.prettyName,
-      serviceMap: {keybase: result.imptofu.keybaseUsername},
+      serviceMap: {...serviceMap, keybase: result.imptofu.keybaseUsername},
     }
   } else if (result.service) {
     if (result.service.serviceName !== service) {
