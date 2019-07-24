@@ -45,7 +45,6 @@ export type _State = {
   following: I.Set<string>
   globalError: null | Error | RPCError
   justDeletedSelf: string
-  keybaseLinkError: string
   loggedIn: boolean
   logoutHandshakeWaiters: I.Map<string, number>
   logoutHandshakeVersion: number
