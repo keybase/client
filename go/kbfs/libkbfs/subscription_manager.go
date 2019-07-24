@@ -29,8 +29,8 @@ type userPath string
 // cleanInTlfPath is clean path rooted at a TLF, and it's what we get
 // from Node.GetPathPlaintextSansTlf().
 // Examples, considering TLF /keybase/private/user1,user2:
-//   "/foo/bar" (representing /keybsae/private/user1,user2/foo/bar)
-//   "/"        (representing /keybsae/private/user1,user2)
+//   "/foo/bar" (representing /keybase/private/user1,user2/foo/bar)
+//   "/"        (representing /keybase/private/user1,user2)
 type cleanInTlfPath string
 
 func getCleanInTlfPath(p *parsedPath) cleanInTlfPath {
@@ -58,7 +58,7 @@ func getChSender(ch chan<- struct{}, blocking bool) func() {
 
 func debounce(do func(), limit rate.Limit) debouncedNotify {
 	ctx, shutdown := context.WithCancel(context.Background())
-	ch := make(chan struct{})
+	ch := make(chan struct{}, 1)
 	limiter := rate.NewLimiter(limit, 1)
 	go func() {
 		for {
@@ -270,6 +270,11 @@ func (sm *subscriptionManager) unsubscribeNonPath(
 		notifier.shutdown()
 		delete(sm.nonPathSubscriptions[topic], subscriptionID)
 	}
+	// We are not deleting empty topic here because there are very few topics
+	// here, and they very likely need to be used soon, so I figured I'd just
+	// leave it there. The path subscriptions are different as they are
+	// referenced by path.
+
 	delete(sm.subscriptionIDs, subscriptionID)
 }
 
@@ -286,6 +291,10 @@ func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 		return
 	}
 	for _, notifier := range sm.pathSubscriptions[ref] {
+		// We are notify()-ing while holding a lock, but it's fine since the
+		// other side of the channel consumes it pretty fast, eitehr by
+		// dropping overflown ones, or by doing the actual send in a separate
+		// goroutine.
 		notifier.notify()
 	}
 }

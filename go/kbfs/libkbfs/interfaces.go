@@ -1994,6 +1994,8 @@ type SubscriptionNotifier interface {
 //    duplicate subscriptionIDs are used, an error is returned.
 // 2) Optionally a deduplicateInterval can be used. When this arg is set, we
 //    debounce the events so it doesn't send more frequently than the interval.
+//    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
+//    all events will be delivered.
 type Subscriber interface {
 	// SubscribePath subscribes to changes about path, when topic happens.
 	SubscribePath(
