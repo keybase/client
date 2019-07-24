@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {Box2, Button, Text} from '../../../common-adapters'
+import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
 import flags from '../../../util/feature-flags'
@@ -86,7 +87,9 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
   }
 
   const theirName =
-    users.length === 1 ? usernameToContactName[users[0]] || users[0] : `these ${users.length} people`
+    users.length === 1
+      ? usernameToContactName[users[0]] || assertionToDisplay(users[0])
+      : `these ${users.length} people`
 
   // On mobile, single recipient, a phone number
   if (isMobile && users.length === 1 && users[0].endsWith('@phone')) {
