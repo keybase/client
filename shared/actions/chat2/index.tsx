@@ -1818,37 +1818,53 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
     topicName: channelname,
     topicType: RPCChatTypes.TopicType.chat,
     visibility: RPCTypes.TLFVisibility.private,
-  }).then(results => {
-    const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(row))
-      .filter(Boolean)
+  })
+    .then(results => {
+      const resultMetas = (results.uiConversations || [])
+        .map(row => Constants.inboxUIItemToConversationMeta(row))
+        .filter(Boolean)
 
-    const first = resultMetas[0]
-    if (!first) {
-      if (action.payload.reason === 'appLink') {
+      const first = resultMetas[0]
+      if (!first) {
+        if (action.payload.reason === 'appLink') {
+          return [
+            DeeplinksGen.createSetKeybaseLinkError({
+              error:
+                "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+            }),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+            }),
+          ]
+        } else {
+          return undefined
+        }
+      }
+
+      const conversationIDKey = first.conversationIDKey
+      RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+        convID: Types.keyToConversationID(conversationIDKey),
+      })
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey,
+        reason: 'previewResolved',
+      })
+    })
+    .catch(err => {
+      if (err.code === RPCTypes.StatusCode.scteamnotfound && action.payload.reason === 'appLink') {
         return [
           DeeplinksGen.createSetKeybaseLinkError({
             error:
-              "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+              "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
           }),
           RouteTreeGen.createNavigateAppend({
             path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
           }),
         ]
       } else {
-        return undefined
+        throw e
       }
-    }
-
-    const conversationIDKey = first.conversationIDKey
-    RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
     })
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey,
-      reason: 'previewResolved',
-    })
-  })
 }
 
 const startupInboxLoad = (state: TypedState) =>
