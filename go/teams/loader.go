@@ -868,14 +868,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
 
-	if arg.skipAudit {
-		mctx.Debug("skipping audit due to passed option")
-	} else {
-		tracer.Stage("audit")
-		err = l.audit(ctx, readSubteamID, &ret.Chain)
-		if err != nil {
-			return nil, err
-		}
+	tracer.Stage("audit")
+	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.skipAudit)
+	if err != nil {
+		return nil, err
 	}
 
 	// Cache the validated result
@@ -1848,7 +1844,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, skipAudit bool) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -1861,7 +1857,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, skipAudit)
 	return err
 }
 

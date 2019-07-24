@@ -1266,6 +1266,7 @@ type AuditHistory struct {
 	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
 	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
 	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
+	SkipUntil        Time             `codec:"skipUntil" json:"skipUntil"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -1321,6 +1322,7 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.Tails),
+		SkipUntil: o.SkipUntil.DeepCopy(),
 	}
 }
 

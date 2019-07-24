@@ -1059,6 +1059,10 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": "Time",
+          "name": "skipUntil"
         }
       ]
     },
