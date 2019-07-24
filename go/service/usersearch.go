@@ -272,8 +272,9 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 			if usernames != nil {
 				if uname, found := usernames[v.UID]; found {
 					imptofu.KeybaseUsername = uname.Username
-					imptofu.PrettyName = uname.Fullname
-					imptofu.Label = queryString
+					// Ignore full-name here, force queryString as `prettyName`
+					// part in order for it to be displayed in the list.
+					imptofu.PrettyName = queryString
 				}
 			}
 			res = &keybase1.APIUserSearchResult{
