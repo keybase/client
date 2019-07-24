@@ -20,7 +20,10 @@ type BannerParagraphProps = {
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
-  <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}>
+  <Text
+    type="BodySmallSemibold"
+    style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
+  >
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
         s && arr.push(s)
@@ -63,6 +66,7 @@ type BannerProps = {
   narrow?: boolean
   onClose?: () => void
   style?: Styles.StylesCrossPlatform | null
+  textContainerStyle?: Styles.StylesCrossPlatform | null
 }
 
 export const Banner = (props: BannerProps) => (
@@ -79,11 +83,14 @@ export const Banner = (props: BannerProps) => (
     <Box2
       key="textBox"
       direction="vertical"
-      style={props.narrow
-        ? styles.narrowTextContainer
-        : props.inline
+      style={Styles.collapseStyles([
+        props.narrow
+          ? styles.narrowTextContainer
+          : props.inline
           ? styles.inlineTextContainer
-          : styles.textContainer}
+          : styles.textContainer,
+        props.textContainerStyle,
+      ])}
       centerChildren={true}
     >
       {typeof props.children === 'string' ? (
@@ -188,6 +195,11 @@ const styles = Styles.styleSheetCreate({
       textDecorationLine: 'underline',
     },
   }),
+  wideTextContainer: {
+    flex: 1,
+    maxWidth: '100%',
+    padding: Styles.globalMargins.tiny,
+  },
 })
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate({
