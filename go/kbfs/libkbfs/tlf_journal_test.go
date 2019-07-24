@@ -247,6 +247,7 @@ func setupTLFJournalTest(
 	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(t, cig))
 	require.NoError(t, err)
 
+	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
 	config = &testTLFJournalConfig{
 		newTestCodecGetter(), newTestLogMaker(t),
 		newTestSyncedTlfGetterSetter(), t,
@@ -254,8 +255,10 @@ func setupTLFJournalTest(
 		nil, nil, NewMDCacheStandard(10), ver,
 		NewReporterSimple(clocktest.NewTestClockNow(), 10), uid, verifyingKey, ekg, nil,
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
-		NewMockSubscriptionManagerPublisher(gomock.NewController(t)),
+		mockPublisher,
 	}
+	mockPublisher.EXPECT().FavoritesChanged().AnyTimes()
+	mockPublisher.EXPECT().JournalStatusChanged().AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)

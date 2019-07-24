@@ -1299,6 +1299,10 @@
     "simpleFSSubscribePath": {
       "request": [
         {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
           "name": "kbfsPath",
           "type": "string"
         },
@@ -1311,10 +1315,14 @@
           "type": "int"
         }
       ],
-      "response": "string"
+      "response": null
     },
     "simpleFSSubscribeNonPath": {
       "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
         {
           "name": "topic",
           "type": "SubscriptionTopic"
@@ -1324,7 +1332,7 @@
           "type": "int"
         }
       ],
-      "response": "string"
+      "response": null
     },
     "simpleFSUnsubscribe": {
       "request": [

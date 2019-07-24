@@ -1536,12 +1536,14 @@ type SimpleFSGetStatsArg struct {
 }
 
 type SimpleFSSubscribePathArg struct {
+	SubscriptionID            string                `codec:"subscriptionID" json:"subscriptionID"`
 	KbfsPath                  string                `codec:"kbfsPath" json:"kbfsPath"`
 	Topic                     PathSubscriptionTopic `codec:"topic" json:"topic"`
 	DeduplicateIntervalSecond int                   `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
 }
 
 type SimpleFSSubscribeNonPathArg struct {
+	SubscriptionID            string            `codec:"subscriptionID" json:"subscriptionID"`
 	Topic                     SubscriptionTopic `codec:"topic" json:"topic"`
 	DeduplicateIntervalSecond int               `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
 }
@@ -1669,8 +1671,8 @@ type SimpleFSInterface interface {
 	SimpleFSObfuscatePath(context.Context, Path) (string, error)
 	SimpleFSDeobfuscatePath(context.Context, Path) ([]string, error)
 	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
-	SimpleFSSubscribePath(context.Context, SimpleFSSubscribePathArg) (string, error)
-	SimpleFSSubscribeNonPath(context.Context, SimpleFSSubscribeNonPathArg) (string, error)
+	SimpleFSSubscribePath(context.Context, SimpleFSSubscribePathArg) error
+	SimpleFSSubscribeNonPath(context.Context, SimpleFSSubscribeNonPathArg) error
 	SimpleFSUnsubscribe(context.Context, string) error
 }
 
@@ -2319,7 +2321,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSSubscribePathArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSSubscribePath(ctx, typedArgs[0])
+					err = i.SimpleFSSubscribePath(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2334,7 +2336,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSSubscribeNonPathArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSSubscribeNonPath(ctx, typedArgs[0])
+					err = i.SimpleFSSubscribeNonPath(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2681,13 +2683,13 @@ func (c SimpleFSClient) SimpleFSGetStats(ctx context.Context) (res SimpleFSStats
 	return
 }
 
-func (c SimpleFSClient) SimpleFSSubscribePath(ctx context.Context, __arg SimpleFSSubscribePathArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribePath", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSSubscribePath(ctx context.Context, __arg SimpleFSSubscribePathArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribePath", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg SimpleFSSubscribeNonPathArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribeNonPath", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg SimpleFSSubscribeNonPathArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribeNonPath", []interface{}{__arg}, nil)
 	return
 }
 

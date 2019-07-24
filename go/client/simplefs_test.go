@@ -310,13 +310,13 @@ func (s SimpleFSMock) SimpleFSGetStats(_ context.Context) (
 }
 
 // SimpleFSSubscribeNonPath implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (string, error) {
-	return "", nil
+func (s SimpleFSMock) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	return nil
 }
 
 // SimpleFSSubscribePath implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (string, error) {
-	return "", nil
+func (s SimpleFSMock) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	return nil
 }
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.

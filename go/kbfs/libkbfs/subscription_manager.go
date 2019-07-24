@@ -1,7 +1,12 @@
+// Copyright 2019 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package libkbfs
 
 import (
-	"strconv"
+	"errors"
+	"path"
 	"sync"
 	"time"
 
@@ -12,61 +17,43 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// SubscriptionID identifies a subscription.
-type SubscriptionID string
-
-// SubscriptionNotifier defines a group of methods for notifying about changes
-// on subscribed topics.
-type SubscriptionNotifier interface {
-	OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic)
-	OnChange(subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic)
-}
-
-// Subscriber defines a type that can be used to subscribe to different topic.
-type Subscriber interface {
-	SubscribePath(
-		ctx context.Context, path string, topic keybase1.PathSubscriptionTopic,
-		deduplicateInterval *time.Duration) (SubscriptionID, error)
-	SubscribeNonPath(ctx context.Context, topic keybase1.SubscriptionTopic,
-		deduplicateInterval *time.Duration) (SubscriptionID, error)
-	Unsubscribe(context.Context, SubscriptionID)
-}
-
-// SubscriptionManager manages subscriptions. Use the Subscriber interface to
-// subscribe and unsubscribe. Multiple subscribers can be used with the same
-// SubscriptionManager.
-type SubscriptionManager interface {
-	Subscriber(SubscriptionNotifier) Subscriber
-	Shutdown(ctx context.Context)
-}
-
-// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
-// used to publish changes to subscribers mangaged by it.
-type SubscriptionManagerPublisher interface {
-	FavoritesChanged()
-	JournalStatusChanged()
-}
-
 // userPath is always the full path including the /keybase prefix, but may
-// not be canonical or normalized. For examplef, it can be
-// . The goal is to track
-// whatever the user of this type is dealing with without needing them to
-// know if a path is canonicalized at any time.
+// not be canonical or cleaned. The goal is to track whatever the user of this
+// type is dealing with without needing them to know if a path is canonicalized
+// at any time.
 // Examples:
 //   "/keybase/public/karlthefog@twitter/dir
 //   "/keybase/team/keybase/dir/../file"
 type userPath string
 
-// normalizedInTlfPath is normalized path rooted at a TLF, and it's what we get
+// cleanInTlfPath is clean path rooted at a TLF, and it's what we get
 // from Node.GetPathPlaintextSansTlf().
 // Examples, considering TLF /keybase/private/user1,user2:
 //   "/foo/bar" (representing /keybsae/private/user1,user2/foo/bar)
 //   "/"        (representing /keybsae/private/user1,user2)
-type normalizedInTlfPath string
+type cleanInTlfPath string
+
+func getCleanInTlfPath(p *parsedPath) cleanInTlfPath {
+	return cleanInTlfPath(path.Clean(p.rawInTlfPath))
+}
 
 type debouncedNotify struct {
 	notify   func()
 	shutdown func()
+}
+
+func getChSender(ch chan<- struct{}, blocking bool) func() {
+	if blocking {
+		return func() {
+			ch <- struct{}{}
+		}
+	}
+	return func() {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
 }
 
 func debounce(do func(), limit rate.Limit) debouncedNotify {
@@ -85,29 +72,35 @@ func debounce(do func(), limit rate.Limit) debouncedNotify {
 		}
 	}()
 	return debouncedNotify{
-		notify: func() {
-			select {
-			case ch <- struct{}{}:
-			default:
-			}
-		},
+		notify:   getChSender(ch, limit == rate.Inf),
 		shutdown: shutdown,
 	}
 }
 
 type pathSubscriptionRef struct {
 	folderBranch data.FolderBranch
-	path         normalizedInTlfPath
+	path         cleanInTlfPath
 }
 
+// subscriptionManager manages subscriptions. There are two types of
+// subscriptions: path and non-path. Path subscriptions are for changes related
+// to a specific path, such as file content change, dir children change, and
+// timestamp change. Non-path subscriptions are for general changes that are
+// not specific to a path, such as journal flushing, online status change, etc.
+// We store a debouncedNotify struct for each subscription, which includes a
+// notify function that might be debounced if caller asked so.
 type subscriptionManager struct {
 	config Config
 
-	lock                         sync.RWMutex
-	pathSubscriptions            map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify
-	pathSubscriptionIDToRef      map[SubscriptionID]pathSubscriptionRef
-	nonPathSubscriptions         map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify
-	nonPathSubscriptionIDToTopic map[SubscriptionID]keybase1.SubscriptionTopic
+	lock sync.RWMutex
+	// TODO HOTPOT-416: add another layer here to reference by topics, and
+	// actually check topics in LocalChange and BatchChanges.
+	pathSubscriptions               map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify
+	pathSubscriptionIDToRef         map[SubscriptionID]pathSubscriptionRef
+	nonPathSubscriptions            map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify
+	nonPathSubscriptionIDToTopic    map[SubscriptionID]keybase1.SubscriptionTopic
+	subscriptionIDs                 map[SubscriptionID]bool
+	subscriptionCountByFolderBranch map[data.FolderBranch]int
 }
 
 type subscriber struct {
@@ -117,11 +110,13 @@ type subscriber struct {
 
 func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
 	sm := &subscriptionManager{
-		pathSubscriptions:            make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
-		pathSubscriptionIDToRef:      make(map[SubscriptionID]pathSubscriptionRef),
-		nonPathSubscriptions:         make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
-		nonPathSubscriptionIDToTopic: make(map[SubscriptionID]keybase1.SubscriptionTopic),
-		config:                       config,
+		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
+		pathSubscriptionIDToRef:         make(map[SubscriptionID]pathSubscriptionRef),
+		nonPathSubscriptions:            make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
+		nonPathSubscriptionIDToTopic:    make(map[SubscriptionID]keybase1.SubscriptionTopic),
+		config:                          config,
+		subscriptionIDs:                 make(map[SubscriptionID]bool),
+		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
 	}
 	return sm, sm
 }
@@ -147,23 +142,44 @@ func (sm *subscriptionManager) Subscriber(notifier SubscriptionNotifier) Subscri
 	return subscriber{sm: sm, notifier: notifier}
 }
 
-func makeSubscriptionID() SubscriptionID {
-	return SubscriptionID(strconv.FormatInt(time.Now().UnixNano(), 16))
+func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (setter func(), err error) {
+	if sm.subscriptionIDs[sid] {
+		return nil, errors.New("duplicate subscription ID")
+	}
+	return func() {
+		sm.subscriptionIDs[sid] = true
+	}, nil
+}
+
+func (sm *subscriptionManager) registerForChangesLocked(fb data.FolderBranch) {
+	if sm.subscriptionCountByFolderBranch[fb] == 0 {
+		sm.config.Notifier().RegisterForChanges([]data.FolderBranch{fb}, sm)
+	}
+	sm.subscriptionCountByFolderBranch[fb]++
+}
+
+func (sm *subscriptionManager) unregisterForChangesLocked(fb data.FolderBranch) {
+	if sm.subscriptionCountByFolderBranch[fb] == 1 {
+		sm.config.Notifier().UnregisterFromChanges(
+			[]data.FolderBranch{fb}, sm)
+		delete(sm.subscriptionCountByFolderBranch, fb)
+		return
+	}
+	sm.subscriptionCountByFolderBranch[fb]--
 }
 
 func (sm *subscriptionManager) subscribePath(ctx context.Context,
-	path string, topic keybase1.PathSubscriptionTopic,
-	deduplicateInterval *time.Duration, notifier SubscriptionNotifier) (SubscriptionID, error) {
+	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
+	deduplicateInterval *time.Duration, notifier SubscriptionNotifier) error {
 	parsedPath, err := parsePath(userPath(path))
 	if err != nil {
-		return "", err
+		return err
 	}
 	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
 	if err != nil {
-		return "", err
+		return err
 	}
-	nitp := parsedPath.getNormalizedInTlfPath()
-	sid := makeSubscriptionID()
+	nitp := getCleanInTlfPath(parsedPath)
 
 	ref := pathSubscriptionRef{
 		folderBranch: fb,
@@ -172,8 +188,11 @@ func (sm *subscriptionManager) subscribePath(ctx context.Context,
 
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
-	sm.config.Notifier().RegisterForChanges(
-		[]data.FolderBranch{ref.folderBranch}, sm)
+	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
+	if err != nil {
+		return err
+	}
+	sm.registerForChangesLocked(ref.folderBranch)
 	if sm.pathSubscriptions[ref] == nil {
 		sm.pathSubscriptions[ref] = make(map[SubscriptionID]debouncedNotify)
 	}
@@ -185,16 +204,19 @@ func (sm *subscriptionManager) subscribePath(ctx context.Context,
 		notifier.OnPathChange(sid, path, topic)
 	}, limit)
 	sm.pathSubscriptionIDToRef[sid] = ref
-	return sid, nil
+	subscriptionIDSetter()
+	return nil
 }
 
-func (sm *subscriptionManager) subscribeNonPath(ctx context.Context,
-	topic keybase1.SubscriptionTopic, deduplicateInterval *time.Duration,
-	notifier SubscriptionNotifier) (SubscriptionID, error) {
-	sid := makeSubscriptionID()
-
+func (sm *subscriptionManager) subscribeNonPath(
+	ctx context.Context, sid SubscriptionID, topic keybase1.SubscriptionTopic,
+	deduplicateInterval *time.Duration, notifier SubscriptionNotifier) error {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
+	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
+	if err != nil {
+		return err
+	}
 	if sm.nonPathSubscriptions[topic] == nil {
 		sm.nonPathSubscriptions[topic] = make(map[SubscriptionID]debouncedNotify)
 	}
@@ -203,10 +225,11 @@ func (sm *subscriptionManager) subscribeNonPath(ctx context.Context,
 		limit = rate.Every(*deduplicateInterval)
 	}
 	sm.nonPathSubscriptions[topic][sid] = debounce(func() {
-		notifier.OnChange(sid, topic)
+		notifier.OnNonPathChange(sid, topic)
 	}, limit)
 	sm.nonPathSubscriptionIDToTopic[sid] = topic
-	return sid, nil
+	subscriptionIDSetter()
+	return nil
 }
 
 func (sm *subscriptionManager) unsubscribePath(
@@ -223,13 +246,13 @@ func (sm *subscriptionManager) unsubscribePath(
 	}
 	if notifier, ok := sm.pathSubscriptions[ref][subscriptionID]; ok {
 		notifier.shutdown()
+		delete(sm.pathSubscriptions[ref], subscriptionID)
 	}
-	delete(sm.pathSubscriptions[ref], subscriptionID)
 	if len(sm.pathSubscriptions[ref]) == 0 {
-		sm.config.Notifier().UnregisterFromChanges(
-			[]data.FolderBranch{ref.folderBranch}, sm)
+		sm.unregisterForChangesLocked(ref.folderBranch)
 		delete(sm.pathSubscriptions, ref)
 	}
+	delete(sm.subscriptionIDs, subscriptionID)
 }
 func (sm *subscriptionManager) unsubscribeNonPath(
 	ctx context.Context, subscriptionID SubscriptionID) {
@@ -245,20 +268,19 @@ func (sm *subscriptionManager) unsubscribeNonPath(
 	}
 	if notifier, ok := sm.nonPathSubscriptions[topic][subscriptionID]; ok {
 		notifier.shutdown()
+		delete(sm.nonPathSubscriptions[topic], subscriptionID)
 	}
-	delete(sm.nonPathSubscriptions[topic], subscriptionID)
+	delete(sm.subscriptionIDs, subscriptionID)
 }
 
-func (sm *subscriptionManager) nodeChange(node Node) {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
+func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 	path, ok := node.GetPathPlaintextSansTlf()
 	if !ok {
 		return
 	}
 	ref := pathSubscriptionRef{
 		folderBranch: node.GetFolderBranch(),
-		path:         normalizedInTlfPath(path),
+		path:         cleanInTlfPath(path),
 	}
 	if sm.pathSubscriptions[ref] == nil {
 		return
@@ -269,16 +291,19 @@ func (sm *subscriptionManager) nodeChange(node Node) {
 }
 
 // SubscribePath implements the Subscriber interface.
-func (s subscriber) SubscribePath(
-	ctx context.Context, path string, topic keybase1.PathSubscriptionTopic,
-	deduplicateInterval *time.Duration) (SubscriptionID, error) {
-	return s.sm.subscribePath(ctx, path, topic, deduplicateInterval, s.notifier)
+func (s subscriber) SubscribePath(ctx context.Context, sid SubscriptionID,
+	path string, topic keybase1.PathSubscriptionTopic,
+	deduplicateInterval *time.Duration) error {
+	return s.sm.subscribePath(ctx,
+		sid, path, topic, deduplicateInterval, s.notifier)
 }
 
 // SubscribeNonPath implements the Subscriber interface.
-func (s subscriber) SubscribeNonPath(ctx context.Context, topic keybase1.SubscriptionTopic,
-	deduplicateInterval *time.Duration) (SubscriptionID, error) {
-	return s.sm.subscribeNonPath(ctx, topic, deduplicateInterval, s.notifier)
+func (s subscriber) SubscribeNonPath(ctx context.Context, sid SubscriptionID,
+	topic keybase1.SubscriptionTopic,
+	deduplicateInterval *time.Duration) error {
+	return s.sm.subscribeNonPath(ctx,
+		sid, topic, deduplicateInterval, s.notifier)
 }
 
 // Unsubscribe implements the Subscriber interface.
@@ -291,6 +316,8 @@ var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
 
 // FavoritesChanged implements the SubscriptionManagerPublisher interface.
 func (sm *subscriptionManager) FavoritesChanged() {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
 	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] == nil {
 		return
 	}
@@ -301,6 +328,8 @@ func (sm *subscriptionManager) FavoritesChanged() {
 
 // JournalStatusChanged implements the SubscriptionManagerPublisher interface.
 func (sm *subscriptionManager) JournalStatusChanged() {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
 	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] == nil {
 		return
 	}
@@ -314,14 +343,20 @@ var _ Observer = (*subscriptionManager)(nil)
 // LocalChange implements the Observer interface.
 func (sm *subscriptionManager) LocalChange(ctx context.Context,
 	node Node, write WriteRange) {
-	sm.nodeChange(node)
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	// TODO HOTPOT-416: check topics
+	sm.nodeChangeLocked(node)
 }
 
 // BatchChanges implements the Observer interface.
 func (sm *subscriptionManager) BatchChanges(ctx context.Context,
 	changes []NodeChange, allAffectedNodeIDs []NodeID) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	// TODO HOTPOT-416: check topics
 	for _, change := range changes {
-		sm.nodeChange(change.Node)
+		sm.nodeChangeLocked(change.Node)
 	}
 }
 

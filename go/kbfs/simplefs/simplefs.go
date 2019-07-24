@@ -2222,8 +2222,6 @@ func (k *SimpleFS) LocalChange(
 	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange) {
 	k.subscribeLock.RLock()
 	defer k.subscribeLock.RUnlock()
-	p, ok := node.GetPathPlaintextSansTlf()
-	fmt.Printf("SONGGAO-LocalChange: %q %v\n", p, ok)
 	if node.GetFolderBranch() == k.subscribeCurrFB {
 		k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrTlfPathFromGUI)
 	}
@@ -2232,10 +2230,6 @@ func (k *SimpleFS) LocalChange(
 // BatchChanges implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) BatchChanges(
 	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
-	for _, change := range changes {
-		p, ok := change.Node.GetPathPlaintextSansTlf()
-		fmt.Printf("SONGGAO-BatchChanges: %q %v\n", p, ok)
-	}
 	// Don't take any locks while processing these notifications,
 	// since it risks deadlock.
 	fbs := make(map[data.FolderBranch]bool, 1)
@@ -2784,18 +2778,16 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 
 // SimpleFSSubscribePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribePath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (string, error) {
+	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	sid, err := k.subscriber.SubscribePath(ctx, arg.KbfsPath, arg.Topic, &interval)
-	return string(sid), err
+	return k.subscriber.SubscribePath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.KbfsPath, arg.Topic, &interval)
 }
 
 // SimpleFSSubscribeNonPath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribeNonPath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (string, error) {
+	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	sid, err := k.subscriber.SubscribeNonPath(ctx, arg.Topic, &interval)
-	return string(sid), err
+	return k.subscriber.SubscribeNonPath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
 }
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.

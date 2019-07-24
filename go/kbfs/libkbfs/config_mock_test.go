@@ -40,30 +40,31 @@ type ConfigMock struct {
 	ConfigLocal
 
 	// local references to the proper mock type
-	mockKbfs        *MockKBFSOps
-	mockKbpki       *MockKBPKI
-	mockKbs         *MockKeybaseService
-	mockKeyman      *MockKeyManager
-	mockRep         *MockReporter
-	mockMdcache     *MockMDCache
-	mockKcache      *MockKeyCache
-	mockBcache      *MockBlockCache
-	mockDirtyBcache *MockDirtyBlockCache
-	mockCrypto      *MockCrypto
-	mockChat        *MockChat
-	mockCodec       *kbfscodec.MockCodec
-	mockMdops       *MockMDOps
-	mockKops        *MockKeyOps
-	mockBops        *MockBlockOps
-	mockMdserv      *MockMDServer
-	mockKserv       *MockKeyServer
-	mockBserv       *MockBlockServer
-	mockBsplit      *MockBlockSplitter
-	mockNotifier    *MockNotifier
-	mockClock       *MockClock
-	mockRekeyQueue  *MockRekeyQueue
-	observer        *FakeObserver
-	ctr             *SafeTestReporter
+	mockKbfs                         *MockKBFSOps
+	mockKbpki                        *MockKBPKI
+	mockKbs                          *MockKeybaseService
+	mockKeyman                       *MockKeyManager
+	mockRep                          *MockReporter
+	mockMdcache                      *MockMDCache
+	mockKcache                       *MockKeyCache
+	mockBcache                       *MockBlockCache
+	mockDirtyBcache                  *MockDirtyBlockCache
+	mockCrypto                       *MockCrypto
+	mockChat                         *MockChat
+	mockCodec                        *kbfscodec.MockCodec
+	mockMdops                        *MockMDOps
+	mockKops                         *MockKeyOps
+	mockBops                         *MockBlockOps
+	mockMdserv                       *MockMDServer
+	mockKserv                        *MockKeyServer
+	mockBserv                        *MockBlockServer
+	mockBsplit                       *MockBlockSplitter
+	mockNotifier                     *MockNotifier
+	mockClock                        *MockClock
+	mockRekeyQueue                   *MockRekeyQueue
+	mockSubscriptionManagerPublisher *MockSubscriptionManagerPublisher
+	observer                         *FakeObserver
+	ctr                              *SafeTestReporter
 }
 
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
@@ -138,6 +139,11 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetMetadataVersion(defaultClientMetadataVer)
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
 	config.conflictResolutionDB = openCRDB(config)
+
+	config.mockSubscriptionManagerPublisher = NewMockSubscriptionManagerPublisher(gomock.NewController(ctr.t))
+	config.subscriptionManagerPublisher = config.mockSubscriptionManagerPublisher
+	config.mockSubscriptionManagerPublisher.EXPECT().FavoritesChanged().AnyTimes()
+	config.mockSubscriptionManagerPublisher.EXPECT().JournalStatusChanged().AnyTimes()
 
 	return config
 }

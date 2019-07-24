@@ -382,10 +382,11 @@ func (k KeybaseServiceMeasured) OnPathChange(subscriptionID SubscriptionID, path
 	})
 }
 
-// OnChange implements the SubscriptionNotifier interface.
-func (k KeybaseServiceMeasured) OnChange(subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k KeybaseServiceMeasured) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
 	k.onChangeTimer.Time(func() {
-		k.delegate.OnChange(subscriptionID, topic)
+		k.delegate.OnNonPathChange(subscriptionID, topic)
 	})
 }
 

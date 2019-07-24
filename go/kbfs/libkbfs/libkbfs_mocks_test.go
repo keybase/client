@@ -2406,16 +2406,16 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifySyncStatus), arg0, arg1)
 }
 
-// OnChange mocks base method
-func (m *MockKeybaseService) OnChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
+// OnNonPathChange mocks base method
+func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnChange", arg0, arg1)
+	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
-// OnChange indicates an expected call of OnChange
-func (mr *MockKeybaseServiceMockRecorder) OnChange(arg0, arg1 interface{}) *gomock.Call {
+// OnNonPathChange indicates an expected call of OnNonPathChange
+func (mr *MockKeybaseServiceMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnChange", reflect.TypeOf((*MockKeybaseService)(nil).OnChange), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnNonPathChange), arg0, arg1)
 }
 
 // OnPathChange mocks base method
@@ -4208,16 +4208,16 @@ func (m *MockSubscriptionNotifier) EXPECT() *MockSubscriptionNotifierMockRecorde
 	return m.recorder
 }
 
-// OnChange mocks base method
-func (m *MockSubscriptionNotifier) OnChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
+// OnNonPathChange mocks base method
+func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnChange", arg0, arg1)
+	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
-// OnChange indicates an expected call of OnChange
-func (mr *MockSubscriptionNotifierMockRecorder) OnChange(arg0, arg1 interface{}) *gomock.Call {
+// OnNonPathChange indicates an expected call of OnNonPathChange
+func (mr *MockSubscriptionNotifierMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnChange), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnNonPathChange), arg0, arg1)
 }
 
 // OnPathChange mocks base method

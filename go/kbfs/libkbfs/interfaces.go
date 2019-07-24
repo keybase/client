@@ -1,4 +1,4 @@
-// Copyright 2016 Keybase Inc. All rights reserved
+// Copyright 2016 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -165,7 +165,7 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() data.PathPartString
-	// GetPathPlaintextSansTlf returns the canonical path of the node in
+	// GetPathPlaintextSansTlf returns the cleaned path of the node in
 	// plaintext.
 	GetPathPlaintextSansTlf() (string, bool)
 	// Readonly returns true if KBFS should outright reject any write
@@ -1969,6 +1969,62 @@ type blockCryptVersioner interface {
 	// BlockCryptVersion returns the block encryption version to be used for
 	// new blocks.
 	BlockCryptVersion() kbfscrypto.EncryptionVer
+}
+
+// SubscriptionID identifies a subscription.
+type SubscriptionID string
+
+// SubscriptionNotifier defines a group of methods for notifying about changes
+// on subscribed topics.
+type SubscriptionNotifier interface {
+	// OnPathChange notifies about a change that's related to a specific path.
+	OnPathChange(subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic)
+	// OnNonPathChange notifies about a change that's not related to a specific path.
+	OnNonPathChange(subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic)
+}
+
+// Subscriber defines a type that can be used to subscribe to different topic.
+//
+// The two Subscribe methods are for path and non-path subscriptions
+// respectively. Notes on some common arguments:
+// 1) subscriptionID needs to be unique among all subscriptions that happens
+//    with this process. A UUID or even just a timestamp might work. If
+//    duplicate subscriptionIDs are used, an error is returned.
+// 2) Optionally a deduplicateInterval can be used. When this arg is set, we
+//    debounce the events so it doesn't send more frequently than the interval.
+type Subscriber interface {
+	// SubscribePath subscribes to changes about path, when topic happens.
+	SubscribePath(
+		ctx context.Context, subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// SubscribeNonPath subscribes to changes when topic happens.
+	SubscribeNonPath(ctx context.Context, subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// Unsubscribe unsubscribes a previsous subscription. The subscriptionID
+	// should be the same as when caller subscribed. Otherwise, it's a no-op.
+	Unsubscribe(context.Context, SubscriptionID)
+}
+
+// SubscriptionManager manages subscriptions. Use the Subscriber interface to
+// subscribe and unsubscribe. Multiple subscribers can be used with the same
+// SubscriptionManager.
+type SubscriptionManager interface {
+	// Subscriber returns a new subscriber. All subscriptions made on this
+	// subscriber causes notifications sent through the give notifier here.
+	Subscriber(SubscriptionNotifier) Subscriber
+	// Shutdown shuts the subscription manager down.
+	Shutdown(ctx context.Context)
+}
+
+// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
+// used to publish changes to subscribers mangaged by it.
+type SubscriptionManagerPublisher interface {
+	FavoritesChanged()
+	JournalStatusChanged()
 }
 
 // Config collects all the singleton instance instantiations needed to

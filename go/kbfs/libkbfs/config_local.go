@@ -1752,14 +1752,14 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 
 // SubscriptionManager implements the Config interface.
 func (c *ConfigLocal) SubscriptionManager() SubscriptionManager {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.subscriptionManager
 }
 
 // SubscriptionManagerPublisher implements the Config interface.
 func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.subscriptionManagerPublisher
 }

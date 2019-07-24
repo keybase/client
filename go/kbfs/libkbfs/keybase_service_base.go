@@ -1205,12 +1205,14 @@ func (k *KeybaseServiceBase) OnPathChange(subscriptionID SubscriptionID, path st
 	})
 }
 
-// OnChange implements the SubscriptionNotifier interface.
-func (k *KeybaseServiceBase) OnChange(subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
-	k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(), keybase1.FSSubscriptionNotifyEventArg{
-		SubscriptionID: string(subscriptionID),
-		Topic:          topic,
-	})
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseServiceBase) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+	k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
+		keybase1.FSSubscriptionNotifyEventArg{
+			SubscriptionID: string(subscriptionID),
+			Topic:          topic,
+		})
 }
 
 // FlushUserFromLocalCache implements the KeybaseService interface for

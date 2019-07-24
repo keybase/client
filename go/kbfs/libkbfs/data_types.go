@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -674,4 +676,59 @@ func (p PrefetchProgress) ToProtocolStatus() keybase1.PrefetchStatus {
 		return keybase1.PrefetchStatus_COMPLETE
 	}
 	return keybase1.PrefetchStatus_IN_PROGRESS
+}
+
+type parsedPath struct {
+	tlfType      tlf.Type
+	tlfName      string
+	rawInTlfPath string
+	rawFullPath  userPath
+}
+
+func parsePath(path userPath) (parsed *parsedPath, err error) {
+	if !strings.HasPrefix(string(path), "/keybase") {
+		return nil, errors.New("not a KBFS path")
+	}
+	parsed = &parsedPath{tlfType: tlf.Unknown, rawFullPath: path}
+	elems := strings.Split(string(path[1:]), "/")
+	if len(elems) < 2 {
+		return parsed, nil
+	}
+	parsed.tlfType, err = tlf.ParseTlfTypeFromPath(elems[1])
+	if err != nil {
+		return nil, err
+	}
+	if len(elems) < 3 {
+		return parsed, nil
+	}
+	parsed.tlfName = elems[2]
+	if len(elems) == 3 {
+		parsed.rawInTlfPath = "/"
+		return parsed, nil
+	}
+	parsed.rawInTlfPath = "/" + strings.Join(elems[3:], "/")
+	return parsed, nil
+}
+
+func (p *parsedPath) getRootNode(ctx context.Context, config Config) (Node, error) {
+	if p.tlfType == tlf.Unknown || len(p.tlfName) == 0 {
+		return nil, errors.New("path does not have a TLF")
+	}
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, p.tlfName, p.tlfType)
+	// Get the root node first to initialize the TLF.
+	node, _, err := config.KBFSOps().GetRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (p *parsedPath) getFolderBranch(ctx context.Context, config Config) (data.FolderBranch, error) {
+	node, err := p.getRootNode(ctx, config)
+	if err != nil {
+		return data.FolderBranch{}, err
+	}
+	return node.GetFolderBranch(), nil
 }
