@@ -1,29 +1,38 @@
 import moment from 'moment'
 
+const twenty4hrtime = true
+
+function formatHourMinute(m: moment.Moment) {
+  if (twenty4hrtime) {
+    return m.format('H:mm')
+  }
+  return m.format('h:mm A')
+}
+
 export function formatTimeForChat(time: number): string | null {
   const m = moment(time)
-  const hma = m.format('h:mm A')
+  const hourminute = formatHourMinute(m)
   const now = moment()
   const today = now.clone().startOf('day')
   if (m.isSame(today, 'd')) {
-    return hma
+    return hourminute
   }
   const yesterday = today
     .clone()
     .subtract(1, 'day')
     .startOf('day')
   if (m.isSame(yesterday, 'd')) {
-    return `${hma} - Yesterday`
+    return `${hourminute} - Yesterday`
   }
   const lastWeek = today.clone().subtract(7, 'day')
   if (m.isAfter(lastWeek)) {
-    return `${hma} - ${m.format('ddd')}`
+    return `${hourminute} - ${m.format('ddd')}`
   }
   const lastMonth = today.clone().subtract(1, 'month')
   if (m.isAfter(lastMonth)) {
-    return `${hma} - ${m.format('D MMM')}`
+    return `${hourminute} - ${m.format('D MMM')}`
   }
-  return `${hma} - ${m.format('D MMM YY')}`
+  return `${hourminute} - ${m.format('D MMM YY')}`
 }
 
 export function formatTimeForConversationList(time: number, nowOverride?: number | null): string {
@@ -33,7 +42,7 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
   const weekOld = today.clone().subtract(7, 'days')
 
   if (m.isSame(today, 'd')) {
-    return m.format('h:mm A')
+    return formatHourMinute(m)
   } else if (m.isAfter(weekOld)) {
     return m.format('ddd')
   }
@@ -53,19 +62,19 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 
   if (m.isSame(now, 'd')) {
     // Covers interval [startOfToday, endOfToday]
-    return 'Today ' + m.format('h:mm A') // Today 4:34 PM
+    return 'Today ' + formatHourMinute(m) // Today 4:34 PM / Today 16:34
   } else if (m.isSame(yesterday, 'd')) {
     // Covers interval [startOfYesterday, endOfYesterday]
-    return 'Yesterday ' + m.format('h:mm A') // Yesterday 4:34 PM
+    return 'Yesterday ' + formatHourMinute(m) // Yesterday 4:34 PM / Yesterday 16:34
   } else if (m.isAfter(weekAgo)) {
     // Covers interval [startOfWeekAgo, startOfYesterday)
-    return m.format('ddd h:mm A') // Wed 4:34 PM
+    return m.format('ddd ') + formatHourMinute(m) // Wed 4:34 PM / Wed 16:34
   } else if (!m.isSame(now, 'year')) {
     // Covers interval [foreverAgo, startOfThisYear)
-    return m.format('MMM DD YYYY h:mm A') // Jan 5 2016 4:34 PM
+    return m.format('MMM DD YYYY ') + formatHourMinute(m) // Jan 5 2016 4:34 PM / Jan 5 2016 16:34
   } else {
     // Covers interval [startOfThisYear, startOfWeekAgo)
-    return m.format('MMM DD h:mm A') // Jan 5 4:34 PM
+    return m.format('MMM DD ') + formatHourMinute(m) // Jan 5 4:34 PM / Jan 5 16:34
   }
 }
 
@@ -109,12 +118,12 @@ export const formatDurationFromNowTo = (timeInFuture?: number): string =>
 
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)
-  return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
+  return m.format('ddd MMM DD ') + formatHourMinute(m) // Wed Jan 5 2016 4:34 PM / Wed Jan 5 2016 16:34
 }
 
 export function formatTimeForStellarDetail(timestamp: Date) {
   const m = moment(timestamp)
-  return m.format('ddd, MMM DD YYYY - h:mm A') // Tue, Jan 5 2018 - 4:34 PM
+  return m.format('ddd, MMM DD YYYY - ') + formatHourMinute(m) // Tue, Jan 5 2018 - 4:34 PM / Tue, Jan 5 2018 - 16:34
 }
 
 export function formatTimeForStellarTooltip(timestamp: Date) {
