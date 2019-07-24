@@ -404,6 +404,9 @@ func (e *Env) getHomeFromTestOrCmd() string {
 		func() string { return e.Test.Home },
 		func() string {
 			home := e.cmd.GetHome()
+			if home == "" {
+				return ""
+			}
 			absHome, err := filepath.Abs(home)
 			if err != nil {
 				return home
