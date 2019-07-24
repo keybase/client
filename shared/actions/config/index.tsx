@@ -419,13 +419,19 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 }
 
 const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeybaseLinkPayload) => {
+  const error =
+    "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
   const parts = action.payload.link.split('/')
   // List guaranteed to contain at least one elem.
   switch (parts[0]) {
     case 'profile':
       if (parts.length !== 3) {
-        console.warn('Malformed profile link')
-        return undefined
+        return [
+          ConfigGen.createSetKeybaseLinkError({error}),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          }),
+        ]
       }
       if (parts[1] === 'new-proof') {
         return ProfileGen.createAddProof({platform: parts[2]})
@@ -437,34 +443,47 @@ const handleKeybaseLink = (_: Container.TypedState, action: ConfigGen.HandleKeyb
     case 'team':
       return [
         RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
-        RouteTreeGen.createNavigateAppend({path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}]}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}],
+        }),
       ]
     case 'chat':
       if (parts.length !== 2) {
-        console.warn('Malformed Chat link')
-        return undefined
+        return [
+          ConfigGen.createSetKeybaseLinkError({error}),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          }),
+        ]
       }
       if (parts[1].includes('#')) {
         const teamChat = parts[1].split('#')
         if (teamChat.length !== 2) {
-          console.warn('Extra # in team chat link')
-          return undefined
+          return [
+            ConfigGen.createSetKeybaseLinkError({error}),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+            }),
+          ]
         }
         const [teamname, channelname] = teamChat
-        console.warn('in team', teamname, channelname)
         return [
           RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname})
+          ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname}),
         ]
       } else {
         return [
           RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')})
+          ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')}),
         ]
       }
     default:
-      console.warn('Unknown Keybase link type')
-      return undefined
+      return [
+        ConfigGen.createSetKeybaseLinkError({error}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        }),
+      ]
   }
   return undefined
 }

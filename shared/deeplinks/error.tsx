@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
 
 type ErrorBodyProps = {
   errorText: string
@@ -18,13 +18,14 @@ const ErrorBody = (props: ErrorBodyProps) => {
   )
 }
 
-type OwnProps = {
-  errorSource: 'app' | 'sep7'
-}
+type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep7'}>
 
 const Error = (props: OwnProps) => {
+  const errorSource = Container.getRouteProps(props, 'errorSource')
   const Body = Kb.HeaderOrPopup(ErrorBody)
-  const error = Container.useSelector(s => props.errorSource === 'app' ? s.config.keybaseLinkError : s.wallets.sep7ConfirmError)
+  const error = Container.useSelector(s =>
+    errorSource === 'app' ? s.config.keybaseLinkError : s.wallets.sep7ConfirmError
+  )
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return <Body onCancel={onClose} customCancelText="Close" errorText={error} />
