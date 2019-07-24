@@ -887,10 +887,6 @@ type DiskMDCacheError struct {
 	Msg string
 }
 
-func newDiskMDCacheError(err error) DiskMDCacheError {
-	return DiskMDCacheError{err.Error()}
-}
-
 // ToStatus implements the ExportableError interface for DiskMDCacheError.
 func (e DiskMDCacheError) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeDiskMDCacheError
@@ -907,10 +903,6 @@ func (e DiskMDCacheError) Error() string {
 // DiskQuotaCacheError is a generic disk cache error.
 type DiskQuotaCacheError struct {
 	Msg string
-}
-
-func newDiskQuotaCacheError(err error) DiskQuotaCacheError {
-	return DiskQuotaCacheError{err.Error()}
 }
 
 // ToStatus implements the ExportableError interface for DiskQuotaCacheError.

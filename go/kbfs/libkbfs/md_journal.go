@@ -1265,7 +1265,7 @@ func (j *mdJournal) put(
 				j.branchID, lastMdID, rmd.TlfID(), rmd.Revision())
 			rmd.SetBranchID(j.branchID)
 			rmd.SetPrevRoot(lastMdID)
-		} else {
+		} else { // nolint
 			// Using de Morgan's laws, this branch is
 			// taken when both rmd.BID() is non-null, and
 			// either head is non-empty or j.branchID is
@@ -1517,7 +1517,10 @@ func (j *mdJournal) resolveAndClear(
 				break
 			}
 			j.log.CDebugf(ctx, "Preserving entry %s", entry.ID)
-			otherIDJournal.append(earliestBranchRevision, entry)
+			err = otherIDJournal.append(earliestBranchRevision, entry)
+			if err != nil {
+				return kbfsmd.ID{}, err
+			}
 		}
 	}
 

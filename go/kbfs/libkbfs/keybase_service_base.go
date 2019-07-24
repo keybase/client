@@ -50,8 +50,7 @@ type KeybaseServiceBase struct {
 
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
-	userCache               map[keybase1.UID]idutil.UserInfo
-	userCacheUnverifiedKeys map[keybase1.UID][]keybase1.PublicKey
+	userCache map[keybase1.UID]idutil.UserInfo
 
 	teamCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
@@ -80,12 +79,11 @@ func (k *keybaseServiceMerkleGetter) VerifyMerkleRoot(
 // NewKeybaseServiceBase makes a new KeybaseService.
 func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *KeybaseServiceBase {
 	k := KeybaseServiceBase{
-		config:                  config,
-		context:                 kbCtx,
-		log:                     log,
-		userCache:               make(map[keybase1.UID]idutil.UserInfo),
-		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
-		teamCache:               make(map[keybase1.TeamID]idutil.TeamInfo),
+		config:    config,
+		context:   kbCtx,
+		log:       log,
+		userCache: make(map[keybase1.UID]idutil.UserInfo),
+		teamCache: make(map[keybase1.TeamID]idutil.TeamInfo),
 	}
 	if config != nil {
 		k.merkleRoot = NewEventuallyConsistentMerkleRoot(
@@ -272,28 +270,6 @@ func (k *KeybaseServiceBase) setCachedUserInfo(
 	}
 }
 
-func (k *KeybaseServiceBase) getCachedUnverifiedKeys(uid keybase1.UID) (
-	[]keybase1.PublicKey, bool) {
-	k.userCacheLock.RLock()
-	defer k.userCacheLock.RUnlock()
-	if unverifiedKeys, ok := k.userCacheUnverifiedKeys[uid]; ok {
-		return unverifiedKeys, true
-	}
-	return nil, false
-}
-
-func (k *KeybaseServiceBase) setCachedUnverifiedKeys(uid keybase1.UID, pk []keybase1.PublicKey) {
-	k.userCacheLock.Lock()
-	defer k.userCacheLock.Unlock()
-	k.userCacheUnverifiedKeys[uid] = pk
-}
-
-func (k *KeybaseServiceBase) clearCachedUnverifiedKeys(uid keybase1.UID) {
-	k.userCacheLock.Lock()
-	defer k.userCacheLock.Unlock()
-	delete(k.userCacheUnverifiedKeys, uid)
-}
-
 func (k *KeybaseServiceBase) getCachedTeamInfo(
 	tid keybase1.TeamID) idutil.TeamInfo {
 	k.teamCacheLock.RLock()
@@ -322,7 +298,6 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 		k.userCacheLock.Lock()
 		defer k.userCacheLock.Unlock()
 		k.userCache = make(map[keybase1.UID]idutil.UserInfo)
-		k.userCacheUnverifiedKeys = make(map[keybase1.UID][]keybase1.PublicKey)
 	}()
 	k.teamCacheLock.Lock()
 	defer k.teamCacheLock.Unlock()
@@ -366,7 +341,6 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 	uid keybase1.UID) error {
 	k.log.CDebugf(ctx, "Key family for user %s changed", uid)
 	k.setCachedUserInfo(uid, idutil.UserInfo{})
-	k.clearCachedUnverifiedKeys(uid)
 
 	if k.getCachedCurrentSession().UID == uid {
 		mdServer := k.config.MDServer()

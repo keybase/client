@@ -193,9 +193,12 @@ func TestQuotaReclamationUnembeddedJournal(t *testing.T) {
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 
-	config.EnableDiskLimiter(tempdir)
+	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkPaused)
@@ -772,7 +775,10 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
@@ -782,8 +788,10 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	// Test the pointer-constraint logic.
 	config.SetMode(modeTestWithMaxPtrsLimit{config.Mode()})
 
-	config.EnableDiskLimiter(tempdir)
-	config.loadSyncedTlfsLocked()
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.loadSyncedTlfsLocked()
+	require.NoError(t, err)
 	config.diskCacheMode = DiskCacheModeLocal
 	err = config.MakeDiskBlockCacheIfNotExists()
 	require.NoError(t, err)

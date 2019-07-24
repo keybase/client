@@ -268,8 +268,9 @@ func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
 	defer p.overallSyncStatusLock.Unlock()
 	if p.overallSyncStatus.SubtreeBytesTotal < uint64(req.encodedSize) {
 		// Both log and panic so that we get the PFID in the log.
-		p.log.CErrorf(nil, "panic: decOverallSyncTotalBytes overstepped "+
-			"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
+		p.log.CErrorf(
+			context.TODO(), "panic: decOverallSyncTotalBytes overstepped "+
+				"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
 			p.overallSyncStatus.SubtreeBytesFetched,
 			p.overallSyncStatus.SubtreeBytesTotal)
 		panic("decOverallSyncTotalBytes overstepped its bounds")
@@ -293,8 +294,9 @@ func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
 	if p.overallSyncStatus.SubtreeBytesFetched >
 		p.overallSyncStatus.SubtreeBytesTotal {
 		// Both log and panic so that we get the PFID in the log.
-		p.log.CErrorf(nil, "panic: incOverallSyncFetchedBytes overstepped "+
-			"its bounds (fetched=%d, total=%d)",
+		p.log.CErrorf(
+			context.TODO(), "panic: incOverallSyncFetchedBytes overstepped "+
+				"its bounds (fetched=%d, total=%d)",
 			p.overallSyncStatus.SubtreeBytesFetched,
 			p.overallSyncStatus.SubtreeBytesTotal)
 		panic("incOverallSyncFetchedBytes overstepped its bounds")
@@ -1386,7 +1388,9 @@ func (p *blockPrefetcher) run(
 			p.applyToPtrParentsRecursive(p.cancelPrefetch, ptr, pre)
 		case reqInt := <-p.prefetchCancelTlfCh.Out():
 			req := reqInt.(cancelTlfPrefetch)
-			p.log.CDebugf(nil, "Canceling all prefetches for TLF %s", req.tlfID)
+			p.log.CDebugf(
+				context.TODO(), "Canceling all prefetches for TLF %s",
+				req.tlfID)
 			// Cancel all prefetches for this TLF.
 			for id, pre := range p.prefetches {
 				if pre.req.kmd.TlfID() != req.tlfID {
@@ -1494,9 +1498,12 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	} else if !action.Prefetch(block) {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
-		p.retriever.PutInCaches(
+		err := p.retriever.PutInCaches(
 			ctx, ptr, kmd.TlfID(), block, lifetime, prefetchStatus,
 			action.CacheType())
+		if err != nil {
+			p.log.CDebugf(ctx, "Couldn't put block %s in caches: %+v", ptr, err)
+		}
 	} else {
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the

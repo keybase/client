@@ -1190,7 +1190,6 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 		rmdsChan <- rmds
 	}
 	close(rmdsChan)
-	rmdses = nil
 	err := eg.Wait()
 	if err != nil {
 		return nil, err

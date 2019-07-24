@@ -552,7 +552,7 @@ func InitWithLogPrefix(
 			// https://golang.org/pkg/os/signal/#hdr-Default_behavior_of_signals_in_Go_programs
 			switch sig {
 			case syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT:
-				pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
 			}
 
 			if onInterruptFn != nil {

@@ -372,7 +372,6 @@ func TestBlockEncryptedLen(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	tlfCryptKey, blockServerHalf, _ := makeFakeBlockCryptKey(t)
 
-	const startSize = 1025
 	const endSize = 2000
 
 	// Generating random data is slow, so do it all up-front and
@@ -413,7 +412,8 @@ func benchmarkEncryptBlock(b *testing.B, blockSize int) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		_, _, err := c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		require.NoError(b, err)
 	}
 }
 

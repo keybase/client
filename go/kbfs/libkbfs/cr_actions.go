@@ -299,9 +299,7 @@ func trackSyncPtrChangesInCreate(
 					refs = append(refs, ref)
 				}
 			}
-			for _, unref := range op.Unrefs() {
-				unrefs = append(unrefs, unref)
-			}
+			unrefs = append(unrefs, op.Unrefs()...)
 			// Account for the file ptr too, if it's the most recent.
 			filePtr := syncOp.File.Ref
 			_, isMostRecent := unmergedChains.byMostRecent[filePtr]
@@ -391,9 +389,12 @@ func (cuea *copyUnmergedEntryAction) updateOps(
 			// unmerged name to the merged name, before creating the
 			// symlink, so the local Node objects are updated
 			// correctly.
-			makeLocalRenameOpForCopyAction(
+			err := makeLocalRenameOpForCopyAction(
 				ctx, mergedMostRecent, mergedDir, mergedChains, cuea.fromName,
 				cuea.toName)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
