@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
+import * as Container from '../../util/container'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
@@ -54,7 +55,7 @@ function SettingsNav(props: Props) {
             {
               badgeNumber: props.badgeNumbers[TabConstants.settingsTab],
               onClick: () => props.onTabChange(Constants.accountTab),
-              text: 'Account',
+              text: 'Your account',
             },
             {
               onClick: () => props.onTabChange(Constants.chatTab),

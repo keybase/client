@@ -61,7 +61,7 @@ export default connect(
       stateProps._supersededPhoneNumberKey &&
       dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
     supersededPhoneNumber: stateProps.supersededPhoneNumber,
-    title: 'Account',
+    title: 'Your account',
     waiting: stateProps.waiting,
   })
 )(AccountSettings)
