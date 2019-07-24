@@ -368,7 +368,7 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
-	case keybase1.TeamRole_BOT,
+	case keybase1.TeamRole_RESTRICTEDBOT,
 		keybase1.TeamRole_READER,
 		keybase1.TeamRole_WRITER,
 		keybase1.TeamRole_ADMIN,
@@ -893,7 +893,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
-	createTeambotKeys(team.G(), team.ID, memSet.botRecipientUids())
+	createTeambotKeys(team.G(), team.ID, memSet.restrictedBotRecipientUids())
 
 	return nil
 }

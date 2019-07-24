@@ -415,14 +415,14 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Team    string   `codec:"team" json:"team"`
-	Adder   string   `codec:"adder" json:"adder"`
-	Addee   string   `codec:"addee" json:"addee"`
-	Owners  []string `codec:"owners" json:"owners"`
-	Admins  []string `codec:"admins" json:"admins"`
-	Writers []string `codec:"writers" json:"writers"`
-	Readers []string `codec:"readers" json:"readers"`
-	Bots    []string `codec:"bots" json:"bots"`
+	Team           string   `codec:"team" json:"team"`
+	Adder          string   `codec:"adder" json:"adder"`
+	Addee          string   `codec:"addee" json:"addee"`
+	Owners         []string `codec:"owners" json:"owners"`
+	Admins         []string `codec:"admins" json:"admins"`
+	Writers        []string `codec:"writers" json:"writers"`
+	Readers        []string `codec:"readers" json:"readers"`
+	RestrictedBots []string `codec:"restrictedBots" json:"restrictedBots"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -474,7 +474,7 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 			}
 			return ret
 		})(o.Readers),
-		Bots: (func(x []string) []string {
+		RestrictedBots: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
@@ -484,7 +484,7 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Bots),
+		})(o.RestrictedBots),
 	}
 }
 

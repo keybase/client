@@ -145,7 +145,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	}
 	switch t {
 	case SigchainV2TypeTeamLeave:
-		return keybase1.TeamRole_BOT
+		return keybase1.TeamRole_RESTRICTEDBOT
 	case SigchainV2TypeTeamRoot:
 		return keybase1.TeamRole_READER
 	case SigchainV2TypeTeamRotateKey,

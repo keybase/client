@@ -8,7 +8,8 @@ protocol teams {
     WRITER_2,
     ADMIN_3,
     OWNER_4,
-    BOT_5
+    // BOT_5,
+    RESTRICTEDBOT_6
   }
 
   // Note: If you add to this list, take heed.
@@ -135,7 +136,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
-    array<UserVersion> bots;
+    array<UserVersion> restrictedBots;
   }
 
   enum TeamMemberStatus {
@@ -158,7 +159,7 @@ protocol teams {
     array<TeamMemberDetails> admins;
     array<TeamMemberDetails> writers;
     array<TeamMemberDetails> readers;
-    array<TeamMemberDetails> bots;
+    array<TeamMemberDetails> restrictedBots;
   }
 
   record TeamDetails {
@@ -177,7 +178,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
-    array<UserVersion> bots;
+    array<UserVersion> restrictedBots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
@@ -191,7 +192,7 @@ protocol teams {
 
     array<UserVersion> writers;
     array<UserVersion> onlyReaders;
-    array<UserVersion> onlyBots;
+    array<UserVersion> onlyRestrictedBots;
 
     array<TeamApplicationKey> applicationKeys;
   }

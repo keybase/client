@@ -310,11 +310,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
-	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	x, err = t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Bots = x
+	members.RestrictedBots = x
 
 	return members, nil
 }
@@ -576,7 +576,7 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	}
 
 	t.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
-	createTeambotKeys(t.G(), t.ID, memSet.botRecipientUids())
+	createTeambotKeys(t.G(), t.ID, memSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -827,7 +827,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	for uv := range memberSet.recipients {
 		recipients = append(recipients, uv)
 	}
-	for uv := range memberSet.botRecipients {
+	for uv := range memberSet.restrictedBotRecipients {
 		botRecipients = append(botRecipients, uv)
 	}
 	newMemSet := newMemberSet()
@@ -835,7 +835,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	if err != nil {
 		return err
 	}
-	_, err = newMemSet.loadGroup(ctx, t.G(), botRecipients, storeMemberKindBotRecipient, true)
+	_, err = newMemSet.loadGroup(ctx, t.G(), botRecipients, storeMemberKindRestrictedBotRecipient, true)
 	if err != nil {
 		return err
 	}
@@ -850,7 +850,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 
 	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 	t.storeTeamEKPayload(ctx, teamEKPayload)
-	createTeambotKeys(t.G(), t.ID, memberSet.botRecipientUids())
+	createTeambotKeys(t.G(), t.ID, memberSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -1351,8 +1351,8 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_BOT:
-		return fmt.Errorf("bot role disallowed for invites")
+	case keybase1.TeamRole_RESTRICTEDBOT:
+		return fmt.Errorf("restricted bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
 	case keybase1.TeamRole_WRITER:
@@ -1747,7 +1747,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing or bot members, so remove them from the set
+	// don't need keys for existing or restricted bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1769,7 +1769,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members except bots.
+	// rotate the team key for all current members except restricted bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err
@@ -2103,7 +2103,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		payloadArgs.secretBoxes = secretBoxes
 		payloadArgs.teamEKPayload = teamEKPayload
 		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
-		botMembers = memSet.botRecipientUids()
+		botMembers = memSet.restrictedBotRecipientUids()
 	}
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, mr, payloadArgs)
 	if err != nil {

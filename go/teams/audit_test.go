@@ -51,7 +51,7 @@ func TestAuditStaleTeam(t *testing.T) {
 	}
 
 	addD := func(asUser int) {
-		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username, keybase1.TeamRole_BOT)
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username, keybase1.TeamRole_RESTRICTEDBOT)
 		require.NoError(t, err)
 	}
 
@@ -150,7 +150,7 @@ func TestAuditRotateAudit(t *testing.T) {
 	}
 
 	addC := func() {
-		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username, keybase1.TeamRole_BOT)
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username, keybase1.TeamRole_RESTRICTEDBOT)
 		require.NoError(t, err)
 	}
 
