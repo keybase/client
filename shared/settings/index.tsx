@@ -45,7 +45,7 @@ const mergeProps = (stateProps: ReturnType<typeof mapStateToProps>, dispatchProp
   badgeNotifications: stateProps.badgeNotifications,
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
-  contactsLabel: stateProps._contactImportEnabled ? 'Contacts' : 'Import contacts',
+  contactsLabel: stateProps._contactImportEnabled ? 'Phone contacts' : 'Import phone contacts',
   hasRandomPW: stateProps.hasRandomPW,
   isModal: stateProps.isModal,
   logoutInProgress: stateProps.logoutHandshakeWaiters.size > 0,
