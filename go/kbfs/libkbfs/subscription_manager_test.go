@@ -79,13 +79,17 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		keybase1.PathSubscriptionTopic_CHILDREN)
 	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT)
-	config.KBFSOps().CreateDir(ctx, rootNode, rootNode.ChildName("dir1"))
+	_, _, err = config.KBFSOps().CreateDir(
+		ctx, rootNode, rootNode.ChildName("dir1"))
+	require.NoError(t, err)
 
 	t.Logf("Unsubscribe sid1, and make another dir. We should only get a notification for STAT.")
 	subscriber.Unsubscribe(ctx, sid1)
 	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT)
-	config.KBFSOps().CreateDir(ctx, rootNode, rootNode.ChildName("dir2"))
+	_, _, err = config.KBFSOps().CreateDir(
+		ctx, rootNode, rootNode.ChildName("dir2"))
+	require.NoError(t, err)
 
 	t.Logf("Unsubscribe sid2 as well. Then subscribe to STAT on the file using sid1 (which we unsubscribed earlier), and write to it. We should get STAT notification.")
 	subscriber.Unsubscribe(ctx, sid2)
@@ -93,7 +97,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	require.NoError(t, err)
 	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe/dir1/../file",
 		keybase1.PathSubscriptionTopic_STAT).Do(lastMockDone)
-	config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
+	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
+	require.NoError(t, err)
 }
 
 func TestSubscriptionManagerFavoritesChange(t *testing.T) {
@@ -103,6 +108,7 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 
 	sid1 := SubscriptionID("sid1")
 	err := subscriber.SubscribeNonPath(ctx, sid1, keybase1.SubscriptionTopic_FAVORITES, nil)
+	require.NoError(t, err)
 	notifier.EXPECT().OnNonPathChange(
 		sid1, keybase1.SubscriptionTopic_FAVORITES).Do(lastMockDone)
 	err = config.KBFSOps().AddFavorite(ctx,

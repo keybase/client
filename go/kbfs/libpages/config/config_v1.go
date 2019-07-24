@@ -57,7 +57,7 @@ func DefaultV1() *V1 {
 			},
 		},
 	}
-	v1.EnsureInit()
+	_ = v1.EnsureInit() // TODO: check error?
 	return v1
 }
 
