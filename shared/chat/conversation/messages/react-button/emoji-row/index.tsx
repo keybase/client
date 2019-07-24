@@ -13,15 +13,6 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-const HoverBox = Styles.isMobile
-  ? Kb.Box
-  : Styles.styled(Kb.Box)({
-      ...Styles.desktopStyles.clickable,
-      ':hover .icon': {
-        color: Styles.globalColors.blue,
-      },
-    })
-
 class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
@@ -73,22 +64,22 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
           <Kb.Box2 direction="horizontal">
             <Kb.Divider style={styles.divider} vertical={true} />
             <Kb.WithTooltip text="React">
-              <HoverBox onClick={this._showPicker} style={styles.iconContainer}>
+              <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
                 <Kb.Icon
-                  className="icon"
+                  className="hover_contained_color_blue"
                   style={Kb.iconCastPlatformStyles(styles.icon)}
                   type="iconfont-reacji"
                 />
-              </HoverBox>
+              </Kb.Box>
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Reply">
-              <HoverBox onClick={this.props.onReply} style={styles.iconContainer}>
+              <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
                 <Kb.Icon
-                  className="icon"
+                  className="hover_contained_color_blue"
                   style={Kb.iconCastPlatformStyles(styles.icon)}
                   type="iconfont-reply"
                 />
-              </HoverBox>
+              </Kb.Box>
             </Kb.WithTooltip>
           </Kb.Box2>
         )}
@@ -135,9 +126,14 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
-  iconContainer: {
-    padding: Styles.globalMargins.tiny,
-  },
+  iconContainer: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+    },
+  }),
   pickerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
