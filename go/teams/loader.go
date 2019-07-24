@@ -307,6 +307,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceRepoll:                           mungedForceRepoll,
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
+		skipAudit:                             lArg.SkipAudit,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -401,6 +402,7 @@ type load2ArgT struct {
 	forceRepoll     bool
 	staleOK         bool
 	public          bool
+	skipAudit       bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -866,10 +868,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
 
-	tracer.Stage("audit")
-	err = l.audit(ctx, readSubteamID, &ret.Chain)
-	if err != nil {
-		return nil, err
+	if arg.skipAudit {
+		mctx.Debug("skipping audit due to passed option")
+	} else {
+		tracer.Stage("audit")
+		err = l.audit(ctx, readSubteamID, &ret.Chain)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Cache the validated result

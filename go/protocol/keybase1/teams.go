@@ -2440,6 +2440,7 @@ type LoadTeamArg struct {
 	ForceRepoll               bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
+	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2454,6 +2455,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceRepoll:               o.ForceRepoll,
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
+		SkipAudit:                 o.SkipAudit,
 	}
 }
 
