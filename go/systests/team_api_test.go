@@ -1,7 +1,6 @@
 package systests
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,9 +25,8 @@ func TestTeamAPI(t *testing.T) {
 		`{"result":{"teams":null,"annotatedActiveInvites":{}}}`)
 
 	teamName, err := libkb.RandHexString("t", 6)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "create-team", "params": {"options": {"team": "`+teamName+`"}}}`,
 		`{"result":{"chatSent":true,"creatorAdded":true}}`)
@@ -37,7 +35,7 @@ func TestTeamAPI(t *testing.T) {
 		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[1].username+`", "role": "reader"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[1].uid.String()+`","username":"`+tt.users[1].username+`"},"emailSent":false,"chatSending":false}]}`)
 	assertTeamAPIOutput(t, tt.users[0],
-		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "bot"}]}}}`,
+		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "restrictedbot"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[2].uid.String()+`","username":"`+tt.users[2].username+`"},"emailSent":false,"chatSending":false}]}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
@@ -62,13 +60,10 @@ func TestTeamAPI(t *testing.T) {
 
 func assertTeamAPIOutput(t *testing.T, u *userPlusDevice, in, expectedOut string) {
 	out, err := runTeamAPI(t, u, in)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	out = strings.TrimSpace(out)
-	if out != expectedOut {
-		require.FailNow(t, fmt.Sprintf("json command:\n\n%s\n\noutput:\n\n%s\n\nexpected:\n\n%s\n\n", in, out, expectedOut))
-	}
+	require.Equal(t, expectedOut, out)
 }
 
 func runTeamAPI(t *testing.T, u *userPlusDevice, json string) (string, error) {

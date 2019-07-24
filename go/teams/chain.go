@@ -1123,7 +1123,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			//    Though sometimes a new user is not added, due to a conflict.
 			// 2. Accept a reset user. Adds 1 user and removes 1 user.
 			//    Where the new one has the same UID and role as the old and a greater EldestSeqno.
-			// 3. Add/remove a bot user.
+			// 3. Add/remove a bot user. The bot can be a RESTRICTEDBOT or regular BOT member.
 
 			// Here's a case that is not straightforward:
 			// There is an impteam alice,leland%2,bob@twitter.
@@ -1194,7 +1194,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
-				if !(r.satisfied || prevState.getUserRole(r.uv).IsBot()) {
+				if !(r.satisfied || prevState.getUserRole(r.uv).IsRestrictedBot()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1297,7 +1297,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, err
 		}
 		switch signerRole {
-		case keybase1.TeamRole_BOT,
+		case keybase1.TeamRole_RESTRICTEDBOT,
 			keybase1.TeamRole_READER,
 			keybase1.TeamRole_WRITER,
 			keybase1.TeamRole_ADMIN,
@@ -2000,10 +2000,10 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
 		}
 	}
-	if members.Bots != nil && len(*members.Bots) > 0 {
-		res[keybase1.TeamRole_BOT] = nil
-		for _, m := range *members.Bots {
-			all = append(all, assignment{m, keybase1.TeamRole_BOT})
+	if members.RestrictedBots != nil && len(*members.RestrictedBots) > 0 {
+		res[keybase1.TeamRole_RESTRICTEDBOT] = nil
+		for _, m := range *members.RestrictedBots {
+			all = append(all, assignment{m, keybase1.TeamRole_RESTRICTEDBOT})
 		}
 	}
 	if members.None != nil && len(*members.None) > 0 {

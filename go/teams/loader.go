@@ -338,7 +338,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// public team you're not in. Bot members don't have any secrets and are
 	// also exempt.
 	if !l.hasSyncedSecrets(mctx, ret.teamShim()) &&
-		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsBot()) {
+		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsRestrictedBot()) {
 		// this should not happen
 		return nil, nil, fmt.Errorf("missing secrets for team")
 	}
@@ -785,7 +785,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			// Bots don't have any team secrets, so we alos short circuit.
-			if !role.IsBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
+			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)

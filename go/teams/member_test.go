@@ -102,7 +102,7 @@ var setRoleTests = []setRoleTest{
 	setRoleTest{name: "admin", setRoleFunc: SetRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
 	setRoleTest{name: "writer", setRoleFunc: SetRoleWriter, afterRole: keybase1.TeamRole_WRITER},
 	setRoleTest{name: "reader", setRoleFunc: SetRoleReader, afterRole: keybase1.TeamRole_READER},
-	setRoleTest{name: "bot", setRoleFunc: SetRoleBot, afterRole: keybase1.TeamRole_BOT},
+	setRoleTest{name: "restricted_bot", setRoleFunc: SetRoleRestrictedBot, afterRole: keybase1.TeamRole_RESTRICTEDBOT},
 }
 
 func TestMemberSetRole(t *testing.T) {
@@ -153,16 +153,16 @@ func TestMemberAddBot(t *testing.T) {
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_BOT)
+	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 	require.Equal(t, other.Username, res.User.Username)
 
-	assertRole(tc, name, other.Username, keybase1.TeamRole_BOT)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	// second AddMember should return err
 	_, err = AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER)
 	require.Error(t, err)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_BOT)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_RESTRICTEDBOT)
 }
 
 func TestMemberAddInvalidRole(t *testing.T) {
@@ -755,7 +755,7 @@ func TestLeave(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	botUser, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	botua, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 	tc.G.Logout(context.TODO())
 	err = owner.Login(tc.G)
@@ -766,7 +766,7 @@ func TestLeave(t *testing.T) {
 	err = SetRoleWriter(context.TODO(), tc.G, name, otherB.Username)
 	require.NoError(t, err)
 
-	err = SetRoleBot(context.TODO(), tc.G, name, botUser.Username)
+	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, botua.Username)
 	require.NoError(t, err)
 	tc.G.Logout(context.TODO())
 
@@ -782,7 +782,7 @@ func TestLeave(t *testing.T) {
 	require.NoError(t, err)
 	tc.G.Logout(context.TODO())
 
-	err = botUser.Login(tc.G)
+	err = botua.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
@@ -795,7 +795,7 @@ func TestLeave(t *testing.T) {
 
 	require.False(t, team.IsMember(context.TODO(), otherA.GetUserVersion()))
 	require.False(t, team.IsMember(context.TODO(), otherB.GetUserVersion()))
-	require.False(t, team.IsMember(context.TODO(), botUser.GetUserVersion()))
+	require.False(t, team.IsMember(context.TODO(), botua.GetUserVersion()))
 }
 
 func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
@@ -923,8 +923,8 @@ func TestLeaveAsReader(t *testing.T) {
 	testLeaveAsRole(t, keybase1.TeamRole_READER)
 }
 
-func TestLeaveAsBot(t *testing.T) {
-	testLeaveAsRole(t, keybase1.TeamRole_BOT)
+func TestLeaveAsRestrictedBot(t *testing.T) {
+	testLeaveAsRole(t, keybase1.TeamRole_RESTRICTEDBOT)
 }
 
 func TestMemberAddResolveCache(t *testing.T) {

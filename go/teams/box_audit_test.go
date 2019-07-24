@@ -174,13 +174,13 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("adding D as bot")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 
 	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
 	require.NoError(t, auditTeam(bA, bM, teamID), "B can audit")
 	require.NoError(t, auditTeam(cA, cM, teamID), "C can audit (this is vacuous, since C is a reader)")
-	require.NoError(t, auditTeam(dA, dM, teamID), "D can audit (this is vacuous, since D is a bot)")
+	require.NoError(t, auditTeam(dA, dM, teamID), "D can audit (this is vacuous, since D is a restricted bot)")
 
 	var nullstring *string
 	g1 := keybase1.PerTeamKeyGeneration(1)

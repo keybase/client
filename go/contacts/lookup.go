@@ -21,12 +21,12 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 		Resolutions ContactLookupMap `json:"resolutions"`
 	}
 
-	lookups := make([]lookupArg, len(phoneNumberContacts)+len(emailsContacts))
-	for i, phoneNumber := range phoneNumberContacts {
-		lookups[i] = lookupArg{PhoneNumber: string(phoneNumber)}
+	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
+	for _, phoneNumber := range phoneNumberContacts {
+		lookups = append(lookups, lookupArg{PhoneNumber: string(phoneNumber)})
 	}
-	for i, email := range emailsContacts {
-		lookups[i] = lookupArg{Email: string(email)}
+	for _, email := range emailsContacts {
+		lookups = append(lookups, lookupArg{Email: string(email)})
 	}
 
 	payload := make(libkb.JSONPayload)
