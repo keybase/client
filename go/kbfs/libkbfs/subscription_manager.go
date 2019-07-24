@@ -270,7 +270,7 @@ func (sm *subscriptionManager) unsubscribeNonPath(
 		notifier.shutdown()
 		delete(sm.nonPathSubscriptions[topic], subscriptionID)
 	}
-	// We are not deleting empty topic here because there are very few topics
+	// We are not deleting empty topics here because there are very few topics
 	// here, and they very likely need to be used soon, so I figured I'd just
 	// leave it there. The path subscriptions are different as they are
 	// referenced by path.
@@ -292,9 +292,9 @@ func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 	}
 	for _, notifier := range sm.pathSubscriptions[ref] {
 		// We are notify()-ing while holding a lock, but it's fine since the
-		// other side of the channel consumes it pretty fast, eitehr by
-		// dropping overflown ones, or by doing the actual send in a separate
-		// goroutine.
+		// other side of the channel consumes it pretty fast, either by
+		// dropping deduplicated ones, or by doing the actual send in a
+		// separate goroutine.
 		notifier.notify()
 	}
 }
