@@ -1037,10 +1037,10 @@ const loadMobileOnlyMode = (
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
     accountID,
   })
-    .then(res =>
+    .then(isMobileOnly =>
       WalletsGen.createLoadedMobileOnlyMode({
-        accountID,
-        enabled: res,
+        accountID: accountID,
+        enabled: isMobileOnly,
       })
     )
     .catch(err => handleSelectAccountError(action, 'loading mobile only mode', err))
@@ -1051,10 +1051,12 @@ const changeMobileOnlyMode = (_: TypedState, action: WalletsGen.ChangeMobileOnly
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
-  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(() => [
-    WalletsGen.createLoadedMobileOnlyMode({accountID, enabled: action.payload.enabled}),
-    WalletsGen.createLoadMobileOnlyMode({accountID}),
-  ])
+  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(() =>
+    WalletsGen.createLoadedMobileOnlyMode({
+      accountID: accountID,
+      enabled: action.payload.enabled,
+    })
+  )
 }
 
 const writeLastSentXLM = (
