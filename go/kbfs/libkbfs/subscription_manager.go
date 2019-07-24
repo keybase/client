@@ -71,7 +71,10 @@ func debounce(do func(), limit rate.Limit) debouncedNotify {
 	limiter := rate.NewLimiter(limit, 1)
 	go func() {
 		for {
-			limiter.Wait(ctx)
+			err := limiter.Wait(ctx)
+			if err != nil {
+				return
+			}
 			select {
 			case <-ch:
 				go do()
@@ -119,10 +122,10 @@ type subscriber struct {
 
 func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
 	sm := &subscriptionManager{
-		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
-		pathSubscriptionIDToRef:         make(map[SubscriptionID]pathSubscriptionRef),
-		nonPathSubscriptions:            make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
-		nonPathSubscriptionIDToTopic:    make(map[SubscriptionID]keybase1.SubscriptionTopic),
+		pathSubscriptions:            make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
+		pathSubscriptionIDToRef:      make(map[SubscriptionID]pathSubscriptionRef),
+		nonPathSubscriptions:         make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
+		nonPathSubscriptionIDToTopic: make(map[SubscriptionID]keybase1.SubscriptionTopic),
 		config:                          config,
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
@@ -162,14 +165,15 @@ func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (se
 
 func (sm *subscriptionManager) registerForChangesLocked(fb data.FolderBranch) {
 	if sm.subscriptionCountByFolderBranch[fb] == 0 {
-		sm.config.Notifier().RegisterForChanges([]data.FolderBranch{fb}, sm)
+		_ = sm.config.Notifier().RegisterForChanges(
+			[]data.FolderBranch{fb}, sm)
 	}
 	sm.subscriptionCountByFolderBranch[fb]++
 }
 
 func (sm *subscriptionManager) unregisterForChangesLocked(fb data.FolderBranch) {
 	if sm.subscriptionCountByFolderBranch[fb] == 1 {
-		sm.config.Notifier().UnregisterFromChanges(
+		_ = sm.config.Notifier().UnregisterFromChanges(
 			[]data.FolderBranch{fb}, sm)
 		delete(sm.subscriptionCountByFolderBranch, fb)
 		return

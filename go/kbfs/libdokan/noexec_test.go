@@ -64,7 +64,7 @@ func unames(uns []string) []kbun.NormalizedUsername {
 
 func testNoExec(t *testing.T, users []string) error {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	defer libcontext.CleanupCancellationDelayer(ctx)
+	defer testCleanupDelayer(ctx, t)
 	config := libkbfs.MakeTestConfigOrBust(t, unames(users)...)
 	// Background flushed needed for large files.
 	config.SetDoBackgroundFlushes(true)

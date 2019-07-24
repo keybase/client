@@ -22,9 +22,9 @@ import "mime"
 // determined mime type at a later time, e.g. before writing the HTTP response.
 func Patch(additional map[string]string) {
 	for ext, mimeType := range mimeTypes {
-		mime.AddExtensionType(ext, mimeType)
+		_ = mime.AddExtensionType(ext, mimeType)
 	}
 	for ext, mimeType := range additional {
-		mime.AddExtensionType(ext, mimeType)
+		_ = mime.AddExtensionType(ext, mimeType)
 	}
 }

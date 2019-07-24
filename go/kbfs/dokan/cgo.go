@@ -42,7 +42,7 @@ const (
 const ntstatusOk = C.NTSTATUS(0)
 
 func checkFileDirectoryFile(err error, isDir bool, createOptions uint32) {
-	if createOptions&createOptions&FileDirectoryFile != 0 && createOptions&FileNonDirectoryFile != 0 {
+	if createOptions&FileDirectoryFile != 0 && createOptions&FileNonDirectoryFile != 0 {
 		debugf("checkFileDirectoryFile both FileDirectoryFile FileNonDirectoryFile set")
 	}
 	if err == nil {

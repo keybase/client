@@ -454,6 +454,18 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
+    println "Running golangci-lint"
+    retry(5) {
+      sh 'go get -u github.com/golangci/golangci-lint/cmd/golangci-lint'
+    }
+    dir('kbfs') {
+      retry(5) {
+        timeout(activity: true, time: 180, unit: 'SECONDS') {
+          sh 'golangci-lint run'
+        }
+      }
+    }
+
     if (isUnix()) {
       // Windows `gofmt` pukes on CRLF, so only run on *nix.
       println "Running mockgen"

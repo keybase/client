@@ -20,6 +20,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
 	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows"
 )
 
@@ -194,14 +195,17 @@ func testReaddir(t *testing.T) {
 }
 
 func testPlaceHolderRemoveRename(t *testing.T) {
-	ioutil.Remove(`T:\hello.txt`)
-	ioutil.Remove(`T:\`)
-	ioutil.Rename(`T:\hello.txt`, `T:\does-not-exist2`)
+	err := ioutil.Remove(`T:\hello.txt`)
+	require.Error(t, err)
+	err = ioutil.Remove(`T:\`)
+	require.Error(t, err)
+	err = ioutil.Rename(`T:\hello.txt`, `T:\does-not-exist2`)
+	require.NoError(t, err)
 }
 
 func testDiskFreeSpace(t *testing.T) {
 	var free, total, totalFree uint64
-	ppath := syscall.StringToUTF16Ptr(`T:\`)
+	ppath := syscall.StringToUTF16Ptr(`T:\`) // nolint
 	res, _, err := syscall.Syscall6(procGetDiskFreeSpaceExW.Addr(),
 		4,
 		uintptr(unsafe.Pointer(ppath)),
