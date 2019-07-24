@@ -125,31 +125,19 @@
       "fields": [
         {
           "type": "string",
-          "name": "coercedQuery"
-        },
-        {
-          "type": "string",
           "name": "assertion"
         },
         {
-          "type": "boolean",
-          "name": "resolved"
-        },
-        {
-          "type": "UID",
-          "name": "uid"
+          "type": "string",
+          "name": "label"
         },
         {
           "type": "string",
-          "name": "username"
+          "name": "prettyName"
         },
         {
           "type": "string",
-          "name": "fullName"
-        },
-        {
-          "type": "boolean",
-          "name": "following"
+          "name": "keybaseUsername"
         }
       ]
     },

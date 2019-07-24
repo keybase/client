@@ -18,9 +18,8 @@ const apiSearch = (
   maxResults: number,
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null
-): Promise<Array<TeamBuildingTypes.User>> => {
-  console.log('zzz api search', query, service, impTofuQuery)
-  return RPCTypes.userSearchUserSearchRpcPromise({
+): Promise<Array<TeamBuildingTypes.User>> =>
+  RPCTypes.userSearchUserSearchRpcPromise({
     impTofuQuery,
     includeContacts: flags.sbsContacts && service === 'keybase',
     includeServicesSummary,
@@ -39,7 +38,6 @@ const apiSearch = (
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
       return []
     })
-}
 
 function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
   const teamBuildingState = state[namespace].teamBuilding
@@ -208,7 +206,7 @@ export function filterForNs<S, A, L, R>(
     if (a && a.payload && a.payload.namespace === namespace) {
       return fn(s, a, l)
     }
-      return undefined
+    return undefined
   }
 }
 

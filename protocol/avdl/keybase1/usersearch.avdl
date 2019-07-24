@@ -40,15 +40,10 @@ protocol userSearch {
     }
 
     record ImpTofuSearchResult {
-        string coercedQuery;
-        string assertion; // for use in team / chat building
-
-        boolean resolved;
-        // If resolved:
-        UID uid; // uid
-        string username; // Keybase username
-        string fullName; // Keybase full name
-        boolean following; // whether resolved user is followed by current user
+        string assertion;
+        string label;
+        string prettyName;
+        string keybaseUsername; // keybase username if assertion resolves, empty if not
     }
 
     record APIUserSearchResult {

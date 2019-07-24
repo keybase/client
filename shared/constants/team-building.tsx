@@ -79,20 +79,14 @@ const parseRawResultToUser = (
       id: result.contact.assertion,
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
-      serviceMap: {...serviceMap, keybase: result.contact.username},
+      serviceMap: {keybase: result.contact.username},
     }
   } else if (result.imptofu) {
     return {
       id: result.imptofu.assertion,
-      prettyName: [
-        result.imptofu.assertion,
-        result.imptofu.coercedQuery,
-        result.imptofu.username,
-        result.imptofu.fullName,
-      ]
-        .filter(Boolean)
-        .join(', '),
-      serviceMap: {},
+      label: result.imptofu.label,
+      prettyName: result.imptofu.prettyName,
+      serviceMap: {keybase: result.imptofu.keybaseUsername},
     }
   } else if (result.service) {
     if (result.service.serviceName !== service) {

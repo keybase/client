@@ -96,24 +96,18 @@ func (o APIUserServiceSummary) DeepCopy() APIUserServiceSummary {
 }
 
 type ImpTofuSearchResult struct {
-	CoercedQuery string `codec:"coercedQuery" json:"coercedQuery"`
-	Assertion    string `codec:"assertion" json:"assertion"`
-	Resolved     bool   `codec:"resolved" json:"resolved"`
-	Uid          UID    `codec:"uid" json:"uid"`
-	Username     string `codec:"username" json:"username"`
-	FullName     string `codec:"fullName" json:"fullName"`
-	Following    bool   `codec:"following" json:"following"`
+	Assertion       string `codec:"assertion" json:"assertion"`
+	Label           string `codec:"label" json:"label"`
+	PrettyName      string `codec:"prettyName" json:"prettyName"`
+	KeybaseUsername string `codec:"keybaseUsername" json:"keybaseUsername"`
 }
 
 func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
 	return ImpTofuSearchResult{
-		CoercedQuery: o.CoercedQuery,
-		Assertion:    o.Assertion,
-		Resolved:     o.Resolved,
-		Uid:          o.Uid.DeepCopy(),
-		Username:     o.Username,
-		FullName:     o.FullName,
-		Following:    o.Following,
+		Assertion:       o.Assertion,
+		Label:           o.Label,
+		PrettyName:      o.PrettyName,
+		KeybaseUsername: o.KeybaseUsername,
 	}
 }
 

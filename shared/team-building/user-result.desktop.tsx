@@ -58,11 +58,12 @@ class Row extends React.Component<Props, LocalState> {
           <Kb.DesktopStyle style={realCSS(this.props.inTeam)} />
           <Avatar resultForService={this.props.resultForService} keybaseUsername={keybaseUsername} />
           <Username
+            displayLabel={this.props.displayLabel}
+            followingState={this.props.followingState}
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
-            username={serviceUsername || ''}
             prettyName={this.props.prettyName}
-            followingState={this.props.followingState}
+            username={serviceUsername || ''}
           />
           <Services
             keybaseResult={keybaseResult}
@@ -95,6 +96,8 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
+  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+    return <Kb.Avatar size={AvatarSize} username={'invalid username for placeholder avatar'} />
   }
 
   return (
@@ -112,21 +115,35 @@ const isPreExistingTeamMemberText = (prettyName: string) =>
 const Username = (props: {
   username: string
   prettyName: string
+  displayLabel: string
   isPreExistingTeamMember?: boolean
   followingState: Types.FollowingState
   keybaseResult: boolean
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
-    <Kb.Text
-      type="BodySemibold"
-      style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
-    >
-      {props.username}
-    </Kb.Text>
-    {props.isPreExistingTeamMember ? (
-      <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+    {props.username ? (
+      <>
+        <Kb.Text
+          type="BodySemibold"
+          style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
+        >
+          {props.username}
+        </Kb.Text>
+        {props.isPreExistingTeamMember ? (
+          <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+        ) : props.prettyName && props.prettyName !== props.username ? (
+          <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>
+        ) : (
+          !!props.displayLabel && <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
+        )}
+      </>
     ) : (
-      !!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>
+      <>
+        <Kb.Text type="BodySemibold">{props.prettyName}</Kb.Text>
+        {!!props.displayLabel && props.displayLabel !== props.prettyName && (
+          <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
+        )}
+      </>
     )}
   </Kb.Box2>
 )

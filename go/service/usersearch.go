@@ -245,10 +245,9 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 			}
 		}
 
-		following, err1 := provider.FindFollowing(mctx, uids)
-		usernames, err2 := provider.FindUsernames(mctx, uids)
-		if err3 := libkb.CombineErrors(err1, err2); err3 != nil {
-			mctx.Warning("Cannot find usernames or tracking info for search results: %s", err3)
+		usernames, err := provider.FindUsernames(mctx, uids)
+		if err != nil {
+			mctx.Warning("Cannot find usernames for search results: %s", err)
 		}
 
 		for _, v := range lookupRes {
@@ -267,19 +266,14 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 				return nil, err
 			}
 			imptofu := &keybase1.ImpTofuSearchResult{
-				CoercedQuery: assertionValue,
-				Resolved:     true,
-				Uid:          v.UID,
-				Assertion:    assertion,
-				Username:     v.UID.String(),
-			}
-			if following != nil {
-				imptofu.Following = following[v.UID]
+				Assertion:  assertion,
+				PrettyName: queryString,
 			}
 			if usernames != nil {
 				if uname, found := usernames[v.UID]; found {
-					imptofu.Username = uname.Username
-					imptofu.FullName = uname.Fullname
+					imptofu.KeybaseUsername = uname.Username
+					imptofu.PrettyName = uname.Fullname
+					imptofu.Label = queryString
 				}
 			}
 			res = &keybase1.APIUserSearchResult{
@@ -296,9 +290,8 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		return nil, err
 	}
 	imptofu := &keybase1.ImpTofuSearchResult{
-		CoercedQuery: queryString,
-		Resolved:     false,
-		Assertion:    assertion,
+		Assertion:  assertion,
+		PrettyName: queryString,
 	}
 	res = &keybase1.APIUserSearchResult{
 		Score:   1.0,
