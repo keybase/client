@@ -38,7 +38,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
       return [
         RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {path: '/keybase/' + parts.join('/')}, selected: 'main'}],
+          path: [{props: {path: `/keybase/${action.payload.link}`}, selected: 'main'}],
         }),
       ]
     case 'chat':
