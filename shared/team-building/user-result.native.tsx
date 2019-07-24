@@ -147,7 +147,7 @@ const Username = (props: {
       </>
     ) : (
       <>
-        <Kb.Text type="BodySemibold"> {props.prettyName} </Kb.Text>
+        <Kb.Text type="BodySemibold">{props.prettyName}</Kb.Text>
         {!!props.displayLabel && props.displayLabel !== props.prettyName && (
           <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
         )}

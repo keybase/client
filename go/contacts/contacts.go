@@ -174,7 +174,6 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 							ContactIndex: contactI,
 							ContactName:  contact.Name,
 							Component:    component,
-							InputCoerced: lookupRes.Coerced,
 							Resolved:     true,
 							Uid:          lookupRes.UID,
 							Assertion:    assertion,
