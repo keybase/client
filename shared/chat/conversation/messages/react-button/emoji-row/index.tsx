@@ -60,17 +60,17 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
         </Kb.Box2>
-        {!!this.props.onReply && (
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Divider style={styles.divider} vertical={true} />
-            <Kb.WithTooltip text="React">
-              <Kb.Icon
-                hoverColor={Styles.globalColors.blue}
-                onClick={this._showPicker}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                type="iconfont-reacji"
-              />
-            </Kb.WithTooltip>
+        <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Divider style={styles.divider} vertical={true} />
+          <Kb.WithTooltip text="React">
+            <Kb.Icon
+              hoverColor={Styles.globalColors.blue}
+              onClick={this._showPicker}
+              style={Kb.iconCastPlatformStyles(styles.icon)}
+              type="iconfont-reacji"
+            />
+          </Kb.WithTooltip>
+          {!!this.props.onReply && (
             <Kb.WithTooltip text="Reply">
               <Kb.Icon
                 hoverColor={Styles.globalColors.blue}
@@ -79,8 +79,8 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
                 type="iconfont-reply"
               />
             </Kb.WithTooltip>
-          </Kb.Box2>
-        )}
+          )}
+        </Kb.Box2>
         {this.state.showingPicker && (
           <Kb.FloatingBox
             attachTo={this._getAttachmentRef}
