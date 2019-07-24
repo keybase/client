@@ -94,7 +94,7 @@ const Header = (p: Props) => {
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
                 <Kb.Text type="Header" lineClamp={1}>
-                  {withoutSelf.map((part, i, participants) => (
+                  {withoutSelf.map((part, i) => (
                     <Kb.Text type="Header" key={part}>
                       <Kb.ConnectedUsernames
                         colorFollowing={true}
@@ -105,7 +105,7 @@ const Header = (p: Props) => {
                         usernames={[part]}
                         onUsernameClicked="profile"
                       />
-                      {i !== participants.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
+                      {i !== withoutSelf.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
                     </Kb.Text>
                   ))}
                 </Kb.Text>
