@@ -81,11 +81,9 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
 
 const handleAppLink = (_: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
   if (action.payload.link.startsWith('web+stellar:')) {
-    console.warn('Got SEP7 link:', action.payload.link)
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {
     const link = action.payload.link.replace('keybase://', '')
-    console.warn('Got Keybase link:', link)
     return DeeplinksGen.createHandleKeybaseLink({link})
   } else {
     // Normal deeplink
