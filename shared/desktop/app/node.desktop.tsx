@@ -75,7 +75,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   logger.info('Launched with URL', commandLine)
   if (commandLine.length > 1 && commandLine[1]) {
     const link = commandLine[1]
-    if (link.startsWith('web+stellar:') || link.startsWith('keybase:')) {
+    if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
       sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
     }
   }
