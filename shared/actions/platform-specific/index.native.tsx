@@ -497,6 +497,11 @@ async function manageContactsCache(
   let defaultCountryCode: string
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+    if (__DEV__ && !defaultCountryCode) {
+      // behavior of parsing can be unexpectedly different with no country code.
+      // iOS sim + android emu don't supply country codes, so use this one.
+      defaultCountryCode = 'us'
+    }
   } catch (e) {
     logger.warn(`Error loading default country code: ${e.message}`)
   }
