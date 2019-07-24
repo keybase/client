@@ -85,7 +85,7 @@ function SettingsNav(props: Props) {
               ? [
                   {
                     onClick: () => props.onTabChange(Constants.screenprotectorTab),
-                    text: 'Screen Protector',
+                    text: 'Screen protector',
                   },
                 ]
               : []),
