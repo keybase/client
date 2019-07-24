@@ -2153,6 +2153,10 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 			continue
 		}
+		if isHiddenAppendPrecheckError(err) {
+			g.Log.CDebugf(ctx, "| retrying since we hit a hidden append precheck error")
+			continue
+		}
 		return err
 	}
 	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
@@ -2162,6 +2166,18 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 	}
 	// Return the error from the final round
 	return err
+}
+
+func isHiddenAppendPrecheckError(err error) bool {
+	perr, ok := err.(PrecheckAppendError)
+	if !ok {
+		return false
+	}
+	_, ok = perr.Inner.(hidden.LoaderError)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func isSigOldSeqnoError(err error) bool {

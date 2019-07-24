@@ -304,7 +304,7 @@ func TestRotateRace(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		t.Logf("round %v", i)
 
 		errCh1 := rotate(0)
