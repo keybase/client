@@ -19,7 +19,7 @@ func TestTeamAPI(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 	tt.addUser("botua")
-	tt.addUser("restricted_botua")
+	tt.addUser("rbot")
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "list-self-memberships"}`,
