@@ -24,6 +24,7 @@ export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
 export const editPhone = 'settings:editPhone'
 export const feedbackSent = 'settings:feedbackSent'
+export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -113,6 +114,7 @@ type _EditPhonePayload = {
   readonly verify?: boolean
 }
 type _FeedbackSentPayload = {readonly error: Error | null}
+type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
 type _InvitesReclaimedPayload = void
@@ -303,6 +305,9 @@ export const createEditContactImportEnabled = (
 ): EditContactImportEnabledPayload => ({payload, type: editContactImportEnabled})
 export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
 export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
+export const createImportContactsLater = (
+  payload: _ImportContactsLaterPayload
+): ImportContactsLaterPayload => ({payload, type: importContactsLater})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
@@ -523,6 +528,10 @@ export type EditContactImportEnabledPayload = {
 export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
 export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
+export type ImportContactsLaterPayload = {
+  readonly payload: _ImportContactsLaterPayload
+  readonly type: typeof importContactsLater
+}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
   readonly type: typeof invitesClearError
@@ -759,6 +768,7 @@ export type Actions =
   | EditEmailPayload
   | EditPhonePayload
   | FeedbackSentPayload
+  | ImportContactsLaterPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
