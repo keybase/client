@@ -683,7 +683,6 @@ func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor
 	if msg.ReplyTo != nil {
 		if replyMention := GetReplyAtMention(ctx, g, uid, convID, *msg.ReplyTo, debug); replyMention != nil {
 			atRes = append(atRes, *replyMention)
-			debug.Debug(ctx, "GetTextAtMentionedItems: adding @ for: %s", replyMention.Uid)
 		}
 	}
 	return atRes, maybeRes, chanRes
