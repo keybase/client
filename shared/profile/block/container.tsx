@@ -9,10 +9,13 @@ type OwnProps = Container.RouteProps<{username: string}>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
-    errorMessage: state.profile.blockUserModal && state.profile.blockUserModal.error,
+    errorMessage:
+      state.profile.blockUserModal &&
+      state.profile.blockUserModal !== 'waiting' &&
+      state.profile.blockUserModal.error,
     idle: state.profile.blockUserModal === null,
     isWaiting: Waiting.anyWaiting(state, Constants.blockUserWaitingKey),
-    username: getRouteProps(ownProps, 'username', ''),
+    username: Container.getRouteProps(ownProps, 'username', ''),
   }),
   (dispatch, ownProps: OwnProps) => ({
     onClose: () => {
@@ -20,7 +23,7 @@ export default Container.connect(
       dispatch(ProfileGen.createFinishBlockUser()) // clear error
     },
     onSubmit: () => {
-      const username = getRouteProps(ownProps, 'username', '')
+      const username = Container.getRouteProps(ownProps, 'username', '')
       dispatch(ProfileGen.createSubmitBlockUser({username}))
     },
   }),
