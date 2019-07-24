@@ -385,14 +385,14 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "email.unverified_count":
 			var body unverifiedCountBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'email.unverified_count' item: %v", err)
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'email.unverified_count' item: %v", err)
 				continue
 			}
 			b.state.UnverifiedEmails = body.UnverifiedCount
 		case "phone.unverified_count":
 			var body unverifiedCountBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'phone.unverified_count' item: %v", err)
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'phone.unverified_count' item: %v", err)
 				continue
 			}
 			b.state.UnverifiedPhones = body.UnverifiedCount
