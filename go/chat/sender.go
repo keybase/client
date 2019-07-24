@@ -597,7 +597,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
+			uid, conv.GetConvID(), msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)

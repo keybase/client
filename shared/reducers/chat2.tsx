@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
@@ -18,8 +17,6 @@ import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
-
-type ConfigActions = ConfigGen.BootstrapStatusLoadedPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -406,17 +403,13 @@ const messageOrdinalsReducer = (
   }
 }
 
-let currentUsername = ''
 const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
 
 const rootReducer = (
   state: Types.State = initialState,
-  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions | ConfigActions
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 ): Types.State => {
   switch (action.type) {
-    case ConfigGen.bootstrapStatusLoaded:
-      currentUsername = action.payload.username
-      return state
     case Chat2Gen.resetStore:
       return initialState
     case Chat2Gen.setInboxShowIsNew:
@@ -1065,24 +1058,16 @@ const rootReducer = (
       )
     case Chat2Gen.toggleReplyToMessage: {
       const {conversationIDKey, ordinal} = action.payload
-      if (action.payload.ordinal) {
-        let nextState = state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
-        const message = state.messageMap.getIn([conversationIDKey, ordinal])
-        const meta = state.metaMap.get(conversationIDKey)
-        if (message && message.author !== currentUsername) {
-          nextState = nextState.setIn(
-            ['prependTextMap', conversationIDKey],
-            // we always put something in prepend to trigger the focus regain on the input bar
-            meta && (meta.participants.size > 2 || meta.teamType === 'big')
-              ? new HiddenString(`@${message.author} `)
-              : new HiddenString('')
-          )
-        }
+      if (ordinal) {
+        let nextState = state.setIn(['replyToMap', conversationIDKey], ordinal)
+        nextState = nextState.setIn(
+          ['prependTextMap', conversationIDKey],
+          // we always put something in prepend to trigger the focus regain on the input bar
+          new HiddenString('')
+        )
         return nextState
       } else {
-        return state
-          .deleteIn(['replyToMap', action.payload.conversationIDKey])
-          .deleteIn(['prependTextMap', action.payload.conversationIDKey])
+        return state.deleteIn(['replyToMap', conversationIDKey])
       }
     }
     case Chat2Gen.replyJump:
