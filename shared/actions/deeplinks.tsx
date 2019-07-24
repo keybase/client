@@ -60,12 +60,12 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
         const [teamname, channelname] = teamChat
         return [
           RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({reason: 'appLink', teamname, channelname}),
+          ChatGen.createPreviewConversation({channelname, reason: 'appLink', teamname}),
         ]
       } else {
         return [
           RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-          ChatGen.createPreviewConversation({reason: 'appLink', participants: parts[1].split(',')}),
+          ChatGen.createPreviewConversation({participants: parts[1].split(','), reason: 'appLink'}),
         ]
       }
     default:
