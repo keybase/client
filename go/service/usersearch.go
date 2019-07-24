@@ -259,6 +259,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 
 			assertionValue := queryString
 			if v.Coerced != "" {
+				// Server corrected our assertion - take this instead.
 				assertionValue = v.Coerced
 			}
 			assertion, err := imptofuQueryToAssertion(imptofuType, assertionValue)
@@ -316,20 +317,15 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	}
 
 	if !h.G().TestOptions.DisableUserSearchSocialServices {
+		if arg.Service != "keybase" && arg.Service != "" {
+			// If this is a social search, we just return API results.
+			return doSearchRequest(mctx, arg)
+		}
+
 		res, err = doSearchRequest(mctx, arg)
 		if err != nil {
-			return nil, err
+			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 		}
-	}
-
-	if arg.Service != "keybase" && arg.Service != "" {
-		// If this is a social search, we just return API results.
-		return doSearchRequest(mctx, arg)
-	}
-
-	res, err = doSearchRequest(mctx, arg)
-	if err != nil {
-		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 	}
 
 	if arg.IncludeContacts {

@@ -203,7 +203,8 @@ func TestLookupContacts(t *testing.T) {
 		require.False(t, r.Resolved)
 		require.True(t, r.Uid.IsNil())
 		component := contactList[0].Components[i]
-		assertion, _ := AssertionFromComponent(actx, component, "")
+		assertion, err := AssertionFromComponent(actx, component, "")
+		require.NoError(t, err)
 		require.Equal(t, assertion, r.Assertion)
 	}
 
