@@ -62,17 +62,16 @@ func HandleTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botU
 	}
 
 	// Clear out our caches so we can force publish a key
-	// only CHAT application is supported
 	var appKey keybase1.TeamApplicationKey
 	if generation == 0 { // Bot needs the latest key
 		keyer.PurgeCache(mctx)
-		appKey, err = team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_CHAT)
+		appKey, err = team.ChatKey(mctx.Ctx())
 		if err != nil {
 			return err
 		}
 	} else { // Bot needs a specific generation
 		keyer.PurgeCacheAtGeneration(mctx, teamID, botUID, generation)
-		appKey, err = team.ApplicationKeyAtGeneration(mctx.Ctx(), keybase1.TeamApplication_CHAT,
+		appKey, err = team.ChatKeyAtGeneration(mctx.Ctx(),
 			keybase1.PerTeamKeyGeneration(generation))
 		if err != nil {
 			return err

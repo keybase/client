@@ -39,6 +39,7 @@
         "SCRateLimit_602",
         "SCBadSignupUsernameTaken_701",
         "SCBadInvitationCode_707",
+        "SCBadSignupTeamName_711",
         "SCFeatureFlag_712",
         "SCMissingResult_801",
         "SCKeyNotFound_901",

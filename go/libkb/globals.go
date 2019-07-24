@@ -78,8 +78,8 @@ type GlobalContext struct {
 	teamLoader             TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
 	hiddenTeamChainManager HiddenTeamChainManager
-	IDLocktab              LockTable
-	loadUserLockTab        LockTable
+	IDLocktab              *LockTable
+	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
 	stellar                Stellar            // Stellar related ops
@@ -577,6 +577,8 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 
 	g.shutdownCachesLocked()
 
+	g.IDLocktab = NewLockTable()
+	g.loadUserLockTab = NewLockTable()
 	g.Resolver.EnableCaching(NewMetaContextBackground(g))
 	g.trackCache = NewTrackCache()
 	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())

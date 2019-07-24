@@ -79,7 +79,7 @@ const parseRawResultToUser = (
       id: result.contact.assertion,
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
-      serviceMap,
+      serviceMap: {...serviceMap, keybase: result.contact.username},
     }
   } else if (result.service) {
     if (result.service.serviceName !== service) {

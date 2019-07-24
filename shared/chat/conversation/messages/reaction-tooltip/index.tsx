@@ -181,6 +181,7 @@ const styles = Styles.styleSheetCreate({
   }),
   overlay: Styles.platformStyles({
     isElectron: {
+      backgroundColor: Styles.globalColors.white,
       margin: Styles.globalMargins.tiny,
     },
   }),

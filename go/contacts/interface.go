@@ -16,10 +16,11 @@ type ContactLookupResult struct {
 	Error   string       `json:"err,omitempty"`
 }
 
-type ContactLookupMap map[string]ContactLookupResult
+type ContactLookupKey string
+type ContactLookupMap map[ContactLookupKey]ContactLookupResult
 
 func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (res ContactLookupResult, found bool) {
-	var key string
+	var key ContactLookupKey
 	switch {
 	case component.Email != nil:
 		key = makeEmailLookupKey(*component.Email)
@@ -32,12 +33,12 @@ func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (re
 	return res, found
 }
 
-func makeEmailLookupKey(e keybase1.EmailAddress) string {
-	return fmt.Sprintf("e:%s", string(e))
+func makeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
+	return ContactLookupKey(fmt.Sprintf("e:%s", string(e)))
 }
 
-func makePhoneLookupKey(p keybase1.RawPhoneNumber) string {
-	return fmt.Sprintf("p:%s", string(p))
+func makePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
+	return ContactLookupKey(fmt.Sprintf("p:%s", string(p)))
 }
 
 type ContactsProvider interface {

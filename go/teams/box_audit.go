@@ -105,7 +105,7 @@ type BoxAuditor struct {
 	Version boxAuditVersion
 
 	// Singleflight lock on team ID.
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// jailMutex and queueMutex are not per-team locks, since they are
 	// collections of multiple team IDs.  Two audits of two teams can happen at
@@ -157,7 +157,10 @@ func NewBoxAuditor(g *libkb.GlobalContext) *BoxAuditor {
 }
 
 func newBoxAuditorWithVersion(g *libkb.GlobalContext, version boxAuditVersion) *BoxAuditor {
-	a := &BoxAuditor{Version: version}
+	a := &BoxAuditor{
+		Version: version,
+		locktab: libkb.NewLockTable(),
+	}
 	a.resetJailLRU()
 	return a
 }

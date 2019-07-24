@@ -47,8 +47,8 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	emailSet := make(map[keybase1.EmailAddress]struct{})
 	phoneSet := make(map[keybase1.RawPhoneNumber]struct{})
 
-	for _, k := range contacts {
-		for _, component := range k.Components {
+	for _, contact := range contacts {
+		for _, component := range contact.Components {
 			if component.Email != nil {
 				emailSet[*component.Email] = struct{}{}
 			}
@@ -72,11 +72,11 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	if len(emailSet) > 0 || len(phoneSet) > 0 {
 		phones := make([]keybase1.RawPhoneNumber, 0, len(phoneSet))
 		emails := make([]keybase1.EmailAddress, 0, len(emailSet))
-		for k := range phoneSet {
-			phones = append(phones, k)
+		for phone := range phoneSet {
+			phones = append(phones, phone)
 		}
-		for k := range emailSet {
-			emails = append(emails, k)
+		for email := range emailSet {
+			emails = append(emails, email)
 		}
 		providerRes, err := provider.LookupAll(mctx, emails, phones, regionCode)
 		if err != nil {

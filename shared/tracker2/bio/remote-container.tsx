@@ -15,6 +15,7 @@ const mergeProps = (stateProps, _, __: OwnProps) => ({
   inTracker: true,
   location: stateProps.location,
   registeredForAirdrop: stateProps.registeredForAirdrop,
+  sbsDescription: null,
   youAreInAirdrop: stateProps.youAreInAirdrop,
 })
 

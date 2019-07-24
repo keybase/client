@@ -2,7 +2,7 @@ import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '
 import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
 import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
 import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
-import {newRoutes as _loggedOutRoutes} from '../login/routes'
+import {newRoutes as _loggedOutRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
 import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
@@ -19,7 +19,7 @@ import {RouteMap} from '../util/container'
 export const nameToTab = {}
 export const routes: RouteMap = {}
 
-type RoutePlusTab = {route: RouteMap, tab: Tabs.Tab}
+type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
 
 // Need all these as clauses as TS will ignore everything if it sees a single any
 const _newRoutes: ReadonlyArray<RoutePlusTab> = [
@@ -57,16 +57,17 @@ export const tabRoots = {
 }
 
 export const modalRoutes: RouteMap = {
-  ...chatNewModalRoutes as RouteMap,
-  ...deviceNewModalRoutes as RouteMap,
-  ...fsNewModalRoutes as RouteMap,
-  ...gitNewModalRoutes as RouteMap,
-  ...peopleNewModalRoutes as RouteMap,
-  ...profileNewModalRoutes as RouteMap,
-  ...settingsNewModalRoutes as RouteMap,
-  ...signupNewModalRoutes as RouteMap,
-  ...teamsNewModalRoutes as RouteMap,
-  ...walletsNewModalRoutes as RouteMap,
+  ...(chatNewModalRoutes as RouteMap),
+  ...(deviceNewModalRoutes as RouteMap),
+  ...(fsNewModalRoutes as RouteMap),
+  ...(gitNewModalRoutes as RouteMap),
+  ...(loginNewModalRoutes as RouteMap),
+  ...(peopleNewModalRoutes as RouteMap),
+  ...(profileNewModalRoutes as RouteMap),
+  ...(settingsNewModalRoutes as RouteMap),
+  ...(signupNewModalRoutes as RouteMap),
+  ...(teamsNewModalRoutes as RouteMap),
+  ...(walletsNewModalRoutes as RouteMap),
 }
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}

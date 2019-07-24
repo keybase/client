@@ -85,7 +85,7 @@ func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPubli
 type Auditor struct {
 
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Map of TeamID -> AuditHistory
 	// The LRU is protected by a mutex, because it's swapped out on logout.
@@ -95,7 +95,9 @@ type Auditor struct {
 
 // NewAuditor makes a new auditor
 func NewAuditor(g *libkb.GlobalContext) *Auditor {
-	ret := &Auditor{}
+	ret := &Auditor{
+		locktab: libkb.NewLockTable(),
+	}
 	ret.newLRU(libkb.NewMetaContextBackground(g))
 	return ret
 }

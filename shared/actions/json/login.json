@@ -9,6 +9,10 @@
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": {"error": "RPCError | null"}
+    "loginError": {"error": "RPCError | null"},
+    "loadIsOnline": {},
+    "loadedIsOnline": {
+      "result": "boolean"
+    }
   }
 }

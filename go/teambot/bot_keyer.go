@@ -71,6 +71,25 @@ func (k *BotKeyer) dbKey(cacheKey string) libkb.DbKey {
 	}
 }
 
+func (k *BotKeyer) DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	generation keybase1.TeambotKeyGeneration) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("botKeyer#DeleteTeambotKeyForTest: teamID:%v, generation:%v", teamID, generation),
+		func() error { return err })()
+
+	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
+	defer lock.Release(mctx.Ctx())
+
+	boxKey, err := k.cacheKey(mctx, teamID, generation)
+	if err != nil {
+		return err
+	}
+	k.lru.Remove(boxKey)
+
+	dbKey := k.dbKey(boxKey)
+	err = k.edb.Delete(mctx.Ctx(), dbKey)
+	return err
+}
+
 func (k *BotKeyer) get(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) (
 	key keybase1.TeambotKey, wrongKID bool, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("botKeyer#get: teamID:%v, generation:%v", teamID, generation),

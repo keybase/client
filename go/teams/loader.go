@@ -66,7 +66,7 @@ type TeamLoader struct {
 	storage *storage.Storage
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
@@ -88,6 +88,7 @@ func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage
 		world:                world,
 		storage:              storage,
 		nameLookupBurstCache: libkb.NewBurstCache(g, 100, 10*time.Second, "SubteamNameToID"),
+		locktab:              libkb.NewLockTable(),
 	}
 }
 

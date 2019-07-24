@@ -101,6 +101,9 @@ type LoginOneshotArg struct {
 	PaperKey  string `codec:"paperKey" json:"paperKey"`
 }
 
+type IsOnlineArg struct {
+}
+
 type LoginInterface interface {
 	// Returns an array of information about accounts configured on the local
 	// machine. Currently configured accounts are defined as those that have stored
@@ -142,6 +145,9 @@ type LoginInterface interface {
 	// provisioning a device. It bootstraps credentials with the given
 	// paperkey
 	LoginOneshot(context.Context, LoginOneshotArg) error
+	// isOnline returns whether the device is able to open a connection to keybase.io.
+	// Used for determining whether to offer proxy settings on the login screen.
+	IsOnline(context.Context) (bool, error)
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -373,6 +379,16 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					return
 				},
 			},
+			"isOnline": {
+				MakeArg: func() interface{} {
+					var ret [1]IsOnlineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.IsOnline(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -484,5 +500,12 @@ func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err erro
 // paperkey
 func (c LoginClient) LoginOneshot(ctx context.Context, __arg LoginOneshotArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []interface{}{__arg}, nil)
+	return
+}
+
+// isOnline returns whether the device is able to open a connection to keybase.io.
+// Used for determining whether to offer proxy settings on the login screen.
+func (c LoginClient) IsOnline(ctx context.Context) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.isOnline", []interface{}{IsOnlineArg{}}, &res)
 	return
 }

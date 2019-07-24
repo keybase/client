@@ -775,6 +775,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<ConfiguredAccount> | null
   }
+  'keybase.1.login.isOnline': {
+    inParam: void
+    outParam: Bool
+  }
   'keybase.1.login.login': {
     inParam: {readonly deviceType: String; readonly username: String; readonly clientType: ClientType; readonly doUserSwitch?: Boolean; readonly paperKey: String; readonly deviceName: String}
     outParam: void
@@ -1250,6 +1254,10 @@ export type MessageTypes = {
   'keybase.1.user.uploadUserAvatar': {
     inParam: {readonly filename: String; readonly crop?: ImageCropRect | null}
     outParam: void
+  }
+  'keybase.1.userSearch.getNonUserDetails': {
+    inParam: {readonly assertion: String}
+    outParam: NonUserDetails
   }
   'keybase.1.userSearch.userSearch': {
     inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
@@ -1911,6 +1919,7 @@ export enum StatusCode {
   scratelimit = 602,
   scbadsignupusernametaken = 701,
   scbadinvitationcode = 707,
+  scbadsignupteamname = 711,
   scfeatureflag = 712,
   scmissingresult = 801,
   sckeynotfound = 901,
@@ -2230,7 +2239,7 @@ export enum UserOrTeamResult {
 }
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
-export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}}
+export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
 export type APIUserServiceIDWithContact = String
 export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String}
@@ -2462,6 +2471,7 @@ export type NaclDHKeyPublic = string | null
 export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
+export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null}
 export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs | null} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs | null} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs | null} | {asyncOp: AsyncOps.read; read: ReadArgs | null} | {asyncOp: AsyncOps.write; write: WriteArgs | null} | {asyncOp: AsyncOps.copy; copy: CopyArgs | null} | {asyncOp: AsyncOps.move; move: MoveArgs | null} | {asyncOp: AsyncOps.remove; remove: RemoveArgs | null} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs | null}
 export type OpID = string | null
@@ -2509,7 +2519,7 @@ export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devic
 export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: Array<KID> | null}
 export type Process = {readonly pid: String; readonly command: String; readonly fileDescriptors?: Array<FileDescriptor> | null}
 export type ProcessRuntimeStats = {readonly type: ProcessType; readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel}
-export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly assertion: String; readonly displayName: String; readonly displayLabel: String; readonly rawScore: Double}
+export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly assertion: String; readonly displayName: String; readonly displayLabel: String}
 export type ProfileTeamLoadRes = {readonly loadTimeNsec: Long}
 export type Progress = Int
 export type ProofResult = {readonly state: ProofState; readonly status: ProofStatus; readonly desc: String}
@@ -3081,6 +3091,7 @@ export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keyb
 export const loginAccountDeleteRpcPromise = (params: MessageTypes['keybase.1.login.accountDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.accountDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: MessageTypes['keybase.1.login.deprovision']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.deprovision']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginGetConfiguredAccountsRpcPromise = (params: MessageTypes['keybase.1.login.getConfiguredAccounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.getConfiguredAccounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.getConfiguredAccounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const loginIsOnlineRpcPromise = (params: MessageTypes['keybase.1.login.isOnline']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.isOnline']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.isOnline', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginLoginRpcSaga = (p: {params: MessageTypes['keybase.1.login.login']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.login.login', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const loginLogoutRpcPromise = (params: MessageTypes['keybase.1.login.logout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.logout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.logout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginPaperKeyRpcSaga = (p: {params: MessageTypes['keybase.1.login.paperKey']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.login.paperKey', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
@@ -3151,6 +3162,7 @@ export const userLoadHasRandomPwRpcPromise = (params: MessageTypes['keybase.1.us
 export const userLoadMySettingsRpcPromise = (params: MessageTypes['keybase.1.user.loadMySettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadMySettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadMySettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProfileEditRpcPromise = (params: MessageTypes['keybase.1.user.profileEdit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.profileEdit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProofSuggestionsRpcPromise = (params: MessageTypes['keybase.1.user.proofSuggestions']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.proofSuggestions']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.proofSuggestions', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userSearchGetNonUserDetailsRpcPromise = (params: MessageTypes['keybase.1.userSearch.getNonUserDetails']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.userSearch.getNonUserDetails']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.userSearch.getNonUserDetails', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userSearchUserSearchRpcPromise = (params: MessageTypes['keybase.1.userSearch.userSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.userSearch.userSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.userSearch.userSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUnblockUserRpcPromise = (params: MessageTypes['keybase.1.user.unblockUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.unblockUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.unblockUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.user.uploadUserAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

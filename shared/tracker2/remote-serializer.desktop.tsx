@@ -34,7 +34,7 @@ export const serialize: any = {
 
 const initialState = {
   assertions: I.Map(),
-  config: {},
+  config: {following: I.Set()},
   users: {infoMap: I.Map()},
   waiting: {counts: I.Map()},
 }
