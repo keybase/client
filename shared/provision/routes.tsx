@@ -9,24 +9,38 @@ import SetPublicName from './set-public-name/container'
 import Username from './username-or-email/container'
 
 export const newRoutes = {
-  codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default, upgraded: true},
-  error: {getScreen: (): typeof ErrorView => require('./error/container').default, upgraded: true},
-  forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default},
-  gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default, upgraded: true},
-  // @ts-ignore
-  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default, upgraded: true},
-  password: {getScreen: (): typeof Password => require('./password/container').default, upgraded: true},
+  codePage: {
+    getScreen: (): typeof CodePage => require('./code-page/container').default,
+    upgraded: true as const,
+  },
+  error: {getScreen: (): typeof ErrorView => require('./error/container').default, upgraded: true as const},
+  forgotUsername: {
+    getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default,
+    upgraded: true as const,
+  },
+  gpgSign: {
+    getScreen: (): typeof GpgSign => require('./gpg-sign/container').default,
+    upgraded: true as const,
+  },
+  paperkey: {
+    getScreen: (): typeof Paperkey => require('./paper-key/container').default,
+    upgraded: true as const,
+  },
+  password: {
+    getScreen: (): typeof Password => require('./password/container').default,
+    upgraded: true as const,
+  },
   selectOtherDevice: {
     getScreen: (): typeof SelectOtherDevice => require('./select-other-device/container').default,
-    upgraded: true,
+    upgraded: true as const,
   },
   setPublicName: {
     getScreen: (): typeof SetPublicName => require('./set-public-name/container').default,
-    upgraded: true,
+    upgraded: true as const,
   },
   username: {
     getScreen: (): typeof Username => require('./username-or-email/container').default,
-    upgraded: true,
+    upgraded: true as const,
   },
 }
 export const newModalRoutes = {}

@@ -11,7 +11,7 @@ const fsRoot = {getScreen: (): typeof FsRoot => require('./container').default, 
 export const newRoutes = {fsRoot, main: fsRoot}
 
 export const newModalRoutes = {
-  barePreview: {getScreen: (): typeof BarePreview => require('./filepreview').BarePreview},
+  barePreview: {getScreen: (): typeof BarePreview => require('./filepreview').BarePreview, upgraded: true},
   confirmDelete: {
     getScreen: (): typeof ConfirmDelete =>
       require('./common/path-item-action/confirm-delete/container').default,

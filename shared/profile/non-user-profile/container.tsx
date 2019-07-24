@@ -1,6 +1,7 @@
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {Service} from '../../constants/types/search'
 import {privateFolderWithUsers} from '../../constants/config'
@@ -15,15 +16,20 @@ type OwnProps = Container.RouteProps<{
   serviceName: Service
 }>
 
-const mapStateToProps = (state: Container.TypedState, {routeProps}: OwnProps) => {
-  const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  const avatar = Container.getRouteProps<string>(ownProps, 'avatar') || ''
+  const fullname = Container.getRouteProps<string>(ownProps, 'fullname') || ''
+  const fullUsername = Container.getRouteProps<string>(ownProps, 'fullUsername') || ''
+  const profileUrl = Container.getRouteProps<string>(ownProps, 'profileUrl') || ''
+  const serviceName = Container.getRouteProps<Service>(ownProps, 'serviceName')
+  const username = Container.getRouteProps<string>(ownProps, 'username') || ''
   const myUsername = state.config.username
-  const title = routeProps.get('username')
+  const title = username
   return {avatar, fullUsername, fullname, myUsername, profileUrl, serviceName, title, username}
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateUp}: OwnProps) => ({
-  _onOpenPrivateFolder: (myUsername, username) => {
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onOpenPrivateFolder: (myUsername: string, username: string) => {
     if (myUsername && username) {
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(
@@ -37,13 +43,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateUp}: Own
       dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'}))
     }
   },
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-
   (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,

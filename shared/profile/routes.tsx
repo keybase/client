@@ -1,3 +1,4 @@
+import {newRoutes as PGPRoutes} from './pgp/routes'
 import Profile from './user/container'
 import ProfileNonUser from './non-user-profile/container'
 import ProfileAddToTeam from './add-to-team/container'
@@ -16,9 +17,11 @@ import ProfileSearch from './search/container'
 import ProfileShowcaseTeamOffer from './showcase-team-offer/container'
 
 export const newRoutes = {
-  // TODO broken connect
-  profile: {getScreen: (): typeof Profile => require('./user/container').default, upgraded: true},
-  profileNonUser: {getScreen: (): typeof ProfileNonUser => require('./non-user-profile/container').default},
+  profile: {getScreen: (): typeof Profile => require('./user/container').default, upgraded: true as const},
+  profileNonUser: {
+    getScreen: (): typeof ProfileNonUser => require('./non-user-profile/container').default,
+    upgraded: true as const,
+  },
 }
 
 export const newModalRoutes = {
@@ -34,7 +37,10 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
-  profileEdit: {getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default},
+  profileEdit: {
+    getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default,
+    upgraded: true,
+  },
   profileEditAvatar: {
     getScreen: (): typeof ProfileEditAvatar => require('./edit-avatar/container').default,
     upgraded: true,
@@ -68,11 +74,14 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileRevoke => require('./revoke/container').default,
     upgraded: true,
   },
-  profileSearch: {getScreen: (): typeof ProfileSearch => require('./search/container').default},
+  profileSearch: {
+    getScreen: (): typeof ProfileSearch => require('./search/container').default,
+    upgraded: true,
+  },
   // TODO broken connect
   profileShowcaseTeamOffer: {
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
     upgraded: true,
   },
-  ...require('./pgp/routes').newRoutes,
+  ...PGPRoutes,
 }

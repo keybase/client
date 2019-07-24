@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
-import {RouteProps as _RouteProps} from '../route-tree/render-route'
+import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
@@ -20,11 +20,13 @@ export const networkErrorCodes = [
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 
-export function getRouteProps<T = any>(
-  ownProps: {navigation: {getParam: (key: string) => unknown}},
-  key: string
-) {
-  return ownProps.navigation.getParam(key) as T
+export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R>(
+  ownProps: O,
+  key: K,
+  notSetVal: R[K]
+): R[K] {
+  const val = ownProps.navigation.getParam(key)
+  return val === undefined ? notSetVal : val
 }
 
 export type TypedDispatch = (action: TypedActions) => void

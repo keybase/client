@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo, {Props} from '.'
 import * as Container from '../../util/container'
@@ -9,9 +10,10 @@ type OwnProps = Container.RouteProps<{id: string}>
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 
 export default Container.connect(
-  (state, {routeProps}: OwnProps) => {
+  (state, ownProps: OwnProps) => {
     const gitMap = Constants.getIdToGit(state)
-    const git = (gitMap && gitMap.get(routeProps.get('id'))) || Constants.makeGitInfo()
+    const id = Container.getRouteProps(ownProps, 'id')
+    const git = (gitMap && id && gitMap.get(id)) || Constants.makeGitInfo()
 
     return {
       error: Constants.getError(state),
@@ -20,15 +22,15 @@ export default Container.connect(
       waitingKey: Constants.loadingWaitingKey,
     }
   },
-  (dispatch: any, {navigateUp}) => ({
+  dispatch => ({
     _onDelete: (teamname: string | null, name: string, notifyTeam: boolean) => {
       const deleteAction = teamname
         ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
         : GitGen.createDeletePersonalRepo({name})
       dispatch(deleteAction)
-      dispatch(navigateUp())
+      dispatch(RouteTreeGen.createNavigateUp())
     },
-    onClose: () => dispatch(navigateUp()),
+    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
