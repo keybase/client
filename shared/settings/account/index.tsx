@@ -16,7 +16,6 @@ export type Props = {
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
-  onManageContacts: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
   onReload: () => void

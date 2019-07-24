@@ -17,6 +17,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
+  _contactImportEnabled: state.settings.contacts.importEnabled,
   _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   badgeNotifications: !state.push.hasPermissions,
   hasRandomPW: state.settings.password.randomPW,
@@ -44,6 +45,7 @@ const mergeProps = (stateProps: ReturnType<typeof mapStateToProps>, dispatchProp
   badgeNotifications: stateProps.badgeNotifications,
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
+  contactsLabel: stateProps._contactImportEnabled ? 'Contacts' : 'Import contacts',
   hasRandomPW: stateProps.hasRandomPW,
   isModal: stateProps.isModal,
   logoutInProgress: stateProps.logoutHandshakeWaiters.size > 0,

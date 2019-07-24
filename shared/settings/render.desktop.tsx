@@ -11,6 +11,7 @@ function SettingsRender(props: Props) {
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <SettingsNav
           badgeNumbers={props.badgeNumbers}
+          contactsLabel={props.contactsLabel}
           logoutInProgress={props.logoutInProgress}
           selectedTab={props.selectedTab}
           onTabChange={props.onTabChange}

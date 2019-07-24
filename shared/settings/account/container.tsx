@@ -34,7 +34,6 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
-  onManageContacts: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsManageContacts']})),
   onReload: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassword())

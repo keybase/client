@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
@@ -74,6 +73,14 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
             },
+            ...(flags.sbsContacts
+              ? [
+                  {
+                    onClick: () => props.onTabChange(Constants.contactsTab),
+                    text: props.contactsLabel,
+                  },
+                ]
+              : []),
             ...(isAndroid
               ? [
                   {
