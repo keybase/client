@@ -336,7 +336,7 @@ class ThreadWrapper extends React.Component<Props, State> {
 }
 
 const providerTopMessage = Sb.createPropProviderWithCommon({
-  TopMessage: p => ({
+  TopMessage: () => ({
     conversationIDKey: Constants.pendingErrorConversationIDKey,
     createConversationError: 'I AM ERROR',
     hasOlderResetConversation: false,
