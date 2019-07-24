@@ -84,7 +84,6 @@ const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 type AdhocProps = {
   onShowNewTeamDialog: () => void
   participants: ReadonlyArray<{
-    displayName: string
     username: string
     fullname: string
   }>
@@ -95,19 +94,6 @@ export const AdhocHeader = (props: AdhocProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.ScrollView style={styles.adhocScrollContainer}>
         {props.participants.map(p => {
-          if (p.displayName) {
-            return (
-              <Kb.NameWithIcon
-                key={p.username}
-                containerStyle={styles.adhocPartContainer}
-                horizontal={true}
-                title={p.displayName}
-                metaOne={p.fullname}
-                icon="icon-placeholder-avatar-32"
-                iconStyle={styles.placeholderIcon}
-              />
-            )
-          }
           return (
             <Kb.NameWithIcon
               key={p.username}
@@ -170,14 +156,6 @@ const styles = Styles.styleSheetCreate({
       width: gearIconSize,
     },
     isMobile: {width: gearIconSize + 32},
-  }),
-  placeholderIcon: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 16,
-    },
-    isMobile: {
-      borderRadius: 24,
-    },
   }),
   smallContainer: {
     alignItems: 'center',

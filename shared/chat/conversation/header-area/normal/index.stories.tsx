@@ -13,17 +13,14 @@ const defaultProps = {
   onShowProfile: Sb.action('onShowProfile'),
   onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
   onToggleThreadSearch: Sb.action('onToggleThreadSearch'),
-  participantToDisplayName: {},
   participants: ['joshblum', 'ayoubd'],
   pendingWaiting: false,
   smallTeam: true,
   teamName: 'keybase',
   unMuteConversation: Sb.action('unMuteConversation'),
-  username: 'ayoubd',
 }
 const phones = ['ayoubd', '+15558675309@phone']
 const contactNames = {'+15558675309@phone': 'Max Goodman'}
-const participantToDisplayName = {'+15558675309@phone': '+1 555 867 5309'}
 
 const load = () => {
   Sb.storiesOf('Chat/Header', module)
@@ -35,12 +32,7 @@ const load = () => {
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
     .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
     .add('Phone header', () => (
-      <PhoneOrEmailHeader
-        {...defaultProps}
-        participants={phones}
-        contactNames={contactNames}
-        participantToDisplayName={participantToDisplayName}
-      />
+      <PhoneOrEmailHeader {...defaultProps} participants={phones} contactNames={contactNames} />
     ))
 }
 

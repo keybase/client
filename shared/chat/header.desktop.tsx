@@ -9,7 +9,6 @@ import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
-import Participants from './conversation/header-area/normal/participants'
 
 type OwnProps = {}
 
@@ -17,7 +16,6 @@ type Props = {
   canEditDesc: boolean
   channel: string | null
   desc: string
-  displayNames: {[key: string]: string}
   infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
@@ -98,12 +96,20 @@ const Header = (p: Props) => {
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
                 <Kb.Text type="Header" lineClamp={1}>
-                  <Participants
-                    participants={withoutSelf}
-                    participantToDisplayName={p.displayNames}
-                    onShowProfile={p.onGoToProfile}
-                    textType="Header"
-                  />
+                  {withoutSelf.map((part, i, participants) => (
+                    <Kb.Text type="Header" key={part}>
+                      <Kb.ConnectedUsernames
+                        colorFollowing={true}
+                        underline={true}
+                        inline={true}
+                        commaColor={Styles.globalColors.black_50}
+                        type="Header"
+                        usernames={[part]}
+                        onUsernameClicked="profile"
+                      />
+                      {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
+                    </Kb.Text>
+                  ))}
                 </Kb.Text>
               </Kb.Box2>
             ) : null}
@@ -219,7 +225,6 @@ const Connected = Container.connect(
           ? meta.teamname
           : null,
       desc,
-      displayNames: meta.participantToDisplayName.toJS(),
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,

@@ -16,13 +16,11 @@ const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversati
   const meta = Constants.getMeta(state, conversationIDKey)
   const _participants = meta.teamname ? null : meta.participants
   const _contactNames = meta.participantToContactName
-  const _displayNames = meta.participantToDisplayName
 
   return {
     _badgeMap: state.chat2.badgeMap,
     _contactNames,
     _conversationIDKey: conversationIDKey,
-    _displayNames,
     _participants,
     channelName: meta.channelname,
     infoPanelOpen,
@@ -30,7 +28,6 @@ const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversati
     pendingWaiting: conversationIDKey === Constants.pendingWaitingConversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
-    username: state.config.username,
   }
 }
 
@@ -77,12 +74,10 @@ export default Container.withSafeNavigation(
     onShowProfile: dispatchProps.onShowProfile,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
-    participantToDisplayName: stateProps._displayNames.toObject(),
     participants: (stateProps._participants && stateProps._participants.toArray()) || [],
     pendingWaiting: stateProps.pendingWaiting,
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,
     unMuteConversation: dispatchProps._onUnMuteConversation,
-    username: stateProps.username,
   }))(HeaderBranch)
 )

@@ -1,7 +1,15 @@
 import * as React from 'react'
-import {Avatar, Box2, HeaderHocHeader, Icon, iconCastPlatformStyles, Text} from '../../../../common-adapters'
+import {
+  Avatar,
+  Box2,
+  HeaderHocHeader,
+  Icon,
+  iconCastPlatformStyles,
+  Text,
+  ConnectedUsernames,
+} from '../../../../common-adapters'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import * as Styles from '../../../../styles'
-import Participants from './participants'
 import {Props} from './index.types'
 
 const shhIconColor = Styles.globalColors.black_20
@@ -71,31 +79,27 @@ const ChannelHeader = (props: Props) => (
   </Wrapper>
 )
 
-const UsernameHeader = (props: Props) => {
-  const withoutSelf =
-    props.participants && props.participants.length > 1
-      ? props.participants.filter(part => part !== props.username)
-      : props.participants
-  return (
-    <Wrapper {...props}>
-      <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
-        <Text type="BodyBig" lineClamp={1}>
-          <Participants
-            participants={withoutSelf}
-            participantToDisplayName={props.participantToDisplayName}
-            onShowProfile={props.onShowProfile}
-            textType="BodyBig"
-          />
-        </Text>
-        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
-    </Wrapper>
-  )
-}
+const UsernameHeader = (props: Props) => (
+  <Wrapper {...props}>
+    <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
+      <ConnectedUsernames
+        colorFollowing={true}
+        inline={false}
+        commaColor={Styles.globalColors.black_50}
+        type="BodyBig"
+        usernames={props.participants}
+        containerStyle={styles.center}
+        onUsernameClicked={props.onShowProfile}
+        skipSelf={props.participants.length > 1}
+      />
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+    </Box2>
+  </Wrapper>
+)
 
 const PhoneOrEmailHeader = (props: Props) => {
   const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
-  const formattedPhoneOrEmail = props.participantToDisplayName[phoneOrEmail] || phoneOrEmail
+  const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = props.contactNames[phoneOrEmail]
   return (
     <Wrapper {...props}>
