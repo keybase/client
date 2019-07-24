@@ -91,9 +91,6 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
     }
   }, [numContactsImported, prevNumContactsImported, onRedoSearch])
 
-  if (!Flags.sbsContacts) return null
-  if (!Styles.isMobile) return null
-
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
   if (contactsImported === null) {
@@ -105,7 +102,7 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
   if (contactsImported || isImportPromptDismissed || arePermissionsGranted === 'never_ask_again') return null
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
         <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
@@ -189,7 +186,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        <ContactsBanner onRedoSearch={() => props.onChangeText(props.searchString)} />
+        {Flags.sbsContacts && Styles.isMobile && (
+          <ContactsBanner onRedoSearch={() => props.onChangeText(props.searchString)} />
+        )}
         {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
@@ -261,12 +260,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
 const styles = Styles.styleSheetCreate({
   banner: {
-    alignItems: 'center',
     backgroundColor: Styles.globalColors.blue,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
   },
   bannerButtonContainer: {
     flexWrap: 'wrap',
