@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -493,4 +494,9 @@ func (f *JSONFile) SetNullAtPath(p string) (err error) {
 		}
 	}
 	return err
+}
+
+func isJSONNoSuchKeyError(err error) bool {
+	_, isJSONError := err.(*jsonw.Error)
+	return err != nil && isJSONError && strings.Contains(err.Error(), "no such key")
 }
