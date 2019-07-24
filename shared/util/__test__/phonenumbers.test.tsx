@@ -28,7 +28,6 @@ describe('validateNumber', () => {
   it('"displays" e164 numbers correctly', () => {
     expect(e164ToDisplay('+48784123123')).toBe('+48 784 123 123')
     expect(e164ToDisplay('+48123123123')).toBe('+48 12 312 31 23')
-    // NOTE: different from formatPhoneNumber
-    expect(e164ToDisplay('+12015551112')).toBe('+1 201-555-1112')
+    expect(e164ToDisplay('+12015551112')).toBe('+1 (201) 555-1112')
   })
 })
