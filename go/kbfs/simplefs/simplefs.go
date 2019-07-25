@@ -138,6 +138,37 @@ type handle struct {
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
+// We need this wrapper because at the time simpleFS is initialized
+// KeybaseService is not initialized yet. So just save config here, and get
+// the KeybaseService() later.
+type subscriptionNotifier struct {
+	config libkbfs.Config
+}
+
+var _ libkbfs.SubscriptionNotifier = subscriptionNotifier{}
+
+// OnNonPathChange implements the libkbfs.SubscriptionNotifier interface.
+func (s subscriptionNotifier) OnPathChange(
+	subscriptionID libkbfs.SubscriptionID,
+	path string, topic keybase1.PathSubscriptionTopic) {
+	ks := s.config.KeybaseService()
+	if ks == nil {
+		return
+	}
+	ks.OnPathChange(subscriptionID, path, topic)
+}
+
+// OnPathChange implements the libkbfs.SubscriptionNotifier interface.
+func (s subscriptionNotifier) OnNonPathChange(
+	subscriptionID libkbfs.SubscriptionID,
+	topic keybase1.SubscriptionTopic) {
+	ks := s.config.KeybaseService()
+	if ks == nil {
+		return
+	}
+	ks.OnNonPathChange(subscriptionID, topic)
+}
+
 func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *SimpleFS {
 	log := config.MakeLogger("simplefs")
 	var localHTTPServer *libhttpserver.Server
@@ -158,7 +189,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		newFS:           defaultNewFS,
 		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 		localHTTPServer: localHTTPServer,
-		subscriber:      config.SubscriptionManager().Subscriber(config.KeybaseService()),
+		subscriber:      config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
 	}
 }
 
