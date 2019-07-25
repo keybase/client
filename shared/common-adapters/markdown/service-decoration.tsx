@@ -1,7 +1,10 @@
 import React from 'react'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as DeeplinksConstants from '../../constants/deeplinks'
+import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
@@ -10,6 +13,29 @@ import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
+
+type KeybaseLinkProps = {
+  link: string
+  styleOverride: StyleOverride
+  styles: {[K in string]: StylesTextCrossPlatform}
+}
+
+const KeybaseLink = (props: KeybaseLinkProps) => {
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [dispatch])
+
+  return (
+    <Text
+      className="hover-underline"
+      type="BodyPrimaryLink"
+      style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
+      title={props.link}
+      onClick={onClick}
+    >
+      {props.link}
+    </Text>
+  )
+}
 
 export type Props = {
   json: string
@@ -72,7 +98,10 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link && parsed.link) {
-    return (
+    const link = parsed.link.display
+    return DeeplinksConstants.linkIsKeybaseLink(link) ? (
+      <KeybaseLink link={link} styles={props.styles} styleOverride={props.styleOverride} />
+    ) : (
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
