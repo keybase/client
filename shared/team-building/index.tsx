@@ -64,7 +64,7 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
+const ContactsBanner = ({onRedoSearch, onRedoRecs}: {onRedoSearch: () => void; onRedoRecs: () => void}) => {
   const dispatch = Container.useDispatch()
 
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
@@ -88,8 +88,9 @@ const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
   React.useEffect(() => {
     if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
       onRedoSearch()
+      onRedoRecs()
     }
-  }, [numContactsImported, prevNumContactsImported, onRedoSearch])
+  }, [numContactsImported, prevNumContactsImported, onRedoSearch, onRedoRecs])
 
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
@@ -187,7 +188,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           showServiceResultCount={props.showServiceResultCount}
         />
         {Flags.sbsContacts && Styles.isMobile && (
-          <ContactsBanner onRedoSearch={() => props.onChangeText(props.searchString)} />
+          <ContactsBanner
+            onRedoSearch={() => props.onChangeText(props.searchString)}
+            onRedoRecs={props.fetchUserRecs}
+          />
         )}
         {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
