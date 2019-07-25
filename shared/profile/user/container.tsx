@@ -190,7 +190,8 @@ const connected = Container.namedConnect(
       username: stateProps.username,
       ...followToArray(stateProps.followers, stateProps.following),
     }
-  }, 'Profile2'
+  },
+  'Profile2'
 )(Profile2)
 
 const Header = ({onSearch}) => (

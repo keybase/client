@@ -10,9 +10,10 @@ type OwnProps = Container.RouteProps<{username: string}>
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     errorMessage:
-      state.profile.blockUserModal &&
-      state.profile.blockUserModal !== 'waiting' &&
-      state.profile.blockUserModal.error,
+      (state.profile.blockUserModal &&
+        state.profile.blockUserModal !== 'waiting' &&
+        state.profile.blockUserModal.error) ||
+      undefined,
     idle: state.profile.blockUserModal === null,
     isWaiting: Waiting.anyWaiting(state, Constants.blockUserWaitingKey),
     username: Container.getRouteProps(ownProps, 'username', ''),
