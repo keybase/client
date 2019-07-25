@@ -3385,6 +3385,28 @@
           "name": "body"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MsgSender",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        }
+      ]
     }
   ],
   "messages": {

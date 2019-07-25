@@ -1150,4 +1150,12 @@ protocol local {
   record ChatMessage {
     string body;
   }
+
+  // MsgSender is used for JSON output of the sender of a message.
+  record MsgSender {
+    string uid;
+    string username;
+    string deviceID;
+    string deviceName;
+  }
 }

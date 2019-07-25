@@ -5385,6 +5385,22 @@ func (o ChatMessage) DeepCopy() ChatMessage {
 	}
 }
 
+type MsgSender struct {
+	Uid        string `codec:"uid" json:"uid"`
+	Username   string `codec:"username" json:"username"`
+	DeviceID   string `codec:"deviceID" json:"deviceID"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
+}
+
+func (o MsgSender) DeepCopy() MsgSender {
+	return MsgSender{
+		Uid:        o.Uid,
+		Username:   o.Username,
+		DeviceID:   o.DeviceID,
+		DeviceName: o.DeviceName,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

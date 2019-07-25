@@ -410,8 +410,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
 				TopicName:   conv.Info.TopicName,
 			},
-			Sender: MsgSender{
-				UID:        mv.ClientHeader.Sender.String(),
+			Sender: chat1.MsgSender{
+				Uid:        mv.ClientHeader.Sender.String(),
 				DeviceID:   mv.ClientHeader.SenderDevice.String(),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
@@ -1414,14 +1414,6 @@ func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembe
 	return chat1.ConversationMembersType_KBFS
 }
 
-// MsgSender is used for JSON output of the sender of a message.
-type MsgSender struct {
-	UID        string `json:"uid"`
-	Username   string `json:"username,omitempty"`
-	DeviceID   string `json:"device_id"`
-	DeviceName string `json:"device_name,omitempty"`
-}
-
 type MsgFlipContent struct {
 	Text         string
 	GameID       string
@@ -1456,7 +1448,7 @@ type MsgSummary struct {
 	ID                  chat1.MessageID                `json:"id"`
 	ConvID              string                         `json:"conversation_id"`
 	Channel             ChatChannel                    `json:"channel"`
-	Sender              MsgSender                      `json:"sender"`
+	Sender              chat1.MsgSender                `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`
 	SentAtMs            int64                          `json:"sent_at_ms"`
 	Content             MsgContent                     `json:"content"`

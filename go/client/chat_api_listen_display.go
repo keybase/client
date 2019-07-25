@@ -95,8 +95,8 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 				TopicName:   inMsg.Conv.Channel,
 				Public:      inMsg.Conv.Visibility == keybase1.TLFVisibility_PUBLIC,
 			},
-			Sender: MsgSender{
-				UID:        mv.SenderUID.String(),
+			Sender: chat1.MsgSender{
+				Uid:        mv.SenderUID.String(),
 				DeviceID:   mv.SenderDeviceID.String(),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
