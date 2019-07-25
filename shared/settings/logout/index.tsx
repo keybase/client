@@ -16,6 +16,7 @@ export type Props = {
 }
 
 type State = {
+  loggingOut: boolean
   password: string
   showTyping: boolean
 }
@@ -28,8 +29,14 @@ const HoverBox = Styles.isMobile
 
 class LogOut extends React.Component<Props, State> {
   state = {
+    loggingOut: false,
     password: '',
     showTyping: false,
+  }
+
+  logOut = () => {
+    this.props.onLogout()
+    this.setState({loggingOut: true})
   }
 
   componentDidMount() {
@@ -74,7 +81,7 @@ class LogOut extends React.Component<Props, State> {
                 }}
               />
               <Kb.Box2 direction="horizontal">
-                <HoverBox onClick={this.props.onLogout} style={styles.logoutContainer}>
+                <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
                   <Kb.Icon type="iconfont-leave" />
                   <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
                     Just sign out
@@ -84,12 +91,7 @@ class LogOut extends React.Component<Props, State> {
             </Kb.ButtonBar>
           ) : (
             <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-              <Kb.Button
-                label="Safely sign out"
-                fullWidth={true}
-                onClick={this.props.onLogout}
-                type="Success"
-              />
+              <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
             </Kb.ButtonBar>
           ),
         }}
@@ -103,35 +105,39 @@ class LogOut extends React.Component<Props, State> {
         }}
         onClose={this.props.onCancel}
       >
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-          {Styles.isMobile && (
-            <Kb.Text style={styles.headerText} type="Header">
-              Do you know your password?
+        {this.state.loggingOut ? (
+          <Kb.ProgressIndicator style={styles.progress} type="Huge" />
+        ) : (
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+            {Styles.isMobile && (
+              <Kb.Text style={styles.headerText} type="Header">
+                Do you know your password?
+              </Kb.Text>
+            )}
+            <Kb.Text style={styles.bodyText} type="Body">
+              You will need it to sign back in.
             </Kb.Text>
-          )}
-          <Kb.Text style={styles.bodyText} type="Body">
-            You will need it to sign back in.
-          </Kb.Text>
-          <Kb.RoundedBox>
-            <Kb.PlainInput
-              keyboardType={keyboardType}
-              onEnterKeyDown={() => {
-                this.props.onCheckPassword(this.state.password)
-              }}
-              onChangeText={password => this.setState({password})}
-              placeholder="Your password"
-              type={inputType}
-              value={this.state.password}
+            <Kb.RoundedBox>
+              <Kb.PlainInput
+                keyboardType={keyboardType}
+                onEnterKeyDown={() => {
+                  this.props.onCheckPassword(this.state.password)
+                }}
+                onChangeText={password => this.setState({password})}
+                placeholder="Your password"
+                type={inputType}
+                value={this.state.password}
+              />
+            </Kb.RoundedBox>
+            <Kb.Checkbox
+              boxBackgroundColor={Styles.globalColors.white}
+              checked={this.state.showTyping}
+              label="Show typing"
+              onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+              style={styles.checkbox}
             />
-          </Kb.RoundedBox>
-          <Kb.Checkbox
-            boxBackgroundColor={Styles.globalColors.white}
-            checked={this.state.showTyping}
-            label="Show typing"
-            onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-            style={styles.checkbox}
-          />
-        </Kb.Box2>
+          </Kb.Box2>
+        )}
       </Kb.Modal>
     )
   }

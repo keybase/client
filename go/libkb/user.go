@@ -941,7 +941,10 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		return res
 	}
 
-	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
+	// since this is on the critical path to logout,
+	// use a short timeout in case we're offline.
+	m, _ := mctx.WithTimeout(600 * time.Millisecond)
+	if err := CheckCurrentUIDDeviceID(m); err != nil {
 		switch err.(type) {
 		case DeviceNotFoundError, UserNotFoundError,
 			KeyRevokedError, NoDeviceError, NoUIDError:

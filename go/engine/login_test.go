@@ -97,6 +97,24 @@ func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 	}
 }
 
+func TestLogoutWhileOffline(t *testing.T) {
+	// Create an account
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "first")
+
+	// set server uri to nonexistent ip so api calls will fail
+	prev := os.Getenv("KEYBASE_SERVER_URI")
+	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
+	defer os.Setenv("KEYBASE_SERVER_URI", prev)
+	tc.G.ConfigureAPI()
+
+	// Try to logout while offline
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
+	err := tc.G.Logout(ctx)
+	require.NoError(t, err)
+}
+
 func TestLoginUsernameWhitespace(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
