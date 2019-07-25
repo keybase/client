@@ -9,8 +9,12 @@ export const newRoutes = {
     getScreen: (): typeof InviteCode => require('./invite-code/container').default,
     upgraded: true,
   },
-  signupRequestInvite: {getScreen: (): typeof RequestInvite => require('./request-invite/container').default},
+  signupRequestInvite: {
+    getScreen: (): typeof RequestInvite => require('./request-invite/container').default,
+    upgraded: true,
+  },
   signupRequestInviteSuccess: {
     getScreen: (): typeof RequestInviteSuccess => require('./request-invite-success/container').default,
+    upgraded: true,
   },
 }

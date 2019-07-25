@@ -12,7 +12,7 @@ type OwnProps = Container.RouteProps<{isTeam: boolean}>
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     error: Constants.getError(state),
-    isTeam: !!Container.getRouteProps(ownProps, 'isTeam'),
+    isTeam: !!Container.getRouteProps(ownProps, 'isTeam', false),
     teams: getSortedTeamnames(state),
     waitingKey: Constants.loadingWaitingKey,
   }),
@@ -21,7 +21,7 @@ export default Container.connect(
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
-      const isTeam = !!Container.getRouteProps(ownProps, 'isTeam')
+      const isTeam = !!Container.getRouteProps(ownProps, 'isTeam', false)
       const createAction =
         isTeam && teamname
           ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})

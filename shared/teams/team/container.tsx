@@ -20,7 +20,7 @@ type OwnProps = Container.RouteProps<{teamname: string}> & {
 const lastSelectedTabs = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }

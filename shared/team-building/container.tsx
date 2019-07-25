@@ -7,10 +7,9 @@ import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {compose, namedConnect, TypedState, TypedDispatch} from '../util/container'
+import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
-import {isMobile} from '../constants/platform'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
@@ -19,7 +18,6 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
-import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -106,7 +104,7 @@ const deriveUserFromUserIdFn = memoize(
 
 const emptyObj = {}
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
@@ -150,7 +148,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: TypedDispatch, {namespace, teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
@@ -346,7 +344,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const headerHocProps: HeaderHocProps = isMobile
+  const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
@@ -405,9 +403,9 @@ const mergeProps = (
 }
 
 // TODO fix typing, remove compose
-const Connected: React.ComponentType<OwnProps> = compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
-  isMobile ? HeaderHoc : PopupDialogHoc
+const Connected: React.ComponentType<OwnProps> = Container.compose(
+  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
+  Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
 class StateWrapperForTeamBuilding extends React.Component<RouteProps, LocalState> {

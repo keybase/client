@@ -5,15 +5,13 @@ import * as Constants from '../constants/settings'
 import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
-import {compose} from 'recompose'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
   routeSelected: Types.Tab
   children: React.ReactNode
-} & RouteProps
+} & Container.RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
@@ -52,7 +50,7 @@ const mergeProps = (stateProps: ReturnType<typeof mapStateToProps>, dispatchProp
   selectedTab: ownProps.routeSelected,
 })
 
-const Connected = compose(
+const Connected = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.lifecycle({
     componentDidMount() {

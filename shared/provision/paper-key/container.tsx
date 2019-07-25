@@ -2,9 +2,9 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import PaperKey from '.'
 import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
-import {RouteProps} from '../../route-tree/render-route'
 import * as LoginGen from '../../actions/login-gen'
-type OwnProps = RouteProps
+
+type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _configuredAccounts: state.config.configuredAccounts,

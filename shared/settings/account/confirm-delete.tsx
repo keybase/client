@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import {RouteProps} from '../../route-tree/render-route'
 
 type Props = {
   address: string
@@ -13,7 +12,7 @@ type Props = {
   type: 'email' | 'phone'
 }
 
-const getIcon = props => {
+const getIcon = (props: Props) => {
   if (props.type === 'email') {
     return Styles.isMobile ? 'icon-email-remove-64' : 'icon-email-remove-48'
   }
@@ -32,7 +31,7 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = RouteProps<{address: string; type: string}>
+type OwnProps = Container.RouteProps<{address: string; type: string}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()

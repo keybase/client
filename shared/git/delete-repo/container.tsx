@@ -12,7 +12,7 @@ const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const gitMap = Constants.getIdToGit(state)
-    const id = Container.getRouteProps(ownProps, 'id')
+    const id = Container.getRouteProps(ownProps, 'id', '')
     const git = (gitMap && id && gitMap.get(id)) || Constants.makeGitInfo()
 
     return {
