@@ -22,9 +22,9 @@ export type Props = {
   backgroundColorType: BackgroundColorType
   followThem: boolean
   followers: Array<string> | null
-  followersCount: number
+  followersCount?: number
   following: Array<string> | null
-  followingCount: number
+  followingCount?: number
   notAUser: boolean
   onAddIdentity: (() => void) | null
   onBack: () => void

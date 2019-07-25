@@ -55,7 +55,7 @@ export default Container.namedConnect(
         return a.alreadyAdded ? 1 : -1
       })
       .toArray()
-    let error: string | undefined
+    let error: string | null = null
     if (stateProps.error) {
       const e = stateProps.error
       error = Container.isNetworkErr(e.code)
@@ -64,6 +64,7 @@ export default Container.namedConnect(
     }
     return {
       error,
+      onBack: null,
       onCancel: dispatchProps.onCancel,
       onSubmit: (usernames: Array<string>) =>
         dispatchProps._onSubmit(stateProps._conversationIDKey, usernames),

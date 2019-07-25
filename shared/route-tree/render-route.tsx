@@ -2,6 +2,8 @@
 export type RouteProps<T extends {[key: string]: any}> = {
   navigation: {
     getParam<K extends keyof T>(key: K): T[K] | undefined
+    pop: () => void
+      isFirstRouteInParent: () => boolean
   }
 }
 

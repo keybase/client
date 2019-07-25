@@ -11,18 +11,16 @@ type OwnProps = {
 
 type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps>
 
-const mapDispatchToProps = (dispatch, {inDestinationPicker, navigateAppend}: OwnPropsWithSafeNavigation) => ({
+const mapDispatchToProps = (
+  dispatch,
+  {inDestinationPicker, safeNavigateAppendPayload}: OwnPropsWithSafeNavigation
+) => ({
   onOpenPath: inDestinationPicker
     ? (path: Types.Path) =>
-        Constants.makeActionsForDestinationPickerOpen(0, path, navigateAppend).forEach(action =>
+        Constants.makeActionsForDestinationPickerOpen(0, path, safeNavigateAppendPayload).forEach(action =>
           dispatch(action)
         )
-    : (path: Types.Path) =>
-        dispatch(
-          navigateAppend({
-            path: [{props: {path}, selected: 'main'}],
-          })
-        ),
+    : (path: Types.Path) => dispatch(safeNavigateAppendPayload({path: [{props: {path}, selected: 'main'}]})),
 })
 
 const NavHeaderTitleConnected: React.ComponentType<OwnProps> = Container.withSafeNavigation<OwnProps>(

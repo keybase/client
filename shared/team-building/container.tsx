@@ -408,7 +408,9 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
+type RealOwnProps = Container.RouteProps<{namespace: AllowedNamespace; teamname: string | null}>
+
+class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
 
   changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})
@@ -437,8 +439,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
   render() {
     return (
       <Connected
-        namespace={this.props.navigation.getParam('namespace')}
-        teamname={this.props.navigation.getParam('teamname') || null}
+        namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
+        teamname={Container.getRouteProps(this.props, 'teamname', null)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

@@ -34,11 +34,11 @@ const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversati
 
 const mapDispatchToProps = (
   dispatch: Container.TypedDispatch,
-  {navigateUp, onToggleInfoPanel, conversationIDKey}: OwnProps
+  {safeNavigateUpPayload, onToggleInfoPanel, conversationIDKey}: OwnProps
 ) => ({
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(safeNavigateUpPayload()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
   onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),

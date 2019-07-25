@@ -31,7 +31,7 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = Container.RouteProps<{address: string; type: string}>
+type OwnProps = Container.RouteProps<{address: string; type: 'email' | 'phone'}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()

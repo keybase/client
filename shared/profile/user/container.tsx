@@ -19,11 +19,11 @@ type OwnProps = Container.RouteProps<{username: string}>
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
-    return 'red'
+    return 'red' as const
   } else if (state === 'notAUserYet') {
-    return 'blue'
+    return 'blue' as const
   } else {
-    return followThem ? 'green' : 'blue'
+    return followThem ? ('green' as const) : ('blue' as const)
   }
 }
 
@@ -38,9 +38,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _assertions: null,
     _suggestionKeys: null,
     followThem: false,
-    followers: I.OrderedSet<string>(),
+    followers: undefined,
     followersCount: 0,
-    following: I.OrderedSet<string>(),
+    following: undefined,
     followingCount: 0,
     fullName: '',
     guiID: d.guiID,
@@ -57,8 +57,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   if (!notAUser) {
     // Keybase user
     const followThem = Constants.followThem(state, username)
-    const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
-    const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
+    const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount']) as
+      | number
+      | undefined
+    const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount']) as
+      | number
+      | undefined
 
     return {
       ...commonProps,
@@ -66,9 +70,13 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
       backgroundColorType: headerBackgroundColorType(d.state, followThem),
       followThem,
-      followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
+      followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) as
+        | I.OrderedSet<string>
+        | undefined,
       followersCount,
-      following: state.tracker2.usernameToDetails.getIn([username, 'following']),
+      following: state.tracker2.usernameToDetails.getIn([username, 'following']) as
+        | I.OrderedSet<string>
+        | undefined,
       followingCount,
       reason: d.reason,
       title: username,
@@ -116,7 +124,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-const followToArray = memoize((followers, following) => ({
+const followToArray = memoize((followers?: I.OrderedSet<string>, following?: I.OrderedSet<string>) => ({
   followers: followers ? followers.toArray() : null,
   following: following ? following.toArray() : null,
 }))
@@ -180,11 +188,9 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      youAreInAirdrop: stateProps.youAreInAirdrop,
       ...followToArray(stateProps.followers, stateProps.following),
     }
-  },
-  'Profile2'
+  }, 'Profile2'
 )(Profile2)
 
 const Header = ({onSearch}) => (
