@@ -201,6 +201,21 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	retryConvLoad := func(convID chat1.ConversationID, tlfID *chat1.TLFID) {
 		h.G().FetchRetrier.Failure(ctx, uid, NewConversationRetry(h.G(), convID, tlfID, InboxLoad))
 	}
+	defer func() {
+		// handle errors on the main processing thread, any errors during localizaton are handled
+		// in the goroutine for localization callbacks
+		if err != nil {
+			if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to load convID query, retrying all convs")
+				for _, convID := range arg.Query.ConvIDs {
+					retryConvLoad(convID, nil)
+				}
+			} else {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to load general query, retrying")
+				retryInboxLoad()
+			}
+		}
+	}()
 
 	// Create localized conversation callback channel
 	chatUI := h.getChatUI(arg.SessionID)
@@ -210,17 +225,6 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
 		types.InboxSourceDataSourceAll, arg.MaxUnbox, arg.Query, arg.Pagination)
 	if err != nil {
-		// If this is a convID based query, let's go ahead and drop those onto
-		// the retrier
-		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
-			for _, convID := range arg.Query.ConvIDs {
-				retryConvLoad(convID, nil)
-			}
-		} else {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to load untrusted inbox, general query")
-			retryInboxLoad()
-		}
 		return res, err
 	}
 
@@ -231,11 +235,9 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		case lres = <-localizeCb:
 			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
 		case <-time.After(time.Minute):
-			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
 			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified (skip): %s")
-			retryInboxLoad()
 			return res, ctx.Err()
 		}
 	} else {
@@ -263,16 +265,13 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				Inbox:     string(jbody),
 			}); err != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: failed to send unverfified inbox: %s", err)
-				retryInboxLoad()
 				return res, err
 			}
 			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v",
 				time.Since(start))
 		case <-time.After(time.Minute):
-			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
-			retryInboxLoad()
 			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified")
 			return res, ctx.Err()
 		}
