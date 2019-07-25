@@ -330,7 +330,7 @@ const sortAndSplitRecommendations = memoize(
         if (!sections[index]) {
           sections[index] = {
             data: [],
-            label: letter,
+            label: letter.toUpperCase(),
             shortcut: true,
           }
         }
@@ -348,7 +348,7 @@ const sortAndSplitRecommendations = memoize(
         sections[27].data.push(rec)
       }
     })
-    return sections
+    return sections.filter(Boolean)
   }
 )
 

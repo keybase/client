@@ -142,6 +142,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     this.props.fetchUserRecs()
   }
 
+  _alphabetIndex = () => {
+    return (
+      <Kb.Text type="BodySmall" style={{position: 'absolute', right: 5, top: 5}}>
+        A
+      </Kb.Text>
+    )
+  }
+
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
@@ -182,8 +190,35 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs) {
-      // TODO sectionlist
-      return <Kb.Text type="HeaderBig">Hey</Kb.Text>
+      return (
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
+        >
+          <Kb.SectionList
+            sections={this.props.recommendations}
+            renderItem={({index, item: result}) => (
+              <UserResult
+                resultForService={this.props.selectedService}
+                fixedHeight={400}
+                username={result.username}
+                prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                followingState={result.followingState}
+                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                onAdd={() => this.props.onAdd(result.userId)}
+                onRemove={() => this.props.onRemove(result.userId)}
+              />
+            )}
+            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+          />
+          {this._alphabetIndex()}
+        </Kb.Box2>
+      )
     }
     return (
       <Kb.List
