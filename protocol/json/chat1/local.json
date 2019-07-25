@@ -3349,6 +3349,32 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatChannel",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "string",
+          "name": "membersType"
+        },
+        {
+          "type": "string",
+          "name": "topicType"
+        },
+        {
+          "type": "string",
+          "name": "topicName"
+        }
+      ]
     }
   ],
   "messages": {

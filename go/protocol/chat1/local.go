@@ -5357,6 +5357,24 @@ func (o ClearBotCommandsLocalRes) DeepCopy() ClearBotCommandsLocalRes {
 	}
 }
 
+type ChatChannel struct {
+	Name        string `codec:"name" json:"name"`
+	Public      bool   `codec:"public" json:"public"`
+	MembersType string `codec:"membersType" json:"membersType"`
+	TopicType   string `codec:"topicType" json:"topicType"`
+	TopicName   string `codec:"topicName" json:"topicName"`
+}
+
+func (o ChatChannel) DeepCopy() ChatChannel {
+	return ChatChannel{
+		Name:        o.Name,
+		Public:      o.Public,
+		MembersType: o.MembersType,
+		TopicType:   o.TopicType,
+		TopicName:   o.TopicName,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

@@ -91,13 +91,7 @@ type ChatAPI struct {
 }
 
 // ChatChannel represents a channel through which chat happens.
-type ChatChannel struct {
-	Name        string `json:"name"`
-	Public      bool   `json:"public"`
-	MembersType string `json:"members_type"`
-	TopicType   string `json:"topic_type,omitempty"`
-	TopicName   string `json:"topic_name,omitempty"`
-}
+type ChatChannel chat1.ChatChannel
 
 func (c ChatChannel) IsNil() bool {
 	return c == ChatChannel{}

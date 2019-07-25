@@ -1137,4 +1137,13 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ClearBotCommandsLocalRes clearBotCommandsLocal();
+
+  // Channel represents a channel through which chat happens.
+  record ChatChannel {
+    string name;
+    boolean public;
+    string membersType;
+    string topicType;
+    string topicName;
+  }
 }
