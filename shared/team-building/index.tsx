@@ -138,16 +138,48 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 }
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
+  sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }
 
   _alphabetIndex = () => {
     return (
-      <Kb.Text type="BodySmall" style={{position: 'absolute', right: 5, top: 5}}>
-        A
-      </Kb.Text>
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
+        {this.props.recommendations &&
+          this.props.recommendations.map(section =>
+            section.label && section.label.length <= 3 ? (
+              <React.Fragment key={section.label}>
+                <Kb.Text type="BodyTiny" onClick={() => this._onScrollToSection(section.label)}>
+                  {section.label}
+                </Kb.Text>
+                <Kb.Box style={{height: Styles.globalMargins.xtiny, flexShrink: 1}} />
+              </React.Fragment>
+            ) : null
+          )}
+        {/* TODO get 0-9 section down here */}
+      </Kb.Box2>
     )
+  }
+
+  _onScrollToSection = (label: string) => {
+    if (this.sectionListRef && this.sectionListRef.current) {
+      const ref = this.sectionListRef.current
+      const sectionIndex =
+        (this.props.recommendations &&
+          this.props.recommendations.findIndex(section => section.label === label)) ||
+        -1
+      if (sectionIndex >= 0 && Styles.isMobile) {
+        ref.scrollToLocation({
+          itemIndex: 0,
+          sectionIndex,
+        })
+      }
+    }
+  }
+
+  _getRecLayout = () => {
+    debugger
   }
 
   _listBody = () => {
@@ -190,6 +222,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs) {
+      // TODO: Scroll on desktop when keyboard nav goes off screen
       return (
         <Kb.Box2
           direction="vertical"
@@ -197,7 +230,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
         >
           <Kb.SectionList
+            ref={this.sectionListRef}
             sections={this.props.recommendations}
+            getItemLayout={this._getRecLayout}
             renderItem={({index, item: result}) => (
               <UserResult
                 resultForService={this.props.selectedService}
@@ -216,7 +251,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             )}
             renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
           />
-          {this._alphabetIndex()}
+          {Styles.isMobile && this._alphabetIndex()}
         </Kb.Box2>
       )
     }
@@ -315,6 +350,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 }
 
 const styles = Styles.styleSheetCreate({
+  alphabetIndex: {
+    bottom: 0,
+    position: 'absolute',
+    right: Styles.globalMargins.xtiny,
+    top: 0,
+    width: 15,
+  },
   banner: {
     backgroundColor: Styles.globalColors.blue,
     padding: Styles.globalMargins.tiny,
