@@ -288,6 +288,10 @@ func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Co
 }
 
 func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
+	// only chat on mobile
+	if s.G().IsMobileAppType() && conv.GetTopicType() != chat1.TopicType_CHAT {
+		return false
+	}
 	// Skips convs we don't care for.
 	switch conv.Metadata.Status {
 	case chat1.ConversationStatus_BLOCKED,
@@ -308,7 +312,7 @@ func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
 	case chat1.ConversationMembersType_TEAM:
 		// include if this is a simple team or we are currently viewing the
 		// conv.
-		return conv.GetTopicType() != chat1.TopicType_CHAT ||
+		return conv.GetTopicType() == chat1.TopicType_KBFSFILEEDIT ||
 			conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
 			conv.GetConvID().Eq(s.GetSelectedConversation())
 	default:
@@ -521,10 +525,6 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				}
 				queuedConvs++
 			} else {
-				// Only do this for chat convs
-				if conv.GetTopicType() != chat1.TopicType_CHAT {
-					continue
-				}
 				// If we set maxConvs, then check it now
 				if maxConvs > 0 && (queuedConvs >= maxConvs || !s.shouldUnboxSyncConv(conv)) {
 					continue
