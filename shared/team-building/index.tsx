@@ -136,11 +136,75 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     this.props.fetchUserRecs()
   }
 
+  _listBody = () => {
+    const showRecPending = !this.props.searchString && !this.props.recommendations
+    const showLoading = !!this.props.searchString && !this.props.searchResults
+    if (showRecPending || showLoading) {
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
+          <Kb.Icon style={Kb.iconCastPlatformStyles(styles.loadingIcon)} type="icon-progress-grey-animated" />
+          <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+        </Kb.Box2>
+      )
+    }
+    if (!this.props.showRecs && !this.props.showServiceResultCount && !!this.props.selectedService) {
+      return (
+        <Kb.Box2
+          alignSelf="center"
+          centerChildren={true}
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          gap="tiny"
+          style={styles.emptyContainer}
+        >
+          <Kb.Icon
+            fontSize={Styles.isMobile ? 48 : 64}
+            type={serviceIdToIconFont(this.props.selectedService)}
+            style={Styles.collapseStyles([
+              !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
+            ])}
+          />
+          <Kb.Text center={true} type="BodyBig">
+            Enter a {serviceIdToLabel(this.props.selectedService)} username above.
+          </Kb.Text>
+          <Kb.Text center={true} type="BodySmall">
+            Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
+            don’t have a Keybase account.
+          </Kb.Text>
+        </Kb.Box2>
+      )
+    }
+    return (
+      <Kb.List
+        items={this.props.showRecs ? this.props.recommendations || [] : this.props.searchResults || []}
+        selectedIndex={this.props.highlightedIndex || 0}
+        style={styles.list}
+        contentContainerStyle={styles.listContentContainer}
+        keyProperty={'key'}
+        onEndReached={this.props.onSearchForMore}
+        renderItem={(index, result) => (
+          <UserResult
+            resultForService={this.props.selectedService}
+            fixedHeight={400}
+            username={result.username}
+            prettyName={result.prettyName}
+            displayLabel={result.displayLabel}
+            services={result.services}
+            inTeam={result.inTeam}
+            isPreExistingTeamMember={result.isPreExistingTeamMember}
+            followingState={result.followingState}
+            highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+            onAdd={() => this.props.onAdd(result.userId)}
+            onRemove={() => this.props.onRemove(result.userId)}
+          />
+        )}
+      />
+    )
+  }
+
   render = () => {
     const props = this.props
-    const showRecPending = !props.searchString && !props.recommendations
-    const showLoading = !!props.searchString && !props.searchResults
-    const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? (
@@ -194,65 +258,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {showRecPending || showLoading ? (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
-            <Kb.Icon
-              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
-              type="icon-progress-grey-animated"
-            />
-            <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
-          </Kb.Box2>
-        ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
-          <Kb.Box2
-            alignSelf="center"
-            centerChildren={true}
-            direction="vertical"
-            fullHeight={true}
-            fullWidth={true}
-            gap="tiny"
-            style={styles.emptyContainer}
-          >
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 48 : 64}
-              type={serviceIdToIconFont(props.selectedService)}
-              style={Styles.collapseStyles([
-                !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
-              ])}
-            />
-            <Kb.Text center={true} type="BodyBig">
-              Enter a {serviceIdToLabel(props.selectedService)} username above.
-            </Kb.Text>
-            <Kb.Text center={true} type="BodySmall">
-              Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
-              don’t have a Keybase account.
-            </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.List
-            items={showRecs ? props.recommendations || [] : props.searchResults || []}
-            selectedIndex={props.highlightedIndex || 0}
-            style={styles.list}
-            contentContainerStyle={styles.listContentContainer}
-            keyProperty={'key'}
-            onEndReached={props.onSearchForMore}
-            renderItem={(index, result) => (
-              <UserResult
-                resultForService={props.selectedService}
-                fixedHeight={400}
-                username={result.username}
-                prettyName={result.prettyName}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                followingState={result.followingState}
-                highlight={!Styles.isMobile && index === props.highlightedIndex}
-                onAdd={() => props.onAdd(result.userId)}
-                onRemove={() => props.onRemove(result.userId)}
-              />
-            )}
-          />
-        )}
+        {this._listBody()}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
             <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
