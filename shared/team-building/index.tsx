@@ -22,6 +22,12 @@ type SearchResult = {
   followingState: FollowingState
 }
 
+export type SearchRecSection = {
+  label: string
+  shortcut: boolean
+  data: Array<SearchResult>
+}
+
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
   sendNotification: boolean
@@ -42,7 +48,7 @@ type ContactProps = {
   onLoadContactsSetting: () => void
 }
 
-type Props = ContactProps & {
+export type Props = ContactProps & {
   fetchUserRecs: () => void
   highlightedIndex: number | null
   onAdd: (userId: string) => void
@@ -56,7 +62,7 @@ type Props = ContactProps & {
   onRemove: (userId: string) => void
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
-  recommendations: Array<SearchResult> | null
+  recommendations: Array<SearchRecSection> | null
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -175,9 +181,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         </Kb.Box2>
       )
     }
+    if (this.props.showRecs) {
+      // TODO sectionlist
+      return <Kb.Text type="HeaderBig">Hey</Kb.Text>
+    }
     return (
       <Kb.List
-        items={this.props.showRecs ? this.props.recommendations || [] : this.props.searchResults || []}
+        items={this.props.searchResults || []}
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}

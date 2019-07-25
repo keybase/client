@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding, {RolePickerProps} from '.'
+import TeamBuilding, {RolePickerProps, SearchRecSection} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -60,6 +60,7 @@ const deriveSearchResults = memoize(
   ) =>
     searchResults &&
     searchResults.map(info => ({
+      contact: !!info.contact,
       displayLabel: info.label || '',
       followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
@@ -298,6 +299,59 @@ const deriveRolePickerArrowKeyFns = memoize(
   })
 )
 
+const alphabet = 'abcdefghijklmnopqrstuvwxyz'
+const isAlpha = (letter: string) => alphabet.includes(letter)
+const letterToAlphaIndex = (letter: string) => alphabet.indexOf(letter)
+
+// Returns array with 28 entries
+// 0 - "Recommendations" section
+// 1-26 - a-z sections
+// 27 - 0-9 section
+const sortAndSplitRecommendations = memoize(
+  (results: Unpacked<typeof deriveSearchResults>): Array<SearchRecSection> | null => {
+    if (!results) return results
+
+    const sections: Array<SearchRecSection> = [
+      {
+        data: [],
+        label: 'Recommendations',
+        shortcut: false,
+      },
+    ]
+    results.forEach(rec => {
+      if (!rec.contact) {
+        sections[0].data.push(rec)
+        return
+      }
+      const letter = (rec.prettyName || rec.displayLabel || '')[0].toLowerCase()
+      if (isAlpha(letter)) {
+        // offset 1 to skip recommendations
+        const index = letterToAlphaIndex(letter) + 1
+        if (!sections[index]) {
+          sections[index] = {
+            data: [],
+            label: letter,
+            shortcut: true,
+          }
+        }
+        sections[index].data.push(rec)
+      } else if (!letter) {
+        // skip
+      } else {
+        if (!sections[27]) {
+          sections[27] = {
+            data: [],
+            label: '0-9',
+            shortcut: true,
+          }
+        }
+        sections[27].data.push(rec)
+      }
+    })
+    return sections
+  }
+)
+
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
@@ -433,7 +487,7 @@ const mergeProps = (
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
-    recommendations,
+    recommendations: sortAndSplitRecommendations(recommendations),
     rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,
