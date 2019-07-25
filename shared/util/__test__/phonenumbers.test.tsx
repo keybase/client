@@ -11,12 +11,17 @@ describe('validateNumber', () => {
     expect(validateNumber('+12015551112', null)).toEqual({e164: '+12015551112', valid: true})
     expect(validateNumber('+12015551113', 'US')).toEqual({e164: '+12015551113', valid: true})
     expect(validateNumber('2015551113', 'US')).toEqual({e164: '+12015551113', valid: true})
+
+    expect(validateNumber('201 555 1113', 'US')).toEqual({e164: '+12015551113', valid: true})
+    expect(validateNumber('+1 201 555 1113', 'US')).toEqual({e164: '+12015551113', valid: true})
   })
 
   it('valid PL number', () => {
     expect(validateNumber('+48784123123', null)).toEqual({e164: '+48784123123', valid: true})
     expect(validateNumber('+48784123123', 'PL')).toEqual({e164: '+48784123123', valid: true})
     expect(validateNumber('784123123', 'PL')).toEqual({e164: '+48784123123', valid: true})
+
+    expect(validateNumber('784 123 123', 'PL')).toEqual({e164: '+48784123123', valid: true})
   })
 
   it('e164 from outer region', () => {
