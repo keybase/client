@@ -1146,4 +1146,8 @@ protocol local {
     string topicType;
     string topicName;
   }
+
+  record ChatMessage {
+    string body;
+  }
 }

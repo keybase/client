@@ -5375,6 +5375,16 @@ func (o ChatChannel) DeepCopy() ChatChannel {
 	}
 }
 
+type ChatMessage struct {
+	Body string `codec:"body" json:"body"`
+}
+
+func (o ChatMessage) DeepCopy() ChatMessage {
+	return ChatMessage{
+		Body: o.Body,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

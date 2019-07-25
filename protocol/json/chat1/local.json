@@ -3375,6 +3375,16 @@
           "name": "topicName"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMessage",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body"
+        }
+      ]
     }
   ],
   "messages": {
