@@ -3,17 +3,28 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {Props} from '.'
 
-const onMute = (onMuteConversation: () => void, ref) => {
+let curSwipeRef: React.MutableRefObject<Kb.Swipeable> | null = null
+
+const onMute = (onMuteConversation: () => void, ref: React.MutableRefObject<Kb.Swipeable>) => {
   ref.current && ref.current.close()
+  curSwipeRef = null
   onMuteConversation()
 }
 
-const onHide = (onHideConversation: () => void, ref) => {
+const onHide = (onHideConversation: () => void, ref: React.MutableRefObject<Kb.Swipeable>) => {
   ref.current && ref.current.close()
+  curSwipeRef = null
   onHideConversation()
 }
 
-const renderRightAction = (text, color, icon, x, handler, progress) => {
+const renderRightAction = (
+  text: string,
+  color: Styles.Color,
+  icon: React.ReactNode,
+  x: number,
+  handler: () => void,
+  progress: Kb.NativeAnimated.Interpolation
+) => {
   const trans = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [x, 0],
@@ -30,7 +41,11 @@ const renderRightAction = (text, color, icon, x, handler, progress) => {
   )
 }
 
-const renderRightActions = (props: Props, ref, progress) => {
+const renderRightActions = (
+  props: Props,
+  ref: React.MutableRefObject<Kb.Swipeable>,
+  progress: Kb.NativeAnimated.Interpolation
+) => {
   return (
     <Kb.NativeView style={{flexDirection: 'row', width: 128}}>
       {renderRightAction(
@@ -53,12 +68,22 @@ const renderRightActions = (props: Props, ref, progress) => {
   )
 }
 
+const onOpen = ref => {
+  if (curSwipeRef && curSwipeRef.current) {
+    curSwipeRef.current.close()
+  }
+  curSwipeRef = ref
+}
+
 const ConvActions = (props: Props) => {
   const swiperef = React.useRef<Kb.Swipeable>()
   return (
     <Kb.Swipeable
       ref={swiperef}
-      renderRightActions={progress => renderRightActions(props, swiperef, progress)}
+      renderRightActions={(progress: Kb.NativeAnimated.Interpolation) =>
+        renderRightActions(props, swiperef, progress)
+      }
+      onSwipeableWillOpen={() => onOpen(swiperef)}
       friction={2}
       leftThreshold={30}
       rightThreshold={40}
