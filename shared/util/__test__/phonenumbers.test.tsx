@@ -24,6 +24,7 @@ describe('validateNumber', () => {
     // are in, provided they use full E164 format with country code.
     expect(validateNumber('+48784123123', null)).toEqual({e164: '+48784123123', valid: true})
     expect(validateNumber('+48784123123', 'US')).toEqual({e164: '+48784123123', valid: true})
+    expect(validateNumber('+12015551113', 'PL')).toEqual({e164: '+12015551113', valid: true})
   })
 
   it('formats phone numbers correctly', () => {
