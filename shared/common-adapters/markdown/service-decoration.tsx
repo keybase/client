@@ -16,8 +16,8 @@ import {StyleOverride} from '.'
 
 type KeybaseLinkProps = {
   link: string
-  styleOverride: StyleOverride
-  styles: {[K in string]: StylesTextCrossPlatform}
+  linkStyle: StylesTextCrossPlatform | undefined
+  wrapStyle: StylesTextCrossPlatform | undefined
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
@@ -28,7 +28,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
     <Text
       className="hover-underline"
       type="BodyPrimaryLink"
-      style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
+      style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
       title={props.link}
       onClick={onClick}
     >
@@ -100,7 +100,7 @@ const ServiceDecoration = (props: Props) => {
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link && parsed.link) {
     const link = parsed.link.display
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
-      <KeybaseLink link={link} styles={props.styles} styleOverride={props.styleOverride} />
+      <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : (
       <Text
         className="hover-underline"
