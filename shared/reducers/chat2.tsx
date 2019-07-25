@@ -411,7 +411,9 @@ const rootReducer = (
 ): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
-      return initialState
+      return initialState.merge({
+        staticConfig: state.staticConfig,
+      })
     case Chat2Gen.setInboxShowIsNew:
       return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
