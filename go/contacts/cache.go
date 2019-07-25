@@ -164,18 +164,18 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 
 	// Map of keys of new unresolved cache entries, to set ExpireAt value after
 	// we do parent provider LookupAll call.
-	newUnresolvedEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
+	newCacheEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
 
 	for _, email := range emails {
 		key := makeEmailLookupKey(email)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
-			// Store result even if stale, but may be overwritten by API query later
+			// Store result even if stale, but may be overwritten by API query later.
 			res.Results[key] = cache.ContactLookupResult
 		}
 		if !found || stale {
 			remainingEmails = append(remainingEmails, email)
-			newUnresolvedEntries = append(newUnresolvedEntries, key)
+			newCacheEntries = append(newCacheEntries, key)
 		}
 	}
 
@@ -183,11 +183,12 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 		key := makePhoneLookupKey(number)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
+			// Store result even if stale, but may be overwritten by API query later.
 			res.Results[key] = cache.ContactLookupResult
 		}
 		if !found || stale {
 			remainingNumbers = append(remainingNumbers, number)
-			newUnresolvedEntries = append(newUnresolvedEntries, key)
+			newCacheEntries = append(newCacheEntries, key)
 		}
 	}
 
@@ -205,7 +206,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 			// Loop through entries that we asked for and find these we did not get
 			// resolutions for. Set ExpiresAt now that we know UnresolvedFreshness.
 			unresolvedExpiresAt := now.Add(apiRes.UnresolvedFreshness)
-			for _, key := range newUnresolvedEntries {
+			for _, key := range newCacheEntries {
 				val := conCache.Lookups[key]
 				if !val.Resolved {
 					val.ExpiresAt = unresolvedExpiresAt
