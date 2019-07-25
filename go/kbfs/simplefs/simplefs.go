@@ -145,6 +145,8 @@ type subscriptionNotifier struct {
 	config libkbfs.Config
 }
 
+var _ libkbfs.SubscriptionNotifier = subscriptionNotifier{}
+
 // OnNonPathChange implements the libkbfs.SubscriptionNotifier interface.
 func (s subscriptionNotifier) OnPathChange(
 	subscriptionID libkbfs.SubscriptionID,
