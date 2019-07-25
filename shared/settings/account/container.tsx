@@ -34,7 +34,6 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
-  onManageContacts: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsManageContacts']})),
   onReload: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassword())
@@ -61,7 +60,7 @@ export default connect(
       stateProps._supersededPhoneNumberKey &&
       dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
     supersededPhoneNumber: stateProps.supersededPhoneNumber,
-    title: 'Account',
+    title: 'Your account',
     waiting: stateProps.waiting,
   })
 )(AccountSettings)

@@ -45,7 +45,7 @@ type CachedUPAKLoader struct {
 	Contextified
 	sync.Mutex
 	cache          *lru.Cache
-	locktab        LockTable
+	locktab        *LockTable
 	Freshness      time.Duration
 	noCache        bool
 	TestDeadlocker func()
@@ -63,6 +63,7 @@ func NewCachedUPAKLoader(g *GlobalContext, f time.Duration) *CachedUPAKLoader {
 		Freshness:    f,
 		cache:        c,
 		noCache:      false,
+		locktab:      NewLockTable(),
 	}
 }
 
@@ -417,7 +418,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		var sigHints *SigHints
 		var leaf *MerkleUserLeaf
 
-		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true)
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true, arg.ToMerkleOpts())
 		if err != nil {
 			return nil, nil, err
 		}

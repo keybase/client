@@ -54,6 +54,7 @@ type tlfJournalConfig interface {
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 	syncedTlfGetterSetter
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -104,9 +105,6 @@ const (
 	// unsquashed MD bytes in the journal that will trigger an
 	// automatic branch conversion (and subsequent resolution).
 	ForcedBranchSquashBytesThresholdDefault = uint64(25 << 20) // 25 MB
-	// Maximum number of blocks to delete from the local saved block
-	// journal at a time while holding the lock.
-	maxSavedBlockRemovalsAtATime = uint64(500)
 	// How often to check the server for conflicts while flushing.
 	tlfJournalServerMDCheckInterval = 1 * time.Minute
 
@@ -1097,6 +1095,7 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
+	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
 	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
@@ -2180,6 +2179,7 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
+	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,

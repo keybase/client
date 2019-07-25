@@ -78,7 +78,10 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 
   // TODO: Drop this `if` once Y2K-180 is done.
   if (!props.primary) {
-    menuItems.push('Divider', {
+    if (menuItems.length > 0) {
+      menuItems.push('Divider')
+    }
+    menuItems.push({
       danger: true,
       onClick: props.onDelete,
       title: 'Delete',
@@ -182,10 +185,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    onDelete: () =>
+    _onDelete: (address: string, discoverable: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {address: ownProps.contactKey, type: 'email'}, selected: 'settingsDeleteAddress'}],
+          path: [
+            {
+              props: {
+                address,
+                discoverable,
+                type: 'email',
+              },
+              selected: 'settingsDeleteAddress',
+            },
+          ],
         })
       ),
     onMakePrimary: () =>
@@ -193,16 +205,25 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
+    _onDelete: (address: string, discoverable: boolean) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                address,
+                discoverable,
+                type: 'phone',
+              },
+              selected: 'settingsDeleteAddress',
+            },
+          ],
+        })
+      ),
     _onVerify: phoneNumber => {
       dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
-    onDelete: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {address: ownProps.contactKey, type: 'phone'}, selected: 'settingsDeleteAddress'}],
-        })
-      ),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
@@ -212,12 +233,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps._phoneRow) {
       const pr = stateProps._phoneRow
       return {
         address: pr.displayNumber,
-        onDelete: dispatchProps.phone.onDelete,
+        onDelete: () => dispatchProps.phone._onDelete(ownProps.contactKey, pr.searchable),
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
         onVerify: () => dispatchProps.phone._onVerify(pr.e164),
@@ -232,7 +253,10 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
+        onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
+        onVerify: dispatchProps.email.onVerify,
         primary: stateProps._emailRow.isPrimary,
         searchable,
         type: 'email' as const,

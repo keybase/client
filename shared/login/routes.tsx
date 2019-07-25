@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
+import {ProxySettingsPopup} from '../settings/proxy'
 
 type OwnProps = Container.RouteProps
 
@@ -38,4 +39,8 @@ export const newRoutes = {
   ...require('../provision/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  proxySettingsModal: {
+    getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+  },
+}

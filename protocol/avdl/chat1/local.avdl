@@ -108,7 +108,7 @@ protocol local {
     array<string> admins;
     array<string> writers;
     array<string> readers;
-    array<string> bots;
+    array<string> restrictedBots;
   }
 
   record MessageSystemInviteAddedToTeam {
@@ -1108,7 +1108,7 @@ protocol local {
     string usage;
     @jsonkey("extended_description")
     union { null, UserBotExtendedDescription } extendedDescription;
-    string username; 
+    string username;
   }
   record UserBotCommandInput {
     string name;
@@ -1121,11 +1121,11 @@ protocol local {
     BotCommandsAdvertisementTyp typ;
     array<UserBotCommandInput> commands;
     union { null, string } teamName;
-  }  
+  }
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
-  AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias, 
+  AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias,
     array<AdvertiseCommandsParam> advertisements);
   record ListBotCommandsLocalRes {
     array<UserBotCommandOutput> commands;

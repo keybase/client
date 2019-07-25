@@ -48,7 +48,7 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 		return res, NewDecryptionKeyNotFoundError(int(generation), kbfsEncrypted, public)
 	}
 
-	appKey, err := team.ApplicationKeyAtGeneration(mctx.Ctx(), keybase1.TeamApplication_CHAT, generation)
+	appKey, err := team.ChatKeyAtGeneration(mctx.Ctx(), generation)
 	if err != nil {
 		return res, err
 	}

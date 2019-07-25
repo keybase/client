@@ -31,7 +31,11 @@ func (m *mounter) Mount() (err error) {
 		// Sleep two times 800ms, 1.6s, 3.2s, ...
 		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 		if m.options.ForceMount {
-			dokan.Unmount(m.options.DokanConfig.Path)
+			err = dokan.Unmount(m.options.DokanConfig.Path)
+			if err != nil {
+				m.log.Errorf("Failed to unmount dokan filesystem (i=%d): %v",
+					i, err)
+			}
 			time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 		}
 	}

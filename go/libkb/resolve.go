@@ -522,7 +522,7 @@ type ResolveCacheStats struct {
 type ResolverImpl struct {
 	cache   *ramcache.Ramcache
 	Stats   *ResolveCacheStats
-	locktab LockTable
+	locktab *LockTable
 }
 
 func (s *ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
@@ -593,8 +593,9 @@ func (s *ResolveCacheStats) IncDiskPuts() {
 
 func NewResolverImpl() *ResolverImpl {
 	return &ResolverImpl{
-		cache: nil,
-		Stats: &ResolveCacheStats{},
+		cache:   nil,
+		locktab: NewLockTable(),
+		Stats:   &ResolveCacheStats{},
 	}
 }
 

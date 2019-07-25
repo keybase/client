@@ -69,6 +69,7 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "importContactsLater": {},
     "setContactImportedCount": {
       "count": "number | null"
     },

@@ -255,10 +255,10 @@ func TestAcquirePanic(t *testing.T) {
 	s := NewSemaphore()
 	ctx := context.Background()
 	require.Panics(t, func() {
-		s.Acquire(ctx, 0)
+		_, _ = s.Acquire(ctx, 0)
 	})
 	require.Panics(t, func() {
-		s.Acquire(ctx, -1)
+		_, _ = s.Acquire(ctx, -1)
 	})
 }
 

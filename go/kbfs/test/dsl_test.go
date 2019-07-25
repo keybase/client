@@ -842,14 +842,6 @@ func disableUpdates() fileOp {
 	}, IsInit, "disableUpdates()"}
 }
 
-func stallDelegateOnMDPut() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDPut, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDPut()"}
-}
-
 func stallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
@@ -865,26 +857,11 @@ func waitForStalledMDPut() fileOp {
 	}, IsInit, "waitForStalledMDPut()"}
 }
 
-func unstallOneMDPut() fileOp {
-	return fileOp{func(c *ctx) error {
-		c.staller.UnstallOneMDOp(libkbfs.StallableMDPut)
-		return nil
-	}, IsInit, "unstallOneMDPut()"}
-}
-
 func undoStallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDPut)
 		return nil
 	}, IsInit, "undoStallOnMDPut()"}
-}
-
-func stallDelegateOnMDGetForTLF() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDGetForTLF()"}
 }
 
 func stallOnMDGetForTLF() fileOp {
@@ -916,14 +893,6 @@ func undoStallOnMDGetForTLF() fileOp {
 	}, IsInit, "undoStallOnMDGetForTLF()"}
 }
 
-func stallDelegateOnMDGetRange() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDGetRange()"}
-}
-
 func stallOnMDGetRange() fileOp {
 	return fileOp{func(c *ctx) error {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
@@ -951,14 +920,6 @@ func undoStallOnMDGetRange() fileOp {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDGetRange)
 		return nil
 	}, IsInit, "undoStallOnMDGetRange()"}
-}
-
-func stallDelegateOnMDResolveBranch() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDResolveBranch()"}
 }
 
 func stallOnMDResolveBranch() fileOp {
@@ -1144,12 +1105,6 @@ func checkDirtyPaths(expectedPaths []string) fileOp {
 		}
 		return nil
 	}, IsInit, fmt.Sprintf("checkDirtyPaths(%s)", expectedPaths)}
-}
-
-func disablePrefetch() fileOp {
-	return fileOp{func(c *ctx) error {
-		return c.engine.TogglePrefetch(c.user, false)
-	}, IsInit, "disablePrefetch()"}
 }
 
 func forceConflict() fileOp {

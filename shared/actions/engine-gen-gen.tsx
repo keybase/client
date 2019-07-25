@@ -132,6 +132,8 @@ export const keybase1NotifyFSFSOnlineStatusChanged = 'engine-gen:keybase1NotifyF
 export const keybase1NotifyFSFSOverallSyncStatusChanged =
   'engine-gen:keybase1NotifyFSFSOverallSyncStatusChanged'
 export const keybase1NotifyFSFSPathUpdated = 'engine-gen:keybase1NotifyFSFSPathUpdated'
+export const keybase1NotifyFSFSSubscriptionNotify = 'engine-gen:keybase1NotifyFSFSSubscriptionNotify'
+export const keybase1NotifyFSFSSubscriptionNotifyPath = 'engine-gen:keybase1NotifyFSFSSubscriptionNotifyPath'
 export const keybase1NotifyFSFSSyncActivity = 'engine-gen:keybase1NotifyFSFSSyncActivity'
 export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
 export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1NotifyFavoritesFavoritesChanged'
@@ -1119,6 +1121,26 @@ type _Keybase1NotifyFSFSOverallSyncStatusChangedPayload = {
 type _Keybase1NotifyFSFSPathUpdatedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSPathUpdated']['inParam'] & {
     sessionID: number
+  }
+}
+type _Keybase1NotifyFSFSSubscriptionNotifyPathPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyFSFSSubscriptionNotifyPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['outParam']) => void
   }
 }
 type _Keybase1NotifyFSFSSyncActivityPayload = {
@@ -2135,6 +2157,15 @@ export const createKeybase1NotifyFSFSOverallSyncStatusChanged = (
 export const createKeybase1NotifyFSFSPathUpdated = (
   payload: _Keybase1NotifyFSFSPathUpdatedPayload
 ): Keybase1NotifyFSFSPathUpdatedPayload => ({payload, type: keybase1NotifyFSFSPathUpdated})
+export const createKeybase1NotifyFSFSSubscriptionNotify = (
+  payload: _Keybase1NotifyFSFSSubscriptionNotifyPayload
+): Keybase1NotifyFSFSSubscriptionNotifyPayload => ({payload, type: keybase1NotifyFSFSSubscriptionNotify})
+export const createKeybase1NotifyFSFSSubscriptionNotifyPath = (
+  payload: _Keybase1NotifyFSFSSubscriptionNotifyPathPayload
+): Keybase1NotifyFSFSSubscriptionNotifyPathPayload => ({
+  payload,
+  type: keybase1NotifyFSFSSubscriptionNotifyPath,
+})
 export const createKeybase1NotifyFSFSSyncActivity = (
   payload: _Keybase1NotifyFSFSSyncActivityPayload
 ): Keybase1NotifyFSFSSyncActivityPayload => ({payload, type: keybase1NotifyFSFSSyncActivity})
@@ -2858,6 +2889,14 @@ export type Keybase1NotifyFSFSPathUpdatedPayload = {
   readonly payload: _Keybase1NotifyFSFSPathUpdatedPayload
   readonly type: typeof keybase1NotifyFSFSPathUpdated
 }
+export type Keybase1NotifyFSFSSubscriptionNotifyPathPayload = {
+  readonly payload: _Keybase1NotifyFSFSSubscriptionNotifyPathPayload
+  readonly type: typeof keybase1NotifyFSFSSubscriptionNotifyPath
+}
+export type Keybase1NotifyFSFSSubscriptionNotifyPayload = {
+  readonly payload: _Keybase1NotifyFSFSSubscriptionNotifyPayload
+  readonly type: typeof keybase1NotifyFSFSSubscriptionNotify
+}
 export type Keybase1NotifyFSFSSyncActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSSyncActivityPayload
   readonly type: typeof keybase1NotifyFSFSSyncActivity
@@ -3269,6 +3308,8 @@ export type Actions =
   | Keybase1NotifyFSFSOnlineStatusChangedPayload
   | Keybase1NotifyFSFSOverallSyncStatusChangedPayload
   | Keybase1NotifyFSFSPathUpdatedPayload
+  | Keybase1NotifyFSFSSubscriptionNotifyPathPayload
+  | Keybase1NotifyFSFSSubscriptionNotifyPayload
   | Keybase1NotifyFSFSSyncActivityPayload
   | Keybase1NotifyFSFSSyncStatusResponsePayload
   | Keybase1NotifyFavoritesFavoritesChangedPayload

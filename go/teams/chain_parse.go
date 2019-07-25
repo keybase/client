@@ -48,12 +48,12 @@ type SCTeamSection struct {
 }
 
 type SCTeamMembers struct {
-	Owners  *[]SCTeamMember `json:"owner,omitempty"`
-	Admins  *[]SCTeamMember `json:"admin,omitempty"`
-	Writers *[]SCTeamMember `json:"writer,omitempty"`
-	Readers *[]SCTeamMember `json:"reader,omitempty"`
-	Bots    *[]SCTeamMember `json:"bot,omitempty"`
-	None    *[]SCTeamMember `json:"none,omitempty"`
+	Owners         *[]SCTeamMember `json:"owner,omitempty"`
+	Admins         *[]SCTeamMember `json:"admin,omitempty"`
+	Writers        *[]SCTeamMember `json:"writer,omitempty"`
+	Readers        *[]SCTeamMember `json:"reader,omitempty"`
+	RestrictedBots *[]SCTeamMember `json:"restricted_bot,omitempty"`
+	None           *[]SCTeamMember `json:"none,omitempty"`
 }
 
 type SCTeamInvites struct {

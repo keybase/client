@@ -134,7 +134,10 @@ func TestDelayedCancellationEnabled(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := makeContextWithDelayedCancellation(t)
-	EnableDelayedCancellationWithGracePeriod(ctx, 50*time.Millisecond)
+	err := EnableDelayedCancellationWithGracePeriod(ctx, 50*time.Millisecond)
+	if err != nil {
+		t.Fatalf("EnableDelayedCancellationWithGracePeriod failed: %v", err)
+	}
 
 	cancel()
 

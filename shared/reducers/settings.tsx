@@ -201,6 +201,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
     case SettingsGen.setContactImportedCount:
       return state.update('contacts', contacts => contacts.set('importedCount', action.payload.count))
+    case SettingsGen.importContactsLater:
+      return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)

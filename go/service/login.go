@@ -182,6 +182,13 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 	return engine.RunEngine2(m, eng)
 }
 
+func (h *LoginHandler) IsOnline(ctx context.Context) (bool, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	_, err := h.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
+	return err == nil, nil
+}
+
 func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {
 	uis := libkb.UIs{
 		LogUI:       h.getLogUI(arg.SessionID),

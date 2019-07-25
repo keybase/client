@@ -629,7 +629,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 // `generation` is also the current maxGeneration, create a new teamEK.
 func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
-	mctx = mctx.WithLogTag("GOCLTEK")
+	mctx = mctx.WithLogTag("GLTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
 	if err = e.checkLogin(mctx); err != nil {

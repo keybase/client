@@ -15,6 +15,7 @@ const native = {
   equivBalance: '$54.14 USD',
   infoUrl: '',
   infoUrlText: '',
+  isNative: true,
   issuerAccountID: '',
   issuerName: 'Stellar network',
   name: 'Lumens',
@@ -34,6 +35,7 @@ const keyz = {
   infoUrl:
     'https://stellar.expert/explorer/public/asset/KEYZ-GDVDSIDVX63LKSUFTO5NQ3YHPDDAYUSEPOJLFXVWCVCLEKMOERGHZ7DR',
   infoUrlText: 'View details',
+  isNative: false,
   issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   issuerName: 'keybase.io',
   name: 'KEYZ',
@@ -50,6 +52,7 @@ const btc = {
   equivBalance: '',
   infoUrl: 'https://www.stellarx.com/markets/BTC:GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH',
   infoUrlText: 'Exchange',
+  isNative: false,
   issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   issuerName: 'FarcicalBTCAnchor.eg',
   name: 'BTC',
@@ -67,6 +70,7 @@ const btexcadv = {
   infoUrl:
     'https://stellar.expert/explorer/public/asset/KEYZ-GDVDSIDVX63LKSUFTO5NQ3YHPDDAYUSEPOJLFXVWCVCLEKMOERGHZ7DR',
   infoUrlText: 'View details',
+  isNative: false,
   issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   issuerName: 'Unknown',
   name: 'BTEXCADV',

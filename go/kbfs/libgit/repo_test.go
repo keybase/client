@@ -94,7 +94,8 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo(4)", "")
 	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 
-	fs.SyncAll()
+	err = fs.SyncAll()
+	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, data.MasterBranch)

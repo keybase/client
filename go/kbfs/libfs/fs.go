@@ -66,7 +66,7 @@ type fsInner struct {
 	// this is a naive append without and path clean.
 	lockNamespace []byte
 
-	eventsLock sync.RWMutex
+	eventsLock sync.RWMutex // nolint
 	events     map[chan<- FSEvent]bool
 }
 

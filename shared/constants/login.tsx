@@ -11,5 +11,6 @@ export const makeState = I.Record<Types._State>({
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
+  isOnline: null,
   registerUserPassLoading: false,
 })

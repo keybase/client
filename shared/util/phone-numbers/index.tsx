@@ -121,11 +121,14 @@ export const formatPhoneNumber = (rawNumber: string) => {
   return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
 }
 
-// Return phone number in international format, e.g. +1 (800) 555 0123
+// Return phone number in international format, e.g. +1 800 555 0123
 // or e.164 if parsing fails
 export const e164ToDisplay = (e164: string): string => {
   try {
     const number = phoneUtil.parse(e164)
+    if (number.getCountryCode() === 1) {
+      return '+1 ' + phoneUtil.format(number, PNF.NATIONAL)
+    }
     return phoneUtil.format(number, PNF.INTERNATIONAL)
   } catch (e) {
     return e164
@@ -133,3 +136,12 @@ export const e164ToDisplay = (e164: string): string => {
 }
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
+
+export const formatPhoneNumberInternational = (rawNumber: string): string | undefined => {
+  try {
+    const number = phoneUtil.parse(rawNumber)
+    return phoneUtil.format(number, PNF.INTERNATIONAL)
+  } catch {
+    return undefined
+  }
+}

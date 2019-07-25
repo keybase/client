@@ -264,10 +264,6 @@ func (oc *openContext) returnFileNoCleanup(f dokan.File) (
 	return f, dokan.ExistingFile, nil
 }
 
-func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
-}
-
 func newSyntheticOpenContext() *openContext {
 	var oc openContext
 	oc.CreateData = &dokan.CreateData{}

@@ -120,7 +120,7 @@ func (no *NodeObfuscator) obfuscateWithHasher(
 
 func (no *NodeObfuscator) defaultHash(plaintext string) []byte {
 	mac := hmac.New(sha256.New, no.secret)
-	mac.Write([]byte(plaintext))
+	_, _ = mac.Write([]byte(plaintext))
 	return mac.Sum(nil)
 }
 

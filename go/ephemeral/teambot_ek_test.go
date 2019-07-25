@@ -32,7 +32,7 @@ func TestNewTeambotEK(t *testing.T) {
 	})
 	require.NoError(t, err)
 	res, err := teams.AddMember(context.TODO(), mctx.G(), team.Name().String(),
-		botua.Username, keybase1.TeamRole_BOT)
+		botua.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 	require.Equal(t, botua.Username, res.User.Username)
 
@@ -40,21 +40,25 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	// Before we've published anything, should get back a nil botkey
-	nilMeta, wrongKID, err := fetchLatestTeambotEK(mctx2, teamID)
-	require.NoError(t, err)
-	require.Nil(t, nilMeta)
-	require.False(t, wrongKID)
-
-	ek, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	ek, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeambotEK(mctx, teamID, botuaUID.ToBytes())
 	require.NoError(t, err)
 	typ, err := ek.KeyType()
 	require.NoError(t, err)
+	require.True(t, typ.IsTeambot())
+
+	metaPtr, wrongKID, err := fetchLatestTeambotEK(mctx2, teamID)
+	require.NoError(t, err)
+	require.NotNil(t, metaPtr)
+	require.False(t, wrongKID)
+	metadata := *metaPtr
+	require.Equal(t, ek.Teambot().Metadata, metadata)
+
+	ek, _, err = mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	require.NoError(t, err)
+	typ, err = ek.KeyType()
+	require.NoError(t, err)
 	require.True(t, typ.IsTeam())
 	teamEK := ek.Team()
-
-	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botuaUID, teamEK, merkleRoot)
-	require.NoError(t, err)
 
 	// bot users don't have access to team secrets so they can't get the teamEK
 	_, _, err = mctx2.G().GetEKLib().GetOrCreateLatestTeamEK(mctx2, teamID)
@@ -64,14 +68,6 @@ func TestNewTeambotEK(t *testing.T) {
 	// either, even if we pass a valid teamEK from the non-bot
 	_, err = publishNewTeambotEK(mctx2, teamID, botuaUID, teamEK, merkleRoot)
 	require.Error(t, err)
-
-	metaPtr, wrongKID, err := fetchLatestTeambotEK(mctx2, teamID)
-	require.NoError(t, err)
-	require.NotNil(t, metaPtr)
-	require.False(t, wrongKID)
-	metadata := *metaPtr
-	require.Equal(t, publishedMetadata, metadata)
-	require.EqualValues(t, 1, metadata.Generation)
 
 	keyer := NewTeambotEphemeralKeyer()
 	teambotEKBoxed, err := keyer.Fetch(mctx2, teamID, metadata.Generation, nil)

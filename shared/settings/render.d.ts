@@ -5,6 +5,7 @@ import {Tab} from '../constants/types/settings'
 export type Props = {
   children: React.ReactNode
   badgeNumbers: {[K in TabConstants.Tab]: number}
+  contactsLabel: string
   logoutInProgress: boolean
   selectedTab: Tab
   onTabChange: (tab: Tab) => void

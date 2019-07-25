@@ -45,6 +45,8 @@ type NotifyListener interface {
 	FSOverallSyncStatusChanged(arg keybase1.FolderSyncStatus)
 	FSFavoritesChanged()
 	FavoritesChanged(uid keybase1.UID)
+	FSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg)
+	FSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity, source chat1.ChatActivitySource)
@@ -126,6 +128,10 @@ func (n *NoopNotifyListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg) 
 func (n *NoopNotifyListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
 func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
 func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
+func (n *NoopNotifyListener) FSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg) {
+}
+func (n *NoopNotifyListener) FSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg) {
+}
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
 func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
@@ -815,6 +821,52 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 		listener.FavoritesChanged(uid)
 	})
 	n.G().Log.Debug("- Sent favorites changed notification")
+}
+
+func (n *NotifyRouter) HandleFSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfssubscription {
+			// In the background do...
+			go func() {
+				// A send of a `FSSyncActivity` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSSubscriptionNotify(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSSubscriptionNotify(arg)
+	})
+}
+
+func (n *NotifyRouter) HandleFSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfssubscription {
+			// In the background do...
+			go func() {
+				// A send of a `FSSyncActivity` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSSubscriptionNotifyPath(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSSubscriptionNotifyPath(arg)
+	})
 }
 
 // HandleDeviceCloneNotification is called when a run of the device clone status update

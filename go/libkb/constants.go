@@ -236,6 +236,7 @@ const (
 	SCRateLimit                                 = int(keybase1.StatusCode_SCRateLimit)
 	SCBadSignupUsernameTaken                    = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                         = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCBadSignupTeamName                         = int(keybase1.StatusCode_SCBadSignupTeamName)
 	SCFeatureFlag                               = int(keybase1.StatusCode_SCFeatureFlag)
 	SCMissingResult                             = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                               = int(keybase1.StatusCode_SCKeyNotFound)

@@ -1196,6 +1196,25 @@ func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
 	return k.kbfsClient.FSFavoritesChangedEvent(ctx)
 }
 
+// OnPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseServiceBase) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+	k.kbfsClient.FSSubscriptionNotifyPathEvent(context.Background(), keybase1.FSSubscriptionNotifyPathEventArg{
+		SubscriptionID: string(subscriptionID),
+		Path:           path,
+		Topic:          topic,
+	})
+}
+
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseServiceBase) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+	k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
+		keybase1.FSSubscriptionNotifyEventArg{
+			SubscriptionID: string(subscriptionID),
+			Topic:          topic,
+		})
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,

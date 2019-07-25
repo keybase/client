@@ -66,7 +66,7 @@ type TeamLoader struct {
 	storage *storage.Storage
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
@@ -88,6 +88,7 @@ func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage
 		world:                world,
 		storage:              storage,
 		nameLookupBurstCache: libkb.NewBurstCache(g, 100, 10*time.Second, "SubteamNameToID"),
+		locktab:              libkb.NewLockTable(),
 	}
 }
 
@@ -307,6 +308,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceRepoll:                           mungedForceRepoll,
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
+		skipAudit:                             lArg.SkipAudit,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -336,7 +338,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// public team you're not in. Bot members don't have any secrets and are
 	// also exempt.
 	if !l.hasSyncedSecrets(mctx, ret.teamShim()) &&
-		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsBot()) {
+		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsRestrictedBot()) {
 		// this should not happen
 		return nil, nil, fmt.Errorf("missing secrets for team")
 	}
@@ -401,6 +403,7 @@ type load2ArgT struct {
 	forceRepoll     bool
 	staleOK         bool
 	public          bool
+	skipAudit       bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -782,7 +785,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			// Bots don't have any team secrets, so we alos short circuit.
-			if !role.IsBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
+			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
@@ -867,7 +870,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ret.LatestSeqnoHint = 0
 
 	tracer.Stage("audit")
-	err = l.audit(ctx, readSubteamID, &ret.Chain)
+	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.skipAudit)
 	if err != nil {
 		return nil, err
 	}
@@ -1842,7 +1845,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, skipAudit bool) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -1855,7 +1858,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, skipAudit)
 	return err
 }
 

@@ -98,11 +98,11 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 	if len(owners) > 0 {
 		members.Owners = &owners
@@ -308,11 +308,11 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	var scSettings *SCTeamSettings
@@ -512,15 +512,15 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	memSet := newMemberSet()
-	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, storeMemberKindRecipient, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -537,10 +537,10 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 			members.Admins = &memList
 		case keybase1.TeamRole_OWNER:
 			return nil, nil, errors.New("Cannot add self as owner to a subteam")
-		case keybase1.TeamRole_BOT:
-			return nil, nil, errors.New("Cannot add self as bot to a subteam")
+		case keybase1.TeamRole_RESTRICTEDBOT:
+			return nil, nil, errors.New("Cannot add self as restricted bot to a subteam")
 		}
-		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
+		memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
 	}
 
 	// These boxes will get posted along with the sig below.

@@ -76,6 +76,11 @@ export function fontSize(type: IconType): {fontSize: number} | null {
   }
 }
 
+export function isValidIconType(inputType: IconType): boolean {
+  let iconType = typeToIconMapper(inputType)
+  return !!iconType && !!iconMeta[iconType]
+}
+
 export function typeToFontSize(sizeType: SizeType) {
   switch (sizeType) {
     case 'Huge':

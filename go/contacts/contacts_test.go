@@ -42,16 +42,17 @@ func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybas
 
 	ret := make(ContactLookupMap)
 	for _, email := range emails {
+
 		if user, found := c.emails[email]; found {
-			ret[fmt.Sprintf("e:%s", string(email))] = ContactLookupResult{UID: user.UID}
+			ret[makeEmailLookupKey(email)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	for _, number := range numbers {
 		if user, found := c.phoneNumbers[number]; found {
-			ret[fmt.Sprintf("p:%s", string(number))] = ContactLookupResult{UID: user.UID}
+			ret[makePhoneLookupKey(number)] = ContactLookupResult{UID: user.UID}
 		}
 		if errStr, found := c.phoneNumberErrors[number]; found {
-			ret[fmt.Sprintf("p:%s", string(number))] = ContactLookupResult{Error: errStr}
+			ret[makePhoneLookupKey(number)] = ContactLookupResult{Error: errStr}
 		}
 	}
 	return ret, nil

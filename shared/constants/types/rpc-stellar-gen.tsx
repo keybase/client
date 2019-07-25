@@ -73,11 +73,11 @@ export type MessageTypes = {
   }
   'stellar.1.local.changeDisplayCurrencyLocal': {
     inParam: {readonly accountID: AccountID; readonly currency: OutsideCurrencyCode}
-    outParam: void
+    outParam: CurrencyLocal
   }
   'stellar.1.local.changeWalletAccountNameLocal': {
     inParam: {readonly accountID: AccountID; readonly newName: String}
-    outParam: void
+    outParam: WalletAccountLocal
   }
   'stellar.1.local.createWalletAccountLocal': {
     inParam: {readonly name: String}
@@ -213,7 +213,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.setWalletAccountAsDefaultLocal': {
     inParam: {readonly accountID: AccountID}
-    outParam: void
+    outParam: Array<WalletAccountLocal> | null
   }
   'stellar.1.local.startBuildPaymentLocal': {
     inParam: void

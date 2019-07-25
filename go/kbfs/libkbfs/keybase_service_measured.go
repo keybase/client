@@ -41,6 +41,8 @@ type KeybaseServiceMeasured struct {
 	notifyTimer                      metrics.Timer
 	notifyPathUpdatedTimer           metrics.Timer
 	putGitMetadataTimer              metrics.Timer
+	onPathChangeTimer                metrics.Timer
+	onChangeTimer                    metrics.Timer
 }
 
 var _ KeybaseService = KeybaseServiceMeasured{}
@@ -73,6 +75,10 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	notifyPathUpdatedTimer := metrics.GetOrRegisterTimer("KeybaseService.NotifyPathUpdated", r)
 	putGitMetadataTimer := metrics.GetOrRegisterTimer(
 		"KeybaseService.PutGitMetadata", r)
+	onPathChangeTimer := metrics.GetOrRegisterTimer(
+		"KeybaseService.OnPathChangeTimer", r)
+	onChangeTimer := metrics.GetOrRegisterTimer(
+		"KeybaseService.OnChangeTimer", r)
 	return KeybaseServiceMeasured{
 		delegate:                         delegate,
 		resolveTimer:                     resolveTimer,
@@ -95,6 +101,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		notifyTimer:                      notifyTimer,
 		notifyPathUpdatedTimer:           notifyPathUpdatedTimer,
 		putGitMetadataTimer:              putGitMetadataTimer,
+		onPathChangeTimer:                onPathChangeTimer,
+		onChangeTimer:                    onChangeTimer,
 	}
 }
 
@@ -365,6 +373,21 @@ func (k KeybaseServiceMeasured) PutGitMetadata(
 		err = k.delegate.PutGitMetadata(ctx, folder, repoID, metadata)
 	})
 	return err
+}
+
+// OnPathChange implements the SubscriptionNotifier interface.
+func (k KeybaseServiceMeasured) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+	k.onPathChangeTimer.Time(func() {
+		k.delegate.OnPathChange(subscriptionID, path, topic)
+	})
+}
+
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k KeybaseServiceMeasured) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+	k.onChangeTimer.Time(func() {
+		k.delegate.OnNonPathChange(subscriptionID, topic)
+	})
 }
 
 // Shutdown implements the KeybaseService interface for

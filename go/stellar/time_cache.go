@@ -13,7 +13,7 @@ import (
 type TimeCache struct {
 	name    string // name for logging
 	maxAge  time.Duration
-	lockTab libkb.LockTable
+	lockTab *libkb.LockTable
 	cache   *lru.Cache
 }
 
@@ -31,9 +31,10 @@ func NewTimeCache(name string, size int, maxAge time.Duration) *TimeCache {
 		panic(err)
 	}
 	return &TimeCache{
-		name:   name,
-		maxAge: maxAge,
-		cache:  cache,
+		name:    name,
+		maxAge:  maxAge,
+		cache:   cache,
+		lockTab: libkb.NewLockTable(),
 	}
 }
 

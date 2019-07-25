@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -15,7 +14,7 @@ type OwnProps = Container.PropsWithSafeNavigation<{
 
 const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const _participants = meta.teamname ? I.Set() : meta.participants
+  const _participants = meta.teamname ? null : meta.participants
   const _contactNames = meta.participantToContactName
 
   return {
@@ -45,7 +44,7 @@ const mapDispatchToProps = (
 })
 
 const isPhoneOrEmail = (props: Props): boolean =>
-  props.participants.length === 1 &&
+  props.participants.length === 2 &&
   props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
 const HeaderBranch = (props: Props) => {
@@ -75,7 +74,7 @@ export default Container.withSafeNavigation(
     onShowProfile: dispatchProps.onShowProfile,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
-    participants: stateProps._participants.toArray(),
+    participants: (stateProps._participants && stateProps._participants.toArray()) || [],
     pendingWaiting: stateProps.pendingWaiting,
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,

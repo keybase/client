@@ -189,9 +189,10 @@
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
-      "accountID": "Types.AccountID",
+      "account": "Types.Account",
       "canError": {
         "name": "string",
+        "account": "Types.Account",
         "error": "string"
       }
     },
@@ -201,7 +202,7 @@
     },
     "didSetAccountAsDefault": {
       "_description": "A response from the service after an account is set as the default",
-      "accountID": "Types.AccountID"
+      "accounts": "Array<Types.Account>"
     },
     "deleteAccount": {
       "_description": "Delete an account",

@@ -17,7 +17,7 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err 
 	if err != nil {
 		return nil, err
 	}
-	leaf, err := lookupMerkleLeaf(m, uid, false, nil)
+	leaf, err := lookupMerkleLeaf(m, uid, false, nil, MerkleOpts{NoServerPolling: false})
 	if err != nil {
 		return nil, err
 	}

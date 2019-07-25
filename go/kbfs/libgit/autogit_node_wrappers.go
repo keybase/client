@@ -82,7 +82,7 @@ func (rfn repoFileNode) GetFile(ctx context.Context) billy.File {
 	_, b, err := rfn.am.GetBrowserForRepo(
 		ctx, rfn.gitRootFS, rfn.repo, rfn.branch, rfn.subdir)
 	if err != nil {
-		rfn.am.log.CDebugf(nil, "Error getting browser: %+v", err)
+		rfn.am.log.CDebugf(ctx, "Error getting browser: %+v", err)
 		return nil
 	}
 
@@ -109,7 +109,7 @@ func (rcn repoCommitNode) GetFile(ctx context.Context) billy.File {
 		ctx, ctxAutogitIDKey, ctxAutogitOpID, rcn.am.log)
 	_, b, err := rcn.am.GetBrowserForRepo(ctx, rcn.gitRootFS, rcn.repo, "", "")
 	if err != nil {
-		rcn.am.log.CDebugf(nil, "Error getting browser: %+v", err)
+		rcn.am.log.CDebugf(ctx, "Error getting browser: %+v", err)
 		return nil
 	}
 
@@ -282,7 +282,7 @@ var _ libkbfs.Node = (*autogitRootNode)(nil)
 
 func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
 	ctx = libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
+		ctx, ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
 	return &wrappedRepoList{arn.fs.WithContext(ctx)}
 }
 
@@ -358,11 +358,11 @@ func (rn *rootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	rn.lock.RLock()
 	defer rn.lock.RUnlock()
 	if rn.fs == nil {
-		rn.am.log.CDebugf(nil, "FS not available on WrapChild")
+		rn.am.log.CDebugf(context.TODO(), "FS not available on WrapChild")
 		return child
 	}
 
-	rn.am.log.CDebugf(nil, "Making autogit root node")
+	rn.am.log.CDebugf(context.TODO(), "Making autogit root node")
 	return &autogitRootNode{
 		Node: &libkbfs.ReadonlyNode{Node: child},
 		am:   rn.am,

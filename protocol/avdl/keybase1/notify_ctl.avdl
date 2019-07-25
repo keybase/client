@@ -10,6 +10,7 @@ protocol notifyCtl {
     boolean kbfs;
     boolean kbfsdesktop;
     boolean kbfslegacy;
+    boolean kbfssubscription;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;

@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as SettingsGen from '../actions/settings-gen'
 import TeamBox from './team-box'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
-import flags from '../util/feature-flags'
+import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
@@ -62,6 +64,72 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
+const ContactsBanner = ({onRedoSearch}: {onRedoSearch: () => void}) => {
+  const dispatch = Container.useDispatch()
+
+  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
+  const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
+  const isImportPromptDismissed = Container.useSelector(s => s.settings.contacts.importPromptDismissed)
+  const numContactsImported = Container.useSelector(s => s.settings.contacts.importedCount)
+  const prevNumContactsImported = Container.usePrevious(numContactsImported)
+  // Although we won't use this if we early exit after subsequent checks, React
+  // won't let us use hooks unless the execution is the same every time.
+  const onImportContacts = React.useCallback(
+    () =>
+      dispatch(
+        arePermissionsGranted !== 'granted'
+          ? SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})
+          : SettingsGen.createEditContactImportEnabled({enable: true})
+      ),
+    [dispatch, arePermissionsGranted]
+  )
+  const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
+  // Redo search if # of imported contacts changes
+  React.useEffect(() => {
+    if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
+      onRedoSearch()
+    }
+  }, [numContactsImported, prevNumContactsImported, onRedoSearch])
+
+  // Ensure that we know whether contacts are loaded, and if not, that we load
+  // the current config setting.
+  if (contactsImported === null) {
+    dispatch(SettingsGen.createLoadContactImportEnabled())
+    return null
+  }
+  // If we've imported contacts already, or the user has dismissed the message,
+  // then there's nothing for us to do.
+  if (contactsImported || isImportPromptDismissed || arePermissionsGranted === 'never_ask_again') return null
+
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
+      <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
+      <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
+        <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
+          Import your phone contacts and start encrypted chats with your friends.
+        </Kb.Text>
+        <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
+          <Kb.Button
+            label="Import contacts"
+            backgroundColor="blue"
+            onClick={onImportContacts}
+            style={styles.bannerImportButton}
+            small={true}
+          />
+          <Kb.Button
+            label="Later"
+            backgroundColor="blue"
+            mode="Secondary"
+            onClick={onLater}
+            style={styles.bannerLaterButton}
+            small={true}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
 class TeamBuilding extends React.PureComponent<Props, {}> {
   componentDidMount = () => {
     this.props.fetchUserRecs()
@@ -103,7 +171,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             rolePickerProps={props.rolePickerProps}
           />
         )}
-        {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
+        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
             <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
@@ -118,6 +186,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
+        {Flags.sbsContacts && Styles.isMobile && (
+          <ContactsBanner onRedoSearch={() => props.onChangeText(props.searchString)} />
+        )}
         {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
@@ -188,6 +259,36 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 }
 
 const styles = Styles.styleSheetCreate({
+  banner: {
+    backgroundColor: Styles.globalColors.blue,
+    padding: Styles.globalMargins.tiny,
+  },
+  bannerButtonContainer: {
+    flexWrap: 'wrap',
+    marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
+  },
+  bannerIcon: {
+    maxHeight: 112,
+  },
+  bannerImportButton: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  bannerLaterButton: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  bannerText: {
+    flexWrap: 'wrap',
+    marginTop: Styles.globalMargins.xsmall,
+  },
+  bannerTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       flex: 1,

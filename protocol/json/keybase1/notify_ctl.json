@@ -33,6 +33,10 @@
         },
         {
           "type": "boolean",
+          "name": "kbfssubscription"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {

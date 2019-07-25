@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
-import {chunk} from 'lodash-es'
+import {chunk, upperFirst} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions/container'
@@ -37,6 +37,10 @@ export type Props = {
   suggestionKeys: Array<string> | null
   userIsYou: boolean
   username: string
+  name: string // assertion value
+  service: string // assertion key (if SBS)
+  fullName: string | null // full name from external profile
+  title: string
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -53,9 +57,13 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   }
 }
 
+const noopOnClick = () => {}
+
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
+      onClick={p.title === p.username ? 'profile' : noopOnClick}
+      title={p.title !== p.username ? p.title : null}
       username={p.username}
       underline={false}
       selectable={true}
@@ -73,6 +81,35 @@ const BioLayout = p => (
   </Kb.Box2>
 )
 
+const ProveIt = p => {
+  let doWhat: string
+  switch (p.service) {
+    case 'phone':
+      doWhat = 'verify their phone number'
+      break
+    case 'email':
+      doWhat = 'verify their e-mail address'
+      break
+    default:
+      doWhat = `prove their ${upperFirst(p.service)}`
+      break
+  }
+  const url = 'https://keybase.io/install'
+  return (
+    <>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Tell {p.fullName || p.name} to join Keybase and {doWhat}.
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Send them this link:{' '}
+        <Kb.Text type="BodySmallPrimaryLink" onClickURL={url} selectable={true}>
+          {url}
+        </Kb.Text>
+      </Kb.Text>
+    </>
+  )
+}
+
 const Proofs = p => {
   let assertions: React.ReactNode
   if (p.assertionKeys) {
@@ -86,21 +123,10 @@ const Proofs = p => {
     assertions = null
   }
 
-  let proveIt: React.ReactNode = null
-
-  if (p.notAUser) {
-    const [name, service] = p.username.split('@')
-    proveIt = (
-      <Kb.Text type="BodySmall" style={styles.proveIt}>
-        Tell {name} to join Keybase and prove their {service}.
-      </Kb.Text>
-    )
-  }
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {assertions}
-      {proveIt}
+      {!!p.notAUser && !!p.service && <ProveIt {...p} />}
     </Kb.Box2>
   )
 }
@@ -186,6 +212,10 @@ export type BioTeamProofsProps = {
   suggestionKeys: Array<string> | null
   username: string
   reason: string
+  name: string
+  service: string
+  fullName: string | null
+  title: string
 }
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
@@ -318,10 +348,14 @@ class User extends React.Component<Props, State> {
         assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
+        name={this.props.name}
+        service={this.props.service}
         reason={this.props.reason}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
         notAUser={this.props.notAUser}
+        fullName={this.props.fullName}
+        title={this.props.title}
       />
     ),
   }

@@ -128,24 +128,24 @@ func (s *stellarRetryClient) ValidateAccountNameLocal(ctx context.Context, arg s
 	return err
 }
 
-func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (acct stellar1.WalletAccountLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
+		acct, err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return acct, err
 }
 
-func (s *stellarRetryClient) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
+func (s *stellarRetryClient) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (accts []stellar1.WalletAccountLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetWalletAccountAsDefaultLocal(ctx, arg)
+		accts, err = s.cli.SetWalletAccountAsDefaultLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return accts, err
 }
 
 func (s *stellarRetryClient) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
@@ -178,14 +178,14 @@ func (s *stellarRetryClient) CreateWalletAccountLocal(ctx context.Context, arg s
 	return res, err
 }
 
-func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
+		res, err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return res, err
 }
 
 func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {

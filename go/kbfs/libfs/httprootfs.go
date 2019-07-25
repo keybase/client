@@ -41,9 +41,7 @@ func (hrfs httpRootFileSystem) Open(filename string) (entry http.File, err error
 		}
 	}()
 
-	if strings.HasPrefix(filename, "/") {
-		filename = filename[1:]
-	}
+	filename = strings.TrimPrefix(filename, "/")
 
 	f, err := hrfs.rfs.Open(filename)
 	if err != nil {

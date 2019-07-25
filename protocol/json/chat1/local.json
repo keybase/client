@@ -361,7 +361,7 @@
             "type": "array",
             "items": "string"
           },
-          "name": "bots"
+          "name": "restrictedBots"
         }
       ]
     },

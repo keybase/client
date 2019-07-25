@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
+	"time"
+
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/net/context"
-	"time"
 )
 
 // BurstCachce is an LRU+SingleFlighter useful for absorbing short-lived bursts
@@ -13,7 +14,7 @@ import (
 // of the first request.
 type BurstCache struct {
 	Contextified
-	locktab   LockTable
+	locktab   *LockTable
 	lru       *lru.Cache
 	cacheLife time.Duration
 	cacheName string
@@ -37,6 +38,7 @@ func NewBurstCache(g *GlobalContext, cacheSize int, cacheLife time.Duration, cac
 	return &BurstCache{
 		Contextified: NewContextified(g),
 		lru:          lru,
+		locktab:      NewLockTable(),
 		cacheLife:    cacheLife,
 		cacheName:    cacheName,
 	}

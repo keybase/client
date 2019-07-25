@@ -31,23 +31,35 @@ type StartOptions struct {
 // commands from `input` and responding to them via `output`.
 func Start(ctx context.Context, options StartOptions,
 	kbCtx libkbfs.Context, defaultLogPath string,
-	input io.Reader, output io.Writer, errput io.Writer) *libfs.Error {
+	input io.Reader, output io.Writer, errput io.Writer) (
+	retErr *libfs.Error) {
 	// Ideally we wouldn't print this if the verbosity is 0, but we
 	// don't know that until we start parsing options.  TODO: get rid
 	// of this once we integrate with the kbfs daemon.
-	errput.Write([]byte("Initializing Keybase... "))
+	_, err := errput.Write([]byte("Initializing Keybase... "))
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
 	ctx, config, err := libgit.Init(
 		ctx, options.KbfsParams, kbCtx, nil, defaultLogPath,
 		kbCtx.GetVDebugSetting())
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
-	defer config.Shutdown(ctx)
+	defer func() {
+		shutdownErr := config.Shutdown(ctx)
+		if retErr == nil && shutdownErr != nil {
+			retErr = libfs.InitError(shutdownErr.Error())
+		}
+	}()
 
 	config.MakeLogger("").CDebugf(
 		ctx, "Running Git remote helper: remote=%s, repo=%s, storageRoot=%s",
 		options.Remote, options.Repo, options.KbfsParams.StorageRoot)
-	errput.Write([]byte("done.\n"))
+	_, err = errput.Write([]byte("done.\n"))
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
 
 	r, err := newRunner(
 		ctx, config, options.Remote, options.Repo, options.GitDir,

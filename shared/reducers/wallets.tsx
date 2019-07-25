@@ -24,12 +24,14 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
         action.payload.accounts.map(account => [account.accountID, account])
       )
       return state.merge({accountMap: accountMap})
     }
+    case WalletsGen.changedAccountName:
     case WalletsGen.accountUpdateReceived:
       // accept the updated account if we've loaded it already
       // this is because we get the sort order from the full accounts load,
@@ -544,7 +546,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeAirdrop:
     case WalletsGen.updateAirdropState:
     case WalletsGen.rejectDisclaimer:
-    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
@@ -559,7 +560,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeDisplayCurrency:
     case WalletsGen.changeAccountName:
     case WalletsGen.checkDisclaimer:
-    case WalletsGen.changedAccountName:
     case WalletsGen.deleteAccount:
     case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
