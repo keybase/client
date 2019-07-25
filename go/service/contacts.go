@@ -26,7 +26,8 @@ func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []
 	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)
 }
 
-func (c *bulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
+	uids []keybase1.UID) (res map[keybase1.UID]contacts.ContactUsernameAndFullName, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
 		func() error { return nil })()
 
@@ -34,36 +35,31 @@ func (c *bulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res [
 	const networkTimeBudget = 0
 	const forceNetworkForFullNames = true
 
-	uidSet := make(map[keybase1.UID]struct{}, len(res))
-	for _, v := range res {
-		if v.Resolved {
-			uidSet[v.Uid] = struct{}{}
-		}
-	}
-	uids := make([]keybase1.UID, 0, len(uidSet))
-	for k := range uidSet {
-		uids = append(uids, k)
-	}
 	nameMap, err := uidmap.MapUIDsReturnMapMctx(mctx, uids, fullnameFreshness, networkTimeBudget, forceNetworkForFullNames)
 	if err != nil {
-		mctx.Debug("UIDMapper returned %q, continuing...")
+		return nil, err
 	}
-	for i, v := range res {
-		if namePkg, found := nameMap[v.Uid]; found {
-			res[i].Username = namePkg.NormalizedUsername.String()
-			if fullNamePkg := namePkg.FullName; fullNamePkg != nil {
-				res[i].FullName = fullNamePkg.FullName.String()
-			}
+
+	res = make(map[keybase1.UID]contacts.ContactUsernameAndFullName)
+	for uid, v := range nameMap {
+		ufp := contacts.ContactUsernameAndFullName{
+			Username: v.NormalizedUsername.String(),
 		}
+		if fullNamePkg := v.FullName; fullNamePkg != nil {
+			ufp.Fullname = fullNamePkg.FullName.String()
+		}
+		res[uid] = ufp
 	}
+	return res, nil
 }
 
-func (c *bulkLookupContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
+	uids []keybase1.UID) (res map[keybase1.UID]bool, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FillFollowing(len=%d)", len(res)),
 		func() error { return nil })()
 
 	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
-	err := mctx.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
+	err = mctx.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
 		mctx.Debug("In WithUser: user found: %t", user != nil)
 		if user == nil {
 			return libkb.UserNotFoundError{}
@@ -76,35 +72,34 @@ func (c *bulkLookupContactsProvider) FillFollowing(mctx libkb.MetaContext, res [
 		}
 
 		mctx.Debug("In WithUser: idTable exists: %t, trackList len: %d", idTable != nil, len(trackList))
-
+		res = make(map[keybase1.UID]bool)
 		if len(trackList) == 0 {
 			// Nothing to do.
 			return nil
 		}
 
-		uidSet := make(map[keybase1.UID]struct{}, len(trackList))
+		followedUIDSet := make(map[keybase1.UID]struct{}, len(trackList))
 		for _, track := range trackList {
 			uid, err := track.GetTrackedUID()
 			if err != nil {
 				return err
 			}
 
-			uidSet[uid] = struct{}{}
+			followedUIDSet[uid] = struct{}{}
 		}
 
-		for i, v := range res {
-			_, found := uidSet[v.Uid]
-			if found {
-				res[i].Following = true
-			}
+		for _, v := range uids {
+			_, found := followedUIDSet[v]
+			res[v] = found
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		mctx.Warning("Unable to get following list: %s", err)
+		return nil, err
 	}
+	return res, nil
 }
 
 type ContactsHandler struct {
@@ -114,16 +109,18 @@ type ContactsHandler struct {
 	contactsProvider *contacts.CachedContactsProvider
 }
 
-func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
-	contactsProvider := &contacts.CachedContactsProvider{
+func NewCachedContactsProvider(g *libkb.GlobalContext) *contacts.CachedContactsProvider {
+	return &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
 		Store:    contacts.NewContactCacheStore(g),
 	}
+}
 
+func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext, provider *contacts.CachedContactsProvider) *ContactsHandler {
 	handler := &ContactsHandler{
 		Contextified:     libkb.NewContextified(g),
 		BaseHandler:      NewBaseHandler(g, xp),
-		contactsProvider: contactsProvider,
+		contactsProvider: provider,
 	}
 	return handler
 }

@@ -92,6 +92,7 @@ export const makeContacts = I.Record<Types._ContactsState>({
   importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
+  userCountryCode: null,
 })
 
 export const makeState = I.Record<Types._State>({

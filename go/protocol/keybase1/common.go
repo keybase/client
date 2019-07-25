@@ -100,6 +100,12 @@ func (o PhoneNumber) DeepCopy() PhoneNumber {
 	return o
 }
 
+type RawPhoneNumber string
+
+func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
+	return o
+}
+
 type RegionCode string
 
 func (o RegionCode) DeepCopy() RegionCode {

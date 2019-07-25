@@ -163,6 +163,7 @@ export type _State = {
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   userReacjis: UserReacjis
+  createConversationError: string | null
 }
 
 export type State = I.RecordOf<_State>

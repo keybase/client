@@ -73,6 +73,9 @@
     "setContactImportedCount": {
       "count": "number | null"
     },
+    "loadedUserCountryCode": {
+      "code": "string | null"
+    },
     "addEmail": {
       "email": "string",
       "searchable": "boolean"

@@ -31,12 +31,12 @@ func (c *anotherMockContactsProvider) LookupAll(mctx libkb.MetaContext, emails [
 	return c.provider.LookupAll(mctx, emails, numbers, userRegion)
 }
 
-func (c *anotherMockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	c.provider.FillUsernames(mctx, res)
+func (c *anotherMockContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
+	return c.provider.FindUsernames(mctx, uids)
 }
 
-func (c *anotherMockContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	c.provider.FillFollowing(mctx, res)
+func (c *anotherMockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
+	return c.provider.FindFollowing(mctx, uids)
 }
 
 func TestCacheProvider(t *testing.T) {
