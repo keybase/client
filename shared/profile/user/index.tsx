@@ -135,8 +135,8 @@ type FriendshipTabsProps = {
   loading: boolean
   onChangeFollowing: (arg0: boolean) => void
   selectedFollowing: boolean
-  numFollowers: number
-  numFollowing: number
+  numFollowers: number | undefined
+  numFollowing: number | undefined
 }
 
 class FriendshipTabs extends React.Component<FriendshipTabsProps> {
@@ -157,8 +157,8 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
         }
       >
         {following
-          ? `Following${!this.props.loading ? ` (${this.props.numFollowing})` : ''}`
-          : `Followers${!this.props.loading ? ` (${this.props.numFollowers})` : ''}`}
+          ? `Following${!this.props.loading ? ` (${this.props.numFollowing || 0})` : ''}`
+          : `Followers${!this.props.loading ? ` (${this.props.numFollowers || 0})` : ''}`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
