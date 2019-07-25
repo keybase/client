@@ -13,7 +13,6 @@ type TlfProps = StillCommonProps & {
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean
-  routePath: I.List<string>
   showTlfTypeIcon?: boolean
   usernames: I.List<string>
 }
@@ -54,7 +53,6 @@ const Tlf = (props: TlfProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? Types.PathItemBadgeType.New : null}
-    routePath={props.routePath}
     showActionsWithGrow={true}
     showTlfTypeIcon={props.showTlfTypeIcon}
   >

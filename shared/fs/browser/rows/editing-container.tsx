@@ -7,7 +7,6 @@ import Editing from './editing'
 
 type OwnProps = {
   editID: Types.EditID
-  routePath: I.List<string>
 }
 
 export default namedConnect(

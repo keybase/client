@@ -7,7 +7,6 @@ import * as FsGen from '../../actions/fs-gen'
 
 type OwnProps = {
   path: Types.Path
-  routePath: I.List<string>
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -24,12 +23,11 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   offline: Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path),
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,
   resetBannerType: stateProps.resetBannerType,
-  routePath,
   shouldShowSFMIBanner: stateProps.shouldShowSFMIBanner,
 })
 

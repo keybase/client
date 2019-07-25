@@ -11,7 +11,6 @@ import {memoize} from '../../../util/memoize'
 
 type OwnProps = {
   path: Types.Path // path to the parent folder containering the rows,
-  routePath: I.List<string>
   destinationPickerIndex?: number
   headerRows?: Array<RowTypes.HeaderRowItem> | null
 }
@@ -211,7 +210,6 @@ export default namedConnect(
             : []
         ),
       path: o.path,
-      routePath: o.routePath,
     }
   },
   'ConnectedRows'

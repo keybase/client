@@ -8,7 +8,6 @@ import {PathType} from '../../../constants/types/fs'
 
 type TlfTypeProps = StillCommonProps & {
   badgeCount: number
-  routePath: I.List<string>
 }
 
 const TlfType = (props: TlfTypeProps) => (
@@ -18,7 +17,6 @@ const TlfType = (props: TlfTypeProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.badgeCount}
-    routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>

@@ -20,7 +20,6 @@ export type Props = {
   destinationPickerIndex?: number
   items: I.List<RowTypes.RowItem>
   path: Types.Path
-  routePath: I.List<string>
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
@@ -44,11 +43,7 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.TlfType:
         return (
           <WrapRow>
-            <TlfType
-              name={item.name}
-              destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
-            />
+            <TlfType name={item.name} destinationPickerIndex={this.props.destinationPickerIndex} />
           </WrapRow>
         )
       case RowTypes.RowType.Tlf:
@@ -58,7 +53,6 @@ class Rows extends React.PureComponent<Props> {
               name={item.name}
               tlfType={item.tlfType}
               destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
             />
           </WrapRow>
         )
@@ -69,7 +63,6 @@ class Rows extends React.PureComponent<Props> {
               name={item.name}
               path={item.path}
               destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
             />
           </WrapRow>
         )
@@ -82,7 +75,7 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.Editing:
         return (
           <WrapRow>
-            <Editing editID={item.editID} routePath={this.props.routePath} />
+            <Editing editID={item.editID} />
           </WrapRow>
         )
       case RowTypes.RowType.Empty:

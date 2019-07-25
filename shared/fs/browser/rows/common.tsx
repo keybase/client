@@ -11,7 +11,6 @@ export type StillCommonProps = {
   path: Types.Path
   inDestinationPicker?: boolean
   onOpen: () => void
-  routePath: I.List<string>
   showActionsWithGrow?: boolean | null
   showTlfTypeIcon?: boolean
 }
@@ -48,7 +47,6 @@ export const StillCommon = (
           <PathItemAction
             path={props.path}
             clickable={{type: 'icon'}}
-            routePath={props.routePath}
             initView={Types.PathItemActionMenuView.Root}
             mode="row"
           />

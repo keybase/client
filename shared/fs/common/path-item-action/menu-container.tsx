@@ -18,7 +18,6 @@ type OwnProps = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
   mode: 'row' | 'screen'
-  routePath: I.List<string>
 }
 
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({

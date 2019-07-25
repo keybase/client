@@ -13,7 +13,6 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  routePath: I.List<string>
   shouldHideMenu: boolean
   copyPath?: (() => void) | null
   delete?: (() => void) | null

@@ -19,7 +19,6 @@ import Root from './root'
 type Props = {
   onAttach?: ((paths: Array<string>) => void) | null
   path: Types.Path
-  routePath: I.List<string>
   shouldShowSFMIBanner: boolean
   resetBannerType: Types.ResetBannerType
   offline: boolean
@@ -33,7 +32,6 @@ const WithContent = (props: Props) => (
       {flags.conflictResolution && <ConflictBanner path={props.path} />}
       <Rows
         path={props.path}
-        routePath={props.routePath}
         headerRows={[
           ...resetBannerAsRows(props.path, props.resetBannerType),
           // only show sfmi banner at /keybase
