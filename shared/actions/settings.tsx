@@ -450,7 +450,7 @@ const editPhone = (_, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLog
     )
     acted = true
   }
-  if (acted === false) {
+  if (!acted) {
     logger.warn('Empty editPhone action')
   }
   return actions
