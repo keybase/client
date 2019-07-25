@@ -33,13 +33,13 @@ export type RolePickerProps = {
 }
 
 type ContactProps = {
-  contactsPermissionStatus: string
   contactsImported: boolean | null
+  contactsPermissionStatus: string
   isImportPromptDismissed: boolean
   numContactsImported: number
+  onAskForContactsLater: () => void
   onContactsNotYetImported: () => void
   onImportContacts: () => void
-  onAskForContactsLater: () => void
 }
 
 type Props = ContactProps & {
