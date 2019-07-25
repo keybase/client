@@ -24,7 +24,6 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
-export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
@@ -88,7 +87,6 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
 type _InstallerRanPayload = void
-type _LinkPayload = {readonly link: string}
 type _LoadAvatarsPayload = {readonly usernames: Array<string>}
 type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
 type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
@@ -260,7 +258,6 @@ export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayl
   payload,
   type: globalError,
 })
-export const createLink = (payload: _LinkPayload): LinkPayload => ({payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload): LoadAvatarsPayload => ({
   payload,
   type: loadAvatars,
@@ -369,7 +366,6 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LinkPayload = {readonly payload: _LinkPayload; readonly type: typeof link}
 export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: typeof loadAvatars}
 export type LoadTeamAvatarsPayload = {
   readonly payload: _LoadTeamAvatarsPayload
@@ -464,7 +460,6 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
-  | LinkPayload
   | LoadAvatarsPayload
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload

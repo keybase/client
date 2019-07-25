@@ -287,7 +287,7 @@ const validateSEP7Link = (_: TypedState, action: WalletsGen.ValidateSEP7LinkPayl
         error: error.desc,
       }),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: ['sep7ConfirmError']}),
+      RouteTreeGen.createNavigateAppend({path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}]}),
     ])
 
 const acceptSEP7Tx = (_: TypedState, action: WalletsGen.AcceptSEP7TxPayload) =>

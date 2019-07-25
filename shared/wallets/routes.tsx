@@ -15,7 +15,7 @@ import {
 } from './wallet/settings/popups'
 import Receive from './receive-modal/container'
 import Sep7Confirm from './sep7-confirm/container'
-import Sep7ConfirmError from './sep7-confirm/error'
+import KeybaseLinkError from '../deeplinks/error'
 import Trustline from './trustline/container'
 import WalletOnboarding from './onboarding/container'
 import WhatIsStellarModal from './what-is-stellar-modal'
@@ -108,6 +108,10 @@ export const newModalRoutes = {
     getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
     upgraded: true,
   },
+  keybaseLinkError: {
+    getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default,
+    upgraded: true,
+  },
   linkExisting: {
     getScreen: (): typeof LinkExisting => require('./link-existing/container').default,
     upgraded: true,
@@ -128,10 +132,6 @@ export const newModalRoutes = {
   },
   sep7Confirm: {
     getScreen: (): typeof Sep7Confirm => require('./sep7-confirm/container').default,
-    upgraded: true,
-  },
-  sep7ConfirmError: {
-    getScreen: (): typeof Sep7ConfirmError => require('./sep7-confirm/error').default,
     upgraded: true,
   },
   setDefaultAccount: {

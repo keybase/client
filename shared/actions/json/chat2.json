@@ -70,7 +70,8 @@
         "'transaction'",
         "'sentPayment'",
         "'requestedPayment'",
-        "'teamMention'"
+        "'teamMention'",
+        "'appLink'"
       ]
     },
     "createConversation": {

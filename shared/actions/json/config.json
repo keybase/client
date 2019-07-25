@@ -55,7 +55,6 @@
     },
     "changedFocus": {"appFocused": "boolean"},
     "changedActive": {"userActive": "boolean"},
-    "link": {"link": "string"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "loadAvatars": {"usernames": "Array<string>"},
