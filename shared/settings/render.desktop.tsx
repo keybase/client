@@ -5,7 +5,11 @@ import {globalStyles} from '../styles'
 
 import {Props} from './render'
 
-function SettingsRender(props: Props) {
+const SettingsRender = (props: Props) => {
+  const {loadHasRandomPW} = props
+  React.useEffect(() => {
+    loadHasRandomPW()
+  }, [loadHasRandomPW])
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>

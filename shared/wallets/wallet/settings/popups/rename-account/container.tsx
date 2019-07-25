@@ -40,7 +40,7 @@ export default Container.connect(
     initialName: stateProps.initialName,
     nameValidationState: stateProps.nameValidationState,
     onCancel: dispatchProps.onCancel,
-    onChangeAccountName: name => dispatchProps._onChangeAccountName(stateProps.accountID, name),
+    onChangeAccountName: (name: string) => dispatchProps._onChangeAccountName(stateProps.accountID, name),
     onClearErrors: dispatchProps.onClearErrors,
     onDone: dispatchProps.onDone,
     renameAccountError: stateProps.renameAccountError,

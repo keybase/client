@@ -103,21 +103,28 @@ export const newRoutes = {
   settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
 export const newModalRoutes = {
+  [Constants.logOutTab]: {
+    getScreen: (): typeof LogOutTab => require('./logout/container').default,
+    upgraded: true,
+  },
   // TODO connect broken
-  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
-  // TODO connect broken
-  changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
-  // TODO connect broken
+  changePassword: {
+    getScreen: (): typeof ChangePassword => require('./password/container').default,
+    upgraded: true,
+  },
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
+    upgraded: true,
   },
-  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
-  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email, upgraded: true},
+  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone, upgraded: true},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+    upgraded: true,
   },
   settingsVerifyPhone: {
     getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
+    upgraded: true,
   },
 }
