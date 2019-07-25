@@ -7,6 +7,7 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import ConvActions from './conv-actions'
 
 export type Props = {
   backgroundColor?: string
@@ -74,48 +75,15 @@ class SmallTeam extends React.PureComponent<Props, State> {
       ? Styles.globalColors.blueGreyDark
       : this.props.backgroundColor
 
-  _onMute = () => {
-    this._swipeRef.current && this._swipeRef.current.close()
-    this.props.onMuteConversation()
-  }
-
-  _onHide = () => {
-    this._swipeRef.current && this._swipeRef.current.close()
-    this.props.onHideConversation()
-  }
-
-  _renderRightActions = () => {
+  _renderRightActions = progress => {
     return (
-      <Kb.Box2 direction="horizontal">
-        <Kb.ClickableBox onClick={this._onMute}>
-          <Kb.Box2
-            direction="vertical"
-            style={styles.rightActionBoxMute}
-            alignItems="center"
-            fullHeight={true}
-            centerChildren={true}
-          >
-            <Kb.Icon type="iconfont-shh" color={Styles.globalColors.white} />
-            <Kb.Text type="BodySmall" style={styles.rightActionText}>
-              {this.props.isMuted ? 'Unmute' : 'Mute'}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        <Kb.ClickableBox onClick={this._onHide}>
-          <Kb.Box2
-            direction="vertical"
-            style={styles.rightActionBoxHide}
-            alignItems="center"
-            fullHeight={true}
-            centerChildren={true}
-          >
-            <Kb.Icon type="iconfont-hide" color={Styles.globalColors.white} />
-            <Kb.Text type="BodySmall" style={styles.rightActionText}>
-              Hide
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-      </Kb.Box2>
+      <ConvActions
+        isMuted={this.props.isMuted}
+        onHideConversation={this.props.onHideConversation}
+        onMuteConversation={this.props.onMuteConversation}
+        ref={this._swipeRef}
+        progress={progress}
+      />
     )
   }
 
@@ -227,17 +195,6 @@ const styles = Styles.styleSheetCreate({
   }),
   flexOne: {
     flex: 1,
-  },
-  rightActionBoxHide: {
-    backgroundColor: Styles.globalColors.black_20,
-    width: 80,
-  },
-  rightActionBoxMute: {
-    backgroundColor: Styles.globalColors.orange,
-    width: 80,
-  },
-  rightActionText: {
-    color: Styles.globalColors.white,
   },
   rowContainer: Styles.platformStyles({
     common: {

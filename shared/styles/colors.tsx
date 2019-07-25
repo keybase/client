@@ -50,6 +50,7 @@ const colors = {
   greenLighter: '#E8FAF6',
   grey: '#e6e6e6',
   greyDark: '#cccccc',
+  greyDarker: '#aaaaaa',
   greyLight: '#f0f0f0',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
