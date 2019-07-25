@@ -84,28 +84,36 @@ export const newRoutes = {
     getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
     upgraded: true,
   },
-    settingsRoot: {getScreen: (): typeof SettingsRoot => require('./').default, upgraded: true},
+  settingsRoot: {getScreen: (): typeof SettingsRoot => require('./').default, upgraded: true},
   // TODO connect broken
-  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
+  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default, upgraded: true},
 }
 export const newModalRoutes = {
-  // TODO connect broken
-  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
-  // TODO connect broken
-  [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
+  [Constants.logOutTab]: {
+    getScreen: (): typeof LogOutTab => require('./logout/container').default,
+    upgraded: true,
+  },
+  [Constants.passwordTab]: {
+    getScreen: (): typeof PasswordTab => require('./password/container').default,
+    upgraded: true,
+  },
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
+    upgraded: true,
   },
-  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
-  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email, upgraded: true},
+  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone, upgraded: true},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+    upgraded: true,
   },
   settingsManageContacts: {
     getScreen: (): typeof SettingsManageContacts => require('./account/manage-contacts.native').default,
+    upgraded: true,
   },
   settingsVerifyPhone: {
     getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
+    upgraded: true,
   },
 }
