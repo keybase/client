@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"errors"
+	"fmt"
 	"path"
 	"sync"
 	"time"
@@ -144,7 +144,7 @@ func (sm *subscriptionManager) Subscriber(notifier SubscriptionNotifier) Subscri
 
 func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (setter func(), err error) {
 	if sm.subscriptionIDs[sid] {
-		return nil, errors.New("duplicate subscription ID")
+		return nil, fmt.Errorf("duplicate subscription ID %q", sid)
 	}
 	return func() {
 		sm.subscriptionIDs[sid] = true
