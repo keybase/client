@@ -1123,7 +1123,7 @@ type AirdropDetailsJSONType = {
 
 const updateAirdropDetails = (
   state: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
   state.config.loggedIn &&
@@ -1162,7 +1162,7 @@ const updateAirdropDetails = (
 
 const updateAirdropState = (
   state: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
   state.config.loggedIn &&
