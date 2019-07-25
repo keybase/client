@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as SettingsGen from '../actions/settings-gen'
 import TeamBox from './team-box'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
@@ -33,7 +32,17 @@ export type RolePickerProps = {
   disabledRoles: OriginalRolePickerProps['disabledRoles']
 }
 
-type Props = {
+type ContactProps = {
+  contactsPermissionStatus: string
+  contactsImported: boolean | null
+  isImportPromptDismissed: boolean
+  numContactsImported: number
+  onContactsNotYetImported: () => void
+  onImportContacts: () => void
+  onAskForContactsLater: () => void
+}
+
+type Props = ContactProps & {
   fetchUserRecs: () => void
   highlightedIndex: number | null
   onAdd: (userId: string) => void
@@ -64,43 +73,45 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const ContactsBanner = ({onRedoSearch, onRedoRecs}: {onRedoSearch: () => void; onRedoRecs: () => void}) => {
-  const dispatch = Container.useDispatch()
-
-  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
-  const arePermissionsGranted = Container.useSelector(s => s.settings.contacts.permissionStatus)
-  const isImportPromptDismissed = Container.useSelector(s => s.settings.contacts.importPromptDismissed)
-  const numContactsImported = Container.useSelector(s => s.settings.contacts.importedCount)
+const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoRecs: () => void}) => {
+  const {
+    contactsPermissionStatus,
+    contactsImported,
+    isImportPromptDismissed,
+    numContactsImported,
+    onAskForContactsLater,
+    onContactsNotYetImported,
+    onImportContacts,
+    onRedoSearch,
+    onRedoRecs,
+  } = props
   const prevNumContactsImported = Container.usePrevious(numContactsImported)
-  // Although we won't use this if we early exit after subsequent checks, React
-  // won't let us use hooks unless the execution is the same every time.
-  const onImportContacts = React.useCallback(
-    () =>
-      dispatch(
-        arePermissionsGranted !== 'granted'
-          ? SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})
-          : SettingsGen.createEditContactImportEnabled({enable: true})
-      ),
-    [dispatch, arePermissionsGranted]
-  )
-  const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
+
   // Redo search if # of imported contacts changes
   React.useEffect(() => {
     if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
       onRedoSearch()
       onRedoRecs()
     }
-  }, [numContactsImported, prevNumContactsImported, onRedoSearch, onRedoRecs])
+  }, [numContactsImported, prevNumContactsImported])
 
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
-  if (contactsImported === null) {
-    dispatch(SettingsGen.createLoadContactImportEnabled())
-    return null
-  }
+  React.useEffect(() => {
+    if (contactsImported === null) {
+      onContactsNotYetImported()
+    }
+  }, [contactsImported, onContactsNotYetImported])
+
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
-  if (contactsImported || isImportPromptDismissed || arePermissionsGranted === 'never_ask_again') return null
+  if (
+    contactsImported === null ||
+    contactsImported ||
+    isImportPromptDismissed ||
+    contactsPermissionStatus === 'never_ask_again'
+  )
+    return null
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
@@ -121,7 +132,7 @@ const ContactsBanner = ({onRedoSearch, onRedoRecs}: {onRedoSearch: () => void; o
             label="Later"
             backgroundColor="blue"
             mode="Secondary"
-            onClick={onLater}
+            onClick={onAskForContactsLater}
             style={styles.bannerLaterButton}
             small={true}
           />
@@ -189,6 +200,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         />
         {Flags.sbsContacts && Styles.isMobile && (
           <ContactsBanner
+            {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
             onRedoRecs={props.fetchUserRecs}
           />
