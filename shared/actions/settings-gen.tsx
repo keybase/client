@@ -111,7 +111,7 @@ type _EditEmailPayload = {
 type _EditPhonePayload = {
   readonly phone: string
   readonly delete?: boolean
-  readonly toggleSearchable?: boolean
+  readonly setSearchable?: boolean
   readonly verify?: boolean
 }
 type _FeedbackSentPayload = {readonly error: Error | null}

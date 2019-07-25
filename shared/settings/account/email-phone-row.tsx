@@ -220,13 +220,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
           ],
         })
       ),
+    _onToggleSearchable: (setSearchable: boolean) =>
+      dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable})),
     _onVerify: phoneNumber => {
       dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
     onMakePrimary: () => {}, // this is not a supported phone action
-    onToggleSearchable: () =>
-      dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
   },
 })
 
@@ -240,7 +240,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         address: pr.displayNumber,
         onDelete: () => dispatchProps.phone._onDelete(ownProps.contactKey, pr.searchable),
         onMakePrimary: dispatchProps.phone.onMakePrimary,
-        onToggleSearchable: dispatchProps.phone.onToggleSearchable,
+        onToggleSearchable: () => dispatchProps.phone._onToggleSearchable(!pr.searchable),
         onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
         searchable: pr.searchable,

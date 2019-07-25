@@ -403,8 +403,8 @@ const loadSettings = (
       logger.warn(`Error loading settings: ${e.message}`)
     })
 
-const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
-  searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
+const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
+  searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
 
 const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
@@ -431,24 +431,29 @@ const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLog
   logger.warn('Empty editEmail action')
   return undefined
 }
-const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
-  // TODO: consider allowing more than one action here
+const editPhone = (_, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
   // TODO: handle errors
+  let actions = Promise.resolve()
+  let acted = false
   if (action.payload.delete) {
-    return RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
+    actions = actions.then(() =>
+      RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
+    )
+    acted = true
   }
-  if (action.payload.toggleSearchable) {
-    const currentSettings = state.settings.phoneNumbers.phones.get(action.payload.phone)
-    const newVisibility = currentSettings
-      ? flipVis(currentSettings.searchable)
-      : ChatTypes.Keybase1.IdentityVisibility.private
-    return RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
-      phoneNumber: action.payload.phone,
-      visibility: newVisibility,
-    })
+  if (action.payload.setSearchable !== undefined) {
+    actions = actions.then(() =>
+      RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
+        phoneNumber: action.payload.phone,
+        visibility: visFromBoolean(!!action.payload.setSearchable),
+      })
+    )
+    acted = true
   }
-  logger.warn('Empty editPhone action')
-    return undefined
+  if (acted === false) {
+    logger.warn('Empty editPhone action')
+  }
+  return actions
 }
 
 const getRememberPassword = () =>
