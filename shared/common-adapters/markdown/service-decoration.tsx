@@ -14,6 +14,15 @@ import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
 
+const linkStyle = Styles.platformStyles({
+  isElectron: {
+    fontWeight: 'inherit',
+  },
+  isMobile: {
+    fontWeight: undefined,
+  },
+})
+
 type KeybaseLinkProps = {
   link: string
   linkStyle?: StylesTextCrossPlatform | undefined
@@ -141,14 +150,5 @@ const ServiceDecoration = (props: Props) => {
   }
   return null
 }
-
-const linkStyle = Styles.platformStyles({
-  isElectron: {
-    fontWeight: 'inherit',
-  },
-  isMobile: {
-    fontWeight: undefined,
-  },
-})
 
 export default ServiceDecoration
