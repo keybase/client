@@ -39,19 +39,16 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
     dispatch(ownProps.navigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]}))
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
@@ -76,7 +73,7 @@ const canCopy = memoize((stateProps: StateProps, ownProps: OwnPropsWithSafeNavig
     const source: Types.MoveOrCopySource = stateProps._destinationPicker.source
     return getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(source.path)
   }
-    return undefined
+  return undefined
 })
 
 const canMove = memoize(

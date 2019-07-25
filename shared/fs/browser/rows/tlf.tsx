@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {useFsLoadEffect, TlfInfo, Filename} from '../../common'
+import {useFsPathMetadata, TlfInfo, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean
@@ -41,10 +41,7 @@ const Avatars = (props: TlfProps) => (
   </Kb.Box>
 )
 const Tlf = (props: TlfProps) => {
-  useFsLoadEffect({
-    path: props.path,
-    wantPathMetadata: props.loadPathMetadata,
-  })
+  useFsPathMetadata(props.path)
   return (
     <StillCommon
       name={props.name}

@@ -13,29 +13,32 @@ type HeaderProps = {
   routePath: I.List<string>
 }
 
-const Header = (props: HeaderProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} gap="xtiny">
-    <Kb.BackButton key="back" onClick={props.onBack} style={styles.close} />
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.filePreviewHeader}>
-      <Kb.Text center={true} type="BodyBig" selectable={true}>
-        {props.name}
-      </Kb.Text>
-      {!isMobile && <Kbfs.PathItemInfo path={props.path} mode="default" />}
+const Header = (props: HeaderProps) => {
+  Kbfs.useFsPathMetadata(props.path)
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} gap="xtiny">
+      <Kb.BackButton key="back" onClick={props.onBack} style={styles.close} />
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.filePreviewHeader}>
+        <Kb.Text center={true} type="BodyBig" selectable={true}>
+          {props.name}
+        </Kb.Text>
+        {!isMobile && <Kbfs.PathItemInfo path={props.path} mode="default" />}
+      </Kb.Box2>
+      <Kb.Box style={styles.headerIcons}>
+        <Kbfs.OpenInSystemFileManager path={props.path} />
+        <Kbfs.PathItemAction
+          path={props.path}
+          clickable={{
+            type: 'icon',
+          }}
+          routePath={props.routePath}
+          initView={Types.PathItemActionMenuView.Root}
+          mode="screen"
+        />
+      </Kb.Box>
     </Kb.Box2>
-    <Kb.Box style={styles.headerIcons}>
-      <Kbfs.OpenInSystemFileManager path={props.path} />
-      <Kbfs.PathItemAction
-        path={props.path}
-        clickable={{
-          type: 'icon',
-        }}
-        routePath={props.routePath}
-        initView={Types.PathItemActionMenuView.Root}
-        mode="screen"
-      />
-    </Kb.Box>
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   close: Styles.platformStyles({

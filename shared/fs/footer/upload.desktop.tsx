@@ -3,6 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {UploadProps} from './upload'
+import * as Kbfs from '../common'
 
 const patternImage = 'upload-pattern-2-80.png'
 
@@ -37,6 +38,7 @@ const realCSS = `
 `
 
 const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
+  Kbfs.useFsJournalStatus()
   return (
     <React.Fragment>
       {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}

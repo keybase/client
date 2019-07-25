@@ -51,11 +51,7 @@ const DesktopHeaders = (props: Props) => (
 )
 
 const DestinationPicker = (props: Props) => {
-  FsCommon.useFsLoadEffect({
-    path: props.parentPath,
-    refreshTag: Types.RefreshTag.DestinationPicker,
-    wantPathMetadata: true,
-  })
+  FsCommon.useFsPathMetadata(props.parentPath)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
       {!Styles.isMobile && <DesktopHeaders {...props} />}

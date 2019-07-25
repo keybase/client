@@ -1,6 +1,5 @@
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
 import Header, {Props} from './header'
 
@@ -11,20 +10,13 @@ type OwnProps = {
 type StateProps = {
   _pathItems: Types.PathItems
 }
-type DispatchProps = {
-  loadFolderList: () => void
-  loadPathMetadata: () => void
-}
+type DispatchProps = {}
+
 const mapStateToProps = (state): StateProps => ({
   _pathItems: state.fs.pathItems,
 })
 
-const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  loadFolderList: () =>
-    dispatch(FsGen.createFolderListLoad({path, refreshTag: Types.RefreshTag.PathItemActionPopup})),
-  loadPathMetadata: () =>
-    dispatch(FsGen.createLoadPathMetadata({path, refreshTag: Types.RefreshTag.PathItemActionPopup})),
-})
+const mapDispatchToProps = () => ({})
 
 const getChildrenNumbers = (_pathItems, _pathItem, path) =>
   _pathItem.type === Types.PathType.Folder && _pathItem.children
@@ -55,9 +47,6 @@ const mergeProps = (s: StateProps, d: DispatchProps, o: OwnProps): Props => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'PathItemActionMenuHeader'
-)(Header)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenuHeader')(
+  Header
+)
