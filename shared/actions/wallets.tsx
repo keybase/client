@@ -1122,10 +1122,11 @@ type AirdropDetailsJSONType = {
 } | null
 
 const updateAirdropDetails = (
-  _: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  state: TypedState,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
+  state.config.loggedIn &&
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
       const json: AirdropDetailsJSONType = JSON.parse(response.details)
@@ -1160,10 +1161,11 @@ const updateAirdropDetails = (
     })
 
 const updateAirdropState = (
-  _: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  state: TypedState,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
+  state.config.loggedIn &&
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(({state, rows}) => {
       let airdropState = 'loading'
@@ -1915,12 +1917,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       'changeAirdrop'
     )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
-      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
+      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
-      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
+      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
       updateAirdropState,
       'updateAirdropState'
     )
