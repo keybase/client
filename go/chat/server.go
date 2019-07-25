@@ -231,8 +231,11 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		case lres = <-localizeCb:
 			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
 		case <-time.After(15 * time.Second):
+			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
+			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified: %s")
+			retryInboxLoad()
 			return res, ctx.Err()
 		}
 	} else {
@@ -266,8 +269,11 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v",
 				time.Since(start))
 		case <-time.After(15 * time.Second):
+			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
+			retryInboxLoad()
+			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified")
 			return res, ctx.Err()
 		}
 	}
@@ -280,6 +286,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		go func(convRes types.AsyncInboxResult) {
 			if convRes.ConvLocal.Error != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
+
 					convRes.Conv.GetConvID(), convRes.ConvLocal.Error.Message)
 				if err := chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
