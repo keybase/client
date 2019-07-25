@@ -230,7 +230,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		select {
 		case lres = <-localizeCb:
 			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
-		case <-time.After(15 * time.Second):
+		case <-time.After(time.Minute):
 			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
@@ -268,7 +268,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			}
 			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v",
 				time.Since(start))
-		case <-time.After(15 * time.Second):
+		case <-time.After(time.Minute):
 			retryInboxLoad()
 			return res, fmt.Errorf("timeout waiting for inbox result")
 		case <-ctx.Done():
