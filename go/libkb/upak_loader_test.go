@@ -46,7 +46,7 @@ func TestCachedUserLoad(t *testing.T) {
 		t.Fatalf("wrong info: %+v", info)
 	}
 
-	fakeClock.Advance(CachedUserTimeout / 100)
+	fakeClock.Advance(CachedUPAKTimeout / 100)
 	info = CachedUserLoadInfo{}
 	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 	checkLoad(upk, err)
@@ -58,7 +58,7 @@ func TestCachedUserLoad(t *testing.T) {
 		t.Fatalf("wrong info: %+v", info)
 	}
 
-	fakeClock.Advance(2 * CachedUserTimeout)
+	fakeClock.Advance(2 * CachedUPAKTimeout)
 	info = CachedUserLoadInfo{}
 	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 	checkLoad(upk, err)

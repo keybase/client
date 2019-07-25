@@ -127,11 +127,12 @@ const (
 	Identify2CacheShortTimeout  = 1 * time.Minute
 
 	// How long we'll go without rerequesting hints/merkle seqno. This is used in both
-	// CachedUPAKLoader and FullSelfCacher. Note that this timeout has to exceed the
+	// the FullSelfCacher. Note that this timeout has to exceed the
 	// dtime value for Gregor IBMs that deal with user and key family changed notifications.
 	// Because if the client is offline for more than that amount of time, then our cache
 	// could be stale.
-	CachedUserTimeout = 10 * time.Minute
+	CachedSelfTimeout = 10 * time.Minute
+	CachedUPAKTimeout = 60 * time.Minute
 
 	LinkCacheSize     = 4000
 	LinkCacheCleanDur = 1 * time.Minute

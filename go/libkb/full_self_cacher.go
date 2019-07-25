@@ -111,7 +111,7 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	now := m.G().Clock().Now()
 	diff := now.Sub(m.cachedAt)
 
-	if diff < CachedUserTimeout && !arg.forcePoll {
+	if diff < CachedSelfTimeout && !arg.forcePoll {
 		m.G().Log.CDebugf(ctx, "| was fresh, last loaded %s ago", diff)
 		return nil
 	}

@@ -608,8 +608,8 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 	}
 
 	g.Log.Debug("made a new full self cache")
-	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
-	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
+	g.upakLoader = NewCachedUPAKLoader(g, CachedUPAKTimeout)
+	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUPAKTimeout)
 	g.PayloadCache = NewPayloadCache(g, g.Env.GetPayloadCacheSize())
 }
 
