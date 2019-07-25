@@ -1,18 +1,13 @@
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import Header, {Props} from './header'
 
 type OwnProps = {
   path: Types.Path
 }
 
-type StateProps = {
-  _pathItems: Types.PathItems
-}
-type DispatchProps = {}
-
-const mapStateToProps = (state): StateProps => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _pathItems: state.fs.pathItems,
 })
 
@@ -34,7 +29,7 @@ const getChildrenNumbers = (_pathItems, _pathItem, path) =>
       )
     : {childrenFiles: 0, childrenFolders: 0}
 
-const mergeProps = (s: StateProps, d: DispatchProps, o: OwnProps): Props => {
+const mergeProps = (s, d, o: OwnProps): Props => {
   const _pathItem = s._pathItems.get(o.path, Constants.unknownPathItem)
   return {
     ...getChildrenNumbers(s._pathItems, _pathItem, o.path), // provides
@@ -47,6 +42,9 @@ const mergeProps = (s: StateProps, d: DispatchProps, o: OwnProps): Props => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenuHeader')(
-  Header
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'PathItemActionMenuHeader'
+)(Header)

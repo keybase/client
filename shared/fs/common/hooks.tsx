@@ -7,13 +7,14 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import uuidv1 from 'uuid/v1'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
+const noop = () => {}
 
 const useDispatchWhenConnected = () => {
   const kbfsDaemonConnected =
     Container.useSelector(state => state.fs.kbfsDaemonStatus.rpcStatus) ===
     Types.KbfsDaemonRpcStatus.Connected
   const dispatch = Container.useDispatch()
-  return kbfsDaemonConnected ? dispatch : () => {}
+  return kbfsDaemonConnected ? dispatch : noop
 }
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {

@@ -40,31 +40,35 @@ const Avatars = (props: TlfProps) => (
     )}
   </Kb.Box>
 )
-const Tlf = (props: TlfProps) => {
-  useFsPathMetadata(props.path)
-  return (
-    <StillCommon
-      name={props.name}
-      path={props.path}
-      onOpen={props.onOpen}
-      inDestinationPicker={props.inDestinationPicker}
-      badge={props.isNew ? Types.PathItemBadgeType.New : null}
-      routePath={props.routePath}
-      showActionsWithGrow={true}
-    >
-      <Kb.Box style={rowStyles.itemBox}>
-        {Styles.isMobile ? (
-          <Content {...props} />
-        ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Content {...props} />
-            <Avatars {...props} />
-          </Kb.Box2>
-        )}
-      </Kb.Box>
-    </StillCommon>
-  )
+
+const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
+  useFsPathMetadata(path)
+  return null
 }
+
+const Tlf = (props: TlfProps) => (
+  <StillCommon
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+    badge={props.isNew ? Types.PathItemBadgeType.New : null}
+    routePath={props.routePath}
+    showActionsWithGrow={true}
+  >
+    {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
+    <Kb.Box style={rowStyles.itemBox}>
+      {Styles.isMobile ? (
+        <Content {...props} />
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Content {...props} />
+          <Avatars {...props} />
+        </Kb.Box2>
+      )}
+    </Kb.Box>
+  </StillCommon>
+)
 
 const styles = Styles.styleSheetCreate({
   avatarBox: {marginRight: Styles.globalMargins.xsmall},

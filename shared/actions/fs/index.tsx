@@ -260,7 +260,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
+function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
   const rootPath = action.type === FsGen.editSuccess ? action.payload.parentPath : action.payload.path
   try {
     const opID = Constants.makeUUID()
@@ -450,7 +450,7 @@ function* download(
   }
 }
 
-function* upload(_, action: FsGen.UploadPayload) {
+function* upload(_: TypedState, action: FsGen.UploadPayload) {
   const {parentPath, localPath} = action.payload
   const opID = Constants.makeUUID()
   const path = Constants.getUploadedPath(parentPath, localPath)
@@ -539,7 +539,7 @@ function* pollJournalFlushStatusUntilDone() {
   }
 }
 
-function* ignoreFavoriteSaga(_, action: FsGen.FavoriteIgnorePayload) {
+function* ignoreFavoriteSaga(_: TypedState, action: FsGen.FavoriteIgnorePayload) {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
     // TODO: make the ignore button have a pending state and get rid of this?
@@ -698,7 +698,7 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
   }
 }
 
-const letResetUserBackIn = (_, {payload: {id, username}}) =>
+const letResetUserBackIn = (_: TypedState, {payload: {id, username}}) =>
   RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
 
 const updateFsBadge = (state: TypedState) =>
@@ -1022,12 +1022,12 @@ const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
   state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
   FsGen.createSetTlfsAsUnloaded()
 
-const setDebugLevel = (_, action: FsGen.SetDebugLevelPayload) =>
+const setDebugLevel = (_: TypedState, action: FsGen.SetDebugLevelPayload) =>
   RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
 
 const subscriptionDeduplicateIntervalSecond = 1
 
-const subscribePath = (_, action: FsGen.SubscribePathPayload) =>
+const subscribePath = (_: TypedState, action: FsGen.SubscribePathPayload) =>
   RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
     deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
     kbfsPath: Types.pathToString(action.payload.path),
@@ -1035,41 +1035,35 @@ const subscribePath = (_, action: FsGen.SubscribePathPayload) =>
     topic: action.payload.topic,
   })
 
-const subscribeNonPath = (_, action: FsGen.SubscribeNonPathPayload) =>
+const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) =>
   RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
     deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
     subscriptionID: action.payload.subscriptionID,
     topic: action.payload.topic,
   })
 
-const unsubscribe = (_, action: FsGen.UnsubscribePayload) =>
+const unsubscribe = (_: TypedState, action: FsGen.UnsubscribePayload) =>
   RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
     subscriptionID: action.payload.subscriptionID,
   }).catch(() => {})
 
-const onPathChange = (_, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
+const onPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {path, topic} = action.payload.params
   switch (topic) {
     case RPCTypes.PathSubscriptionTopic.children:
       return FsGen.createFolderListLoad({path: Types.stringToPath(path)})
     case RPCTypes.PathSubscriptionTopic.stat:
       return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(topic)
-      return null
   }
 }
 
-const onNonPathChange = (_, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
+const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
   const {topic} = action.payload.params
   switch (topic) {
     case RPCTypes.SubscriptionTopic.favorites:
       return FsGen.createFavoritesLoad()
     case RPCTypes.SubscriptionTopic.journalStatus:
       return FsGen.createOnJournalNotification()
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(topic)
-      return null
   }
 }
 
