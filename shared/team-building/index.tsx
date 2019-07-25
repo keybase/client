@@ -86,7 +86,7 @@ const ContactsBanner = ({onRedoSearch, onRedoRecs}: {onRedoSearch: () => void; o
   const onLater = React.useCallback(() => dispatch(SettingsGen.createImportContactsLater()), [dispatch])
   // Redo search if # of imported contacts changes
   React.useEffect(() => {
-    if (prevNumContactsImported !== numContactsImported) {
+    if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
       onRedoSearch()
       onRedoRecs()
     }
