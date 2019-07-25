@@ -211,10 +211,10 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	return res, nil
 }
 
-func (c *CachedContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	c.Provider.FillUsernames(mctx, res)
+func (c *CachedContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
+	return c.Provider.FindUsernames(mctx, uids)
 }
 
-func (c *CachedContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	c.Provider.FillFollowing(mctx, res)
+func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
+	return c.Provider.FindFollowing(mctx, uids)
 }

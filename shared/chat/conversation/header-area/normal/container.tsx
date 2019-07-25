@@ -25,7 +25,9 @@ const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversati
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
-    pendingWaiting: conversationIDKey === Constants.pendingWaitingConversationIDKey,
+    pendingWaiting:
+      conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+      conversationIDKey === Constants.pendingErrorConversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
   }

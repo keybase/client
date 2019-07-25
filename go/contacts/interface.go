@@ -41,8 +41,13 @@ func makePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
 	return ContactLookupKey(fmt.Sprintf("p:%s", string(p)))
 }
 
+type ContactUsernameAndFullName struct {
+	Username string
+	Fullname string
+}
+
 type ContactsProvider interface {
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
-	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
-	FillFollowing(libkb.MetaContext, []keybase1.ProcessedContact)
+	FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error)
+	FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error)
 }

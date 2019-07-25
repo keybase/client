@@ -150,10 +150,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: TypedDispatch, {namespace, teamname}: OwnProps) => ({
-  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
-  _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
+const debouncedSearch = debounce(
+  (
+    dispatch: TypedDispatch,
+    namespace: AllowedNamespace,
+    query: string,
+    service: ServiceIdWithContact,
+    limit?: number
+  ) =>
     requestIdleCallback(() =>
       dispatch(
         TeamBuildingGen.createSearch({
@@ -163,8 +167,15 @@ const mapDispatchToProps = (dispatch: TypedDispatch, {namespace, teamname}: OwnP
           service,
         })
       )
-    )
-  }, 500),
+    ),
+  1000
+)
+
+const mapDispatchToProps = (dispatch: TypedDispatch, {namespace, teamname}: OwnProps) => ({
+  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
+  _search: (query: string, service: ServiceIdWithContact, limit?: number) =>
+    debouncedSearch(dispatch, namespace, query, service, limit),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
