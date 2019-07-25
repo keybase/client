@@ -178,8 +178,33 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     }
   }
 
-  _getRecLayout = () => {
-    debugger
+  _getRecLayout = (
+    sections: Array<SearchRecSection>,
+    indexInList: number
+  ): {index: number; length: number; offset: number} => {
+    let numSections = 0
+    let numData = 0
+    let length: 40 | 64 = 64
+    let currSectionHeaderIdx = 0
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i]
+      if (indexInList === currSectionHeaderIdx) {
+        // we are the section header
+        length = 40
+        break
+      }
+      numSections++
+      const indexInSection = indexInList - currSectionHeaderIdx
+      if (indexInSection < s.data.length) {
+        // we are in this data
+        numData += indexInSection - 1
+        break
+      }
+      // we're not in this section
+      numData += s.data.length
+    }
+    const offset = numSections * 40 + numData * 64
+    return {index: indexInList, length, offset}
   }
 
   _listBody = () => {
@@ -221,7 +246,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         </Kb.Box2>
       )
     }
-    if (this.props.showRecs) {
+    if (this.props.showRecs && this.props.recommendations) {
       // TODO: Scroll on desktop when keyboard nav goes off screen
       return (
         <Kb.Box2

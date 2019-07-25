@@ -131,7 +131,9 @@ const Username = (props: {
           {props.username}
         </Kb.Text>
         {props.isPreExistingTeamMember ? (
-          <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {isPreExistingTeamMemberText(props.prettyName)}
+          </Kb.Text>
         ) : (
           <FormatPrettyName
             displayLabel={props.displayLabel}
@@ -206,10 +208,8 @@ const styles = Styles.styleSheetCreate({
     width: ActionButtonSize,
   },
   rowContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.tiny,
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    height: Styles.globalMargins.xlarge,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
