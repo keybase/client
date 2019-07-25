@@ -10,6 +10,7 @@ import {isMobile} from '../platform'
 import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  pendingErrorConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
@@ -31,6 +32,7 @@ export const makeState = I.Record<Types._State>({
   commandMarkdownMap: I.Map(),
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
+  createConversationError: null,
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -454,5 +456,6 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
+  pendingErrorConversationIDKey,
   pendingWaitingConversationIDKey,
 }

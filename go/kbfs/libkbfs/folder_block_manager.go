@@ -40,10 +40,6 @@ const (
 	numPointersPerGCThresholdDefault = 100
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
-
-	// The delay to wait for before trying a failed block deletion
-	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
-	deleteBlocksRetryDelay = 10 * time.Millisecond
 )
 
 type blockDeleteType int
@@ -147,11 +143,11 @@ func newFolderBlockManager(
 	}
 
 	fbm := &folderBlockManager{
-		appStateUpdater:           appStateUpdater,
-		config:                    config,
-		log:                       log,
-		shutdownChan:              make(chan struct{}),
-		id:                        fb.Tlf,
+		appStateUpdater: appStateUpdater,
+		config:          config,
+		log:             log,
+		shutdownChan:    make(chan struct{}),
+		id:              fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),

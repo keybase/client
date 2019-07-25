@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -48,7 +48,7 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 		return res, NewDecryptionKeyNotFoundError(int(generation), kbfsEncrypted, public)
 	}
 
-	appKey, err := team.ApplicationKeyAtGeneration(mctx.Ctx(), keybase1.TeamApplication_CHAT, generation)
+	appKey, err := team.ChatKeyAtGeneration(mctx.Ctx(), generation)
 	if err != nil {
 		return res, err
 	}
@@ -217,15 +217,19 @@ func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, pu
 		return err
 	}
 	if impTeamName.String() != tlfName {
-		// Try resolving given name, maybe there has been a resolution
-		resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
+		// Try resolving both the tlf name, and the team we loaded
+		resImpName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), impTeamName.String(), public)
 		if err != nil {
 			return err
 		}
-		if impTeamName.String() != resName.String() {
+		resTlfName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
+		if err != nil {
+			return err
+		}
+		if resImpName.String() != resTlfName.String() {
 			return ImpteamBadteamError{
-				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s (resname:%s)",
-					impTeamName, tlfName, resName),
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s (%s != %s)",
+					impTeamName, tlfName, resImpName, resTlfName),
 			}
 		}
 	}

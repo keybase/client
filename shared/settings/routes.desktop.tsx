@@ -22,49 +22,23 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
-  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default, upgraded: true},
-  [Constants.advancedTab]: {
-    getScreen: (): typeof AdvancedTab => require('./advanced/container').default,
-    upgraded: true,
-  },
-  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default, upgraded: true},
-  [Constants.deleteMeTab]: {
-    getScreen: (): typeof DeleteMeTab => require('./delete/container').default,
-    upgraded: true,
-  },
+  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
+  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
+  // TODO connect broken
   [Constants.invitationsTab]: {
-    // TODO connect broken
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
-    upgraded: true,
   },
-  [Constants.accountTab]: {
-    getScreen: (): typeof AccountTab => require('./account/container').default,
-    upgraded: true,
-  },
-  [Constants.feedbackTab]: {
-    getScreen: (): typeof FeedbackTab => require('./feedback/container').default,
-    upgraded: true,
-  },
+  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
+  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
-    upgraded: true,
   },
-  dbNukeConfirm: {
-    getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default,
-    upgraded: true,
-  },
-  deleteConfirm: {
-    getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default,
-    upgraded: true,
-  },
-  inviteSent: {
-    getScreen: (): typeof InviteSent => require('./invite-generated/container').default,
-    upgraded: true,
-  },
-  removeDevice: {
-    getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
-    upgraded: true,
-  },
+  dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
+  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
+  inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
+  removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
 
 class SettingsSubNav extends React.PureComponent<any> {
@@ -100,31 +74,20 @@ SettingsSubNavigator.navigationOptions = {
 }
 
 export const newRoutes = {
-  settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
+  settingsRoot: {getScreen: () => SettingsSubNavigator},
 }
 export const newModalRoutes = {
-  [Constants.logOutTab]: {
-    getScreen: (): typeof LogOutTab => require('./logout/container').default,
-    upgraded: true,
-  },
+  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
-  changePassword: {
-    getScreen: (): typeof ChangePassword => require('./password/container').default,
-    upgraded: true,
-  },
+  changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
-    upgraded: true,
   },
-  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email, upgraded: true},
-  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone, upgraded: true},
+  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
+  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
-    upgraded: true,
   },
-  settingsVerifyPhone: {
-    getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
-    upgraded: true,
-  },
+  settingsVerifyPhone: {getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone},
 }

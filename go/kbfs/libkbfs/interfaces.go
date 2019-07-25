@@ -165,6 +165,9 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() data.PathPartString
+	// GetPathPlaintextSansTlf returns the cleaned path of the node in
+	// plaintext.
+	GetPathPlaintextSansTlf() (string, bool)
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -592,6 +595,7 @@ type gitMetadataPutter interface {
 type KeybaseService interface {
 	idutil.KeybaseService
 	gitMetadataPutter
+	SubscriptionNotifier
 
 	// FavoriteAdd adds the given folder to the list of favorites.
 	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
@@ -1967,6 +1971,64 @@ type blockCryptVersioner interface {
 	BlockCryptVersion() kbfscrypto.EncryptionVer
 }
 
+// SubscriptionID identifies a subscription.
+type SubscriptionID string
+
+// SubscriptionNotifier defines a group of methods for notifying about changes
+// on subscribed topics.
+type SubscriptionNotifier interface {
+	// OnPathChange notifies about a change that's related to a specific path.
+	OnPathChange(subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic)
+	// OnNonPathChange notifies about a change that's not related to a specific path.
+	OnNonPathChange(subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic)
+}
+
+// Subscriber defines a type that can be used to subscribe to different topic.
+//
+// The two Subscribe methods are for path and non-path subscriptions
+// respectively. Notes on some common arguments:
+// 1) subscriptionID needs to be unique among all subscriptions that happens
+//    with this process. A UUID or even just a timestamp might work. If
+//    duplicate subscriptionIDs are used, an error is returned.
+// 2) Optionally a deduplicateInterval can be used. When this arg is set, we
+//    debounce the events so it doesn't send more frequently than the interval.
+//    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
+//    all events will be delivered.
+type Subscriber interface {
+	// SubscribePath subscribes to changes about path, when topic happens.
+	SubscribePath(
+		ctx context.Context, subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// SubscribeNonPath subscribes to changes when topic happens.
+	SubscribeNonPath(ctx context.Context, subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// Unsubscribe unsubscribes a previsous subscription. The subscriptionID
+	// should be the same as when caller subscribed. Otherwise, it's a no-op.
+	Unsubscribe(context.Context, SubscriptionID)
+}
+
+// SubscriptionManager manages subscriptions. Use the Subscriber interface to
+// subscribe and unsubscribe. Multiple subscribers can be used with the same
+// SubscriptionManager.
+type SubscriptionManager interface {
+	// Subscriber returns a new subscriber. All subscriptions made on this
+	// subscriber causes notifications sent through the give notifier here.
+	Subscriber(SubscriptionNotifier) Subscriber
+	// Shutdown shuts the subscription manager down.
+	Shutdown(ctx context.Context)
+}
+
+// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
+// used to publish changes to subscribers mangaged by it.
+type SubscriptionManagerPublisher interface {
+	FavoritesChanged()
+	JournalStatusChanged()
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -2148,6 +2210,13 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
+
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+	// SubscriptionManagerPublisher retursn a publisher that can be used to
+	// publish events to the subscription manager.
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

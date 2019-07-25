@@ -19,6 +19,8 @@ export default function(
       return state.merge({error: initialState.error})
     case LoginGen.loginError:
       return state.merge({error: action.payload.error || initialState.error})
+    case LoginGen.loadedIsOnline:
+      return state.merge({isOnline: action.payload.result})
     // Saga only actions
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.launchForgotPasswordWebPage:

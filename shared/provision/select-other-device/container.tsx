@@ -11,6 +11,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   configuredAccounts: state.config.configuredAccounts,
   devices: state.provision.devices,
 })
+
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onResetAccount: () => {
@@ -22,17 +23,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => {
     const loggedInAccounts = stateProps.configuredAccounts
       .filter(account => account.hasStoredSecret)
       .map(account => account.username)
     return {
       devices: stateProps.devices.toArray(),
-      onBack: loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : null,
+      onBack:
+        loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : undefined,
       onResetAccount: dispatchProps.onResetAccount,
       onSelect: dispatchProps.onSelect,
     }
-  }),
-  Container.safeSubmitPerMount(['onSelect', 'onBack'])
-)(SelectOtherDevice)
+  }
+)(Container.safeSubmitPerMount(['onSelect', 'onBack'])(SelectOtherDevice))

@@ -52,7 +52,7 @@ func (c *cmdWalletRename) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: c.AccountID,
 		NewName:   c.Name,
 	})

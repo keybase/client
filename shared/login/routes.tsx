@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
+import {ProxySettingsPopup} from '../settings/proxy'
 
 type OwnProps = {}
 type Props = {
@@ -37,12 +38,13 @@ RootLogin.navigationOptions = {
 }
 
 export const newRoutes = {
-  feedback: {
-    getScreen: (): typeof Feedback => require('../settings/feedback/container').default,
-    upgraded: true,
-  },
-  login: {getScreen: () => RootLogin, upgraded: true},
+  feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
+  login: {getScreen: () => RootLogin},
   ...require('../provision/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  proxySettingsModal: {
+    getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+  },
+}

@@ -61,6 +61,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _attachmentInfo: attachmentInfo,
     _fromMsgID: getFromMsgID(attachmentInfo),
     _infoMap: state.users.infoMap,
+    _participantToContactName: meta.participantToContactName,
     _participants: meta.participants,
     _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
     admin,
@@ -260,7 +261,8 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: dispatchProps.onUnhideConv,
     participants: stateProps._participants
       .map(p => ({
-        fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
+        fullname:
+          stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
         isAdmin: stateProps.teamname
           ? TeamConstants.userIsRoleInTeamWithInfo(
               // @ts-ignore

@@ -24,5 +24,5 @@ const NoPGP = connect(
 )(NoPGPView)
 
 export const newRoutes = {
-  profilePgp: {getScreen: () => NoPGP, upgraded: true},
+  profilePgp: {getScreen: () => NoPGP},
 }

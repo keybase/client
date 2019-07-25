@@ -10,7 +10,7 @@ import (
 )
 
 // bufToSlice returns a byte slice aliasing the pointer and length given as arguments.
-func bufToSlice(ptr unsafe.Pointer, nbytes uint32) []byte {
+func bufToSlice(ptr unsafe.Pointer, nbytes uint32) []byte { // nolint
 	if ptr == nil || nbytes == 0 {
 		return nil
 	}

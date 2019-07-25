@@ -62,11 +62,11 @@ func TestRotate(t *testing.T) {
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
 
-func TestRotateWithBot(t *testing.T) {
+func TestRotateWithRestrictedBot(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	err := SetRoleBot(context.TODO(), tc.G, name, other.Username)
+	err := SetRoleRestrictedBot(context.TODO(), tc.G, name, other.Username)
 	require.NoError(t, err)
 
 	tc.G.Logout(context.TODO())
@@ -78,7 +78,7 @@ func TestRotateWithBot(t *testing.T) {
 	_, err = team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
-	// Bots cannot rotate
+	// Restricted bots cannot rotate
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
@@ -97,7 +97,7 @@ func TestRotateWithBot(t *testing.T) {
 	require.Zero(t, len(after.Data.PerTeamKeySeedsUnverified))
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_BOT)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	_, err = after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.IsType(t, libkb.NotFoundError{}, err)
@@ -304,7 +304,7 @@ func TestRotateRace(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		t.Logf("round %v", i)
 
 		errCh1 := rotate(0)

@@ -4,13 +4,13 @@ import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import os from 'os'
+import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {sendToMainWindow} from '../remote/util.desktop'
-import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
 
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
@@ -73,8 +73,11 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
 
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
-  if (commandLine.length > 1 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
-    sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
+  if (commandLine.length > 1 && commandLine[1]) {
+    const link = commandLine[1]
+    if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
+      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+    }
   }
 }
 
@@ -156,11 +159,11 @@ const createMainWindow = () => {
     if (startupURL) {
       // Mac calls open-url for a launch URL before redux is up, so we
       // stash a startupURL to be dispatched when we're ready for it.
-      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: DeeplinksGen.link})
       startupURL = null
     } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
       // Windows and Linux instead store a launch URL in argv.
-      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: DeeplinksGen.link})
     }
   })
 }
@@ -204,7 +207,7 @@ const willFinishLaunching = () => {
     if (!reduxLaunched) {
       startupURL = link
     } else {
-      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
     }
   })
 }

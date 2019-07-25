@@ -281,7 +281,7 @@ func (s *MerkleStoreImpl) refreshRoot(m libkb.MetaContext) error {
 		uid = libkb.TAliceUID
 	}
 	q.Add("uid", libkb.UIDArg(uid))
-	_, err := s.G().MerkleClient.LookupUser(m, q, nil)
+	_, err := s.G().MerkleClient.LookupUser(m, q, nil, libkb.MerkleOpts{})
 	return err
 }
 

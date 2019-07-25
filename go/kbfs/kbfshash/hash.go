@@ -303,7 +303,10 @@ var _ encoding.TextUnmarshaler = (*HMAC)(nil)
 // using the default hash.
 func DefaultHMAC(key, buf []byte) (HMAC, error) {
 	mac := hmac.New(DefaultHashNew, key)
-	mac.Write(buf)
+	_, err := mac.Write(buf)
+	if err != nil {
+		return HMAC{}, err
+	}
 	h, err := HashFromRaw(DefaultHashType, mac.Sum(nil))
 	if err != nil {
 		return HMAC{}, err

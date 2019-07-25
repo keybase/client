@@ -7,6 +7,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 
 type Props = {
   address: string
+  searchable: boolean
   onCancel: () => void
   onConfirm: () => void
   type: 'email' | 'phone'
@@ -23,21 +24,26 @@ const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
     icon={getIcon(props)}
     prompt={`Delete ${props.type === 'email' ? 'address' : 'number'} \n${props.address}?`}
-    description={`Your friends will no longer be able to find you by this ${
-      props.type === 'email' ? 'email address' : 'number'
-    }.`}
+    description={
+      props.searchable
+        ? `Your friends will no longer be able to find you by this ${
+            props.type === 'email' ? 'email address' : 'number'
+          }.`
+        : ''
+    }
     onCancel={props.onCancel}
     onConfirm={props.onConfirm}
   />
 )
 
-type OwnProps = Container.RouteProps<{address: string; type: 'email' | 'phone'}>
+type OwnProps = Container.RouteProps<{address: string; searchable: boolean; type: 'email' | 'phone'}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
 
   const itemAddress = Container.getRouteProps(props, 'address', '')
   const itemType = Container.getRouteProps(props, 'type', 'email')
+  const itemSearchable = Container.getRouteProps(props, 'searchable', false)
 
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onConfirm = React.useCallback(() => {
@@ -51,7 +57,13 @@ const DeleteModal = (props: OwnProps) => {
   }, [dispatch, itemAddress, itemType])
 
   return (
-    <ConfirmDeleteAddress address={itemAddress} type={itemType} onCancel={onCancel} onConfirm={onConfirm} />
+    <ConfirmDeleteAddress
+      address={itemAddress}
+      searchable={itemSearchable}
+      type={itemType}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
   )
 }
 

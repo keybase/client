@@ -8,19 +8,11 @@ import SignupSendFeedback from './feedback/container'
 export const newRoutes = {
   signupEnterDevicename: {
     getScreen: (): typeof SignupEnterDevicename => require('./device-name/container').default,
-    upgraded: true,
   },
-  signupEnterEmail: {
-    getScreen: (): typeof SignupEnterEmail => require('./email/container').default,
-    upgraded: true,
-  },
-  signupEnterUsername: {
-    getScreen: (): typeof SignupEnterUsername => require('./username/container').default,
-    upgraded: true,
-  },
+  signupEnterEmail: {getScreen: (): typeof SignupEnterEmail => require('./email/container').default},
+  signupEnterUsername: {getScreen: (): typeof SignupEnterUsername => require('./username/container').default},
   signupSendFeedbackLoggedOut: {
     getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-    upgraded: true,
   },
 }
 
@@ -28,14 +20,11 @@ export const newRoutes = {
 export const newModalRoutes = {
   signupEnterPhoneNumber: {
     getScreen: (): typeof SignupEnterPhoneNumber => require('./phone-number/container').default,
-    upgraded: true,
   },
   signupSendFeedbackLoggedIn: {
     getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-    upgraded: true,
   },
   signupVerifyPhoneNumber: {
     getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
-    upgraded: true,
   },
 }

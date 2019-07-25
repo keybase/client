@@ -428,7 +428,7 @@ func TestHandleConflictInfo(t *testing.T) {
 		Actual:   &info,
 	}
 	info.Date = 101
-	h, err = h.WithUpdatedConflictInfo(codec, &info)
+	_, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.Equal(t, expectedErr, err)
 	// A strange error message, since the difference doesn't show
 	// up in the strings. Oh, well.
@@ -938,7 +938,7 @@ func TestHandleResolvesTo(t *testing.T) {
 	h1, err = h1.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
-	resolvesTo, partialResolvedH1, err =
+	resolvesTo, _, err =
 		h1.ResolvesTo(ctx, codec, kbpki, ConstIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
@@ -962,7 +962,7 @@ func TestHandleResolvesTo(t *testing.T) {
 	}
 	h1.SetFinalizedInfo(&info)
 
-	resolvesTo, partialResolvedH1, err =
+	resolvesTo, _, err =
 		h1.ResolvesTo(ctx, codec, kbpki, ConstIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
@@ -980,7 +980,7 @@ func TestHandleResolvesTo(t *testing.T) {
 	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
-	resolvesTo, partialResolvedH1, err =
+	_, _, err =
 		h1.ResolvesTo(ctx, codec, kbpki, ConstIDGetter{idPub}, nil, *h2)
 	require.Error(t, err)
 
@@ -1021,8 +1021,6 @@ func TestHandleResolvesTo(t *testing.T) {
 
 	// Test negative resolution cases.
 
-	name1 = "u1,u2@twitter,u5#u3,u4@twitter"
-
 	for _, tc := range []testCase{
 		{"u1,u5#u3,u4@twitter", "u2"},
 		{"u1,u2,u5#u3,u4@twitter", "u1"},
@@ -1034,7 +1032,7 @@ func TestHandleResolvesTo(t *testing.T) {
 
 		daemon.AddNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
-		resolvesTo, partialResolvedH1, err =
+		resolvesTo, _, err =
 			h1.ResolvesTo(ctx, codec, kbpki, ConstIDGetter{id}, nil, *h2)
 		require.NoError(t, err)
 		assert.False(t, resolvesTo, tc.name2)

@@ -17,71 +17,40 @@ import ProfileSearch from './search/container'
 import ProfileShowcaseTeamOffer from './showcase-team-offer/container'
 
 export const newRoutes = {
-  profile: {getScreen: (): typeof Profile => require('./user/container').default, upgraded: true as const},
-  profileNonUser: {
-    getScreen: (): typeof ProfileNonUser => require('./non-user-profile/container').default,
-    upgraded: true as const,
-  },
+  profile: {getScreen: (): typeof Profile => require('./user/container').default},
+  profileNonUser: {getScreen: (): typeof ProfileNonUser => require('./non-user-profile/container').default},
 }
 
 export const newModalRoutes = {
-  profileAddToTeam: {
-    getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default,
-    upgraded: true,
-  },
-  profileBlockUser: {
-    getScreen: (): typeof ProfileBlockUser => require('./block/container').default,
-    upgraded: true,
-  },
+  profileAddToTeam: {getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default},
+  profileBlockUser: {getScreen: (): typeof ProfileBlockUser => require('./block/container').default},
   profileConfirmOrPending: {
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
-    upgraded: true,
   },
-  profileEdit: {
-    getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default,
-    upgraded: true,
-  },
-  profileEditAvatar: {
-    getScreen: (): typeof ProfileEditAvatar => require('./edit-avatar/container').default,
-    upgraded: true,
-  },
+  profileEdit: {getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default},
+  profileEditAvatar: {getScreen: (): typeof ProfileEditAvatar => require('./edit-avatar/container').default},
   profileGenericEnterUsername: {
     getScreen: (): typeof ProfileGenericEnterUsername =>
       require('./generic/enter-username/container').default,
-    upgraded: true,
   },
   profileGenericProofResult: {
     getScreen: (): typeof ProfileGenericProofResult => require('./generic/result/container').default,
-    upgraded: true,
   },
-  profilePostProof: {
-    getScreen: (): typeof ProfilePostProof => require('./post-proof/container').default,
-    upgraded: true,
-  },
+  profilePostProof: {getScreen: (): typeof ProfilePostProof => require('./post-proof/container').default},
   profileProofsList: {
     getScreen: (): typeof ProfileProofsList => require('./generic/proofs-list/container').default,
-    upgraded: true,
   },
   profileProveEnterUsername: {
     getScreen: (): typeof ProfileProveEnterUsername => require('./prove-enter-username/container').default,
-    upgraded: true,
   },
   profileProveWebsiteChoice: {
     getScreen: (): typeof ProfileProveWebsiteChoice => require('./prove-website-choice/container').default,
-    upgraded: true,
   },
-  profileRevoke: {
-    getScreen: (): typeof ProfileRevoke => require('./revoke/container').default,
-    upgraded: true,
-  },
-  profileSearch: {
-    getScreen: (): typeof ProfileSearch => require('./search/container').default,
-    upgraded: true,
-  },
+  profileRevoke: {getScreen: (): typeof ProfileRevoke => require('./revoke/container').default},
+  profileSearch: {getScreen: (): typeof ProfileSearch => require('./search/container').default},
   // TODO broken connect
   profileShowcaseTeamOffer: {
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
-    upgraded: true,
   },
   ...PGPRoutes,
 }

@@ -54,7 +54,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 	t.Logf("add C to the team so they can load it")
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")

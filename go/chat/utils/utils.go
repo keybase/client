@@ -220,13 +220,11 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 	return withContacts
 }
 
-var nonDigits = regexp.MustCompile("[^\\d]")
-
 func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
 	for _, contact := range contacts {
 		cPhoneOrEmail := contact.Component.ValueString()
 		if isPhone {
-			cPhoneOrEmail = nonDigits.ReplaceAllString(cPhoneOrEmail, "")
+			cPhoneOrEmail = keybase1.PhoneNumberToAssertionValue(cPhoneOrEmail)
 		}
 		if cPhoneOrEmail == phoneOrEmail {
 			return &contact.ContactName
@@ -674,12 +672,35 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	return res
 }
 
-func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
+func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessageText,
 	getConvMembs func() ([]chat1.ConversationLocalParticipant, error),
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
+	if msg.ReplyTo != nil {
+		if replyMention := GetReplyAtMention(ctx, g, uid, convID, *msg.ReplyTo, debug); replyMention != nil {
+			atRes = append(atRes, *replyMention)
+		}
+	}
 	return atRes, maybeRes, chanRes
+}
+
+func GetReplyAtMention(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, l *DebugLabeler) *chat1.KnownUserMention {
+	reply, err := g.ChatHelper.GetMessage(ctx, uid, convID, msgID, false, nil)
+	if err != nil {
+		l.Debug(ctx, "GetReplyAtMention: failed to get message: %s", err)
+		return nil
+	}
+	if !reply.IsValid() {
+		l.Debug(ctx, "GetReplyAtMention: invalid reply message: %s", err)
+		return nil
+	}
+	return &chat1.KnownUserMention{
+		Text: "",
+		Uid:  reply.Valid().ClientHeader.Sender,
+	}
 }
 
 func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,
@@ -1196,20 +1217,30 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
-func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
-	var writerNames []chat1.UIParticipant
-	for _, p := range rawConv.Info.Participants {
-		participantType := chat1.UIParticipantType_USER
-		if isPhoneOrEmail(p.Username) {
-			participantType = chat1.UIParticipantType_CONTACT
-		}
-		writerNames = append(writerNames, chat1.UIParticipant{
+func getParticipantType(username string) chat1.UIParticipantType {
+	if strings.HasSuffix(username, "@phone") {
+		return chat1.UIParticipantType_PHONENO
+	}
+	if strings.HasSuffix(username, "@email") {
+		return chat1.UIParticipantType_EMAIL
+	}
+	return chat1.UIParticipantType_USER
+}
+
+func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+	for _, p := range rawParticipants {
+		participantType := getParticipantType(p.Username)
+		participants = append(participants, chat1.UIParticipant{
 			Assertion:   p.Username,
 			ContactName: p.ContactName,
 			FullName:    p.Fullname,
 			Type:        participantType,
 		})
 	}
+	return participants
+}
+
+func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
@@ -1218,7 +1249,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
-	res.Participants = writerNames
+	res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()

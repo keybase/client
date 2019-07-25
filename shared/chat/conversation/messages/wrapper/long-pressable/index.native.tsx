@@ -23,6 +23,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
       ref={swipeable}
       renderRightActions={_renderRightActions}
       onSwipeableRightWillOpen={onRightOpen}
+      failOffsetX={0}
     >
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
         <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
@@ -33,7 +34,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
 
 const styles = Styles.styleSheetCreate({
   replyIcon: {
-    padding: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.small,
   },
   view: {
     ...Styles.globalStyles.flexBoxColumn,

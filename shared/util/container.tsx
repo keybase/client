@@ -46,7 +46,6 @@ export function usePrevious<T>(value: T) {
 export type Route = {
   getScreen: () => React.ComponentType<any>
   screen?: React.ComponentType
-  upgraded: true
 }
 export type RouteMap = {[K in string]: Route}
 

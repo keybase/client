@@ -15,6 +15,7 @@ type OwnProps = {
 const Connected = Container.connect(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
+    _contactImportEnabled: state.settings.contacts.importEnabled,
     _logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
     _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
     badgeNotifications: !state.push.hasPermissions,
@@ -38,6 +39,7 @@ const Connected = Container.connect(
     badgeNotifications: stateProps.badgeNotifications,
     badgeNumbers: (stateProps._badgeNumbers.toObject() as unknown) as Props['badgeNumbers'],
     children: ownProps.children,
+    contactsLabel: stateProps._contactImportEnabled ? 'Phone contacts' : 'Import phone contacts',
     hasRandomPW: stateProps.hasRandomPW || undefined,
     loadHasRandomPW: dispatchProps.loadHasRandomPW,
     logoutInProgress: stateProps._logoutHandshakeWaiters.size > 0,

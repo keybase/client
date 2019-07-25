@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
 	hidden "github.com/keybase/client/go/teams/hidden"
@@ -188,6 +189,10 @@ func (t *Team) SaltpackEncryptionKeyLatest(ctx context.Context) (keybase1.TeamAp
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_SALTPACK)
 }
 
+func (t *Team) ChatKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
+}
+
 func (t *Team) SaltpackEncryptionKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SALTPACK, generation)
 }
@@ -305,11 +310,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
-	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	x, err = t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Bots = x
+	members.RestrictedBots = x
 
 	return members, nil
 }
@@ -571,6 +576,7 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	}
 
 	t.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
+	createTeambotKeys(t.G(), t.ID, memSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -817,12 +823,22 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		return err
 	}
 
-	var group []keybase1.UserVersion
+	var recipients, botRecipients []keybase1.UserVersion
 	for uv := range memberSet.recipients {
-		group = append(group, uv)
+		recipients = append(recipients, uv)
+	}
+	for uv := range memberSet.restrictedBotRecipients {
+		botRecipients = append(botRecipients, uv)
 	}
 	newMemSet := newMemberSet()
-	_, err = newMemSet.loadGroup(ctx, t.G(), group, true, true)
+	_, err = newMemSet.loadGroup(ctx, t.G(), recipients, storeMemberKindRecipient, true)
+	if err != nil {
+		return err
+	}
+	_, err = newMemSet.loadGroup(ctx, t.G(), botRecipients, storeMemberKindRestrictedBotRecipient, true)
+	if err != nil {
+		return err
+	}
 	if !memberSet.recipients.Eq(newMemSet.recipients) {
 		return BoxRaceError{inner: fmt.Errorf("team box summary changed during sig creation; retry required")}
 	}
@@ -833,6 +849,8 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	}
 
 	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
+	t.storeTeamEKPayload(ctx, teamEKPayload)
+	createTeambotKeys(t.G(), t.ID, memberSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -1333,8 +1351,8 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_BOT:
-		return fmt.Errorf("bot role disallowed for invites")
+	case keybase1.TeamRole_RESTRICTEDBOT:
+		return fmt.Errorf("restricted bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
 	case keybase1.TeamRole_WRITER:
@@ -1682,7 +1700,9 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
-func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRotation bool) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
+func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRotation bool) (
+	*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes,
+	*SCPerTeamKey, *teamEKPayload, error) {
 
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
@@ -1727,7 +1747,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing or bot members, so remove them from the set
+	// don't need keys for existing or restricted bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1749,7 +1769,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members except bots.
+	// rotate the team key for all current members except restricted bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err
@@ -1767,7 +1787,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, true, true)
+		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, storeMemberKindRecipient, true)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -1825,6 +1845,53 @@ func (t *Team) storeTeamEKPayload(ctx context.Context, teamEKPayload *teamEKPayl
 			t.G().Log.CErrorf(ctx, "error while saving teamEK box: %s", err)
 		}
 	}
+}
+
+// createTeambotKeys generates teambotKeys and teambotEKs for the given bot
+// member list. Runs in the background on member addition or team rotation.
+func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []keybase1.UID) {
+	mctx := libkb.NewMetaContextBackground(g)
+	go func() {
+		var err error
+		defer mctx.TraceTimed(fmt.Sprintf("createTeambotKeys: %d bot members", len(bots)), func() error { return err })()
+		if len(bots) == 0 {
+			return
+		}
+
+		// Load the team in case we need to grab the latest PTK generation after a rotation.
+		team, err := Load(mctx.Ctx(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		if err != nil {
+			return
+		}
+
+		ekLib := mctx.G().GetEKLib()
+		keyer := mctx.G().GetTeambotMemberKeyer()
+		appKey, err := team.ChatKey(mctx.Ctx())
+		if err != nil {
+			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey creation", err)
+			keyer = nil
+		}
+
+		for _, uid := range bots {
+			guid := gregor1.UID(uid.ToBytes())
+			if ekLib != nil {
+				if teambotEK, created, err := ekLib.GetOrCreateLatestTeambotEK(mctx, teamID, guid); err != nil {
+					mctx.Debug("unable to GetOrCreateLatestTeambotEK for %v, %v", guid, err)
+				} else {
+					mctx.Debug("published TeambotEK generation %d for %v, newly created: %v", teambotEK.Generation(), uid, created)
+				}
+			}
+			if keyer != nil {
+				if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, appKey); err != nil {
+					mctx.Debug("unable to GetOrCreateTeambotKey for %v, %v", guid, err)
+				} else {
+					mctx.Debug("published TeambotKey generation %d for %v, newly created: %v", teambotKey.Generation(), uid, created)
+				}
+			}
+		}
+	}()
 }
 
 type sigPayloadArgs struct {
@@ -2019,6 +2086,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 	var maybeEKPayload *teamEKPayload
+	var botMembers []keybase1.UID
 	if rotate {
 		// Create empty Members section. We are not changing memberships, but
 		// it's needed for key rotation.
@@ -2035,6 +2103,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		payloadArgs.secretBoxes = secretBoxes
 		payloadArgs.teamEKPayload = teamEKPayload
 		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
+		botMembers = memSet.restrictedBotRecipientUids()
 	}
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, mr, payloadArgs)
 	if err != nil {
@@ -2044,6 +2113,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	if rotate {
 		t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true, Misc: true}, latestSeqno)
 		t.storeTeamEKPayload(ctx, maybeEKPayload)
+		createTeambotKeys(t.G(), t.ID, botMembers)
 	} else {
 		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
 	}
@@ -2083,6 +2153,10 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 			continue
 		}
+		if isHiddenAppendPrecheckError(err) {
+			g.Log.CDebugf(ctx, "| retrying since we hit a hidden append precheck error")
+			continue
+		}
 		return err
 	}
 	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
@@ -2092,6 +2166,18 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 	}
 	// Return the error from the final round
 	return err
+}
+
+func isHiddenAppendPrecheckError(err error) bool {
+	perr, ok := err.(PrecheckAppendError)
+	if !ok {
+		return false
+	}
+	_, ok = perr.Inner.(hidden.LoaderError)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func isSigOldSeqnoError(err error) bool {

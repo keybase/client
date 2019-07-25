@@ -50,7 +50,7 @@ func (m *mounter) Mount() (err error) {
 
 	// Mount failed, let's try to unmount and then try mounting again, even
 	// if unmounting errors here.
-	m.Unmount()
+	_ = m.Unmount()
 
 	// In case we are on darwin, ask the installer to reinstall the mount dir
 	// and try again as the last resort. This specifically fixes a situation
@@ -146,18 +146,17 @@ func (m *mounter) Unmount() (err error) {
 	return
 }
 
-func (m *mounter) DeleteMountdirIfEmpty() (err error) {
+func (m *mounter) DeleteMountdirIfEmpty() {
 	m.log.Info("Deleting mountdir")
 	// os.Remove refuses to delete non-empty directories.
-	err = os.Remove(m.options.MountPoint)
+	err := os.Remove(m.options.MountPoint)
 	if err != nil {
 		m.log.Errorf("Unable to delete mountdir: %s", err)
 	}
-	return
 }
 
 // volumeName returns the first word of the directory (base) name
-func volumeName(dir string) (string, error) {
+func volumeName(dir string) (string, error) { // nolint
 	volName := path.Base(dir)
 	if volName == "." || volName == "/" {
 		err := fmt.Errorf("Bad volume name: %v", volName)

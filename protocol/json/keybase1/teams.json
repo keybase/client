@@ -11,7 +11,7 @@
         "WRITER_2",
         "ADMIN_3",
         "OWNER_4",
-        "BOT_5"
+        "RESTRICTEDBOT_6"
       ]
     },
     {
@@ -275,7 +275,7 @@
             "type": "array",
             "items": "UserVersion"
           },
-          "name": "bots"
+          "name": "restrictedBots"
         }
       ]
     },
@@ -352,7 +352,7 @@
             "type": "array",
             "items": "TeamMemberDetails"
           },
-          "name": "bots"
+          "name": "restrictedBots"
         }
       ]
     },
@@ -429,7 +429,7 @@
             "type": "array",
             "items": "UserVersion"
           },
-          "name": "bots"
+          "name": "restrictedBots"
         },
         {
           "type": {
@@ -491,7 +491,7 @@
             "type": "array",
             "items": "UserVersion"
           },
-          "name": "onlyBots"
+          "name": "onlyRestrictedBots"
         },
         {
           "type": {
@@ -1059,6 +1059,10 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": "Time",
+          "name": "skipUntil"
         }
       ]
     },
@@ -2046,6 +2050,10 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        },
+        {
+          "type": "boolean",
+          "name": "skipAudit"
         }
       ]
     },

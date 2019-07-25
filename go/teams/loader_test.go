@@ -143,7 +143,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 1, "number of kbfs rkms")
 
 	t.Logf("add C to the team so they can load it")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 
 	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{

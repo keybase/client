@@ -24,6 +24,7 @@ export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
 export const editPhone = 'settings:editPhone'
 export const feedbackSent = 'settings:feedbackSent'
+export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -45,6 +46,7 @@ export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
+export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
@@ -113,6 +115,7 @@ type _EditPhonePayload = {
   readonly verify?: boolean
 }
 type _FeedbackSentPayload = {readonly error: Error | null}
+type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
 type _InvitesReclaimedPayload = void
@@ -139,6 +142,7 @@ type _LoadedSettingsPayload = {
   readonly emails: I.Map<string, Types.EmailRow> | null
   readonly phones: I.Map<string, Types.PhoneRow> | null
 }
+type _LoadedUserCountryCodePayload = {readonly code: string | null}
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -303,6 +307,9 @@ export const createEditContactImportEnabled = (
 ): EditContactImportEnabledPayload => ({payload, type: editContactImportEnabled})
 export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
 export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
+export const createImportContactsLater = (
+  payload: _ImportContactsLaterPayload
+): ImportContactsLaterPayload => ({payload, type: importContactsLater})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
@@ -386,6 +393,9 @@ export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSet
   payload,
   type: loadedSettings,
 })
+export const createLoadedUserCountryCode = (
+  payload: _LoadedUserCountryCodePayload
+): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
 export const createNotificationsRefresh = (
   payload: _NotificationsRefreshPayload
 ): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
@@ -523,6 +533,10 @@ export type EditContactImportEnabledPayload = {
 export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
 export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
+export type ImportContactsLaterPayload = {
+  readonly payload: _ImportContactsLaterPayload
+  readonly type: typeof importContactsLater
+}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
   readonly type: typeof invitesClearError
@@ -607,6 +621,10 @@ export type LoadedRememberPasswordPayload = {
 export type LoadedSettingsPayload = {
   readonly payload: _LoadedSettingsPayload
   readonly type: typeof loadedSettings
+}
+export type LoadedUserCountryCodePayload = {
+  readonly payload: _LoadedUserCountryCodePayload
+  readonly type: typeof loadedUserCountryCode
 }
 export type NotificationsRefreshPayload = {
   readonly payload: _NotificationsRefreshPayload
@@ -759,6 +777,7 @@ export type Actions =
   | EditEmailPayload
   | EditPhonePayload
   | FeedbackSentPayload
+  | ImportContactsLaterPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
@@ -782,6 +801,7 @@ export type Actions =
   | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
+  | LoadedUserCountryCodePayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload

@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key})),
+  providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key, reason: 'profile'})),
 })
 
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({

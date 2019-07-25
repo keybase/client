@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ConfigGen from '../../actions/config-gen'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {SettingsSection} from '.'
+import * as Container from '../util/container'
+import * as Constants from '../constants/settings'
+import * as SettingsGen from '../actions/settings-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import {SettingsSection} from './account/'
 
 type Props = {
   contactsImported: boolean
@@ -63,7 +63,7 @@ const ManageContacts = (_: Props) => {
         )}
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="Header">Phone Contacts</Kb.Text>
+            <Kb.Text type="Header">Phone contacts</Kb.Text>
             <Kb.Text type="BodySmall">
               {contactsImported && status === 'granted' ? enabledDescription : disabledDescription}
             </Kb.Text>

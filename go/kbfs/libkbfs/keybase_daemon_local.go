@@ -434,6 +434,15 @@ func (k *KeybaseDaemonLocal) PutGitMetadata(
 	return nil
 }
 
+// OnPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseDaemonLocal) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+}
+
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseDaemonLocal) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()

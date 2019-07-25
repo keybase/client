@@ -26,7 +26,10 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
 
-  if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+  if (
+    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+    conversationIDKey === Constants.pendingErrorConversationIDKey
+  ) {
     noInput = true
   }
 

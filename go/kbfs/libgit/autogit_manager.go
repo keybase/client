@@ -21,9 +21,6 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-type getNewConfigFn func(context.Context) (
-	context.Context, libkbfs.Config, string, error)
-
 const (
 	// Debug tag ID for an individual autogit operation
 	ctxAutogitOpID = "AGID"
@@ -213,7 +210,8 @@ func (am *AutogitManager) registerRepoNode(
 	err := am.config.Notifier().RegisterForChanges(
 		[]data.FolderBranch{fb}, am)
 	if err != nil {
-		am.log.CWarningf(nil, "Error registering %s: +%v", fb.Tlf, err)
+		am.log.CWarningf(
+			context.TODO(), "Error registering %s: +%v", fb.Tlf, err)
 		return
 	}
 	am.registeredFBs[fb] = true
@@ -264,7 +262,8 @@ func (am *AutogitManager) clearInvalidatedBrowsers(
 		for _, nodeID := range repoNodeIDs {
 			if rootNodeID == nodeID {
 				am.log.CDebugf(
-					nil, "Invalidating browser for %s", v.repoFS.Root())
+					context.TODO(), "Invalidating browser for %s",
+					v.repoFS.Root())
 				am.browserCache.Remove(k)
 				break
 			}
@@ -283,7 +282,10 @@ func (am *AutogitManager) BatchChanges(
 		go func() {
 			ctx := libkbfs.CtxWithRandomIDReplayable(
 				context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
-			am.config.KBFSOps().InvalidateNodeAndChildren(ctx, node)
+			err := am.config.KBFSOps().InvalidateNodeAndChildren(ctx, node)
+			if err != nil {
+				am.log.CDebugf(ctx, "Error invalidating children: %+v", err)
+			}
 		}()
 	}
 }

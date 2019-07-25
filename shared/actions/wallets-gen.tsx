@@ -159,8 +159,12 @@ type _ChangeAccountNamePayload = {readonly accountID: Types.AccountID; readonly 
 type _ChangeAirdropPayload = {readonly accept: boolean}
 type _ChangeDisplayCurrencyPayload = {readonly accountID: Types.AccountID; readonly code: Types.CurrencyCode}
 type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}
-type _ChangedAccountNamePayload = {readonly accountID: Types.AccountID}
-type _ChangedAccountNamePayloadError = {readonly name: string; readonly error: string}
+type _ChangedAccountNamePayload = {readonly account: Types.Account}
+type _ChangedAccountNamePayloadError = {
+  readonly name: string
+  readonly account: Types.Account
+  readonly error: string
+}
 type _ChangedTrustlinePayload = void
 type _ChangedTrustlinePayloadError = {readonly error: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
@@ -184,7 +188,7 @@ type _CreatedNewAccountPayloadError = {readonly name: string; readonly error: st
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
 type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _DeletedAccountPayload = void
-type _DidSetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
+type _DidSetAccountAsDefaultPayload = {readonly accounts: Array<Types.Account>}
 type _DisplayCurrenciesReceivedPayload = {readonly currencies: Array<Types.Currency>}
 type _DisplayCurrencyReceivedPayload = {
   readonly accountID: Types.AccountID | null

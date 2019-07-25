@@ -379,7 +379,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
 	// BOTs are excluded since they do not have any seed access
-	if l.newData == nil || l.role.IsBot() {
+	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil
 	}
 	for _, update := range l.newData.Inner {
@@ -417,7 +417,7 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 // the PTK at the given generation. Whether in the preloaded data or the update.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
 	// BOTs are excluded since they do not have any PTK access
-	if l.data == nil || l.role.IsBot() {
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return false
 	}
 	_, ok := l.data.ReaderPerTeamKeys[gen]
@@ -442,7 +442,7 @@ func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
 // data.
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
 	// BOTs are excluded since they do not have any PTK access
-	if l.data == nil || l.role.IsBot() {
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()

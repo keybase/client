@@ -1,8 +1,10 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
+import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
 import * as Container from '../../util/container'
+import {HOCTimers} from '../../common-adapters'
 
 type OwnProps = {}
 
@@ -16,17 +18,25 @@ export default Container.connect(
       bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
     }
 
-    return {bannerMessage}
+    return {
+      bannerMessage,
+      isOnline: state.login.isOnline,
+    }
   },
   dispatch => ({
+    _checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
     _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
     onLogin: () => dispatch(ProvisionGen.createStartProvision()),
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
+    showProxySettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     bannerMessage: stateProps.bannerMessage,
+    checkIsOnline: dispatchProps._checkIsOnline,
+    isOnline: stateProps.isOnline,
     onFeedback: Container.isMobile ? dispatchProps._onFeedback : null,
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
+    showProxySettings: dispatchProps.showProxySettings,
   })
-)(Intro)
+)(HOCTimers(Intro))

@@ -43,6 +43,7 @@ const (
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
 	StatusCode_SCBadInvitationCode                         StatusCode = 707
+	StatusCode_SCBadSignupTeamName                         StatusCode = 711
 	StatusCode_SCFeatureFlag                               StatusCode = 712
 	StatusCode_SCMissingResult                             StatusCode = 801
 	StatusCode_SCKeyNotFound                               StatusCode = 901
@@ -261,6 +262,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCRateLimit":                602,
 	"SCBadSignupUsernameTaken":   701,
 	"SCBadInvitationCode":        707,
+	"SCBadSignupTeamName":        711,
 	"SCFeatureFlag":              712,
 	"SCMissingResult":            801,
 	"SCKeyNotFound":              901,
@@ -477,6 +479,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
+	711:  "SCBadSignupTeamName",
 	712:  "SCFeatureFlag",
 	801:  "SCMissingResult",
 	901:  "SCKeyNotFound",

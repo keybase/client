@@ -8,6 +8,7 @@ export type Props = {
   children: React.ReactNode
   hasRandomPW?: boolean
   loadHasRandomPW: () => void
+  contactsLabel: string
   logoutInProgress: boolean
   onLogout: () => void
   onTabChange: (tab: Tab) => void

@@ -1967,7 +1967,7 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Readers {
 		m[u.Uid] = true
 	}
-	for _, u := range t.Bots {
+	for _, u := range t.RestrictedBots {
 		m[u.Uid] = true
 	}
 	var all []UID
@@ -1991,7 +1991,7 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 	for _, u := range t.Readers {
 		m[u.Uid] = u
 	}
-	for _, u := range t.Bots {
+	for _, u := range t.RestrictedBots {
 		m[u.Uid] = u
 	}
 	var all []UserVersion
@@ -2324,22 +2324,22 @@ func (r TeamRole) IsReaderOrAbove() bool {
 	return r.IsOrAbove(TeamRole_READER)
 }
 
-func (r TeamRole) IsBotOrAbove() bool {
-	return r.IsOrAbove(TeamRole_BOT)
+func (r TeamRole) IsRestrictedBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
 }
 
-func (r TeamRole) IsBot() bool {
-	return r == TeamRole_BOT
+func (r TeamRole) IsRestrictedBot() bool {
+	return r == TeamRole_RESTRICTEDBOT
 }
 
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	switch r {
 	case TeamRole_NONE:
 		return min == TeamRole_NONE
-	case TeamRole_BOT:
-		return min == TeamRole_NONE || min == TeamRole_BOT
+	case TeamRole_RESTRICTEDBOT:
+		return min == TeamRole_NONE || min == TeamRole_RESTRICTEDBOT
 	default:
-		return int(r) >= int(min) || min == TeamRole_BOT
+		return int(r) >= int(min) || min == TeamRole_RESTRICTEDBOT
 	}
 }
 
@@ -2558,8 +2558,8 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	switch role {
-	case TeamRole_BOT:
-		req.Bots = append(req.Bots, uv)
+	case TeamRole_RESTRICTEDBOT:
+		req.RestrictedBots = append(req.RestrictedBots, uv)
 	case TeamRole_READER:
 		req.Readers = append(req.Readers, uv)
 	case TeamRole_WRITER:
@@ -2582,7 +2582,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
-	ret = append(ret, req.Bots...)
+	ret = append(ret, req.RestrictedBots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
 	ret = append(ret, req.Admins...)
@@ -2708,6 +2708,16 @@ func (p PhoneNumber) String() string {
 	return string(p)
 }
 
+var nonDigits = regexp.MustCompile("[^\\d]")
+
+func PhoneNumberToAssertionValue(phoneNumber string) string {
+	return nonDigits.ReplaceAllString(phoneNumber, "")
+}
+
+func (p PhoneNumber) AssertionValue() string {
+	return PhoneNumberToAssertionValue(p.String())
+}
+
 func (d TeamData) ID() TeamID {
 	return d.Chain.Id
 }
@@ -2770,6 +2780,17 @@ func (c ContactComponent) ValueString() string {
 		return string(*c.Email)
 	case c.PhoneNumber != nil:
 		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) AssertionType() string {
+	switch {
+	case c.Email != nil:
+		return "email"
+	case c.PhoneNumber != nil:
+		return "phone"
 	default:
 		return ""
 	}

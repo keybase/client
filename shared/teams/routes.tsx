@@ -15,66 +15,42 @@ import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 
 export const newRoutes = {
-  team: {getScreen: (): typeof Team => require('./team/container').default, upgraded: true},
-  teamMember: {
-    getScreen: (): typeof TeamMember => require('./team/member/container').default,
-    upgraded: true,
-  },
+  team: {getScreen: (): typeof Team => require('./team/container').default},
+  teamMember: {getScreen: (): typeof TeamMember => require('./team/member/container').default},
   // TODO connect broken
-  teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default, upgraded: true},
+  teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
 }
 
 export const newModalRoutes = {
+  // TODO connect broken
   retentionWarning: {
-    // TODO connect broken
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
-    upgraded: true,
   },
-  teamDeleteTeam: {
-    // TODO connect broken
-    getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default,
-    upgraded: true,
-  },
+  // TODO connect broken
+  teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
-    upgraded: true,
   },
   // TODO connect broken
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription =>
       MaybePopupHoc(false)(require('./edit-team-description/container').default),
-    upgraded: true,
   },
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
-    upgraded: true,
   },
   // TODO connect broken
-  teamJoinTeamDialog: {
-    getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
-    upgraded: true,
-  },
+  teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
   // TODO connect broken
-  teamNewTeamDialog: {
-    getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default,
-    upgraded: true,
-  },
+  teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
   // TODO connect broken
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
-    upgraded: true,
   },
   teamReallyRemoveMember: {
     getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member/container').default,
-    upgraded: true,
   },
-  teamRename: {
-    getScreen: (): typeof TeamRename => require('./rename-team/container').default,
-    upgraded: true,
-  },
-  teamsTeamBuilder: {
-    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
-    upgraded: true,
-  },
+  teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
+  teamsTeamBuilder: {getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default},
 }

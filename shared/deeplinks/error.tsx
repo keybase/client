@@ -1,14 +1,14 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
 
-type ErrorBodyProps = {
+type KeybaseLinkErrorBodyProps = {
   errorText: string
 }
 
-const ErrorBody = (props: ErrorBodyProps) => {
+export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Banner color="red">
@@ -18,9 +18,14 @@ const ErrorBody = (props: ErrorBodyProps) => {
   )
 }
 
-const Error = () => {
-  const Body = Kb.HeaderOrPopup(ErrorBody)
-  const error = Container.useSelector(s => s.wallets.sep7ConfirmError)
+type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep7'}>
+
+const KeybaseLinkError = (props: OwnProps) => {
+  const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
+  const Body = Kb.HeaderOrPopup(KeybaseLinkErrorBody)
+  const error = Container.useSelector(s =>
+    errorSource === 'app' ? s.deeplinks.keybaseLinkError : s.wallets.sep7ConfirmError
+  )
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return <Body onCancel={onClose} customCancelText="Close" errorText={error} />
@@ -44,4 +49,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default Error
+export default KeybaseLinkError

@@ -16,10 +16,11 @@ type ContactLookupResult struct {
 	Error   string       `json:"err,omitempty"`
 }
 
-type ContactLookupMap map[string]ContactLookupResult
+type ContactLookupKey string
+type ContactLookupMap map[ContactLookupKey]ContactLookupResult
 
 func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (res ContactLookupResult, found bool) {
-	var key string
+	var key ContactLookupKey
 	switch {
 	case component.Email != nil:
 		key = makeEmailLookupKey(*component.Email)
@@ -32,16 +33,21 @@ func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (re
 	return res, found
 }
 
-func makeEmailLookupKey(e keybase1.EmailAddress) string {
-	return fmt.Sprintf("e:%s", string(e))
+func makeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
+	return ContactLookupKey(fmt.Sprintf("e:%s", string(e)))
 }
 
-func makePhoneLookupKey(p keybase1.RawPhoneNumber) string {
-	return fmt.Sprintf("p:%s", string(p))
+func makePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
+	return ContactLookupKey(fmt.Sprintf("p:%s", string(p)))
+}
+
+type ContactUsernameAndFullName struct {
+	Username string
+	Fullname string
 }
 
 type ContactsProvider interface {
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
-	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
-	FillFollowing(libkb.MetaContext, []keybase1.ProcessedContact)
+	FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error)
+	FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error)
 }

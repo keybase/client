@@ -61,7 +61,7 @@ func TestEphemeralNewTeambotEKNotif(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(*user1.tc)
 
 	teamID, teamName := user1.createTeam2()
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	ephemeral.ServiceInit(mctx)
 	ekLib := user1.tc.G.GetEKLib()
@@ -134,14 +134,39 @@ func TestEphemeralTeambotEK(t *testing.T) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
+
+	// bot gets a key on addition to the team
+	newEkArg := keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: 1,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
 
 	// grab the latest teamEK and make sure the generation lines up with the teambotEK
 	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
 	require.NoError(t, err)
 
+	// now created = false since we published on member addition
+	teambotEK, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
+	require.NoError(t, err)
+	require.False(t, created)
+	require.Equal(t, teamEK.Generation(), teambotEK.Generation())
+
+	teambotEK2, _, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	require.NoError(t, err)
+	require.Equal(t, teambotEK2.Generation(), teambotEK.Generation())
+	require.Equal(t, teambotEK2.Material(), teambotEK.Material())
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
+
+	// delete the initial key to check regeneration flows
+	err = teambot.DeleteTeambotEKForTest(mctx3, teamID, 1)
+	require.NoError(t, err)
+
 	// initial get, bot has no key to access
-	_, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
 	require.False(t, created)
@@ -156,20 +181,14 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
 
 	// and answered.
-	newEkArg := keybase1.NewTeambotEkArg{
+	newEkArg = keybase1.NewTeambotEkArg{
 		Id:         teamID,
 		Generation: 1,
 	}
 	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
 
-	// now created = false since we published after receiving the teambot_key_needed notif
-	teambotEK, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
-	require.NoError(t, err)
-	require.False(t, created)
-	require.Equal(t, teamEK.Generation(), teambotEK.Generation())
-
 	// bot can access the key
-	teambotEK2, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, teambotEK, teambotEK2)
@@ -180,6 +199,17 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	// force a PTK rotation
 	user2.revokePaperKey()
 	user1.waitForRotateByID(teamID, keybase1.Seqno(4))
+
+	// bot gets a new EK on rotation
+	newEkArg = keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: 2,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
+
+	// delete to check regeneration flow
+	err = teambot.DeleteTeambotEKForTest(mctx3, teamID, 2)
+	require.NoError(t, err)
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
@@ -229,6 +259,17 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
 	botua.waitForNewlyAddedToTeamByID(teamID)
+
+	// bot gets a new EK on rotation
+	newEkArg = keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: 3,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
+
+	// delete to check regeneration flow
+	err = teambot.DeleteTeambotEKForTest(mctx3, teamID, 3)
+	require.NoError(t, err)
 
 	// bot can access the old teambotEK, but asks for a new one to
 	// be created since it was signed by the old PTK

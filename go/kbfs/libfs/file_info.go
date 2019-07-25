@@ -223,5 +223,5 @@ func EnableFastMode(ctx context.Context) context.Context {
 // info. All *FS created under this ctx will also be in fast mode.
 func IsFastModeEnabled(ctx context.Context) bool {
 	v, ok := ctx.Value(ctxFastModeKey{}).(bool)
-	return ok && v == true
+	return ok && v
 }

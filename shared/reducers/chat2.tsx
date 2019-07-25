@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
@@ -18,8 +17,6 @@ import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
-
-type ConfigActions = ConfigGen.BootstrapStatusLoadedPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -406,19 +403,17 @@ const messageOrdinalsReducer = (
   }
 }
 
-let currentUsername = ''
 const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
 
 const rootReducer = (
   state: Types.State = initialState,
-  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions | ConfigActions
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 ): Types.State => {
   switch (action.type) {
-    case ConfigGen.bootstrapStatusLoaded:
-      currentUsername = action.payload.username
-      return state
     case Chat2Gen.resetStore:
-      return initialState
+      return initialState.merge({
+        staticConfig: state.staticConfig,
+      })
     case Chat2Gen.setInboxShowIsNew:
       return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
@@ -467,6 +462,15 @@ const rootReducer = (
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
+        if (Constants.isValidConversationIDKey(conversationIDKey)) {
+          // If navigating away from error conversation to a valid conv - clear
+          // error msg.
+          s.set('createConversationError', null)
+        }
+      })
+    case Chat2Gen.conversationErrored:
+      return state.withMutations(s => {
+        s.set('createConversationError', action.payload.message)
       })
     case Chat2Gen.updateUnreadline:
       if (action.payload.messageID > 0) {
@@ -1065,24 +1069,16 @@ const rootReducer = (
       )
     case Chat2Gen.toggleReplyToMessage: {
       const {conversationIDKey, ordinal} = action.payload
-      if (action.payload.ordinal) {
-        let nextState = state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
-        const message = state.messageMap.getIn([conversationIDKey, ordinal])
-        const meta = state.metaMap.get(conversationIDKey)
-        if (message && message.author !== currentUsername) {
-          nextState = nextState.setIn(
-            ['prependTextMap', conversationIDKey],
-            // we always put something in prepend to trigger the focus regain on the input bar
-            meta && (meta.participants.size > 2 || meta.teamType === 'big')
-              ? new HiddenString(`@${message.author} `)
-              : new HiddenString('')
-          )
-        }
+      if (ordinal) {
+        let nextState = state.setIn(['replyToMap', conversationIDKey], ordinal)
+        nextState = nextState.setIn(
+          ['prependTextMap', conversationIDKey],
+          // we always put something in prepend to trigger the focus regain on the input bar
+          new HiddenString('')
+        )
         return nextState
       } else {
-        return state
-          .deleteIn(['replyToMap', action.payload.conversationIDKey])
-          .deleteIn(['prependTextMap', action.payload.conversationIDKey])
+        return state.deleteIn(['replyToMap', conversationIDKey])
       }
     }
     case Chat2Gen.replyJump:
