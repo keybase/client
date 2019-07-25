@@ -15,10 +15,9 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  // const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  const [allowSearch, onChangeAllowSearch] = React.useState(true)
   const disabled = !valid
-  const onContinue = () =>
-    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
   return (
     <SignupScreen
       buttons={[
@@ -50,6 +49,8 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangePhoneNumber}
         onChangeValidity={onChangeValidity}
         onContinue={onContinue}
+        allowSearch={allowSearch}
+        onChangeAllowSearch={onChangeAllowSearch}
         icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
       />
     </SignupScreen>
@@ -65,7 +66,7 @@ type BodyProps = {
   icon: React.ReactNode
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = props.onChangeAllowSearch && Object.prototype.hasOwnProperty.call(props, 'allowSearch')
+  const showCheckbox = props.onChangeAllowSearch && props.allowSearch !== undefined
   return (
     <Kb.Box2
       alignItems="center"
@@ -86,7 +87,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
         {showCheckbox && (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
-            checked={props.allowSearch || false}
+            checked={props.allowSearch !== undefined ? props.allowSearch : true}
             onCheck={props.onChangeAllowSearch || null}
             style={styles.checkbox}
           />
