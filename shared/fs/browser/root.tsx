@@ -51,6 +51,7 @@ const useTopNTlfs = (
   tlfMtime: number
   tlfType: Types.TlfType
 }> =>
+  // TODO move these sorting to Go HOTPOT-433
   React.useMemo(
     () =>
       tlfs
