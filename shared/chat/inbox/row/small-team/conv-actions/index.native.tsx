@@ -69,7 +69,7 @@ const renderRightActions = (
 }
 
 const onOpen = ref => {
-  if (curSwipeRef && curSwipeRef.current) {
+  if (curSwipeRef && curSwipeRef.current && curSwipeRef !== ref) {
     curSwipeRef.current.close()
   }
   curSwipeRef = ref
