@@ -278,7 +278,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
-    case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:

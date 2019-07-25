@@ -428,6 +428,7 @@ type _PreviewConversationPayload = {
     | 'sentPayment'
     | 'requestedPayment'
     | 'teamMention'
+    | 'appLink'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

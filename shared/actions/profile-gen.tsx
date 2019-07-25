@@ -45,7 +45,7 @@ export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
 
 // Payload Types
-type _AddProofPayload = {readonly platform: string}
+type _AddProofPayload = {readonly platform: string; readonly reason: 'appLink' | 'profile'}
 type _BackToProfilePayload = void
 type _CancelAddProofPayload = void
 type _CancelPgpGenPayload = void
