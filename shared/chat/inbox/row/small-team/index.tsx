@@ -54,7 +54,6 @@ const SmallTeamBox = Styles.isMobile
     })
 
 class SmallTeam extends React.PureComponent<Props, State> {
-  _swipeRef = React.createRef<Kb.Swipeable>()
   state = {
     isHovered: false,
     showMenu: false,

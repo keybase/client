@@ -59,6 +59,9 @@ const ConvActions = (props: Props) => {
     <Kb.Swipeable
       ref={swiperef}
       renderRightActions={progress => renderRightActions(props, swiperef, progress)}
+      friction={2}
+      leftThreshold={30}
+      rightThreshold={40}
     >
       {props.children}
     </Kb.Swipeable>
