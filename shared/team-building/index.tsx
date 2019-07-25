@@ -93,7 +93,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
       onRedoSearch()
       onRedoRecs()
     }
-  }, [numContactsImported, prevNumContactsImported])
+  }, [numContactsImported, prevNumContactsImported, onRedoSearch, onRedoRecs])
 
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
