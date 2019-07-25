@@ -9,6 +9,7 @@ import * as Container from '../util/container'
 
 type OwnProps = {
   children: React.ReactNode
+  routeSelected: Types.Tab
 }
 
 const Connected = Container.connect(
@@ -19,7 +20,7 @@ const Connected = Container.connect(
     badgeNotifications: !state.push.hasPermissions,
     hasRandomPW: state.settings.password.randomPW,
   }),
-  (dispatch: Container.TypedDispatch) => ({
+  (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
     loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
     onLogout: () => dispatch(ConfigGen.createLogout()),
     onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
@@ -27,10 +28,9 @@ const Connected = Container.connect(
         dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
         return
       }
-      // TODO this logic is broken, routeSelected is never a real value in nav2
-      // if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
-      // dispatch(SettingsGen.createClearAddedEmail())
-      // }
+      if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
+        dispatch(SettingsGen.createClearAddedEmail())
+      }
       dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
     },
   }),
@@ -43,7 +43,7 @@ const Connected = Container.connect(
     logoutInProgress: stateProps._logoutHandshakeWaiters.size > 0,
     onLogout: dispatchProps.onLogout,
     onTabChange: (tab: Types.Tab) => dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),
-    selectedTab: Constants.aboutTab as Types.Tab, // TODO plumb this through correctly, is null always w/ nav2
+    selectedTab: ownProps.routeSelected,
   })
 )(SettingsContainer)
 
