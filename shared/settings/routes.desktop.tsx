@@ -22,28 +22,49 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
-  // TODO connect broken
-  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
-  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  // TODO connect broken
-  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
-  // TODO connect broken
-  [Constants.invitationsTab]: {
-    getScreen: (): typeof InvitationsTab => require('./invites/container').default,
+  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default, upgraded: true},
+  [Constants.advancedTab]: {
+    getScreen: (): typeof AdvancedTab => require('./advanced/container').default,
+    upgraded: true,
   },
-  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
-  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
+  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default, upgraded: true},
+  [Constants.deleteMeTab]: {
+    getScreen: (): typeof DeleteMeTab => require('./delete/container').default,
+    upgraded: true,
+  },
+  [Constants.invitationsTab]: {
+    // TODO connect broken
+    getScreen: (): typeof InvitationsTab => require('./invites/container').default,
+    upgraded: true,
+  },
+  [Constants.accountTab]: {
+    getScreen: (): typeof AccountTab => require('./account/container').default,
+    upgraded: true,
+  },
+  [Constants.feedbackTab]: {
+    getScreen: (): typeof FeedbackTab => require('./feedback/container').default,
+    upgraded: true,
+  },
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
+    upgraded: true,
   },
-  // TODO connect broken
-  dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
-  // TODO connect broken
-  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
-  inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
-  // TODO connect broken
-  removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
+  dbNukeConfirm: {
+    getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default,
+    upgraded: true,
+  },
+  deleteConfirm: {
+    getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default,
+    upgraded: true,
+  },
+  inviteSent: {
+    getScreen: (): typeof InviteSent => require('./invite-generated/container').default,
+    upgraded: true,
+  },
+  removeDevice: {
+    getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
+    upgraded: true,
+  },
 }
 
 class SettingsSubNav extends React.PureComponent<any> {

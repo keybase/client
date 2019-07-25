@@ -11,7 +11,7 @@ const WebLinks = Container.compose(
       title: Container.getRouteProps(ownProps, 'title', ''),
     }),
     dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
   Container.defaultProps({
     dataDetectorTypes: 'none',

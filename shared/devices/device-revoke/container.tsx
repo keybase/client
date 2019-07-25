@@ -8,27 +8,21 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
-  _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
-  device: Constants.getDevice(state, state.devices.selectedDeviceID),
-  waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
-})
-
-const mapDispatchToProps = (dispatch) => ({
-  _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  device: stateProps.device,
-  endangeredTLFs: stateProps._endangeredTLFs.toArray(),
-  onCancel: dispatchProps.onCancel,
-  onSubmit: () => dispatchProps._onSubmit(stateProps.device.deviceID),
-  waiting: stateProps.waiting,
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  state => ({
+    _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
+    device: Constants.getDevice(state, state.devices.selectedDeviceID),
+    waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+  }),
+  dispatch => ({
+    _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    device: stateProps.device,
+    endangeredTLFs: stateProps._endangeredTLFs.toArray(),
+    onCancel: dispatchProps.onCancel,
+    onSubmit: () => dispatchProps._onSubmit(stateProps.device.deviceID),
+    waiting: stateProps.waiting,
+  })
 )(DeviceRevoke)

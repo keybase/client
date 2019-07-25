@@ -3,29 +3,13 @@ import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import {refreshNotificationsWaitingKey} from '../../constants/settings'
 import {connect, isMobile} from '../../util/container'
-import Notifications from './index'
+import Notifications, {Props} from './index'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {}
-const mapStateToProps = state => ({
-  allowEdit: state.settings.notifications.allowEdit,
-  groups: state.settings.notifications.groups.toJS(),
-  mobileHasPermissions: state.push.hasPermissions,
-  sound: state.config.notifySound,
-  waitingForResponse: state.settings.waitingForResponse,
-})
 
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
-  onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
-  onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
-  onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
-  title: 'Notifications',
-})
-
-const ReloadableNotifications = props => (
+const ReloadableNotifications = (props: Props) => (
   <Reloadable
     onBack={isMobile ? props.onBack : undefined}
     waitingKeys={refreshNotificationsWaitingKey}
@@ -38,7 +22,21 @@ const ReloadableNotifications = props => (
 )
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => ({
+    allowEdit: state.settings.notifications.allowEdit,
+    groups: state.settings.notifications.groups.toJS(),
+    mobileHasPermissions: state.push.hasPermissions,
+    sound: state.config.notifySound,
+    waitingForResponse: state.settings.waitingForResponse,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
+    onToggle: (group: string, name?: string) =>
+      dispatch(SettingsGen.createNotificationsToggle({group, name})),
+    onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
+    onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
+    title: 'Notifications',
+  }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ReloadableNotifications)
