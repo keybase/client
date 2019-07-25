@@ -16,8 +16,8 @@ import {StyleOverride} from '.'
 
 type KeybaseLinkProps = {
   link: string
-  linkStyle: StylesTextCrossPlatform | undefined
-  wrapStyle: StylesTextCrossPlatform | undefined
+  linkStyle?: StylesTextCrossPlatform | undefined
+  wrapStyle?: StylesTextCrossPlatform | undefined
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
