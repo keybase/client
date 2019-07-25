@@ -75,18 +75,6 @@ class SmallTeam extends React.PureComponent<Props, State> {
       ? Styles.globalColors.blueGreyDark
       : this.props.backgroundColor
 
-  _renderRightActions = progress => {
-    return (
-      <ConvActions
-        isMuted={this.props.isMuted}
-        onHideConversation={this.props.onHideConversation}
-        onMuteConversation={this.props.onMuteConversation}
-        ref={this._swipeRef}
-        progress={progress}
-      />
-    )
-  }
-
   render() {
     const props = this.props
     const clickProps = {
@@ -96,7 +84,11 @@ class SmallTeam extends React.PureComponent<Props, State> {
       onMouseOver: this._onMouseOver,
     }
     return (
-      <Kb.Swipeable ref={this._swipeRef} renderRightActions={this._renderRightActions}>
+      <ConvActions
+        isMuted={this.props.isMuted}
+        onHideConversation={this.props.onHideConversation}
+        onMuteConversation={this.props.onMuteConversation}
+      >
         <SmallTeamBox
           {...clickProps}
           style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
@@ -173,7 +165,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
             </Kb.Box>
           </Kb.Box>
         </SmallTeamBox>
-      </Kb.Swipeable>
+      </ConvActions>
     )
   }
 }
