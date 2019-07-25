@@ -87,6 +87,23 @@ func (h *KBFSHandler) FSFavoritesChangedEvent(_ context.Context) (err error) {
 	return nil
 }
 
+func (h *KBFSHandler) FSSubscriptionNotifyEvent(_ context.Context, arg keybase1.FSSubscriptionNotifyEventArg) error {
+	h.G().NotifyRouter.HandleFSSubscriptionNotify(keybase1.FSSubscriptionNotifyArg{
+		SubscriptionID: arg.SubscriptionID,
+		Topic:          arg.Topic,
+	})
+	return nil
+}
+
+func (h *KBFSHandler) FSSubscriptionNotifyPathEvent(_ context.Context, arg keybase1.FSSubscriptionNotifyPathEventArg) error {
+	h.G().NotifyRouter.HandleFSSubscriptionNotifyPath(keybase1.FSSubscriptionNotifyPathArg{
+		SubscriptionID: arg.SubscriptionID,
+		Path:           arg.Path,
+		Topic:          arg.Topic,
+	})
+	return nil
+}
+
 // checkConversationRekey looks for rekey finished notifications and tries to
 // find any conversations associated with the rekeyed TLF.  If it finds any,
 // it will send ChatThreadsStale notifications for them.

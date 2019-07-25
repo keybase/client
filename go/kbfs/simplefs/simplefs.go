@@ -117,6 +117,8 @@ type SimpleFS struct {
 	subscribeToEmptyTlf         string
 
 	localHTTPServer *libhttpserver.Server
+
+	subscriber libkbfs.Subscriber
 }
 
 type inprogress struct {
@@ -147,7 +149,8 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		}
 	}
 	return &SimpleFS{
-		config:          config,
+		config: config,
+
 		handles:         map[keybase1.OpID]*handle{},
 		inProgress:      map[keybase1.OpID]*inprogress{},
 		log:             log,
@@ -155,6 +158,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		newFS:           defaultNewFS,
 		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 		localHTTPServer: localHTTPServer,
+		subscriber:      config.SubscriptionManager().Subscriber(config.KeybaseService()),
 	}
 }
 
@@ -2770,4 +2774,25 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 			})
 	}
 	return res, nil
+}
+
+// SimpleFSSubscribePath implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSubscribePath(
+	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
+	return k.subscriber.SubscribePath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.KbfsPath, arg.Topic, &interval)
+}
+
+// SimpleFSSubscribeNonPath implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSubscribeNonPath(
+	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
+	return k.subscriber.SubscribeNonPath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
+}
+
+// SimpleFSUnsubscribe implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSUnsubscribe(
+	ctx context.Context, sid string) error {
+	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(sid))
+	return nil
 }

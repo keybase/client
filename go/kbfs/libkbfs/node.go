@@ -88,6 +88,10 @@ func (n *nodeStandard) GetCanonicalPath() string {
 	return n.core.cache.PathFromNode(n).CanonicalPathString()
 }
 
+func (n *nodeStandard) GetPathPlaintextSansTlf() (string, bool) {
+	return n.core.cache.PathFromNode(n).PlaintextSansTlf()
+}
+
 func (n *nodeStandard) GetID() NodeID {
 	return n.core
 }
