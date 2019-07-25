@@ -461,6 +461,15 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		attempt.Error = getErrorMessage(err)
 		return attempt
 	}
+
+	rotateType := keybase1.RotationType_VISIBLE
+	if team.Hidden != nil && team.Hidden.NeedRotate {
+		shouldAudit = true
+		rotateBeforeAudit = true
+		rotateType = keybase1.RotationType_CLKR
+		mctx.Debug("Hidden load said need rotate; so we're attempt a CLKR-style rotation, then will reaudit")
+	}
+
 	if !shouldAudit {
 		mctx.Debug("Not attempting box audit attempt; %s", attempt.Result)
 		attempt.Result = *shouldAuditResult
@@ -469,7 +478,7 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	if rotateBeforeAudit {
 		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx(), keybase1.RotationType_VISIBLE)
+		err := team.Rotate(mctx.Ctx(), rotateType)
 		if err != nil {
 			mctx.Warning("failed to rotate team before audit: %s", err)
 			// continue despite having failed to rotate
@@ -803,6 +812,7 @@ func loadTeamForBoxAuditInner(mctx libkb.MetaContext, teamID keybase1.TeamID, fo
 		ForceRepoll:     true,
 		Public:          teamID.IsPublic(),
 		ForceFullReload: force,
+		FromBoxAudit:    true,
 	}
 
 	team, err = Load(mctx.Ctx(), mctx.G(), arg)
@@ -1148,4 +1158,20 @@ func randomKnownTeamID(mctx libkb.MetaContext) (teamID *keybase1.TeamID, err err
 		return nil, err
 	}
 	return &knownTeamIDs[idx.Int64()], nil
+}
+
+func BoxAuditAfterBackoff(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+	defer mctx.Trace(fmt.Sprintf("BoxAuditAfterBackoff(%s)", teamID), func() error { return nil })()
+	base := libkb.TeamBackoffBeforeAuditOnNeedRotate
+	dur, err := libkb.RandomJitter(base)
+	if err != nil {
+		dur = base
+		mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
+	}
+	mctx.Debug("Sleeping %t random jitter before auditing the team")
+	mctx.G().Clock().Sleep(dur)
+	_, err = mctx.G().GetTeamBoxAuditor().BoxAuditTeam(mctx, teamID)
+	if err != nil {
+		mctx.Info("Box audit of team failed with error; we will continue to retry: %s", err)
+	}
 }

@@ -2,10 +2,13 @@ package teams
 
 import (
 	"context"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestRotateHiddenSelf(t *testing.T) {
@@ -183,4 +186,89 @@ func TestRotateHiddenImplicitAdmin(t *testing.T) {
 	require.EqualValues(t, 1, team.Generation())
 	err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
 	require.NoError(t, err)
+}
+
+// Wait for the BG auditor to finish up, and then we'll make sure that the
+func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) {
+	// Hopefully this is enough for slow CI but you never know.
+	wait := 10 * time.Millisecond * libkb.CITimeMultiplier(g)
+	found := false
+	for i := 0; i < 10; i++ {
+		if poller(i) {
+			found = true
+			break
+		}
+		g.Log.Debug("Didn't get an update; waiting %s more", wait)
+		time.Sleep(wait)
+		wait = wait * 2
+	}
+	require.True(t, found, "whether condition was satisfied after polling ended")
+}
+
+func TestHiddenNeedRotate(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+	_, bU := fus[0], fus[1]
+	aTc, bTc := tcs[0], tcs[1]
+	aM, bM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc)
+
+	clock := clockwork.NewFakeClockAt(aM.G().Clock().Now())
+	aM.G().SetClock(clock)
+
+	t.Logf("A creates team")
+	teamName, teamID := createTeam2(*aTc)
+
+	t.Logf("adding B as admin")
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("B rotates the team once (via hidden)")
+	team, err := GetForTestByID(bM.Ctx(), bM.G(), teamID)
+	require.NoError(t, err)
+	typ := keybase1.RotationType_HIDDEN
+	err = team.rotate(bM.Ctx(), typ)
+	require.NoError(t, err)
+
+	t.Logf("B adds a paper key so he doesn't go down to 0 keys after revoke")
+	uis := libkb.UIs{
+		LogUI:    bTc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := engine.NewPaperKey(bTc.G)
+	err = engine.RunEngine2(bM.WithUIs(uis), eng)
+	require.NoError(t, err)
+
+	loadPTKGen := func(m libkb.MetaContext) keybase1.PerTeamKeyGeneration {
+		// A now loads the team and it should trigger a BG audit
+		team, err := Load(m.Ctx(), m.G(), keybase1.LoadTeamArg{ID: teamID, Public: false, ForceRepoll: true})
+		require.NoError(t, err)
+		return team.Generation()
+	}
+
+	prevGen := loadPTKGen(aM)
+
+	t.Logf("B self-revoke the device that just rotated")
+	rEng := engine.NewRevokeDeviceEngine(bM.G(), engine.RevokeDeviceEngineArgs{
+		ID:        bM.G().ActiveDevice.DeviceID(),
+		ForceSelf: true,
+	})
+	err = engine.RunEngine2(bM.WithUIs(uis), rEng)
+	require.NoError(t, err)
+
+	// Time out the UPAK cache so that now, when we check this user against this team,
+	// we'll see that his key is revoked.
+	t.Logf("A is checking that the team didn't rotate")
+	clock.Advance(libkb.CachedUserTimeout + time.Second)
+	genAfterRevoke := loadPTKGen(aM)
+	require.Equal(t, prevGen, genAfterRevoke)
+
+	// There's a random backoff before strating the background audit, so advance past that.
+	t.Logf("A is checking that eventually he rotates")
+	clock.Advance(2 * libkb.TeamBackoffBeforeAuditOnNeedRotate)
+
+	pollForTrue(t, aM.G(), func(i int) bool {
+		gen := loadPTKGen(aM)
+		return gen > prevGen
+	})
 }

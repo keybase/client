@@ -937,6 +937,7 @@ type HiddenTeamChain struct {
 	ReaderPerTeamKeys map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
 	RatchetSet        HiddenTeamChainRatchetSet      `codec:"ratchetSet" json:"ratchetSet"`
 	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
+	NeedRotate        bool                           `codec:"needRotate" json:"needRotate"`
 }
 
 func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
@@ -998,6 +999,7 @@ func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 		})(o.ReaderPerTeamKeys),
 		RatchetSet: o.RatchetSet.DeepCopy(),
 		CachedAt:   o.CachedAt.DeepCopy(),
+		NeedRotate: o.NeedRotate,
 	}
 }
 
@@ -2443,6 +2445,7 @@ type LoadTeamArg struct {
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
 	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
+	FromBoxAudit              bool           `codec:"fromBoxAudit" json:"fromBoxAudit"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2458,6 +2461,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
 		SkipAudit:                 o.SkipAudit,
+		FromBoxAudit:              o.FromBoxAudit,
 	}
 }
 

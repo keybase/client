@@ -744,6 +744,10 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "needRotate"
         }
       ]
     },
@@ -2054,6 +2058,10 @@
         {
           "type": "boolean",
           "name": "skipAudit"
+        },
+        {
+          "type": "boolean",
+          "name": "fromBoxAudit"
         }
       ]
     },
