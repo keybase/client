@@ -5439,6 +5439,120 @@ func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 	}
 }
 
+type MsgContent struct {
+	TypeName           string                       `codec:"typeName" json:"typeName"`
+	Text               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
+	Attachment         *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Edit               *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
+	Reaction           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
+	Delete             *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
+	Metadata           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	Headline           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
+	AttachmentUploaded *MessageAttachmentUploaded   `codec:"attachmentUploaded,omitempty" json:"attachmentUploaded,omitempty"`
+	System             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
+	SendPayment        *MessageSendPayment          `codec:"sendPayment,omitempty" json:"sendPayment,omitempty"`
+	RequestPayment     *MessageRequestPayment       `codec:"requestPayment,omitempty" json:"requestPayment,omitempty"`
+	Unfurl             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
+	Flip               *MsgFlipContent              `codec:"flip,omitempty" json:"flip,omitempty"`
+}
+
+func (o MsgContent) DeepCopy() MsgContent {
+	return MsgContent{
+		TypeName: o.TypeName,
+		Text: (func(x *MessageText) *MessageText {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Text),
+		Attachment: (func(x *MessageAttachment) *MessageAttachment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Attachment),
+		Edit: (func(x *MessageEdit) *MessageEdit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Edit),
+		Reaction: (func(x *MessageReaction) *MessageReaction {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reaction),
+		Delete: (func(x *MessageDelete) *MessageDelete {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Delete),
+		Metadata: (func(x *MessageConversationMetadata) *MessageConversationMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Metadata),
+		Headline: (func(x *MessageHeadline) *MessageHeadline {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Headline),
+		AttachmentUploaded: (func(x *MessageAttachmentUploaded) *MessageAttachmentUploaded {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AttachmentUploaded),
+		System: (func(x *MessageSystem) *MessageSystem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.System),
+		SendPayment: (func(x *MessageSendPayment) *MessageSendPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SendPayment),
+		RequestPayment: (func(x *MessageRequestPayment) *MessageRequestPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RequestPayment),
+		Unfurl: (func(x *MessageUnfurl) *MessageUnfurl {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Unfurl),
+		Flip: (func(x *MsgFlipContent) *MsgFlipContent {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Flip),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

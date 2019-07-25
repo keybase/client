@@ -1285,8 +1285,8 @@ func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat
 }
 
 // need this to get message type name
-func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
-	return MsgContent{
+func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) chat1.MsgContent {
+	return chat1.MsgContent{
 		TypeName:           strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
 		Text:               mb.Text__,
 		Attachment:         mb.Attachment__,
@@ -1418,22 +1418,6 @@ func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembe
 // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
 // message.
 // It is included in MsgSummary.
-type MsgContent struct {
-	TypeName           string                             `json:"type"`
-	Text               *chat1.MessageText                 `json:"text,omitempty"`
-	Attachment         *chat1.MessageAttachment           `json:"attachment,omitempty"`
-	Edit               *chat1.MessageEdit                 `json:"edit,omitempty"`
-	Reaction           *chat1.MessageReaction             `json:"reaction,omitempty"`
-	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
-	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
-	Headline           *chat1.MessageHeadline             `json:"headline,omitempty"`
-	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
-	System             *chat1.MessageSystem               `json:"system,omitempty"`
-	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
-	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
-	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
-	Flip               *chat1.MsgFlipContent              `json:"flip,omitempty"`
-}
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
@@ -1443,7 +1427,7 @@ type MsgSummary struct {
 	Sender              chat1.MsgSender                `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`
 	SentAtMs            int64                          `json:"sent_at_ms"`
-	Content             MsgContent                     `json:"content"`
+	Content             chat1.MsgContent               `json:"content"`
 	Prev                []chat1.MessagePreviousPointer `json:"prev"`
 	Unread              bool                           `json:"unread"`
 	RevokedDevice       bool                           `json:"revoked_device,omitempty"`

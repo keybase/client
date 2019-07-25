@@ -1152,7 +1152,7 @@ protocol local {
   }
 
 
-// MsgSender is used for JSON output of the sender of a message.
+  // MsgSender is used for JSON output of the sender of a message.
   record MsgSender {
     string uid;
     string username;
@@ -1166,5 +1166,26 @@ protocol local {
     string flipConvID;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+  }
+
+  // MsgContent is used to retrieve the type name in addition to one of Text,
+  // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
+  // message.
+  // It is included in MsgSummary.
+  record MsgContent {
+    string typeName;
+    union { null, MessageText } text;
+    union { null, MessageAttachment } attachment;
+    union { null, MessageEdit } edit;
+    union { null, MessageReaction } reaction;
+    union { null, MessageDelete } delete;
+    union { null, MessageConversationMetadata } metadata;
+    union { null, MessageHeadline } headline;
+    union { null, MessageAttachmentUploaded } attachmentUploaded;
+    union { null, MessageSystem } system;
+    union { null, MessageSendPayment } sendPayment;
+    union { null, MessageRequestPayment } requestPayment;
+    union { null, MessageUnfurl } unfurl;
+    union { null, MsgFlipContent } flip;
   }
 }

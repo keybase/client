@@ -3439,6 +3439,107 @@
           "name": "teamMentions"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MsgContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "typeName"
+        },
+        {
+          "type": [
+            null,
+            "MessageText"
+          ],
+          "name": "text"
+        },
+        {
+          "type": [
+            null,
+            "MessageAttachment"
+          ],
+          "name": "attachment"
+        },
+        {
+          "type": [
+            null,
+            "MessageEdit"
+          ],
+          "name": "edit"
+        },
+        {
+          "type": [
+            null,
+            "MessageReaction"
+          ],
+          "name": "reaction"
+        },
+        {
+          "type": [
+            null,
+            "MessageDelete"
+          ],
+          "name": "delete"
+        },
+        {
+          "type": [
+            null,
+            "MessageConversationMetadata"
+          ],
+          "name": "metadata"
+        },
+        {
+          "type": [
+            null,
+            "MessageHeadline"
+          ],
+          "name": "headline"
+        },
+        {
+          "type": [
+            null,
+            "MessageAttachmentUploaded"
+          ],
+          "name": "attachmentUploaded"
+        },
+        {
+          "type": [
+            null,
+            "MessageSystem"
+          ],
+          "name": "system"
+        },
+        {
+          "type": [
+            null,
+            "MessageSendPayment"
+          ],
+          "name": "sendPayment"
+        },
+        {
+          "type": [
+            null,
+            "MessageRequestPayment"
+          ],
+          "name": "requestPayment"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnfurl"
+          ],
+          "name": "unfurl"
+        },
+        {
+          "type": [
+            null,
+            "MsgFlipContent"
+          ],
+          "name": "flip"
+        }
+      ]
     }
   ],
   "messages": {
