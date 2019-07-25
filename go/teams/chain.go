@@ -1195,7 +1195,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			// All removals must have come with successor.
 			for _, r := range removals {
 				role := prevState.getUserRole(r.uv)
-				if !(r.satisfied || role.IsRestrictedBot() || role.IsBot()) {
+				if !(r.satisfied || role.IsBotLike()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}

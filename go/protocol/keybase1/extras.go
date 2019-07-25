@@ -2338,37 +2338,38 @@ func (r TeamRole) IsRestrictedBotOrAbove() bool {
 	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
 }
 
-func (r TeamRole) IsBot() bool {
-	return r == TeamRole_BOT
+func (r TeamRole) IsBotLike() bool {
+	switch r {
+	case TeamRole_BOT, TeamRole_RESTRICTEDBOT:
+		return true
+	}
+	return false
 }
 
 func (r TeamRole) IsRestrictedBot() bool {
 	return r == TeamRole_RESTRICTEDBOT
 }
 
-func (r TeamRole) IsOrAbove(min TeamRole) bool {
+func (r TeamRole) teamRoleForOrderingOnly() int {
 	switch r {
 	case TeamRole_NONE:
-		return min == TeamRole_NONE
+		return 0
 	case TeamRole_RESTRICTEDBOT:
-		switch min {
-		case TeamRole_NONE, TeamRole_RESTRICTEDBOT:
-			return true
-		default:
-			return false
-		}
+		return 1
 	case TeamRole_BOT:
-		switch min {
-		case TeamRole_NONE, TeamRole_RESTRICTEDBOT, TeamRole_BOT:
-			return true
-		default:
-			return false
-		}
+		return 2
+	case TeamRole_READER,
+		TeamRole_WRITER,
+		TeamRole_ADMIN,
+		TeamRole_OWNER:
+		return int(r) + 2
 	default:
-		return (int(r) >= int(min) ||
-			min == TeamRole_BOT ||
-			min == TeamRole_RESTRICTEDBOT)
+		panic("unhandled teamRole")
 	}
+}
+
+func (r TeamRole) IsOrAbove(min TeamRole) bool {
+	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
 }
 
 type idSchema struct {

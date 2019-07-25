@@ -141,7 +141,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	if !t.IsSupportedTeamType() {
 		// Links from the future require a bare minimum.
 		// They should be checked later by a code update that busts the cache.
-		return keybase1.TeamRole_BOT
+		return keybase1.TeamRole_RESTRICTEDBOT
 	}
 	switch t {
 	case SigchainV2TypeTeamLeave:
