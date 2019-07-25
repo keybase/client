@@ -1271,11 +1271,11 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.
 	return findRes.Conversations, findRes.RateLimits, nil
 }
 
-func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *MsgFlipContent) {
+func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat1.MsgFlipContent) {
 	if flip == nil {
 		return res
 	}
-	res = new(MsgFlipContent)
+	res = new(chat1.MsgFlipContent)
 	res.GameID = flip.GameID.String()
 	res.FlipConvID = flip.FlipConvID.String()
 	res.TeamMentions = flip.TeamMentions
@@ -1414,14 +1414,6 @@ func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembe
 	return chat1.ConversationMembersType_KBFS
 }
 
-type MsgFlipContent struct {
-	Text         string
-	GameID       string
-	FlipConvID   string
-	UserMentions []chat1.KnownUserMention
-	TeamMentions []chat1.KnownTeamMention
-}
-
 // MsgContent is used to retrieve the type name in addition to one of Text,
 // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
 // message.
@@ -1440,7 +1432,7 @@ type MsgContent struct {
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
-	Flip               *MsgFlipContent                    `json:"flip,omitempty"`
+	Flip               *chat1.MsgFlipContent              `json:"flip,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.

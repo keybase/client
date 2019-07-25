@@ -3407,6 +3407,38 @@
           "name": "deviceName"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MsgFlipContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "string",
+          "name": "gameID"
+        },
+        {
+          "type": "string",
+          "name": "flipConvID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
+        }
+      ]
     }
   ],
   "messages": {

@@ -5401,6 +5401,44 @@ func (o MsgSender) DeepCopy() MsgSender {
 	}
 }
 
+type MsgFlipContent struct {
+	Text         string             `codec:"text" json:"text"`
+	GameID       string             `codec:"gameID" json:"gameID"`
+	FlipConvID   string             `codec:"flipConvID" json:"flipConvID"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+}
+
+func (o MsgFlipContent) DeepCopy() MsgFlipContent {
+	return MsgFlipContent{
+		Text:       o.Text,
+		GameID:     o.GameID,
+		FlipConvID: o.FlipConvID,
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

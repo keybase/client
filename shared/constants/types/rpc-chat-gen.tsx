@@ -1055,6 +1055,7 @@ export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVer
 export type MessageUnfurl = {readonly unfurl: UnfurlResult; readonly messageID: MessageID}
 export type MessagesUpdated = {readonly convID: ConversationID; readonly updates?: Array<UIMessage> | null}
 export type MsgEphemeralMetadata = {readonly l: /* lifetime */ Gregor1.DurationSec; readonly g: /* generation */ Keybase1.EkGeneration; readonly u /* explodedBy */?: String | null}
+export type MsgFlipContent = {readonly text: String; readonly gameID: String; readonly flipConvID: String; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null}
 export type MsgSender = {readonly uid: String; readonly username: String; readonly deviceID: String; readonly deviceName: String}
 export type NameQuery = {readonly name: String; readonly tlfID?: TLFID | null; readonly membersType: ConversationMembersType}
 export type NewConversationInfo = {readonly convID: ConversationID; readonly conv?: InboxUIItem | null}
