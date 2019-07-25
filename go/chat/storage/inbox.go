@@ -141,6 +141,9 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbKey(uid), &ibox)
 		if err != nil {
+			if _, ok := err.(libkb.LoginRequiredError); ok {
+				return ibox, MiscError{Msg: err.Error()}
+			}
 			return ibox, NewInternalError(ctx, i.DebugLabeler,
 				"failed to read inbox: uid: %d err: %s", uid, err)
 		}
