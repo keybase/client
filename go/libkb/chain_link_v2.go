@@ -157,16 +157,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 }
 
 func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
-	role := keybase1.TeamRole_BOT
 	if isAdmin {
-		role = keybase1.TeamRole_ADMIN
-	}
-	return t.TeamAllowStub(role)
-}
-
-// Whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	if role.IsAdminOrAbove() {
 		// Links cannot be stubbed for owners and admins
 		return false
 	}
