@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
@@ -13,6 +14,7 @@ import ConflictBanner from '../banner/conflict-banner-container'
 import flags from '../../util/feature-flags'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
+import Root from './root'
 
 type Props = {
   onAttach?: ((paths: Array<string>) => void) | null
@@ -59,21 +61,24 @@ const SelfReset = (_: Props) => (
   </Kb.Box2>
 )
 
-const Browser = (props: Props) => (
-  <Kb.BoxGrow>
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kbfs.Errs />
-      {props.resetBannerType === Types.ResetBannerNoOthersType.Self ? (
-        <SelfReset {...props} />
-      ) : props.offline ? (
-        <OfflineFolder path={props.path} />
-      ) : (
-        <WithContent {...props} />
-      )}
-      <Footer />
-    </Kb.Box2>
-  </Kb.BoxGrow>
-)
+const Browser = (props: Props) =>
+  props.path === Constants.defaultPath ? (
+    <Root />
+  ) : (
+    <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kbfs.Errs />
+        {props.resetBannerType === Types.ResetBannerNoOthersType.Self ? (
+          <SelfReset {...props} />
+        ) : props.offline ? (
+          <OfflineFolder path={props.path} />
+        ) : (
+          <WithContent {...props} />
+        )}
+        <Footer />
+      </Kb.Box2>
+    </Kb.BoxGrow>
+  )
 
 const styles = Styles.styleSheetCreate({
   contentContainer: {
