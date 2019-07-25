@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"path"
 	"sync"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/time/rate"
 )
@@ -144,7 +144,7 @@ func (sm *subscriptionManager) Subscriber(notifier SubscriptionNotifier) Subscri
 
 func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (setter func(), err error) {
 	if sm.subscriptionIDs[sid] {
-		return nil, errors.New("duplicate subscription ID")
+		return nil, errors.Errorf("duplicate subscription ID %q", sid)
 	}
 	return func() {
 		sm.subscriptionIDs[sid] = true
