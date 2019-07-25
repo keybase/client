@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import ReallyLeaveTeam, {Spinner, Props as RenderProps} from '.'
@@ -15,40 +16,6 @@ type Props = {
   _loadOperations: (teamname: Teamname) => void
   _loaded: boolean
 } & RenderProps
-
-const mapStateToProps = (state, {routeProps}) => {
-  const name = routeProps.get('teamname')
-  const canPerform = getCanPerform(state, name)
-  const _canLeaveTeam = canPerform.leaveTeam
-  return {
-    _canLeaveTeam,
-    _leaving: anyWaiting(state, leaveTeamWaitingKey(name)),
-    _loaded: hasCanPerform(state, name),
-    name,
-    title: 'Confirmation',
-  }
-}
-
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  onBack: () => dispatch(navigateUp()),
-  onLeave: () => {
-    dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname: routeProps.get('teamname')}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
-  return {
-    _canLeaveTeam: stateProps._canLeaveTeam,
-    _leaving: stateProps._leaving,
-    _loadOperations: dispatchProps._loadOperations,
-    _loaded: stateProps._loaded,
-    name: stateProps.name,
-    onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
-    onLeave: dispatchProps.onLeave,
-    title: stateProps.title,
-  }
-}
 
 class Switcher extends React.PureComponent<Props> {
   componentDidMount() {
@@ -69,6 +36,43 @@ class Switcher extends React.PureComponent<Props> {
 }
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(
+    (state, ownProps: OwnProps) => {
+      const name = Container.getRouteProps(ownProps, 'teamname', '')
+      const canPerform = getCanPerform(state, name)
+      const _canLeaveTeam = canPerform.leaveTeam
+      return {
+        _canLeaveTeam,
+        _leaving: anyWaiting(state, leaveTeamWaitingKey(name)),
+        _loaded: hasCanPerform(state, name),
+        name,
+        title: 'Confirmation',
+      }
+    },
+    (dispatch, ownProps: OwnProps) => ({
+      _loadOperations: (teamname: string) => dispatch(TeamsGen.createGetTeamOperations({teamname})),
+      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onLeave: () => {
+        dispatch(
+          TeamsGen.createLeaveTeam({
+            context: 'chat',
+            teamname: Container.getRouteProps(ownProps, 'teamname', ''),
+          })
+        )
+      },
+    }),
+    (stateProps, dispatchProps, _: OwnProps) => {
+      return {
+        _canLeaveTeam: stateProps._canLeaveTeam,
+        _leaving: stateProps._leaving,
+        _loadOperations: dispatchProps._loadOperations,
+        _loaded: stateProps._loaded,
+        name: stateProps.name,
+        onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
+        onLeave: dispatchProps.onLeave,
+        title: stateProps.title,
+      }
+    }
+  ),
   Container.safeSubmit(['onLeave'], ['_leaving'])
 )(Switcher)
