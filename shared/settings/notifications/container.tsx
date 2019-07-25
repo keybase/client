@@ -2,29 +2,37 @@ import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import {refreshNotificationsWaitingKey} from '../../constants/settings'
-import {connect, isMobile} from '../../util/container'
-import Notifications, {Props} from './index'
+import * as Container from '../../util/container'
+import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {}
 
-const ReloadableNotifications = (props: Props) => (
-  <Reloadable
-    onBack={isMobile ? props.onBack : undefined}
-    waitingKeys={refreshNotificationsWaitingKey}
-    onReload={props.onRefresh}
-    reloadOnMount={true}
-    title={props.title}
-  >
-    <Notifications {...props} />
-  </Reloadable>
-)
+type ExtraProps = {
+  onRefresh: () => void
+  title: string
+}
 
-export default connect(
+const ReloadableNotifications = (props: Props & ExtraProps) => {
+  const {title, onRefresh, ...rest} = props
+  return (
+    <Reloadable
+      onBack={Container.isMobile ? props.onBack : undefined}
+      waitingKeys={refreshNotificationsWaitingKey}
+      onReload={onRefresh}
+      reloadOnMount={true}
+      title={title}
+    >
+      <Notifications {...rest} />
+    </Reloadable>
+  )
+}
+
+export default Container.connect(
   state => ({
+    _groups: state.settings.notifications.groups,
     allowEdit: state.settings.notifications.allowEdit,
-    groups: state.settings.notifications.groups.toJS(),
     mobileHasPermissions: state.push.hasPermissions,
     sound: state.config.notifySound,
     waitingForResponse: state.settings.waitingForResponse,
@@ -36,7 +44,14 @@ export default connect(
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
     onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
     onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
-    title: 'Notifications',
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    ...dispatchProps,
+    allowEdit: stateProps.allowEdit,
+    groups: (stateProps._groups.toObject() as unknown) as Props['groups'],
+    mobileHasPermissions: stateProps.mobileHasPermissions,
+    sound: stateProps.sound,
+    title: 'Notifications',
+    waitingForResponse: stateProps.waitingForResponse,
+  })
 )(ReloadableNotifications)

@@ -9,6 +9,7 @@ export type Props = {
       unsubscribedFromAll: boolean
     }
   }
+  onBack?: () => void
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll: (group: string) => void
   mobileHasPermissions: boolean
