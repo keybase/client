@@ -43,8 +43,8 @@
         "'teamMention'" // from team mention
       ]
     },
-    // Where conversation could not have been created for some reason.
-    "createConversationError": {
+    // Got an error while creating a conversation.
+    "conversationErrored": {
       "message": "string"
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)

@@ -2640,7 +2640,7 @@ function* createConversation(
     }
   } catch (e) {
     logger.error(`Failed to create new conversation: ${e.message}`)
-    yield Saga.put(Chat2Gen.createCreateConversationError({message: e.message}))
+    yield Saga.put(Chat2Gen.createConversationErrored({message: e.message}))
     yield Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.pendingErrorConversationIDKey,

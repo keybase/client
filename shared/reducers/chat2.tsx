@@ -466,7 +466,7 @@ const rootReducer = (
           s.set('createConversationError', null)
         }
       })
-    case Chat2Gen.createConversationError:
+    case Chat2Gen.conversationErrored:
       return state.withMutations(s => {
         s.set('createConversationError', action.payload.message)
       })
