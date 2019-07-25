@@ -52,6 +52,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
 
 type HeaderRightActionsProps = {
   airdropSelected: boolean
+  loading: boolean
   noDisclaimer: boolean
   onReceive: () => void
   onSettings: () => void
@@ -61,12 +62,20 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
   props.noDisclaimer || props.airdropSelected ? null : (
     <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="tiny" style={styles.rightActions}>
       <SendButton small={true} />
-      <Kb.Button type="Wallet" mode="Secondary" label="Receive" small={true} onClick={props.onReceive} />
+      <Kb.Button
+        type="Wallet"
+        mode="Secondary"
+        label="Receive"
+        small={true}
+        onClick={props.onReceive}
+        disabled={props.loading}
+      />
       <Kb.Button
         onClick={props.onSettings}
         mode="Secondary"
         small={true}
         type="Wallet"
+        disabled={props.loading}
       >
         <Kb.Icon type="iconfont-gear" style={styles.gear} />
       </Kb.Button>
