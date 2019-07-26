@@ -21,6 +21,9 @@ protocol common {
     string desc; // 'Worthwhile token' or empty
     string infoUrl; // 'https://...' or empty
     string infoUrlText; // 'Exchange' for an exchange, 'View details' for anything else
+    // TODO: we will need deposit and withdraw URLs added here in the next ticket (PC)
+    string transferServer; // sep6 transfer server
+    string authEndpoint; // sep6 auth endpoint
   }
 
   record AssetListResult {
