@@ -2364,7 +2364,7 @@ func (r TeamRole) teamRoleForOrderingOnly() int {
 		TeamRole_OWNER:
 		return int(r) + 2
 	default:
-		panic("unhandled teamRole")
+		return 0
 	}
 }
 
