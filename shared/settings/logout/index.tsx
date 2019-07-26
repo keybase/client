@@ -35,6 +35,9 @@ class LogOut extends React.Component<Props, State> {
   }
 
   logOut = () => {
+    if (this.state.loggingOut) {
+      return
+    }
     this.props.onLogout()
     this.setState({loggingOut: true})
   }
@@ -74,24 +77,34 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!!this.props.checkPasswordIsCorrect || !this.state.password}
+                disabled={
+                  !!this.props.checkPasswordIsCorrect || !this.state.password || this.state.loggingOut
+                }
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
                 }}
               />
               <Kb.Box2 direction="horizontal">
-                <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
-                  <Kb.Icon type="iconfont-leave" />
-                  <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
-                    Just sign out
-                  </Kb.Text>
-                </HoverBox>
+                {this.state.loggingOut ? (
+                  <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+                ) : (
+                  <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
+                    <Kb.Icon type="iconfont-leave" />
+                    <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
+                      Just sign out
+                    </Kb.Text>
+                  </HoverBox>
+                )}
               </Kb.Box2>
             </Kb.ButtonBar>
           ) : (
             <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-              <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
+              {this.state.loggingOut ? (
+                <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+              ) : (
+                <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
+              )}
             </Kb.ButtonBar>
           ),
         }}
@@ -105,39 +118,35 @@ class LogOut extends React.Component<Props, State> {
         }}
         onClose={this.props.onCancel}
       >
-        {this.state.loggingOut ? (
-          <Kb.ProgressIndicator style={styles.progress} type="Huge" />
-        ) : (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-            {Styles.isMobile && (
-              <Kb.Text style={styles.headerText} type="Header">
-                Do you know your password?
-              </Kb.Text>
-            )}
-            <Kb.Text style={styles.bodyText} type="Body">
-              You will need it to sign back in.
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+          {Styles.isMobile && (
+            <Kb.Text style={styles.headerText} type="Header">
+              Do you know your password?
             </Kb.Text>
-            <Kb.RoundedBox>
-              <Kb.PlainInput
-                keyboardType={keyboardType}
-                onEnterKeyDown={() => {
-                  this.props.onCheckPassword(this.state.password)
-                }}
-                onChangeText={password => this.setState({password})}
-                placeholder="Your password"
-                type={inputType}
-                value={this.state.password}
-              />
-            </Kb.RoundedBox>
-            <Kb.Checkbox
-              boxBackgroundColor={Styles.globalColors.white}
-              checked={this.state.showTyping}
-              label="Show typing"
-              onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-              style={styles.checkbox}
+          )}
+          <Kb.Text style={styles.bodyText} type="Body">
+            You will need it to sign back in.
+          </Kb.Text>
+          <Kb.RoundedBox>
+            <Kb.PlainInput
+              keyboardType={keyboardType}
+              onEnterKeyDown={() => {
+                this.props.onCheckPassword(this.state.password)
+              }}
+              onChangeText={password => this.setState({password})}
+              placeholder="Your password"
+              type={inputType}
+              value={this.state.password}
             />
-          </Kb.Box2>
-        )}
+          </Kb.RoundedBox>
+          <Kb.Checkbox
+            boxBackgroundColor={Styles.globalColors.white}
+            checked={this.state.showTyping}
+            label="Show typing"
+            onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+            style={styles.checkbox}
+          />
+        </Kb.Box2>
       </Kb.Modal>
     )
   }
@@ -185,6 +194,9 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginBottom: Styles.globalMargins.xlarge,
     marginTop: Styles.globalMargins.xlarge,
+  },
+  smallProgress: {
+    alignSelf: 'center',
   },
 })
 
