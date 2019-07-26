@@ -970,7 +970,7 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend
+  navigateAppend: typeof RouteTreeGen.createNavigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
@@ -995,7 +995,7 @@ export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedA
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendLinkToChat'}],
-    }),
+    })
   ),
 ]
 
@@ -1004,7 +1004,7 @@ export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],
-    }),
+    })
   ),
 ]
 

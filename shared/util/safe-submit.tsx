@@ -8,18 +8,15 @@ import * as React from 'react'
 // )(MyComponent)
 
 export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<string>) {
-  return function <T> (BaseComponent: T): T {
-    // @ts-ignore
-    const factory: React.CFactory<any, React.Component<any, {}>> = React.createFactory(BaseComponent)
-
-    class SafeSubmit extends React.Component<T> {
+  return function<P extends {}>(BaseComponent: React.ComponentType<P>): React.ComponentType<P> {
+    class SafeSubmit extends React.Component<P> {
       // a map of name to boolean if we can call it safely
-      _safeToCallWrappedMap = submitProps.reduce((map, name) => {
+      _safeToCallWrappedMap = submitProps.reduce<{[key: string]: boolean}>((map, name) => {
         map[name] = true
         return map
       }, {})
 
-      componentDidUpdate(prevProps: any) {
+      componentDidUpdate(prevProps: P) {
         if (resetSafeProps.some(k => this.props[k] !== prevProps[k])) {
           // reset safe settings
           Object.keys(this._safeToCallWrappedMap).forEach(n => (this._safeToCallWrappedMap[n] = true))
@@ -30,7 +27,7 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
         const wrapped = submitProps.reduce((map, name) => {
           const old = this.props[name]
           if (old) {
-            map[name] = (...args) => {
+            map[name] = (...args: Array<any>) => {
               if (this._safeToCallWrappedMap[name]) {
                 this._safeToCallWrappedMap[name] = false
                 old(...args)
@@ -39,13 +36,10 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
           }
           return map
         }, {})
-        return factory({
-          ...this.props,
-          ...wrapped,
-        })
+
+        return <BaseComponent {...this.props} {...wrapped} />
       }
     }
-    // @ts-ignore
     return SafeSubmit
   }
 }
