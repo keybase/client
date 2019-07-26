@@ -320,7 +320,7 @@ const mergeProps = (
     isImportPromptDismissed: stateProps.isImportPromptDismissed,
     numContactsImported: stateProps.numContactsImported,
     onAskForContactsLater: dispatchProps.onAskForContactsLater,
-    onContactsNotYetImported: dispatchProps.onContactsNotYetImported,
+    onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
     onImportContacts:
       stateProps.contactsPermissionStatus === 'never_ask_again'
         ? null

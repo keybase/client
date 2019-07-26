@@ -37,8 +37,8 @@ const contactProps = {
   isImportPromptDismissed: false,
   numContactsImported: 0,
   onAskForContactsLater: Sb.action('onAskForContactsLater'),
-  onContactsNotYetImported: Sb.action('onContactsNotYetImported'),
   onImportContacts: Sb.action('onImportContacts'),
+  onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
 }
 
 const load = () => {
