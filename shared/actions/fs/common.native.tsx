@@ -10,14 +10,14 @@ import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-spe
 
 const pickAndUploadToPromise = (_: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   launchImageLibraryAsync(action.payload.type)
-    .then(result => {
+    .then(result =>
       result.cancelled === true
         ? null
         : FsGen.createUpload({
             localPath: parseUri(result),
             parentPath: action.payload.parentPath,
           })
-    })
+    )
     .catch(makeRetriableErrorHandler(action))
 
 const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
