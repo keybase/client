@@ -16,4 +16,6 @@ export type Props = {
   onRemove: () => void
 }
 
+export const userResultHeight: number
+
 export default class extends React.PureComponent<Props> {}

@@ -300,8 +300,10 @@ const deriveRolePickerArrowKeyFns = memoize(
 )
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
-const isAlpha = (letter: string) => alphabet.includes(letter)
-const letterToAlphaIndex = (letter: string) => alphabet.indexOf(letter)
+const aCharCode = alphabet.charCodeAt(0)
+const alphaSet = new Set(alphabet)
+const isAlpha = (letter: string) => alphaSet.has(letter)
+const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 
 // Returns array with 28 entries
 // 0 - "Recommendations" section
@@ -309,7 +311,7 @@ const letterToAlphaIndex = (letter: string) => alphabet.indexOf(letter)
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
   (results: Unpacked<typeof deriveSearchResults>): Array<SearchRecSection> | null => {
-    if (!results) return results
+    if (!results) return null
 
     const sections: Array<SearchRecSection> = [
       {
@@ -323,29 +325,29 @@ const sortAndSplitRecommendations = memoize(
         sections[0].data.push(rec)
         return
       }
-      const letter = (rec.prettyName || rec.displayLabel || '')[0].toLowerCase()
-      if (isAlpha(letter)) {
-        // offset 1 to skip recommendations
-        const index = letterToAlphaIndex(letter) + 1
-        if (!sections[index]) {
-          sections[index] = {
-            data: [],
-            label: letter.toUpperCase(),
-            shortcut: true,
+      if (rec.prettyName || rec.displayLabel) {
+        const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
+        if (isAlpha(letter)) {
+          // offset 1 to skip recommendations
+          const sectionIdx = letterToAlphaIndex(letter) + 1
+          if (!sections[sectionIdx]) {
+            sections[sectionIdx] = {
+              data: [],
+              label: letter.toUpperCase(),
+              shortcut: true,
+            }
           }
-        }
-        sections[index].data.push(rec)
-      } else if (!letter) {
-        // skip
-      } else {
-        if (!sections[27]) {
-          sections[27] = {
-            data: [],
-            label: numSectionLabel,
-            shortcut: true,
+          sections[sectionIdx].data.push(rec)
+        } else {
+          if (!sections[27]) {
+            sections[27] = {
+              data: [],
+              label: numSectionLabel,
+              shortcut: true,
+            }
           }
+          sections[27].data.push(rec)
         }
-        sections[27].data.push(rec)
       }
     })
     return sections.filter(Boolean)

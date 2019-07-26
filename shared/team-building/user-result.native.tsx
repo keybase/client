@@ -187,6 +187,7 @@ const AlreadyAddedIconButton = () => (
 )
 
 const ActionButtonSize = 40
+export const userResultHeight = Styles.globalMargins.xlarge
 const styles = Styles.styleSheetCreate({
   actionButton: {
     height: ActionButtonSize,
@@ -209,7 +210,7 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
-    height: Styles.globalMargins.xlarge,
+    height: userResultHeight,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,

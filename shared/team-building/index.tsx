@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
 import ServiceTabBar from './service-tab-bar'
-import UserResult from './user-result'
+import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
@@ -153,7 +153,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
         {this.props.recommendations &&
           this.props.recommendations.map(section =>
-            section.label && section.label.length === 1 ? (
+            section.label.length === 1 ? (
               <Kb.ClickableBox
                 key={section.label}
                 onClick={() => this._onScrollToSection(section.label)}
@@ -208,13 +208,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   ): {index: number; length: number; offset: number} => {
     let numSections = 0
     let numData = 0
-    let length: 40 | 64 = 64
+    let length = userResultHeight
     let currSectionHeaderIdx = 0
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i]
       if (indexInList === currSectionHeaderIdx) {
         // we are the section header
-        length = 40
+        length = Kb.SectionDivider.height
         break
       }
       numSections++
