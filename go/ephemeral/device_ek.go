@@ -66,7 +66,7 @@ func publishNewDeviceEK(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) (me
 
 	storage := mctx.G().GetDeviceEKStorage()
 	generation, err := storage.MaxGeneration(mctx, true)
-	if err != nil {
+	if err != nil || generation < 0 {
 		// Let's try to get the max from the server
 		mctx.Debug("Error getting maxGeneration from storage")
 		generation, err = serverMaxDeviceEK(mctx, merkleRoot)
