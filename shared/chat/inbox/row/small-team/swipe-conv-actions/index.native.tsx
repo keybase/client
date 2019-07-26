@@ -99,7 +99,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   container: {
-    backgroundColor: Styles.globalColors.greyDarker,
     flexDirection: 'row',
     width: 128,
   },
@@ -107,6 +106,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
+    width: 65, // set to one pixel larger to stop a visual blinking artifact
   },
 })
 
