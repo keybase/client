@@ -463,7 +463,7 @@ class StateWrapperForTeamBuilding extends React.Component<RouteProps, LocalState
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
-        showServiceResultCount={this.state.searchString != ''}
+        showServiceResultCount={this.state.searchString !== ''}
       />
     )
   }
