@@ -30,7 +30,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
   switch (props.counterpartyType) {
     case 'airdrop':
-      return <Icon type="icon-airdrop-star-48" style={{height: size, width: size}} />
+      return <Icon type="icon-stellar-48" style={{height: size, width: size}} />
     case 'keybaseUser':
       return (
         <Avatar
@@ -274,8 +274,8 @@ const Detail = (props: DetailProps) => {
     case 'none': {
       return (
         <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
-        {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
-      </Text>
+          {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
+        </Text>
       )
     }
     default:

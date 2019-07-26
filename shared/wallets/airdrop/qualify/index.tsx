@@ -28,7 +28,7 @@ const Accepted = p =>
     >
       <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.grow} />
-        <Kb.Icon type="icon-fancy-airdrop-star-shining-happy-120" style={styles.star} />
+        <Kb.Icon type="icon-fancy-airdrop-shining-120" style={styles.star} />
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
           <Kb.Text negative={true} center={true} type="Header">
             You're in!
@@ -158,13 +158,11 @@ class Qualified extends React.PureComponent<Props, State> {
     let description
 
     if (loading) {
-      starIcon = 'icon-fancy-airdrop-star-faded-loading-120'
+      starIcon = 'icon-fancy-airdrop-faded-120'
       description = 'Analyzing your account...'
     } else {
       starIcon =
-        this.props.state === 'qualified'
-          ? 'icon-fancy-airdrop-star-shining-happy-120'
-          : 'icon-fancy-airdrop-star-faded-sad-120'
+        this.props.state === 'qualified' ? 'icon-fancy-airdrop-shining-120' : 'icon-fancy-airdrop-faded-120'
 
       description =
         this.props.state === 'qualified'

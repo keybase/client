@@ -54,7 +54,7 @@ const Banner = (p: Props) => {
   return (
     <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container} gap="xsmall">
       <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
-        <Kb.Icon type="icon-airdrop-star-32" />
+        <Kb.Icon type="icon-stellar-32" />
       </Kb.Box2>
       {textAndButtons}
     </Kb.Box2>

@@ -53,26 +53,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-addon-lock-hover-16.png'),
   },
-  'icon-airdrop-star-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-airdrop-star-16.png'),
-  },
-  'icon-airdrop-star-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-airdrop-star-32.png'),
-  },
-  'icon-airdrop-star-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-airdrop-star-48.png'),
-  },
-  'icon-airdrop-star-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-airdrop-star-64.png'),
-  },
   'icon-bitcoin-logo-48': {
     extension: 'png',
     isFont: false,
@@ -213,40 +193,20 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-facebook-visibility-static.png'),
   },
-  'icon-fancy-airdrop-friends-120': {
+  'icon-fancy-airdrop-faded-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-friends-120.png'),
+    require: require('../images/icons/icon-fancy-airdrop-faded-120.png'),
   },
-  'icon-fancy-airdrop-star-faded-120': {
+  'icon-fancy-airdrop-shining-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-faded-120.png'),
+    require: require('../images/icons/icon-fancy-airdrop-shining-120.png'),
   },
-  'icon-fancy-airdrop-star-faded-loading-120': {
+  'icon-fancy-airdrop-shining-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-faded-loading-120.png'),
-  },
-  'icon-fancy-airdrop-star-faded-sad-120': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-faded-sad-120.png'),
-  },
-  'icon-fancy-airdrop-star-shining-120': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-shining-120.png'),
-  },
-  'icon-fancy-airdrop-star-shining-80': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-shining-80.png'),
-  },
-  'icon-fancy-airdrop-star-shining-happy-120': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-shining-happy-120.png'),
+    require: require('../images/icons/icon-fancy-airdrop-shining-80.png'),
   },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
@@ -388,15 +348,20 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-user-card-desktop-80-99.png'),
   },
-  'icon-fancy-user-card-desktop-star-80-99': {
+  'icon-fancy-user-card-desktop-airdrop-80-99': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-user-card-desktop-star-80-99.png'),
+    require: require('../images/icons/icon-fancy-user-card-desktop-airdrop-80-99.png'),
   },
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-fancy-user-card-mobile-120-149.png'),
+  },
+  'icon-fancy-user-card-mobile-airdrop-120-149': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-mobile-airdrop-120-149.png'),
   },
   'icon-file-16': {
     extension: 'png',
@@ -1632,6 +1597,26 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-skull-64.png'),
+  },
+  'icon-stellar-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-16.png'),
+  },
+  'icon-stellar-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-32.png'),
+  },
+  'icon-stellar-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-48.png'),
+  },
+  'icon-stellar-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-64.png'),
   },
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
