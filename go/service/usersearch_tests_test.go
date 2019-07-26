@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -91,6 +90,9 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Keybase.RawScore > res[j].Keybase.RawScore
 	})
+	for i := range res {
+		res[i].Score = 1.0 / float64(1+i)
+	}
 	return res, nil
 }
 
@@ -113,6 +115,9 @@ func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearc
 	tc = libkb.SetupTest(t, "contacts", 3)
 	tc.G.SyncedContactList = contacts.NewSavedContactsStore(tc.G)
 
+	_, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
+	require.NoError(t, err)
+
 	contactsProv := &contacts.CachedContactsProvider{
 		Provider: &errorContactsProvider{},
 		Store:    contacts.NewContactCacheStore(tc.G),
@@ -123,36 +128,60 @@ func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearc
 	return tc, handler, searchProv
 }
 
-func TestContactSearch2(t *testing.T) {
+func TestUserSearchResolvedUsersShouldGoFirst(t *testing.T) {
 	tc, searchHandler, searchProv := setupUserSearchTest(t)
 	defer tc.Cleanup()
 
-	_, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
-	require.NoError(t, err)
-
 	contactlist := []keybase1.ProcessedContact{
-		makeContact(makeContactArg{name: "Test Contact 1", username: "tuser1"}),
-		makeContact(makeContactArg{name: "Office Building"}),
-		makeContact(makeContactArg{name: "Michal", username: "michal"}),
 		makeContact(makeContactArg{name: "TEST", phone: "+1555123456"}),
+		makeContact(makeContactArg{name: "Michal", email: "michal@example.com", username: "michal"}),
+		makeContact(makeContactArg{name: "Test Contact 1", phone: "+1555165432", username: "tuser1", fullname: "Test User 123"}),
 	}
 
 	searchProv.addUser(testAddUserArg{"tuser1", "Test User 123"})
 
-	err = tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
 
+	// "1555" query will match two users: name: "TEST", and name: "Test Contact
+	// 1". We should see the resolved one appear first, with the matched string
+	// (the phone number) being the label.
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "keybase",
-		Query:           "test",
+		Query:           "1555",
 		MaxResults:      50,
 	})
 	require.NoError(t, err)
 	require.Len(t, res, 2)
-	for _, v := range res {
-		spew.Dump(pluckSearchResultForTest(v))
-	}
-	// require.Contains(t, strList, "TEST,+1555123456")
-	// require.Contains(t, strList, "Test Contact 1,")
+	require.Equal(t, searchResultForTest{
+		id:              "1555165432@phone",
+		displayName:     "tuser1",
+		displayLabel:    "+1555165432",
+		keybaseUsername: "tuser1",
+	}, pluckSearchResultForTest(res[0]))
+
+	require.Equal(t, searchResultForTest{
+		id:              "1555123456@phone",
+		displayName:     "TEST",
+		displayLabel:    "+1555123456",
+		keybaseUsername: "",
+	}, pluckSearchResultForTest(res[1]))
+
+	// If we have exact match coming from the service, prefer it instead of
+	// contact result with SBS assertion in it.
+	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		// TODO: Flipping this to `true` breaks this test because we do not
+		// correctly prefer Keybase API results for exact matches.
+		IncludeContacts: false,
+		Service:         "keybase",
+		Query:           "tuser1",
+		MaxResults:      50,
+	})
+	require.Equal(t, searchResultForTest{
+		id:              "tuser1",
+		displayName:     "tuser1",
+		displayLabel:    "Test User 123",
+		keybaseUsername: "tuser1",
+	}, pluckSearchResultForTest(res[0]))
 }

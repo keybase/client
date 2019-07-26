@@ -181,13 +181,20 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		found, score, matchedVal := matchAndScoreContact(query, c)
 		if found {
 			contact := c
-			if contact.Resolved && matchedVal != "" {
-				// If contact is resolved, make sure to plumb matched query to
-				// display label. This is not needed for unresolved contacts,
-				// which can only match on ContactName or Component Value, and
-				// both of them always appear as name and label.
-				contact.DisplayLabel = matchedVal
+			if contact.Resolved {
+				if matchedVal != "" {
+					// If contact is resolved, make sure to plumb matched query to
+					// display label. This is not needed for unresolved contacts,
+					// which can only match on ContactName or Component Value, and
+					// both of them always appear as name and label.
+					contact.DisplayLabel = matchedVal
+				}
+
+				// If we got a resolved match, add bonus to the score so it
+				// stands out from similar matches.
+				score *= 1.5
 			}
+
 			res = append(res, keybase1.APIUserSearchResult{
 				Contact:  &contact,
 				RawScore: score,
@@ -373,12 +380,6 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 				outputRes = append(outputRes, v)
 			}
 			res = outputRes
-
-			// Trim the whole result to MaxResult.
-			maxRes := arg.MaxResults
-			if maxRes > 0 && len(res) > maxRes {
-				res = res[:maxRes]
-			}
 		}
 	}
 
@@ -404,6 +405,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		}
 	}
 
+	// Trim the whole result to MaxResult.
 	maxRes := arg.MaxResults
 	if maxRes > 0 && len(res) > maxRes {
 		res = res[:maxRes]
