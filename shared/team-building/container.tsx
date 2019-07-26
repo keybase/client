@@ -32,6 +32,7 @@ type OwnProps = {
   resetHighlightIndex: (resetToHidden?: boolean) => void
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
+  showServiceResultCount: boolean
 }
 
 type LocalState = {
@@ -407,7 +408,7 @@ const mergeProps = (
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showRecs,
-    showServiceResultCount,
+    showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamSoFar,
     waitingForCreate,
   }
@@ -462,6 +463,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
+        showServiceResultCount={this.state.searchString !== ''}
       />
     )
   }
