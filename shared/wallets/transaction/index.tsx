@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
+import * as Constants from '../../constants/wallets'
 import {capitalize} from 'lodash-es'
 import {
   Avatar,
@@ -274,8 +275,8 @@ const Detail = (props: DetailProps) => {
     case 'none': {
       return (
         <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
-        {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
-      </Text>
+          {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
+        </Text>
       )
     }
     default:
@@ -525,9 +526,7 @@ export const Transaction = (props: Props) => {
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
                 <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>
-                  <Text type="BodySmall">
-                    {props.counterparty} can claim this when they set up their wallet.
-                  </Text>
+                  <Text type="BodySmall">{Constants.makeCancelButtonInfo(props.counterparty)}</Text>
                   <WaitingButton
                     type="Danger"
                     mode="Secondary"
