@@ -30,7 +30,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
   switch (props.counterpartyType) {
     case 'airdrop':
-      return <Icon type="icon-stellar-48" style={{height: size, width: size}} />
+      return <Icon type="icon-airdrop-logo-48" style={{height: size, width: size}} />
     case 'keybaseUser':
       return (
         <Avatar

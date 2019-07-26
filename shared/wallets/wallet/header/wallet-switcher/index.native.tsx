@@ -31,7 +31,7 @@ export const WalletSwitcher = (props: Props) => {
       title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
       view: (
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-          <Kb.Icon type="icon-stellar-32" />
+          <Kb.Icon type="icon-airdrop-logo-32" />
           <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blueDark}}>
             {props.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
           </Kb.Text>

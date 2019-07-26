@@ -120,7 +120,7 @@ class Airdrop extends React.Component<Props> {
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
-                <Kb.Icon type="icon-stellar-32" />
+                <Kb.Icon type="icon-airdrop-logo-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
                   You're in. The next Lumens airdrop will show up in your default wallet account.
                 </Kb.Text>
