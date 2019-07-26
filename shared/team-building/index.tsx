@@ -263,7 +263,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             renderItem={({index, item: result}) => (
               <UserResult
                 resultForService={this.props.selectedService}
-                fixedHeight={400}
                 username={result.username}
                 prettyName={result.prettyName}
                 displayLabel={result.displayLabel}
@@ -293,7 +292,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         renderItem={(index, result) => (
           <UserResult
             resultForService={this.props.selectedService}
-            fixedHeight={400}
             username={result.username}
             prettyName={result.prettyName}
             displayLabel={result.displayLabel}
@@ -378,6 +376,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
 const styles = Styles.styleSheetCreate({
   alphabetIndex: {
+    height: '100%',
     position: 'absolute',
     right: Styles.globalMargins.xtiny,
     top: Styles.globalMargins.xtiny,

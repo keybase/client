@@ -9,7 +9,6 @@ export type Props = {
   prettyName: string
   displayLabel: string
   services: {[K in Types.ServiceIdWithContact]?: string}
-  fixedHeight?: number
   inTeam: boolean
   followingState: Types.FollowingState
   highlight: boolean
