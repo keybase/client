@@ -7,7 +7,7 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
-import ConvActions from './conv-actions'
+import SwipeConvActions from './swipe-conv-actions'
 
 export type Props = {
   backgroundColor?: string
@@ -83,7 +83,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
       onMouseOver: this._onMouseOver,
     }
     return (
-      <ConvActions
+      <SwipeConvActions
         isMuted={this.props.isMuted}
         onHideConversation={this.props.onHideConversation}
         onMuteConversation={this.props.onMuteConversation}
@@ -164,7 +164,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
             </Kb.Box>
           </Kb.Box>
         </SmallTeamBox>
-      </ConvActions>
+      </SwipeConvActions>
     )
   }
 }

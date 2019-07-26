@@ -7,5 +7,5 @@ export type Props = {
   onMuteConversation: () => void
 }
 
-declare class ConvActions extends React.Component<Props> {}
-export default ConvActions
+declare class SwipeConvActions extends React.Component<Props> {}
+export default SwipeConvActions

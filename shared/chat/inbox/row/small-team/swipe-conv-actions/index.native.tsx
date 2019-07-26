@@ -47,7 +47,7 @@ const renderRightActions = (
   progress: Kb.NativeAnimated.Interpolation
 ) => {
   return (
-    <Kb.NativeView style={{flexDirection: 'row', width: 128}}>
+    <Kb.NativeView style={styles.container}>
       {renderRightAction(
         props.isMuted ? 'Unmute' : 'Mute',
         Styles.globalColors.orange,
@@ -75,7 +75,7 @@ const onOpen = ref => {
   curSwipeRef = ref
 }
 
-const ConvActions = (props: Props) => {
+const SwipeConvActions = (props: Props) => {
   const swiperef = React.useRef<Kb.Swipeable>()
   return (
     <Kb.Swipeable
@@ -98,6 +98,11 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: 'transparent',
     color: Styles.globalColors.white,
   },
+  container: {
+    backgroundColor: Styles.globalColors.greyDarker,
+    flexDirection: 'row',
+    width: 128,
+  },
   rightAction: {
     alignItems: 'center',
     flex: 1,
@@ -105,4 +110,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default ConvActions
+export default SwipeConvActions
