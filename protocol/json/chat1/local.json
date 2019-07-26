@@ -3352,6 +3352,28 @@
     },
     {
       "type": "record",
+      "name": "RateLimitRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tank"
+        },
+        {
+          "type": "int",
+          "name": "capacity"
+        },
+        {
+          "type": "int",
+          "name": "reset"
+        },
+        {
+          "type": "int",
+          "name": "gas"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ChatChannel",
       "fields": [
         {
@@ -3656,6 +3678,44 @@
             "string"
           ],
           "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Thread",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Message"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
         }
       ]
     }

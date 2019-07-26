@@ -5357,6 +5357,22 @@ func (o ClearBotCommandsLocalRes) DeepCopy() ClearBotCommandsLocalRes {
 	}
 }
 
+type RateLimitRes struct {
+	Tank     string `codec:"tank" json:"tank"`
+	Capacity int    `codec:"capacity" json:"capacity"`
+	Reset    int    `codec:"reset" json:"reset"`
+	Gas      int    `codec:"gas" json:"gas"`
+}
+
+func (o RateLimitRes) DeepCopy() RateLimitRes {
+	return RateLimitRes{
+		Tank:     o.Tank,
+		Capacity: o.Capacity,
+		Reset:    o.Reset,
+		Gas:      o.Gas,
+	}
+}
+
 type ChatChannel struct {
 	Name        string `codec:"name" json:"name"`
 	Public      bool   `codec:"public" json:"public"`
@@ -5658,6 +5674,60 @@ func (o Message) DeepCopy() Message {
 			tmp := (*x)
 			return &tmp
 		})(o.Error),
+	}
+}
+
+type Thread struct {
+	Messages         []Message                     `codec:"messages" json:"messages"`
+	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline          bool                          `codec:"offline" json:"offline"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o Thread) DeepCopy() Thread {
+	return Thread{
+		Messages: (func(x []Message) []Message {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Message, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Messages),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
 	}
 }
 

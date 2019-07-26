@@ -1138,6 +1138,14 @@ protocol local {
   }
   ClearBotCommandsLocalRes clearBotCommandsLocal();
 
+
+  record RateLimitRes {
+    string tank;
+    int capacity;
+    int reset;
+    int gas;
+  }
+
   // Channel represents a channel through which chat happens.
   record ChatChannel {
     string name;
@@ -1219,4 +1227,15 @@ protocol local {
     union { null, MsgSummary } msg;
     union { null, string } error;
   }
+
+  // Thread is used for JSON output of a thread of messages.
+  record Thread {
+    array<Message> messages;
+    union { null, Pagination } pagination;
+    boolean offline;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimitRes> rateLimits;
+  }
+
+
 }

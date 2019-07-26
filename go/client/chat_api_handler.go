@@ -45,17 +45,6 @@ const (
 	methodListCommands      = "listcommands"
 )
 
-type RateLimit struct {
-	Tank     string `json:"tank"`
-	Capacity int    `json:"capacity"`
-	Reset    int    `json:"reset"`
-	Gas      int    `json:"gas"`
-}
-
-type RateLimits struct {
-	RateLimits []RateLimit `json:"ratelimits,omitempty"`
-}
-
 // ChatAPIHandler can handle all of the chat json api methods.
 type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error
