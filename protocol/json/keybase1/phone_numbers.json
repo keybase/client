@@ -9,12 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "RawPhoneNumber",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "UserPhoneNumber",
       "fields": [
         {

@@ -525,7 +525,10 @@ async function manageContactsCache(
   return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
     .then(() => {
       logger.info(`Success`)
-      return SettingsGen.createSetContactImportedCount({count: mapped.length})
+      return [
+        SettingsGen.createSetContactImportedCount({count: mapped.length}),
+        SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode}),
+      ]
     })
     .catch(e => {
       logger.error('Error saving contacts list: ', e.message)

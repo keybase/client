@@ -23,7 +23,9 @@ const reduceAssetMap = (
 export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
-      return initialState
+      return initialState.merge({
+        staticConfig: state.staticConfig,
+      })
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(

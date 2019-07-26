@@ -61,12 +61,15 @@ func TestContactSearch(t *testing.T) {
 		makeContact(makeContactArg{N: "TEST", L: "+1555123456", assertion: "1555123456@phone"}),
 	}
 
+	contactsProv := NewCachedContactsProvider(tc.G)
 	savedStore := contacts.NewSavedContactsStore(tc.G)
 	err = savedStore.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
 	tc.G.SyncedContactList = savedStore
 
-	searchHandler := NewUserSearchHandler(nil, tc.G)
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+	tc.G.TestOptions.DisableUserSearchSocialServices = true
+
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
@@ -77,8 +80,9 @@ func TestContactSearch(t *testing.T) {
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
-		Service:         "",
+		Service:         "keybase",
 		Query:           "test",
+		MaxResults:      50,
 	})
 	require.NoError(t, err)
 	require.Len(t, res, 2)
@@ -111,12 +115,14 @@ func TestContactSearchWide(t *testing.T) {
 		makeContact(makeContactArg{N: "高橋幸治", L: "+81123456555", assertion: "81123456555@phone"}),
 	}
 
+	contactsProv := NewCachedContactsProvider(tc.G)
 	savedStore := contacts.NewSavedContactsStore(tc.G)
 	err = savedStore.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
 	tc.G.SyncedContactList = savedStore
 
-	searchHandler := NewUserSearchHandler(nil, tc.G)
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+	tc.G.TestOptions.DisableUserSearchSocialServices = true
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,

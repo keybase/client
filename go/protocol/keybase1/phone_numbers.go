@@ -8,12 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type RawPhoneNumber string
-
-func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
-	return o
-}
-
 // Phone number support for TOFU chats.
 type UserPhoneNumber struct {
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`

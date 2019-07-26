@@ -39,17 +39,23 @@ protocol userSearch {
         string username;
     }
 
+    record ImpTofuSearchResult {
+        string assertion;
+        string label;
+        string prettyName;
+        string keybaseUsername; // keybase username if assertion resolves, empty if not
+    }
+
     record APIUserSearchResult {
         double score;
         union { null, APIUserKeybaseResult } keybase;
         union { null, APIUserServiceResult } service;
         union { null, ProcessedContact } contact;
+        union { null, ImpTofuSearchResult } imptofu;
         @jsonkey("services_summary")
         map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
         double rawScore;
     }
-
-    array<APIUserSearchResult> userSearch(int sessionID, string query, string service, int maxResults, boolean includeServicesSummary, boolean includeContacts);
 
     record NonUserDetails {
         boolean isNonUser;
@@ -62,4 +68,18 @@ protocol userSearch {
         array<SizedImage> siteIconFull;
     }
     NonUserDetails getNonUserDetails(int sessionID, string assertion);
+
+    enum ImpTofuSearchType {
+        PHONE_0,
+        EMAIL_1
+    }
+
+    variant ImpTofuQuery switch (ImpTofuSearchType t) {
+        case PHONE: PhoneNumber;
+        case EMAIL: EmailAddress;
+    }
+
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
+        boolean includeServicesSummary, boolean includeContacts,
+        union { null, ImpTofuQuery } impTofuQuery);
 }

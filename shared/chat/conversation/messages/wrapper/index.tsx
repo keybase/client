@@ -648,6 +648,7 @@ const styles = Styles.styleSheetCreate({
       bottom: -Styles.globalMargins.mediumLarge,
       height: Styles.globalMargins.mediumLarge,
       paddingBottom: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.xtiny,
       position: 'absolute',
       right: 96,
