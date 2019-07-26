@@ -258,11 +258,12 @@ func saturateAdd(x *int64, delta int64) {
 		*x = 0
 	}
 
-	if delta > 0 && *x > (math.MaxInt64-delta) {
+	switch {
+	case delta > 0 && *x > (math.MaxInt64-delta):
 		*x = math.MaxInt64
-	} else if delta < 0 && *x+delta < 0 {
+	case delta < 0 && *x+delta < 0:
 		*x = 0
-	} else {
+	default:
 		*x += delta
 	}
 }

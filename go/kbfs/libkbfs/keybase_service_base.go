@@ -203,14 +203,15 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 
 	for _, key := range keys {
 		var info idutil.RevokedKeyInfo
-		if key.Base.Revocation != nil {
+		switch {
+		case key.Base.Revocation != nil:
 			info.Time = key.Base.Revocation.Time
 			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
 			// If we don't have a prev seqno, then we already have the
 			// best merkle data we're going to get.
 			info.SetFilledInMerkle(info.MerkleRoot.Seqno <= 0)
 			info.SetSigChainLocation(key.Base.Revocation.SigChainLocation)
-		} else if reset != nil {
+		case reset != nil:
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
 			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
@@ -218,7 +219,7 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 			// best merkle data we're going to get.
 			info.SetFilledInMerkle(info.MerkleRoot.Seqno <= 0)
 			info.SetResetInfo(reset.ResetSeqno, true)
-		} else {
+		default:
 			// Not revoked.
 			continue
 		}
@@ -641,7 +642,7 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 						Prev: info.MerkleRoot,
 					})
 			}
-			if m, ok := err.(libkb.MerkleClientError); ok && m.IsOldTree() {
+			if m, ok := err.(libkb.MerkleClientError); ok && m.IsOldTree() { // nolint
 				k.log.CDebugf(ctx, "Merkle root is too old for checking "+
 					"the revoked key: %+v", err)
 				info.MerkleRoot.Seqno = 0
@@ -821,7 +822,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
 		arg.Refreshers.NeedApplicationsAtGenerationsWithKBFS =
 			map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(desiredKeyGen): []keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(desiredKeyGen): {
 					keybase1.TeamApplication_KBFS,
 				},
 			}

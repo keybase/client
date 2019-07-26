@@ -33,3 +33,4 @@ repos:
     -   id: go-fmt
     -   id: go-vet
     -   id: go-lint
+    -   id: golangci-lint

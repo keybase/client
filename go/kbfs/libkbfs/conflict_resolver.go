@@ -704,7 +704,8 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		if _, notFound := errors.Cause(err).(NoChainFoundError); notFound {
 			unmergedChains.toUnrefPointers[unmergedOriginal] = true
 			continue
-		} else if err != nil {
+		}
+		if err != nil {
 			return nil, err
 		} else if unmergedOriginal == mergedOriginal {
 			cr.log.CDebugf(ctx,
@@ -1431,8 +1432,7 @@ func (cr *ConflictResolver) convertCreateIntoSymlinkOrCopy(ctx context.Context,
 	found := false
 outer:
 	for _, op := range chain.ops {
-		switch cop := op.(type) {
-		case *createOp:
+		if cop, ok := op.(*createOp); ok {
 			if !cop.renamed || cop.NewName != info.newName {
 				continue
 			}

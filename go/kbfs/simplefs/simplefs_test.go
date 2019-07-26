@@ -1437,7 +1437,8 @@ func TestFavoriteConflicts(t *testing.T) {
 	var pathConflict keybase1.Path
 	var pathLocalView keybase1.Path
 	for _, f := range favs.FavoriteFolders {
-		if tlf.ContainsLocalConflictExtensionPrefix(f.Name) {
+		switch {
+		case tlf.ContainsLocalConflictExtensionPrefix(f.Name):
 			require.NotNil(t, f.ConflictState)
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
@@ -1446,7 +1447,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			mrlv := f.ConflictState.Manualresolvinglocalview()
 			require.Equal(t, pathPub.String(), mrlv.NormalView.String())
 			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
-		} else if f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC {
+		case f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC:
 			require.NotNil(t, f.ConflictState)
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
@@ -1457,7 +1458,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.False(t, sv.StuckInConflict)
 			require.Len(t, sv.LocalViews, 1)
 			pathLocalView = sv.LocalViews[0]
-		} else {
+		default:
 			require.Nil(t, f.ConflictState)
 		}
 	}

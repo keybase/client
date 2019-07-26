@@ -24,8 +24,7 @@ type ExtraMetadata interface {
 func DumpExtraMetadata(
 	codec kbfscodec.Codec, extra ExtraMetadata) (string, error) {
 	var s string
-	switch extra := extra.(type) {
-	case *ExtraMetadataV3:
+	if extra, ok := extra.(*ExtraMetadataV3); ok {
 		serializedWKB, err := codec.Encode(extra.GetWriterKeyBundle())
 		if err != nil {
 			return "", err

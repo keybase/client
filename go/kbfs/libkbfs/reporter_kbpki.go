@@ -436,7 +436,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       code,
 		NotificationType: keybase1.FSNotificationType_REKEYING,
 	}
@@ -511,7 +511,7 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
 		Params:           params,
@@ -525,7 +525,7 @@ func syncConfigChangeNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,

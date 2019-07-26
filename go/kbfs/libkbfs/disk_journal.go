@@ -87,21 +87,23 @@ func makeDiskJournal(
 	}
 
 	earliest, err := j.readEarliestOrdinalFromDisk()
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Continue with j.earliestValid = false.
-	} else if err != nil {
+	case err != nil:
 		return nil, err
-	} else {
+	default:
 		j.earliestValid = true
 		j.earliest = earliest
 	}
 
 	latest, err := j.readLatestOrdinalFromDisk()
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Continue with j.latestValid = false.
-	} else if err != nil {
+	case err != nil:
 		return nil, err
-	} else {
+	default:
 		j.latestValid = true
 		j.latest = latest
 	}

@@ -976,8 +976,9 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 				// TODO: If we're down to just one leaf block at this
 				// level, remove the layer of indirection (KBFS-1824).
 				iptrs := pblock.IPtrs
-				pblock.IPtrs =
-					append(iptrs[:pb.childIndex], iptrs[pb.childIndex+1:]...)
+				pblock.IPtrs = make([]IndirectFilePtr, len(iptrs)-1)
+				copy(pblock.IPtrs, iptrs[:pb.childIndex])
+				copy(pblock.IPtrs[pb.childIndex:], iptrs[pb.childIndex+1:])
 			}
 
 			// Mark all parents as dirty.

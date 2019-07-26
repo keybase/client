@@ -250,7 +250,7 @@ func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 			Type: fuse.DT_Link,
 			Name: "public",
 		},
-		fuse.Dirent{
+		{
 			Type: fuse.DT_Link,
 			Name: "team",
 		},

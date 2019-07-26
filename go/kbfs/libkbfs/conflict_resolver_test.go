@@ -383,8 +383,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 			break
 		}
 		for i := 0; i < len(v); i++ {
-			switch x := v[i].(type) {
-			case *dropUnmergedAction:
+			if x, ok := v[i].(*dropUnmergedAction); ok {
 				y := v2[i].(*dropUnmergedAction)
 				y.op.setWriterInfo(x.op.getWriterInfo())
 			}

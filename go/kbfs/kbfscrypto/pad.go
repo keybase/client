@@ -29,12 +29,12 @@ func powerOfTwoEqualOrGreater(n int) int {
 	}
 
 	n--
-	n = n | (n >> 1)
-	n = n | (n >> 2)
-	n = n | (n >> 4)
-	n = n | (n >> 8)
-	n = n | (n >> 16)
-	n = n | (n >> 16 >> 16) // make it work with 64 bit int; no effect on 32bit.
+	n |= (n >> 1)
+	n |= (n >> 2)
+	n |= (n >> 4)
+	n |= (n >> 8)
+	n |= (n >> 16)
+	n |= (n >> 16 >> 16) // make it work with 64 bit int; no effect on 32bit.
 	n++
 
 	return n

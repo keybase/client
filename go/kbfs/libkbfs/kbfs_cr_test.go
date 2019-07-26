@@ -940,7 +940,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	dateStr := now.UTC().Format("2006-01-02")
 	h, err := tlfhandle.ParseHandle(
 		ctx, config2.KBPKI(), config2.MDOps(), nil,
-		string(name)+" (local conflicted copy "+dateStr+")", tlf.Private)
+		name+" (local conflicted copy "+dateStr+")", tlf.Private)
 	require.NoError(t, err)
 	b, ok := data.MakeConflictBranchName(h)
 	require.True(t, ok)
@@ -1994,7 +1994,7 @@ func TestForceStuckConflict(t *testing.T) {
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 

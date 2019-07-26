@@ -522,7 +522,7 @@ func (bra BlockRequestAction) Combine(
 	// If the actions don't agree on stop-if-full, we should remove it
 	// from the combined result.
 	if bra.StopIfFull() != other.StopIfFull() {
-		combined = combined &^ blockRequestStopIfFull
+		combined &^= blockRequestStopIfFull
 	}
 	return combined
 }
