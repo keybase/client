@@ -4,12 +4,14 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
 import ServiceTabBar from './service-tab-bar'
-import UserResult from './user-result'
+import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
+
+export const numSectionLabel = '0-9'
 
 type SearchResult = {
   userId: string
@@ -20,6 +22,12 @@ type SearchResult = {
   inTeam: boolean
   isPreExistingTeamMember: boolean
   followingState: FollowingState
+}
+
+export type SearchRecSection = {
+  label: string
+  shortcut: boolean
+  data: Array<SearchResult>
 }
 
 export type RolePickerProps = {
@@ -42,7 +50,7 @@ type ContactProps = {
   onLoadContactsSetting: () => void
 }
 
-type Props = ContactProps & {
+export type Props = ContactProps & {
   fetchUserRecs: () => void
   highlightedIndex: number | null
   onAdd: (userId: string) => void
@@ -56,7 +64,7 @@ type Props = ContactProps & {
   onRemove: (userId: string) => void
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
-  recommendations: Array<SearchResult> | null
+  recommendations: Array<SearchRecSection> | null
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -132,15 +140,199 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 }
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
+  sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }
 
+  _alphabetIndex = () => {
+    const showNumSection =
+      this.props.recommendations &&
+      this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+    return (
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
+        {this.props.recommendations &&
+          this.props.recommendations.map(section =>
+            section.label.length === 1 ? (
+              <Kb.ClickableBox
+                key={section.label}
+                onClick={() => this._onScrollToSection(section.label)}
+                style={styles.gapAlphaIndices}
+              >
+                <Kb.Text
+                  key={section.label}
+                  type="BodyTiny"
+                  onClick={() => this._onScrollToSection(section.label)}
+                >
+                  {section.label}
+                </Kb.Text>
+              </Kb.ClickableBox>
+            ) : null
+          )}
+        {showNumSection &&
+          ['0', '•', '9'].map(char => (
+            <Kb.ClickableBox
+              key={char}
+              onClick={() => this._onScrollToSection(numSectionLabel)}
+              style={styles.gapAlphaIndices}
+            >
+              <Kb.Text key={char} type="BodyTiny">
+                {char}
+              </Kb.Text>
+            </Kb.ClickableBox>
+          ))}
+      </Kb.Box2>
+    )
+  }
+
+  _onScrollToSection = (label: string) => {
+    if (this.sectionListRef && this.sectionListRef.current) {
+      const ref = this.sectionListRef.current
+      const sectionIndex =
+        (this.props.recommendations &&
+          this.props.recommendations.findIndex(section => section.label === label)) ||
+        -1
+      if (sectionIndex >= 0 && Styles.isMobile) {
+        // @ts-ignore due to no RN types
+        ref.scrollToLocation({
+          itemIndex: 0,
+          sectionIndex,
+        })
+      }
+    }
+  }
+
+  _getRecLayout = (
+    sections: Array<SearchRecSection>,
+    indexInList: number
+  ): {index: number; length: number; offset: number} => {
+    let numSections = 0
+    let numData = 0
+    let length = userResultHeight
+    let currSectionHeaderIdx = 0
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i]
+      if (indexInList === currSectionHeaderIdx) {
+        // we are the section header
+        length = Kb.SectionDivider.height
+        break
+      }
+      numSections++
+      const indexInSection = indexInList - currSectionHeaderIdx
+      if (indexInSection < s.data.length) {
+        // we are in this data
+        numData += indexInSection
+        break
+      }
+      // we're not in this section
+      numData += s.data.length
+      currSectionHeaderIdx += s.data.length + 1
+    }
+    const offset = numSections * 40 + numData * 64
+    return {index: indexInList, length, offset}
+  }
+
+  _listBody = () => {
+    const showRecPending = !this.props.searchString && !this.props.recommendations
+    const showLoading = !!this.props.searchString && !this.props.searchResults
+    if (showRecPending || showLoading) {
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
+          <Kb.Icon style={Kb.iconCastPlatformStyles(styles.loadingIcon)} type="icon-progress-grey-animated" />
+          <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+        </Kb.Box2>
+      )
+    }
+    if (!this.props.showRecs && !this.props.showServiceResultCount && !!this.props.selectedService) {
+      return (
+        <Kb.Box2
+          alignSelf="center"
+          centerChildren={true}
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          gap="tiny"
+          style={styles.emptyContainer}
+        >
+          <Kb.Icon
+            fontSize={Styles.isMobile ? 48 : 64}
+            type={serviceIdToIconFont(this.props.selectedService)}
+            style={Styles.collapseStyles([
+              !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
+            ])}
+          />
+          <Kb.Text center={true} type="BodyBig">
+            Enter a {serviceIdToLabel(this.props.selectedService)} username above.
+          </Kb.Text>
+          <Kb.Text center={true} type="BodySmall">
+            Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
+            don’t have a Keybase account.
+          </Kb.Text>
+        </Kb.Box2>
+      )
+    }
+    if (this.props.showRecs && this.props.recommendations) {
+      // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
+      return (
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
+        >
+          <Kb.SectionList
+            ref={this.sectionListRef}
+            sections={this.props.recommendations}
+            getItemLayout={this._getRecLayout}
+            renderItem={({index, item: result}) => (
+              <UserResult
+                resultForService={this.props.selectedService}
+                username={result.username}
+                prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                followingState={result.followingState}
+                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                onAdd={() => this.props.onAdd(result.userId)}
+                onRemove={() => this.props.onRemove(result.userId)}
+              />
+            )}
+            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+          />
+          {Styles.isMobile && this._alphabetIndex()}
+        </Kb.Box2>
+      )
+    }
+    return (
+      <Kb.List
+        items={this.props.searchResults || []}
+        selectedIndex={this.props.highlightedIndex || 0}
+        style={styles.list}
+        contentContainerStyle={styles.listContentContainer}
+        keyProperty={'key'}
+        onEndReached={this.props.onSearchForMore}
+        renderItem={(index, result) => (
+          <UserResult
+            resultForService={this.props.selectedService}
+            username={result.username}
+            prettyName={result.prettyName}
+            displayLabel={result.displayLabel}
+            services={result.services}
+            inTeam={result.inTeam}
+            isPreExistingTeamMember={result.isPreExistingTeamMember}
+            followingState={result.followingState}
+            highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+            onAdd={() => this.props.onAdd(result.userId)}
+            onRemove={() => this.props.onRemove(result.userId)}
+          />
+        )}
+      />
+    )
+  }
+
   render = () => {
     const props = this.props
-    const showRecPending = !props.searchString && !props.recommendations
-    const showLoading = !!props.searchString && !props.searchResults
-    const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? (
@@ -194,65 +386,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {showRecPending || showLoading ? (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
-            <Kb.Icon
-              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
-              type="icon-progress-grey-animated"
-            />
-            <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
-          </Kb.Box2>
-        ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
-          <Kb.Box2
-            alignSelf="center"
-            centerChildren={true}
-            direction="vertical"
-            fullHeight={true}
-            fullWidth={true}
-            gap="tiny"
-            style={styles.emptyContainer}
-          >
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 48 : 64}
-              type={serviceIdToIconFont(props.selectedService)}
-              style={Styles.collapseStyles([
-                !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
-              ])}
-            />
-            <Kb.Text center={true} type="BodyBig">
-              Enter a {serviceIdToLabel(props.selectedService)} username above.
-            </Kb.Text>
-            <Kb.Text center={true} type="BodySmall">
-              Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
-              don’t have a Keybase account.
-            </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.List
-            items={showRecs ? props.recommendations || [] : props.searchResults || []}
-            selectedIndex={props.highlightedIndex || 0}
-            style={styles.list}
-            contentContainerStyle={styles.listContentContainer}
-            keyProperty={'key'}
-            onEndReached={props.onSearchForMore}
-            renderItem={(index, result) => (
-              <UserResult
-                resultForService={props.selectedService}
-                fixedHeight={400}
-                username={result.username}
-                prettyName={result.prettyName}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                followingState={result.followingState}
-                highlight={!Styles.isMobile && index === props.highlightedIndex}
-                onAdd={() => props.onAdd(result.userId)}
-                onRemove={() => props.onRemove(result.userId)}
-              />
-            )}
-          />
-        )}
+        {this._listBody()}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
             <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
@@ -264,6 +398,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 }
 
 const styles = Styles.styleSheetCreate({
+  alphabetIndex: {
+    maxHeight: '80%',
+    position: 'absolute',
+    right: 0,
+    top: Styles.globalMargins.large,
+  },
   banner: {
     backgroundColor: Styles.globalColors.blue,
     padding: Styles.globalMargins.tiny,
@@ -319,6 +459,10 @@ const styles = Styles.styleSheetCreate({
       maxWidth: '80%',
     },
   }),
+  gapAlphaIndices: {
+    ...Styles.padding(2, 6, 2, 2),
+    flexShrink: 1,
+  },
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
@@ -351,6 +495,7 @@ const styles = Styles.styleSheetCreate({
   mobileFlex: Styles.platformStyles({
     isMobile: {flex: 1},
   }),
+  shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
   waiting: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.black_20,

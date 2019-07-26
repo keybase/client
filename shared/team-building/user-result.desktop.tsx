@@ -242,6 +242,7 @@ const AlreadyAddedIconButton = () => (
 )
 
 const ActionButtonSize = Styles.isMobile ? 40 : 32
+export const userResultHeight = 50
 const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
     common: {
@@ -293,7 +294,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: 50,
+      height: userResultHeight,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
