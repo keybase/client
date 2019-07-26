@@ -146,7 +146,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 
   _alphabetIndex = () => {
-    const gap = <Kb.Box style={styles.shrinkingGap} />
     const showNumSection =
       this.props.recommendations &&
       this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
@@ -155,15 +154,33 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         {this.props.recommendations &&
           this.props.recommendations.map(section =>
             section.label && section.label.length === 1 ? (
-              <React.Fragment key={section.label}>
-                <Kb.Text type="BodyTiny" onClick={() => this._onScrollToSection(section.label)}>
+              <Kb.ClickableBox
+                key={section.label}
+                onClick={() => this._onScrollToSection(section.label)}
+                style={styles.gapAlphaIndices}
+              >
+                <Kb.Text
+                  key={section.label}
+                  type="BodyTiny"
+                  onClick={() => this._onScrollToSection(section.label)}
+                >
                   {section.label}
                 </Kb.Text>
-                {gap}
-              </React.Fragment>
+              </Kb.ClickableBox>
             ) : null
           )}
-        {/* TODO get 0-9 section down here */}
+        {showNumSection &&
+          ['0', '•', '9'].map(char => (
+            <Kb.ClickableBox
+              key={char}
+              onClick={() => this._onScrollToSection(numSectionLabel)}
+              style={styles.gapAlphaIndices}
+            >
+              <Kb.Text key={char} type="BodyTiny">
+                {char}
+              </Kb.Text>
+            </Kb.ClickableBox>
+          ))}
       </Kb.Box2>
     )
   }
@@ -382,10 +399,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
 const styles = Styles.styleSheetCreate({
   alphabetIndex: {
+    maxHeight: '80%',
     position: 'absolute',
-    right: Styles.globalMargins.xtiny,
-    top: Styles.globalMargins.medium,
-    width: 15,
+    right: 0,
+    top: Styles.globalMargins.large,
   },
   banner: {
     backgroundColor: Styles.globalColors.blue,
@@ -442,6 +459,10 @@ const styles = Styles.styleSheetCreate({
       maxWidth: '80%',
     },
   }),
+  gapAlphaIndices: {
+    ...Styles.padding(2, 6, 2, 2),
+    flexShrink: 1,
+  },
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
