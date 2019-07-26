@@ -67,22 +67,22 @@ func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilte
 	return nil
 }
 
-func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Message {
+func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *chat1.Message {
 	state, err := inMsg.Message.State()
 	if err != nil {
 		errStr := err.Error()
-		return &Message{Error: &errStr}
+		return &chat1.Message{Error: &errStr}
 	}
 
 	switch state {
 	case chat1.MessageUnboxedState_ERROR:
 		errStr := inMsg.Message.Error().ErrMsg
-		return &Message{Error: &errStr}
+		return &chat1.Message{Error: &errStr}
 	case chat1.MessageUnboxedState_VALID:
 		// if we weren't able to get an inbox item here, then just return an error
 		if inMsg.Conv == nil {
 			msg := "unable to get chat channel"
-			return &Message{Error: &msg}
+			return &chat1.Message{Error: &msg}
 		}
 		mv := inMsg.Message.Valid()
 		summary := &chat1.MsgSummary{
@@ -116,7 +116,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 		if mv.Reactions.Reactions != nil {
 			summary.Reactions = &mv.Reactions
 		}
-		return &Message{Msg: summary}
+		return &chat1.Message{Msg: summary}
 	default:
 		return nil
 	}

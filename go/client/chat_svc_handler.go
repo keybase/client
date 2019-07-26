@@ -355,7 +355,7 @@ func (c *chatServiceHandler) ListCommandsV1(ctx context.Context, opts listComman
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
-	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []Message, err error) {
+	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []chat1.Message, err error) {
 	for _, m := range messages {
 		st, err := m.State()
 		if err != nil {
@@ -364,7 +364,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 
 		if st == chat1.MessageUnboxedState_ERROR {
 			em := m.Error().ErrMsg
-			ret = append(ret, Message{
+			ret = append(ret, chat1.Message{
 				Error: &em,
 			})
 			continue
@@ -435,14 +435,14 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			msg.Reactions = &mv.Reactions
 		}
 
-		ret = append(ret, Message{
+		ret = append(ret, chat1.Message{
 			Msg: &msg,
 		})
 	}
 
 	if ret == nil {
 		// Avoid having null show up in the output JSON.
-		ret = []Message{}
+		ret = []chat1.Message{}
 	}
 	return ret, nil
 }
@@ -1414,15 +1414,9 @@ func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembe
 	return chat1.ConversationMembersType_KBFS
 }
 
-// Message contains either a MsgSummary or an Error.  Used for JSON output.
-type Message struct {
-	Msg   *chat1.MsgSummary `json:"msg,omitempty"`
-	Error *string           `json:"error,omitempty"`
-}
-
 // Thread is used for JSON output of a thread of messages.
 type Thread struct {
-	Messages         []Message                     `json:"messages"`
+	Messages         []chat1.Message               `json:"messages"`
 	Pagination       *chat1.Pagination             `json:"pagination,omitempty"`
 	Offline          bool                          `json:"offline,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
