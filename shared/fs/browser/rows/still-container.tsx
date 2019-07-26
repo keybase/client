@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'

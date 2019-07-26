@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
@@ -17,7 +16,6 @@ type ChooseComponentProps = {
   mimeType: Types.Mime | null
   path: Types.Path
   pathType: Types.PathType
-  routePath: I.List<string>
   softError: Types.SoftError | null
   waitForKbfsDaemon: () => void
 }
@@ -109,7 +107,6 @@ const Connected = Container.namedConnect(
           : null,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-      routePath: I.List(), // not a valid value anymore TODO fix
       softError: Constants.getSoftError(stateProps._softErrors, path),
       waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
     }

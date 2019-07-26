@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
@@ -8,7 +7,6 @@ type OwnProps = {
   clickable: Clickable
   mode: 'screen' | 'row'
   path: Types.Path
-  routePath?: I.List<string> | null
   initView: Types.PathItemActionMenuView
 }
 
@@ -30,7 +28,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   mode: ownProps.mode,
   onHidden: () => dispatchProps._onHidden(stateProps._downloadKey),
   path: ownProps.path,
-  routePath: ownProps.routePath || I.List(),
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemAction')(

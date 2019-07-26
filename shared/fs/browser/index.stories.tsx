@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
@@ -33,7 +32,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/foo')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
@@ -44,7 +42,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/public/foo')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
@@ -55,7 +52,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/foo')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={true}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
@@ -66,7 +62,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/me,reset')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.Self}
           offline={false}
@@ -77,7 +72,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={1}
           offline={false}
@@ -88,7 +82,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
-          routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}
@@ -100,7 +93,6 @@ export default () => {
     .add('DestinationPicker', () => (
       <DestinationPicker
         parentPath={Types.stringToPath('/keybase/private/meatball,songgao,xinyuzhao/yo')}
-        routePath={I.List([])}
         onCancel={Sb.action('onCancel')}
         targetName="Secret treat spot blasjeiofjawiefjksadjflaj long name blahblah"
         index={0}

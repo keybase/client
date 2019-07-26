@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
@@ -118,7 +117,6 @@ const mergeProps = (
       ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
       : null,
     parentPath: getDestinationParentPath(stateProps, ownProps),
-    routePath: I.List(), // ownProps.routePath,
     targetName,
   }
 }

@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/fs'

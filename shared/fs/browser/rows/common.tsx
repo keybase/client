@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'

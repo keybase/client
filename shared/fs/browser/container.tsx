@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import {namedConnect} from '../../util/container'
 import Browser from '.'
 import * as Types from '../../constants/types/fs'
