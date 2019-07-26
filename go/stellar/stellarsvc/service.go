@@ -711,10 +711,6 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		}
 		local.Summary.Operations = make([]string, len(tx.Operations))
 		for i, op := range tx.Operations {
-			var emptyAccount xdr.AccountId
-			if op.SourceAccount != nil && (*op.SourceAccount == emptyAccount || op.SourceAccount.Address() == zeroSourceAccount) {
-				return nil, nil, fmt.Errorf("invalid source account in tx operation %d", i)
-			}
 			const pastTense = false
 			local.Summary.Operations[i] = stellarnet.OpSummary(op, pastTense)
 		}
