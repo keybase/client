@@ -153,7 +153,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 <Kb.Text type="BodyTiny" onClick={() => this._onScrollToSection(section.label)}>
                   {section.label}
                 </Kb.Text>
-                <Kb.Box style={{height: Styles.globalMargins.xtiny, flexShrink: 1}} />
+                <Kb.Box style={styles.shrinkingGap} />
               </React.Fragment>
             ) : null
           )}
@@ -170,6 +170,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           this.props.recommendations.findIndex(section => section.label === label)) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
+        // @ts-ignore due to no RN types
         ref.scrollToLocation({
           itemIndex: 0,
           sectionIndex,
@@ -197,11 +198,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       const indexInSection = indexInList - currSectionHeaderIdx
       if (indexInSection < s.data.length) {
         // we are in this data
-        numData += indexInSection - 1
+        numData += indexInSection
         break
       }
       // we're not in this section
       numData += s.data.length
+      currSectionHeaderIdx += s.data.length + 1
     }
     const offset = numSections * 40 + numData * 64
     return {index: indexInList, length, offset}
@@ -376,10 +378,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
 const styles = Styles.styleSheetCreate({
   alphabetIndex: {
-    bottom: 0,
     position: 'absolute',
     right: Styles.globalMargins.xtiny,
-    top: 0,
+    top: Styles.globalMargins.xtiny,
     width: 15,
   },
   banner: {
@@ -469,6 +470,7 @@ const styles = Styles.styleSheetCreate({
   mobileFlex: Styles.platformStyles({
     isMobile: {flex: 1},
   }),
+  shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
   waiting: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.black_20,
