@@ -155,6 +155,12 @@ export const rowsProvider = {
       type: Types.PathType.Folder,
     }
   },
+  ConnectedTlfTypeRow: ({destinationPickerIndex, name}) => ({
+    badgeCount: 0,
+    destinationPickerIndex,
+    name,
+    path: Types.stringToPath(`/keybase/${name}`),
+  }),
   LoadFilesWhenNeeded: ({path}: any) => ({
     loadFavorites: Sb.action('loadFavorites'),
     loadFolderListWithRefreshTag: Sb.action('loadFolderListWithRefreshTag'),

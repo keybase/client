@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import TlfType from './rows/tlf-type-container'
 import Tlf from './rows/tlf-container'
+import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
 
 type Props = {}
@@ -39,7 +40,8 @@ const renderItem = ({item, section}) =>
     </WrapRow>
   )
 
-const renderSectionHeader = ({section}) => <Kb.SectionDivider label={section.title} />
+const renderSectionHeader = ({section}) =>
+  section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
 
 const useTopNTlfs = (
   tlfType: Types.TlfType,
@@ -82,8 +84,12 @@ const useRecentTlfs = (n: number): Array<SectionListItem> => {
 }
 
 const Root = (_: Props) => {
+  const shouldShowSFMIBanner = Container.useSelector(state => state.fs.sfmi.showingBanner)
   const top10 = useRecentTlfs(10)
   const sections = [
+    ...(shouldShowSFMIBanner
+      ? [{data: [], key: 'banner-sfmi', keyExtractor: () => 'banner-sfmi-item', title: ''}]
+      : []),
     {
       data: rootRows,
       key: 'section-top',
