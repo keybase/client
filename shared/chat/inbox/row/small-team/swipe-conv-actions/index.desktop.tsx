@@ -1,5 +1,5 @@
 import * as React from 'react'
-const ConvActions = props => {
+const SwipeConvActions = props => {
   return <div>{props.children}</div>
 }
-export default ConvActions
+export default SwipeConvActions
