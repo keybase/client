@@ -1,9 +1,7 @@
 import * as React from 'react'
-import {SectionList} from 'react-native'
+import {SectionList, SectionListRenderItem as _SectionListRenderItem} from 'react-native'
 
-// This resolves to 'any'
-// check https://facebook.github.io/react-native/docs/sectionlist#props for the time being
-// TODO import the type from react-native
 export type Props = React.ComponentProps<typeof SectionList>
+export type SectionListRenderItem<T> = _SectionListRenderItem<T>
 
 export default class extends React.Component<Props> {}

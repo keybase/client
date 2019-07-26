@@ -12,6 +12,23 @@ const stripePatternName = Styles.isMobile
   : 'pattern-stripes-blue-5-black-5-desktop.png'
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
+export type Section =
+  | {
+      type: 'assets'
+      data: Array<number | 'notLoadedYet'>
+      title: React.ReactNode
+    }
+  | {
+      type: 'pending'
+      title: string
+      data: Array<{paymentID: Types.PaymentID}>
+    }
+  | {
+      type: 'history'
+      title: string
+      data: Array<{paymentID: Types.PaymentID} | 'noPayments' | 'notLoadedYet'>
+    }
+
 export type Props = {
   acceptedDisclaimer: boolean
   accountID: Types.AccountID
@@ -19,7 +36,7 @@ export type Props = {
   onBack: () => void
   onLoadMore: () => void
   onMarkAsRead: () => void
-  sections: Array<{data: any; title: string | React.ReactNode; stripeHeader?: boolean}>
+  sections: Array<Section>
 }
 
 const HistoryPlaceholder = () => (
@@ -61,8 +78,8 @@ class Wallet extends React.Component<Props> {
     this.props.onMarkAsRead()
   }
 
-  _renderItem = ({item, index, section}) => {
-    const children: Array<React.ReactNode> = []
+  _renderItem: Kb.SectionListRenderItem<Section> = ({item, index, section}) => {
+    const children: Array<React.ReactElement> = []
     if (item === 'notLoadedYet') {
       children.push(
         <Kb.Box2
