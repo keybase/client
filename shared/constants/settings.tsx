@@ -45,7 +45,7 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
 export const makePhoneRow = I.Record<Types._PhoneRow>({
   displayNumber: '',
   e164: '',
-  searchable: true,
+  searchable: false,
   superseded: false,
   verified: false,
 })

@@ -108,12 +108,7 @@ type _EditEmailPayload = {
   readonly makeSearchable?: boolean | null
   readonly verify?: boolean
 }
-type _EditPhonePayload = {
-  readonly phone: string
-  readonly delete?: boolean
-  readonly setSearchable?: boolean
-  readonly verify?: boolean
-}
+type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
 type _FeedbackSentPayload = {readonly error: Error | null}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void

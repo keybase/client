@@ -15,9 +15,10 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  // const [allowSearch, onChangeAllowSearch] = React.useState(true)
   const disabled = !valid
-  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
+  const onContinue = () =>
+    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
   return (
     <SignupScreen
       buttons={[
@@ -49,8 +50,7 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangePhoneNumber}
         onChangeValidity={onChangeValidity}
         onContinue={onContinue}
-        allowSearch={allowSearch}
-        onChangeAllowSearch={onChangeAllowSearch}
+        allowSearch={true}
         icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
       />
     </SignupScreen>
@@ -61,12 +61,12 @@ type BodyProps = {
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
   onContinue: () => void
-  allowSearch?: boolean
+  allowSearch: boolean
   onChangeAllowSearch?: (allow: boolean) => void
   icon: React.ReactNode
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = props.onChangeAllowSearch && props.allowSearch !== undefined
+  const showCheckbox = !!props.onChangeAllowSearch
   return (
     <Kb.Box2
       alignItems="center"
@@ -83,14 +83,15 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
           onChangeValidity={props.onChangeValidity}
           onEnterKeyDown={props.onContinue}
         />
-        {!showCheckbox && <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>}
-        {showCheckbox && (
+        {showCheckbox ? (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
-            checked={props.allowSearch !== undefined ? props.allowSearch : true}
+            checked={props.allowSearch}
             onCheck={props.onChangeAllowSearch || null}
             style={styles.checkbox}
           />
+        ) : (
+          <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
         )}
       </Kb.Box2>
     </Kb.Box2>

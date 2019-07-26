@@ -49,7 +49,6 @@
       "phone": "string",
       "delete?": "boolean",
       "setSearchable?": "boolean",
-      "verify?": "boolean"
     },
     "sentVerificationEmail": {
       "email": "string"
