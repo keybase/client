@@ -2058,10 +2058,6 @@
         {
           "type": "boolean",
           "name": "skipAudit"
-        },
-        {
-          "type": "boolean",
-          "name": "fromBoxAudit"
         }
       ]
     },

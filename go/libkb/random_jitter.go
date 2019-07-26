@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"crypto/rand"
+	cryptorand "crypto/rand"
 	"math/big"
 	"time"
 )
@@ -10,7 +10,7 @@ import (
 // and randomly distributed in [.5d, 1.5d].
 func RandomJitter(d time.Duration) (ret time.Duration, err error) {
 	r := int64(100000)
-	nBig, err := rand.Int(rand.Reader, big.NewInt(r))
+	nBig, err := cryptorand.Int(cryptorand.Reader, big.NewInt(r))
 	if err != nil {
 		return ret, err
 	}

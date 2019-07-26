@@ -76,12 +76,20 @@ func (e FatalBoxAuditError) Error() string {
 	return fmt.Sprintf("audit failed fatally; will not be retried until requested: %s", e.inner)
 }
 
-func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx libkb.MetaContext, shouldReload bool) {
+func shouldSkipBasedOnRecursion(mctx libkb.MetaContext) (libkb.MetaContext, bool) {
 	shouldSkip, ok := mctx.Ctx().Value(SkipBoxAuditCheckContextKey).(bool)
 	if ok && shouldSkip {
-		return mctx, false
+		return mctx, true
 	}
 	mctx = mctx.WithCtx(context.WithValue(mctx.Ctx(), SkipBoxAuditCheckContextKey, true))
+	return mctx, false
+}
+
+func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx libkb.MetaContext, shouldReload bool) {
+	mctx, shouldSkip := shouldSkipBasedOnRecursion(mctx)
+	if shouldSkip {
+		return mctx, false
+	}
 
 	didReaudit, err := mctx.G().GetTeamBoxAuditor().AssertUnjailedOrReaudit(mctx, teamID)
 	if err != nil {
@@ -689,7 +697,8 @@ func (d DummyBoxAuditor) Attempt(mctx libkb.MetaContext, _ keybase1.TeamID, _ bo
 		Ctime:  keybase1.ToUnixTime(time.Now()),
 	}
 }
-func (d DummyBoxAuditor) ScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {}
+func (d DummyBoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+}
 
 // BoxAuditLog is a log of audits for a particular team.
 type BoxAuditLog struct {
@@ -819,7 +828,6 @@ func loadTeamForBoxAuditInner(mctx libkb.MetaContext, teamID keybase1.TeamID, fo
 		ForceRepoll:     true,
 		Public:          teamID.IsPublic(),
 		ForceFullReload: force,
-		FromBoxAudit:    true,
 	}
 
 	team, err = Load(mctx.Ctx(), mctx.G(), arg)
@@ -1183,7 +1191,18 @@ func (a *BoxAuditor) clearDelayedSlotForTeam(teamID keybase1.TeamID) {
 	delete(a.delayedSlots, teamID)
 }
 
-func (a *BoxAuditor) ScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+
+	mctx, shouldSkip := shouldSkipBasedOnRecursion(mctx)
+	if shouldSkip {
+		mctx.Debug("no re-scheduling a delayed box audit since we're calling recursively based on context")
+		return
+	}
+	go a.scheduleDelayedBoxAuditTeam(mctx, teamID)
+}
+
+func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+
 	defer mctx.Trace(fmt.Sprintf("BoxAuditor#ScheduleDelayedBoxAuditTeam(%s)", teamID), func() error { return nil })()
 
 	if !a.getDelayedSlotForTeam(teamID) {

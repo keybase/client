@@ -309,7 +309,6 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
 		skipAudit:                             lArg.SkipAudit,
-		fromBoxAudit:                          lArg.FromBoxAudit,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -405,7 +404,6 @@ type load2ArgT struct {
 	staleOK         bool
 	public          bool
 	skipAudit       bool
-	fromBoxAudit    bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -911,9 +909,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		load2res.hidden = hd
 	}
 
-	if !arg.fromBoxAudit && needHiddenRotate {
-		mctx.Info("Scheduling box audit since we needed a rotation upon load (and we're not being directly called from the box audit)")
-		go l.G().GetTeamBoxAuditor().ScheduleDelayedBoxAuditTeam(mctx, arg.teamID)
+	if needHiddenRotate {
+		l.G().GetTeamBoxAuditor().MaybeScheduleDelayedBoxAuditTeam(mctx, arg.teamID)
 	}
 
 	return &load2res, nil
@@ -987,7 +984,17 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 
 	uv := signer.UserVersion()
 
-	var isKeyer bool
+	var isKeyer, amIKeyer bool
+
+	amIKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, me)
+	if err != nil {
+		return false, err
+	}
+	if !amIKeyer {
+		mctx.Debug("I am not a keyer for this team, so I can't rotate it even if required")
+		return false, nil
+	}
+
 	isKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, uv)
 	if err != nil {
 		return false, err

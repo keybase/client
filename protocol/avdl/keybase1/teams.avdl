@@ -935,7 +935,6 @@ protocol teams {
     boolean staleOK;                   // If a very stale cache hit is OK.
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
     boolean skipAudit;                 // don't run the stochastic team audit
-    boolean fromBoxAudit;              // on if we're being called directly from box audit
   }
 
   record FastTeamLoadArg {
