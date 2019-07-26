@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as ChatTypes from '../../../constants/types/chat2'
@@ -9,7 +8,7 @@ import * as ChatGen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendLinkToChat, {Channel} from '.'
 
-type OwnProps = {routePath: I.List<string>}
+type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _sendLinkToChat: state.fs.sendLinkToChat,

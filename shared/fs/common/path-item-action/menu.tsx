@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
@@ -13,7 +12,6 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  routePath: I.List<string>
   shouldHideMenu: boolean
   copyPath?: (() => void) | null
   delete?: (() => void) | null

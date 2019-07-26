@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
@@ -32,11 +31,11 @@ const rootRows = [
 const renderItem = ({item, section}) =>
   section.key === 'section-top' ? (
     <WrapRow>
-      <TlfType name={item.name} routePath={I.List()} />
+      <TlfType name={item.name} />
     </WrapRow>
   ) : (
     <WrapRow>
-      <Tlf name={item.name} tlfType={item.tlfType} routePath={I.List()} showTlfTypeIcon={true} />
+      <Tlf name={item.name} tlfType={item.tlfType} showTlfTypeIcon={true} />
     </WrapRow>
   )
 

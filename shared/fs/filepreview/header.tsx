@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
@@ -10,7 +9,6 @@ type HeaderProps = {
   path: Types.Path
   name: string
   onBack: () => void
-  routePath: I.List<string>
 }
 
 const Header = (props: HeaderProps) => {
@@ -31,7 +29,6 @@ const Header = (props: HeaderProps) => {
           clickable={{
             type: 'icon',
           }}
-          routePath={props.routePath}
           initView={Types.PathItemActionMenuView.Root}
           mode="screen"
         />
