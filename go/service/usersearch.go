@@ -20,11 +20,17 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+type UserSearchProvider interface {
+	MakeSearchRequest(libkb.MetaContext, keybase1.UserSearchArg) ([]keybase1.APIUserSearchResult, error)
+}
+
 type UserSearchHandler struct {
 	libkb.Contextified
 	*BaseHandler
 
 	contactsProvider *contacts.CachedContactsProvider
+	// Tests can overwrite searchProvider with mock types.
+	searchProvider UserSearchProvider
 }
 
 func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, provider *contacts.CachedContactsProvider) *UserSearchHandler {
@@ -32,6 +38,7 @@ func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, provider *
 		Contextified:     libkb.NewContextified(g),
 		BaseHandler:      NewBaseHandler(g, xp),
 		contactsProvider: provider,
+		searchProvider:   &KeybaseAPISearchProvider{},
 	}
 	return handler
 }
@@ -43,7 +50,9 @@ type rawSearchResults struct {
 	List []keybase1.APIUserSearchResult `json:"list"`
 }
 
-func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+type KeybaseAPISearchProvider struct{}
+
+func (*KeybaseAPISearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	service := arg.Service
 	if service == "keybase" {
 		service = ""
@@ -62,16 +71,6 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
 	if err != nil {
 		return nil, err
-	}
-	// Downcase usernames
-	for i, row := range response.List {
-		if row.Keybase != nil {
-			response.List[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
-			response.List[i].RawScore = row.Keybase.RawScore
-		}
-		if row.Service != nil {
-			response.List[i].Service.Username = strings.ToLower(row.Service.Username)
-		}
 	}
 	return response.List, nil
 }
@@ -301,6 +300,26 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 	return res, nil
 }
 
+func (h *UserSearchHandler) makeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+	res, err = h.searchProvider.MakeSearchRequest(mctx, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Downcase usernames, pluck raw score into outer struct.
+	for i, row := range res {
+		if row.Keybase != nil {
+			res[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
+			res[i].RawScore = row.Keybase.RawScore
+		}
+		if row.Service != nil {
+			res[i].Service.Username = strings.ToLower(row.Service.Username)
+		}
+	}
+
+	return res, nil
+}
+
 func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH")
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
@@ -310,16 +329,14 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		return nil, nil
 	}
 
-	if !h.G().TestOptions.DisableUserSearchSocialServices {
-		if arg.Service != "keybase" && arg.Service != "" {
-			// If this is a social search, we just return API results.
-			return doSearchRequest(mctx, arg)
-		}
+	if arg.Service != "keybase" && arg.Service != "" {
+		// If this is a social search, we just return API results.
+		return h.makeSearchRequest(mctx, arg)
+	}
 
-		res, err = doSearchRequest(mctx, arg)
-		if err != nil {
-			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
-		}
+	res, err = h.makeSearchRequest(mctx, arg)
+	if err != nil {
+		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 	}
 
 	if arg.IncludeContacts {
@@ -422,7 +439,7 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 
 	if url.IsSocial() {
 		res.Description = fmt.Sprintf("%s user", strings.Title(service))
-		apiRes, err := doSearchRequest(mctx, keybase1.UserSearchArg{
+		apiRes, err := h.makeSearchRequest(mctx, keybase1.UserSearchArg{
 			Query:                  username,
 			Service:                service,
 			IncludeServicesSummary: false,

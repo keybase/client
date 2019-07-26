@@ -16,6 +16,79 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type emptyUserSearchProvider struct{}
+
+func (*emptyUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) ([]keybase1.APIUserSearchResult, error) {
+	return nil, nil
+}
+
+type searchResultForTest struct {
+	id              string
+	displayName     string
+	displayLabel    string
+	keybaseUsername string
+}
+
+// pluckSearchResultForTest normalizes APIUserSearchResult data for making test
+// assertion code simpler.
+func pluckSearchResultForTest(apiRes keybase1.APIUserSearchResult) searchResultForTest {
+	// TODO: For Y2K-310, usersearch handler will just return data like this,
+	// so this kind of normalization will not be needed.
+	switch {
+	case apiRes.Service != nil:
+		// Logic from shared/constants/team-building.tsx
+		var keybaseUsername string
+		var id string
+		label := apiRes.Service.FullName
+		if apiRes.Keybase != nil {
+			keybaseUsername = apiRes.Keybase.Username
+			id = keybaseUsername
+			if label == "" {
+				if apiRes.Keybase.FullName != nil {
+					label = *apiRes.Keybase.FullName
+				} else {
+					label = keybaseUsername
+				}
+			}
+		} else {
+			id = fmt.Sprintf("%s@%s", apiRes.Service.Username, apiRes.Service.ServiceName)
+		}
+		return searchResultForTest{
+			id:              id,
+			displayName:     apiRes.Service.Username,
+			displayLabel:    label,
+			keybaseUsername: keybaseUsername,
+		}
+	case apiRes.Contact != nil:
+		return searchResultForTest{
+			id:              apiRes.Contact.Assertion,
+			displayName:     apiRes.Contact.DisplayName,
+			displayLabel:    apiRes.Contact.DisplayLabel,
+			keybaseUsername: apiRes.Contact.Username,
+		}
+	case apiRes.Imptofu != nil:
+		return searchResultForTest{
+			id:              apiRes.Imptofu.Assertion,
+			displayName:     apiRes.Imptofu.PrettyName,
+			displayLabel:    apiRes.Imptofu.Label,
+			keybaseUsername: apiRes.Imptofu.KeybaseUsername,
+		}
+	case apiRes.Keybase != nil:
+		var fullName string
+		if apiRes.Keybase.FullName != nil {
+			fullName = *apiRes.Keybase.FullName
+		}
+		return searchResultForTest{
+			id:              apiRes.Keybase.Username,
+			displayName:     apiRes.Keybase.Username,
+			displayLabel:    fullName,
+			keybaseUsername: apiRes.Keybase.Username,
+		}
+	default:
+		panic("unexpected APIUserSearchResult for pluckSearchResultForTest")
+	}
+}
+
 type makeContactArg struct {
 	N         string // name
 	L         string // label
@@ -68,7 +141,7 @@ func TestContactSearch(t *testing.T) {
 	tc.G.SyncedContactList = savedStore
 
 	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
-	tc.G.TestOptions.DisableUserSearchSocialServices = true
+	searchHandler.searchProvider = &emptyUserSearchProvider{}
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
@@ -122,7 +195,7 @@ func TestContactSearchWide(t *testing.T) {
 	tc.G.SyncedContactList = savedStore
 
 	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
-	tc.G.TestOptions.DisableUserSearchSocialServices = true
+	searchHandler.searchProvider = &emptyUserSearchProvider{}
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
