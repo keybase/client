@@ -619,7 +619,11 @@ const addPhoneNumber = (
     })
     .catch(err => {
       logger.warn('error ', err.message)
-      return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
+      const message =
+        err.code === RPCTypes.StatusCode.scratelimit
+          ? 'Sorry, added a few too many phone numbers recently. Please try again later.'
+          : err.message
+      return SettingsGen.createAddedPhoneNumber({allowSearch, error: message, phoneNumber})
     })
 }
 
@@ -633,7 +637,14 @@ const resendVerificationForPhoneNumber = (
   return RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
     {phoneNumber},
     Constants.resendVerificationForPhoneWaitingKey
-  )
+  ).catch(err => {
+    const message =
+      err.code === RPCTypes.StatusCode.scratelimit
+        ? 'Sorry, asked for a few too many verification codes recently. Please try again later.'
+        : err.message
+    logger.warn('error ', message)
+    return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
+  })
 }
 
 const verifyPhoneNumber = (
@@ -655,6 +666,8 @@ const verifyPhoneNumber = (
       const message =
         err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
           ? 'Incorrect code, please try again.'
+          : err.code === RPCTypes.StatusCode.scratelimit
+          ? 'Sorry, tried too many guesses in a short period of time. Please try again later.'
           : err.message
       logger.warn('error ', message)
       return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
@@ -722,6 +735,12 @@ const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger
     })
     .catch(err => {
       logger.warn(`error: ${err.message}`)
+
+      const message =
+        err.code === RPCTypes.StatusCode.scratelimit
+          ? "Sorry, you've added too many email addresses lately. Please try again later."
+          : err.message
+      err.message = message
       return SettingsGen.createAddedEmail({email, error: err})
     })
 }
