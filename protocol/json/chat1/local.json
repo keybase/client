@@ -3540,6 +3540,104 @@
           "name": "flip"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MsgSummary",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "ChatChannel",
+          "name": "channel"
+        },
+        {
+          "type": "MsgSender",
+          "name": "sender"
+        },
+        {
+          "type": "int64",
+          "name": "sentAt"
+        },
+        {
+          "type": "int64",
+          "name": "sentAtMs"
+        },
+        {
+          "type": "MsgContent",
+          "name": "content"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessagePreviousPointer"
+          },
+          "name": "prev"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "revokedDevice"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": "boolean",
+          "name": "kbfsEncrypted"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "eTime"
+        },
+        {
+          "type": [
+            null,
+            "ReactionMap"
+          ],
+          "name": "reactions"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentionUsernames"
+        },
+        {
+          "type": "string",
+          "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChannelNameMention"
+          },
+          "name": "channelNameMentions"
+        }
+      ]
     }
   ],
   "messages": {

@@ -5553,6 +5553,90 @@ func (o MsgContent) DeepCopy() MsgContent {
 	}
 }
 
+type MsgSummary struct {
+	Id                  MessageID                `codec:"id" json:"id"`
+	ConvID              string                   `codec:"convID" json:"convID"`
+	Channel             ChatChannel              `codec:"channel" json:"channel"`
+	Sender              MsgSender                `codec:"sender" json:"sender"`
+	SentAt              int64                    `codec:"sentAt" json:"sentAt"`
+	SentAtMs            int64                    `codec:"sentAtMs" json:"sentAtMs"`
+	Content             MsgContent               `codec:"content" json:"content"`
+	Prev                []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Unread              bool                     `codec:"unread" json:"unread"`
+	RevokedDevice       bool                     `codec:"revokedDevice" json:"revokedDevice"`
+	Offline             bool                     `codec:"offline" json:"offline"`
+	KbfsEncrypted       bool                     `codec:"kbfsEncrypted" json:"kbfsEncrypted"`
+	IsEphemeral         bool                     `codec:"isEphemeral" json:"isEphemeral"`
+	IsEphemeralExpired  bool                     `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
+	ETime               gregor1.Time             `codec:"eTime" json:"eTime"`
+	Reactions           *ReactionMap             `codec:"reactions,omitempty" json:"reactions,omitempty"`
+	HasPairwiseMacs     bool                     `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
+	AtMentionUsernames  []string                 `codec:"atMentionUsernames" json:"atMentionUsernames"`
+	ChannelMention      string                   `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions []UIChannelNameMention   `codec:"channelNameMentions" json:"channelNameMentions"`
+}
+
+func (o MsgSummary) DeepCopy() MsgSummary {
+	return MsgSummary{
+		Id:       o.Id.DeepCopy(),
+		ConvID:   o.ConvID,
+		Channel:  o.Channel.DeepCopy(),
+		Sender:   o.Sender.DeepCopy(),
+		SentAt:   o.SentAt,
+		SentAtMs: o.SentAtMs,
+		Content:  o.Content.DeepCopy(),
+		Prev: (func(x []MessagePreviousPointer) []MessagePreviousPointer {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MessagePreviousPointer, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Prev),
+		Unread:             o.Unread,
+		RevokedDevice:      o.RevokedDevice,
+		Offline:            o.Offline,
+		KbfsEncrypted:      o.KbfsEncrypted,
+		IsEphemeral:        o.IsEphemeral,
+		IsEphemeralExpired: o.IsEphemeralExpired,
+		ETime:              o.ETime.DeepCopy(),
+		Reactions: (func(x *ReactionMap) *ReactionMap {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reactions),
+		HasPairwiseMacs: o.HasPairwiseMacs,
+		AtMentionUsernames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AtMentionUsernames),
+		ChannelMention: o.ChannelMention,
+		ChannelNameMentions: (func(x []UIChannelNameMention) []UIChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIChannelNameMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ChannelNameMentions),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

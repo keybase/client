@@ -1188,4 +1188,28 @@ protocol local {
     union { null, MessageUnfurl } unfurl;
     union { null, MsgFlipContent } flip;
   }
+
+  // MsgSummary is used to display JSON details for a message.
+  record MsgSummary {
+    MessageID id;
+    string convID;
+    ChatChannel channel;
+    MsgSender sender;
+    int64 sentAt;
+    int64 sentAtMs;
+    MsgContent content;
+    array<MessagePreviousPointer> prev;
+    boolean unread;
+    boolean revokedDevice;
+    boolean offline;
+    boolean kbfsEncrypted;
+    boolean isEphemeral;
+    boolean isEphemeralExpired;
+    gregor1.Time eTime;
+    union { null, ReactionMap } reactions;
+    boolean hasPairwiseMacs;
+    array<string> atMentionUsernames;
+    string channelMention;
+    array<UIChannelNameMention> channelNameMentions;
+  }
 }

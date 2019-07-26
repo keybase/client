@@ -34,7 +34,7 @@ type msgNotification struct {
 	Type string `json:"type"`
 	// `local` or  `remote`
 	Source     string              `json:"source"`
-	Msg        *MsgSummary         `json:"msg,omitempty"`
+	Msg        *chat1.MsgSummary   `json:"msg,omitempty"`
 	Error      *string             `json:"error,omitempty"`
 	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
 }
@@ -85,10 +85,10 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 			return &Message{Error: &msg}
 		}
 		mv := inMsg.Message.Valid()
-		summary := &MsgSummary{
-			ID:     mv.MessageID,
+		summary := &chat1.MsgSummary{
+			Id:     mv.MessageID,
 			ConvID: inMsg.ConvID.String(),
-			Channel: ChatChannel{
+			Channel: chat1.ChatChannel{
 				Name:        inMsg.Conv.Name,
 				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),
 				TopicType:   strings.ToLower(inMsg.Conv.TopicType.String()),

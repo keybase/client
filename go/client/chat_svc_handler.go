@@ -400,10 +400,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			prev = []chat1.MessagePreviousPointer{}
 		}
 
-		msg := MsgSummary{
-			ID:     mv.ServerHeader.MessageID,
+		msg := chat1.MsgSummary{
+			Id:     mv.ServerHeader.MessageID,
 			ConvID: conv.GetConvID().String(),
-			Channel: ChatChannel{
+			Channel: chat1.ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
@@ -421,7 +421,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			Prev:                prev,
 			Unread:              unread,
 			RevokedDevice:       mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			KbfsEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
 			IsEphemeral:         mv.IsEphemeral(),
 			IsEphemeralExpired:  mv.IsEphemeralExpired(time.Now()),
 			ETime:               mv.Etime(),
@@ -1414,39 +1414,10 @@ func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembe
 	return chat1.ConversationMembersType_KBFS
 }
 
-// MsgContent is used to retrieve the type name in addition to one of Text,
-// Attachment, Edit, Reaction, Delete, Metadata depending on the type of
-// message.
-// It is included in MsgSummary.
-
-// MsgSummary is used to display JSON details for a message.
-type MsgSummary struct {
-	ID                  chat1.MessageID                `json:"id"`
-	ConvID              string                         `json:"conversation_id"`
-	Channel             ChatChannel                    `json:"channel"`
-	Sender              chat1.MsgSender                `json:"sender"`
-	SentAt              int64                          `json:"sent_at"`
-	SentAtMs            int64                          `json:"sent_at_ms"`
-	Content             chat1.MsgContent               `json:"content"`
-	Prev                []chat1.MessagePreviousPointer `json:"prev"`
-	Unread              bool                           `json:"unread"`
-	RevokedDevice       bool                           `json:"revoked_device,omitempty"`
-	Offline             bool                           `json:"offline,omitempty"`
-	KBFSEncrypted       bool                           `json:"kbfs_encrypted,omitempty"`
-	IsEphemeral         bool                           `json:"is_ephemeral,omitempty"`
-	IsEphemeralExpired  bool                           `json:"is_ephemeral_expired,omitempty"`
-	ETime               gregor1.Time                   `json:"etime,omitempty"`
-	Reactions           *chat1.ReactionMap             `json:"reactions,omitempty"`
-	HasPairwiseMacs     bool                           `json:"has_pairwise_macs,omitempty"`
-	AtMentionUsernames  []string                       `json:"at_mention_usernames,omitempty"`
-	ChannelMention      string                         `json:"channel_mention,omitempty"`
-	ChannelNameMentions []chat1.UIChannelNameMention   `json:"channel_name_mentions,omitempty"`
-}
-
 // Message contains either a MsgSummary or an Error.  Used for JSON output.
 type Message struct {
-	Msg   *MsgSummary `json:"msg,omitempty"`
-	Error *string     `json:"error,omitempty"`
+	Msg   *chat1.MsgSummary `json:"msg,omitempty"`
+	Error *string           `json:"error,omitempty"`
 }
 
 // Thread is used for JSON output of a thread of messages.
