@@ -36,36 +36,34 @@ const realCSS = `
 }
 `
 
-const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
-  return (
-    <React.Fragment>
-      {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
-      <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          centerChildren={true}
-          className="upload-animation-loop"
-          style={styles.stylesBox}
-        >
-          <style>{realCSS}</style>
-          <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
-            {files
-              ? fileName
-                ? `Encrypting and updating ${fileName}...`
-                : `Encrypting and updating ${files} items...`
-              : totalSyncingBytes
-              ? 'Encrypting and updating items...'
-              : 'Done!'}
-          </Kb.Text>
-          {!!(timeLeft && timeLeft.length) && (
-            <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
-          )}
-        </Kb.Box2>
-      </CSSTransition>
-    </React.Fragment>
-  )
-}
+const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => (
+  <>
+    {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
+    <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        centerChildren={true}
+        className="upload-animation-loop"
+        style={styles.stylesBox}
+      >
+        <style>{realCSS}</style>
+        <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
+          {files
+            ? fileName
+              ? `Encrypting and updating ${fileName}...`
+              : `Encrypting and updating ${files} items...`
+            : totalSyncingBytes
+            ? 'Encrypting and updating items...'
+            : 'Done!'}
+        </Kb.Text>
+        {!!(timeLeft && timeLeft.length) && (
+          <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
+        )}
+      </Kb.Box2>
+    </CSSTransition>
+  </>
+)
 
 const styles = Styles.styleSheetCreate({
   stylesBox: {

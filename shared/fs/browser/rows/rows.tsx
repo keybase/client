@@ -13,7 +13,7 @@ import Editing from './editing-container'
 import Uploading from './uploading-container'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
-import {useFsLoadEffect} from '../../common'
+import {useFsChildren} from '../../common'
 
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
@@ -165,11 +165,7 @@ class Rows extends React.PureComponent<Props> {
 }
 
 const RowsWithAutoLoad = (props: Props) => {
-  useFsLoadEffect({
-    path: props.path,
-    refreshTag: props.destinationPickerIndex ? Types.RefreshTag.DestinationPicker : Types.RefreshTag.Main,
-    wantChildren: true,
-  })
+  useFsChildren(props.path)
   return <Rows {...props} />
 }
 

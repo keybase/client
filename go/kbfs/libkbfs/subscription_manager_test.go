@@ -36,7 +36,7 @@ func initSubscriptionMagagerTest(t *testing.T) (config Config,
 	subscriber Subscriber, notifier *MockSubscriptionNotifier,
 	finish func(), lastMockDone func(args ...interface{})) {
 	ctl := gomock.NewController(t)
-	finish, lastMockDone = delayedFinish(t, ctl, time.Second)
+	finish, lastMockDone = delayedFinish(t, ctl, 4*time.Second)
 	config = MakeTestConfigOrBust(t, "jdoe")
 	notifier = NewMockSubscriptionNotifier(ctl)
 	subscriber = config.SubscriptionManager().Subscriber(notifier)

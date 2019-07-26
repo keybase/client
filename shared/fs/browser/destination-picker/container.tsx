@@ -40,12 +40,10 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
       ownProps.safeNavigateAppendPayload({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
@@ -54,7 +52,6 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
