@@ -98,7 +98,7 @@ export const Phone = () => {
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  const [allowSearch, onChangeAllowSearch] = React.useState(true)
   const disabled = !valid
 
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
