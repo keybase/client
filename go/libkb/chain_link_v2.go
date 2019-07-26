@@ -141,13 +141,13 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	if !t.IsSupportedTeamType() {
 		// Links from the future require a bare minimum.
 		// They should be checked later by a code update that busts the cache.
-		return keybase1.TeamRole_READER
+		return keybase1.TeamRole_RESTRICTEDBOT
 	}
 	switch t {
 	case SigchainV2TypeTeamLeave:
 		return keybase1.TeamRole_RESTRICTEDBOT
 	case SigchainV2TypeTeamRoot:
-		return keybase1.TeamRole_READER
+		return keybase1.TeamRole_BOT
 	case SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamKBFSSettings:
 		return keybase1.TeamRole_WRITER
@@ -157,16 +157,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 }
 
 func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
-	role := keybase1.TeamRole_READER
 	if isAdmin {
-		role = keybase1.TeamRole_ADMIN
-	}
-	return t.TeamAllowStub(role)
-}
-
-// Whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	if role.IsAdminOrAbove() {
 		// Links cannot be stubbed for owners and admins
 		return false
 	}

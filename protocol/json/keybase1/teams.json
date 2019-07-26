@@ -11,6 +11,7 @@
         "WRITER_2",
         "ADMIN_3",
         "OWNER_4",
+        "BOT_5",
         "RESTRICTEDBOT_6"
       ]
     },
@@ -275,6 +276,13 @@
             "type": "array",
             "items": "UserVersion"
           },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
           "name": "restrictedBots"
         }
       ]
@@ -352,6 +360,13 @@
             "type": "array",
             "items": "TeamMemberDetails"
           },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
           "name": "restrictedBots"
         }
       ]
@@ -423,6 +438,13 @@
             "items": "UserVersion"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "bots"
         },
         {
           "type": {

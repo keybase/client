@@ -62,20 +62,37 @@ func TestRotate(t *testing.T) {
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
 
-func TestRotateWithRestrictedBot(t *testing.T) {
-	tc, owner, other, _, name := memberSetupMultiple(t)
+func TestRotateWithBots(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	err := SetRoleRestrictedBot(context.TODO(), tc.G, name, other.Username)
+	err := SetRoleBot(context.TODO(), tc.G, name, otherA.Username)
+	require.NoError(t, err)
+
+	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, otherB.Username)
 	require.NoError(t, err)
 
 	tc.G.Logout(context.TODO())
-	require.NoError(t, other.Login(tc.G))
+	require.NoError(t, otherA.Login(tc.G))
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	require.EqualValues(t, 1, team.Generation())
+	require.Len(t, team.Data.PerTeamKeySeedsUnverified, 1)
+	_, err = team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	require.NoError(t, err)
+
+	// Regular bots cannot rotate
+	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
+	require.Error(t, err)
+
+	tc.G.Logout(context.TODO())
+	require.NoError(t, otherB.Login(tc.G))
+	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, team.Generation())
 	require.Zero(t, len(team.Data.PerTeamKeySeedsUnverified))
 	_, err = team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
 	// Restricted bots cannot rotate
@@ -89,18 +106,28 @@ func TestRotateWithRestrictedBot(t *testing.T) {
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 
+	// otherA has 2 seeds
 	tc.G.Logout(context.TODO())
-	require.NoError(t, other.Login(tc.G))
+	require.NoError(t, otherA.Login(tc.G))
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, after.Generation())
+	require.Len(t, after.Data.PerTeamKeySeedsUnverified, 2)
+
+	// otherB has none
+	tc.G.Logout(context.TODO())
+	require.NoError(t, otherB.Login(tc.G))
+	after, err = GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, after.Generation())
 	require.Zero(t, len(after.Data.PerTeamKeySeedsUnverified))
+	_, err = after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_RESTRICTEDBOT)
-
-	_, err = after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
-	require.IsType(t, libkb.NotFoundError{}, err)
+	assertRole(tc, name, otherA.Username, keybase1.TeamRole_BOT)
+	assertRole(tc, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT)
 }
 
 func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestContext, owner, other *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName) {
