@@ -476,7 +476,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	require.True(t, int64(standardCache.currBytes) < currBytes)
-	require.Equal(t, 1+numBlocks-int(defaultNumBlocksToEvict), standardCache.numBlocks)
+	require.Equal(t, 1+numBlocks-defaultNumBlocksToEvict, standardCache.numBlocks)
 }
 
 func TestDiskBlockCacheDynamicLimit(t *testing.T) {

@@ -1559,7 +1559,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	fav := handle.ToFavorite()
-	if ops, ok := fs.opsByFav[fav]; ok {
+	if ops, ok := fs.opsByFav[fav]; ok { // nolint
 		ops.NewNotificationChannel(ctx, handle, convID, channelName)
 	} else if handle.TlfID() != tlf.NullID {
 		fs.editActivity.Add(1)

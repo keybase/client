@@ -156,12 +156,13 @@ func getVersionedPathForDiskCache(
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
 	version := currentDiskCacheVersion
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Do nothing, meaning that we will create the version file below.
 		log.CDebugf(
 			context.TODO(), "Creating new version file for the disk %s cache.",
 			cacheName)
-	} else if err != nil {
+	case err != nil:
 		log.CDebugf(
 			context.TODO(),
 			"An error occurred while reading the disk %s cache "+
@@ -169,7 +170,7 @@ func getVersionedPathForDiskCache(
 				"file to record it.", cacheName, version)
 		// TODO: when we increase the version of the disk cache, we'll have
 		// to make sure we wipe all previous versions of the disk cache.
-	} else {
+	default:
 		// We expect a successfully opened version file to parse a single
 		// unsigned integer representing the version. Anything else is a
 		// corrupted version file. However, this we can solve by deleting
@@ -185,7 +186,8 @@ func getVersionedPathForDiskCache(
 					" Version: %d", cacheName, version)
 			return versionPathFromVersion(dirPath, version), nil
 		}
-		if err != nil {
+		switch {
+		case err != nil:
 			log.CDebugf(
 				context.TODO(),
 				"An error occurred while parsing the disk %s cache "+
@@ -194,7 +196,7 @@ func getVersionedPathForDiskCache(
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version < currentDiskCacheVersion {
+		case version < currentDiskCacheVersion:
 			log.CDebugf(
 				context.TODO(),
 				"The disk %s cache version file contained an old "+
@@ -203,7 +205,7 @@ func getVersionedPathForDiskCache(
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version > currentDiskCacheVersion {
+		case version > currentDiskCacheVersion:
 			log.CDebugf(
 				context.TODO(),
 				"The disk %s cache version file contained a newer "+

@@ -1150,12 +1150,13 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 
 	if isPrefetchWaiting {
-		if pre.subtreeRetrigger {
+		switch {
+		case pre.subtreeRetrigger:
 			p.vlog.CLogf(
 				ctx, libkb.VLog2,
 				"retriggering prefetch subtree for block ID %s", req.ptr.ID)
 			pre.subtreeRetrigger = false
-		} else if pre.subtreeTriggered {
+		case pre.subtreeTriggered:
 			p.vlog.CLogf(
 				ctx, libkb.VLog2, "prefetch subtree already triggered "+
 					"for block ID %s", req.ptr.ID)
@@ -1177,7 +1178,7 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 				// prefetch action.
 				return
 			}
-		} else {
+		default:
 			// This block was in the tree and thus was counted, but now
 			// it has been successfully fetched. We need to percolate
 			// that information up the tree.
@@ -1492,10 +1493,11 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	req := &prefetchRequest{
 		ptr, block.GetEncodedSize(), block.NewEmptier(), kmd, priority,
 		lifetime, prefetchStatus, action, nil, nil, false}
-	if prefetchStatus == FinishedPrefetch {
+	switch {
+	case prefetchStatus == FinishedPrefetch:
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
-	} else if !action.Prefetch(block) {
+	case !action.Prefetch(block):
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		err := p.retriever.PutInCaches(
@@ -1504,7 +1506,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			p.log.CDebugf(ctx, "Couldn't put block %s in caches: %+v", ptr, err)
 		}
-	} else {
+	default:
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.

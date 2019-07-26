@@ -456,7 +456,7 @@ def testGo(prefix, packagesToTest) {
 
     println "Running golangci-lint"
     retry(5) {
-      sh 'go get -u github.com/golangci/golangci-lint/cmd/golangci-lint'
+      sh 'curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0'
     }
     dir('kbfs') {
       retry(5) {

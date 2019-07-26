@@ -122,10 +122,10 @@ type subscriber struct {
 
 func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
 	sm := &subscriptionManager{
-		pathSubscriptions:            make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
-		pathSubscriptionIDToRef:      make(map[SubscriptionID]pathSubscriptionRef),
-		nonPathSubscriptions:         make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
-		nonPathSubscriptionIDToTopic: make(map[SubscriptionID]keybase1.SubscriptionTopic),
+		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
+		pathSubscriptionIDToRef:         make(map[SubscriptionID]pathSubscriptionRef),
+		nonPathSubscriptions:            make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
+		nonPathSubscriptionIDToTopic:    make(map[SubscriptionID]keybase1.SubscriptionTopic),
 		config:                          config,
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),

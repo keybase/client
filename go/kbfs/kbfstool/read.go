@@ -38,10 +38,8 @@ func (nr *nodeReader) Read(p []byte) (n int, err error) {
 			fmt.Fprintf(os.Stderr, "EOF encountered\n")
 		}
 		err = io.EOF
-	} else {
-		if nr.verbose {
-			fmt.Fprintf(os.Stderr, "Read %s\n", byteCountStr(n))
-		}
+	} else if nr.verbose {
+		fmt.Fprintf(os.Stderr, "Read %s\n", byteCountStr(n))
 	}
 	return
 }

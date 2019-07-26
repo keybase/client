@@ -138,7 +138,7 @@ func (dbf *dirBlockFuture) toCurrent() *dirBlockCurrent {
 	}
 	db.Children = make(map[string]DirEntry, len(dbf.Children))
 	for k, v := range dbf.Children {
-		db.Children[k] = DirEntry(v.toCurrent())
+		db.Children[k] = v.toCurrent()
 	}
 	db.IPtrs = make([]IndirectDirPtr, len(dbf.IPtrs))
 	for i, v := range dbf.IPtrs {

@@ -687,19 +687,20 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.True(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
-	if p.Tlf != id {
+	switch {
+	case p.Tlf != id:
 		t.Errorf("Got bad dir id back: %v", p.Tlf)
-	} else if len(p.Path) != 1 {
+	case len(p.Path) != 1:
 		t.Errorf("Got bad MD back: path size %d", len(p.Path))
-	} else if p.Path[0].ID != rmd.data.Dir.ID {
+	case p.Path[0].ID != rmd.data.Dir.ID:
 		t.Errorf("Got bad MD back: root ID %v", p.Path[0].ID)
-	} else if ei.Type != data.Dir {
+	case ei.Type != data.Dir:
 		t.Error("Got bad MD non-dir rootID back")
-	} else if ei.Size != 10 {
+	case ei.Size != 10:
 		t.Errorf("Got bad MD Size back: %d", ei.Size)
-	} else if ei.Mtime != 1 {
+	case ei.Mtime != 1:
 		t.Errorf("Got bad MD MTime back: %d", ei.Mtime)
-	} else if ei.Ctime != 2 {
+	case ei.Ctime != 2:
 		t.Errorf("Got bad MD CTime back: %d", ei.Ctime)
 	}
 }
@@ -1733,7 +1734,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
+	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
@@ -1770,7 +1771,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	dest := make([]byte, 4)
-	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil {
+	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
 	} else if n != 4 {
 		t.Errorf("Read the wrong number of bytes: %d", n)
@@ -1833,7 +1834,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	fullContents := append(block1.Contents, block2.Contents...)
 	fullContents = append(fullContents, block3.Contents...)
 	fullContents = append(fullContents, block4.Contents...)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
+	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
@@ -1895,7 +1896,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	dest := make([]byte, n)
 	contents := append(block1.Contents[3:], block2.Contents...)
 	contents = append(contents, block3.Contents[:3]...)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil {
+	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
@@ -1967,7 +1968,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n)
-	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
+	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
@@ -2099,19 +2100,20 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	newRootBlock := getDirBlockFromCache(
 		ctx, t, config, id, node.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during write: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(buf, newFileBlock.Contents) {
+	case !bytes.Equal(buf, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", buf)
-	} else if newRootBlock.Children["f"].GetWriter() != uid {
+	case newRootBlock.Children["f"].GetWriter() != uid:
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
-	} else if newRootBlock.Children["f"].Size != uint64(len(buf)) {
+	case newRootBlock.Children["f"].Size != uint64(len(buf)):
 		t.Errorf("Wrong size for written file: %d",
 			newRootBlock.Children["f"].Size)
 	}
@@ -2177,14 +2179,15 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during write: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(expectedFullData, newFileBlock.Contents) {
+	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
@@ -2249,14 +2252,15 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during write: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(expectedFullData, newFileBlock.Contents) {
+	case !bytes.Equal(expectedFullData, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
@@ -2343,26 +2347,27 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		p.Branch)
 	block2 := b.(*data.FileBlock)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during write: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(expectedFullData[0:6], block1.Contents) {
+	case !bytes.Equal(expectedFullData[0:6], block1.Contents):
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
-	} else if !bytes.Equal(expectedFullData[6:11], block2.Contents) {
+	case !bytes.Equal(expectedFullData[6:11], block2.Contents):
 		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
-	} else if !pblock.IsInd {
+	case !pblock.IsInd:
 		t.Errorf("Parent block is not indirect!")
-	} else if pblock.IPtrs[0].Off != 0 {
+	case pblock.IPtrs[0].Off != 0:
 		t.Errorf("Parent block has wrong offset for block 1: %d",
 			pblock.IPtrs[0].Off)
-	} else if pblock.IPtrs[1].Off != 6 {
+	case pblock.IPtrs[1].Off != 6:
 		t.Errorf("Parent block has wrong offset for block 5: %d",
 			pblock.IPtrs[1].Off)
-	} else if newRootBlock.Children["f"].Size != uint64(11) {
+	case newRootBlock.Children["f"].Size != uint64(11):
 		t.Errorf("Wrong size for written file: %d",
 			newRootBlock.Children["f"].Size)
 	}
@@ -2460,7 +2465,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), buf[3:], int64(0)).
 		Do(func(block *data.FileBlock, lb bool, data []byte, off int64) {
-			block.Contents = append(data, block2.Contents[2:]...)
+			block.Contents = make([]byte, len(data)+len(block2.Contents[2:]))
+			copy(block.Contents, data)
+			copy(block.Contents[len(data):], block2.Contents[2:])
 		}).Return(int64(2))
 
 	if err := config.KBFSOps().Write(ctx, n, buf, 2); err != nil {
@@ -2472,16 +2479,17 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	newBlock2 := getFileBlockFromCache(
 		ctx, t, config, id, fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during write: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(expectedFullData[0:5], newBlock1.Contents) {
+	case !bytes.Equal(expectedFullData[0:5], newBlock1.Contents):
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
-	} else if !bytes.Equal(expectedFullData[5:10], newBlock2.Contents) {
+	case !bytes.Equal(expectedFullData[5:10], newBlock2.Contents):
 		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
 	}
 
@@ -2552,19 +2560,20 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	newRootBlock := getDirBlockFromCache(
 		ctx, t, config, id, node.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during truncate: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(buf, newFileBlock.Contents) {
+	case !bytes.Equal(buf, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].GetWriter() != uid {
+	case newRootBlock.Children["f"].GetWriter() != uid:
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
-	} else if newRootBlock.Children["f"].Size != 0 {
+	case newRootBlock.Children["f"].Size != 0:
 		t.Errorf("Wrong size for written file: %d",
 			newRootBlock.Children["f"].Size)
 	}
@@ -2614,7 +2623,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 
 	data := fileBlock.Contents
-	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
+	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil { // nolint
 		t.Errorf("Got error on truncate: %+v", err)
 	} else if config.observer.localChange != nil {
 		t.Errorf("Unexpected local update during truncate: %v",
@@ -2671,14 +2680,15 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during truncate: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(buf, newFileBlock.Contents) {
+	case !bytes.Equal(buf, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
@@ -2761,20 +2771,21 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 		[]WriteRange{{Off: 7, Len: 0}})
 	mergeUnrefCache(ops, lState, p, rmd)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during truncate: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(block1.Contents, newBlock1.Contents) {
+	case !bytes.Equal(block1.Contents, newBlock1.Contents):
 		t.Errorf("Wrote bad contents for block 1: %v", newBlock1.Contents)
-	} else if !bytes.Equal(data2, newBlock2.Contents) {
+	case !bytes.Equal(data2, newBlock2.Contents):
 		t.Errorf("Wrote bad contents for block 2: %v", newBlock2.Contents)
-	} else if len(newPBlock.IPtrs) != 2 {
+	case len(newPBlock.IPtrs) != 2:
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if rmd.UnrefBytes() != 0+6 {
+	case rmd.UnrefBytes() != 0+6:
 		// The fileid and the last block was all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
 			rmd.UnrefBytes())
@@ -2856,18 +2867,19 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		[]WriteRange{{Off: 4, Len: 0}})
 	mergeUnrefCache(ops, lState, p, rmd)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during truncate: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(buf, newBlock1.Contents) {
+	case !bytes.Equal(buf, newBlock1.Contents):
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
-	} else if len(newPBlock.IPtrs) != 1 {
+	case len(newPBlock.IPtrs) != 1:
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if rmd.UnrefBytes() != 0+5+6 {
+	case rmd.UnrefBytes() != 0+5+6:
 		// The fileid and both blocks were all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
 			rmd.UnrefBytes())
@@ -2932,14 +2944,15 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	newFileBlock := getFileBlockFromCache(
 		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
-	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
-		len(p.Path) {
+	switch {
+	case len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
+		len(p.Path):
 		t.Errorf("Missing or incorrect local update during truncate: %v",
 			config.observer.localChange)
-	} else if ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID) {
+	case ctx.Value(tCtxID) != config.observer.ctx.Value(tCtxID):
 		t.Errorf("Wrong context value passed in local notify: %v",
 			config.observer.ctx.Value(tCtxID))
-	} else if !bytes.Equal(buf, newFileBlock.Contents) {
+	case !bytes.Equal(buf, newFileBlock.Contents):
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
@@ -3923,7 +3936,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 
 	t.Log("Create the folder before implicit teams are enabled.")
 	h, err := tlfhandle.ParseHandle(
-		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name), ty)
+		ctx, config1.KBPKI(), config1.MDOps(), nil, name, ty)
 	require.NoError(t, err)
 	require.False(t, h.IsBackedByTeam())
 	kbfsOps1 := config1.KBFSOps()
@@ -4027,7 +4040,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	t.Log("Create a private folder for the master branch.")
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
@@ -4169,7 +4182,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
@@ -4235,7 +4248,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	t.Log("Create a private folder.")
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
@@ -4319,7 +4332,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	t.Log("Create a private, unsynced TLF and make sure updates are committed")
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
@@ -4436,7 +4449,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
@@ -4543,7 +4556,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4684,7 +4697,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4909,7 +4922,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 

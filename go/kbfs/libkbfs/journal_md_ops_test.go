@@ -136,7 +136,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	// (2) push some new metadata blocks
 	for i := kbfsmd.Revision(2); i < 8; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
 		irmd, err := mdOps.Put(
 			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
@@ -176,7 +176,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := kbfsmd.Revision(8); i <= 10; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
 		irmd, err := mdOps.Put(
 			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
@@ -211,7 +211,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	for i := kbfsmd.Revision(11); i < 41; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
 		irmd, err := mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 		require.NoError(t, err, "i=%d", i)

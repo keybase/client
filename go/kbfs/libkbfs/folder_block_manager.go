@@ -143,11 +143,11 @@ func newFolderBlockManager(
 	}
 
 	fbm := &folderBlockManager{
-		appStateUpdater: appStateUpdater,
-		config:          config,
-		log:             log,
-		shutdownChan:    make(chan struct{}),
-		id:              fb.Tlf,
+		appStateUpdater:           appStateUpdater,
+		config:                    config,
+		log:                       log,
+		shutdownChan:              make(chan struct{}),
+		id:                        fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),
@@ -1108,12 +1108,15 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(
+	}
+	if err := isReadableOrError(
 		ctx, fbm.config.KBPKI(), fbm.config, head.ReadOnly()); err != nil {
 		return err
-	} else if head.MergedStatus() != kbfsmd.Merged {
+	}
+	switch {
+	case head.MergedStatus() != kbfsmd.Merged:
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
-	} else if head.IsFinal() {
+	case head.IsFinal():
 		return kbfsmd.MetadataIsFinalError{}
 	}
 

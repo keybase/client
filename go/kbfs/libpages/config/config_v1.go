@@ -52,7 +52,7 @@ func DefaultV1() *V1 {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				AnonymousPermissions: "read,list",
 			},
 		},

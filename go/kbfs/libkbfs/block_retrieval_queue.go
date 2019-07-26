@@ -488,7 +488,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	// which causes it to `break` on the next iteration.
 	var br *blockRetrieval
 	for {
-		exists := false
+		var exists bool
 		br, exists = brq.ptrs[bpLookup]
 		if !exists {
 			// Add to the heap

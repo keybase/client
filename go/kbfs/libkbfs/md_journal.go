@@ -519,11 +519,12 @@ func (j mdJournal) putMD(rmd kbfsmd.RootMetadata) (kbfsmd.ID, error) {
 	}
 
 	_, err = ioutil.Stat(j.mdDataPath(id))
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Continue on.
-	} else if err != nil {
+	case err != nil:
 		return kbfsmd.ID{}, err
-	} else {
+	default:
 		// Entry exists, so nothing else to do.
 		return id, nil
 	}
@@ -924,11 +925,12 @@ func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
 	revision kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (kbfsmd.ID, error) {
 	rmdses, err := mdserver.GetRange(
 		ctx, tlfID, bid, mStatus, revision, revision, lockBeforeGet)
-	if err != nil {
+	switch {
+	case err != nil:
 		return kbfsmd.ID{}, err
-	} else if len(rmdses) == 0 {
+	case len(rmdses) == 0:
 		return kbfsmd.ID{}, nil
-	} else if len(rmdses) > 1 {
+	case len(rmdses) > 1:
 		return kbfsmd.ID{}, errors.Errorf(
 			"Got more than one object when trying to get rev=%d for branch %s of TLF %s",
 			revision, bid, tlfID)
@@ -1248,8 +1250,9 @@ func (j *mdJournal) put(
 				"Unmerged put with rmd.BID() == j.branchID == kbfsmd.NullBranchID")
 		}
 
-		if head == (ImmutableBareRootMetadata{}) &&
-			j.branchID == kbfsmd.NullBranchID {
+		switch {
+		case head == (ImmutableBareRootMetadata{}) &&
+			j.branchID == kbfsmd.NullBranchID:
 			// Case Unmerged-3.
 			j.branchID = rmd.BID()
 			// Revert branch ID if we encounter an error.
@@ -1258,14 +1261,14 @@ func (j *mdJournal) put(
 					j.branchID = kbfsmd.NullBranchID
 				}
 			}()
-		} else if rmd.BID() == kbfsmd.NullBranchID {
+		case rmd.BID() == kbfsmd.NullBranchID:
 			// Case Unmerged-1.
 			j.log.CDebugf(
 				ctx, "Changing branch ID to %s and prev root to %s for MD for TLF=%s with rev=%s",
 				j.branchID, lastMdID, rmd.TlfID(), rmd.Revision())
 			rmd.SetBranchID(j.branchID)
 			rmd.SetPrevRoot(lastMdID)
-		} else { // nolint
+		default: // nolint
 			// Using de Morgan's laws, this branch is
 			// taken when both rmd.BID() is non-null, and
 			// either head is non-empty or j.branchID is

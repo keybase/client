@@ -283,11 +283,12 @@ func init() {
 // responsible for filling in `EntryInfo.SymPath`, if needed.
 func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
 	t := File
-	if fi.IsDir() {
+	switch {
+	case fi.IsDir():
 		t = Dir
-	} else if fi.Mode()&os.ModeSymlink != 0 {
+	case fi.Mode()&os.ModeSymlink != 0:
 		t = Sym
-	} else if fi.Mode()&0100 != 0 {
+	case fi.Mode()&0100 != 0:
 		t = Exec
 	}
 	mtime := fi.ModTime().UnixNano()

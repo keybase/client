@@ -1714,7 +1714,7 @@ func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 func (c *ConfigLocal) RootNodeWrappers() []func(Node) Node {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.rootNodeWrappers[:]
+	return c.rootNodeWrappers
 }
 
 // AddRootNodeWrapper implements the Config interface for ConfigLocal.

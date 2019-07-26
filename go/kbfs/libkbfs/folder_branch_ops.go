@@ -537,11 +537,12 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	if fbo.config.CheckStateOnShutdown() {
 		lState := makeFBOLockState()
 
-		if fbo.blocks.GetState(lState) == dirtyState {
+		switch {
+		case fbo.blocks.GetState(lState) == dirtyState:
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
-		} else if fbo.isUnmerged(lState) {
+		case fbo.isUnmerged(lState):
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
-		} else {
+		default:
 			// Make sure we're up to date first
 			if err := fbo.SyncFromServer(ctx,
 				fbo.folderBranch, nil); err != nil {
@@ -1929,7 +1930,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 				default:
 					return err
 				}
-			} else {
+			} else if md.putToServer {
 				// If this isn't the first head, then this is either
 				// an update from the server, or an update just
 				// written by the client.  But since journaling is on,
@@ -1937,10 +1938,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 				// the update is properly flushed to the server.  So
 				// ignore updates that haven't yet been put to the
 				// server.
-				if md.putToServer {
-					fbo.setLatestMergedRevisionLocked(
-						ctx, lState, md.Revision(), false)
-				}
+				fbo.setLatestMergedRevisionLocked(
+					ctx, lState, md.Revision(), false)
 			}
 		} else {
 			// This is a merged revision, and journaling is disabled,
@@ -2184,13 +2183,14 @@ func (fbo *folderBranchOps) identifyOnce(
 		return err
 	}
 
-	if ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
-		len(ei.GetTlfBreakAndClose().Breaks) > 0 {
+	switch {
+	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
+		len(ei.GetTlfBreakAndClose().Breaks) > 0:
 		fbo.log.CDebugf(ctx,
 			"Identify finished with no error but broken proof warnings")
-	} else if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	case ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP:
 		fbo.log.CDebugf(ctx, "Identify skipped")
-	} else {
+	default:
 		fbo.log.CDebugf(ctx, "Identify finished successfully")
 		fbo.identifyDone = true
 		fbo.identifyTime = fbo.config.Clock().Now()
@@ -4986,13 +4986,14 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 	// However, since removals don't reduce levels of indirection at
 	// the moment, we're forced to do this for now.
 	entries, err := fbo.blocks.GetEntries(ctx, lState, md.ReadOnly(), childPath)
-	if isRecoverableBlockErrorForRemoval(err) {
+	switch {
+	case isRecoverableBlockErrorForRemoval(err):
 		msg := fmt.Sprintf("Recoverable block error encountered for removeDirLocked(%v); continuing", childPath)
 		fbo.log.CWarningf(ctx, "%s", msg)
 		fbo.log.CDebugf(ctx, "%s (err=%v)", msg, err)
-	} else if err != nil {
+	case err != nil:
 		return err
-	} else if len(entries) > 0 {
+	case len(entries) > 0:
 		return DirNotEmptyError{dirName}
 	}
 
@@ -5382,11 +5383,12 @@ func (fbo *folderBranchOps) setExLocked(
 		return nil
 	}
 
-	if ex && (de.Type == data.File) {
+	switch {
+	case ex && (de.Type == data.File):
 		de.Type = data.Exec
-	} else if !ex && (de.Type == data.Exec) {
+	case !ex && (de.Type == data.Exec):
 		de.Type = data.File
-	} else {
+	default:
 		// Treating this as a no-op, without updating the ctime, is a
 		// POSIX violation, but it's an important optimization to keep
 		// permissions-preserving rsyncs fast.
@@ -9054,7 +9056,8 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	oldPartial := oldConfig.Mode == keybase1.FolderSyncMode_PARTIAL
 	newPartial := newConfig.Mode == keybase1.FolderSyncMode_PARTIAL
-	if oldPartial && !newPartial {
+	switch {
+	case oldPartial && !newPartial:
 		if fbo.markAndSweepTrigger == nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
@@ -9063,7 +9066,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		fbo.log.CDebugf(ctx, "Exiting partial mode, stopping mark-and-sweep")
 		close(fbo.markAndSweepTrigger)
 		fbo.markAndSweepTrigger = nil
-	} else if !oldPartial && newPartial {
+	case !oldPartial && newPartial:
 		if fbo.markAndSweepTrigger != nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
@@ -9075,7 +9078,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 		fbo.log.CDebugf(ctx, "Entering partial mode, starting mark-and-sweep")
 		// `kickOffPartialSync` call above will start the mark and sweep.
-	} else if oldPartial && newPartial {
+	case oldPartial && newPartial:
 		if fbo.markAndSweepTrigger == nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
