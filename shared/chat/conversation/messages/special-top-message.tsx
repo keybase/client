@@ -16,7 +16,8 @@ type Props = {
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   showTeamOffer: boolean
   measure: (() => void) | null
-  pendingWaiting: boolean
+  pendingState: 'waiting' | 'error' | 'done'
+  createConversationError: string | null
 }
 
 class TopMessage extends React.PureComponent<Props> {
@@ -36,14 +37,29 @@ class TopMessage extends React.PureComponent<Props> {
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
-        {this.props.pendingWaiting && (
+        {this.props.pendingState === 'waiting' && (
           <Kb.Text type="BodySmallSemibold" style={loadingStyle}>
             Loading...
           </Kb.Text>
         )}
+        {this.props.pendingState === 'error' && (
+          <Kb.Box style={errorStyle}>
+            <Kb.Text type="BodySmallSemibold">(ノ ゜Д゜)ノ ︵ ┻━┻</Kb.Text>
+            {this.props.createConversationError ? (
+              <>
+                <Kb.Text type="BodySmallSemibold">Failed to create conversation:</Kb.Text>
+                <Kb.Text type="BodySmall" style={errorTextStyle} selectable={true}>
+                  {this.props.createConversationError}
+                </Kb.Text>
+              </>
+            ) : (
+              <Kb.Text type="BodySmallSemibold">Failed to create conversation.</Kb.Text>
+            )}
+          </Kb.Box>
+        )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
-          !this.props.pendingWaiting && (
+          this.props.pendingState === 'done' && (
             <Kb.Box style={secureStyle}>
               <Kb.Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
             </Kb.Box>
@@ -82,15 +98,35 @@ const moreStyle = {
   alignItems: 'center',
 }
 
+const errorStyle = {
+  ...moreStyle,
+  margin: globalMargins.medium,
+}
+
+const errorTextStyle = {
+  marginTop: globalMargins.tiny,
+}
+
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   measure: (() => void) | null
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps): Props => {
   const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const pendingWaiting = ownProps.conversationIDKey === Constants.pendingWaitingConversationIDKey
+  let pendingState: Props['pendingState']
+  switch (ownProps.conversationIDKey) {
+    case Constants.pendingWaitingConversationIDKey:
+      pendingState = 'waiting'
+      break
+    case Constants.pendingErrorConversationIDKey:
+      pendingState = 'error'
+      break
+    default:
+      pendingState = 'done'
+      break
+  }
   const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
     ? 'moreToLoad'
     : 'noMoreToLoad'
@@ -105,12 +141,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     hasLoadedEver &&
     meta.retentionPolicy.type !== 'retain' &&
     !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
+  const {createConversationError} = state.chat2
   return {
     conversationIDKey: ownProps.conversationIDKey,
+    createConversationError,
     hasOlderResetConversation,
     loadMoreType,
     measure: ownProps.measure,
-    pendingWaiting,
+    pendingState,
     showRetentionNotice,
     showTeamOffer,
   }

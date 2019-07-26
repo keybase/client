@@ -120,6 +120,7 @@ export const initDesktopStyles = () => {
         s +
         `.color_${name} {color: ${color};}\n` +
         `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.hover_container:hover .hover_contained_color_${name} {color: ${color};}\n` +
         `.background_color_${name} {background-color: ${color};}\n` +
         `.hover_background_color_${name}:hover {background-color: ${color};}\n`
       )

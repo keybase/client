@@ -2398,7 +2398,8 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey) => {
     visible.routeName === 'chatConversation' &&
     visible &&
     visible.params &&
-    visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey
+    (visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+      visible.params.conversationIDKey === Constants.pendingErrorConversationIDKey)
   ) {
     replace = true
   }
@@ -2433,7 +2434,10 @@ const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConver
       return // never nav if this is from a nav
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
-  } else if (action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+  } else if (
+    action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+    action.payload.conversationIDKey === Constants.pendingErrorConversationIDKey
+  ) {
     return navigateToThreadRoute(action.payload.conversationIDKey)
   }
   return undefined
@@ -2667,6 +2671,13 @@ function* createConversation(
     }
   } catch (e) {
     logger.error(`Failed to create new conversation: ${e.message}`)
+    yield Saga.put(Chat2Gen.createConversationErrored({message: e.message}))
+    yield Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingErrorConversationIDKey,
+        reason: 'justCreated',
+      })
+    )
   }
 }
 
