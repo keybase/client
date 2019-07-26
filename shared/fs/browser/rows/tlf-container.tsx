@@ -11,6 +11,7 @@ type OwnProps = {
   destinationPickerIndex?: number
   name: string
   routePath: I.List<string>
+  showTlfTypeIcon?: boolean
   tlfType: Types.TlfType
 }
 
@@ -22,7 +23,7 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
 const mergeProps = (
   stateProps,
   _,
-  {tlfType, name, routePath, destinationPickerIndex}: OwnProps
+  {tlfType, name, routePath, showTlfTypeIcon, destinationPickerIndex}: OwnProps
 ) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
@@ -38,6 +39,7 @@ const mergeProps = (
     name,
     path,
     routePath,
+    showTlfTypeIcon,
     // Only include the user if they're the only one
     usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
   }
