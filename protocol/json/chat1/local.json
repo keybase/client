@@ -3638,6 +3638,26 @@
           "name": "channelNameMentions"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "Message",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MsgSummary"
+          ],
+          "name": "msg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        }
+      ]
     }
   ],
   "messages": {

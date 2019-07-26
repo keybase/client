@@ -5637,6 +5637,30 @@ func (o MsgSummary) DeepCopy() MsgSummary {
 	}
 }
 
+type Message struct {
+	Msg   *MsgSummary `codec:"msg,omitempty" json:"msg,omitempty"`
+	Error *string     `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o Message) DeepCopy() Message {
+	return Message{
+		Msg: (func(x *MsgSummary) *MsgSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Msg),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

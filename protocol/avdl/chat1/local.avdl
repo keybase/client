@@ -1212,4 +1212,11 @@ protocol local {
     string channelMention;
     array<UIChannelNameMention> channelNameMentions;
   }
+
+
+  // Message contains either a MsgSummary or an Error.  Used for JSON output.
+  record Message {
+    union { null, MsgSummary } msg;
+    union { null, string } error;
+  }
 }
