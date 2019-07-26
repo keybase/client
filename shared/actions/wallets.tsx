@@ -1224,7 +1224,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   issuerName: '',
   transferServer: '',
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
-  verifiedDomain: '',
+  verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
 })
 
 const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
