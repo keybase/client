@@ -265,7 +265,6 @@ func TestHiddenNeedRotate(t *testing.T) {
 
 	// There's a random backoff before strating the background audit, so advance past that.
 	t.Logf("A is checking that eventually he rotates")
-	clock.Advance(2 * libkb.TeamBackoffBeforeAuditOnNeedRotate)
 
 	pollForTrue(t, aM.G(), func(i int) bool {
 		gen := loadPTKGen(aM)

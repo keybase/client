@@ -1210,17 +1210,20 @@ func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID 
 		return
 	}
 
-	// We don't fire this immediately since likely everyone else on the team is going to try the same thing;
-	// So randomly backoff and maybe someone is going to win, and we won't all race to fix it.
-	base := libkb.TeamBackoffBeforeAuditOnNeedRotate
-	dur, err := libkb.RandomJitter(base)
-	if err != nil {
-		dur = base
-		mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
+	if mctx.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		// We don't fire this immediately since likely everyone else on the team is going to try the same thing;
+		// So randomly backoff and maybe someone is going to win, and we won't all race to fix it.
+		base := libkb.TeamBackoffBeforeAuditOnNeedRotate
+		dur, err := libkb.RandomJitter(base)
+		if err != nil {
+			dur = base
+			mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
+		}
+		mctx.Debug("Sleeping %s random jitter before auditing the team", dur)
+		mctx.G().Clock().Sleep(dur)
 	}
-	mctx.Debug("Sleeping %t random jitter before auditing the team")
-	mctx.G().Clock().Sleep(dur)
-	_, err = a.BoxAuditTeam(mctx, teamID)
+
+	_, err := a.BoxAuditTeam(mctx, teamID)
 	if err != nil {
 		mctx.Info("Box audit of team failed with error; we will continue to retry: %s", err)
 	}
