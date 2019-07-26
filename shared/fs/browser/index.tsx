@@ -7,7 +7,6 @@ import * as Styles from '../../styles'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from './rows/rows-container'
-import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 import ConflictBanner from '../banner/conflict-banner-container'
 import flags from '../../util/feature-flags'
@@ -18,7 +17,6 @@ import Root from './root'
 type Props = {
   onAttach?: ((paths: Array<string>) => void) | null
   path: Types.Path
-  shouldShowSFMIBanner: boolean
   resetBannerType: Types.ResetBannerType
   offline: boolean
 }
@@ -29,16 +27,7 @@ const WithContent = (props: Props) => (
     {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
     <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach || null}>
       {flags.conflictResolution && <ConflictBanner path={props.path} />}
-      <Rows
-        path={props.path}
-        headerRows={[
-          ...resetBannerAsRows(props.path, props.resetBannerType),
-          // only show sfmi banner at /keybase
-          ...(Types.getPathLevel(props.path) === 1
-            ? sfmiBannerAsRows(props.path, props.shouldShowSFMIBanner)
-            : []),
-        ]}
-      />
+      <Rows path={props.path} headerRows={[...resetBannerAsRows(props.path, props.resetBannerType)]} />
     </Kb.DragAndDrop>
   </Kb.Box2>
 )
