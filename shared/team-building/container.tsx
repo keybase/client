@@ -320,13 +320,13 @@ const mergeProps = (
     isImportPromptDismissed: stateProps.isImportPromptDismissed,
     numContactsImported: stateProps.numContactsImported,
     onAskForContactsLater: dispatchProps.onAskForContactsLater,
-    onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
     onImportContacts:
       stateProps.contactsPermissionStatus === 'never_ask_again'
         ? null
         : stateProps.contactsPermissionStatus === 'granted'
         ? dispatchProps._onImportContactsPermissionsGranted
         : dispatchProps._onImportContactsPermissionsNotGranted,
+    onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
   }
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
