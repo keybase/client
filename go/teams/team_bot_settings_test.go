@@ -130,11 +130,9 @@ func TestTeamBotSettings(t *testing.T) {
 	expectedBots[rBotua1UV] = keybase1.TeamBotSettings{Triggers: []string{"*"}}
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.Error(t, err)
-	require.IsType(t, PrecheckAppendError{}, err)
 
 	// bad conv ids
 	expectedBots[rBotua1UV] = keybase1.TeamBotSettings{Convs: []string{"not hex"}}
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.Error(t, err)
-	require.IsType(t, PrecheckAppendError{}, err)
 }

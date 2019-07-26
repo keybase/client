@@ -2161,7 +2161,10 @@ func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVe
 		return err
 	}
 
-	scBotSettings := CreateTeamBotSettings(bots)
+	scBotSettings, err := CreateTeamBotSettings(bots)
+	if err != nil {
+		return err
+	}
 
 	section := SCTeamSection{
 		ID:          SCTeamID(t.ID),

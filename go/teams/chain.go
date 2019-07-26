@@ -3,12 +3,10 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"regexp"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -1735,7 +1733,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 	case libkb.LinkTypeTeamBotSettings:
 		if err = enforce(LinkRules{
-			Admin:               TristateRequire,
+			Admin:               TristateOptional,
 			BotSettings:         TristateRequire,
 			AllowInImplicitTeam: true,
 		}); err != nil {
@@ -1747,7 +1745,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 
 		moveState()
-		if err = t.parseTeamBotSettings(team.BotSettings, &res.newState); err != nil {
+		if err = t.parseTeamBotSettings(*team.BotSettings, &res.newState); err != nil {
 			return res, err
 		}
 	case "":
@@ -2282,9 +2280,9 @@ func (t *teamSigchainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 	return nil
 }
 
-func (t *teamSigchainPlayer) parseTeamBotSettings(bots *[]SCTeamBot, newState *TeamSigChainState) error {
+func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *TeamSigChainState) error {
 
-	for _, bot := range *bots {
+	for _, bot := range bots {
 		// Bots listed here must have the RESTRICTEDBOT role
 		role, err := newState.GetUserRole(bot.Bot.ToUserVersion())
 		if err != nil {
@@ -2294,24 +2292,12 @@ func (t *teamSigchainPlayer) parseTeamBotSettings(bots *[]SCTeamBot, newState *T
 			return fmt.Errorf("found bot settings for %v. Expected role RESTRICTEDBOT, found %v", bot, role)
 		}
 
-		// Sanity check the triggers are valid
 		var convs, triggers []string
 		if bot.Triggers != nil {
-			for _, trigger := range *(bot.Triggers) {
-				if _, err := regexp.Compile(trigger); err != nil {
-					return err
-				}
-			}
-			triggers = *(bot.Triggers)
+			triggers = *bot.Triggers
 		}
-		// Sanity check the conversation IDs are well formed
 		if bot.Convs != nil {
-			for _, convID := range *(bot.Convs) {
-				if _, err := chat1.MakeConvID(convID); err != nil {
-					return err
-				}
-			}
-			convs = *(bot.Convs)
+			convs = *bot.Convs
 		}
 		newState.inner.Bots[bot.Bot.ToUserVersion()] = keybase1.TeamBotSettings{
 			Cmds:     bot.Cmds,

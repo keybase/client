@@ -39,8 +39,7 @@ const (
 	// - A corresponding libkb.LinkType in constants.go
 	// - SigchainV2TypeFromV1TypeTeams
 	// - SigChainV2Type.IsSupportedTeamType
-	// - SigChainV2Type.RequiresAdminPermission
-	// - SigChainV2Type.TeamAllowStub
+	// - SigChainV2Type.TeamAllowStubWithAdminFlag
 	// - TeamSigChainPlayer.addInnerLink (add a case)
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
 	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
@@ -131,7 +130,8 @@ func (t SigchainV2Type) IsSupportedTeamType() bool {
 		SigchainV2TypeTeamDeleteSubteam,
 		SigchainV2TypeTeamDeleteUpPointer,
 		SigchainV2TypeTeamKBFSSettings,
-		SigchainV2TypeTeamSettings:
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		return false
@@ -166,7 +166,10 @@ func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
 	case SigchainV2TypeTeamNewSubteam,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamDeleteSubteam,
-		SigchainV2TypeTeamInvite:
+		SigchainV2TypeTeamInvite,
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamKBFSSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		// Disallow stubbing of other known links.

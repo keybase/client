@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams/hidden"
 )
@@ -127,7 +129,7 @@ type SCTeamKBFSLegacyUpgrade struct {
 }
 
 type SCTeamBotUV struct {
-	Uid         keybase1.UID   `json:"uid"`
+	UID         keybase1.UID   `json:"uid"`
 	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
 }
 
@@ -148,14 +150,14 @@ type SCTeamBot struct {
 
 func ToSCTeamBotUV(uv keybase1.UserVersion) SCTeamBotUV {
 	return SCTeamBotUV{
-		Uid:         uv.Uid,
+		UID:         uv.Uid,
 		EldestSeqno: uv.EldestSeqno,
 	}
 }
 
 func (u SCTeamBotUV) ToUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{
-		Uid:         u.Uid,
+		Uid:         u.UID,
 		EldestSeqno: u.EldestSeqno,
 	}
 }
@@ -358,9 +360,21 @@ func CreateTeamSettings(open bool, joinAs keybase1.TeamRole) (SCTeamSettings, er
 	}, nil
 }
 
-func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSettings) []SCTeamBot {
+func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSettings) ([]SCTeamBot, error) {
 	var res []SCTeamBot
 	for bot, botSettings := range bots {
+		// Sanity check the triggers are valid
+		for _, trigger := range botSettings.Triggers {
+			if _, err := regexp.Compile(trigger); err != nil {
+				return nil, err
+			}
+		}
+		// Sanity check the conversation IDs are well formed
+		for _, convID := range botSettings.Convs {
+			if _, err := chat1.MakeConvID(convID); err != nil {
+				return nil, err
+			}
+		}
 		var convs, triggers *[]string
 		if len(botSettings.Triggers) > 0 {
 			triggers = &(botSettings.Triggers)
@@ -377,7 +391,7 @@ func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSetting
 			Convs:    convs,
 		})
 	}
-	return res
+	return res, nil
 }
 
 func (n SCTeamName) LastPart() (string, error) {
