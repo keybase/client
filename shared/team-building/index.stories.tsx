@@ -31,11 +31,22 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const contactProps = {
+  contactsImported: false,
+  contactsPermissionStatus: 'granted',
+  isImportPromptDismissed: false,
+  numContactsImported: 0,
+  onAskForContactsLater: Sb.action('onAskForContactsLater'),
+  onImportContacts: Sb.action('onImportContacts'),
+  onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -133,6 +144,7 @@ const load = () => {
     ))
     .add('Team Building - No search string', () => (
       <TeamBuilding
+        {...contactProps}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -230,6 +242,7 @@ const load = () => {
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
+        {...contactProps}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
@@ -274,6 +287,7 @@ const load = () => {
     ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
+        {...contactProps}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -302,6 +316,7 @@ const load = () => {
     ))
     .add('Team Building - One line of users', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -380,6 +395,7 @@ const load = () => {
     ))
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -458,6 +474,7 @@ const load = () => {
     ))
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
