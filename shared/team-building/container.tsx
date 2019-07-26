@@ -183,9 +183,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _onImportContactsPermissionsGranted: () =>
-    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
+  _onImportContactsPermissionsNotGranted: () =>
+    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) =>
     debouncedSearch(dispatch, namespace, query, service, limit),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
@@ -193,8 +193,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
     dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
-  onContactsNotYetImported: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamname})),
+  onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
   onSelectRole: (role: TeamRoleType) =>
