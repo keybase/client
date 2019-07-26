@@ -375,13 +375,13 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
 
 const editAvatar = (): Promise<Saga.MaybeAction> =>
   launchImageLibraryAsync('photo')
-    .then(result => {
+    .then(result =>
       result.cancelled === true
         ? null
         : RouteTreeGen.createNavigateAppend({
             path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
-    })
+    )
     .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
