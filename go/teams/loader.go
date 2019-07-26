@@ -913,7 +913,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	if !arg.fromBoxAudit && needHiddenRotate {
 		mctx.Info("Scheduling box audit since we needed a rotation upon load (and we're not being directly called from the box audit)")
-		go BoxAuditAfterBackoff(mctx, arg.teamID)
+		go l.G().GetTeamBoxAuditor().ScheduleDelayedBoxAuditTeam(mctx, arg.teamID)
 	}
 
 	return &load2res, nil
