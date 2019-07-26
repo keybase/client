@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isIPhoneX} from '../../constants/platform'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import lagRadar from 'lag-radar'
 
 type ProcessProps = {
   cpu: string
@@ -73,12 +74,32 @@ const dbTypeString = (s: RPCTypes.DbType) => {
   }
 }
 
+let destroyRadar: any
+
 const RuntimeStatsDesktop = (props: Props) => {
+  const refContainer = React.useCallback(node => {
+    if (destroyRadar) {
+      destroyRadar()
+      destroyRadar = null
+    }
+    if (node) {
+      destroyRadar = lagRadar({
+        frames: 20,
+        inset: 1,
+        parent: node,
+        size: 30,
+        speed: 0.0017 * 0.7,
+      })
+    }
+  }, [])
+
+  const [hideRadar, setHideRadar] = React.useState(false)
+
   return !props.hasData ? null : (
     <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
       {props.processStats.map((stats, i) => {
         return (
-          <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true}>
+          <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
             <Kb.Text type="BodyTinyBold" style={styles.stat}>
               {processTypeString(stats.type)}
             </Kb.Text>
@@ -137,6 +158,13 @@ const RuntimeStatsDesktop = (props: Props) => {
           </Kb.Box2>
         )
       })}
+      {!hideRadar && (
+        <Kb.Box
+          style={styles.radarContainer}
+          forwardedRef={refContainer}
+          onClick={() => setHideRadar(true)}
+        />
+      )}
     </Kb.Box2>
   )
 }
@@ -175,7 +203,7 @@ const RuntimeStatsMobile = (props: Props) => {
   const coreCompaction = coreCompactionActive(props)
   const kbfsCompaction = kbfsCompactionActive(props)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny">
+    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
           <Kb.Text
@@ -239,7 +267,9 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.black,
     },
     isElectron: {
+      overflow: 'auto',
       padding: Styles.globalMargins.xtiny,
+      position: 'relative',
     },
     isMobile: {
       bottom: isIPhoneX ? 15 : 0,
@@ -247,6 +277,11 @@ const styles = Styles.styleSheetCreate({
       right: isIPhoneX ? 10 : 0,
     },
   }),
+  radarContainer: {
+    position: 'absolute',
+    right: 2,
+    top: 2,
+  },
   stat: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
