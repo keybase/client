@@ -494,6 +494,22 @@ func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t, application, generation)
 }
 
+func (t *Team) TeamBotSettings() (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	botSettings := t.chain().TeamBotSettings()
+	// It's possible that we added a RESTRICTEDBOT member without posting any
+	// settings for them. Fill in default values (no access) for those members
+	restrictedBots, err := t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
+	if err != nil {
+		return nil, err
+	}
+	for _, uv := range restrictedBots {
+		if _, ok := botSettings[uv]; !ok {
+			botSettings[uv] = keybase1.TeamBotSettings{}
+		}
+	}
+	return botSettings, nil
+}
+
 func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
 	if boxes == nil {
 		return nil
@@ -2127,6 +2143,38 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	} else {
 		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
 	}
+	return nil
+}
+
+func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	admin, err := t.getAdminPermission(ctx)
+	if err != nil {
+		return err
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+
+	scBotSettings := CreateTeamBotSettings(bots)
+
+	section := SCTeamSection{
+		ID:          SCTeamID(t.ID),
+		Admin:       admin,
+		BotSettings: &scBotSettings,
+	}
+
+	var payloadArgs sigPayloadArgs
+	_, err = t.postChangeItem(ctx, section, libkb.LinkTypeTeamBotSettings, mr, payloadArgs)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -45,6 +45,7 @@ type SCTeamSection struct {
 	KBFS             *SCTeamKBFS            `json:"kbfs,omitempty"`
 	BoxSummaryHash   *SCTeamBoxSummaryHash  `json:"box_summary_hash,omitempty"`
 	Ratchets         []hidden.SCTeamRatchet `json:"ratchets,omitempty"`
+	BotSettings      *[]SCTeamBot           `json:"bot_settings,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -123,6 +124,40 @@ type SCTeamKBFSLegacyUpgrade struct {
 	TeamGeneration   keybase1.PerTeamKeyGeneration        `json:"team_generation"`
 	LegacyGeneration int                                  `json:"legacy_generation"`
 	KeysetHash       keybase1.TeamEncryptedKBFSKeysetHash `json:"encrypted_keyset_hash"`
+}
+
+type SCTeamBotUV struct {
+	Uid         keybase1.UID   `json:"uid"`
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
+}
+
+type SCTeamBot struct {
+	Bot SCTeamBotUV `json:"bot"`
+	// Should the bot be summoned for !-commands
+	Cmds bool `json:"cmds"`
+	// Should the bot be summoned for @-mentions
+	Mentions bool `json:"mentions"`
+	// Should the bot be keyed for join messages
+	Joins bool `json:"joins"`
+	// Phrases that should trigger the bot to be keyed for content. Will be
+	// check as a valid regex.
+	Triggers *[]string `json:"triggers,omitempty"`
+	// Conversations the bot can participate in, `nil` indicates all
+	Convs *[]string `json:"convs,omitempty"`
+}
+
+func ToSCTeamBotUV(uv keybase1.UserVersion) SCTeamBotUV {
+	return SCTeamBotUV{
+		Uid:         uv.Uid,
+		EldestSeqno: uv.EldestSeqno,
+	}
+}
+
+func (u SCTeamBotUV) ToUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
 }
 
 func (i SCTeamInvites) Len() int {
@@ -321,6 +356,28 @@ func CreateTeamSettings(open bool, joinAs keybase1.TeamRole) (SCTeamSettings, er
 			},
 		},
 	}, nil
+}
+
+func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSettings) []SCTeamBot {
+	var res []SCTeamBot
+	for bot, botSettings := range bots {
+		var convs, triggers *[]string
+		if len(botSettings.Triggers) > 0 {
+			triggers = &(botSettings.Triggers)
+		}
+		if len(botSettings.Convs) > 0 {
+			convs = &(botSettings.Convs)
+		}
+		res = append(res, SCTeamBot{
+			Bot:      ToSCTeamBotUV(bot),
+			Cmds:     botSettings.Cmds,
+			Mentions: botSettings.Mentions,
+			Joins:    botSettings.Joins,
+			Triggers: triggers,
+			Convs:    convs,
+		})
+	}
+	return res
 }
 
 func (n SCTeamName) LastPart() (string, error) {

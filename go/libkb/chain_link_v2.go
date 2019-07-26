@@ -57,6 +57,7 @@ const (
 	// Note that 45 is skipped, since it's retired; used to be LegacyTLFUpgrade
 	SigchainV2TypeTeamSettings     SigchainV2Type = 46
 	SigchainV2TypeTeamKBFSSettings SigchainV2Type = 47
+	SigchainV2TypeTeamBotSettings  SigchainV2Type = 48
 )
 
 // NeedsSignature is untrue of most supported link types. If a link can
@@ -487,6 +488,8 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamKBFSSettings
 	case LinkTypeSettings:
 		ret = SigchainV2TypeTeamSettings
+	case LinkTypeTeamBotSettings:
+		ret = SigchainV2TypeTeamBotSettings
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}
