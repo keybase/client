@@ -16,6 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// This file has mostly user search (also called "people search" in some
+// places) test scaffolding. See usersearch_tests_test.go for more testing.
+
 type emptyUserSearchProvider struct{}
 
 func (*emptyUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) ([]keybase1.APIUserSearchResult, error) {
