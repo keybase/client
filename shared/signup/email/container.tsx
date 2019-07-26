@@ -8,23 +8,23 @@ import EnterEmail from '.'
 
 type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  allowSearch: false,
-  error: state.signup.emailError,
-  initialEmail: state.signup.email,
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onFinish: (email: string, allowSearch: boolean) =>
-    dispatch(SignupGen.createCheckEmail({allowSearch, email})),
-})
-
-const ConnectedEnterEmail = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
-  ...s,
-  ...d,
-  ...o,
-}))(EnterEmail)
+const ConnectedEnterEmail = Container.connect(
+  (state: Container.TypedState) => ({
+    allowSearch: false,
+    error: state.signup.emailError,
+    initialEmail: state.signup.email,
+  }),
+  (dispatch: Container.TypedDispatch) => ({
+    onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
+    onFinish: (email: string, allowSearch: boolean) =>
+      dispatch(SignupGen.createCheckEmail({allowSearch, email})),
+  }),
+  (s, d, o: OwnProps) => ({
+    ...s,
+    ...d,
+    ...o,
+  })
+)(EnterEmail)
 
 // @ts-ignore fix this
 ConnectedEnterEmail.navigationOptions = {

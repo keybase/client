@@ -9,7 +9,7 @@ type OwnProps = Container.RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => ({
   error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
-  teamname: Container.getRouteProps(ownProps, 'teamname'),
+  teamname: Container.getRouteProps(ownProps, 'teamname', ''),
   title: 'Rename subteam',
   waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
 })

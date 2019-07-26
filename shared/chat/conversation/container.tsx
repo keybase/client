@@ -3,17 +3,14 @@ import * as Constants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
-import {isMobile, isIOS} from '../../constants/platform'
-import {connect, getRouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
-type OwnProps = {
-  navigation?: any
-}
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -34,7 +31,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
     // Workaround
     // https://github.com/react-navigation/react-navigation/issues/5669
     // Covers the case of swiping back on iOS
-    if (isIOS) {
+    if (Container.isIOS) {
       this.props.deselectConversation()
     }
   }
@@ -54,11 +51,13 @@ class Conversation extends React.PureComponent<SwitchProps> {
         // On iOS it is less noticable because screen transitions slide away to
         // the right, though it is visible for a small amount of time.
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
-        return isMobile ? null : <NoConversation />
+        return Container.isMobile ? null : <NoConversation />
       case 'normal':
         return (
           <>
-            {isMobile && <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
+            {Container.isMobile && (
+              <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+            )}
             <Normal conversationIDKey={this.props.conversationIDKey} />
           </>
         )
@@ -72,68 +71,55 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = (state, ownProps) => {
-  let _storeConvoIDKey = Constants.getSelectedConversation(state)
-  const conversationIDKey = isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
-  let _meta = Constants.getMeta(state, conversationIDKey)
+export default Container.connect(
+  (state, ownProps: OwnProps) => {
+    let _storeConvoIDKey = Constants.getSelectedConversation(state)
+    const conversationIDKey = Container.isMobile
+      ? Container.getRouteProps(ownProps, 'conversationIDKey', Constants.noConversationIDKey)
+      : _storeConvoIDKey
+    let _meta = Constants.getMeta(state, conversationIDKey)
 
-  return {
-    _meta,
-    _storeConvoIDKey,
-    conversationIDKey,
+    return {
+      _meta,
+      _storeConvoIDKey,
+      conversationIDKey,
+    }
+  },
+  dispatch => ({
+    _deselectConversation: ifConversationIDKey =>
+      dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey})),
+    _selectConversation: conversationIDKey =>
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => {
+    let type
+    switch (stateProps.conversationIDKey) {
+      case Constants.noConversationIDKey:
+        type = 'noConvo'
+        break
+      default:
+        if (stateProps._meta.membershipType === 'youAreReset') {
+          type = 'youAreReset'
+        } else if (stateProps._meta.rekeyers.size > 0) {
+          type = 'rekey'
+        } else if (stateProps._meta.trustedState === 'error') {
+          type = 'error'
+        } else {
+          type = 'normal'
+        }
+    }
+
+    return {
+      conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+      deselectConversation:
+        stateProps._storeConvoIDKey !== stateProps.conversationIDKey
+          ? () => {}
+          : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
+      selectConversation:
+        stateProps._storeConvoIDKey === stateProps.conversationIDKey
+          ? () => {} // ignore if already selected or pending
+          : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
+      type,
+    }
   }
-}
-
-const mapDispatchToProps = dispatch => ({
-  _deselectConversation: ifConversationIDKey =>
-    dispatch(
-      Chat2Gen.createDeselectConversation({
-        ifConversationIDKey,
-      })
-    ),
-  _selectConversation: conversationIDKey =>
-    dispatch(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey,
-        reason: 'focused',
-      })
-    ),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
-  let type
-  switch (stateProps.conversationIDKey) {
-    case Constants.noConversationIDKey:
-      type = 'noConvo'
-      break
-    default:
-      if (stateProps._meta.membershipType === 'youAreReset') {
-        type = 'youAreReset'
-      } else if (stateProps._meta.rekeyers.size > 0) {
-        type = 'rekey'
-      } else if (stateProps._meta.trustedState === 'error') {
-        type = 'error'
-      } else {
-        type = 'normal'
-      }
-  }
-
-  return {
-    conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
-    deselectConversation:
-      stateProps._storeConvoIDKey !== stateProps.conversationIDKey
-        ? () => {}
-        : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
-    selectConversation:
-      stateProps._storeConvoIDKey === stateProps.conversationIDKey
-        ? () => {} // ignore if already selected or pending
-        : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
-    type,
-  }
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
 )(Conversation)

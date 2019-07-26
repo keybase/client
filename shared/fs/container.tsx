@@ -1,55 +1,15 @@
 import * as React from 'react'
 import * as I from 'immutable'
-import {getRouteProps, namedConnect, RouteProps} from '../util/container'
+import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
-import {isMobile} from '../constants/platform'
 import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
 import {useFsLoadEffect} from './common'
 import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
-
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
-  return {
-    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-    _softErrors: state.fs.softErrors,
-    kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  _emitBarePreview: (path: Types.Path) => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {path}, selected: 'barePreview'}],
-      })
-    )
-  },
-  waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
-  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
-  return {
-    emitBarePreview: () => dispatchProps._emitBarePreview(path),
-    kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-    mimeType:
-      !isDefinitelyFolder && stateProps._pathItem.type === Types.PathType.File
-        ? stateProps._pathItem.mimeType
-        : null,
-    path,
-    pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-    routePath: I.List(), // not a valid value anymore TODO fix
-    softError: Constants.getSoftError(stateProps._softErrors, path),
-    waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
-  }
-}
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -62,7 +22,7 @@ type ChooseComponentProps = {
   waitForKbfsDaemon: () => void
 }
 
-const useBare = isMobile
+const useBare = Container.isMobile
   ? (mimeType: Types.Mime | null) => {
       return Constants.viewTypeFromMimeType(mimeType) === Types.FileViewType.Image
     }
@@ -118,14 +78,53 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = RouteProps<{path: Types.Path}>
+type OwnProps = Container.RouteProps<{path: Types.Path}>
 
-const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(ChooseComponent)
+const Connected = Container.namedConnect(
+  (state, ownProps: OwnProps) => {
+    const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+    return {
+      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _softErrors: state.fs.softErrors,
+      kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
+    }
+  },
+  dispatch => ({
+    _emitBarePreview: (path: Types.Path) => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {path}, selected: 'barePreview'}],
+        })
+      )
+    },
+    waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+    const isDefinitelyFolder =
+      Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
+    return {
+      emitBarePreview: () => dispatchProps._emitBarePreview(path),
+      kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
+      mimeType:
+        !isDefinitelyFolder && stateProps._pathItem.type === Types.PathType.File
+          ? stateProps._pathItem.mimeType
+          : null,
+      path,
+      pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
+      routePath: I.List(), // not a valid value anymore TODO fix
+      softError: Constants.getSoftError(stateProps._softErrors, path),
+      waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
+    }
+  },
+  'FsMain'
+)(ChooseComponent)
 
 // @ts-ignore
-Connected.navigationOptions = ({navigation}: {navigation: any}) => {
-  const path = navigation.getParam('path') || Constants.defaultPath
-  return isMobile
+Connected.navigationOptions = (ownProps: OwnProps) => {
+  const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+  return Container.isMobile
     ? path === Constants.defaultPath
       ? {
           header: undefined,
@@ -133,7 +132,10 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
         }
       : {
           header: (
-            <MobileHeader path={path} onBack={navigation.isFirstRouteInParent() ? null : navigation.pop} />
+            <MobileHeader
+              path={path}
+              onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
+            />
           ),
           headerHeight: mobileHeaderHeight(path),
         }

@@ -1,18 +1,18 @@
 import * as ProvisionGen from '../../actions/provision-gen'
-import * as LoginGen from '../../actions/login-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
 import * as Container from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = RouteProps
+type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
   configuredAccounts: state.config.configuredAccounts,
   devices: state.provision.devices,
 })
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, _: OwnProps) => ({
+
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())

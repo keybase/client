@@ -3,7 +3,12 @@ import SettingsNav from './nav'
 
 import {Props} from './render'
 
-function SettingsRender(props: Props) {
+const SettingsRender = (props: Props) => {
+  const {loadHasRandomPW} = props
+  React.useEffect(() => {
+    loadHasRandomPW()
+  }, [loadHasRandomPW])
+
   return (
     <SettingsNav
       badgeNotifications={props.badgeNotifications}

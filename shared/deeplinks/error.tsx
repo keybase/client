@@ -21,7 +21,7 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
 type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep7'}>
 
 const KeybaseLinkError = (props: OwnProps) => {
-  const errorSource = Container.getRouteProps(props, 'errorSource')
+  const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
   const Body = Kb.HeaderOrPopup(KeybaseLinkErrorBody)
   const error = Container.useSelector(s =>
     errorSource === 'app' ? s.deeplinks.keybaseLinkError : s.wallets.sep7ConfirmError
