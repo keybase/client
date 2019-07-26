@@ -20,12 +20,27 @@ type testKeybaseUserSearchData struct {
 	serviceMap   map[string]string
 	phoneNumbers []keybase1.PhoneNumber
 	emails       []keybase1.EmailAddress
-	followsUs    bool
+	followee     bool
 }
 
 type testUserSearchProvider struct {
 	T     *testing.T
 	users []testKeybaseUserSearchData
+}
+
+type testAddUserArg struct {
+	username string
+	fullName string
+}
+
+func (p *testUserSearchProvider) addUser(args ...testAddUserArg) {
+	for _, arg := range args {
+		user := testKeybaseUserSearchData{
+			username: arg.username,
+			fullName: arg.fullName,
+		}
+		p.users = append(p.users, user)
+	}
 }
 
 func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
@@ -67,7 +82,7 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 				Uid:        libkb.UsernameToUID(user.username),
 				FullName:   fullname,
 				RawScore:   score,
-				IsFollowee: user.followsUs,
+				IsFollowee: user.followee,
 			}
 			res = append(res, keybase1.APIUserSearchResult{Keybase: &keybase})
 		}
@@ -116,16 +131,13 @@ func TestContactSearch2(t *testing.T) {
 	require.NoError(t, err)
 
 	contactlist := []keybase1.ProcessedContact{
-		makeContact(makeContactArg{N: "Test Contact 1", username: "tuser1"}),
-		makeContact(makeContactArg{N: "Office Building", assertion: "123@phone"}),
-		makeContact(makeContactArg{N: "Michal", L: "michal", username: "michal"}),
-		makeContact(makeContactArg{N: "TEST", L: "+1555123456", assertion: "1555123456@phone"}),
+		makeContact(makeContactArg{name: "Test Contact 1", username: "tuser1"}),
+		makeContact(makeContactArg{name: "Office Building"}),
+		makeContact(makeContactArg{name: "Michal", username: "michal"}),
+		makeContact(makeContactArg{name: "TEST", phone: "+1555123456"}),
 	}
 
-	searchProv.users = append(searchProv.users, testKeybaseUserSearchData{
-		username: "tuser1",
-		fullName: "Test User 123",
-	})
+	searchProv.addUser(testAddUserArg{"tuser1", "Test User 123"})
 
 	err = tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)

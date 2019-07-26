@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/contacts"
@@ -93,22 +94,56 @@ func pluckSearchResultForTest(apiRes keybase1.APIUserSearchResult) searchResultF
 }
 
 type makeContactArg struct {
-	N         string // name
-	L         string // label
-	username  string // will make a resolved contact
-	assertion string
+	name  string
+	label string
+	phone string
+	email string
+
+	// if resolved
+	username  string
+	fullname  string
 	following bool
 }
 
 func makeContact(arg makeContactArg) (res keybase1.ProcessedContact) {
-	res.DisplayName = arg.N
-	res.DisplayLabel = arg.L
-	res.Assertion = arg.assertion
+	res.ContactName = arg.name
+	res.Component.Label = arg.label
+	var componentValue string
+	if arg.phone != "" {
+		componentValue = arg.phone
+		phone := keybase1.RawPhoneNumber(arg.phone)
+		res.Component.PhoneNumber = &phone
+		res.Assertion = fmt.Sprintf("%s@phone", strings.TrimLeft(componentValue, "+"))
+	} else if arg.email != "" {
+		componentValue = arg.email
+		email := keybase1.EmailAddress(arg.email)
+		res.Component.Email = &email
+		res.Assertion = fmt.Sprintf("[%s]@email", componentValue)
+	}
 	if arg.username != "" {
 		res.Username = arg.username
 		res.Uid = libkb.UsernameToUID(arg.username)
 		res.Resolved = true
 		res.Following = arg.following
+	}
+	// Emulate contact sync display name/label generation. Will not be needed
+	// once Y2K-310 is done where we move all that logic to usersearch.
+	if arg.username != "" {
+		res.DisplayName = arg.username
+		if arg.following && arg.fullname != "" {
+			res.DisplayLabel = arg.fullname
+		} else if arg.name != "" {
+			res.DisplayLabel = arg.name
+		} else {
+			res.DisplayLabel = componentValue
+		}
+	} else {
+		res.DisplayName = arg.name
+		if arg.label != "" {
+			res.DisplayLabel = fmt.Sprintf("%s (%s)", componentValue, arg.label)
+		} else {
+			res.DisplayLabel = componentValue
+		}
 	}
 	return res
 }
@@ -131,10 +166,10 @@ func TestContactSearch(t *testing.T) {
 	require.NoError(t, err)
 
 	contactlist := []keybase1.ProcessedContact{
-		makeContact(makeContactArg{N: "Test Contact 1", username: "tuser1"}),
-		makeContact(makeContactArg{N: "Office Building", assertion: "123@phone"}),
-		makeContact(makeContactArg{N: "Michal", L: "michal", username: "michal"}),
-		makeContact(makeContactArg{N: "TEST", L: "+1555123456", assertion: "1555123456@phone"}),
+		makeContact(makeContactArg{name: "Test Contact 1", username: "tuser1"}),
+		makeContact(makeContactArg{name: "Office Building", phone: "+1123"}),
+		makeContact(makeContactArg{name: "Michal", username: "michal"}),
+		makeContact(makeContactArg{name: "TEST", phone: "+1555123456"}),
 	}
 
 	contactsProv := NewCachedContactsProvider(tc.G)
@@ -164,7 +199,7 @@ func TestContactSearch(t *testing.T) {
 	require.Len(t, res, 2)
 	strList := stringifyAPIResult(res)
 	require.Contains(t, strList, "TEST,+1555123456")
-	require.Contains(t, strList, "Test Contact 1,")
+	require.Contains(t, strList, "tuser1,Test Contact 1")
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
@@ -174,7 +209,7 @@ func TestContactSearch(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	strList = stringifyAPIResult(res)
-	require.Contains(t, strList, "Office Building,")
+	require.Contains(t, strList, "Office Building,+1123")
 }
 
 func TestContactSearchWide(t *testing.T) {
@@ -185,10 +220,10 @@ func TestContactSearchWide(t *testing.T) {
 	require.NoError(t, err)
 
 	contactlist := []keybase1.ProcessedContact{
-		makeContact(makeContactArg{N: "Test Contact 1", username: "tuser1"}),
-		makeContact(makeContactArg{N: "🍱🍜🍪 Lunch", assertion: "48123@phone"}),
-		makeContact(makeContactArg{N: "Michal", L: "michal", username: "michal"}),
-		makeContact(makeContactArg{N: "高橋幸治", L: "+81123456555", assertion: "81123456555@phone"}),
+		makeContact(makeContactArg{name: "Test Contact 1", username: "tuser1"}),
+		makeContact(makeContactArg{name: "🍱🍜🍪 Lunch", phone: "+48123"}),
+		makeContact(makeContactArg{name: "Michal", username: "michal"}),
+		makeContact(makeContactArg{name: "高橋幸治", phone: "+81123456555"}),
 	}
 
 	contactsProv := NewCachedContactsProvider(tc.G)
