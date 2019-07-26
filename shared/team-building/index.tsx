@@ -11,6 +11,8 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 
+export const numSectionLabel = '0-9'
+
 type SearchResult = {
   userId: string
   username: string
@@ -144,16 +146,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 
   _alphabetIndex = () => {
+    const gap = <Kb.Box style={styles.shrinkingGap} />
+    const showNumSection =
+      this.props.recommendations &&
+      this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
         {this.props.recommendations &&
           this.props.recommendations.map(section =>
-            section.label && section.label.length <= 3 ? (
+            section.label && section.label.length === 1 ? (
               <React.Fragment key={section.label}>
                 <Kb.Text type="BodyTiny" onClick={() => this._onScrollToSection(section.label)}>
                   {section.label}
                 </Kb.Text>
-                <Kb.Box style={styles.shrinkingGap} />
+                {gap}
               </React.Fragment>
             ) : null
           )}
@@ -376,10 +382,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
 const styles = Styles.styleSheetCreate({
   alphabetIndex: {
-    height: '100%',
     position: 'absolute',
     right: Styles.globalMargins.xtiny,
-    top: Styles.globalMargins.xtiny,
+    top: Styles.globalMargins.medium,
     width: 15,
   },
   banner: {

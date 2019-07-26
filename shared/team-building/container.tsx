@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding, {RolePickerProps, SearchRecSection} from '.'
+import TeamBuilding, {RolePickerProps, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -341,7 +341,7 @@ const sortAndSplitRecommendations = memoize(
         if (!sections[27]) {
           sections[27] = {
             data: [],
-            label: '0-9',
+            label: numSectionLabel,
             shortcut: true,
           }
         }
