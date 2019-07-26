@@ -10,7 +10,7 @@ import Trustline from '.'
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
+  const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
   return {
     accountAssets: Constants.getAssets(state, accountID),
     canAddTrustline: Constants.getAccount(state, accountID).canAddTrustline,
@@ -25,7 +25,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSearchChange: debounce((text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})), 500),
   refresh: () => {
-    const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
+    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
     accountID !== Types.noAccountID && dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
     dispatch(WalletsGen.createRefreshTrustlinePopularAssets())
   },
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const emptyAccountAsset = Constants.makeAssets()
 
 const mergeProps = (s, d, o: OwnProps) => {
-  const accountID = Container.getRouteProps(o, 'accountID') || Types.noAccountID
+  const accountID = Container.getRouteProps(o, 'accountID', Types.noAccountID)
   const acceptedAssets = s.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
   return {
     acceptedAssets: acceptedAssets.keySeq().toArray(),

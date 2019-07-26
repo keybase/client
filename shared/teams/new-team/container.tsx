@@ -23,8 +23,8 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam') || false
-  const baseTeam = Container.getRouteProps(ownProps, 'name') || ''
+  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam', false)
+  const baseTeam = Container.getRouteProps(ownProps, 'name', '')
   return {
     ...stateProps,
     ...dispatchProps,

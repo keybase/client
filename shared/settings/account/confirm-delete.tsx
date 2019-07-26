@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import {RouteProps} from '../../route-tree/render-route'
 
 type Props = {
   address: string
@@ -14,7 +13,7 @@ type Props = {
   type: 'email' | 'phone'
 }
 
-const getIcon = props => {
+const getIcon = (props: Props) => {
   if (props.type === 'email') {
     return Styles.isMobile ? 'icon-email-remove-64' : 'icon-email-remove-48'
   }
@@ -37,14 +36,14 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = RouteProps<{address: string; searchable: boolean; type: string}>
+type OwnProps = Container.RouteProps<{address: string; searchable: boolean; type: 'email' | 'phone'}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
 
-  const itemAddress = Container.getRouteProps(props, 'address')
-  const itemSearchable = Container.getRouteProps(props, 'searchable')
-  const itemType = Container.getRouteProps(props, 'type')
+  const itemAddress = Container.getRouteProps(props, 'address', '')
+  const itemType = Container.getRouteProps(props, 'type', 'email')
+  const itemSearchable = Container.getRouteProps(props, 'searchable', false)
 
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onConfirm = React.useCallback(() => {

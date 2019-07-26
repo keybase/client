@@ -102,9 +102,9 @@ const AssetList = ({accountID, isSender, username}) => {
 }
 
 const PickAsset = (props: Props) => {
-  const accountID = props.navigation.getParam('accountID') || Types.noAccountID
-  const isSender = props.navigation.getParam('isSender')
-  const username = props.navigation.getParam('username')
+  const accountID = Container.getRouteProps(props, 'accountID', Types.noAccountID)
+  const isSender = Container.getRouteProps(props, 'isSender', false)
+  const username = Container.getRouteProps(props, 'username', '')
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])

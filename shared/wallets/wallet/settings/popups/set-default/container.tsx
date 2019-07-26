@@ -8,29 +8,26 @@ import SetDefaultAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const accountID = Container.getRouteProps(ownProps, 'accountID')
-
-  return {
-    accountID,
-    accountName: Constants.getAccount(state, accountID).name,
-    username: state.config.username,
-    waiting: anyWaiting(state, Constants.setAccountAsDefaultWaitingKey),
-  }
-}
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAccept: (accountID: Types.AccountID) =>
-    dispatch(
-      WalletsGen.createSetAccountAsDefault({
-        accountID,
-      })
-    ),
-  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+
+    return {
+      accountID,
+      accountName: Constants.getAccount(state, accountID).name,
+      username: state.config.username,
+      waiting: anyWaiting(state, Constants.setAccountAsDefaultWaitingKey),
+    }
+  },
+  dispatch => ({
+    _onAccept: (accountID: Types.AccountID) =>
+      dispatch(
+        WalletsGen.createSetAccountAsDefault({
+          accountID,
+        })
+      ),
+    _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
   (stateProps, dispatchProps) => ({
     accountName: stateProps.accountName,
     onAccept: () => dispatchProps._onAccept(stateProps.accountID),
