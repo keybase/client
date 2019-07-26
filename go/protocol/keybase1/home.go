@@ -242,59 +242,49 @@ func (o HomeScreenAnnouncement) DeepCopy() HomeScreenAnnouncement {
 type HomeScreenTodoType int
 
 const (
-	HomeScreenTodoType_NONE                               HomeScreenTodoType = 0
-	HomeScreenTodoType_BIO                                HomeScreenTodoType = 1
-	HomeScreenTodoType_PROOF                              HomeScreenTodoType = 2
-	HomeScreenTodoType_DEVICE                             HomeScreenTodoType = 3
-	HomeScreenTodoType_FOLLOW                             HomeScreenTodoType = 4
-	HomeScreenTodoType_CHAT                               HomeScreenTodoType = 5
-	HomeScreenTodoType_PAPERKEY                           HomeScreenTodoType = 6
-	HomeScreenTodoType_TEAM                               HomeScreenTodoType = 7
-	HomeScreenTodoType_FOLDER                             HomeScreenTodoType = 8
-	HomeScreenTodoType_GIT_REPO                           HomeScreenTodoType = 9
-	HomeScreenTodoType_TEAM_SHOWCASE                      HomeScreenTodoType = 10
-	HomeScreenTodoType_AVATAR_USER                        HomeScreenTodoType = 11
-	HomeScreenTodoType_AVATAR_TEAM                        HomeScreenTodoType = 12
-	HomeScreenTodoType_DEPRECATED_ADD_PHONE_NUMBER        HomeScreenTodoType = 13
-	HomeScreenTodoType_DEPRECATED_VERIFY_ALL_PHONE_NUMBER HomeScreenTodoType = 14
-	HomeScreenTodoType_DEPRECATED_VERIFY_ALL_EMAIL        HomeScreenTodoType = 15
-	HomeScreenTodoType_DEPRECATED_LEGACY_EMAIL_VISIBILITY HomeScreenTodoType = 16
-	HomeScreenTodoType_DEPRECATED_ADD_EMAIL               HomeScreenTodoType = 17
-	HomeScreenTodoType_ADD_PHONE_NUMBER                   HomeScreenTodoType = 18
-	HomeScreenTodoType_VERIFY_ALL_PHONE_NUMBER            HomeScreenTodoType = 19
-	HomeScreenTodoType_VERIFY_ALL_EMAIL                   HomeScreenTodoType = 20
-	HomeScreenTodoType_LEGACY_EMAIL_VISIBILITY            HomeScreenTodoType = 21
-	HomeScreenTodoType_ADD_EMAIL                          HomeScreenTodoType = 22
-	HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER            HomeScreenTodoType = 10000
+	HomeScreenTodoType_NONE                    HomeScreenTodoType = 0
+	HomeScreenTodoType_BIO                     HomeScreenTodoType = 1
+	HomeScreenTodoType_PROOF                   HomeScreenTodoType = 2
+	HomeScreenTodoType_DEVICE                  HomeScreenTodoType = 3
+	HomeScreenTodoType_FOLLOW                  HomeScreenTodoType = 4
+	HomeScreenTodoType_CHAT                    HomeScreenTodoType = 5
+	HomeScreenTodoType_PAPERKEY                HomeScreenTodoType = 6
+	HomeScreenTodoType_TEAM                    HomeScreenTodoType = 7
+	HomeScreenTodoType_FOLDER                  HomeScreenTodoType = 8
+	HomeScreenTodoType_GIT_REPO                HomeScreenTodoType = 9
+	HomeScreenTodoType_TEAM_SHOWCASE           HomeScreenTodoType = 10
+	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 11
+	HomeScreenTodoType_AVATAR_TEAM             HomeScreenTodoType = 12
+	HomeScreenTodoType_ADD_PHONE_NUMBER        HomeScreenTodoType = 18
+	HomeScreenTodoType_VERIFY_ALL_PHONE_NUMBER HomeScreenTodoType = 19
+	HomeScreenTodoType_VERIFY_ALL_EMAIL        HomeScreenTodoType = 20
+	HomeScreenTodoType_LEGACY_EMAIL_VISIBILITY HomeScreenTodoType = 21
+	HomeScreenTodoType_ADD_EMAIL               HomeScreenTodoType = 22
+	HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER HomeScreenTodoType = 10000
 )
 
 func (o HomeScreenTodoType) DeepCopy() HomeScreenTodoType { return o }
 
 var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
-	"NONE":                               0,
-	"BIO":                                1,
-	"PROOF":                              2,
-	"DEVICE":                             3,
-	"FOLLOW":                             4,
-	"CHAT":                               5,
-	"PAPERKEY":                           6,
-	"TEAM":                               7,
-	"FOLDER":                             8,
-	"GIT_REPO":                           9,
-	"TEAM_SHOWCASE":                      10,
-	"AVATAR_USER":                        11,
-	"AVATAR_TEAM":                        12,
-	"DEPRECATED_ADD_PHONE_NUMBER":        13,
-	"DEPRECATED_VERIFY_ALL_PHONE_NUMBER": 14,
-	"DEPRECATED_VERIFY_ALL_EMAIL":        15,
-	"DEPRECATED_LEGACY_EMAIL_VISIBILITY": 16,
-	"DEPRECATED_ADD_EMAIL":               17,
-	"ADD_PHONE_NUMBER":                   18,
-	"VERIFY_ALL_PHONE_NUMBER":            19,
-	"VERIFY_ALL_EMAIL":                   20,
-	"LEGACY_EMAIL_VISIBILITY":            21,
-	"ADD_EMAIL":                          22,
-	"ANNONCEMENT_PLACEHOLDER":            10000,
+	"NONE":                    0,
+	"BIO":                     1,
+	"PROOF":                   2,
+	"DEVICE":                  3,
+	"FOLLOW":                  4,
+	"CHAT":                    5,
+	"PAPERKEY":                6,
+	"TEAM":                    7,
+	"FOLDER":                  8,
+	"GIT_REPO":                9,
+	"TEAM_SHOWCASE":           10,
+	"AVATAR_USER":             11,
+	"AVATAR_TEAM":             12,
+	"ADD_PHONE_NUMBER":        18,
+	"VERIFY_ALL_PHONE_NUMBER": 19,
+	"VERIFY_ALL_EMAIL":        20,
+	"LEGACY_EMAIL_VISIBILITY": 21,
+	"ADD_EMAIL":               22,
+	"ANNONCEMENT_PLACEHOLDER": 10000,
 }
 
 var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
@@ -311,11 +301,6 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	10:    "TEAM_SHOWCASE",
 	11:    "AVATAR_USER",
 	12:    "AVATAR_TEAM",
-	13:    "DEPRECATED_ADD_PHONE_NUMBER",
-	14:    "DEPRECATED_VERIFY_ALL_PHONE_NUMBER",
-	15:    "DEPRECATED_VERIFY_ALL_EMAIL",
-	16:    "DEPRECATED_LEGACY_EMAIL_VISIBILITY",
-	17:    "DEPRECATED_ADD_EMAIL",
 	18:    "ADD_PHONE_NUMBER",
 	19:    "VERIFY_ALL_PHONE_NUMBER",
 	20:    "VERIFY_ALL_EMAIL",
