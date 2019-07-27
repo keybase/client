@@ -952,6 +952,11 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 		return true, nil
 	}
 
+	if state.GetParentID() == nil {
+		mctx.Debug("user is not an allowed keyer of the team (for root team)")
+		return false, nil
+	}
+
 	// now check implict adminship
 	yes, err := l.isImplicitAdminOf(mctx.Ctx(), state.GetID(), state.GetParentID(), me, them)
 	if err != nil {
