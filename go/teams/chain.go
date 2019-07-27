@@ -347,10 +347,10 @@ func (t TeamSigChainState) getLatestPerTeamKeyWithMerkleSeqno(mctx libkb.MetaCon
 	res, ok = t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
 
 	if hk == nil && ok {
-		return res, mr, nil
+		return res, t.inner.MerkleRoots[res.Seqno], nil
 	}
 	if !ok && hk != nil {
-		return *hk, mr, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
 	if !ok && hk == nil {
 		// if this happens it's a programming error

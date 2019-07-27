@@ -953,7 +953,7 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 	}
 
 	if state.GetParentID() == nil {
-		mctx.Debug("user is not an allowed keyer of the team (for root team)")
+		mctx.Debug("user is not an allowed keyer of the team")
 		return false, nil
 	}
 
