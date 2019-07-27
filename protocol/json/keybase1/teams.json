@@ -766,6 +766,18 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "needRotate"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleRoots"
         }
       ]
     },

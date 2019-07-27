@@ -358,6 +358,13 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // The loader might need to pass data back to the box auditor that at the time of the
+    // load, the hidden chain needed a rotation; this is the way todo it.
+    boolean needRotate;
+
+    // Merkle roots at each seqno
+    map<Seqno, MerkleRootV2> merkleRoots;
   }
 
   record LinkTriple {
