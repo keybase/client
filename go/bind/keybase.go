@@ -342,10 +342,6 @@ func ReadB64() (res string, err error) {
 	}
 	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
-		if n == bufferSize {
-			kbCtx.Log.Info("ReadB64 %d bytes (full buffer)", n)
-			fmt.Printf("ReadB64 %d bytes (full buffer)\n", n)
-		}
 		str := base64.StdEncoding.EncodeToString(buffer[0:n])
 		return str, nil
 	}
