@@ -938,6 +938,7 @@ type HiddenTeamChain struct {
 	RatchetSet        HiddenTeamChainRatchetSet      `codec:"ratchetSet" json:"ratchetSet"`
 	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
 	NeedRotate        bool                           `codec:"needRotate" json:"needRotate"`
+	MerkleRoots       map[Seqno]MerkleRootV2         `codec:"merkleRoots" json:"merkleRoots"`
 }
 
 func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
@@ -1000,6 +1001,18 @@ func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 		RatchetSet: o.RatchetSet.DeepCopy(),
 		CachedAt:   o.CachedAt.DeepCopy(),
 		NeedRotate: o.NeedRotate,
+		MerkleRoots: (func(x map[Seqno]MerkleRootV2) map[Seqno]MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]MerkleRootV2, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.MerkleRoots),
 	}
 }
 

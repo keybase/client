@@ -270,4 +270,8 @@ func TestHiddenNeedRotate(t *testing.T) {
 		gen := loadPTKGen(aM)
 		return gen > prevGen
 	})
+
+	// Allow writes from box auditor to finish up; not really necessary, but makes the logs
+	// look nicer.
+	time.Sleep(10 * time.Millisecond)
 }

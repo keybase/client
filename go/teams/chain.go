@@ -333,19 +333,24 @@ func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
 	}
 	return res
 }
+func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (res keybase1.PerTeamKey, err error) {
+	res, _, err = t.getLatestPerTeamKeyWithMerkleSeqno(mctx)
+	return res, err
+}
 
-func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) getLatestPerTeamKeyWithMerkleSeqno(mctx libkb.MetaContext) (res keybase1.PerTeamKey, mr keybase1.MerkleRootV2, err error) {
 	var hk *keybase1.PerTeamKey
 	if t.hidden != nil {
 		hk = t.hidden.MaxReaderPerTeamKey()
 	}
-	res, ok := t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
+	var ok bool
+	res, ok = t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
 
 	if hk == nil && ok {
-		return res, nil
+		return res, mr, nil
 	}
 	if !ok && hk != nil {
-		return *hk, nil
+		return *hk, mr, nil
 	}
 	if !ok && hk == nil {
 		// if this happens it's a programming error
@@ -353,12 +358,12 @@ func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1
 		if t.hidden != nil {
 			mctx.Debug("PTK not found error debug dump: hidden: %+v", *t.hidden)
 		}
-		return res, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
+		return res, mr, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
 	}
 	if hk.Gen > res.Gen {
-		return *hk, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
-	return res, nil
+	return res, t.inner.MerkleRoots[res.Seqno], nil
 }
 
 func (t *TeamSigChainState) GetLatestPerTeamKeyCTime() keybase1.UnixTime {
