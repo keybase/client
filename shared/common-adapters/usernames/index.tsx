@@ -26,6 +26,7 @@ export type BaseUsernamesProps = {
   inline?: boolean
   inlineGrammar?: boolean
   joinerStyle?: Styles.StylesCrossPlatform
+  lineClamp?: number
   prefix?: string | null
   redColor?: string
   selectable?: boolean
@@ -159,6 +160,7 @@ class Usernames extends React.Component<Props> {
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         ellipsizeMode="tail"
+        lineClamp={this.props.lineClamp}
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (
