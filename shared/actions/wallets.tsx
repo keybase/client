@@ -139,12 +139,14 @@ const createNewAccount = (
 }
 
 const emptyAsset: RPCStellarTypes.Asset = {
+  authEndpoint: '',
   code: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: '',
   issuerName: '',
+  transferServer: '',
   type: 'native',
   verifiedDomain: '',
 }
@@ -287,7 +289,9 @@ const validateSEP7Link = (_: TypedState, action: WalletsGen.ValidateSEP7LinkPayl
         error: error.desc,
       }),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}]}),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}],
+      }),
     ])
 
 const acceptSEP7Tx = (_: TypedState, action: WalletsGen.AcceptSEP7TxPayload) =>
@@ -1211,12 +1215,14 @@ const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) =>
 const assetDescriptionOrNativeToRpcAsset = (
   asset: 'native' | Types.AssetDescription
 ): RPCStellarTypes.Asset => ({
+  authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: asset === 'native' ? '' : asset.issuerAccountID,
   issuerName: '',
+  transferServer: '',
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
 })
