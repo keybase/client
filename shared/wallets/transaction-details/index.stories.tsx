@@ -57,11 +57,13 @@ const props = {
 }
 
 const partialAsset = {
+  authEndpoint: '',
   code: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuerName: '',
+  transferServer: '',
   type: '',
 }
 

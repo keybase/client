@@ -8,7 +8,7 @@ protocol teams {
     WRITER_2,
     ADMIN_3,
     OWNER_4,
-    // BOT_5,
+    BOT_5,
     RESTRICTEDBOT_6
   }
 
@@ -136,6 +136,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
+    array<UserVersion> bots;
     array<UserVersion> restrictedBots;
   }
 
@@ -159,6 +160,7 @@ protocol teams {
     array<TeamMemberDetails> admins;
     array<TeamMemberDetails> writers;
     array<TeamMemberDetails> readers;
+    array<TeamMemberDetails> bots;
     array<TeamMemberDetails> restrictedBots;
   }
 
@@ -178,6 +180,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
+    array<UserVersion> bots;
     array<UserVersion> restrictedBots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;

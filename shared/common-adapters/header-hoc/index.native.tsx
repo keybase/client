@@ -322,6 +322,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flexGrow: 1,
+      flexShrink: 2,
       justifyContent: 'center',
     },
     isAndroid: {

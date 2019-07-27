@@ -48,8 +48,7 @@
     "editPhone": {
       "phone": "string",
       "delete?": "boolean",
-      "toggleSearchable?": "boolean",
-      "verify?": "boolean"
+      "setSearchable?": "boolean",
     },
     "sentVerificationEmail": {
       "email": "string"

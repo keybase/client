@@ -1967,6 +1967,9 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Readers {
 		m[u.Uid] = true
 	}
+	for _, u := range t.Bots {
+		m[u.Uid] = true
+	}
 	for _, u := range t.RestrictedBots {
 		m[u.Uid] = true
 	}
@@ -1989,6 +1992,9 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 		m[u.Uid] = u
 	}
 	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Bots {
 		m[u.Uid] = u
 	}
 	for _, u := range t.RestrictedBots {
@@ -2324,23 +2330,46 @@ func (r TeamRole) IsReaderOrAbove() bool {
 	return r.IsOrAbove(TeamRole_READER)
 }
 
+func (r TeamRole) IsBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_BOT)
+}
+
 func (r TeamRole) IsRestrictedBotOrAbove() bool {
 	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
+}
+
+func (r TeamRole) IsBotLike() bool {
+	switch r {
+	case TeamRole_BOT, TeamRole_RESTRICTEDBOT:
+		return true
+	}
+	return false
 }
 
 func (r TeamRole) IsRestrictedBot() bool {
 	return r == TeamRole_RESTRICTEDBOT
 }
 
-func (r TeamRole) IsOrAbove(min TeamRole) bool {
+func (r TeamRole) teamRoleForOrderingOnly() int {
 	switch r {
 	case TeamRole_NONE:
-		return min == TeamRole_NONE
+		return 0
 	case TeamRole_RESTRICTEDBOT:
-		return min == TeamRole_NONE || min == TeamRole_RESTRICTEDBOT
+		return 1
+	case TeamRole_BOT:
+		return 2
+	case TeamRole_READER,
+		TeamRole_WRITER,
+		TeamRole_ADMIN,
+		TeamRole_OWNER:
+		return int(r) + 2
 	default:
-		return int(r) >= int(min) || min == TeamRole_RESTRICTEDBOT
+		return 0
 	}
+}
+
+func (r TeamRole) IsOrAbove(min TeamRole) bool {
+	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
 }
 
 type idSchema struct {
@@ -2560,6 +2589,8 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	switch role {
 	case TeamRole_RESTRICTEDBOT:
 		req.RestrictedBots = append(req.RestrictedBots, uv)
+	case TeamRole_BOT:
+		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
 		req.Readers = append(req.Readers, uv)
 	case TeamRole_WRITER:
@@ -2583,6 +2614,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.RestrictedBots...)
+	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
 	ret = append(ret, req.Admins...)

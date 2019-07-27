@@ -5,6 +5,7 @@ import * as Kb from '../../../common-adapters'
 import AddPeopleHow from './add-people-how/container'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
+import * as ImagePicker from 'expo-image-picker'
 
 export type Props = {
   canChat: boolean
@@ -21,7 +22,7 @@ export type Props = {
   onAddSelf: () => void
   onChat: () => void
   onEditDescription: () => void
-  onEditIcon: (image?) => void
+  onEditIcon: (image?: ImagePicker.ImagePickerResult) => void
   onFilePickerError: (error: Error) => void
   onRename: (() => void) | null
 } & Kb.OverlayParentProps

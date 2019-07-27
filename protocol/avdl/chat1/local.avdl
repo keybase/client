@@ -108,6 +108,7 @@ protocol local {
     array<string> admins;
     array<string> writers;
     array<string> readers;
+    array<string> bots;
     array<string> restrictedBots;
   }
 

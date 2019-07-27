@@ -25,7 +25,7 @@ const setupNotifications = () =>
       kbfsdesktop: !isMobile,
       kbfslegacy: false,
       kbfsrequest: false,
-      kbfssubscription: false,
+      kbfssubscription: true,
       keyfamily: false,
       paperkeys: false,
       pgp: true,

@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
@@ -210,14 +209,12 @@ const load = () => {
         <Kb.Text type="Body">Row mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          routePath={I.List()}
           mode="row"
           {...pathItemActionCommonProps}
         />
         <Kb.Text type="Body">Screen mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />
@@ -225,7 +222,6 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />
@@ -233,7 +229,6 @@ const load = () => {
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />

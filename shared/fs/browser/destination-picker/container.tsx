@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
@@ -40,12 +39,10 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
       ownProps.safeNavigateAppendPayload({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
@@ -54,7 +51,6 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
@@ -121,7 +117,6 @@ const mergeProps = (
       ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
       : null,
     parentPath: getDestinationParentPath(stateProps, ownProps),
-    routePath: I.List(), // ownProps.routePath,
     targetName,
   }
 }

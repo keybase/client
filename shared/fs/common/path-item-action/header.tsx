@@ -6,7 +6,7 @@ import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
-import {useFsLoadEffect} from '../../common'
+import {useFsChildren, useFsPathMetadata} from '../../common'
 
 export type Props = {
   size: number
@@ -14,8 +14,6 @@ export type Props = {
   childrenFolders: number
   childrenFiles: number
   path: Types.Path
-  loadFolderList: () => void
-  loadPathMetadata: () => void
 }
 
 const filesAndFoldersCount = (props: Props) =>
@@ -31,12 +29,8 @@ const filesAndFoldersCount = (props: Props) =>
   )
 
 const Header = (props: Props) => {
-  useFsLoadEffect({
-    path: props.path,
-    refreshTag: Types.RefreshTag.PathItemActionPopup,
-    wantChildren: props.type === Types.PathType.Folder,
-    wantPathMetadata: true,
-  })
+  useFsChildren(props.path)
+  useFsPathMetadata(props.path)
   return (
     <Kb.Box
       onClick={

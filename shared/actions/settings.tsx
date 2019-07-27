@@ -403,8 +403,8 @@ const loadSettings = (
       logger.warn(`Error loading settings: ${e.message}`)
     })
 
-const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
-  searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
+const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
+  searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
 
 const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
@@ -431,24 +431,29 @@ const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLog
   logger.warn('Empty editEmail action')
   return undefined
 }
-const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
-  // TODO: consider allowing more than one action here
+const editPhone = (_, action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
   // TODO: handle errors
+  let actions = Promise.resolve()
+  let acted = false
   if (action.payload.delete) {
-    return RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
+    actions = actions.then(() =>
+      RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
+    )
+    acted = true
   }
-  if (action.payload.toggleSearchable) {
-    const currentSettings = state.settings.phoneNumbers.phones.get(action.payload.phone)
-    const newVisibility = currentSettings
-      ? flipVis(currentSettings.searchable)
-      : ChatTypes.Keybase1.IdentityVisibility.private
-    return RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
-      phoneNumber: action.payload.phone,
-      visibility: newVisibility,
-    })
+  if (action.payload.setSearchable !== undefined) {
+    actions = actions.then(() =>
+      RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
+        phoneNumber: action.payload.phone,
+        visibility: visFromBoolean(!!action.payload.setSearchable),
+      })
+    )
+    acted = true
   }
-  logger.warn('Empty editPhone action')
-    return undefined
+  if (!acted) {
+    logger.warn('Empty editPhone action')
+  }
+  return actions
 }
 
 const getRememberPassword = () =>
@@ -614,7 +619,11 @@ const addPhoneNumber = (
     })
     .catch(err => {
       logger.warn('error ', err.message)
-      return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
+      const message =
+        err.code === RPCTypes.StatusCode.scratelimit
+          ? 'Sorry, added a few too many phone numbers recently. Please try again later.'
+          : err.message
+      return SettingsGen.createAddedPhoneNumber({allowSearch, error: message, phoneNumber})
     })
 }
 
@@ -628,7 +637,14 @@ const resendVerificationForPhoneNumber = (
   return RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
     {phoneNumber},
     Constants.resendVerificationForPhoneWaitingKey
-  )
+  ).catch(err => {
+    const message =
+      err.code === RPCTypes.StatusCode.scratelimit
+        ? 'Sorry, asked for a few too many verification codes recently. Please try again later.'
+        : err.message
+    logger.warn('error ', message)
+    return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
+  })
 }
 
 const verifyPhoneNumber = (
@@ -650,6 +666,8 @@ const verifyPhoneNumber = (
       const message =
         err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
           ? 'Incorrect code, please try again.'
+          : err.code === RPCTypes.StatusCode.scratelimit
+          ? 'Sorry, tried too many guesses in a short period of time. Please try again later.'
           : err.message
       logger.warn('error ', message)
       return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
@@ -717,6 +735,12 @@ const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger
     })
     .catch(err => {
       logger.warn(`error: ${err.message}`)
+
+      const message =
+        err.code === RPCTypes.StatusCode.scratelimit
+          ? "Sorry, you've added too many email addresses lately. Please try again later."
+          : err.message
+      err.message = message
       return SettingsGen.createAddedEmail({email, error: err})
     })
 }

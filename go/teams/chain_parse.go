@@ -52,6 +52,7 @@ type SCTeamMembers struct {
 	Admins         *[]SCTeamMember `json:"admin,omitempty"`
 	Writers        *[]SCTeamMember `json:"writer,omitempty"`
 	Readers        *[]SCTeamMember `json:"reader,omitempty"`
+	Bots           *[]SCTeamMember `json:"bot,omitempty"`
 	RestrictedBots *[]SCTeamMember `json:"restricted_bot,omitempty"`
 	None           *[]SCTeamMember `json:"none,omitempty"`
 }

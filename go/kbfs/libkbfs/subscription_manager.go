@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -35,6 +36,14 @@ type cleanInTlfPath string
 
 func getCleanInTlfPath(p *parsedPath) cleanInTlfPath {
 	return cleanInTlfPath(path.Clean(p.rawInTlfPath))
+}
+
+func getParentPath(p cleanInTlfPath) (parent cleanInTlfPath, ok bool) {
+	lastSlashIndex := strings.LastIndex(string(p), "/")
+	if lastSlashIndex <= 0 {
+		return "", false
+	}
+	return p[:lastSlashIndex], true
 }
 
 type debouncedNotify struct {
@@ -254,6 +263,7 @@ func (sm *subscriptionManager) unsubscribePath(
 	}
 	delete(sm.subscriptionIDs, subscriptionID)
 }
+
 func (sm *subscriptionManager) unsubscribeNonPath(
 	ctx context.Context, subscriptionID SubscriptionID) {
 	sm.lock.Lock()
@@ -278,15 +288,7 @@ func (sm *subscriptionManager) unsubscribeNonPath(
 	delete(sm.subscriptionIDs, subscriptionID)
 }
 
-func (sm *subscriptionManager) nodeChangeLocked(node Node) {
-	path, ok := node.GetPathPlaintextSansTlf()
-	if !ok {
-		return
-	}
-	ref := pathSubscriptionRef{
-		folderBranch: node.GetFolderBranch(),
-		path:         cleanInTlfPath(path),
-	}
+func (sm *subscriptionManager) notifyRef(ref pathSubscriptionRef) {
 	if sm.pathSubscriptions[ref] == nil {
 		return
 	}
@@ -296,6 +298,28 @@ func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 		// dropping deduplicated ones, or by doing the actual send in a
 		// separate goroutine.
 		notifier.notify()
+	}
+}
+
+func (sm *subscriptionManager) nodeChangeLocked(node Node) {
+	path, ok := node.GetPathPlaintextSansTlf()
+	if !ok {
+		return
+	}
+	cleanPath := cleanInTlfPath(path)
+
+	sm.notifyRef(pathSubscriptionRef{
+		folderBranch: node.GetFolderBranch(),
+		path:         cleanPath,
+	})
+
+	// Do this for parent as well, so if "children" is subscribed on parent
+	// path, we'd trigger a notification too.
+	if parent, ok := getParentPath(cleanPath); ok {
+		sm.notifyRef(pathSubscriptionRef{
+			folderBranch: node.GetFolderBranch(),
+			path:         parent,
+		})
 	}
 }
 

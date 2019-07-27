@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
@@ -7,7 +6,7 @@ import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
-import {useFsLoadEffect} from './common'
+import {useFsPathMetadata, useFsTlfs} from './common'
 import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
@@ -17,7 +16,6 @@ type ChooseComponentProps = {
   mimeType: Types.Mime | null
   path: Types.Path
   pathType: Types.PathType
-  routePath: I.List<string>
   softError: Types.SoftError | null
   waitForKbfsDaemon: () => void
 }
@@ -45,12 +43,8 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     isConnected && waitForKbfsDaemon()
   }, [isConnected, waitForKbfsDaemon])
 
-  useFsLoadEffect({
-    path: props.path,
-    refreshTag: Types.RefreshTag.Main,
-    wantPathMetadata: true,
-    wantTlfs: true,
-  })
+  useFsPathMetadata(props.path)
+  useFsTlfs()
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
     return <SimpleScreens.Loading />
@@ -61,7 +55,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
   switch (props.pathType) {
     case Types.PathType.Folder:
-      return <Browser path={props.path} routePath={props.routePath} />
+      return <Browser path={props.path} />
     case Types.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
@@ -73,7 +67,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
         // doesn't matter here as we do a navigateAppend for bare views
         <SimpleScreens.Loading />
       ) : (
-        <NormalPreview path={props.path} routePath={props.routePath} />
+        <NormalPreview path={props.path} />
       )
   }
 }
@@ -113,7 +107,6 @@ const Connected = Container.namedConnect(
           : null,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-      routePath: I.List(), // not a valid value anymore TODO fix
       softError: Constants.getSoftError(stateProps._softErrors, path),
       waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
     }

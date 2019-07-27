@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/fs'
@@ -14,7 +13,6 @@ const ConnectedBarePreview = Container.isMobile
       (_, {onBack}, ownProps: OwnProps) => ({
         onBack,
         path: Container.getRouteProps(ownProps, 'path', Constants.defaultPath),
-        routePath: I.List(), // TODO fix ownProps.routePath,
       }),
       'BarePreview'
     )(BarePreview)
