@@ -469,6 +469,17 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
+    if (env.CHANGE_TARGET) {
+      println("Running golangci-lint on new code")
+      fetchChangeTarget()
+      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+      timeout(activity: true, time: 360, unit: 'SECONDS') {
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+      }
+    }
+
+
+
     if (isUnix()) {
       // Windows `gofmt` pukes on CRLF, so only run on *nix.
       println "Running mockgen"
