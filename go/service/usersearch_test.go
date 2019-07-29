@@ -291,10 +291,10 @@ func TestContactSearch(t *testing.T) {
 	require.NoError(t, err)
 
 	contactlist := []keybase1.ProcessedContact{
-		makeContact(makeContactArg{name: "Test Contact 1", username: "tuser1"}),
-		makeContact(makeContactArg{name: "Office Building", phone: "+1123"}),
-		makeContact(makeContactArg{name: "Michal", username: "michal"}),
-		makeContact(makeContactArg{name: "TEST", phone: "+1555123456"}),
+		makeContact(makeContactArg{index: 0, name: "Test Contact 1", username: "tuser1"}),
+		makeContact(makeContactArg{index: 1, name: "Office Building", phone: "+1123"}),
+		makeContact(makeContactArg{index: 2, name: "Michal", username: "michal"}),
+		makeContact(makeContactArg{index: 3, name: "TEST", phone: "+1555123456"}),
 	}
 
 	contactsProv := NewCachedContactsProvider(tc.G)
