@@ -7,6 +7,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as SettingsGen from '../settings-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -327,12 +328,24 @@ function* maybeDoneWithLogoutHandshake(state) {
 let routeToInitialScreenOnce = false
 
 const routeToInitialScreen2 = (state: Container.TypedState) => {
+  console.log(
+    `bruh initscreen2 ${JSON.stringify(state.config.loggedIn)} ; ${JSON.stringify(state.config.startupLink)}`
+  )
+
+  if (state.config.loggedIn && state.config.startupLink) {
+    console.log('bruh startuplink')
+  }
+
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
     return
   }
   if (!state.config.startupDetailsLoaded) {
     return
+  }
+
+  if (state.config.loggedIn && state.config.startupLink && !state.settings.phoneNumbers.phones) {
+    return [SettingsGen.createLoadSettings()]
   }
 
   return routeToInitialScreen(state)
@@ -389,12 +402,25 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     }
 
     // A deep link
+    console.log(`bruh startup logic ${state.config.startupLink}`)
     if (state.config.startupLink) {
       try {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
-        if (username) {
+        if (username === 'app') {
+          if (!state.settings.phoneNumbers.phones) {
+            return
+          }
+
+          if (state.settings.phoneNumbers.phones.size === 0) {
+            return [
+              RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+              RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
+              RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
+            ]
+          }
+        } else if (username) {
           return [
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
@@ -553,10 +579,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   // MUST go above routeToInitialScreen2 so we set the nav correctly
   yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload>(
-    [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator],
-    routeToInitialScreen2
-  )
+  yield* Saga.chainAction<
+    ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload | SettingsGen.LoadSettingsPayload
+  >([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator, SettingsGen.loadSettings], routeToInitialScreen2)
 
   yield* Saga.chainAction<
     | RouteTreeGen.NavigateAppendPayload
