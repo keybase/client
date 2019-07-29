@@ -1251,3 +1251,11 @@ func (s *Server) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticC
 		PublicMemoMaxLength:  libkb.MaxStellarPaymentPublicNoteLength,
 	}, nil
 }
+
+func (s *Server) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+}
+
+func (s *Server) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+}

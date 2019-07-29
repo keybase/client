@@ -21,7 +21,10 @@ protocol common {
     string desc; // 'Worthwhile token' or empty
     string infoUrl; // 'https://...' or empty
     string infoUrlText; // 'Exchange' for an exchange, 'View details' for anything else
-    // TODO: we will need deposit and withdraw URLs added here in the next ticket (PC)
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
     string transferServer; // sep6 transfer server
     string authEndpoint; // sep6 auth endpoint
   }
@@ -175,6 +178,6 @@ protocol common {
     Asset destinationAsset;
     // Populated only if source account balance isn't sufficient to make this
     // balance. If populated it will be the source account balance.
-    string sourceInsufficientBalance; 
+    string sourceInsufficientBalance;
   }
 }

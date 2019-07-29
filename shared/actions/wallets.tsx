@@ -141,14 +141,18 @@ const createNewAccount = (
 const emptyAsset: RPCStellarTypes.Asset = {
   authEndpoint: '',
   code: '',
+  depositButtonText: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: '',
   issuerName: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
   transferServer: '',
   type: 'native',
   verifiedDomain: '',
+  withdrawButtonText: '',
 }
 
 const emptyAssetWithoutType: RPCStellarTypes.Asset = {
@@ -1217,14 +1221,18 @@ const assetDescriptionOrNativeToRpcAsset = (
 ): RPCStellarTypes.Asset => ({
   authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
+  depositButtonText: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: asset === 'native' ? '' : asset.issuerAccountID,
   issuerName: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
   transferServer: '',
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
+  withdrawButtonText: '',
 })
 
 const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
