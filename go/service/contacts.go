@@ -210,6 +210,7 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 					res[currentIndex] = contact
 				}
 			} else {
+				contactForUsername[contact.Username] = len(res)
 				res = append(res, contact)
 			}
 		}
