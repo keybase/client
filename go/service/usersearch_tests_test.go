@@ -99,8 +99,8 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 type errorContactsProvider struct{}
 
 func (*errorContactsProvider) LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber,
-	keybase1.RegionCode) (contacts.ContactLookupMap, error) {
-	return nil, errors.New("unexpected errorContactsProvider call")
+	keybase1.RegionCode) (res contacts.ContactLookupResults, err error) {
+	return res, errors.New("unexpected errorContactsProvider call")
 }
 
 func (*errorContactsProvider) FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]contacts.ContactUsernameAndFullName, error) {

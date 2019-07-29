@@ -177,7 +177,9 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 	}
 
 	// Find the best contact for each resolved username.
-	contactForUsername := make(map[string]keybase1.ProcessedContact, len(seenResolvedContacts))
+	// Map usernames to index in `res` list.
+	contactForUsername := make(map[string]int, len(seenResolvedContacts))
+	currentUID := mctx.CurrentUID()
 
 	for _, contact := range savedContacts {
 		if !contact.Resolved {
@@ -189,7 +191,14 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 
 			res = append(res, contact)
 		} else {
-			if current, found := contactForUsername[contact.Username]; found {
+			if contact.Uid.Equal(currentUID) {
+				// Some people have their phone number in contact list, do not
+				// show current user in recommendations.
+				continue
+			}
+
+			if currentIndex, found := contactForUsername[contact.Username]; found {
+				current := res[currentIndex]
 				var overwrite bool
 				// NOTE: add more rules here if needed.
 				if current.Component.Email == nil && contact.Component.Email != nil {
@@ -198,16 +207,12 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 				}
 
 				if overwrite {
-					contactForUsername[contact.Username] = contact
+					res[currentIndex] = contact
 				}
 			} else {
-				contactForUsername[contact.Username] = contact
+				res = append(res, contact)
 			}
 		}
-	}
-
-	for _, contact := range contactForUsername {
-		res = append(res, contact)
 	}
 
 	return res, nil

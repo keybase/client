@@ -21,13 +21,14 @@ type contactSyncTest struct {
 	contactsHandler *ContactsHandler
 	contactsMock    *contacts.MockContactsProvider
 	searchMock      *testUserSearchProvider
+	user            *kbtest.FakeUser
 }
 
 func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncTest) {
 	tc = libkb.SetupTest(t, "contacts", 3)
 	tc.G.SyncedContactList = contacts.NewSavedContactsStore(tc.G)
 
-	_, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
+	user, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
 	require.NoError(t, err)
 
 	mockContactsProv := contacts.MakeMockProvider(t)
@@ -45,6 +46,7 @@ func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncT
 		contactsHandler: contactsHandler,
 		contactsMock:    mockContactsProv,
 		searchMock:      searchProv,
+		user:            user,
 	}
 }
 
@@ -132,5 +134,38 @@ func TestContactSyncAndSearch(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Len(t, res, 1)
+	}
+}
+
+func TestContactShouldFilterOutSelf(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+
+	all.contactsMock.PhoneNumbers["+1555222"] = contacts.MakeMockLookupUser(all.user.Username, "")
+
+	rawContacts := []keybase1.Contact{
+		contacts.MakeContact("Alice A",
+			contacts.MakePhoneComponent("mobile", "+48111222333"),
+			contacts.MakeEmailComponent("email", "alice@example.org"),
+		),
+		contacts.MakeContact("Charlie",
+			contacts.MakePhoneComponent("mobile", "+1555222"),
+		),
+	}
+
+	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+
+	list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
+	require.NoError(t, err)
+	require.Len(t, list, 2)
+	for _, v := range list {
+		// Only first contact entries should be there
+		require.Equal(t, "Alice A", v.ContactName)
+		require.Equal(t, 0, v.ContactIndex)
 	}
 }
