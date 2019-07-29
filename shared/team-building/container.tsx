@@ -192,7 +192,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
-    const func = query === 'keybase' ? debouncedSearchKeybase : debouncedSearch
+    const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, limit)
   },
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
