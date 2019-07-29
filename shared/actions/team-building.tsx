@@ -189,7 +189,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
         )
       const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
       if (expectingContacts) {
-        suggestions = suggestions.slice(0, 5)
+        suggestions = suggestions.slice(0, 10)
       }
       return suggestions.concat(contacts)
     })
