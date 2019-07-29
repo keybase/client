@@ -71,13 +71,18 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
 const LeftBlock = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
-  const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
+  const hasTrivialPath =
+    buildingAdvanced.senderAsset === 'native'
+      ? isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
+      : buildingAdvanced.senderAsset.issuerAccountID !== Types.noAccountID &&
+        isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset) &&
+        !!buildingAdvanced.recipientAmount
 
   if (hasTrivialPath) {
     return (
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={{maxWidth: '40%'}}>
         <Kb.Text type="HeaderBigExtrabold">{buildingAdvanced.recipientAmount}</Kb.Text>
-        {buildingAdvanced.recipientAmount &&
+        {!!buildingAdvanced.recipientAmount &&
           (buildingAdvanced.recipientAsset === 'native' ? (
             <Kb.Text type="BodyTiny">Stellar Lumens</Kb.Text>
           ) : (
