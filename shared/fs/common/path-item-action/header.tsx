@@ -16,8 +16,9 @@ export type Props = {
   path: Types.Path
 }
 
-const filesAndFoldersCount = (props: Props) =>
-  props.type === Types.PathType.Folder && (
+const FilesAndFoldersCount = (props: Props) => {
+  useFsChildren(props.path)
+  return (
     <Kb.Text type="BodySmall">
       {props.childrenFolders
         ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
@@ -27,9 +28,9 @@ const filesAndFoldersCount = (props: Props) =>
       {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
     </Kb.Text>
   )
+}
 
 const Header = (props: Props) => {
-  useFsChildren(props.path)
   useFsPathMetadata(props.path)
   return (
     <Kb.Box
@@ -56,7 +57,7 @@ const Header = (props: Props) => {
         {props.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Kb.Text>
         )}
-        {filesAndFoldersCount(props)}
+        {props.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
         <TlfOrPathItemInfo path={props.path} mode="menu" />
       </Kb.Box2>
     </Kb.Box>
