@@ -169,3 +169,30 @@ func TestContactShouldFilterOutSelf(t *testing.T) {
 		require.Equal(t, 0, v.ContactIndex)
 	}
 }
+
+func TestRecommendationsPreferEmail(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	all.contactsMock.Emails["alice@example.org"] = contacts.MakeMockLookupUser("alice", "")
+
+	rawContacts := []keybase1.Contact{
+		contacts.MakeContact("Alice A",
+			contacts.MakePhoneComponent("mobile", "+48111222333"),
+			contacts.MakeEmailComponent("email", "alice@example.org"),
+		),
+	}
+
+	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+
+	list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+	require.True(t, list[0].Resolved)
+	require.Equal(t, "alice", list[0].Username)
+	require.Equal(t, "[alice@example.org]@email", list[0].Assertion)
+}
