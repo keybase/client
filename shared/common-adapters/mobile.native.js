@@ -7,6 +7,5 @@ module.hot &&
   })
 export * from '.'
 export * from './native-wrappers.native'
-export * from './form-input.native'
 export * from './zoomable-box'
 export {ReAnimated, ReAnimatedEasing, Swipeable}
