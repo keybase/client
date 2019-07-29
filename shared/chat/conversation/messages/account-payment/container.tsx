@@ -58,6 +58,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
 
+      console.log('paymentInfo:', paymentInfo)
+
       // find the other participant's username
       const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
       const theirUsername = conv.participants.find(p => p !== you) || ''
