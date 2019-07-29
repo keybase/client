@@ -16,9 +16,9 @@ class KBInputText extends RNTextInput {
 
   render() {
     // @ts-ignore we added this
-    const {forwardRef} = this.props
+    const {forwardedRef} = this.props
     if (!isAndroid) {
-      return <RNTextInput {...this.props} ref={forwardRef} />
+      return <RNTextInput {...this.props} ref={forwardedRef} />
     }
     const p = {
       ...this.props,
@@ -47,7 +47,7 @@ class KBInputText extends RNTextInput {
     const textContainer = (
       <this.nativeTextInput
         {...p}
-        ref={forwardRef}
+        ref={forwardedRef}
         mostRecentEventCount={0}
         text={p.value || p.defaultValue || ''}
         children={children}
