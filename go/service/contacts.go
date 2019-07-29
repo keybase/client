@@ -20,7 +20,7 @@ type bulkLookupContactsProvider struct{}
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupMap, error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
 	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)

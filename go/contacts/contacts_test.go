@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -40,23 +41,25 @@ func makeProvider(t *testing.T) *MockContactsProvider {
 }
 
 func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
 
-	ret := make(ContactLookupMap)
+	ret := NewContactLookupResults()
 	for _, email := range emails {
 
 		if user, found := c.emails[email]; found {
-			ret[makeEmailLookupKey(email)] = ContactLookupResult{UID: user.UID}
+			ret.Results[makeEmailLookupKey(email)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	for _, number := range numbers {
 		if user, found := c.phoneNumbers[number]; found {
-			ret[makePhoneLookupKey(number)] = ContactLookupResult{UID: user.UID}
+			ret.Results[makePhoneLookupKey(number)] = ContactLookupResult{UID: user.UID}
 		}
 		if errStr, found := c.phoneNumberErrors[number]; found {
-			ret[makePhoneLookupKey(number)] = ContactLookupResult{Error: errStr}
+			ret.Results[makePhoneLookupKey(number)] = ContactLookupResult{Error: errStr}
 		}
 	}
+	ret.ResolvedFreshness = 10 * 24 * time.Hour  // approx 10 days
+	ret.UnresolvedFreshness = 1 * 24 * time.Hour // approx one day
 	return ret, nil
 }
 
@@ -104,10 +107,9 @@ type ErrorContactsProvider struct {
 }
 
 func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupMap, err error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupResults, err error) {
 	c.t.Errorf("Call to ErrorContactsProvider.LookupAll")
-	err = errors.New("error contacts provider")
-	return
+	return ret, errors.New("error contacts provider")
 }
 
 func (c *ErrorContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {

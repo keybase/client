@@ -237,9 +237,9 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		return nil, err
 	}
 
-	if len(lookupRes) > 0 {
+	if len(lookupRes.Results) > 0 {
 		var uids []keybase1.UID
-		for _, v := range lookupRes {
+		for _, v := range lookupRes.Results {
 			if v.Error == "" && !v.UID.IsNil() {
 				uids = append(uids, v.UID)
 			}
@@ -250,7 +250,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 			mctx.Warning("Cannot find usernames for search results: %s", err)
 		}
 
-		for _, v := range lookupRes {
+		for _, v := range lookupRes.Results {
 			// Found a resolution
 			if v.Error != "" || v.UID.IsNil() {
 				continue
