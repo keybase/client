@@ -35,7 +35,7 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
     onMouseEnter={p.toggleShowingMenu}
     onMouseLeave={p.toggleShowingMenu}
   >
-    <Kb.Icon type="icon-airdrop-logo-16" style={styles.star} />
+    <Kb.Icon color={Styles.globalColors.yellowDark} type="iconfont-identity-stellar" style={styles.star} />
     <Kb.FloatingMenu
       attachTo={p.getAttachmentRef}
       closeOnSelect={false}
@@ -115,7 +115,11 @@ const Bio = (p: Props) => (
         p.registeredForAirdrop &&
         (p.youAreInAirdrop ? (
           <Kb.WithTooltip text="Lucky airdropee">
-            <Kb.Icon type="icon-airdrop-logo-16" style={styles.star} />
+            <Kb.Icon
+              color={Styles.globalColors.yellowDark}
+              type="iconfont-identity-stellar"
+              style={styles.star}
+            />
           </Kb.WithTooltip>
         ) : (
           <AirdropPopup onBack={p.onBack} onLearnMore={p.onLearnMore} />
