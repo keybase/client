@@ -116,7 +116,7 @@ class Text extends Component<Props> {
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy}
         style={style}
-        {...lineClamp(this.props.lineClamp || null, this.props.ellipsizeMode || null)}
+        {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
@@ -150,12 +150,7 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(
-  type: TextType,
-  negative?: boolean,
-  _?: number | null,
-  __?: boolean | null
-) {
+function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
