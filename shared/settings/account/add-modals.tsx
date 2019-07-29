@@ -222,7 +222,9 @@ export const VerifyPhone = () => {
       onClose={onClose}
       header={{
         hideBorder: true,
-        leftButton: <Kb.BackButton onClick={onClose} iconColor={Styles.globalColors.white} />,
+        leftButton: Styles.isMobile ? (
+          <Kb.BackButton onClick={onClose} iconColor={Styles.globalColors.white} />
+        ) : null,
         style: styles.blueBackground,
         title: (
           <Kb.Text type="BodySmall" negative={true} center={true}>
