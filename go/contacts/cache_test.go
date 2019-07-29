@@ -44,7 +44,7 @@ func TestCacheProvider(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestCacheProvider", 1)
 	defer tc.Cleanup()
 
-	mockProvider := makeProvider(t)
+	mockProvider := MakeMockProvider(t)
 	cacheProvider := &CachedContactsProvider{
 		Provider: mockProvider,
 		Store:    NewContactCacheStore(tc.G),
@@ -58,7 +58,7 @@ func TestCacheProvider(t *testing.T) {
 func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anotherMockContactsProvider,
 	cacheProvider *CachedContactsProvider) {
 
-	mockProvider := makeProvider(t)
+	mockProvider := MakeMockProvider(t)
 	provider = &anotherMockContactsProvider{
 		provider: mockProvider,
 		t:        t,
@@ -90,17 +90,17 @@ func TestLookupCache(t *testing.T) {
 		keybase1.Contact{
 			Name: "Joe",
 			Components: []keybase1.ContactComponent{
-				makePhoneComponent("Home", "+1111222"),
-				makePhoneComponent("Work", "+199123"),
-				makeEmailComponent("E-mail", "bob@keyba.se"),
-				makeEmailComponent("E-mail 2", "b@keyba.se"),
+				MakePhoneComponent("Home", "+1111222"),
+				MakePhoneComponent("Work", "+199123"),
+				MakeEmailComponent("E-mail", "bob@keyba.se"),
+				MakeEmailComponent("E-mail 2", "b@keyba.se"),
 			},
 		},
 	}
 
-	mockProvider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
-	mockProvider.emails["bob@keyba.se"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
-	mockProvider.phoneNumbers["+199123"] = mockLookupUser{UID: keybase1.UID("02ffffffffffffffffffffffffffff00"), Username: "other_bob"}
+	mockProvider.PhoneNumbers["+1111222"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.Emails["bob@keyba.se"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.PhoneNumbers["+199123"] = MockLookupUser{UID: keybase1.UID("02ffffffffffffffffffffffffffff00"), Username: "other_bob"}
 
 	res1, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestLookupCache(t *testing.T) {
 	provider.disabled = false
 	provider.queryCount = 0
 
-	contactList[0].Components = append(contactList[0].Components, makeEmailComponent("E-mail", "tester2@keyba.se"))
+	contactList[0].Components = append(contactList[0].Components, MakeEmailComponent("E-mail", "tester2@keyba.se"))
 
 	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -156,18 +156,15 @@ func TestLookupCacheExpiration(t *testing.T) {
 	mockProvider := provider.provider
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
-			Name: "Joe",
-			Components: []keybase1.ContactComponent{
-				makePhoneComponent("Home", "+1111222"),
-				makePhoneComponent("Work", "+199123"),
-				makeEmailComponent("E-mail", "bob@keyba.se"),
-				makeEmailComponent("E-mail 2", "b@keyba.se"),
-			},
-		},
+		MakeContact("Joe",
+			MakePhoneComponent("Home", "+1111222"),
+			MakePhoneComponent("Work", "+199123"),
+			MakeEmailComponent("E-mail", "bob@keyba.se"),
+			MakeEmailComponent("E-mail 2", "b@keyba.se"),
+		),
 	}
 
-	mockProvider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.PhoneNumbers["+1111222"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
 
 	res1, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -224,12 +221,9 @@ func TestLookupCacheExpiration(t *testing.T) {
 
 		mctx := libkb.NewMetaContextForTest(tc)
 		contactList := []keybase1.Contact{
-			keybase1.Contact{
-				Name: "Robert",
-				Components: []keybase1.ContactComponent{
-					makePhoneComponent("Phone", "+48111222333"),
-				},
-			},
+			MakeContact("Robert",
+				MakePhoneComponent("Phone", "+48111222333"),
+			),
 		}
 
 		res, err := ResolveContacts(mctx, cacheProvider, contactList, keybase1.RegionCode(""))
