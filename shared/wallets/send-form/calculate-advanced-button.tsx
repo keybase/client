@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {isEqual} from 'lodash-es'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -21,6 +22,8 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     buildingAdvanced.recipientAsset === Constants.emptyAssetDescription ||
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
+
+  const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
   return !isLoading ? (
     props.isIcon ? (
       builtPaymentAdvanced.findPathError ? (
@@ -42,7 +45,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     ) : (
       <Kb.Button
         type="Wallet"
-        label="Calculate"
+        label={hasTrivialPath ? 'Confirm details' : 'Calculate'}
         children={
           <Kb.Icon type="iconfont-calculator" color={Styles.globalColors.white} style={styles.icon} />
         }
