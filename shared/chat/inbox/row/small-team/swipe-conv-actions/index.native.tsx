@@ -3,18 +3,12 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {Props} from '.'
 
-let curSwipeRef: React.MutableRefObject<Kb.Swipeable> | null = null
+let curSwipeRef: React.RefObject<Kb.Swipeable> | null = null
 
-const onMute = (onMuteConversation: () => void, ref: React.MutableRefObject<Kb.Swipeable>) => {
+const onPress = (onPressAction: () => void, ref: React.RefObject<Kb.Swipeable>) => {
   ref.current && ref.current.close()
   curSwipeRef = null
-  onMuteConversation()
-}
-
-const onHide = (onHideConversation: () => void, ref: React.MutableRefObject<Kb.Swipeable>) => {
-  ref.current && ref.current.close()
-  curSwipeRef = null
-  onHideConversation()
+  onPressAction()
 }
 
 const renderRightAction = (
@@ -43,7 +37,7 @@ const renderRightAction = (
 
 const renderRightActions = (
   props: Props,
-  ref: React.MutableRefObject<Kb.Swipeable>,
+  ref: React.RefObject<Kb.Swipeable>,
   progress: Kb.NativeAnimated.Interpolation
 ) => {
   return (
@@ -53,7 +47,7 @@ const renderRightActions = (
         Styles.globalColors.orange,
         <Kb.Icon type="iconfont-shh" color={Styles.globalColors.white} />,
         128,
-        () => onMute(props.onMuteConversation, ref),
+        () => onPress(props.onMuteConversation, ref),
         progress
       )}
       {renderRightAction(
@@ -61,7 +55,7 @@ const renderRightActions = (
         Styles.globalColors.greyDarker,
         <Kb.Icon type="iconfont-hide" color={Styles.globalColors.white} />,
         64,
-        () => onHide(props.onHideConversation, ref),
+        () => onPress(props.onHideConversation, ref),
         progress
       )}
     </Kb.NativeView>
