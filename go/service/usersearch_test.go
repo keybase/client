@@ -93,6 +93,14 @@ func pluckSearchResultForTest(apiRes keybase1.APIUserSearchResult) searchResultF
 	}
 }
 
+func pluckAllSearchResultForTest(apiRes []keybase1.APIUserSearchResult) (res []searchResultForTest) {
+	res = make([]searchResultForTest, len(apiRes))
+	for i, v := range apiRes {
+		res[i] = pluckSearchResultForTest(v)
+	}
+	return res
+}
+
 type makeContactArg struct {
 	name  string
 	label string

@@ -52,6 +52,8 @@ func TestContactSyncing(t *testing.T) {
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
+	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
 
 	rawContacts := []keybase1.Contact{
@@ -61,7 +63,9 @@ func TestContactSyncing(t *testing.T) {
 		),
 	}
 
-	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+	// Phone component from rawContacts will resolve to user `alice` but e-mail
+	// will not. We are expecting to be able to search for both, but not see
+	// both in user recommendations.
 
 	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
@@ -73,12 +77,40 @@ func TestContactSyncing(t *testing.T) {
 	// Len == 1 right now because of contacts deduplicating during sync which we are changing.
 	require.Len(t, list, 1)
 
-	res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
-		IncludeContacts: true,
-		Service:         "keybase",
-		Query:           "alice",
-		MaxResults:      50,
-	})
-	require.NoError(t, err)
-	require.Len(t, res, 2)
+	{
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "alice",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 2)
+		pres := pluckAllSearchResultForTest(res)
+		require.Equal(t, "48111222333@phone", pres[0].id)
+		require.Equal(t, "alice", pres[0].keybaseUsername)
+		require.Equal(t, "alice2", pres[1].id)
+		require.Equal(t, "alice2", pres[1].keybaseUsername)
+	}
+
+	{
+		// Should be possible to search for both alice's components
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "111222333",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+
+		res, err = all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "alice@example.org",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+	}
 }

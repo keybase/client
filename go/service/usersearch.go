@@ -152,6 +152,7 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 		if str == "" {
 			continue
 		}
+		// TODO: Do not return first match, return *BEST* match based on score.
 		found, score := query.scoreString(str)
 		if found {
 			plumbMatchedVal = ""
