@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
@@ -13,7 +12,6 @@ import NavHeaderTitle from '../../nav-header/title-container'
 type Props = {
   index: number
   parentPath: Types.Path
-  routePath: I.List<string>
   targetName: string
   onCancel?: () => void
   onCopyHere?: () => void
@@ -51,11 +49,7 @@ const DesktopHeaders = (props: Props) => (
 )
 
 const DestinationPicker = (props: Props) => {
-  FsCommon.useFsLoadEffect({
-    path: props.parentPath,
-    refreshTag: Types.RefreshTag.DestinationPicker,
-    wantPathMetadata: true,
-  })
+  FsCommon.useFsPathMetadata(props.parentPath)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
       {!Styles.isMobile && <DesktopHeaders {...props} />}
@@ -96,7 +90,7 @@ const DestinationPicker = (props: Props) => {
         </Kb.ClickableBox>
       )}
       <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-        <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
+        <Rows path={props.parentPath} destinationPickerIndex={props.index} />
       </Kb.Box2>
       {Styles.isMobile && <Kb.Divider key="dfooter" />}
       <Kb.Box2

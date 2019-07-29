@@ -333,19 +333,24 @@ func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
 	}
 	return res
 }
+func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (res keybase1.PerTeamKey, err error) {
+	res, _, err = t.getLatestPerTeamKeyWithMerkleSeqno(mctx)
+	return res, err
+}
 
-func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) getLatestPerTeamKeyWithMerkleSeqno(mctx libkb.MetaContext) (res keybase1.PerTeamKey, mr keybase1.MerkleRootV2, err error) {
 	var hk *keybase1.PerTeamKey
 	if t.hidden != nil {
 		hk = t.hidden.MaxReaderPerTeamKey()
 	}
-	res, ok := t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
+	var ok bool
+	res, ok = t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
 
 	if hk == nil && ok {
-		return res, nil
+		return res, t.inner.MerkleRoots[res.Seqno], nil
 	}
 	if !ok && hk != nil {
-		return *hk, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
 	if !ok && hk == nil {
 		// if this happens it's a programming error
@@ -353,12 +358,12 @@ func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1
 		if t.hidden != nil {
 			mctx.Debug("PTK not found error debug dump: hidden: %+v", *t.hidden)
 		}
-		return res, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
+		return res, mr, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
 	}
 	if hk.Gen > res.Gen {
-		return *hk, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
-	return res, nil
+	return res, t.inner.MerkleRoots[res.Seqno], nil
 }
 
 func (t *TeamSigChainState) GetLatestPerTeamKeyCTime() keybase1.UnixTime {
@@ -1194,7 +1199,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
-				if !(r.satisfied || prevState.getUserRole(r.uv).IsRestrictedBot()) {
+				role := prevState.getUserRole(r.uv)
+				if !(r.satisfied || role.IsBotLike()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1298,6 +1304,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 		switch signerRole {
 		case keybase1.TeamRole_RESTRICTEDBOT,
+			keybase1.TeamRole_BOT,
 			keybase1.TeamRole_READER,
 			keybase1.TeamRole_WRITER,
 			keybase1.TeamRole_ADMIN,
@@ -1998,6 +2005,12 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
+	}
+	if members.Bots != nil && len(*members.Bots) > 0 {
+		res[keybase1.TeamRole_BOT] = nil
+		for _, m := range *members.Bots {
+			all = append(all, assignment{m, keybase1.TeamRole_BOT})
 		}
 	}
 	if members.RestrictedBots != nil && len(*members.RestrictedBots) > 0 {

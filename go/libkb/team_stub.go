@@ -153,6 +153,9 @@ func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (*ke
 func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt {
 	return *attemptNullBoxAuditor()
 }
+func (n nullTeamBoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx MetaContext, teamID keybase1.TeamID) {
+}
+
 func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }
 
 type nullHiddenTeamChainManager struct{}

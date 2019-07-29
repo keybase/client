@@ -2,11 +2,12 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding, {RolePickerProps} from '.'
+import TeamBuilding, {RolePickerProps, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
@@ -32,6 +33,7 @@ type OwnProps = {
   resetHighlightIndex: (resetToHidden?: boolean) => void
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
+  showServiceResultCount: boolean
 }
 
 type LocalState = {
@@ -58,6 +60,7 @@ const deriveSearchResults = memoize(
   ) =>
     searchResults &&
     searchResults.map(info => ({
+      contact: !!info.contact,
       displayLabel: info.label || '',
       followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
@@ -119,7 +122,15 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)
     : emptyObj
 
+  const contactProps = {
+    contactsImported: state.settings.contacts.importEnabled,
+    contactsPermissionStatus: state.settings.contacts.permissionStatus,
+    isImportPromptDismissed: state.settings.contacts.importPromptDismissed,
+    numContactsImported: state.settings.contacts.importedCount,
+  }
+
   return {
+    ...contactProps,
     disabledRoles,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
@@ -172,13 +183,19 @@ const debouncedSearch = debounce(
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
+  _onImportContactsPermissionsGranted: () =>
+    dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
+  _onImportContactsPermissionsNotGranted: () =>
+    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) =>
     debouncedSearch(dispatch, namespace, query, service, limit),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
+  onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
     dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamname})),
+  onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
   onSelectRole: (role: TeamRoleType) =>
@@ -282,6 +299,61 @@ const deriveRolePickerArrowKeyFns = memoize(
   })
 )
 
+const alphabet = 'abcdefghijklmnopqrstuvwxyz'
+const aCharCode = alphabet.charCodeAt(0)
+const alphaSet = new Set(alphabet)
+const isAlpha = (letter: string) => alphaSet.has(letter)
+const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
+
+// Returns array with 28 entries
+// 0 - "Recommendations" section
+// 1-26 - a-z sections
+// 27 - 0-9 section
+const sortAndSplitRecommendations = memoize(
+  (results: Unpacked<typeof deriveSearchResults>): Array<SearchRecSection> | null => {
+    if (!results) return null
+
+    const sections: Array<SearchRecSection> = [
+      {
+        data: [],
+        label: 'Recommendations',
+        shortcut: false,
+      },
+    ]
+    results.forEach(rec => {
+      if (!rec.contact) {
+        sections[0].data.push(rec)
+        return
+      }
+      if (rec.prettyName || rec.displayLabel) {
+        const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
+        if (isAlpha(letter)) {
+          // offset 1 to skip recommendations
+          const sectionIdx = letterToAlphaIndex(letter) + 1
+          if (!sections[sectionIdx]) {
+            sections[sectionIdx] = {
+              data: [],
+              label: letter.toUpperCase(),
+              shortcut: true,
+            }
+          }
+          sections[sectionIdx].data.push(rec)
+        } else {
+          if (!sections[27]) {
+            sections[27] = {
+              data: [],
+              label: numSectionLabel,
+              shortcut: true,
+            }
+          }
+          sections[27].data.push(rec)
+        }
+      }
+    })
+    return sections.filter(Boolean)
+  }
+)
+
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
@@ -296,6 +368,22 @@ const mergeProps = (
     recommendations,
     waitingForCreate,
   } = stateProps
+
+  // Contacts props
+  const contactProps = {
+    contactsImported: stateProps.contactsImported,
+    contactsPermissionStatus: stateProps.contactsPermissionStatus,
+    isImportPromptDismissed: stateProps.isImportPromptDismissed,
+    numContactsImported: stateProps.numContactsImported,
+    onAskForContactsLater: dispatchProps.onAskForContactsLater,
+    onImportContacts:
+      stateProps.contactsPermissionStatus === 'never_ask_again'
+        ? null
+        : stateProps.contactsPermissionStatus === 'granted'
+        ? dispatchProps._onImportContactsPermissionsGranted
+        : dispatchProps._onImportContactsPermissionsNotGranted,
+    onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
+  }
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const userResultsToShow = showRecs ? recommendations : searchResults
@@ -380,6 +468,7 @@ const mergeProps = (
 
   return {
     ...headerHocProps,
+    ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
@@ -400,14 +489,14 @@ const mergeProps = (
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
-    recommendations,
+    recommendations: sortAndSplitRecommendations(recommendations),
     rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showRecs,
-    showServiceResultCount,
+    showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamSoFar,
     waitingForCreate,
   }
@@ -462,6 +551,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
+        showServiceResultCount={this.state.searchString !== ''}
       />
     )
   }

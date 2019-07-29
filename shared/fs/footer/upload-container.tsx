@@ -1,9 +1,11 @@
+import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {compose, namedConnect} from '../../util/container'
-import Upload from './upload'
+import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
+import * as Kbfs from '../common'
 
 const mapStateToProps = state => ({
   _edits: state.fs.edits,
@@ -81,4 +83,7 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
 export default compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
-)(Upload)
+)((props: UploadProps) => {
+  Kbfs.useFsJournalStatus()
+  return <Upload {...props} />
+})

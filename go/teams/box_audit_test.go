@@ -154,13 +154,13 @@ func auditTeam(a libkb.TeamBoxAuditor, mctx libkb.MetaContext, teamID keybase1.T
 }
 
 func TestBoxAuditAudit(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 4)
+	fus, tcs, cleanup := setupNTests(t, 5)
 	defer cleanup()
 
-	_, bU, cU, dU := fus[0], fus[1], fus[2], fus[3]
-	aTc, bTc, cTc, dTc := tcs[0], tcs[1], tcs[2], tcs[3]
-	aM, bM, cM, dM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc), libkb.NewMetaContextForTest(*dTc)
-	aA, bA, cA, dA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor(), dTc.G.GetTeamBoxAuditor()
+	_, bU, cU, dU, eU := fus[0], fus[1], fus[2], fus[3], fus[4]
+	aTc, bTc, cTc, dTc, eTc := tcs[0], tcs[1], tcs[2], tcs[3], tcs[4]
+	aM, bM, cM, dM, eM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc), libkb.NewMetaContextForTest(*dTc), libkb.NewMetaContextForTest(*eTc)
+	aA, bA, cA, dA, eA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor(), dTc.G.GetTeamBoxAuditor(), eTc.G.GetTeamBoxAuditor()
 
 	t.Logf("A creates team")
 	teamName, teamID := createTeam2(*aTc)
@@ -174,13 +174,18 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("adding D as bot")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT)
+	require.NoError(t, err)
+
+	t.Logf("adding E as restricted bot")
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), eU.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 
 	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
 	require.NoError(t, auditTeam(bA, bM, teamID), "B can audit")
 	require.NoError(t, auditTeam(cA, cM, teamID), "C can audit (this is vacuous, since C is a reader)")
-	require.NoError(t, auditTeam(dA, dM, teamID), "D can audit (this is vacuous, since D is a restricted bot)")
+	require.NoError(t, auditTeam(dA, dM, teamID), "D can audit (this is vacuous, since D is a bot)")
+	require.NoError(t, auditTeam(eA, eM, teamID), "E can audit (this is vacuous, since E is a restricted bot)")
 
 	var nullstring *string
 	g1 := keybase1.PerTeamKeyGeneration(1)
@@ -275,11 +280,21 @@ func TestBoxAuditAudit(t *testing.T) {
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
 	})
+	log, queue, jail = mustGetBoxState(eTc, eA, eM, teamID)
+	log.Audits[0].ID = nil
+	log.Audits[0].Attempts[0].Ctime = 0
+	require.Equal(t, *log, vacuousLog)
+	require.Nil(t, queue)
+	require.Equal(t, *jail, BoxAuditJail{
+		TeamIDs: map[keybase1.TeamID]bool{},
+		Version: CurrentBoxAuditVersion,
+	})
 
 	require.Equal(t, countTrues(t, mustGetJailLRU(aTc, aA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(bTc, bA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, cA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, dA)), 0)
+	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, eA)), 0)
 
 	t.Logf("checking state after failed attempts")
 	t.Logf("disable autorotate on retry")

@@ -575,12 +575,13 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 }
 
 func TestBotMember(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
+	fus, tcs, cleanup := setupNTests(t, 4)
 	defer cleanup()
 
-	ann := fus[0]   // crypto user
-	bob := fus[1]   // crypto user
-	botua := fus[2] // bot user
+	ann := fus[0]             // crypto user
+	bob := fus[1]             // crypto user
+	botua := fus[2]           // bot user
+	restrictedBotua := fus[3] // restricted bot user
 
 	impteamName := strings.Join([]string{ann.Username, bob.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
@@ -588,23 +589,40 @@ func TestBotMember(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
-	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_BOT)
+	require.NoError(t, err)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 	team, err := Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
 	require.NoError(t, err)
 
 	members, err := team.Members()
 	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
 	require.Len(t, members.RestrictedBots, 1)
-	require.Equal(t, botua.User.GetUID(), members.RestrictedBots[0].Uid)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	team, err = Load(context.Background(), tcs[3].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
 
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
+	require.NoError(t, err)
+	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
 	require.NoError(t, err)
 
 	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
 	require.NoError(t, err)
 	members, err = team.Members()
 	require.NoError(t, err)
+	require.Len(t, members.Bots, 0)
 	require.Len(t, members.RestrictedBots, 0)
 }
 

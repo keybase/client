@@ -53,6 +53,7 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 			ret.ReaderPerTeamKeys[ptk.Generation] = q
 		}
 	}
+	ret.MerkleRoots[q] = link.Inner().MerkleRoot.Export()
 
 	return nil
 }

@@ -594,7 +594,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
@@ -612,12 +611,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.closeDestinationPicker:
-    case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
     case FsGen.setSpaceAvailableNotificationThreshold:
+    case FsGen.subscribePath:
+    case FsGen.subscribeNonPath:
+    case FsGen.unsubscribe:
+    case FsGen.onJournalNotification:
       return state
     default:
       return state

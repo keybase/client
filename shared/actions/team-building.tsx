@@ -171,6 +171,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
+          contact: true,
           id: x.assertion,
           label: x.displayLabel,
           prettyName: x.displayName,
@@ -188,7 +189,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
         )
       const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
       if (expectingContacts) {
-        suggestions = suggestions.slice(0, 5)
+        suggestions = suggestions.slice(0, 10)
       }
       return suggestions.concat(contacts)
     })

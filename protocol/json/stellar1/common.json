@@ -97,6 +97,14 @@
         {
           "type": "string",
           "name": "infoUrlText"
+        },
+        {
+          "type": "string",
+          "name": "transferServer"
+        },
+        {
+          "type": "string",
+          "name": "authEndpoint"
         }
       ]
     },

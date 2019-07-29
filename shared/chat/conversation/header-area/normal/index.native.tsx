@@ -70,7 +70,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName}>
+        <Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -85,8 +85,9 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
+        lineClamp={props.participants.length > 2 ? 2 : 1}
         commaColor={Styles.globalColors.black_50}
-        type="BodyBig"
+        type={props.participants.length > 2 ? 'BodyTiny' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -119,7 +120,12 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     textAlign: 'center',
   },
-  channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
+  channelHeaderContainer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
   channelName: {
     color: Styles.globalColors.black,
   },

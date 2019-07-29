@@ -24,6 +24,7 @@ export type User = {
   id: UserID
   prettyName: string
   label?: string
+  contact?: boolean // not a keybase user, a phone / email from our contacts
 }
 
 // Treating this as a tuple

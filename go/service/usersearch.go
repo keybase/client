@@ -50,7 +50,7 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_search",
-		SessionType: libkb.APISessionTypeNONE,
+		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
 			"q":                        libkb.S{Val: arg.Query},
 			"num_wanted":               libkb.I{Val: arg.MaxResults},
@@ -237,9 +237,9 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		return nil, err
 	}
 
-	if len(lookupRes) > 0 {
+	if len(lookupRes.Results) > 0 {
 		var uids []keybase1.UID
-		for _, v := range lookupRes {
+		for _, v := range lookupRes.Results {
 			if v.Error == "" && !v.UID.IsNil() {
 				uids = append(uids, v.UID)
 			}
@@ -250,7 +250,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 			mctx.Warning("Cannot find usernames for search results: %s", err)
 		}
 
-		for _, v := range lookupRes {
+		for _, v := range lookupRes.Results {
 			// Found a resolution
 			if v.Error != "" || v.UID.IsNil() {
 				continue
@@ -327,12 +327,13 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		if err != nil {
 			mctx.Warning("Failed to do contacts search: %s", err)
 		} else {
-			res = append(res, contactsRes...)
 			// Sort first - we are going to be deduplicating on usernames,
 			// entries with higher score have precedence.
-			sort.Slice(res, func(i, j int) bool {
-				return res[i].RawScore > res[j].RawScore
+			sort.Slice(contactsRes, func(i, j int) bool {
+				return contactsRes[i].RawScore > contactsRes[j].RawScore
 			})
+
+			res = append(res, contactsRes...)
 
 			// Filter `res` list using `outputRes`.
 			usernameSet := make(map[string]struct{}) // set of usernames

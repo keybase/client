@@ -1,5 +1,4 @@
 import {namedConnect} from '../../util/container'
-import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -7,7 +6,6 @@ import DefaultView from './default-view'
 
 type OwnProps = {
   path: Types.Path
-  routePath: I.List<string>
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -20,14 +18,13 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   const {sfmiEnabled, pathItem} = stateProps
   const {download, showInSystemFileManager} = dispatchProps
   return {
     download,
     path,
     pathItem,
-    routePath,
     sfmiEnabled,
     showInSystemFileManager,
   }

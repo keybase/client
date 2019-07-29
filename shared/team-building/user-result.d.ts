@@ -9,12 +9,13 @@ export type Props = {
   prettyName: string
   displayLabel: string
   services: {[K in Types.ServiceIdWithContact]?: string}
-  fixedHeight?: number
   inTeam: boolean
   followingState: Types.FollowingState
   highlight: boolean
   onAdd: () => void
   onRemove: () => void
 }
+
+export const userResultHeight: number
 
 export default class extends React.PureComponent<Props> {}
