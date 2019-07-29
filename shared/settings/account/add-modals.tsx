@@ -226,7 +226,7 @@ export const VerifyPhone = () => {
         style: styles.blueBackground,
         title: (
           <Kb.Text type="BodySmall" negative={true} center={true}>
-            {displayPhone || 'Unknown Number'}
+            {displayPhone || 'Unknown number'}
           </Kb.Text>
         ),
       }}
