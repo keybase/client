@@ -72,15 +72,14 @@ const LeftBlock = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   const hasTrivialPath =
-    buildingAdvanced.senderAsset === 'native'
-      ? isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
-      : buildingAdvanced.senderAsset.issuerAccountID !== Types.noAccountID &&
-        isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset) &&
-        !!buildingAdvanced.recipientAmount
+    !!buildingAdvanced.recipientAmount &&
+    isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset) &&
+    (buildingAdvanced.senderAsset === 'native' ||
+      buildingAdvanced.senderAsset.issuerAccountID !== Types.noAccountID)
 
   if (hasTrivialPath) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start" style={{maxWidth: '40%'}}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftBlockContainer}>
         <Kb.Text type="HeaderBigExtrabold">{buildingAdvanced.recipientAmount}</Kb.Text>
         {!!buildingAdvanced.recipientAmount &&
           (buildingAdvanced.recipientAsset === 'native' ? (
@@ -447,6 +446,9 @@ const styles = Styles.styleSheetCreate({
   },
   intermediateTopCircleContainer: {
     top: -Styles.globalMargins.medium,
+  },
+  leftBlockContainer: {
+    maxWidth: '40%',
   },
   noShrink: {
     flexShrink: 0,
