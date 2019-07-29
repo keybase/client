@@ -166,18 +166,13 @@ const debouncedSearch = debounce(
     query: string,
     service: ServiceIdWithContact,
     limit?: number
-  ) =>
-    requestIdleCallback(() =>
-      dispatch(
-        TeamBuildingGen.createSearch({
-          limit,
-          namespace,
-          query,
-          service,
-        })
-      )
-    ),
-  1000
+  ) => {
+    const go = () => dispatch(TeamBuildingGen.createSearch({limit, namespace, query, service}))
+    if (service == 'keybase') {
+      return go()
+    }
+    return requestIdleCallback(go, {timeout: 500})
+  }
 )
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
