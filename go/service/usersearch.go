@@ -50,7 +50,7 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_search",
-		SessionType: libkb.APISessionTypeREQUIRED,
+		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
 			"q":                        libkb.S{Val: arg.Query},
 			"num_wanted":               libkb.I{Val: arg.MaxResults},
