@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as PhoneUtil from '../../util/phone-numbers'
+
 type Props = {
   address: string
   searchable: boolean
@@ -20,8 +21,9 @@ const getIcon = (props: Props) => {
   return Styles.isMobile ? 'icon-phone-number-remove-64' : 'icon-phone-number-remove-48'
 }
 const getPrompt = (props: Props) => {
-  const addr = props.type === 'email' ? props.address : PhoneUtil.e164ToDisplay(props.address)
-  return `Delete ${props.type === 'email' ? 'address' : 'number'} \n${addr}?`
+  return props.type === 'email'
+    ? `Delete email ${props.address}`
+    : `Delete number ${PhoneUtil.e164ToDisplay(props.address)}`
 }
 const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
