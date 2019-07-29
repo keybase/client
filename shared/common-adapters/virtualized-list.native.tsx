@@ -1,7 +1,9 @@
 import * as React from 'react'
-import {VirtualizedList} from 'react-native'
+import {VirtualizedList, VirtualizedListProps} from 'react-native'
 
-class NativeVirtualizedList extends React.Component<React.ComponentProps<VirtualizedList>> {
+class NativeVirtualizedList<ItemT> extends React.Component<
+  VirtualizedListProps<ItemT> & {forwardedRef?: React.RefObject<VirtualizedList<ItemT>>}
+> {
   _mounted = false
 
   componentDidMount() {

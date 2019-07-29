@@ -45,9 +45,9 @@
     "storybook": "cross-env-shell BABEL_ENV=yarn start-storybook -s . -p 6006",
     "storybook-build": "cross-env-shell build-storybook -c .storybook -o .static-storybook",
     "rn-storybook": "cross-env-shell storybook start -p 7007",
-    "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc ",
+    "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
     "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
-    "tsc-fast": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.fast.json ",
+    "tsc-slow": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.slow.json ",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace"
@@ -226,6 +226,7 @@
     "@types/react-is": "16.7.1",
     "@types/react-list": "0.8.5",
     "@types/react-measure": "2.0.5",
+    "@types/react-native": "0.60.2",
     "@types/react-navigation": "3.0.7",
     "@types/react-transition-group": "2.9.2",
     "@types/react-virtualized-auto-sizer": "1.0.0",
@@ -315,6 +316,7 @@
     "**/@babel/runtime": "7.4.5",
     "**/@babel/traverse": "7.4.5",
     "**/@babel/types": "7.4.4",
+    "**/@types/react-native": "0.60.2",
     "babel-core": "7.0.0-bridge.0",
     "**/node-gyp/tar": "4.4.8",
     "react-native-screens": "git://github.com/keybase/react-native-screens#danny/fix-textinput-blur"
