@@ -311,7 +311,7 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
 
-  const isPathPayment = !!props.sourceAmount
+  const hasNontrivialPath = !!props.sourceAmount && props.pathIntermediate.length > 0
 
   // If we don't have a sourceAsset, the source is native Lumens
   const sourceIssuer =
@@ -364,7 +364,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        {isPathPayment && (
+        {hasNontrivialPath && (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
             <PaymentPath
@@ -377,7 +377,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           </Kb.Box2>
         )}
 
-        {isPathPayment && (
+        {hasNontrivialPath && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
             <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
@@ -386,7 +386,12 @@ const TransactionDetails = (props: NotLoadingProps) => {
                 assetCode={props.sourceAsset}
                 issuerDescription={sourceIssuer}
               />
-              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={styles.equals}>
+              <Kb.Box2
+                direction="horizontal"
+                alignSelf="flex-start"
+                centerChildren={true}
+                style={styles.equals}
+              >
                 <Kb.Text type="BodyBig">=</Kb.Text>
               </Kb.Box2>
               <ConvertedCurrencyLabel
