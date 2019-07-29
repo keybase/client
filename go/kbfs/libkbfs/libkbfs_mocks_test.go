@@ -1578,6 +1578,21 @@ func (mr *MockKBFSOpsMockRecorder) Status(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockKBFSOps)(nil).Status), arg0)
 }
 
+// StatusOfServices mocks base method
+func (m *MockKBFSOps) StatusOfServices() (map[string]error, chan StatusUpdate) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StatusOfServices")
+	ret0, _ := ret[0].(map[string]error)
+	ret1, _ := ret[1].(chan StatusUpdate)
+	return ret0, ret1
+}
+
+// StatusOfServices indicates an expected call of StatusOfServices
+func (mr *MockKBFSOpsMockRecorder) StatusOfServices() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusOfServices", reflect.TypeOf((*MockKBFSOps)(nil).StatusOfServices))
+}
+
 // SyncAll mocks base method
 func (m *MockKBFSOps) SyncAll(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
