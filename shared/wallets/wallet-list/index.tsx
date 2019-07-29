@@ -14,14 +14,8 @@ const rowHeight = 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
-    {
-      onClick: () => props.onAddNew(),
-      title: 'Create a new account',
-    },
-    {
-      onClick: () => props.onLinkExisting(),
-      title: 'Link an existing Stellar account',
-    },
+    {onClick: () => props.onAddNew(), title: 'Create a new account'},
+    {onClick: () => props.onLinkExisting(), title: 'Link an existing Stellar account'},
   ]
 
   return (
@@ -49,8 +43,8 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
-const JoinAirdrop = p => (
-  <Kb.ClickableBox onClick={p.onJoinAirdrop}>
+const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean; selected: boolean}) => (
+  <Kb.ClickableBox onClick={p.onJoinAirdrop || undefined}>
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
@@ -109,7 +103,7 @@ type Row =
     }
 
 class WalletList extends React.Component<Props> {
-  _renderRow = (_: number, row: Row): React.ReactNode => {
+  _renderRow = (_: number, row: Row) => {
     switch (row.type) {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />

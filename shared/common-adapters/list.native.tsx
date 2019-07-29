@@ -4,21 +4,21 @@ import {globalStyles, collapseStyles, styleSheetCreate} from '../styles'
 
 import {Props} from './list'
 
-class List extends PureComponent<Props<any>> {
+class List<Item> extends PureComponent<Props<Item>> {
   static defaultProps = {
     keyboardShouldPersistTaps: 'handled',
   }
-  _itemRender = ({item, index}) => {
+  _itemRender = ({item, index}: {item: Item; index: number}) => {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (_, index) => ({
+  _getItemLayout = (_: Array<Item> | null, index: number) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,
   })
 
-  _keyExtractor = (item, index: number) => {
+  _keyExtractor = (item: Item, index: number) => {
     if (this.props.indexAsKey || !item) {
       return String(index)
     }
@@ -42,6 +42,7 @@ class List extends PureComponent<Props<any>> {
         <View style={globalStyles.fillAbsolute}>
           <FlatList
             bounces={this.props.bounces}
+            // @ts-ignore TODO styles
             contentContainerStyle={this.props.contentContainerStyle}
             renderItem={this._itemRender}
             data={this.props.items}

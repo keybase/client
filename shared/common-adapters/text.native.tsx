@@ -25,6 +25,7 @@ const styleMap = Object.keys(metaData).reduce<{[key: string]: Styles.StylesCross
   }
 )
 
+// @ts-ignore TODO fix styles
 const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
@@ -150,12 +151,7 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(
-  type: TextType,
-  negative?: boolean,
-  _?: number | null,
-  __?: boolean | null
-) {
+function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
