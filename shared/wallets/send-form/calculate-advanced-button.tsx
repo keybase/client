@@ -22,7 +22,6 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     buildingAdvanced.recipientAsset === Constants.emptyAssetDescription ||
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
-
   const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
   return !isLoading ? (
     props.isIcon ? (

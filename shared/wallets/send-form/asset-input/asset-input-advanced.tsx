@@ -71,10 +71,6 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
 const LeftBlock = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
-
-  console.log('buildingAdvanced:', buildingAdvanced)
-  console.log('builtPaymentAdvanced:', builtPaymentAdvanced)
-
   const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
 
   if (hasTrivialPath) {
@@ -123,12 +119,8 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const senderAccount = accountMap.get(buildingAdvanced.senderAccountID)
-
-  console.log('buildingAdvanced:', buildingAdvanced)
   const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
-
   const sendText = ` will send${hasTrivialPath ? '' : ' approximately'}:`
-
   return (
     <Kb.Box2
       direction="vertical"
