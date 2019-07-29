@@ -95,7 +95,7 @@ func TestLookupContacts(t *testing.T) {
 	require.Len(t, res, 3)
 	require.True(t, res[0].Resolved)
 	require.NotNil(t, res[0].Component.PhoneNumber)
-	require.Equal(t, "199123@phone", res[0].Assertion)
+	require.Equal(t, "1111222@phone", res[0].Assertion)
 	for i, v := range res {
 		if i != 0 {
 			require.False(t, v.Resolved)
@@ -106,40 +106,61 @@ func TestLookupContacts(t *testing.T) {
 		}
 	}
 
-	// More than one components resolve, still return only the first resolution.
+	// Second number also belongs to joe now. Still save all entries.
 	provider.PhoneNumbers["+199123"] = mockJoe
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 1)
+	require.Len(t, res, 3)
+	for i, v := range res {
+		if i == 2 {
+			require.False(t, v.Resolved)
+			require.Equal(t, "Joe", v.DisplayName)
+			assertion, err := AssertionFromComponent(actx, v.Component, "")
+			require.NoError(t, err)
+			require.Equal(t, assertion, v.Assertion)
+		}
+	}
 
 	// Suddenly this number resolves to someone else, despite being in same contact.
 	provider.PhoneNumbers["+199123"] = MakeMockLookupUser("ed", "")
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 2)
+	require.Len(t, res, 3)
 	require.Equal(t, []string{
 		"keybase:joe",
 		"keybase:ed",
+		"Joe joe@linux.org (E-mail)",
 	}, stringifyResults(res))
 	// Even if contact resolves to a Keybase user, assertion should still be an
 	// imptofu assertion (rather than username or username@keybase). This is
 	// required, so resolver is involved when starting a conversation.
 	require.Equal(t, "1111222@phone", res[0].Assertion)
 	require.Equal(t, "199123@phone", res[1].Assertion)
+	require.Equal(t, "[joe@linux.org]@email", res[2].Assertion)
 
 	// Test with email
-	provider = MakeMockProvider(t)
+	provider = MakeMockProvider(t) // *new provider*
 	provider.Emails["joe@linux.org"] = mockJoe
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 1)
-	require.Equal(t, "joe", res[0].DisplayName)
-	require.Equal(t, "E-mail", res[0].Component.Label)
-	require.Nil(t, res[0].Component.PhoneNumber)
-	require.NotNil(t, res[0].Component.Email)
-	require.EqualValues(t, "joe@linux.org", *res[0].Component.Email)
-	require.True(t, res[0].Resolved)
-	require.Equal(t, mockJoe.UID, res[0].Uid)
+	require.Len(t, res, 3)
+	// Only last component (the one with email) resolves, rest is unresolved.
+	for i, v := range res {
+		if i != 2 {
+			require.False(t, v.Resolved)
+			require.Equal(t, "Joe", v.DisplayName)
+			assertion, err := AssertionFromComponent(actx, v.Component, "")
+			require.NoError(t, err)
+			require.Equal(t, assertion, v.Assertion)
+		}
+	}
+	require.Equal(t, "joe", res[2].DisplayName)
+	require.Equal(t, "E-mail", res[2].Component.Label)
+	require.Nil(t, res[2].Component.PhoneNumber)
+	require.NotNil(t, res[2].Component.Email)
+	require.EqualValues(t, "joe@linux.org", *res[2].Component.Email)
+	require.True(t, res[2].Resolved)
+	require.Equal(t, mockJoe.UID, res[2].Uid)
 }
 
 func TestLookupContactsMultipleUsers(t *testing.T) {
@@ -238,14 +259,19 @@ func TestEmptyComponentLabels(t *testing.T) {
 	provider.Emails["alice+test@keyba.se"] = MockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "A L I C E"}
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 1)
-	require.True(t, res[0].Resolved)
-	require.Equal(t, "alice", res[0].Username)
-	require.Equal(t, "A L I C E", res[0].FullName)
-	require.EqualValues(t, "1111", res[0].Uid)
-	require.False(t, res[0].Following)
-	require.Equal(t, "alice", res[0].DisplayName)
-	require.Equal(t, "Alice", res[0].DisplayLabel) // Because we are not following, contact name is used instead of full name.
+	require.Len(t, res, 2)
+	// First component did not resolve
+	require.False(t, res[0].Resolved)
+	require.Equal(t, "1111222@phone", res[0].Assertion)
+	// Second component resolved
+	require.True(t, res[1].Resolved)
+	require.Equal(t, "alice", res[1].Username)
+	require.Equal(t, "A L I C E", res[1].FullName)
+	require.EqualValues(t, "1111", res[1].Uid)
+	require.False(t, res[1].Following)
+	require.Equal(t, "alice", res[1].DisplayName)
+	require.Equal(t, "Alice", res[1].DisplayLabel) // Because we are not following, contact name is used instead of full name.
+	require.Equal(t, "[alice+test@keyba.se]@email", res[1].Assertion)
 }
 
 func TestFollowing(t *testing.T) {
@@ -293,10 +319,10 @@ func TestFollowing(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res, 4)
 	expected := []string{
+		`"alice" "CryptoAlice"`,       // followed and have full name, take full name
 		`"bob" "Bob"`,                 // not followed, no full name, take contact name
 		`"charlie" "Charlie"`,         // followed but no full name, take contact name
 		`"doug" "doug+test@keyba.se"`, // not followed, no full name, no contact name, take component
-		`"alice" "CryptoAlice"`,       // followed and have full name, take full name
 	}
 	require.Equal(t, expected, displayResults(res))
 }
@@ -322,7 +348,7 @@ func TestErrorsInResolution(t *testing.T) {
 	}
 
 	provider := MakeMockProvider(t)
-	provider.PhoneNumbers["+1111222"] = MockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "CryptoAlice"}
+	provider.PhoneNumbers["+1111222"] = MakeMockLookupUser("alice", "CryptoAlice")
 	provider.PhoneNumberErrors["444"] = "Mock error for number 444"
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
@@ -388,20 +414,22 @@ func TestDuplicateEntries(t *testing.T) {
 	}
 
 	provider := MakeMockProvider(t)
-	provider.Emails["bob+test@keyba.se"] = MockLookupUser{UID: keybase1.UID("2222"), Username: "bob", Fullname: "Bobby"}
+	provider.Emails["bob+test@keyba.se"] = MakeMockLookupUser("bob", "Bobby")
 
-	// We expect to see one resolution for "bob+test@keyba.se" from "Bob"
-	// contact (comes first), and one unresolved entry for Alice for "+1111222"
-	// (one even though there are 3 components with the same phone number, and
-	// a duplicate "Alice" contact).
+	// We expect one entry for Alice, +1111222 - because there is only one
+	// unique combination of "Alice" contact name ane component value
+	// "+1111222". Both "bob+test@keyba.se" values for Bob/Robert should have
+	// own, resolved, entry.
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 2)
-	require.True(t, res[0].Resolved)
-	require.False(t, res[1].Resolved)
+	require.Len(t, res, 3)
 	expected := []string{
-		`"bob" "Bob"`,
 		`"Alice" "+1111222 (home)"`,
+		`"bob" "Bob"`,
+		`"bob" "Robert B."`,
 	}
 	require.Equal(t, expected, displayResults(res))
+	require.False(t, res[0].Resolved)
+	require.True(t, res[1].Resolved)
+	require.True(t, res[2].Resolved)
 }

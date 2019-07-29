@@ -74,7 +74,7 @@ func newLookupResultCache() (ret lookupResultCache) {
 	return ret
 }
 
-const cacheCurrentMajorVersion = 2
+const cacheCurrentMajorVersion = 3
 const cacheCurrentMinorVersion = 0
 
 func cachedResultFromLookupResult(v ContactLookupResult, expires time.Time) cachedLookupResult {

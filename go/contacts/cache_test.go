@@ -106,7 +106,7 @@ func TestLookupCache(t *testing.T) {
 	require.NoError(t, err)
 
 	// One result in list, there is one contact with a component that resolves to a Keybase user.
-	require.Len(t, res1, 1)
+	require.Len(t, res1, 4)
 	// 4 calls to the provider, all components were queried
 	require.Equal(t, 4, provider.queryCount)
 
@@ -128,7 +128,8 @@ func TestLookupCache(t *testing.T) {
 
 	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Equal(t, res1, res2) // list is the same because new component did not resolve
+	require.Len(t, res2, 5)
+	require.Equal(t, res1, res2[0:4]) // first 4 elements are the same
 
 	require.Equal(t, 1, provider.queryCount) // only queried the new email
 
@@ -136,9 +137,9 @@ func TestLookupCache(t *testing.T) {
 	provider.disabled = true
 	provider.queryCount = 0
 
-	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+	res3, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Equal(t, res1, res2)
+	require.Equal(t, res2, res3)
 	require.Equal(t, 0, provider.queryCount) // new email got cached as well
 }
 
