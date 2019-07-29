@@ -152,3 +152,63 @@ func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID
 	}
 	return savedContacts, nil
 }
+
+func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RECSCON")
+	defer mctx.TraceTimed("ContactsHandler#GetContactsForUserRecommendations", func() error { return err })()
+
+	savedContacts, err := h.G().SyncedContactList.RetrieveContacts(mctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Allocate space for the number of all saved contacts - we will likely
+	// return less, though.
+	res = make([]keybase1.ProcessedContact, 0, len(savedContacts))
+
+	// Find contacts that have at least one resolved component, we are going to
+	// take only the resolved component from them (chose one if there are
+	// multiple).
+	seenResolvedContacts := make(map[int]struct{})
+	for _, contact := range savedContacts {
+		if contact.Resolved {
+			seenResolvedContacts[contact.ContactIndex] = struct{}{}
+		}
+	}
+
+	// Find the best contact for each resolved username.
+	contactForUsername := make(map[string]keybase1.ProcessedContact, len(seenResolvedContacts))
+
+	for _, contact := range savedContacts {
+		if !contact.Resolved {
+			if _, found := seenResolvedContacts[contact.ContactIndex]; found {
+				// This contact has a resolved component, skip unresolved ones
+				// completely.
+				continue
+			}
+
+			res = append(res, contact)
+		} else {
+			if current, found := contactForUsername[contact.Username]; found {
+				var overwrite bool
+				// NOTE: add more rules here if needed.
+				if current.Component.Email == nil && contact.Component.Email != nil {
+					// Prefer email components to phone ones.
+					overwrite = true
+				}
+
+				if overwrite {
+					contactForUsername[contact.Username] = contact
+				}
+			} else {
+				contactForUsername[contact.Username] = contact
+			}
+		}
+	}
+
+	for _, contact := range contactForUsername {
+		res = append(res, contact)
+	}
+
+	return res, nil
+}

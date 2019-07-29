@@ -162,7 +162,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
   Promise.all([
     RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
     flags.sbsContacts
-      ? RPCTypes.contactsLookupSavedContactsListRpcPromise()
+      ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
       : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
     .then(([_suggestionRes, _contactRes]) => {

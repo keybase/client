@@ -86,21 +86,25 @@ func TestLookupContacts(t *testing.T) {
 		require.Equal(t, assertion, r.Assertion)
 	}
 
-	// At least one of the components resolves the user, return just that one
-	// contact.
+	// Phone number component will not resolve. Still save all 3 components.
 	mockJoe := MakeMockLookupUser("joe", "JOE")
 	provider.PhoneNumbers["+1111222"] = mockJoe
+
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Len(t, res, 1)
-	require.Equal(t, "joe", res[0].DisplayName)
-	require.Equal(t, "JOE", res[0].FullName)
-	require.Equal(t, "Home", res[0].Component.Label)
-	require.NotNil(t, res[0].Component.PhoneNumber)
-	require.Nil(t, res[0].Component.Email)
-	require.EqualValues(t, "+1111222", *res[0].Component.PhoneNumber)
+	require.Len(t, res, 3)
 	require.True(t, res[0].Resolved)
-	require.Equal(t, mockJoe.UID, res[0].Uid)
+	require.NotNil(t, res[0].Component.PhoneNumber)
+	require.Equal(t, "199123@phone", res[0].Assertion)
+	for i, v := range res {
+		if i != 0 {
+			require.False(t, v.Resolved)
+			require.Equal(t, "Joe", v.DisplayName)
+			assertion, err := AssertionFromComponent(actx, v.Component, "")
+			require.NoError(t, err)
+			require.Equal(t, assertion, v.Assertion)
+		}
+	}
 
 	// More than one components resolve, still return only the first resolution.
 	provider.PhoneNumbers["+199123"] = mockJoe
@@ -182,24 +186,24 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	expected = []string{
-		"keybase:charlie",
-		"keybase:bob",
 		"Alice +1111222 (Home)",
 		"Alice +199123 (Work)",
+		"keybase:bob",
+		"keybase:charlie",
 	}
 	require.Equal(t, expected, stringifyResults(res))
 	expected = []string{
-		`"charlie" "Charlie"`,
-		`"bob" "Bob"`,
 		`"Alice" "+1111222 (Home)"`,
 		`"Alice" "+199123 (Work)"`,
+		`"bob" "Bob"`,
+		`"charlie" "Charlie"`,
 	}
 	require.Equal(t, expected, displayResults(res))
 
-	require.Equal(t, "[charlie+test@keyba.se]@email", res[0].Assertion)
-	require.Equal(t, "123456@phone", res[1].Assertion)
-	require.Equal(t, "1111222@phone", res[2].Assertion)
-	require.Equal(t, "199123@phone", res[3].Assertion)
+	require.Equal(t, "1111222@phone", res[0].Assertion)
+	require.Equal(t, "199123@phone", res[1].Assertion)
+	require.Equal(t, "123456@phone", res[2].Assertion)
+	require.Equal(t, "[charlie+test@keyba.se]@email", res[3].Assertion)
 }
 
 func TestEmptyComponentLabels(t *testing.T) {

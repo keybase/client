@@ -167,8 +167,7 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 }
 
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
-	store := mctx.G().SyncedContactList
-	contactsRes, err := store.RetrieveContacts(mctx)
+	contactsRes, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
 	if err != nil {
 		return res, err
 	}
@@ -178,10 +177,23 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		return res, nil
 	}
 
-	for _, c := range contactsRes {
-		found, score, matchedVal := matchAndScoreContact(query, c)
+	// Deduplicate on name and label - never return multiple identical rows
+	// even if separate components yielded them.
+	type displayNameAndLabel struct {
+		name, label string
+	}
+	searchResults := make(map[displayNameAndLabel]keybase1.APIUserSearchResult)
+
+	// Set of contact indices that we've matched to and are resolved. When
+	// search matches to a contact component, we want to only present the
+	// resolved one and skip unresolved.
+	seenResolvedContacts := make(map[int]struct{})
+
+	for _, contactIter := range contactsRes {
+		found, score, matchedVal := matchAndScoreContact(query, contactIter)
 		if found {
-			contact := c
+			// Copy contact because we are storing pointer to contact.
+			contact := contactIter
 			if contact.Resolved {
 				if matchedVal != "" {
 					// If contact is resolved, make sure to plumb matched query to
@@ -194,13 +206,35 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 				// If we got a resolved match, add bonus to the score so it
 				// stands out from similar matches.
 				score *= 1.5
+
+				// Mark contact index so we skip it when populating return list.
+				seenResolvedContacts[contact.ContactIndex] = struct{}{}
+			} else {
+				if _, seen := seenResolvedContacts[contact.ContactIndex]; seen {
+					// Other component of this contact has resolved to a user, skip
+					// all non-resolved components.
+					continue
+				}
 			}
 
-			res = append(res, keybase1.APIUserSearchResult{
+			key := displayNameAndLabel{contact.DisplayName, contact.DisplayLabel}
+			searchResults[key] = keybase1.APIUserSearchResult{
 				Contact:  &contact,
 				RawScore: score,
-			})
+			}
 		}
+	}
+
+	for _, entry := range searchResults {
+		if !entry.Contact.Resolved {
+			if _, seen := seenResolvedContacts[entry.Contact.ContactIndex]; seen {
+				// Other component of this contact has resolved to a user, skip
+				// all non-resolved components.
+				continue
+			}
+		}
+
+		res = append(res, entry)
 	}
 
 	return res, nil

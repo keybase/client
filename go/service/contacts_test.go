@@ -48,7 +48,7 @@ func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncT
 	}
 }
 
-func TestContactSyncing(t *testing.T) {
+func TestContactSyncAndSearch(t *testing.T) {
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
@@ -72,12 +72,30 @@ func TestContactSyncing(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	list, err := all.contactsHandler.LookupSavedContactsList(context.Background(), 0)
-	require.NoError(t, err)
-	// Len == 1 right now because of contacts deduplicating during sync which we are changing.
-	require.Len(t, list, 1)
+	{
+		// Try raw contact list lookup.
+		list, err := all.contactsHandler.LookupSavedContactsList(context.Background(), 0)
+		require.NoError(t, err)
+		// We have one contact with two components
+		require.Len(t, list, 2)
+	}
 
 	{
+		// We expect "Alice A" contact to only show up as only the resolved
+		// component
+		list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
+		require.NoError(t, err)
+		require.Len(t, list, 1)
+		require.Equal(t, "alice", list[0].DisplayName)
+		require.Equal(t, "Alice A", list[0].DisplayLabel)
+		require.Equal(t, "alice", list[0].Username)
+		require.NotNil(t, list[0].Component.PhoneNumber)
+		require.Equal(t, "48111222333@phone", list[0].Assertion)
+	}
+
+	{
+		// When searching for "alice" in contacts, it should skip the
+		// unresolved contact because other one is resolved.
 		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
 			Service:         "keybase",
@@ -94,7 +112,9 @@ func TestContactSyncing(t *testing.T) {
 	}
 
 	{
-		// Should be possible to search for both alice's components
+		// Should be possible to search for both alice's components - as long a
+		// search don't yield both at the same time, then it's handled like in
+		// the previous case.
 		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
 			Service:         "keybase",

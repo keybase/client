@@ -64,4 +64,9 @@ protocol contacts {
 
     void saveContactList(int sessionID, array<Contact> contacts);
     array<ProcessedContact> lookupSavedContactsList(int sessionID);
+
+    // Process saved contact list for user recommendations in "new chat" screen.
+    // Remove duplicates, do not display unresolved components for already
+    // resolved contact, etc.
+    array<ProcessedContact> getContactsForUserRecommendations(int sessionID);
 }
