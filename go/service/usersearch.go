@@ -320,7 +320,6 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		if err != nil {
 			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 		}
-		mctx.Warning("doSearchRequest@@@@ %#v", res)
 	}
 
 	if arg.IncludeContacts {
