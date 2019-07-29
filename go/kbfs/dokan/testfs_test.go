@@ -489,8 +489,7 @@ func (r *ramFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length in
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	r.lastWriteTime = time.Now()
-	switch {
-	case int(length) < len(r.contents):
+	if int(length) < len(r.contents) {
 		r.contents = r.contents[:int(length)]
 	}
 	return nil

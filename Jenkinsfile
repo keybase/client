@@ -455,13 +455,16 @@ def testGo(prefix, packagesToTest) {
     }
 
     println "Running golangci-lint"
-    retry(5) {
-      sh 'curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0'
+    dir("..") {
+      retry(5) {
+        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
+      }
     }
     dir('kbfs') {
       retry(5) {
         timeout(activity: true, time: 180, unit: 'SECONDS') {
-          sh 'golangci-lint run'
+        // Ignore the `dokan` directory since it contains lots of c code.
+        sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
         }
       }
     }

@@ -173,6 +173,7 @@ func (cache *diskBlockCacheWrapped) moveBetweenCachesWithBlockLocked(
 	cache.deleteGroup.Add(1)
 	go func() {
 		defer cache.deleteGroup.Done()
+		// Don't catch the errors -- this is just best effort.
 		_, _, _ = secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
 	}()
 }
@@ -295,6 +296,7 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 			cache.deleteGroup.Add(1)
 			go func() {
 				defer cache.deleteGroup.Done()
+				// Don't catch the errors -- this is just best effort.
 				_, _, _ = workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 			}()
 			return nil
