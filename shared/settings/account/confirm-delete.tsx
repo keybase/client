@@ -22,8 +22,10 @@ const getIcon = (props: Props) => {
 }
 const getPrompt = (props: Props) => {
   return props.type === 'email'
-    ? `Delete email ${props.address}`
-    : `Delete number ${PhoneUtil.e164ToDisplay(props.address)}`
+    ? `Delete email
+${props.address}`
+    : `Delete number
+${PhoneUtil.e164ToDisplay(props.address)}`
 }
 const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
