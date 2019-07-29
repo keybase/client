@@ -5731,6 +5731,346 @@ func (o Thread) DeepCopy() Thread {
 	}
 }
 
+type ConvSummary struct {
+	Id           string                    `codec:"id" json:"id"`
+	Channel      ChatChannel               `codec:"channel" json:"channel"`
+	Unread       bool                      `codec:"unread" json:"unread"`
+	ActiveAt     int64                     `codec:"activeAt" json:"activeAt"`
+	ActiveAtMs   int64                     `codec:"activeAtMs" json:"activeAtMs"`
+	MemberStatus string                    `codec:"memberStatus" json:"memberStatus"`
+	ResetUsers   []string                  `codec:"resetUsers" json:"resetUsers"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes   []string                  `codec:"supersedes" json:"supersedes"`
+	SupersededBy []string                  `codec:"supersededBy" json:"supersededBy"`
+	Error        string                    `codec:"error" json:"error"`
+}
+
+func (o ConvSummary) DeepCopy() ConvSummary {
+	return ConvSummary{
+		Id:           o.Id,
+		Channel:      o.Channel.DeepCopy(),
+		Unread:       o.Unread,
+		ActiveAt:     o.ActiveAt,
+		ActiveAtMs:   o.ActiveAtMs,
+		MemberStatus: o.MemberStatus,
+		ResetUsers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ResetUsers),
+		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FinalizeInfo),
+		Supersedes: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Supersedes),
+		SupersededBy: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SupersededBy),
+		Error: o.Error,
+	}
+}
+
+type ChatList struct {
+	Conversations    []ConvSummary                 `codec:"conversations" json:"conversations"`
+	Offline          bool                          `codec:"offline" json:"offline"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o ChatList) DeepCopy() ChatList {
+	return ChatList{
+		Conversations: (func(x []ConvSummary) []ConvSummary {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConvSummary, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Conversations),
+		Offline: o.Offline,
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type SendRes struct {
+	Message          string                        `codec:"message" json:"message"`
+	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"messageID,omitempty"`
+	OutboxID         *OutboxID                     `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o SendRes) DeepCopy() SendRes {
+	return SendRes{
+		Message: o.Message,
+		MessageID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageID),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type SearchInboxResOutput struct {
+	Results          *ChatSearchInboxResults       `codec:"results,omitempty" json:"results,omitempty"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o SearchInboxResOutput) DeepCopy() SearchInboxResOutput {
+	return SearchInboxResOutput{
+		Results: (func(x *ChatSearchInboxResults) *ChatSearchInboxResults {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Results),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type RegexpRes struct {
+	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o RegexpRes) DeepCopy() RegexpRes {
+	return RegexpRes{
+		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type NewConvRes struct {
+	Id               string                        `codec:"id" json:"id"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o NewConvRes) DeepCopy() NewConvRes {
+	return NewConvRes{
+		Id: o.Id,
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type ListCommandsRes struct {
+	Commands   []UserBotCommandOutput `codec:"commands" json:"commands"`
+	RateLimits []RateLimitRes         `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o ListCommandsRes) DeepCopy() ListCommandsRes {
+	return ListCommandsRes{
+		Commands: (func(x []UserBotCommandOutput) []UserBotCommandOutput {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBotCommandOutput, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type EmptyRes struct {
+	RateLimits []RateLimitRes `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o EmptyRes) DeepCopy() EmptyRes {
+	return EmptyRes{
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

@@ -1237,5 +1237,64 @@ protocol local {
     array<RateLimitRes> rateLimits;
   }
 
+  // ConvSummary is used for JSON output of a conversation in the inbox.
+  record ConvSummary {
+    string id;
+    ChatChannel channel;
+    boolean unread;
+    int64 activeAt;
+    int64 activeAtMs;
+    string memberStatus;
+    array<string> resetUsers;
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+    array<string> supersedes;
+    array<string> supersededBy;
+    string error;
+  }
 
+  // ChatList is a list of conversations in the inbox.
+  record ChatList {
+    array<ConvSummary> conversations;
+    boolean offline;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    union { null, Pagination } pagination;
+    array<RateLimitRes> rateLimits;
+  }
+
+  // SendRes is the result of successfully sending a message.
+  record SendRes {
+    string message;
+    union { null, MessageID } messageID;
+    union { null, OutboxID } outboxID;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimitRes> rateLimits;
+  }
+
+  record SearchInboxResOutput {
+    union { null, ChatSearchInboxResults } results;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimitRes> rateLimits;
+  }
+
+  record RegexpRes {
+    array<ChatSearchHit> hits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimitRes> rateLimits;
+  }
+
+  record NewConvRes {
+    string id;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimitRes> rateLimits;
+  }
+
+  record ListCommandsRes {
+    array<UserBotCommandOutput> commands;
+    array<RateLimitRes> rateLimits;
+  }
+
+  // EmptyRes is used for JSON output of a boring command.
+  record EmptyRes {
+    array<RateLimitRes> rateLimits;
+  }
 }

@@ -3718,6 +3718,255 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ConvSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "type": "ChatChannel",
+          "name": "channel"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
+        },
+        {
+          "type": "int64",
+          "name": "activeAt"
+        },
+        {
+          "type": "int64",
+          "name": "activeAtMs"
+        },
+        {
+          "type": "string",
+          "name": "memberStatus"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetUsers"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "supersededBy"
+        },
+        {
+          "type": "string",
+          "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatList",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConvSummary"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "messageID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchInboxResOutput",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ChatSearchInboxResults"
+          ],
+          "name": "results"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RegexpRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConvRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListCommandsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandOutput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmptyRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
