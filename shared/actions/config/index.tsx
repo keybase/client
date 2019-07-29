@@ -281,6 +281,14 @@ const switchRouteDef = (
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
+    } else if (action.type === ConfigGen.loggedIn) {
+      if (
+        state.config.startupLink &&
+        state.config.startupLink.endsWith('/phone-app') &&
+        !state.settings.phoneNumbers.phones
+      ) {
+        return [SettingsGen.createLoadSettings()]
+      }
     }
   } else {
     return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
@@ -328,12 +336,14 @@ function* maybeDoneWithLogoutHandshake(state) {
 let routeToInitialScreenOnce = false
 
 const routeToInitialScreen2 = (state: Container.TypedState) => {
-  console.log(
-    `bruh initscreen2 ${JSON.stringify(state.config.loggedIn)} ; ${JSON.stringify(state.config.startupLink)}`
-  )
-
-  if (state.config.loggedIn && state.config.startupLink) {
-    console.log('bruh startuplink')
+  if (
+    state.config.loggedIn &&
+    state.config.startupLink &&
+    state.config.startupLink.endsWith('/phone-app') &&
+    !state.settings.phoneNumbers.phones
+  ) {
+    // pending loadMySettings finishing
+    return
   }
 
   // bail if we don't have a navigator and loaded
@@ -342,10 +352,6 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
   }
   if (!state.config.startupDetailsLoaded) {
     return
-  }
-
-  if (state.config.loggedIn && state.config.startupLink && !state.settings.phoneNumbers.phones) {
-    return [SettingsGen.createLoadSettings()]
   }
 
   return routeToInitialScreen(state)
@@ -402,13 +408,12 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     }
 
     // A deep link
-    console.log(`bruh startup logic ${state.config.startupLink}`)
     if (state.config.startupLink) {
       try {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
-        if (username === 'app') {
+        if (username === 'phone-app') {
           if (!state.settings.phoneNumbers.phones) {
             return
           }
@@ -420,7 +425,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
               RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
             ]
           }
-        } else if (username) {
+        } else if (username && username !== 'app') {
           return [
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
@@ -580,8 +585,11 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction<
-    ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload | SettingsGen.LoadSettingsPayload
-  >([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator, SettingsGen.loadSettings], routeToInitialScreen2)
+    ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload | SettingsGen.LoadedSettingsPayload
+  >(
+    [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator, SettingsGen.loadedSettings],
+    routeToInitialScreen2
+  )
 
   yield* Saga.chainAction<
     | RouteTreeGen.NavigateAppendPayload
