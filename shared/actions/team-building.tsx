@@ -142,7 +142,7 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
 
   const query = teamBuildingSearchQuery
   let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
-  if (flags.sbsContacts && teamBuildingSelectedService === 'keybase') {
+  if (flags.sbsContacts && teamBuildingSelectedService === 'keybase' && namespace == 'chat2') {
     const userRegion = state.settings.contacts.userCountryCode
     impTofuQuery = makeImpTofuQuery(query, userRegion)
   }
@@ -161,7 +161,7 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
 const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
   Promise.all([
     RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
-    flags.sbsContacts
+    flags.sbsContacts && namespace == 'chat2'
       ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
       : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
@@ -187,7 +187,8 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
             serviceMap: {keybase: username},
           })
         )
-      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
+      const expectingContacts =
+        flags.sbsContacts && state.settings.contacts.importEnabled && namespace == 'chat2'
       if (expectingContacts) {
         suggestions = suggestions.slice(0, 10)
       }
