@@ -712,6 +712,8 @@ const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInt
 
 const MaxTeamMembersForPairwiseMAC = 100
 
+const TeamBackoffBeforeAuditOnNeedRotate = time.Minute
+
 const (
 	MaxStellarPaymentNoteLength       = 500
 	MaxStellarPaymentBoxedNoteLength  = 2000

@@ -879,10 +879,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("put")
 	l.storage.Put(mctx, ret)
 
-	if needHiddenRotate {
-		return nil, NeedHiddenChainRotationError{}
-	}
-
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
 		chain := TeamSigChainState{inner: ret.Chain, hidden: hiddenPackage.ChainData()}
@@ -909,7 +905,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if hd := hiddenPackage.ChainData(); hd != nil {
+		hd.NeedRotate = needHiddenRotate
 		load2res.hidden = hd
+	}
+
+	if needHiddenRotate {
+		l.G().GetTeamBoxAuditor().MaybeScheduleDelayedBoxAuditTeam(mctx, arg.teamID)
 	}
 
 	return &load2res, nil
@@ -951,6 +952,11 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 		return true, nil
 	}
 
+	if state.GetParentID() == nil {
+		mctx.Debug("user is not an allowed keyer of the team")
+		return false, nil
+	}
+
 	// now check implict adminship
 	yes, err := l.isImplicitAdminOf(mctx.Ctx(), state.GetID(), state.GetParentID(), me, them)
 	if err != nil {
@@ -979,15 +985,28 @@ func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.Tea
 
 func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
 
+	defer mctx.Trace(fmt.Sprintf("TeamLoader::checkNeedRotateWithSigner(%+v)", signer), func() error { return err })()
+
 	uv := signer.UserVersion()
 
-	var isKeyer bool
+	var isKeyer, amIKeyer bool
+
+	amIKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, me)
+	if err != nil {
+		return false, err
+	}
+	if !amIKeyer {
+		mctx.Debug("I am not a keyer for this team, so I can't rotate it even if required")
+		return false, nil
+	}
+
 	isKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, uv)
 	if err != nil {
 		return false, err
 	}
 
 	if !isKeyer {
+		mctx.Debug("need rotate since %+v isn't an allowed keyer of the team", uv)
 		return true, nil
 	}
 
@@ -999,13 +1018,13 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 		return false, err
 	}
 
-	if !found {
+	if !found || revokedAt != nil {
 		var s string
 		if revokedAt != nil {
 			tm := revokedAt.Unix.Time()
 			s = fmt.Sprintf(" (revoked at %s [%s ago])", tm, mctx.G().Clock().Now().Sub(tm))
 		}
-		mctx.Debug("KID %s wasn't found for %+v%s", signer.K, s)
+		mctx.Debug("KID %s wasn't found for %+v%s", signer, s)
 		return true, nil
 	}
 

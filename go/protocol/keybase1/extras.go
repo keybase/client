@@ -3006,6 +3006,10 @@ func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
 }
 
+func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
+	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
+}
+
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
 
 	for seqno, link := range newData.Outer {
@@ -3045,6 +3049,18 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		}
 	}
 
+	for k, v := range newData.MerkleRoots {
+		existing, ok := d.MerkleRoots[k]
+		if ok && !existing.Eq(v) {
+			return false, fmt.Errorf("bad merge since at seqno %d, merkle root clash: %+v != %+v", k, existing, v)
+		}
+		if ok {
+			continue
+		}
+		d.MerkleRoots[k] = v
+		updated = true
+	}
+
 	if d.RatchetSet.Merge(newData.RatchetSet) {
 		updated = true
 	}
@@ -3064,6 +3080,7 @@ func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
 		Outer:             make(map[Seqno]LinkID),
 		Inner:             make(map[Seqno]HiddenTeamChainLink),
+		MerkleRoots:       make(map[Seqno]MerkleRootV2),
 	}
 }
 

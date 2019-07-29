@@ -85,7 +85,7 @@ const Friends = () => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Icon type="icon-fancy-airdrop-friends-120" />
+    <Kb.Icon type="icon-fancy-airdrop-shining-80" />
   </Kb.Box2>
 )
 
@@ -120,7 +120,7 @@ class Airdrop extends React.Component<Props> {
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
-                <Kb.Icon type="icon-airdrop-star-32" />
+                <Kb.Icon type="icon-airdrop-logo-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
                   You're in. The next Lumens airdrop will show up in your default wallet account.
                 </Kb.Text>
@@ -135,7 +135,7 @@ class Airdrop extends React.Component<Props> {
               style={styles.header}
             >
               <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon type="icon-fancy-airdrop-star-shining-120" />
+                <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
                 <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
@@ -253,11 +253,10 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
   },
   friendContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
     backgroundColor: Styles.globalColors.blueLighter3,
     display: 'flex',
     flexWrap: 'wrap',
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
   },
   friendText: Styles.platformStyles({
     isElectron: {whiteSpace: 'pre'},
