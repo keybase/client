@@ -89,17 +89,18 @@ func cachedResultFromLookupResult(v ContactLookupResult, expires time.Time) cach
 // entry expires, we will try to update it, but if we fail to do so, we will
 // still return it - so user does not lose all their cache if they happen to be
 // offline after expiration time. But if a cached entry has not been refreshed
-// for duration of minimumFreshness, it's discarded entirely.
-const minimumFreshness = 45 * 24 * time.Hour // approx 45 days
+// for duration of server provided expiration time plus cacheEvictionTime, it's
+// discarded entirely.
+const cacheEvictionTime = 45 * 24 * time.Hour // approx 45 days
 
-func (c cachedLookupResult) getLongStaleDate() time.Time {
-	return c.ExpiresAt.Add(minimumFreshness)
+func (c cachedLookupResult) getEvictionTime() time.Time {
+	return c.ExpiresAt.Add(cacheEvictionTime)
 }
 
 func (c *lookupResultCache) findFreshOrSetEmpty(mctx libkb.MetaContext, key ContactLookupKey) (res cachedLookupResult, stale bool, found bool) {
 	now := mctx.G().Clock().Now()
 	res, found = c.Lookups[key]
-	if !found || now.After(res.getLongStaleDate()) {
+	if !found || now.After(res.getEvictionTime()) {
 		// Pre-insert to the cache. If Provider.LookupAll does not find
 		// these, they will stay in the cache as unresolved, otherwise they
 		// are overwritten.
@@ -115,7 +116,7 @@ func (c *lookupResultCache) findFreshOrSetEmpty(mctx libkb.MetaContext, key Cont
 func (c *lookupResultCache) cleanup(mctx libkb.MetaContext) {
 	now := mctx.G().Clock().Now()
 	for key, val := range c.Lookups {
-		if now.After(val.getLongStaleDate()) {
+		if now.After(val.getEvictionTime()) {
 			delete(c.Lookups, key)
 		}
 	}
@@ -172,7 +173,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 
 	mctx.Debug("Populating results from cache")
 
-	// Map of keys of new unresolved cache entries, to set ExpireAt value after
+	// List of keys of new or stale cache entries, to set ExpireAt value after
 	// we do parent provider LookupAll call.
 	newCacheEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
 
