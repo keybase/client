@@ -36,6 +36,9 @@ type NextURI = string
 const requestPermissionsToWrite = (): Promise<void> => {
   if (isAndroid) {
     return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+      buttonNegative: 'Cancel',
+      buttonNeutral: 'Ask me later',
+      buttonPositive: 'OK',
       message: 'Keybase needs access to your storage so we can download a file.',
       title: 'Keybase Storage Permission',
     }).then(permissionStatus =>
@@ -79,10 +82,7 @@ function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
-}): Promise<{
-  completed: boolean
-  method: string
-}> {
+}) {
   if (isIOS) {
     return new Promise((resolve, reject) =>
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)

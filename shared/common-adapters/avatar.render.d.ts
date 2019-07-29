@@ -16,7 +16,7 @@ export type Props = {
   name: string
   loadingColor?: string
   onClick?: () => void
-  onEditAvatarClick?: (e: React.SyntheticEvent) => void
+  onEditAvatarClick?: (e: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean

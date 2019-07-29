@@ -23,8 +23,8 @@ export type OwnProps = {
   editable?: boolean
   isTeam?: boolean
   loadingColor?: string
-  onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
+  onClick?: (e?: React.BaseSyntheticEvent) => void
+  onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean

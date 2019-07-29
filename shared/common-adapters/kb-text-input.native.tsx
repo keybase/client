@@ -71,7 +71,7 @@ class KBInputText extends RNTextInput {
   }
 }
 
-export default React.forwardRef<RNTextInput>((props, ref) => (
+export default (React.forwardRef<RNTextInput>((props, ref) => (
   // @ts-ignore
   <KBInputText {...props} forwardedRef={ref} />
-))
+)) as unknown) as typeof RNTextInput

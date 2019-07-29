@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native'
 import Box from './box'
 import {NativeTextInput, NativeStyleSheet} from './native-wrappers.native'
 import {backgroundModeToColor, globalColors, globalMargins, globalStyles} from '../styles'
@@ -14,7 +15,7 @@ export type Props = {
   // eslint-disable-next-line
   inputStyle?: any
   label?: string
-  onEnterKeyDown?: (() => void)| null
+  onEnterKeyDown?: () => void
   value?: string
   textType?: TextType
   secure?: boolean
@@ -75,8 +76,8 @@ class FormInput extends React.Component<Props, State> {
     })
   }
 
-  _onKeyPress = (e: React.KeyboardEvent) => {
-    if (this.props.onEnterKeyDown && e.key === 'Enter') {
+  _onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    if (this.props.onEnterKeyDown && e.nativeEvent.key === 'Enter') {
       this.props.onEnterKeyDown()
     }
   }
@@ -106,7 +107,6 @@ class FormInput extends React.Component<Props, State> {
         <NativeTextInput
           autoCorrect={this.props.autoCorrect}
           autoFocus={this.props.autoFocus}
-          autoGrow={!!this.props.multiline && !!this.props.maxHeight}
           value={this.props.value}
           onChangeText={this._onChangeText}
           placeholder={this.state.focused ? '' : this.props.label}
@@ -119,6 +119,7 @@ class FormInput extends React.Component<Props, State> {
           multiline={this.props.multiline}
           style={[
             inputStyle.common,
+            // @ts-ignore TODO fix styling
             (this.props.value || this.state.focused) && inputStyle.paddingTop,
             this.props.textType && getStyle(this.props.textType, this.props.backgroundMode),
             !this.props.textType && getStyle('BodySemibold', this.props.backgroundMode),

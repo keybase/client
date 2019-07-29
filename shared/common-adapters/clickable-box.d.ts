@@ -5,10 +5,10 @@ export type Props = {
   className?: string
   children?: any
   style?: StylesCrossPlatform
-  onClick?: (event: React.MouseEvent) => void
-  onDoubleClick?: (event: React.MouseEvent) => void
+  onClick?: (event: React.BaseSyntheticEvent) => void
+  onDoubleClick?: (event: React.BaseSyntheticEvent) => void
   onPress?: void
-  onLongPress?: (event: React.MouseEvent) => void
+  onLongPress?: (event: React.BaseSyntheticEvent) => void
   underlayColor?: string
   onPressIn?: () => void
   onPressOut?: () => void

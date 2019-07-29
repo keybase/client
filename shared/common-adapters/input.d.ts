@@ -35,7 +35,7 @@ export type Props = {
   errorTextComponent?: React.ReactNode
   floatingHintTextOverride?: string | null // if undefined will use hintText. Use this to override hintText,
   hideUnderline?: boolean
-  hintText?: string | null
+  hintText?: string
   key?: string
   inputStyle?: StylesCrossPlatform
   multiline?: boolean
@@ -58,7 +58,7 @@ export type Props = {
   clearTextCounter?: number
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.
-  onEnterKeyDown?: ((event: React.KeyboardEvent) => void) | null
+  onEnterKeyDown?: (e: React.BaseSyntheticEvent) => void
   // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
   // i'm afraid of touching this now while I'm fixing a crash.
   // If true it won't use its internal value to drive its rendering
@@ -67,7 +67,7 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   // Mobile only
-  onEndEditing?: (() => void) | null
+  onEndEditing?: () => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   // If keyboardType is set, it overrides type.

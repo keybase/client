@@ -11,7 +11,7 @@ type Props = {
   isCollapsed: boolean
   onClick: () => void
   onCollapse: () => void
-  onShowInFinder: null | ((e: React.SyntheticEvent) => void)
+  onShowInFinder?: ((e: React.BaseSyntheticEvent) => void)
   onDoubleClick: () => void
   path: string
   fullPath: string
