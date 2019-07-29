@@ -159,26 +159,30 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const debouncedSearch = debounce(
-  (
-    dispatch: Container.TypedDispatch,
-    namespace: AllowedNamespace,
-    query: string,
-    service: ServiceIdWithContact,
-    limit?: number
-  ) =>
-    requestIdleCallback(() =>
-      dispatch(
-        TeamBuildingGen.createSearch({
-          limit,
-          namespace,
-          query,
-          service,
-        })
-      )
-    ),
-  1000
-)
+const makeDebouncedSearch = (time: number) =>
+  debounce(
+    (
+      dispatch: Container.TypedDispatch,
+      namespace: AllowedNamespace,
+      query: string,
+      service: ServiceIdWithContact,
+      limit?: number
+    ) =>
+      requestIdleCallback(() =>
+        dispatch(
+          TeamBuildingGen.createSearch({
+            limit,
+            namespace,
+            query,
+            service,
+          })
+        )
+      ),
+    time
+  )
+
+const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
+const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase / contact searches
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
@@ -187,8 +191,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _search: (query: string, service: ServiceIdWithContact, limit?: number) =>
-    debouncedSearch(dispatch, namespace, query, service, limit),
+  _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
+    const func = query === 'keybase' ? debouncedSearchKeybase : debouncedSearch
+    return func(dispatch, namespace, query, service, limit)
+  },
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
