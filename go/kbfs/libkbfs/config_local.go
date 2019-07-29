@@ -259,6 +259,7 @@ func NewConfigLocal(mode InitMode,
 	}
 	config.SetCodec(kbfscodec.NewMsgpack())
 	if diskCacheMode == DiskCacheModeLocal {
+		// Any error is logged in the function itself.
 		_ = config.loadSyncedTlfsLocked()
 	}
 	config.SetClock(data.WallClock{})
@@ -1751,6 +1752,7 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 	defer c.lock.Unlock()
 	c.diskCacheMode = m
 	if c.diskCacheMode == DiskCacheModeLocal {
+		// Any error is logged in the function itself.
 		_ = c.loadSyncedTlfsLocked()
 	}
 }
