@@ -74,8 +74,8 @@ func newLookupResultCache() (ret lookupResultCache) {
 	return ret
 }
 
-const cacheCurrentMajorVersion = 1
-const cacheCurrentMinorVersion = 1
+const cacheCurrentMajorVersion = 2
+const cacheCurrentMinorVersion = 0
 
 func cachedResultFromLookupResult(v ContactLookupResult, expires time.Time) cachedLookupResult {
 	return cachedLookupResult{
@@ -121,6 +121,30 @@ func (c *lookupResultCache) cleanup(mctx libkb.MetaContext) {
 	}
 }
 
+func (c *CachedContactsProvider) getCache(mctx libkb.MetaContext) lookupResultCache {
+	var conCache lookupResultCache
+	var createCache bool
+	cacheKey := c.Store.dbKey(mctx.CurrentUID())
+	found, err := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
+	if err != nil {
+		mctx.Warning("Unable to pull contact lookup cache: %s", err)
+		createCache = true
+	} else if !found {
+		mctx.Debug("No contact lookup cache found, creating new cache object")
+		createCache = true
+	} else if conCache.Version.Major != cacheCurrentMajorVersion {
+		mctx.Debug("Found contact cache object but major version is %d (need %d)", conCache.Version.Major, cacheCurrentMajorVersion)
+		createCache = true
+	}
+	// NOTE: If we ever have a cache change that keeps major version same but
+	// increases minor version, do the object upgrade here.
+
+	if createCache {
+		conCache = newLookupResultCache()
+	}
+	return conCache
+}
+
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupResults, err error) {
 
@@ -141,21 +165,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	var conCache lookupResultCache
-	cacheKey := c.Store.dbKey(mctx.CurrentUID())
-	found, cerr := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if cerr != nil || !found {
-		if cerr != nil {
-			mctx.Warning("Unable to pull cache: %s", cerr)
-		} else if !found {
-			mctx.Debug("There was no cache, making a new cache object")
-		}
-		conCache = newLookupResultCache()
-	} else {
-		mctx.Debug("Fetched cache, current cache size: %d", len(conCache.Lookups))
-		conCache.Version.Major = cacheCurrentMajorVersion
-		conCache.Version.Minor = cacheCurrentMinorVersion
-	}
+	conCache := c.getCache(mctx)
 
 	var remainingEmails []keybase1.EmailAddress
 	var remainingNumbers []keybase1.RawPhoneNumber
@@ -219,6 +229,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 
 		conCache.cleanup(mctx)
 
+		cacheKey := c.Store.dbKey(mctx.CurrentUID())
 		cerr := c.Store.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
 		if cerr != nil {
 			mctx.Warning("Unable to update cache: %s", cerr)

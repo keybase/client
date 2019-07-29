@@ -175,35 +175,76 @@ func TestLookupCacheExpiration(t *testing.T) {
 	// All components were looked up.
 	require.Equal(t, 4, provider.queryCount)
 
-	// Query again with provider disabled, all results should be fetched from cache.
-	provider.disabled = true
+	{
+		// Query again with provider disabled, all results should be fetched from cache.
+		provider.disabled = true
 
-	res2, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
-	require.NoError(t, err)
-	require.Equal(t, res1, res2)
+		res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+		require.NoError(t, err)
+		require.Equal(t, res1, res)
 
-	provider.disabled = false
-	provider.queryCount = 0
+		provider.disabled = false
+		provider.queryCount = 0
+	}
 
-	// Push us over unresolved contact cache expiration time.
-	clock.Advance(25 * time.Hour) // see *MockContactsProvider::LookupAll for correct value
+	{
+		// Push us over unresolved contact cache expiration time.
+		clock.Advance(25 * time.Hour) // see *MockContactsProvider::LookupAll for correct value
 
-	res3, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
-	require.NoError(t, err)
-	require.Equal(t, res1, res3)
+		res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+		require.NoError(t, err)
+		require.Equal(t, res1, res)
 
-	// Expect to look up unresolved components (unresolved freshness is shorter than resolved)
-	require.Equal(t, 3, provider.queryCount)
+		// Expect to look up unresolved components (unresolved freshness is shorter than resolved)
+		require.Equal(t, 3, provider.queryCount)
 
-	provider.queryCount = 0
+		provider.queryCount = 0
+	}
 
-	// Push us over resolved contact cache expiration time.
-	clock.Advance(10*24*time.Hour + time.Hour) // see *MockContactsProvider::LookupAll for correct value
+	{
+		// Push us over resolved contact cache expiration time.
+		clock.Advance(10*24*time.Hour + time.Hour) // see *MockContactsProvider::LookupAll for correct value
 
-	res4, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
-	require.NoError(t, err)
-	require.Equal(t, res1, res4)
+		res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+		require.NoError(t, err)
+		require.Equal(t, res1, res)
 
-	// Expect to look up all components
-	require.Equal(t, 4, provider.queryCount)
+		// Expect to look up all components.
+		require.Equal(t, 4, provider.queryCount)
+
+		provider.queryCount = 0
+	}
+
+	{
+		// Go really far forward to trigger cleanup. Test provider returns
+		// 10-day freshness for resolved entries and 1-day for unresolved. This
+		// combined with `minimumFreshness` time gives 55 days after which all
+		// current entries should be evicted.
+		clock.Advance(55*24*time.Hour + time.Hour)
+
+		mctx := libkb.NewMetaContextForTest(tc)
+		contactList := []keybase1.Contact{
+			keybase1.Contact{
+				Name: "Robert",
+				Components: []keybase1.ContactComponent{
+					makePhoneComponent("Phone", "+48111222333"),
+				},
+			},
+		}
+
+		res, err := ResolveContacts(mctx, cacheProvider, contactList, keybase1.RegionCode(""))
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+
+		// Expect to look up all components from new contactList.
+		require.Equal(t, 1, provider.queryCount)
+
+		// Old entries from previous lookups should have been cleared, only
+		// last lookup should be cached.
+		cacheObj := cacheProvider.getCache(mctx)
+		require.Len(t, cacheObj.Lookups, 1)
+		_, ok := cacheObj.Lookups[makePhoneLookupKey("+48111222333")]
+		require.True(t, ok)
+	}
+
 }
