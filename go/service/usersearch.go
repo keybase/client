@@ -225,6 +225,8 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		}
 	}
 
+	// NOTE: this adds results in random order, but that's OK because we are
+	// sorting the final search results list before returning from RPC.
 	for _, entry := range searchResults {
 		if !entry.Contact.Resolved {
 			if _, seen := seenResolvedContacts[entry.Contact.ContactIndex]; seen {
@@ -386,35 +388,39 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		if err != nil {
 			mctx.Warning("Failed to do contacts search: %s", err)
 		} else {
-			// Sort first - we are going to be deduplicating on usernames,
-			// entries with higher score have precedence.
 			sort.Slice(contactsRes, func(i, j int) bool {
 				return contactsRes[i].RawScore > contactsRes[j].RawScore
 			})
 
-			res = append(res, contactsRes...)
-
-			// Filter `res` list using `outputRes`.
+			// Filter contacts - If we have a username match coming from the
+			// service, prefer it instead of contact result for the same user
+			// but with SBS assertion in it.
 			usernameSet := make(map[string]struct{}) // set of usernames
-			outputRes := make([]keybase1.APIUserSearchResult, 0, len(res))
-			for i, v := range res {
-				var username string
-				if v.Keybase != nil {
-					username = v.Keybase.Username
-				} else if v.Contact != nil && v.Contact.Resolved {
-					username = v.Contact.Username
+			for _, result := range res {
+				if result.Keybase != nil {
+					// All current results should be Keybase but be safe in
+					// case code in this function changes.
+					usernameSet[result.Keybase.Username] = struct{}{}
 				}
-				if username != "" {
-					// Only deduplicate resolved contacts or keybase users.
+			}
+
+			for _, contact := range contactsRes {
+				if contact.Contact.Resolved {
+					// Do not add this contact result if there already is a
+					// keybase result with username that the contact resolved
+					// to.
+					username := contact.Contact.Username
 					if _, found := usernameSet[username]; found {
 						continue
 					}
 					usernameSet[username] = struct{}{}
 				}
-				v.Score = 1.0 / float64(1+i)
-				outputRes = append(outputRes, v)
+				res = append(res, contact)
 			}
-			res = outputRes
+
+			for i := range res {
+				res[i].Score = 1.0 / float64(1+i)
+			}
 		}
 	}
 
