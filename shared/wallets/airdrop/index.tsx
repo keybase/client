@@ -85,7 +85,7 @@ const Friends = () => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Icon type="icon-fancy-airdrop-shining-120" />
+    <Kb.Icon type="icon-fancy-airdrop-shining-80" />
   </Kb.Box2>
 )
 
@@ -253,11 +253,10 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
   },
   friendContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
     backgroundColor: Styles.globalColors.blueLighter3,
     display: 'flex',
     flexWrap: 'wrap',
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
   },
   friendText: Styles.platformStyles({
     isElectron: {whiteSpace: 'pre'},
