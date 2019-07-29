@@ -17,6 +17,15 @@ const useDispatchWhenConnected = () => {
   return kbfsDaemonConnected ? dispatch : noop
 }
 
+const useDispatchWhenConnectedAndOnline = () => {
+  const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const dispatch = Container.useDispatch()
+  return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+    kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
+    ? dispatch
+    : noop
+}
+
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
@@ -41,7 +50,7 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
@@ -49,7 +58,7 @@ export const useFsPathMetadata = (path: Types.Path) => {
 
 export const useFsChildren = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createFolderListLoad({path}))
   }, [dispatch, path])
