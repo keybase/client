@@ -33,7 +33,7 @@ export default class Asset extends React.Component<Props, State> {
     }))
   }
 
-  _openInfoURL = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _openInfoURL = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation()
     this.props.openInfoURL && this.props.openInfoURL()
   }
