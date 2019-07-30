@@ -1,5 +1,6 @@
 // Message related constants
 import * as DeviceTypes from '../types/devices'
+import produce from 'immer'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
 import * as RPCTypes from '../types/rpc-gen'
@@ -159,7 +160,7 @@ const makeMessageMinimum = {
 const makeMessageCommon = {
   ...makeMessageMinimum,
   deviceName: '',
-  deviceRevokedAt: null,
+  deviceRevokedAt: undefined,
   deviceType: 'mobile' as DeviceTypes.DeviceType,
   errorReason: null,
   hasBeenEdited: false,
@@ -192,7 +193,7 @@ export const makeMessageDeleted = I.Record<MessageTypes._MessageDeleted>({
   type: 'deleted',
 })
 
-export const makeMessageText = I.Record<MessageTypes._MessageText>({
+export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageTypes.MessageText => ({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
@@ -210,6 +211,7 @@ export const makeMessageText = I.Record<MessageTypes._MessageText>({
   text: new HiddenString(''),
   type: 'text',
   unfurls: I.Map(),
+  ...m,
 })
 
 export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
@@ -695,7 +697,7 @@ const validUIMessagetoMessage = (
     ...minimum,
     bodySummary: new HiddenString(m.bodySummary),
     deviceName: m.senderDeviceName,
-    deviceRevokedAt: m.senderDeviceRevokedAt,
+    deviceRevokedAt: m.senderDeviceRevokedAt || undefined,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
     reactions,
@@ -738,15 +740,13 @@ const validUIMessagetoMessage = (
         flipGameID: m.flipGameID,
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
-          ? I.List(
-              payments.reduce((arr: Array<string>, p) => {
-                if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent && p.result.sent) {
-                  const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
-                  s && arr.push(s)
-                }
-                return arr
-              }, [])
-            )
+          ? payments.reduce<Array<string>>((arr: Array<string>, p) => {
+              if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent && p.result.sent) {
+                const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
+                s && arr.push(s)
+              }
+              return arr
+            }, [])
           : null,
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
@@ -1173,7 +1173,9 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     if (!validUpgrade(old, m)) {
       return old
     }
-    return m.set('ordinal', old.ordinal) as Types.MessageText
+    return produce(m, draft => {
+      draft.ordinal = old.ordinal
+    })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
     if (!validUpgrade(old, m)) {
