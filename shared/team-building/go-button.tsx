@@ -29,7 +29,7 @@ const AddWithIconHover = Kb.HoverHoc(Go('Add'), GoIcon)
 
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
-    {props.label === 'Go!' ? <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} /> : <AddWithIconHover />}
+    {props.label === 'Go!' ? <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} /> : <AddWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />}
   </Kb.ClickableBox>
 )
 
