@@ -15,7 +15,7 @@ const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
 const OutOfDate = ({outOfDate, updateNow}: Props) => {
-  if (!flags.outOfDateBanner || !outofDate) return
+  if (!flags.outOfDateBanner || !outOfDate) return null
   const bannerColor = outOfDate.critical ? 'red' : 'yellow'
   return (
     <Kb.Banner color={bannerColor} style={styles.banner} textContainerStyle={styles.textContainerStyle}>
@@ -45,15 +45,15 @@ const OutOfDate = ({outOfDate, updateNow}: Props) => {
 
 const styles = Styles.styleSheetCreate({
   banner: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  textCritical: {
-    color: Styles.globalColors.white,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
   textContainerStyle: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
+  },
+  textCritical: {
+    color: Styles.globalColors.white,
   },
   textNonCritical: {
     color: Styles.globalColors.brown_75,
