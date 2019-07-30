@@ -232,20 +232,42 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
   component: C
 ) => TMergedProps extends React.ComponentProps<C> ? ConnectedComponentClass<C, TOwnProps> : never
 
-type CheckNoExtra<
+type CheckNoExtraNoLess<
   C extends ComponentType<any>,
   TMergedProps,
   P = GetProps<C>,
   PP = ExcludeOptionalProps<P>,
   KPP = keyof PP,
   KP = keyof P,
-  KM = keyof TMergedProps
-> = Exclude<KM, KP> extends never ? never : ['Unneeded mergeProps', Exclude<KM, KP>]
+  KM = keyof TMergedProps,
+  DIFF = Exclude<KM, KPP>
+> = DIFF extends never ? never : ['Unneeded mergeProps', Exclude<KM, KPP>, KM, KP]
 
 // To debug why the connect is returning never
-export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<TMergedProps>>(
+export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <
+  C extends ComponentType<any>,
+  P = GetProps<C>,
+  RET = Matching<P, TMergedProps>,
+  PP = ExcludeOptionalProps<P>,
+  KPP = keyof PP,
+  KP = keyof P,
+  KM = keyof TMergedProps,
+  DIFF = Exclude<KM, KPP>,
+  RET = Matching<TMergedProps, P>
+>(
   component: C
-) => CheckNoExtra<C, TMergedProps> extends never ? ComponentType<TOwnProps> : CheckNoExtra<C, TMergedProps>
+  ) =>  RET
+
+  // ComponentType<TOwnProps>
+  // CheckNoExtraNoLess<C, TMergedProps> extends never ? ComponentType<TOwnProps> : CheckNoExtraNoLess<C, TMergedProps>
+
+// ) => [
+// 'bbb',
+// CheckNoExtra<C, TMergedProps>,
+// CheckNoExtra<C, TMergedProps> extends never ? ComponentType<TOwnProps> : CheckNoExtra<C, TMergedProps>
+// ]
+// ) => ComponentType<TOwnProps>
+// ) => CheckNoExtra<C, TMergedProps> extends never ? ComponentType<TOwnProps> : CheckNoExtra<C, TMergedProps>
 
 // C extends ComponentType<any>,
 // P = GetProps<C>,

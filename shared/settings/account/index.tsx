@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../../common-adapters/header-hoc'
 import flags from '../../util/feature-flags'
 
 export type Props = {

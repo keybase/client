@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../../common-adapters/header-hoc'
 
 export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount

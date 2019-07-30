@@ -186,4 +186,15 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Kb.HeaderHoc(DevicePage)
+const HeaderDevicePage = Kb.HeaderHoc(DevicePage)
+export default HeaderDevicePage
+
+// type GetProps<C> = C extends React.ComponentType<infer P> ? P : never
+// type T = GetProps<typeof HeaderDevicePage>
+// type K = keyof T
+// type G = T['onBack']
+
+// type RequiredKeys<T> = {[K in keyof T]-?: ({} extends {[P in K]: T[K]} ? never : K)}[keyof T]
+// type ExcludeOptionalProps<T> = Pick<T, RequiredKeys<T>>
+
+// type E = ExcludeOptionalProps<T>

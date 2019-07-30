@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../'
-import {HeaderHocHeader} from '.'
-import {Action} from './types'
+import {Action, HeaderHocHeader} from '.'
 
 const onAction = Sb.action('onAction')
 const rightActions = (length: number = 3): Action[] =>

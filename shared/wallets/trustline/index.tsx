@@ -183,6 +183,7 @@ const TrustlineDesktop = (props: Props) => {
   )
 }
 
+// @ts-ignore TEMP NOJIMA
 const TrustlineMobile = Kb.HeaderHoc<BodyProps>(Body)
 
 const Trustline = Styles.isMobile

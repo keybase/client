@@ -18,7 +18,7 @@ import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../co
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
-import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../common-adapters/header-hoc'
 
 type OwnProps = {
   namespace: AllowedNamespace

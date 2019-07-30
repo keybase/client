@@ -6,7 +6,7 @@ import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import {Action, Props, LeftActionProps} from './types'
+import {Action, Props, LeftActionProps} from '.'
 
 const MAX_RIGHT_ACTIONS = 3
 
