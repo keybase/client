@@ -2,26 +2,32 @@ package stellarsvc
 
 import (
 	"errors"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"golang.org/x/net/publicsuffix"
 )
 
 // anchorInteractor is used to interact with the sep6 transfer server for an asset.
 type anchorInteractor struct {
-	accountID stellar1.AccountID
-	asset     stellar1.Asset
+	accountID     stellar1.AccountID
+	asset         stellar1.Asset
+	httpGetClient func(mctx libkb.MetaContext, url string) (body []byte, err error)
 }
 
 // newAnchorInteractor creates an anchorInteractor for an account to interact
 // with an asset.
 func newAnchorInteractor(accountID stellar1.AccountID, asset stellar1.Asset) *anchorInteractor {
 	return &anchorInteractor{
-		accountID: accountID,
-		asset:     asset,
+		accountID:     accountID,
+		asset:         asset,
+		httpGetClient: httpGet,
 	}
 }
 
@@ -69,13 +75,21 @@ func (a *anchorInteractor) checkAsset(mctx libkb.MetaContext) error {
 // checkURL creates the URL with the transfer server value and a path
 // and checks it for validity and same domain as the asset.
 func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url.URL, error) {
-	full := path.Join(a.asset.TransferServer, action)
-	u, err := url.ParseRequestURI(full)
+	u, err := url.ParseRequestURI(a.asset.TransferServer)
 	if err != nil {
 		return nil, err
 	}
+	u.Path = path.Join(u.Path, action)
 
-	if strings.ToLower(u.Host) != strings.ToLower(a.asset.VerifiedDomain) {
+	urlTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(u.Host))
+	if err != nil {
+		return nil, err
+	}
+	assetTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(a.asset.VerifiedDomain))
+	if err != nil {
+		return nil, err
+	}
+	if urlTLD != assetTLD {
 		return nil, errors.New("transfer server hostname does not match asset hostname")
 	}
 
@@ -92,6 +106,11 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 
 // get performs the http GET requests and parses the result.
 func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL) (stellar1.AssetActionResultLocal, error) {
+	body, err := a.httpGetClient(mctx, u.String())
+	if err != nil {
+		return stellar1.AssetActionResultLocal{}, err
+	}
+	_ = body
 	return stellar1.AssetActionResultLocal{}, nil
 }
 
@@ -100,3 +119,26 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL) (stellar1.Ass
 	// parse the output into a message or a url to open in a browser (or an error)
 	// return that info
 */
+
+// httpGet is the live version of httpGetClient that is used
+// by default.
+func httpGet(mctx libkb.MetaContext, url string) ([]byte, error) {
+	client := http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.Do(req.WithContext(mctx.Ctx()))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}

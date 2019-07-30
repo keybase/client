@@ -1,8 +1,11 @@
 package stellarsvc
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
@@ -87,7 +90,17 @@ var errAnchorTests = []anchorTest{
 			Code:           "EUR",
 			Issuer:         "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
 			VerifiedDomain: "keybase.io",
-			TransferServer: "https://transfer.keybase.io/transfer?x=123&trans",
+			TransferServer: "https://transfer.keybase.io/transfer?x=123",
+		},
+	},
+	{
+		Name: "legit for now",
+		Asset: stellar1.Asset{
+			Type:           "credit_alphanum4",
+			Code:           "EUR",
+			Issuer:         "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
+			VerifiedDomain: "keybase.io",
+			TransferServer: "https://transfer.keybase.io/transfer",
 		},
 	},
 }
@@ -97,6 +110,7 @@ func TestAnchorInteractor(t *testing.T) {
 	for i, test := range errAnchorTests {
 		accountID, _ := randomStellarKeypair()
 		ai := newAnchorInteractor(accountID, test.Asset)
+		ai.httpGetClient = mockTransferGet
 		_, err := ai.Deposit(tc.MetaContext())
 		if err == nil {
 			t.Errorf("err test %d [%s]: Deposit returned no error, but expected one", i, test.Name)
@@ -107,5 +121,23 @@ func TestAnchorInteractor(t *testing.T) {
 			t.Errorf("err test %d [%s]: Withdraw returned no error, but expected one", i, test.Name)
 			continue
 		}
+		fmt.Printf("%d %s: %s\n", i, test.Name, err)
 	}
 }
+
+// mockTransferGet is an httpGetClient func that returns a stored result
+// for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw
+func mockTransferGet(mctx libkb.MetaContext, url string) ([]byte, error) {
+	switch url {
+	case "https://transfer.keybase.io/transfer/deposit":
+		return []byte(depositBody), nil
+	case "https://transfer.keybase.io/transfer/withdraw":
+		return []byte(withdrawBody), nil
+	default:
+		return nil, errors.New("not found")
+	}
+
+}
+
+const depositBody = `nothing`
+const withdrawBody = `nothing`
