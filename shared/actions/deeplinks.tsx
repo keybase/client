@@ -69,7 +69,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
   ]
 }
 
-const handleAppLink = (_: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
+const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
   if (action.payload.link.startsWith('web+stellar:')) {
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {
@@ -79,7 +79,16 @@ const handleAppLink = (_: Container.TypedState, action: DeeplinksGen.LinkPayload
     // Normal deeplink
     const url = new URL(action.payload.link)
     const username = Constants.urlToUsername(url)
-    if (username) {
+    if (username === 'phone-app') {
+      const phones = state.settings.phoneNumbers.phones
+      if (!phones || phones.size > 0) {
+        return
+      }
+      return [
+        RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
+        RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
+      ]
+    } else if (username && username !== 'app') {
       return [
         RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username}),
