@@ -1081,15 +1081,15 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 	return nil
 }
 
-func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+func (c *ChatUI) ChatThreadCached(ctx context.Context, arg *string) error {
 	var thread chat1.UIMessages
-	if arg.Thread == nil {
+	if arg == nil {
 		c.ThreadCb <- NonblockThreadResult{
 			Thread: nil,
 			Full:   false,
 		}
 	} else {
-		if err := json.Unmarshal([]byte(*arg.Thread), &thread); err != nil {
+		if err := json.Unmarshal([]byte(*arg), &thread); err != nil {
 			return err
 		}
 		c.ThreadCb <- NonblockThreadResult{
@@ -1100,15 +1100,19 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 	return nil
 }
 
-func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+func (c *ChatUI) ChatThreadFull(ctx context.Context, arg string) error {
 	var thread chat1.UIMessages
-	if err := json.Unmarshal([]byte(arg.Thread), &thread); err != nil {
+	if err := json.Unmarshal([]byte(arg), &thread); err != nil {
 		return err
 	}
 	c.ThreadCb <- NonblockThreadResult{
 		Thread: &thread,
 		Full:   true,
 	}
+	return nil
+}
+
+func (c *ChatUI) ChatThreadStatus(ctx context.Context, status chat1.UIChatThreadStatus) error {
 	return nil
 }
 
