@@ -263,6 +263,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     return {index: indexInList, length, offset}
   }
 
+  _listIndexToSectionAndLocalIndex = (): [SearchRecSection | null, number] => {
+    if (this.props.recommendations && this.props.highlightedIndex !== null) {
+      let index = this.props.highlightedIndex
+      for (const s of this.props.recommendations) {
+        if (index >= s.data.length) {
+          index -= s.data.length
+        } else {
+          return [s, index]
+        }
+      }
+    }
+    return [null, 0]
+  }
+
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
@@ -303,6 +317,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs && this.props.recommendations) {
+      const [highlightedSection, localIndex] = this._listIndexToSectionAndLocalIndex()
       // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
       return (
         <Kb.Box2
@@ -314,7 +329,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             ref={this.sectionListRef}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result}) =>
+            renderItem={({index, item: result, section}) =>
               result.isImportButton ? (
                 <ContactsImportButton {...this.props} />
               ) : (
@@ -327,7 +342,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   inTeam={result.inTeam}
                   isPreExistingTeamMember={result.isPreExistingTeamMember}
                   followingState={result.followingState}
-                  highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                  highlight={
+                    !Styles.isMobile &&
+                    !!highlightedSection &&
+                    highlightedSection === section &&
+                    localIndex === index
+                  }
                   onAdd={() => this.props.onAdd(result.userId)}
                   onRemove={() => this.props.onRemove(result.userId)}
                 />
