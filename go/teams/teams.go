@@ -2184,10 +2184,6 @@ func isHiddenAppendPrecheckError(err error) bool {
 	return true
 }
 
-func isBadGenerationError(err error) bool {
-	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamBadGeneration)
-}
-
 func isSigOldSeqnoError(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigOldSeqno)
 }
