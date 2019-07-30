@@ -96,8 +96,8 @@ func TestContactSyncAndSearch(t *testing.T) {
 	}
 
 	{
-		// When searching for "alice" in contacts, it should skip the
-		// unresolved contact because other one is resolved.
+		// When searching for "alice" in contacts, Keybase user comes first.
+		// Contacts results are sorted separately and appended to result list.
 		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
 			Service:         "keybase",
@@ -107,10 +107,10 @@ func TestContactSyncAndSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, res, 2)
 		pres := pluckAllSearchResultForTest(res)
-		require.Equal(t, "48111222333@phone", pres[0].id)
-		require.Equal(t, "alice", pres[0].keybaseUsername)
-		require.Equal(t, "alice2", pres[1].id)
-		require.Equal(t, "alice2", pres[1].keybaseUsername)
+		require.Equal(t, "alice2", pres[0].id)
+		require.Equal(t, "alice2", pres[0].keybaseUsername)
+		require.Equal(t, "48111222333@phone", pres[1].id)
+		require.Equal(t, "alice", pres[1].keybaseUsername)
 	}
 
 	{
