@@ -264,11 +264,10 @@ func generateRatchet(mctx libkb.MetaContext, b sig3.Tail) (ret *Ratchet, err err
 	return ret, nil
 }
 
-// MakeRatchet constructs a new Ratachet object for the given team's hidden tail, blinds
+// MakeRatchet constructs a new Ratchet object for the given team's hidden tail, blinds
 // it with a randomly-generated blinding key, and then packages all relevant info up into
 // and encoding that can be easily posted to the API server.
 func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *Ratchet, err error) {
-
 	if state == nil {
 		mctx.Debug("hidden.MakeRatchet: returning a nil ratchet since hidden team is nil")
 		return nil, nil
