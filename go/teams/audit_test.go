@@ -34,7 +34,7 @@ func TestAuditStaleTeam(t *testing.T) {
 	)
 
 	t.Logf("A adds B to the team as an admin")
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	load := func(asUser int) {
@@ -47,17 +47,17 @@ func TestAuditStaleTeam(t *testing.T) {
 	}
 
 	addC := func(asUser int) {
-		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 
 	addD := func(asUser int) {
-		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username, keybase1.TeamRole_BOT)
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username, keybase1.TeamRole_BOT, nil)
 		require.NoError(t, err)
 	}
 
 	addE := func(asUser int) {
-		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[E].Username, keybase1.TeamRole_RESTRICTEDBOT)
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[E].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 		require.NoError(t, err)
 	}
 
@@ -158,34 +158,41 @@ func TestAuditRotateAudit(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	addB := func() {
-		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username, keybase1.TeamRole_READER)
+	addB := func() keybase1.Seqno {
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
+		return 1
 	}
 
-	addC := func() {
-		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username, keybase1.TeamRole_BOT)
+	addC := func() keybase1.Seqno {
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username, keybase1.TeamRole_BOT, nil)
 		require.NoError(t, err)
+		return 1
 	}
 
-	addD := func() {
-		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[D].Username, keybase1.TeamRole_RESTRICTEDBOT)
+	addD := func() keybase1.Seqno {
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[D].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 		require.NoError(t, err)
+		// adding a RESTRICTEDBOT adds an additional bot_settings link
+		return 2
 	}
 
-	rmB := func() {
+	rmB := func() keybase1.Seqno {
 		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username)
 		require.NoError(t, err)
+		return 1
 	}
 
-	rmC := func() {
+	rmC := func() keybase1.Seqno {
 		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username)
 		require.NoError(t, err)
+		return 1
 	}
 
-	rmD := func() {
+	rmD := func() keybase1.Seqno {
 		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[D].Username)
 		require.NoError(t, err)
+		return 1
 	}
 
 	setFastAudits := func() {
@@ -204,14 +211,15 @@ func TestAuditRotateAudit(t *testing.T) {
 		auditor := m[A].G().GetTeamAuditor().(*Auditor)
 		history, err := auditor.getFromCache(m[A], teamID, auditor.getLRU())
 		require.NoError(t, err)
-		require.Equal(t, lastAudit(history).MaxChainSeqno, n)
+		require.Equal(t, n, lastAudit(history).MaxChainSeqno)
 	}
 
 	setFastAudits()
-	actions := []func(){addB, rmB, addC, rmC, addD, rmD}
-	for i, action := range actions {
-		action()
+	actions := []func() keybase1.Seqno{addB, rmB, addC, rmC, addD, rmD}
+	expectedSeqno := keybase1.Seqno(1)
+	for _, action := range actions {
+		expectedSeqno += action()
 		load()
-		assertAuditTo(keybase1.Seqno(i + 2))
+		assertAuditTo(expectedSeqno)
 	}
 }

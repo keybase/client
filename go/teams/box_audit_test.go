@@ -64,11 +64,11 @@ func TestBoxAuditAttempt(t *testing.T) {
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding C as reader")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	require.NoError(t, toErr(aA.Attempt(aM, teamID, false)), "A can attempt")
@@ -119,7 +119,7 @@ func TestBoxAuditAttempt(t *testing.T) {
 	t.Logf("C provisions and A adds C back after account reset")
 	err = cU.Login(cTc.G)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	attempt = cA.Attempt(cM, teamID, false)
@@ -166,19 +166,19 @@ func TestBoxAuditAudit(t *testing.T) {
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding C as reader")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding D as bot")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding E as restricted bot")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), eU.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), eU.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
 	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
@@ -405,21 +405,21 @@ func TestBoxAuditRaces(t *testing.T) {
 	aA, bA, cA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor()
 
 	aTeamName, aTeamID := createTeam2(*aTc)
-	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	bTeamName, bTeamID := createTeam2(*bTc)
-	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	cTeamName, cTeamID := createTeam2(*cTc)
-	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// We do this so the audits will access the shared jail and queue data
@@ -473,9 +473,9 @@ func TestBoxAuditCalculation(t *testing.T) {
 	aM, _, cM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc)
 
 	aTeamName, aTeamID := createTeam2(*aTc)
-	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
@@ -532,22 +532,22 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.Equal(t, newerExpected, currentSummary.table)
 
 	t.Logf("make some dummy links to test historical chain summary")
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	team, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 
 	t.Logf("make some more dummy links")
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	team, _, _ = load(aM, aTeamID)
@@ -573,10 +573,10 @@ func TestBoxAuditSubteamCalculation(t *testing.T) {
 	subteamName, err := parentName.Append("abc")
 	require.NoError(t, err)
 	t.Logf("adding B as writer of team")
-	_, err = AddMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	t.Logf("adding C as writer of subteam")
-	_, err = AddMember(aM.Ctx(), aTc.G, subteamName.String(), cU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, subteamName.String(), cU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
@@ -608,7 +608,7 @@ func TestBoxAuditSubteamCalculation(t *testing.T) {
 	require.Equal(t, subteamTable1, currentSummary.table)
 
 	t.Logf("make b an admin of parent, giving him boxes")
-	err = EditMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	_, chainSummary, currentSummary = load(aM, *subteamID)
 	t.Logf("check do not need to rotate to know about new admin in chainsummary")
@@ -700,7 +700,7 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("adding B as admin to subteam")
-	_, err = AddMember(aM.Ctx(), aTc.G, subTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, subTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// Even though A is not in subteam, A has a box because of implicit
@@ -709,7 +709,7 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 
 	// Add third user as an admin to parent team. They will be boxed for
 	// subteam as well.
-	_, err = AddMember(aM.Ctx(), aM.G(), parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aM.G(), parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// Audit both teams again
@@ -739,7 +739,7 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	tx := CreateAddMemberTx(team)
 	for _, otherUser := range []*kbtest.FakeUser{otherA, otherB, otherC} {
 		val := &keybase1.TeamChangeReq{}
-		val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER)
+		val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER, nil)
 		payload := txPayload{
 			Tag: txPayloadTagCryptomembers,
 			Val: val,

@@ -132,20 +132,22 @@ func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
 	payload.None = append(payload.None, uv)
 }
 
-func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) {
+func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 	// Preconditions: UV is a PUKful user, role is valid enum value
 	// and not NONE.
 	payload := tx.changeMembershipPayload(uv.Uid)
-	payload.AddUVWithRole(uv, role)
+	err := payload.AddUVWithRole(uv, role, botSettings)
+	return err
 }
 
 func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
-	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) {
-	// Preconditions: UV is a PUKful user, role is valid and not NONE,
-	// invite exists.
+	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) error {
+	// Preconditions: UV is a PUKful user, role is valid and not NONE, invite
+	// exists. Role is not RESTRICTEDBOT as botSettings are set to nil.
 	payload := tx.changeMembershipPayload(uv.Uid)
-	payload.AddUVWithRole(uv, role)
+	err := payload.AddUVWithRole(uv, role, nil)
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
+	return err
 }
 
 func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite {
@@ -262,7 +264,8 @@ func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.Tea
 // current incarnation of UPAK. Public APIs are AddMemberByUV and
 // AddMemberByUsername that load UPAK and pass it to this function
 // to continue membership changes.
-func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole) (invite bool, err error) {
+func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (invite bool, err error) {
 	team := tx.team
 	g := team.G()
 
@@ -340,7 +343,9 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		tx.createKeybaseInvite(uv, role)
 		return true, nil
 	}
-	tx.addMember(uv, role)
+	if err := tx.addMember(uv, role, botSettings); err != nil {
+		return false, err
+	}
 	return false, nil
 }
 
@@ -384,7 +389,8 @@ func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 // given UV is valid (that we don't have outdated EldestSeqno), and if
 // user has PUK, and if not, it properly handles that by adding
 // Keybase-type invite. It also cleans up old invites and memberships.
-func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
 	g := team.G()
 
@@ -399,7 +405,7 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 		return fmt.Errorf("Bad eldestseqno for %s: expected %d, got %d", uv.Uid, current.EldestSeqno, uv.EldestSeqno)
 	}
 
-	_, err = tx.addMemberByUPKV2(ctx, current, role)
+	_, err = tx.addMemberByUPKV2(ctx, current, role, botSettings)
 	return err
 }
 
@@ -407,7 +413,8 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 // checks if given username can become crypto member or a PUKless
 // member. It will also clean up old invites and memberships if
 // necessary.
-func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
@@ -418,7 +425,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	if err != nil {
 		return err
 	}
-	_, err = tx.addMemberByUPKV2(ctx, upak, role)
+	_, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 	return err
 }
 
@@ -452,7 +459,8 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 //  3. [bob@gmail.com]@email WHERE there's an email-based invitation in play
 // **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
 // The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
-func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
+func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
+	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
@@ -481,7 +489,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 
 	if !doInvite {
 		username = libkb.NewNormalizedUsername(upak.Username)
-		invite, err = tx.addMemberByUPKV2(ctx, upak, role)
+		invite, err = tx.addMemberByUPKV2(ctx, upak, role, nil)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
 	}
@@ -583,7 +591,8 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	return nil
 }
 
-func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) error {
 	if !tx.team.IsImplicit() {
 		return fmt.Errorf("ReAddMemberToImplicitTeam only works on implicit teams")
 	}
@@ -592,7 +601,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 	}
 
 	if hasPUK {
-		tx.addMember(uv, role)
+		if err := tx.addMember(uv, role, botSettings); err != nil {
+			return err
+		}
 		tx.sweepCryptoMembers(ctx, uv.Uid, false)
 		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
 			return err
@@ -676,7 +687,9 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 	tx.sweepKeybaseInvites(uv.Uid)
 	tx.sweepCryptoMembersOlderThan(uv)
 
-	tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID)
+	if err := tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -714,7 +727,6 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 	// Transform payloads to SCTeamSections.
 	for i, p := range tx.payloads {
-
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
 			Admin:    admin,
@@ -752,7 +764,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
 
-			// If there are addditions, then there will be a new key involved.
+			// If there are additions, then there will be a new key involved.
 			// If there are deletions, then we'll be rotating. So either way,
 			// this section needs a box summary.
 			sectionsWithBoxSummaries = append(sectionsWithBoxSummaries, i)
@@ -869,6 +881,24 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 		nextSeqno++
 		latestLinkID = linkID
+		readySigs = append(readySigs, sigMultiItem)
+	}
+
+	// Add a single bot_settings link if we are adding any RESTRICTEDBOT members
+	if len(memSet.restrictedBotSettings) > 0 {
+		section, err := team.botSettingsSection(mctx.Ctx(), memSet.restrictedBotSettings, merkleRoot)
+		if err != nil {
+			return err
+		}
+		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, libkb.LinkTypeTeamBotSettings,
+			nextSeqno, latestLinkID, merkleRoot)
+		if err != nil {
+			return err
+		}
+
+		g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Prepared bot_settings signature: SeqNo: %d Hash: %q",
+			nextSeqno, linkID)
+		nextSeqno++
 		readySigs = append(readySigs, sigMultiItem)
 	}
 

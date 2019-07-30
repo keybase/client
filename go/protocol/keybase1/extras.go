@@ -2602,10 +2602,17 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	return res, fmt.Errorf("git repo unknown error")
 }
 
-func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
+	botSettings *TeamBotSettings) error {
 	switch role {
 	case TeamRole_RESTRICTEDBOT:
-		req.RestrictedBots = append(req.RestrictedBots, uv)
+		if botSettings == nil {
+			return fmt.Errorf("Cannot add a RESTRICTEDBOT with nil TeamBotSettings")
+		}
+		if req.RestrictedBots == nil {
+			req.RestrictedBots = make(map[UserVersion]TeamBotSettings)
+		}
+		req.RestrictedBots[uv] = *botSettings
 	case TeamRole_BOT:
 		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
@@ -2622,6 +2629,13 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
+	for uv := range req.RestrictedBots {
+		ret = append(ret, uv)
+	}
+	return ret
+}
+
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2630,7 +2644,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
-	ret = append(ret, req.RestrictedBots...)
+	ret = append(ret, req.RestrictedBotUVs()...)
 	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)

@@ -257,12 +257,18 @@ func SetRoleBot(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Bots: []keybase1.UserVersion{uv}})
 }
 
-func SetRoleRestrictedBot(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func SetRoleRestrictedBot(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
+	botSettings keybase1.TeamBotSettings) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
-	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{RestrictedBots: []keybase1.UserVersion{uv}})
+	req := keybase1.TeamChangeReq{
+		RestrictedBots: map[keybase1.UserVersion]keybase1.TeamBotSettings{
+			uv: botSettings,
+		},
+	}
+	return ChangeRoles(ctx, g, teamname, req)
 }
 
 func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
@@ -283,7 +289,8 @@ func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, userna
 	return eng.GetProofSet(), eng.GetIdentifyOutcome(), nil
 }
 
-func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
+func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string,
+	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username, true /* useTracking */)
 	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
@@ -320,7 +327,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
-		err = tx.AddMemberByUsername(ctx, resolvedUsername.String(), role)
+		err = tx.AddMemberByUsername(ctx, resolvedUsername.String(), role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -349,7 +356,8 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 	return res, err
 }
 
-func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
+func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        teamname,
 		ForceRepoll: true,
@@ -357,7 +365,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	if err != nil {
 		return res, err
 	}
-	return AddMemberByID(ctx, g, team.ID, username, role)
+	return AddMemberByID(ctx, g, team.ID, username, role, botSettings)
 }
 
 type AddMembersRes struct {
@@ -394,7 +402,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 		}
 		var sweep []sweepEntry
 		for i, user := range users {
-			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role)
+			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role, user.BotSettings)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
@@ -474,6 +482,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		// stay un-removed when superseded by new invite (is removed by
 		// new membership though).
 		var existingRole keybase1.TeamRole
+		var existingBotSettings *keybase1.TeamBotSettings
 		invite, existingUV, found := t.FindActiveKeybaseInvite(uv.Uid)
 		if found {
 			// User is PUKless member.
@@ -498,6 +507,18 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 			}
 			existingRole = role
 			existingUV = foundUV
+
+			if existingRole.IsRestrictedBot() {
+				bots, err := t.TeamBotSettings()
+				if err != nil {
+					return err
+				}
+				botSettings, ok := bots[existingUV]
+				if !ok {
+					botSettings = keybase1.TeamBotSettings{}
+				}
+				existingBotSettings = &botSettings
+			}
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
@@ -520,12 +541,12 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 
 		if !t.IsImplicit() {
-			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole)
+			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole, existingBotSettings)
 			return err
 		}
 
 		tx := CreateAddMemberTx(t)
-		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole); err != nil {
+		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole, existingBotSettings); err != nil {
 			return err
 		}
 
@@ -625,11 +646,12 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	return resOuter, err
 }
 
-func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
+func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
+	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err == errInviteRequired {
 		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
-		return editMemberInvite(ctx, g, teamname, username, role, uv)
+		return editMemberInvite(ctx, g, teamname, username, role, uv, botSettings)
 	}
 	if err != nil {
 		return err
@@ -652,7 +674,7 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 			return nil
 		}
 
-		req, err := reqFromRole(uv, role)
+		req, err := reqFromRole(uv, role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -661,7 +683,8 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	})
 }
 
-func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole,
+	uv keybase1.UserVersion, botSettings *keybase1.TeamBotSettings) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
@@ -675,7 +698,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 		return err
 	}
 	// use AddMember in case it's possible to add them directly now
-	if _, err := AddMember(ctx, g, teamname, username, role); err != nil {
+	if _, err := AddMember(ctx, g, teamname, username, role, nil); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
 		return err
 	}
@@ -1057,8 +1080,7 @@ func filterUserCornerCases(ctx context.Context, upak keybase1.UserPlusKeysV2) (k
 	return uv, nil
 }
 
-func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.TeamChangeReq, error) {
-	var req keybase1.TeamChangeReq
+func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (req keybase1.TeamChangeReq, err error) {
 	list := []keybase1.UserVersion{uv}
 	switch role {
 	case keybase1.TeamRole_OWNER:
@@ -1072,9 +1094,14 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 	case keybase1.TeamRole_BOT:
 		req.Bots = list
 	case keybase1.TeamRole_RESTRICTEDBOT:
-		req.RestrictedBots = list
+		if botSettings == nil {
+			return req, errors.New("botSettings must be specified for RESTRICTEDBOT role")
+		}
+		req.RestrictedBots = map[keybase1.UserVersion]keybase1.TeamBotSettings{
+			uv: *botSettings,
+		}
 	default:
-		return keybase1.TeamChangeReq{}, errors.New("invalid team role")
+		return req, errors.New("invalid team role")
 	}
 
 	return req, nil

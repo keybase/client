@@ -181,7 +181,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> bots;
-    array<UserVersion> restrictedBots;
+    map<UserVersion, TeamBotSettings> restrictedBots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
@@ -1150,13 +1150,15 @@ protocol teams {
 
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
-  TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
+  TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username,
+    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
-  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
   record UserRolePair {
     string assertionOrEmail;
     TeamRole role;
+    union { null, TeamBotSettings } botSettings;
   }
 
   void teamAddMembersMultiRole(int sessionID, string name, array<UserRolePair> users, boolean sendChatNotification);
@@ -1165,7 +1167,7 @@ protocol teams {
 
   void teamLeave(int sessionID, string name, boolean permanent);
 
-  void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamEditMember(int sessionID, string name, string username, TeamRole role, union { null, TeamBotSettings } botSettings);
 
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
 
