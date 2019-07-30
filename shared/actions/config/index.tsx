@@ -395,7 +395,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
-        if (username === 'app-link') {
+        if (username === 'phone-app') {
           return [SettingsGen.createLoadSettings(), RouteTreeGen.createSwitchLoggedIn({loggedIn: true})]
         } else if (username && username !== 'app') {
           return [
