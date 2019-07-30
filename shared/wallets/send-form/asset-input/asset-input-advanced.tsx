@@ -464,7 +464,7 @@ const styles = Styles.styleSheetCreate({
   // We need this to make the PickAssetButton on top of other stuff so amount
   // error can extend below it.
   pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
-  pickAssetButtonOverlayOuter: {flexShrink: 0, position: 'relative'},
+  pickAssetButtonOverlayOuter: {position: 'relative'},
   pickAssetButtonTopText: Styles.platformStyles({
     isElectron: {lineHeight: '24px'},
     isMobile: {lineHeight: 32},
