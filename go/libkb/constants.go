@@ -393,6 +393,7 @@ const (
 	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
 	LinkTypeKBFSSettings     LinkType = "team.kbfs"
 	LinkTypeSettings         LinkType = "team.settings"
+	LinkTypeTeamBotSettings  LinkType = "team.bot_settings"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

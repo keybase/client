@@ -1433,6 +1433,14 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
+          },
+          "name": "bots"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "TLFID"
           },
@@ -2464,6 +2472,34 @@
         {
           "type": "TeamRole",
           "name": "joinAs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamBotSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "cmds"
+        },
+        {
+          "type": "boolean",
+          "name": "mentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "triggers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "convs"
         }
       ]
     },
