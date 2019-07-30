@@ -589,7 +589,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 			if devname != dupname {
 				dupnameErrMsg = fmt.Sprintf(" as %q", dupname)
 			}
-			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken%s. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname, dupnameErrMsg)
+			arg.ErrorMessage = fmt.Sprintf("You've already used this device name%s. For security reasons, pick another name.", dupnameErrMsg)
 			continue
 		}
 
