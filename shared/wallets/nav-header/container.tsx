@@ -49,6 +49,7 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
 })
 const mergePropsHeaderRightActions = (s, d, _) => ({
   airdropSelected: s.airdropSelected,
+  loading: s._accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
   onReceive: () => d._onReceive(s._accountID),
   onSettings: d.onSettings,
