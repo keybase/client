@@ -1195,12 +1195,17 @@ function* loadMoreMessages(
     return actions
   }
 
+  const onGotThreadLoadStatus = (status: RPCChatTypes.UIChatThreadStatus) => {
+    return [Saga.put(Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status}))]
+  }
+
   const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
   try {
     const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
         'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+        'chat.1.chatUi.chatThreadStatus': s => onGotThreadLoadStatus(s.status),
       },
       params: {
         cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,

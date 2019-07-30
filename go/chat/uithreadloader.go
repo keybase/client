@@ -194,6 +194,39 @@ func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UI
 	}
 }
 
+func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
+	status chat1.UIChatThreadStatus, delay time.Duration) (cancelStatusFn func() bool) {
+	resCh := make(chan bool, 1)
+	ctx, cancelFn := context.WithCancel(ctx)
+	go func(ctx context.Context) {
+		displayed := false
+		select {
+		case <-time.After(delay):
+			select {
+			case <-ctx.Done():
+				t.Debug(ctx, "setUIStatus: context canceled")
+			default:
+				if err := chatUI.ChatThreadStatus(ctx, status); err != nil {
+					t.Debug(ctx, "setUIStatus: failed to send: %s", err)
+				}
+				displayed = true
+			}
+		case <-ctx.Done():
+			t.Debug(ctx, "setUIStatus: context canceled")
+		}
+		if displayed {
+			typ, _ := status.Typ()
+			t.Debug(ctx, "setUIStatus: displaying: %v", typ)
+		}
+		resCh <- displayed
+	}(ctx)
+	cancelStatusFn = func() bool {
+		cancelFn()
+		return <-resCh
+	}
+	return cancelStatusFn
+}
+
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) (err error) {
@@ -267,6 +300,22 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	var localSentThread *chat1.ThreadView
 	var uilock sync.Mutex
 	var wg sync.WaitGroup
+
+	// Handle tracking status bar
+	displayedStatus := false
+	var uiStatusLock sync.Mutex
+	setDisplayedStatus := func(cancelUIStatus func() bool) {
+		status := cancelUIStatus()
+		uiStatusLock.Lock()
+		displayedStatus = displayedStatus || status
+		uiStatusLock.Unlock()
+	}
+	getDisplayedStatus := func() bool {
+		uiStatusLock.Lock()
+		defer uiStatusLock.Unlock()
+		return displayedStatus
+	}
+
 	localCtx, cancel := context.WithCancel(ctx)
 	wg.Add(1)
 	go func(ctx context.Context) {
@@ -295,7 +344,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.Debug(ctx, "LoadNonblock: context canceled before PullLocalOnly returned")
 			return
 		}
-
 		uilock.Lock()
 		defer uilock.Unlock()
 		// Check this again, since we might have waited on the lock while full sent
@@ -338,8 +386,12 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if t.remoteThreadDelay != nil {
 			t.clock.Sleep(*t.remoteThreadDelay)
 		}
+		ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
+		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(),
+			200*time.Millisecond)
 		var remoteThread chat1.ThreadView
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {
 			t.Debug(ctx, "LoadNonblock: error running Pull, returning error: %s", fullErr)
 			return
@@ -375,7 +427,52 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}()
 	wg.Wait()
 
-	// Clean up context
+	t.Debug(ctx, "LoadNonblock: thread payloads transferred, checking for resolve")
+	// Resolve any messages we didn't cache and get full information about
+	if fullErr == nil {
+		fullErr = func() error {
+			messages := globals.CtxMessageCacheSkips(ctx)
+			if len(messages) == 0 {
+				return nil
+			}
+			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
+				200*time.Millisecond)
+			t.Debug(ctx, "LoadNonblock: resolving %d message skips", len(messages))
+			resolved, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
+			if err != nil {
+				return err
+			}
+			if err := t.G().ConvSource.PushUnboxed(ctx, convID, uid, resolved); err != nil {
+				return err
+			}
+			notif := chat1.MessagesUpdated{
+				ConvID: convID,
+			}
+			for _, msg := range resolved {
+				notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
+					convID))
+			}
+			act := chat1.NewChatActivityWithMessagesUpdated(notif)
+			t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+				&act, chat1.ChatActivitySource_LOCAL)
+			setDisplayedStatus(cancelUIStatus)
+			return nil
+		}()
+	}
+
+	// Clean up context and set final loading status
+	if getDisplayedStatus() {
+		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
+		if fullErr == nil {
+			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
+				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
+			}
+		} else {
+			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithNone()); err != nil {
+				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
+			}
+		}
+	}
 	cancel()
 	return fullErr
 }

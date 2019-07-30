@@ -250,8 +250,8 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageUnboxed) (bool, error) {
-	return true, nil
+	uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
@@ -461,21 +461,16 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "PushUnboxed")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
-		return continuousUpdate, err
+		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-
-	// Check to see if we are "appending" this message to the current record.
-	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
-		return continuousUpdate, err
+	if err = s.mergeMaybeNotify(ctx, convID, uid, msgs); err != nil {
+		return err
 	}
-	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
-		return continuousUpdate, err
-	}
-	return continuousUpdate, nil
+	return nil
 }
 
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
@@ -530,7 +525,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Get conversation metadata
 	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
-	if err == nil {
+	if false && err == nil {
 		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first
@@ -572,10 +567,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			}
 			return thread, nil
 		}
-		s.Debug(ctx, "Pull: cache miss: err: %s", err.Error())
+		s.Debug(ctx, "Pull: cache miss: err: %s", err)
 	} else {
-		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
-			err.Error())
+		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid, err)
 	}
 
 	// Fetch the entire request on failure
@@ -1013,6 +1007,13 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 // Merge with storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
+	switch globals.CtxUnboxMode(ctx) {
+	case types.UnboxModeFull:
+	case types.UnboxModeQuick:
+		s.Debug(ctx, "mergeMaybeNotify: in quick mode, skipping %d messages", len(msgs))
+		globals.CtxAddMessageCacheSkips(ctx, msgs)
+		return nil
+	}
 
 	mergeRes, err := s.storage.Merge(ctx, convID, uid, msgs)
 	if err != nil {

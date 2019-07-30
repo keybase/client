@@ -66,7 +66,7 @@ type Boxer struct {
 
 	// Slots for replacing with test implementations.
 	// These are normally nil.
-	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr types.UnboxingError)
+	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (revoked *gregor1.Time, unboxingErr types.UnboxingError)
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
 	// Post-process signatures and signencrypts
 	testingSignatureMangle func([]byte) []byte
@@ -91,7 +91,10 @@ func (b *Boxer) log() logger.Logger {
 	return b.G().GetLog()
 }
 
-func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, err types.UnboxingError) chat1.MessageUnboxed {
+func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.UnboxingError,
+	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
+	sender gregor1.UID, senderDevice gregor1.DeviceID,
+	isEphemeral, isEphemeralExpired bool, etime gregor1.Time) chat1.MessageUnboxed {
 	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
@@ -99,16 +102,22 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 		VersionKind:        err.VersionKind(),
 		VersionNumber:      err.VersionNumber(),
 		IsCritical:         err.IsCritical(),
-		MessageID:          msg.GetMessageID(),
-		MessageType:        msg.GetMessageType(),
-		Ctime:              msg.ServerHeader.Ctime,
-		IsEphemeral:        msg.IsEphemeral(),
-		IsEphemeralExpired: msg.IsEphemeralExpired(b.clock.Now()),
-		Etime:              msg.Etime(),
+		MessageID:          msgID,
+		MessageType:        msgType,
+		Ctime:              ctime,
+		IsEphemeral:        isEphemeral,
+		IsEphemeralExpired: isEphemeralExpired,
+		Etime:              etime,
 	}
 	e.SenderUsername, e.SenderDeviceName, e.SenderDeviceType = b.getSenderInfoLocal(ctx,
-		msg.ClientHeader.Sender, msg.ClientHeader.SenderDevice)
+		sender, senderDevice)
 	return chat1.NewMessageUnboxedWithError(e)
+}
+
+func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, err types.UnboxingError) chat1.MessageUnboxed {
+	return b.makeErrorMessageFromPieces(ctx, err, msg.GetMessageID(), msg.GetMessageType(),
+		msg.ServerHeader.Ctime, msg.ClientHeader.Sender, msg.ClientHeader.SenderDevice,
+		msg.IsEphemeral(), msg.IsEphemeralExpired(b.clock.Now()), msg.Etime())
 }
 
 func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingError {
@@ -739,6 +748,41 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	return senderEncryptionKID.ToBytes(), nil
 }
 
+func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnboxed) (chat1.MessageUnboxed, types.UnboxingError) {
+	if !msg.IsValid() {
+		return msg, nil
+	}
+	if msg.Valid().VerificationKey == nil {
+		return msg, nil
+	}
+	// verify sender key
+	revokedAt, ierr := b.ValidSenderKey(ctx, msg.Valid().ClientHeader.Sender, *msg.Valid().VerificationKey,
+		msg.Valid().ServerHeader.Ctime)
+	if ierr != nil {
+		if ierr.IsPermanent() {
+			return b.makeErrorMessageFromPieces(ctx, ierr, msg.GetMessageID(), msg.GetMessageType(),
+				msg.Valid().ServerHeader.Ctime, msg.Valid().ClientHeader.Sender,
+				msg.Valid().ClientHeader.SenderDevice, msg.Valid().IsEphemeral(),
+				msg.Valid().IsEphemeralExpired(b.clock.Now()), msg.Valid().Etime()), nil
+		}
+		return msg, ierr
+	}
+	mvalid := msg.Valid()
+	mvalid.SenderDeviceRevokedAt = revokedAt
+	return chat1.NewMessageUnboxedWithValid(mvalid), nil
+}
+
+func (b *Boxer) ResolveSkippedUnboxeds(ctx context.Context, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err types.UnboxingError) {
+	for _, msg := range msgs {
+		rmsg, err := b.ResolveSkippedUnboxed(ctx, msg)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, rmsg)
+	}
+	return res, nil
+}
+
 func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	conv types.UnboxConversationInfo, baseEncryptionKey types.CryptKey,
 	ephemeralKey types.EphemeralCryptKey) (*chat1.MessageUnboxedValid, types.UnboxingError) {
@@ -804,16 +848,17 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	// If we validated a pairwise MAC above, then senderKeyToValidate will be
 	// the sender's device encryption key, instead of the VerifyKey from the
 	// message. In this case, ValidSenderKey is just fetching revocation info for us.
-	senderKeyFound, senderKeyValidAtCtime, senderDeviceRevokedAt, ierr := b.ValidSenderKey(
-		ctx, boxed.ClientHeader.Sender, senderKeyToValidate, boxed.ServerHeader.Ctime)
-	if ierr != nil {
-		return nil, ierr
-	}
-	if !senderKeyFound {
-		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
-	}
-	if !senderKeyValidAtCtime {
-		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+	var senderDeviceRevokedAt *gregor1.Time
+	switch globals.CtxUnboxMode(ctx) {
+	case types.UnboxModeFull:
+		senderDeviceRevokedAt, ierr = b.ValidSenderKey(
+			ctx, boxed.ClientHeader.Sender, senderKeyToValidate, boxed.ServerHeader.Ctime)
+		if ierr != nil {
+			return nil, ierr
+		}
+	case types.UnboxModeQuick:
+		// we skip this check in quick mode, the idea is we will do it later asynchonously so we can
+		// deliver messges quicker to the UI.
 	}
 
 	// Open header and verify against VerifyKey
@@ -903,7 +948,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		BodyHash:              bodyHashSigned,
 		HeaderHash:            headerHash,
 		HeaderSignature:       nil,
-		VerificationKey:       &boxed.VerifyKey,
+		VerificationKey:       &senderKeyToValidate,
 		SenderDeviceRevokedAt: senderDeviceRevokedAt,
 		AtMentions:            atMentions,
 		AtMentionUsernames:    atMentionUsernames,
@@ -1884,15 +1929,9 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	// check key validity
 	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
 	// See ValidSenderKey for details.
-	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+	revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
-	}
-	if !found {
-		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
-	}
-	if !validAtCtime {
-		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 	}
 
 	// check signature
@@ -1928,7 +1967,22 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix kbcrypto.Sign
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check erroneously pass.
 // But (revoked != nil) if the key was ever revoked, so that is irrespective of ctime.
 // Returns (validAtCtime, revoked, err)
-func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr types.UnboxingError) {
+func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (revoked *gregor1.Time, unboxErr types.UnboxingError) {
+	var found, deleted bool
+	var revokedAt *keybase1.KeybaseTime
+	validAtCtime := true
+	defer func() {
+		if unboxErr == nil {
+			if !found {
+				unboxErr = NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
+			} else if !validAtCtime {
+				unboxErr = NewPermanentUnboxingError(libkb.NoKeyError{
+					Msg: "key invalid for sender at message ctime",
+				})
+			}
+		}
+	}()
+	b.Debug(ctx, "Boxer: ValidSenderKey happengin!")
 	if b.testingValidSenderKey != nil {
 		b.assertInTest()
 		return b.testingValidSenderKey(ctx, sender, key, ctime)
@@ -1936,22 +1990,22 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
-		return false, false, nil, NewPermanentUnboxingError(err)
+		return nil, NewPermanentUnboxingError(err)
 	}
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
 	cachedUserLoader := globals.CtxUPAKFinder(ctx, b.G())
 	if cachedUserLoader == nil {
-		return false, false, nil, NewTransientUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
+		return nil, NewTransientUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
-	found, revokedAt, deleted, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
+	found, revokedAt, deleted, err = cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
-		return false, false, nil, NewTransientUnboxingError(err)
+		return nil, NewTransientUnboxingError(err)
 	}
 	if !found {
-		return false, false, nil, nil
+		return nil, nil
 	}
 
 	if deleted {
@@ -1959,21 +2013,19 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		// Set the key as being revoked since the beginning of time, so all messages will get labeled
 		// as suspect
 		zeroTime := gregor1.Time(0)
-		return true, true, &zeroTime, nil
+		return &zeroTime, nil
 	}
 
-	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {
-			return true, false, nil, NewPermanentUnboxingError(fmt.Errorf("zero clock time on expired key"))
+			return nil, NewPermanentUnboxingError(fmt.Errorf("zero clock time on expired key"))
 		}
 		t := b.keybase1KeybaseTimeToTime(*revokedAt)
 		revokedTime := gregor1.ToTime(t)
 		revoked = &revokedTime
 		validAtCtime = t.After(ctime2)
 	}
-
-	return true, validAtCtime, revoked, nil
+	return revoked, nil
 }
 
 func (b *Boxer) keybase1KeybaseTimeToTime(t1 keybase1.KeybaseTime) time.Time {

@@ -1755,8 +1755,7 @@
           ]
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatThreadFull": {
       "request": [
@@ -1769,8 +1768,7 @@
           "type": "string"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatThreadStatus": {
       "request": [
@@ -1783,8 +1781,7 @@
           "type": "UIChatThreadStatus"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatSearchHit": {
       "request": [

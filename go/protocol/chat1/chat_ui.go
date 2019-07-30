@@ -3109,17 +3109,17 @@ func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailed
 }
 
 func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCachedArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ChatUiClient) ChatThreadStatus(ctx context.Context, __arg ChatThreadStatusArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadStatus", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadStatus", []interface{}{__arg}, nil)
 	return
 }
 
