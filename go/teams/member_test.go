@@ -1256,7 +1256,7 @@ func TestMemberAddRace(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		t.Logf("round %v", i)
-		doRotate := true // i%3 == 1
+		doRotate := i%2 == 1
 
 		t.Logf("parallel start")
 
