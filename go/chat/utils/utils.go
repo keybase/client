@@ -190,26 +190,32 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-// AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
-	withContacts = make([]chat1.ConversationLocalParticipant, 0, len(participants))
+// AttachContactNames retrieves display names for SBS phones/emails that are in
+// the phonebook. ConversationLocalParticipant structures are modified in place
+// in `participants` passed in argument.
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) {
+	syncedContacts := mctx.G().SyncedContactList
+	if syncedContacts == nil {
+		mctx.Debug("AttachContactNames: SyncedContactList is nil")
+		return
+	}
 	var contacts []keybase1.ProcessedContact
 	var err error
 	contactsFetched := false
-	for _, participant := range participants {
+	for i, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
 			if !contactsFetched {
-				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
+				contacts, err = syncedContacts.RetrieveContacts(mctx)
 				if err != nil {
-					mctx.Debug("Error fetching contacts: %s", err)
-					return participants
+					mctx.Debug("AttachContactNames: error fetching contacts: %s", err)
+					return
 				}
+				contactsFetched = true
 			}
 			participant.ContactName = findContactName(contacts, participant.Username)
 		}
-		withContacts = append(withContacts, participant)
+		participants[i] = participant
 	}
-	return withContacts
 }
 
 func findContactName(contacts []keybase1.ProcessedContact, assertion string) *string {
