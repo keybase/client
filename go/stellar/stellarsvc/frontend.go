@@ -1252,10 +1252,56 @@ func (s *Server) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticC
 	}, nil
 }
 
-func (s *Server) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (stellar1.AssetActionResultLocal, error) {
-	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+func (s *Server) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (res stellar1.AssetActionResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AssetDepositLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	return s.assetAction(mctx, arg.AccountID, arg.Asset, "deposit")
 }
 
-func (s *Server) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (stellar1.AssetActionResultLocal, error) {
-	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+func (s *Server) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (res stellar1.AssetActionResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AssetWithdrawLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	return s.assetAction(mctx, arg.AccountID, arg.Asset, "withdraw")
+}
+
+func (s *Server) assetAction(mctx libkb.MetaContext, accountID stellar1.AccountID, asset stellar1.Asset, action string) (stellar1.AssetActionResultLocal, error) {
+	// check that the user owns accountID
+	own, _, err := stellar.OwnAccountCached(mctx, accountID)
+	if err != nil {
+		return stellar1.AssetActionResultLocal{}, err
+	}
+	if !own {
+		return stellar1.AssetActionResultLocal{}, errors.New("caller doesn't own account")
+	}
+
+	// check that accountID has a trustline to the asset
+	// get the asset verified
+	// check that the asset has TRANSFER_SERVER
+	// make sure it doesn't have WEB_AUTH_ENDPOINT (not supported yet)
+	// form the URL with transfer_server + "deposit"
+	// parse the URL, make sure it is valid
+	// check that the domain name is the same as the asset host name
+	// make sure there are no parameters
+	// make sure it is https
+	// perform the GET request
+	// parse the output into a message or a url to open in a browser (or an error)
+	// return that info
+
+	return stellar1.AssetActionResultLocal{}, errors.New("not finished")
 }
