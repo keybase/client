@@ -235,6 +235,10 @@ export type MessageTypes = {
     inParam: {readonly thread: String}
     outParam: void
   }
+  'chat.1.chatUi.chatThreadStatus': {
+    inParam: {readonly status: UIChatThreadStatus}
+    outParam: void
+  }
   'chat.1.chatUi.chatWatchPosition': {
     inParam: {readonly convID: ConversationID}
     outParam: LocationWatchID
@@ -797,6 +801,13 @@ export enum UIBotCommandsUpdateStatus {
   blank = 3,
 }
 
+export enum UIChatThreadStatusTyp {
+  none = 0,
+  server = 1,
+  validating = 2,
+  validated = 3,
+}
+
 export enum UICoinFlipErrorTyp {
   generic = 0,
   absentee = 1,
@@ -1141,6 +1152,7 @@ export type UIChatPayment = {readonly username: String; readonly fullName: Strin
 export type UIChatPaymentSummary = {readonly xlmTotal: String; readonly displayTotal: String; readonly payments?: Array<UIChatPayment> | null}
 export type UIChatSearchConvHit = {readonly convID: String; readonly teamType: TeamType; readonly name: String; readonly mtime: Gregor1.Time}
 export type UIChatSearchConvHits = {readonly hits?: Array<UIChatSearchConvHit> | null; readonly unreadMatches: Boolean}
+export type UIChatThreadStatus = {typ: UIChatThreadStatusTyp.none} | {typ: UIChatThreadStatusTyp.server} | {typ: UIChatThreadStatusTyp.validating; validating: Int | null} | {typ: UIChatThreadStatusTyp.validated}
 export type UICoinFlipAbsenteeError = {readonly absentees?: Array<UICoinFlipErrorParticipant> | null}
 export type UICoinFlipError = {typ: UICoinFlipErrorTyp.generic; generic: String | null} | {typ: UICoinFlipErrorTyp.absentee; absentee: UICoinFlipAbsenteeError | null} | {typ: UICoinFlipErrorTyp.timeout} | {typ: UICoinFlipErrorTyp.aborted} | {typ: UICoinFlipErrorTyp.dupreg; dupreg: UICoinFlipErrorParticipant | null} | {typ: UICoinFlipErrorTyp.dupcommitcomplete; dupcommitcomplete: UICoinFlipErrorParticipant | null} | {typ: UICoinFlipErrorTyp.dupreveal; dupreveal: UICoinFlipErrorParticipant | null} | {typ: UICoinFlipErrorTyp.commitmismatch; commitmismatch: UICoinFlipErrorParticipant | null}
 export type UICoinFlipErrorParticipant = {readonly user: String; readonly device: String}
@@ -1204,6 +1216,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatThreadCached'?: (params: MessageTypes['chat.1.chatUi.chatThreadCached']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatThreadFull'?: (params: MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatThreadStatus'?: (params: MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchHit'?: (params: MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchInboxStart'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxStart']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1260,6 +1273,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxFailed']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatThreadCached'?: (params: MessageTypes['chat.1.chatUi.chatThreadCached']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadCached']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatThreadFull'?: (params: MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatThreadStatus'?: (params: MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchHit'?: (params: MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchDone']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchInboxStart'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchInboxStart']['outParam']) => void}) => IncomingReturn
@@ -1350,6 +1364,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatInboxFailed'
 // 'chat.1.chatUi.chatThreadCached'
 // 'chat.1.chatUi.chatThreadFull'
+// 'chat.1.chatUi.chatThreadStatus'
 // 'chat.1.chatUi.chatSearchHit'
 // 'chat.1.chatUi.chatSearchDone'
 // 'chat.1.chatUi.chatSearchInboxStart'
