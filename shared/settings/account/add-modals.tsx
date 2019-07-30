@@ -45,7 +45,7 @@ export const Email = () => {
       onClose={onClose}
       header={{
         leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
-        title: Styles.isMobile ? 'Add email address' : 'Add an email address',
+        title: Styles.isMobile ? 'Add an email address' : 'Add an email address',
       }}
       footer={{
         content: (

@@ -80,18 +80,19 @@ const Header = (props: HeaderProps) => (
     fullWidth={true}
   >
     {!!props.icon && props.icon}
-    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Styles.globalStyles.flexOne}>
-      {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.headerWrapper}>
       <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
         {!!props.leftButton && props.leftButton}
       </Kb.Box2>
-      {typeof props.title === 'string' ? (
-        <Kb.Text type="Header" lineClamp={1}>
-          {props.title}
-        </Kb.Text>
-      ) : (
-        props.title
-      )}
+      <Kb.Box2 direction="horizontal" style={styles.headerTextWrapper}>
+        {typeof props.title === 'string' ? (
+          <Kb.Text type="Header" lineClamp={1} ellipsizeMode="tail" style={styles.headerText}>
+            {props.title}
+          </Kb.Text>
+        ) : (
+          props.title
+        )}
+      </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.headerRight}>
         {!!props.rightButton && props.rightButton}
       </Kb.Box2>
@@ -149,22 +150,50 @@ const styles = Styles.styleSheetCreate({
     borderWidth: 0,
   },
   headerLeft: {
-    flex: 1,
-    flexShrink: 0,
+    display: 'flex',
+    flexGrow: 0,
     justifyContent: 'flex-start',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
   headerRight: {
-    flex: 1,
+    display: 'flex',
+    flexGrow: 0,
     flexShrink: 0,
     justifyContent: 'flex-end',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
+    borderLeftColor: Styles.globalColors.orange,
+    borderLeftWidth: 4,
+  },
+  headerTextWrapper: {
+    flexGrow: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderLeftColor: Styles.globalColors.black,
+    borderLeftWidth: 4,
+    borderRightColor: Styles.globalColors.black,
+    borderRightWidth: 4,
+    textAlign: 'center',
+  },
+  headerText: {
+    flex: 1,
+    borderLeftColor: Styles.globalColors.red,
+    borderLeftWidth: 4,
+    borderRightColor: Styles.globalColors.red,
+    borderRightWidth: 4,
+    textAlign: 'center',
   },
   headerWithIcon: {
     ...headerCommon,
     minHeight: 64,
+  },
+  headerWrapper: {
+    ...Styles.globalStyles.flexOne,
+    borderLeftColor: Styles.globalColors.green,
+    borderLeftWidth: 4,
+    borderRightColor: Styles.globalColors.green,
+    borderRightWidth: 4,
   },
   modeDefault: Styles.platformStyles({
     isElectron: {
