@@ -152,3 +152,69 @@ func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID
 	}
 	return savedContacts, nil
 }
+
+func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RECSCON")
+	defer mctx.TraceTimed("ContactsHandler#GetContactsForUserRecommendations", func() error { return err })()
+
+	savedContacts, err := h.G().SyncedContactList.RetrieveContacts(mctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Allocate space for the number of all saved contacts - we will likely
+	// return less, though.
+	res = make([]keybase1.ProcessedContact, 0, len(savedContacts))
+
+	// Find contacts that have at least one resolved component, we are going to
+	// take only the resolved component from them (chose one if there are
+	// multiple).
+	seenResolvedContacts := make(map[int]struct{})
+	for _, contact := range savedContacts {
+		if contact.Resolved {
+			seenResolvedContacts[contact.ContactIndex] = struct{}{}
+		}
+	}
+
+	// Find the best contact for each resolved username.
+	// Map usernames to index in `res` list.
+	contactForUsername := make(map[string]int, len(seenResolvedContacts))
+	currentUID := mctx.CurrentUID()
+
+	for _, contact := range savedContacts {
+		if !contact.Resolved {
+			if _, found := seenResolvedContacts[contact.ContactIndex]; found {
+				// This contact has a resolved component, skip unresolved ones
+				// completely.
+				continue
+			}
+
+			res = append(res, contact)
+		} else {
+			if contact.Uid.Equal(currentUID) {
+				// Some people have their phone number in contact list, do not
+				// show current user in recommendations.
+				continue
+			}
+
+			if currentIndex, found := contactForUsername[contact.Username]; found {
+				current := res[currentIndex]
+				var overwrite bool
+				// NOTE: add more rules here if needed.
+				if current.Component.Email == nil && contact.Component.Email != nil {
+					// Prefer email components to phone ones.
+					overwrite = true
+				}
+
+				if overwrite {
+					res[currentIndex] = contact
+				}
+			} else {
+				contactForUsername[contact.Username] = len(res)
+				res = append(res, contact)
+			}
+		}
+	}
+
+	return res, nil
+}
