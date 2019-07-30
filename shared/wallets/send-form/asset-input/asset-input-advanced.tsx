@@ -87,7 +87,7 @@ const LeftBlock = (_: EmptyProps) => {
           ) : (
             <React.Fragment>
               <Kb.Text type="BodyTiny">{buildingAdvanced.recipientAsset.issuerName}</Kb.Text>
-              <Kb.Text type="BodyTiny" lineClamp={1}>
+              <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail">
                 {buildingAdvanced.recipientAsset.code}/{buildingAdvanced.recipientAsset.issuerAccountID}
               </Kb.Text>
             </React.Fragment>
