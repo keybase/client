@@ -9,7 +9,7 @@ type OwnProps = Container.RouteProps<{deviceID: string}>
 // It's a bad pattern to have navigation distributed across react-navigation
 // and our store. device id is purely an argument to the screen, the store
 // doesn't care about it.
-export default Container.connect(
+export default Container.connectDEBUG(
   (_, ownProps: OwnProps) => ({id: Container.getRouteProps(ownProps, 'deviceID', '')}),
   dispatch => ({
     onBack: () => {

@@ -12,5 +12,5 @@
     },
     "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
   },
-  "include": ["./**/*"]
+  "include": ["./devices/device-page/container.tsx"]
 }

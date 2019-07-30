@@ -224,26 +224,63 @@ export type ResolveArrayThunks<TDispatchProps extends ReadonlyArray<any>> = TDis
  * @param options
  */
 
+type RequiredKeys<T> = {[K in keyof T]-?: ({} extends {[P in K]: T[K]} ? never : K)}[keyof T]
+type ExcludeOptionalProps<T> = Pick<T, RequiredKeys<T>>
+
 // KB added
 export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
-) => TMergedProps extends React.ComponentProps<C>
-  ? ConnectedComponentClass<C, TOwnProps>
-  : never 
+) => TMergedProps extends React.ComponentProps<C> ? ConnectedComponentClass<C, TOwnProps> : never
+
+type CheckNoExtra<
+  C extends ComponentType<any>,
+  TMergedProps,
+  P = GetProps<C>,
+  PP = ExcludeOptionalProps<P>,
+  KPP = keyof PP,
+  KP = keyof P,
+  KM = keyof TMergedProps
+> = Exclude<KM, KP> extends never ? never : ['Unneeded mergeProps', Exclude<KM, KP>]
 
 // To debug why the connect is returning never
-export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
+export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<TMergedProps>>(
   component: C
-) => TMergedProps extends React.ComponentProps<C>
-  ? ConnectedComponentClass<C, TOwnProps>
-  :   [
-        "missing props:",
-        Exclude<keyof GetProps<C>, keyof TMergedProps>,
-        "extra props:",
-        Exclude<keyof TMergedProps, keyof GetProps<C>>,
-        GetProps<C>,
-        TMergedProps
-      ]
+) => CheckNoExtra<C, TMergedProps> extends never ? ComponentType<TOwnProps> : CheckNoExtra<C, TMergedProps>
+
+// C extends ComponentType<any>,
+// P = GetProps<C>,
+// PP = ExcludeOptionalProps<P>,
+// KPP = keyof PP,
+// KP = keyof P,
+// KM = keyof TMergedProps,
+
+// ) => Exclude<KM, KP> extends never ? ComponentType<TOwnProps> : ['Unneeded mergeProps: ', Exclude<KM, KP>]
+
+// Exclude<TMergedProps, P> extends never
+// // ? Exclude<P, TMergedProps> extends never
+// // ? ComponentType<TOwnProps>
+// : ['Unneeded mergeProps: ', Exclude<P, TMergedProps>]
+// : ['Unneeded mergeProps: ', Exclude<TMergedProps, P>]
+
+// export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<TMergedProps>>(
+// component: C
+// ) => Exclude<keyof TMergedProps, keyof GetProps<C>> extends never
+// ? ComponentType<TOwnProps>
+// : ['Unneeded mergeProps: ', Exclude<keyof TMergedProps, keyof GetProps<C>>]
+
+// export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = (
+// component: ComponentType<TMergedProps>
+// ) => ComponentType<TOwnProps>
+// ) => TMergedProps extends React.ComponentProps<C>
+// ? ConnectedComponentClass<C, TOwnProps>
+// : [
+// 'missing props:',
+// Exclude<keyof GetProps<C>, keyof TMergedProps>,
+// 'extra props:',
+// Exclude<keyof TMergedProps, keyof GetProps<C>>,
+// GetProps<C>,
+// TMergedProps
+// ]
 
 export interface ConnectDEBUG {
   <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
@@ -260,6 +297,9 @@ export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
   // when you really didn't. If the types don't match it spits out the missing keys (omit) as a way to help you out but the error cases
   // aren't great
+  /**
+   * Use connectDEBUG to get debugging info
+   */
   <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
     mapStateToProps: MapStateToProps<TStateProps, TOwnProps>,
     mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
