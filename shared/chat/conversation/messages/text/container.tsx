@@ -90,7 +90,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnPro
 })
 
 const mergeClaimProps = (stateProps, dispatchProps): ClaimProps => {
-  return !!stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined
+  return stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined
 }
 
 type MsgType = Props['type']

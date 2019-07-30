@@ -143,8 +143,13 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		seen[p.Full] = struct{}{}
+		normalizedUn := libkb.NewNormalizedUsername(username)
+		if _, ok := seen[normalizedUn.String()]; ok {
+			continue
+		}
+		seen[normalizedUn.String()] = struct{}{}
 		res = append(res, types.ParsedStellarPayment{
-			Username: libkb.NewNormalizedUsername(username),
+			Username: normalizedUn,
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
 			Full:     p.Full,
