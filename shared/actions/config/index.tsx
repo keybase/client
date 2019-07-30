@@ -281,14 +281,6 @@ const switchRouteDef = (
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
-    } else if (action.type === ConfigGen.loggedIn) {
-      if (
-        state.config.startupLink &&
-        state.config.startupLink.endsWith('/phone-app') &&
-        !state.settings.phoneNumbers.phones
-      ) {
-        return [SettingsGen.createLoadSettings()]
-      }
     }
   } else {
     return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
@@ -334,6 +326,7 @@ function* maybeDoneWithLogoutHandshake(state) {
 }
 
 let routeToInitialScreenOnce = false
+let loadMySettingsOnce = false
 
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   if (
@@ -342,6 +335,11 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
     state.config.startupLink.endsWith('/phone-app') &&
     !state.settings.phoneNumbers.phones
   ) {
+    if (!loadMySettingsOnce) {
+      loadMySettingsOnce = true
+      return [SettingsGen.createLoadSettings()]
+    }
+
     // pending loadMySettings finishing
     return
   }
