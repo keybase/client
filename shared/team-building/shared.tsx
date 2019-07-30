@@ -25,7 +25,7 @@ const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; la
   },
   keybase: {
     color: '#4C8EFF',
-    icon: 'iconfont-keybase',
+    icon: 'iconfont-contact-book',
     label: 'Keybase',
   },
   pgp: {
