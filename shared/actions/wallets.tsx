@@ -139,12 +139,14 @@ const createNewAccount = (
 }
 
 const emptyAsset: RPCStellarTypes.Asset = {
+  authEndpoint: '',
   code: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: '',
   issuerName: '',
+  transferServer: '',
   type: 'native',
   verifiedDomain: '',
 }
@@ -287,7 +289,9 @@ const validateSEP7Link = (_: TypedState, action: WalletsGen.ValidateSEP7LinkPayl
         error: error.desc,
       }),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: ['sep7ConfirmError']}),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}],
+      }),
     ])
 
 const acceptSEP7Tx = (_: TypedState, action: WalletsGen.AcceptSEP7TxPayload) =>
@@ -335,7 +339,6 @@ const loadAccounts = (
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -610,7 +613,13 @@ const changeDisplayCurrency = (_: TypedState, action: WalletsGen.ChangeDisplayCu
       currency: action.payload.code, // called currency, though it is a code
     },
     Constants.changeDisplayCurrencyWaitingKey
-  ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+  ).then(currencyRes => {
+    WalletsGen.createDisplayCurrencyReceived({
+      accountID: action.payload.accountID,
+      currency: Constants.makeCurrency(currencyRes),
+      setBuildingCurrency: false,
+    })
+  })
 
 const changeAccountName = (_: TypedState, action: WalletsGen.ChangeAccountNamePayload) =>
   RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
@@ -619,7 +628,7 @@ const changeAccountName = (_: TypedState, action: WalletsGen.ChangeAccountNamePa
       newName: action.payload.name,
     },
     Constants.changeAccountNameWaitingKey
-  ).then(() => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
+  ).then(res => WalletsGen.createChangedAccountName({account: Constants.accountResultToAccount(res)}))
 
 const deleteAccount = (_: TypedState, action: WalletsGen.DeleteAccountPayload) =>
   RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
@@ -634,7 +643,16 @@ const setAccountAsDefault = (_: TypedState, action: WalletsGen.SetAccountAsDefau
   RPCStellarTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
     {accountID: action.payload.accountID},
     Constants.setAccountAsDefaultWaitingKey
-  ).then(() => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
+  ).then(accountsAfterUpdate =>
+    WalletsGen.createDidSetAccountAsDefault({
+      accounts: (accountsAfterUpdate || []).map(account => {
+        if (!account.accountID) {
+          logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
+        }
+        return Constants.accountResultToAccount(account)
+      }),
+    })
+  )
 
 const loadPaymentDetail = (
   _: TypedState,
@@ -921,11 +939,10 @@ const accountDetailsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyAcc
 
 const accountsUpdate = (
   _: TypedState,
-  action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload,
+  action: EngineGen.Stellar1NotifyAccountsUpdatePayload,
   logger: Saga.SagaLogger
 ) =>
   WalletsGen.createAccountsReceived({
-    // @ts-ignore codemod-issue
     accounts: (action.payload.params.accounts || []).map(account => {
       if (!account.accountID) {
         logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
@@ -1024,10 +1041,10 @@ const loadMobileOnlyMode = (
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
     accountID,
   })
-    .then(res =>
+    .then(isMobileOnly =>
       WalletsGen.createLoadedMobileOnlyMode({
-        accountID,
-        enabled: res,
+        accountID: accountID,
+        enabled: isMobileOnly,
       })
     )
     .catch(err => handleSelectAccountError(action, 'loading mobile only mode', err))
@@ -1038,10 +1055,12 @@ const changeMobileOnlyMode = (_: TypedState, action: WalletsGen.ChangeMobileOnly
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
-  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(() => [
-    WalletsGen.createLoadedMobileOnlyMode({accountID, enabled: action.payload.enabled}),
-    WalletsGen.createLoadMobileOnlyMode({accountID}),
-  ])
+  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(() =>
+    WalletsGen.createLoadedMobileOnlyMode({
+      accountID: accountID,
+      enabled: action.payload.enabled,
+    })
+  )
 }
 
 const writeLastSentXLM = (
@@ -1107,10 +1126,11 @@ type AirdropDetailsJSONType = {
 } | null
 
 const updateAirdropDetails = (
-  _: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  state: TypedState,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
+  state.config.loggedIn &&
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
       const json: AirdropDetailsJSONType = JSON.parse(response.details)
@@ -1145,10 +1165,11 @@ const updateAirdropDetails = (
     })
 
 const updateAirdropState = (
-  _: TypedState,
-  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  state: TypedState,
+  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
   logger: Saga.SagaLogger
 ) =>
+  state.config.loggedIn &&
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(({state, rows}) => {
       let airdropState = 'loading'
@@ -1194,12 +1215,14 @@ const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) =>
 const assetDescriptionOrNativeToRpcAsset = (
   asset: 'native' | Types.AssetDescription
 ): RPCStellarTypes.Asset => ({
+  authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: asset === 'native' ? '' : asset.issuerAccountID,
   issuerName: '',
+  transferServer: '',
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
 })
@@ -1513,14 +1536,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
   >(
     [
       WalletsGen.loadAccounts,
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
-      WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
     ],
     loadAccounts,
@@ -1902,12 +1923,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       'changeAirdrop'
     )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
-      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
+      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
-      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
+      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
       updateAirdropState,
       'updateAirdropState'
     )

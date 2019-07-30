@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
 )
 
-type errorFile struct {
+type errorFile struct { // nolint
 	fs FileSystem
 }
 

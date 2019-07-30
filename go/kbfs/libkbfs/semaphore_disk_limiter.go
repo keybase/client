@@ -194,13 +194,6 @@ func (sdl semaphoreDiskLimiter) reserveBytes(ctx context.Context,
 	return sdl.byteSemaphore.ForceAcquire(blockBytes), nil
 }
 
-func (sdl semaphoreDiskLimiter) afterDiskBlockCachePut(ctx context.Context,
-	blockBytes int64, putData bool) {
-	if !putData {
-		sdl.byteSemaphore.Release(blockBytes)
-	}
-}
-
 func (sdl semaphoreDiskLimiter) getQuotaInfo(_ keybase1.UserOrTeamID) (
 	usedQuotaBytes, quotaBytes int64) {
 	return sdl.quotaTracker.getQuotaInfo()

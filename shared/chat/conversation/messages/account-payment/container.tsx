@@ -27,9 +27,6 @@ const loadingProps = {
   showCoinsIcon: false,
 }
 
-// Info text for cancelable payments
-const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
-
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
@@ -89,7 +86,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
           : '',
         balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-        cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
+        cancelButtonInfo: paymentInfo.showCancel ? WalletConstants.makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
         canceled,
         claimButtonLabel:

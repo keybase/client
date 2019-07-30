@@ -1,27 +1,21 @@
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import ConfirmDisableCertPinningModal from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {createCertificatePinningToggled} from '../../actions/settings-gen'
 
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = dispatch => ({
-  onCancel: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
-  onConfirm: () => {
-    dispatch(createCertificatePinningToggled({toggled: true}))
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export default Container.connect(
+  () => ({}),
+  dispatch => ({
+    onCancel: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+    onConfirm: () => {
+      dispatch(createCertificatePinningToggled({toggled: true}))
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+  }),
+  (stateProps, dispatchProps) => ({
+    ...stateProps,
+    ...dispatchProps,
+  })
 )(ConfirmDisableCertPinningModal)

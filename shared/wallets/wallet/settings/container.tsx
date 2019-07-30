@@ -3,6 +3,8 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/wallets'
+import {IconType} from '../../../common-adapters/icon.constants'
+import * as IconUtils from '../../../common-adapters/icon.shared'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -15,6 +17,15 @@ type OwnProps = Container.RouteProps
 const transformUrl = (accountID: string, url: string, username: string): string =>
   url.replace('%{accountId}', accountID).replace('%{username}', username)
 
+const toIconType = (iconFilename: string): IconType => {
+  const iconType = iconFilename as IconType
+  if (IconUtils.isValidIconType(iconType)) {
+    return iconType
+  } else {
+    return 'icon-stellar-logo-grey-32'
+  }
+}
+
 const prepareExternalPartners = (
   externalPartners: I.List<Types.PartnerUrl>,
   accountID: string,
@@ -25,7 +36,7 @@ const prepareExternalPartners = (
       adminOnly: partner.adminOnly,
       description: partner.description,
       extra: partner.extra,
-      iconFilename: partner.iconFilename,
+      iconFilename: toIconType(partner.iconFilename),
       showDivider: index > 0,
       title: partner.title,
       url: transformUrl(accountID, partner.url, username),

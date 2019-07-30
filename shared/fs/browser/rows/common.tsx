@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
@@ -11,8 +10,8 @@ export type StillCommonProps = {
   path: Types.Path
   inDestinationPicker?: boolean
   onOpen: () => void
-  routePath: I.List<string>
   showActionsWithGrow?: boolean | null
+  showTlfTypeIcon?: boolean
 }
 
 export const StillCommon = (
@@ -26,7 +25,15 @@ export const StillCommon = (
     statusIcon={
       flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <SyncStatus path={props.path} />
     }
-    icon={<PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />}
+    icon={
+      <PathItemIcon
+        path={props.path}
+        size={32}
+        style={rowStyles.pathItemIcon}
+        badge={props.badge}
+        showTlfTypeIcon={props.showTlfTypeIcon}
+      />
+    }
     firstItem={true /* we add divider in Rows */}
     onClick={props.onOpen}
     body={props.children}
@@ -39,7 +46,6 @@ export const StillCommon = (
           <PathItemAction
             path={props.path}
             clickable={{type: 'icon'}}
-            routePath={props.routePath}
             initView={Types.PathItemActionMenuView.Root}
             mode="row"
           />

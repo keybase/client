@@ -73,11 +73,11 @@ export type MessageTypes = {
   }
   'stellar.1.local.changeDisplayCurrencyLocal': {
     inParam: {readonly accountID: AccountID; readonly currency: OutsideCurrencyCode}
-    outParam: void
+    outParam: CurrencyLocal
   }
   'stellar.1.local.changeWalletAccountNameLocal': {
     inParam: {readonly accountID: AccountID; readonly newName: String}
-    outParam: void
+    outParam: WalletAccountLocal
   }
   'stellar.1.local.createWalletAccountLocal': {
     inParam: {readonly name: String}
@@ -213,7 +213,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.setWalletAccountAsDefaultLocal': {
     inParam: {readonly accountID: AccountID}
-    outParam: void
+    outParam: Array<WalletAccountLocal> | null
   }
   'stellar.1.local.startBuildPaymentLocal': {
     inParam: void
@@ -374,7 +374,7 @@ export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: St
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
-export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String}
+export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly transferServer: String; readonly authEndpoint: String}
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}

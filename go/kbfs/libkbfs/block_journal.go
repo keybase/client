@@ -258,11 +258,12 @@ func saturateAdd(x *int64, delta int64) {
 		*x = 0
 	}
 
-	if delta > 0 && *x > (math.MaxInt64-delta) {
+	switch {
+	case delta > 0 && *x > (math.MaxInt64-delta):
 		*x = math.MaxInt64
-	} else if delta < 0 && *x+delta < 0 {
+	case delta < 0 && *x+delta < 0:
 		*x = 0
-	} else {
+	default:
 		*x += delta
 	}
 }
@@ -1169,7 +1170,10 @@ func (j *blockJournal) clearDeferredGCRange(
 	// If we crash before calling this, the journal bytes/files
 	// counts will be inaccurate. But this will be resolved when
 	// the journal goes empty in the clause above.
-	j.unstoreBlocks(removedBytes, removedFiles)
+	err = j.unstoreBlocks(removedBytes, removedFiles)
+	if err != nil {
+		return false, blockAggregateInfo{}, err
+	}
 
 	aggregateInfo = j.aggregateInfo
 

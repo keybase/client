@@ -45,6 +45,7 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 	writers = append(writers, members.Admins...)
 	writers = append(writers, members.Owners...)
 	onlyReaders = append(onlyReaders, members.Readers...)
+	onlyReaders = append(onlyReaders, members.Bots...)
 	onlyRestrictedBots = append(onlyRestrictedBots, members.RestrictedBots...)
 
 	ret = keybase1.TeamPlusApplicationKeys{

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
@@ -78,21 +79,26 @@ type testTLFJournalConfig struct {
 	codecGetter
 	logMaker
 	*testSyncedTlfGetterSetter
-	t            *testing.T
-	tlfID        tlf.ID
-	splitter     data.BlockSplitter
-	crypto       *CryptoLocal
-	bcache       data.BlockCache
-	bops         BlockOps
-	mdcache      MDCache
-	ver          kbfsmd.MetadataVer
-	reporter     Reporter
-	uid          keybase1.UID
-	verifyingKey kbfscrypto.VerifyingKey
-	ekg          singleEncryptionKeyGetter
-	nug          idutil.NormalizedUsernameGetter
-	mdserver     MDServer
-	dlTimeout    time.Duration
+	t                           *testing.T
+	tlfID                       tlf.ID
+	splitter                    data.BlockSplitter
+	crypto                      *CryptoLocal
+	bcache                      data.BlockCache
+	bops                        BlockOps
+	mdcache                     MDCache
+	ver                         kbfsmd.MetadataVer
+	reporter                    Reporter
+	uid                         keybase1.UID
+	verifyingKey                kbfscrypto.VerifyingKey
+	ekg                         singleEncryptionKeyGetter
+	nug                         idutil.NormalizedUsernameGetter
+	mdserver                    MDServer
+	dlTimeout                   time.Duration
+	subsciptionManagerPublisher SubscriptionManagerPublisher
+}
+
+func (c testTLFJournalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	return c.subsciptionManagerPublisher
 }
 
 func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {
@@ -241,6 +247,7 @@ func setupTLFJournalTest(
 	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(t, cig))
 	require.NoError(t, err)
 
+	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
 	config = &testTLFJournalConfig{
 		newTestCodecGetter(), newTestLogMaker(t),
 		newTestSyncedTlfGetterSetter(), t,
@@ -248,7 +255,10 @@ func setupTLFJournalTest(
 		nil, nil, NewMDCacheStandard(10), ver,
 		NewReporterSimple(clocktest.NewTestClockNow(), 10), uid, verifyingKey, ekg, nil,
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
+		mockPublisher,
 	}
+	mockPublisher.EXPECT().FavoritesChanged().AnyTimes()
+	mockPublisher.EXPECT().JournalStatusChanged().AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -1243,7 +1253,6 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	require.NoError(t, err)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	// Squash revs 10 and 11.  No blocks should actually be flushed
 	// yet.
@@ -1274,7 +1283,6 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	require.NoError(t, err)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	// Let it squash (avoiding a branch this time since there's only one MD).
 	err = tlfJournal.flush(ctx)
@@ -1389,7 +1397,6 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
@@ -1464,12 +1471,10 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	tlfJournal.delegateBlockServer = &bserver
 
 	// Revision 1
-	var bids []kbfsblock.ID
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
 	for i := 0; i < rev1BlockEnd; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
-		bids = append(bids, bid)
 		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
 		require.NoError(t, err)
 	}

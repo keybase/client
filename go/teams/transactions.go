@@ -369,6 +369,7 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
 	case keybase1.TeamRole_RESTRICTEDBOT,
+		keybase1.TeamRole_BOT,
 		keybase1.TeamRole_READER,
 		keybase1.TeamRole_WRITER,
 		keybase1.TeamRole_ADMIN,

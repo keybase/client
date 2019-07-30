@@ -985,8 +985,7 @@ func GCRepo(
 	if err != nil {
 		return err
 	}
-	var fsStorage storage.Storer
-	fsStorage = fsStorer
+	var fsStorage storage.Storer = fsStorer
 
 	// Wrap it in an on-demand storer, so we don't try to read all the
 	// objects of big repos into memory at once.

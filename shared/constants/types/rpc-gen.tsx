@@ -91,6 +91,14 @@ export type MessageTypes = {
     inParam: {readonly path: String}
     outParam: void
   }
+  'keybase.1.NotifyFS.FSSubscriptionNotify': {
+    inParam: {readonly subscriptionID: String; readonly topic: SubscriptionTopic}
+    outParam: void
+  }
+  'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
+    inParam: {readonly subscriptionID: String; readonly path: String; readonly topic: PathSubscriptionTopic}
+    outParam: void
+  }
   'keybase.1.NotifyFS.FSSyncActivity': {
     inParam: {readonly status: FSPathSyncStatus}
     outParam: void
@@ -279,6 +287,14 @@ export type MessageTypes = {
     inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly refreshSubscription: Boolean}
     outParam: Dirent
   }
+  'keybase.1.SimpleFS.simpleFSSubscribeNonPath': {
+    inParam: {readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSSubscribePath': {
+    inParam: {readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus': {
     inParam: void
     outParam: SyncConfigAndStatusRes
@@ -286,6 +302,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSSyncStatus': {
     inParam: {readonly filter: ListFilter}
     outParam: FSSyncStatus
+  }
+  'keybase.1.SimpleFS.simpleFSUnsubscribe': {
+    inParam: {readonly subscriptionID: String}
+    outParam: void
   }
   'keybase.1.SimpleFS.simpleFSUserEditHistory': {
     inParam: void
@@ -1260,7 +1280,7 @@ export type MessageTypes = {
     outParam: NonUserDetails
   }
   'keybase.1.userSearch.userSearch': {
-    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
+    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean; readonly impTofuQuery?: ImpTofuQuery | null}
     outParam: Array<APIUserSearchResult> | null
   }
 }
@@ -1513,11 +1533,11 @@ export enum HomeScreenTodoType {
   teamShowcase = 10,
   avatarUser = 11,
   avatarTeam = 12,
-  addPhoneNumber = 13,
-  verifyAllPhoneNumber = 14,
-  verifyAllEmail = 15,
-  legacyEmailVisibility = 16,
-  addEmail = 17,
+  addPhoneNumber = 18,
+  verifyAllPhoneNumber = 19,
+  verifyAllEmail = 20,
+  legacyEmailVisibility = 21,
+  addEmail = 22,
   annoncementPlaceholder = 10000,
 }
 
@@ -1560,6 +1580,11 @@ export enum IdentifyReasonType {
 export enum IdentityVisibility {
   private = 0,
   public = 1,
+}
+
+export enum ImpTofuSearchType {
+  phone = 0,
+  email = 1,
 }
 
 export enum InstallAction {
@@ -1662,6 +1687,11 @@ export enum PassphraseType {
   paperKey = 1,
   passPhrase = 2,
   verifyPassPhrase = 3,
+}
+
+export enum PathSubscriptionTopic {
+  children = 0,
+  stat = 1,
 }
 
 export enum PathType {
@@ -2102,6 +2132,11 @@ export enum StatusCode {
   scteambotkeybadgeneration = 3802,
 }
 
+export enum SubscriptionTopic {
+  favorites = 0,
+  journalStatus = 1,
+}
+
 export enum TLFIdentifyBehavior {
   unset = 0,
   chatCli = 1,
@@ -2162,6 +2197,7 @@ export enum TeamRole {
   writer = 2,
   admin = 3,
   owner = 4,
+  bot = 5,
   restrictedbot = 6,
 }
 
@@ -2239,7 +2275,7 @@ export enum UserOrTeamResult {
 }
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
-export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
+export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
 export type APIUserServiceIDWithContact = String
 export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String}
@@ -2384,7 +2420,7 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
-export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time}
+export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time; readonly needRotate: Boolean; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKeyAndCheck}}
 export type HiddenTeamChainRatchetSet = {readonly ratchets: {[key: string]: LinkTripleAndTime}}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
@@ -2414,6 +2450,8 @@ export type IdentifyRow = {readonly rowId: Int; readonly proof: RemoteProof; rea
 export type IdentifyTrackBreaks = {readonly keys?: Array<IdentifyKey> | null; readonly proofs?: Array<IdentifyProofBreak> | null}
 export type Identity = {readonly status?: Status | null; readonly whenLastTracked: Time; readonly proofs?: Array<IdentifyRow> | null; readonly cryptocurrency?: Array<Cryptocurrency> | null; readonly revoked?: Array<TrackDiff> | null; readonly revokedDetails?: Array<RevokedProof> | null; readonly breaksTracking: Boolean}
 export type ImageCropRect = {readonly x0: Int; readonly y0: Int; readonly x1: Int; readonly y1: Int}
+export type ImpTofuQuery = {t: ImpTofuSearchType.phone; phone: PhoneNumber | null} | {t: ImpTofuSearchType.email; email: EmailAddress | null}
+export type ImpTofuSearchResult = {readonly assertion: String; readonly label: String; readonly prettyName: String; readonly keybaseUsername: String}
 export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
@@ -2472,7 +2510,7 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs | null} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs | null} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs | null} | {asyncOp: AsyncOps.read; read: ReadArgs | null} | {asyncOp: AsyncOps.write; write: WriteArgs | null} | {asyncOp: AsyncOps.copy; copy: CopyArgs | null} | {asyncOp: AsyncOps.move; move: MoveArgs | null} | {asyncOp: AsyncOps.remove; remove: RemoveArgs | null} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs | null}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -2625,7 +2663,7 @@ export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readon
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
-export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
+export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
@@ -2660,8 +2698,8 @@ export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly e
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus}
 export type TeamMemberOutFromReset = {readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
-export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
-export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
+export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
+export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
 export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
 export type TeamNameLogPoint = {readonly lastPart: TeamNamePart; readonly seqno: Seqno}
 export type TeamNamePart = String
@@ -2804,6 +2842,8 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOverallSyncStatusChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSFavoritesChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyFS.FSSubscriptionNotifyPath'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyFS.FSSubscriptionNotify'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2923,6 +2963,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOverallSyncStatusChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSOverallSyncStatusChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSFavoritesChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSFavoritesChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyFS.FSSubscriptionNotifyPath'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyFS.FSSubscriptionNotify'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
@@ -3001,8 +3043,11 @@ export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params: MessageTyp
 export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStatRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSubscribeNonPathRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSubscribeNonPath']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSubscribeNonPath']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSubscribeNonPath', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSubscribePathRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSubscribePath']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSubscribePath']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSubscribePath', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSUnsubscribeRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUnsubscribe', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSUserEditHistoryRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserEditHistory', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSWaitRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSWait']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSWait']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSWait', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountEmailChangeRpcPromise = (params: MessageTypes['keybase.1.account.emailChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.emailChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3284,6 +3329,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.kbfs.FSOverallSyncEvent'
 // 'keybase.1.kbfs.FSOnlineStatusChangedEvent'
 // 'keybase.1.kbfs.FSFavoritesChangedEvent'
+// 'keybase.1.kbfs.FSSubscriptionNotifyPathEvent'
+// 'keybase.1.kbfs.FSSubscriptionNotifyEvent'
 // 'keybase.1.kbfs.createTLF'
 // 'keybase.1.kbfs.getKBFSTeamSettings'
 // 'keybase.1.kbfs.upgradeTLF'
@@ -3371,6 +3418,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'
 // 'keybase.1.NotifyFS.FSFavoritesChanged'
 // 'keybase.1.NotifyFS.FSOnlineStatusChanged'
+// 'keybase.1.NotifyFS.FSSubscriptionNotifyPath'
+// 'keybase.1.NotifyFS.FSSubscriptionNotify'
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
 // 'keybase.1.NotifyKeyfamily.keyfamilyChanged'

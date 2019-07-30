@@ -1,25 +1,19 @@
 import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
-import {TypedState} from '../constants/reducer'
-import {connect, compose, defaultProps, RouteProps} from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Container from '../util/container'
 
-type OwnProps = RouteProps<{source: string; title: string}>
+type OwnProps = Container.RouteProps<{source: string; title: string}>
 
-const mapStateToProps = (_: TypedState, ownProps: OwnProps) => ({
-  source: ownProps.routeProps.get('source'),
-  title: ownProps.routeProps.get('title'),
-})
-
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-})
-
-const WebLinks = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+const WebLinks = Container.compose(
+  Container.connect(
+    (_, ownProps: OwnProps) => ({
+      source: Container.getRouteProps(ownProps, 'source', ''),
+      title: Container.getRouteProps(ownProps, 'title', ''),
+    }),
+    dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
-  defaultProps({
+  Container.defaultProps({
     dataDetectorTypes: 'none',
   }),
   HeaderHoc

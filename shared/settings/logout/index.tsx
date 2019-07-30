@@ -16,6 +16,7 @@ export type Props = {
 }
 
 type State = {
+  loggingOut: boolean
   password: string
   showTyping: boolean
 }
@@ -28,8 +29,17 @@ const HoverBox = Styles.isMobile
 
 class LogOut extends React.Component<Props, State> {
   state = {
+    loggingOut: false,
     password: '',
     showTyping: false,
+  }
+
+  logOut = () => {
+    if (this.state.loggingOut) {
+      return
+    }
+    this.props.onLogout()
+    this.setState({loggingOut: true})
   }
 
   componentDidMount() {
@@ -67,29 +77,34 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!!this.props.checkPasswordIsCorrect || !this.state.password}
+                disabled={
+                  !!this.props.checkPasswordIsCorrect || !this.state.password || this.state.loggingOut
+                }
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
                 }}
               />
               <Kb.Box2 direction="horizontal">
-                <HoverBox onClick={this.props.onLogout} style={styles.logoutContainer}>
-                  <Kb.Icon type="iconfont-leave" />
-                  <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
-                    Just sign out
-                  </Kb.Text>
-                </HoverBox>
+                {this.state.loggingOut ? (
+                  <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+                ) : (
+                  <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
+                    <Kb.Icon type="iconfont-leave" />
+                    <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
+                      Just sign out
+                    </Kb.Text>
+                  </HoverBox>
+                )}
               </Kb.Box2>
             </Kb.ButtonBar>
           ) : (
             <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-              <Kb.Button
-                label="Safely sign out"
-                fullWidth={true}
-                onClick={this.props.onLogout}
-                type="Success"
-              />
+              {this.state.loggingOut ? (
+                <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+              ) : (
+                <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
+              )}
             </Kb.ButtonBar>
           ),
         }}
@@ -179,6 +194,9 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginBottom: Styles.globalMargins.xlarge,
     marginTop: Styles.globalMargins.xlarge,
+  },
+  smallProgress: {
+    alignSelf: 'center',
   },
 })
 

@@ -835,19 +835,6 @@ export type ResetMetadata = {
   resetParticipants: Array<string>
 }
 
-// RefreshTag is used by components in FsGen.folderListLoad and
-// FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
-// such data if some FS activity notification indicates it may have changed.
-// Note that this is not a subscrition based model where a component needs to
-// unsubscribe when it's not interested anymore. Instead, we use a simple
-// heuristic where Saga only keeps track of latest call from each component and
-// refresh only the most recently reuested paths for each component.
-export enum RefreshTag {
-  Main = 'main',
-  PathItemActionPopup = 'path-item-action-popup',
-  DestinationPicker = 'destination-picker',
-}
-
 export enum PathItemBadgeType {
   Upload = 'upload',
   Download = 'download',

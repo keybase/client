@@ -54,13 +54,13 @@ const JoinAirdrop = p => (
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
-        p.selected && {backgroundColor: Styles.globalColors.purple},
+        p.selected && {backgroundColor: Styles.globalColors.purpleLight},
       ])}
       direction="horizontal"
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>
@@ -180,9 +180,6 @@ const styles = Styles.styleSheetCreate({
   },
   joinAirdrop: {
     alignItems: 'center',
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: `solid`,
-    borderTopWidth: 1,
     height: rowHeight,
   },
   progressHeader: {

@@ -34,7 +34,6 @@ const Still = (props: StillProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.intentIfDownloading ? Types.PathItemBadgeType.Download : null}
-    routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>

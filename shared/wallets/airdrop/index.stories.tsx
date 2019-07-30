@@ -39,8 +39,8 @@ const props = {
       section: 'Where are the Lumens dropped?',
     },
     {
-      icon: 'icon-fancy-user-card-desktop-star-80-99',
-      lines: [{bullet: false, text: "You'll earn a star, visbile on your profile"}],
+      icon: 'icon-fancy-user-card-desktop-airdrop-80-99',
+      lines: [{bullet: false, text: "You'll earn a golden Stellar symbol, visbile on your profile"}],
       section: 'Anything else to know?',
     },
   ],

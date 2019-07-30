@@ -515,7 +515,6 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 	busyWork2 := []fileOp{noSyncEnd()}
 	listing := m{}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	unflushedPaths := []string{"/keybase/private/alice,bob/a"}
 	targetMtime := time.Now().Add(1 * time.Minute)
 	for i := 0; i < iters; i++ {
 		name := fmt.Sprintf("%d", i)
@@ -525,8 +524,6 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 		busyWork2 = append(busyWork2, rename("a/"+name+".tmp", "a/"+name))
 
 		listing["^"+name+"$"] = "FILE"
-		unflushedPaths = append(
-			unflushedPaths, "/keybase/private/alice,bob/a/"+name)
 	}
 	busyWork = append(busyWork, setmtime("a", targetMtime))
 

@@ -174,7 +174,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			session.Name, flags)
 
 	var notPerDeviceEncrypted bool
-	if _, notPerDeviceEncrypted = err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
+	if _, notPerDeviceEncrypted = err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted { // nolint
 		// get the key we want using the current crypt key
 		currKeyGen := kmd.LatestKeyGeneration()
 		// look in the cache first

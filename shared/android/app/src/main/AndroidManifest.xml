@@ -51,6 +51,12 @@
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="web+stellar" />
         </intent-filter>
+        <intent-filter android:label="Open with Keybase">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="keybase" />
+        </intent-filter>
         <!-- TODO: enable
         <intent-filter>
           <action android:name="android.intent.action.SEND_MULTIPLE" />

@@ -78,7 +78,7 @@ func (t *Team) CanSkipKeyRotation() bool {
 	}
 
 	// If cannot decide because of an error, return default false.
-	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
+	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_BOT)
 	if err != nil {
 		return false
 	}
@@ -295,21 +295,31 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Owners = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Admins = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_WRITER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Writers = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_READER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+
+	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
@@ -1351,8 +1361,8 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_RESTRICTEDBOT:
-		return fmt.Errorf("restricted bot role disallowed for invites")
+	case keybase1.TeamRole_RESTRICTEDBOT, keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot roles disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
 	case keybase1.TeamRole_WRITER:
@@ -2153,6 +2163,10 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 			continue
 		}
+		if isHiddenAppendPrecheckError(err) {
+			g.Log.CDebugf(ctx, "| retrying since we hit a hidden append precheck error")
+			continue
+		}
 		return err
 	}
 	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
@@ -2162,6 +2176,18 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 	}
 	// Return the error from the final round
 	return err
+}
+
+func isHiddenAppendPrecheckError(err error) bool {
+	perr, ok := err.(PrecheckAppendError)
+	if !ok {
+		return false
+	}
+	_, ok = perr.Inner.(hidden.LoaderError)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func isSigOldSeqnoError(err error) bool {

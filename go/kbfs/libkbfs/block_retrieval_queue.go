@@ -27,8 +27,6 @@ import (
 const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
 	defaultPrefetchWorkerQueueSize       int = 2
-	minimalBlockRetrievalWorkerQueueSize int = 2
-	minimalPrefetchWorkerQueueSize       int = 1
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
 	defaultOnDemandRequestPriority       int = 1 << 30
@@ -298,7 +296,7 @@ func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() error {
 		// reason), we might need to rely on this in-memory map.
 		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
-	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
+	brq.log.CDebugf(context.TODO(), "Using a local cache for prefetch status")
 	var err error
 	cache, err := lru.New(10000)
 	if err == nil {
@@ -422,7 +420,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		// Cache the block in memory.  TODO: plumb through whether
 		// journaling is enabled for this TLF, to set the right cache
 		// behavior.
-		brq.config.BlockCache().Put(
+		_ = brq.config.BlockCache().Put(
 			ptr, kmd.TlfID(), block, data.TransientEntry, data.DoCacheHash)
 	}
 	return prefetchStatus, err
@@ -490,7 +488,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	// which causes it to `break` on the next iteration.
 	var br *blockRetrieval
 	for {
-		exists := false
+		var exists bool
 		br, exists = brq.ptrs[bpLookup]
 		if !exists {
 			// Add to the heap

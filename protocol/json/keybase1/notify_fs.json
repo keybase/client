@@ -99,6 +99,40 @@
       "response": null,
       "oneway": true,
       "lint": "ignore"
+    },
+    "FSSubscriptionNotifyPath": {
+      "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "FSSubscriptionNotify": {
+      "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

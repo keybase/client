@@ -114,11 +114,11 @@ const Oops = (props: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, props: OwnPropsWithSafeNavigation) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => ({
   openParent: () =>
     dispatch(
-      props.navigateAppend({
-        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'main'}],
+      ownProps.safeNavigateAppendPayload({
+        path: [{props: {path: Types.getPathParent(ownProps.path)}, selected: 'main'}],
       })
     ),
 })

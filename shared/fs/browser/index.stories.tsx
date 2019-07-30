@@ -1,9 +1,9 @@
-import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
 import DestinationPicker from './destination-picker'
 import Browser from '.'
+import Root from './root'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {rowsProvider} from './rows/index.stories'
@@ -12,7 +12,7 @@ import {topBarProvider} from '../top-bar/index.stories'
 import {footerProvider} from '../footer/index.stories'
 import {bannerProvider} from '../banner/index.stories'
 
-const provider = Sb.createPropProviderWithCommon({
+const _provider = {
   ...rowsProvider,
   ...commonProvider,
   ...topBarProvider,
@@ -24,17 +24,33 @@ const provider = Sb.createPropProviderWithCommon({
     onOpenPath: Sb.action('onOpenPath'),
     path,
   }),
+}
+
+const storeCommon = Sb.createStoreWithCommon()
+const storeShowingSfmi = {
+  ...storeCommon,
+  fs: storeCommon.fs.update('sfmi', sfmi => sfmi.set('showingBanner', true)),
+}
+
+const provider = Sb.createPropProviderWithCommon(_provider)
+// @ts-ignore
+const providerShowingSfmi = Sb.createPropProviderWithCommon({
+  ..._provider,
+  ...storeShowingSfmi,
 })
 
 export default () => {
   Sb.storiesOf('Files/Browser', module)
     .addDecorator(provider)
+    .add('Root', () => (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        <Root />
+      </Kb.Box2>
+    ))
     .add('normal', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/foo')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
         />
@@ -44,19 +60,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/public/foo')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={false}
-          resetBannerType={Types.ResetBannerNoOthersType.None}
-          offline={false}
-        />
-      </Kb.Box2>
-    ))
-    .add('with SystemFileManagerIntegrationBanner', () => (
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Browser
-          path={Types.stringToPath('/keybase/private/foo')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={true}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
         />
@@ -66,8 +69,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/me,reset')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.Self}
           offline={false}
         />
@@ -77,8 +78,6 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={false}
           resetBannerType={1}
           offline={false}
         />
@@ -88,11 +87,16 @@ export default () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
-          routePath={I.List([])}
-          shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}
         />
+      </Kb.Box2>
+    ))
+  Sb.storiesOf('Files/Browser', module)
+    .addDecorator(providerShowingSfmi)
+    .add('Root - showing SFMI banner', () => (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        <Root />
       </Kb.Box2>
     ))
   Sb.storiesOf('Files', module)
@@ -100,7 +104,6 @@ export default () => {
     .add('DestinationPicker', () => (
       <DestinationPicker
         parentPath={Types.stringToPath('/keybase/private/meatball,songgao,xinyuzhao/yo')}
-        routePath={I.List([])}
         onCancel={Sb.action('onCancel')}
         targetName="Secret treat spot blasjeiofjawiefjksadjflaj long name blahblah"
         index={0}

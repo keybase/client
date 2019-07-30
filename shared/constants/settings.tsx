@@ -89,8 +89,10 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
+  userCountryCode: null,
 })
 
 export const makeState = I.Record<Types._State>({
@@ -190,6 +192,7 @@ export const screenprotectorTab = 'settingsTabs.screenprotector'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs.walletsTab'
+export const contactsTab = 'settingsTabs.contactsTab'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'

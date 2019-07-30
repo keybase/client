@@ -107,7 +107,10 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	// quota.
 	config.SetDefaultBlockType(keybase1.BlockType_GIT)
 
-	config.MakeDiskBlockCacheIfNotExists()
+	err = config.MakeDiskBlockCacheIfNotExists()
+	if err != nil {
+		log.CDebugf(ctx, "Couldn't initialize disk cache: %+v", err)
+	}
 
 	return ctx, config, nil
 }

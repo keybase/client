@@ -32,6 +32,9 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	botua := tt.addUser("ua")
 	t.Logf("Signed up user ua (%s) to be a bot", tracy.username)
 
+	restrictedBotua := tt.addUser("r_ua")
+	t.Logf("Signed up user ua (%s) to be a restricted bot", tracy.username)
+
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
@@ -43,11 +46,13 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	if byUV {
 		tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER)
 		tx.AddMemberByUV(context.Background(), tracy.userVersion(), keybase1.TeamRole_READER)
-		tx.AddMemberByUV(context.Background(), botua.userVersion(), keybase1.TeamRole_RESTRICTEDBOT)
+		tx.AddMemberByUV(context.Background(), botua.userVersion(), keybase1.TeamRole_BOT)
+		tx.AddMemberByUV(context.Background(), restrictedBotua.userVersion(), keybase1.TeamRole_RESTRICTEDBOT)
 	} else {
 		tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 		tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
-		tx.AddMemberByUsername(context.Background(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
+		tx.AddMemberByUsername(context.Background(), botua.username, keybase1.TeamRole_BOT)
+		tx.AddMemberByUsername(context.Background(), restrictedBotua.username, keybase1.TeamRole_RESTRICTEDBOT)
 	}
 
 	err := tx.Post(libkb.NewMetaContextForTest(*ann.tc))
@@ -70,8 +75,10 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	require.Equal(t, 0, len(members.Writers))
 	require.Equal(t, 1, len(members.Readers))
 	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
+	require.Equal(t, 1, len(members.Bots))
+	require.EqualValues(t, botua.userVersion(), members.Bots[0])
 	require.Equal(t, 1, len(members.RestrictedBots))
-	require.EqualValues(t, botua.userVersion(), members.RestrictedBots[0])
+	require.EqualValues(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
 
 	// TRANSACTION 2 - bob gets puk, add bob but not through SBS - we
 	// expect the invite to be sweeped away by this transaction.
@@ -95,8 +102,10 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
 	require.Equal(t, 1, len(members.Readers))
 	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
+	require.Equal(t, 1, len(members.Bots))
+	require.EqualValues(t, botua.userVersion(), members.Bots[0])
 	require.Equal(t, 1, len(members.RestrictedBots))
-	require.EqualValues(t, botua.userVersion(), members.RestrictedBots[0])
+	require.EqualValues(t, restrictedBotua.userVersion(), members.RestrictedBots[0])
 }
 
 func TestTeamTxAddByUsername(t *testing.T) {
@@ -133,7 +142,7 @@ func TestTeamTxDependency(t *testing.T) {
 	members, err := teamObj.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Readers)+len(members.RestrictedBots))
+	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Readers)+len(members.Bots)+len(members.RestrictedBots))
 	require.EqualValues(t, ann.userVersion(), members.Owners[0])
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 
@@ -182,6 +191,7 @@ func TestTeamTxDependency(t *testing.T) {
 	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
 	require.Equal(t, 0, teamObj.NumActiveInvites())
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+	require.Equal(t, 0, len(members.Bots))
 	require.Equal(t, 0, len(members.RestrictedBots))
 
 	// Try the opposite logic: reset bob, and try to re-add them as
@@ -239,7 +249,7 @@ func TestTeamTxSweepMembers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
 	require.Equal(t, 1, len(members.Readers))
-	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.RestrictedBots))
+	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Bots)+len(members.RestrictedBots))
 	require.EqualValues(t, ann.userVersion(), members.Owners[0])
 	require.EqualValues(t, bob.userVersion(), members.Readers[0])
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
@@ -299,7 +309,8 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
 	require.Equal(t, 5, len(members.Writers))
-	require.Equal(t, 0, len(members.Readers)+len(members.Admins)+len(members.RestrictedBots))
+	require.Equal(t, 0, len(members.Readers)+len(members.Admins)+len(members.Bots)+len(members.RestrictedBots))
+
 	invites := teamObj.GetActiveAndObsoleteInvites()
 	require.Equal(t, 1, len(invites))
 	for _, invite := range invites {

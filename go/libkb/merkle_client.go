@@ -682,8 +682,9 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 	return mr, ss, apiRes, err
 }
 
-func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, userInfo *merkleUserInfoT, apiRes *APIRes, err error) {
-	apiRes, err = mc.lookupPathAndSkipSequenceHelper(m, q, sigHints, lastRoot, true)
+func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, opts MerkleOpts) (vp *VerificationPath, ss SkipSequence, userInfo *merkleUserInfoT, apiRes *APIRes, err error) {
+	opts.isUser = true
+	apiRes, err = mc.lookupPathAndSkipSequenceHelper(m, q, sigHints, lastRoot, opts)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -708,7 +709,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs,
 }
 
 func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs, lastRoot *MerkleRoot, opts MerkleOpts) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
-	apiRes, err := mc.lookupPathAndSkipSequenceHelper(m, q, nil, lastRoot, false)
+	apiRes, err := mc.lookupPathAndSkipSequenceHelper(m, q, nil, lastRoot, opts)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -727,15 +728,17 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs,
 }
 
 // `isUser` is true for loading a user and false for loading a team.
-func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
+func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, err error) {
 	defer m.VTrace(VLog1, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
-	// Poll for 10s and ask for a race-free state.
-	w := 10 * int(CITimeMultiplier(mc.G()))
+	if !opts.NoServerPolling {
+		// Poll for 10s and ask for a race-free state.
+		w := 10 * int(CITimeMultiplier(mc.G()))
+		q.Add("poll", I{w})
+	}
 
-	q.Add("poll", I{w})
 	q.Add("c", B{true})
-	if isUser {
+	if opts.isUser {
 		q.Add("load_deleted", B{true})
 		q.Add("load_reset_chain", B{true})
 	}
@@ -1606,7 +1609,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRoot(m MetaContext, ss SkipSequence
 	return mc.verifyAndStoreRootHelper(m, curr, prev.Seqno(), opts)
 }
 
-func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
+func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints, opts MerkleOpts) (u *MerkleUserLeaf, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupUser(%v)", q)
 
@@ -1625,7 +1628,7 @@ func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints
 	// was a change on the server side. See CORE-4064.
 	rootBeforeCall := mc.LastRoot(m)
 
-	path, ss, userInfo, apiRes, err := mc.lookupPathAndSkipSequenceUser(m, q, sigHints, rootBeforeCall)
+	path, ss, userInfo, apiRes, err := mc.lookupPathAndSkipSequenceUser(m, q, sigHints, rootBeforeCall, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1634,7 +1637,7 @@ func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints
 		return nil, fmt.Errorf("verification path has nil UID")
 	}
 
-	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, MerkleOpts{}); err != nil {
+	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, opts); err != nil {
 		return nil, err
 	}
 
@@ -1700,8 +1703,13 @@ func (mc *MerkleClient) checkHistoricalSeqno(s keybase1.Seqno) error {
 }
 
 type MerkleOpts struct {
+	// All used internally
 	noSigCheck bool
 	historical bool
+	isUser     bool
+
+	// Used externally
+	NoServerPolling bool
 }
 
 func (mc *MerkleClient) LookupLeafAtSeqno(m MetaContext, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {

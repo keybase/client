@@ -1258,8 +1258,7 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 		return err
 	}
 	j.insertConflictJournalLocked(ctx, tj, fakeTlfID, t)
-	j.config.KeybaseService().NotifyFavoritesChanged(ctx)
-	return nil
+	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
 
 // FinishResolvingConflict shuts down the TLF journal for a cleared

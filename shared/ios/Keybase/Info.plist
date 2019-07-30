@@ -25,6 +25,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>keybase</string>
 				<string>web+stellar</string>
 			</array>
 		</dict>

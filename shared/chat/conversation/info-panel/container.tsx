@@ -61,6 +61,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _attachmentInfo: attachmentInfo,
     _fromMsgID: getFromMsgID(attachmentInfo),
     _infoMap: state.users.infoMap,
+    _participantToContactName: meta.participantToContactName,
     _participants: meta.participants,
     _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
     admin,
@@ -260,7 +261,8 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: dispatchProps.onUnhideConv,
     participants: stateProps._participants
       .map(p => ({
-        fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
+        fullname:
+          stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
         isAdmin: stateProps.teamname
           ? TeamConstants.userIsRoleInTeamWithInfo(
               // @ts-ignore
@@ -300,13 +302,25 @@ const ConnectedInfoPanel = Container.connect(
   // TODO fix this type
 )(InfoPanel) as any
 
-type SelectorOwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+type SelectorOwnProps = Container.RouteProps<{
+  conversationIDKey: Types.ConversationIDKey
+  tab: Panel | null
+  attachmentview: RPCChatTypes.GalleryItemTyp
+}>
 
-const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
-  const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
+const mapStateToSelectorProps = (state: Container.TypedState, ownProps: SelectorOwnProps) => {
+  const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
+    ownProps,
+    'conversationIDKey',
+    Constants.noConversationIDKey
+  )
   const meta = Constants.getMeta(state, conversationIDKey)
-  const selectedTab = ownProps.navigation.getParam('tab')
-  const selectedAttachmentView = ownProps.navigation.getParam('attachmentview')
+  const selectedTab = Container.getRouteProps(ownProps, 'tab', null)
+  const selectedAttachmentView = Container.getRouteProps(
+    ownProps,
+    'attachmentview',
+    RPCChatTypes.GalleryItemTyp.media
+  )
   return {
     conversationIDKey,
     selectedAttachmentView,
@@ -323,7 +337,7 @@ const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   onSelectTab: (tab: Panel) => navigation.setParams({tab}),
 })
 
-const mergeSelectorProps = (stateProps, dispatchProps) => ({
+const mergeSelectorProps = (stateProps, dispatchProps, _: SelectorOwnProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   onBack: dispatchProps.onBack,
   onGoToInbox: dispatchProps.onGoToInbox,

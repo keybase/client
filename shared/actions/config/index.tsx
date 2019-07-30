@@ -7,7 +7,6 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
-import * as WalletsGen from '../wallets-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -418,23 +417,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   }
 }
 
-const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
-  const url = new URL(action.payload.link)
-  if (action.payload.link.startsWith('web+stellar:')) {
-    console.warn('Got SEP7 link:', action.payload.link)
-    return WalletsGen.createValidateSEP7Link({link: action.payload.link})
-  } else {
-    const username = Constants.urlToUsername(url)
-    if (username) {
-      return [
-        RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
-        ProfileGen.createShowUserProfile({username}),
-      ]
-    }
-  }
-  return undefined
-}
-
 const emitInitialLoggedIn = (state: Container.TypedState) =>
   state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 
@@ -628,7 +610,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1LogUiLogPayload>(EngineGen.keybase1LogUiLog, onLog)
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingInfoPayload>(
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo

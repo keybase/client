@@ -461,7 +461,8 @@ func testMDJournalPutCase2Empty(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdID, rmds, _, err := j.getNextEntryToFlush(
 		ctx, md.Revision()+1, signer)
 	require.NoError(t, err)
-	j.removeFlushedEntry(ctx, mdID, rmds)
+	_, err = j.removeFlushedEntry(ctx, mdID, rmds)
+	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, ver, id, kbfsmd.Revision(11), j.uid, signer, mdID)
 	md2.SetUnmerged()
@@ -538,7 +539,8 @@ func testMDJournalPutCase3EmptyAppend(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdID, rmds, _, err := j.getNextEntryToFlush(
 		ctx, md.Revision()+1, signer)
 	require.NoError(t, err)
-	j.removeFlushedEntry(ctx, mdID, rmds)
+	_, err = j.removeFlushedEntry(ctx, mdID, rmds)
+	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, ver, id, kbfsmd.Revision(11), j.uid, signer, mdID)
 	md2.SetUnmerged()
@@ -577,7 +579,8 @@ func flushAllMDs(
 		if mdID == (kbfsmd.ID{}) {
 			break
 		}
-		j.removeFlushedEntry(ctx, mdID, rmds)
+		_, err = j.removeFlushedEntry(ctx, mdID, rmds)
+		require.NoError(t, err)
 	}
 	testMDJournalGCd(t, j)
 }
@@ -847,7 +850,8 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver kbfsm
 		require.NoError(t, err)
 		o, err := revisionToOrdinal(revision)
 		require.NoError(t, err)
-		j.j.j.writeJournalEntry(o, entry)
+		err = j.j.j.writeJournalEntry(o, entry)
+		require.NoError(t, err)
 
 		// Zero out the MdID, since branch conversion changes
 		// it.

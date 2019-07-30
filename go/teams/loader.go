@@ -335,8 +335,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	}
 
 	// Public teams are allowed to be behind on secrets since you can load a
-	// public team you're not in. Bot members don't have any secrets and are
-	// also exempt.
+	// public team you're not in. Restricted bot members don't have any secrets
+	// and are also exempt.
 	if !l.hasSyncedSecrets(mctx, ret.teamShim()) &&
 		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsRestrictedBot()) {
 		// this should not happen
@@ -411,7 +411,7 @@ type load2ArgT struct {
 	// to give us a subteam-reader version of the team.
 	// If and only if this is set, load2 is allowed to return a secret-less TeamData.
 	// Load1 can return secret-less TeamData if the team is public or the
-	// current user is a bot member.
+	// current user is a restricted bot member.
 	readSubteamID *keybase1.TeamID
 
 	// If the user is logged out, this will be a nil UserVersion, meaning
@@ -784,7 +784,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			}
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
-			// Bots don't have any team secrets, so we alos short circuit.
+			// Restricted bots don't have any team secrets, so we alos short circuit.
 			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
@@ -879,10 +879,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("put")
 	l.storage.Put(mctx, ret)
 
-	if needHiddenRotate {
-		return nil, NeedHiddenChainRotationError{}
-	}
-
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
 		chain := TeamSigChainState{inner: ret.Chain, hidden: hiddenPackage.ChainData()}
@@ -909,7 +905,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if hd := hiddenPackage.ChainData(); hd != nil {
+		hd.NeedRotate = needHiddenRotate
 		load2res.hidden = hd
+	}
+
+	if needHiddenRotate {
+		l.G().GetTeamBoxAuditor().MaybeScheduleDelayedBoxAuditTeam(mctx, arg.teamID)
 	}
 
 	return &load2res, nil
@@ -951,6 +952,11 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 		return true, nil
 	}
 
+	if state.GetParentID() == nil {
+		mctx.Debug("user is not an allowed keyer of the team")
+		return false, nil
+	}
+
 	// now check implict adminship
 	yes, err := l.isImplicitAdminOf(mctx.Ctx(), state.GetID(), state.GetParentID(), me, them)
 	if err != nil {
@@ -979,15 +985,28 @@ func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.Tea
 
 func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
 
+	defer mctx.Trace(fmt.Sprintf("TeamLoader::checkNeedRotateWithSigner(%+v)", signer), func() error { return err })()
+
 	uv := signer.UserVersion()
 
-	var isKeyer bool
+	var isKeyer, amIKeyer bool
+
+	amIKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, me)
+	if err != nil {
+		return false, err
+	}
+	if !amIKeyer {
+		mctx.Debug("I am not a keyer for this team, so I can't rotate it even if required")
+		return false, nil
+	}
+
 	isKeyer, err = l.isAllowedKeyerOf(mctx, chain, me, uv)
 	if err != nil {
 		return false, err
 	}
 
 	if !isKeyer {
+		mctx.Debug("need rotate since %+v isn't an allowed keyer of the team", uv)
 		return true, nil
 	}
 
@@ -999,13 +1018,13 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 		return false, err
 	}
 
-	if !found {
+	if !found || revokedAt != nil {
 		var s string
 		if revokedAt != nil {
 			tm := revokedAt.Unix.Time()
 			s = fmt.Sprintf(" (revoked at %s [%s ago])", tm, mctx.G().Clock().Now().Sub(tm))
 		}
-		mctx.Debug("KID %s wasn't found for %+v%s", signer.K, s)
+		mctx.Debug("KID %s wasn't found for %+v%s", signer, s)
 		return true, nil
 	}
 

@@ -1,31 +1,23 @@
 import Search from '.'
-import {createShowUserProfile} from '../../actions/profile-gen'
-import {createNavigateUp} from '../../actions/route-tree-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 
-type OwnProps = {
-  onClose?: () => void
-}
+type OwnProps = {onClose?: () => void}
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClick: username => dispatch(createShowUserProfile({username})),
-  onClose: ownProps.onClose || (() => dispatch(createNavigateUp())),
-})
-
-const mergeProps = (_, dispatchProps, __: OwnProps) => {
-  return {
-    onClick: username => {
+const connected = connect(
+  () => ({}),
+  (dispatch, ownProps: OwnProps) => ({
+    onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+    onClose: ownProps.onClose || (() => dispatch(RouteTreeGen.createNavigateUp())),
+  }),
+  (_, dispatchProps, __: OwnProps) => ({
+    onClick: (username: string) => {
       dispatchProps.onClose()
       dispatchProps.onClick(username)
     },
     onClose: dispatchProps.onClose,
-  }
-}
-
-const connected = connect(
-  () => ({}),
-  mapDispatchToProps,
-  mergeProps
+  })
 )(Search)
 
 export default connected

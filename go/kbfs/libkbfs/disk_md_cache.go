@@ -368,12 +368,13 @@ func (cache *DiskMDCacheLocal) Commit(
 	// The staged MDs list is unordered, so iterate through the whole
 	// thing to find what should remain after commiting `rev`.
 	for _, md := range stagedMDs {
-		if md.Revision > rev {
+		switch {
+		case md.Revision > rev:
 			newStagedMDs = append(newStagedMDs, md)
 			continue
-		} else if md.Revision < rev {
+		case md.Revision < rev:
 			continue
-		} else if foundMD {
+		case foundMD:
 			// Duplicate.
 			continue
 		}

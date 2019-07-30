@@ -28,6 +28,7 @@ type memberSet struct {
 	Admins         []member
 	Writers        []member
 	Readers        []member
+	Bots           []member
 	RestrictedBots []member
 	None           []member
 
@@ -90,6 +91,7 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Admins = append(m.Admins, other.Admins...)
 	m.Writers = append(m.Writers, other.Writers...)
 	m.Readers = append(m.Readers, other.Readers...)
+	m.Bots = append(m.Bots, other.Bots...)
 	m.RestrictedBots = append(m.RestrictedBots, other.RestrictedBots...)
 	m.None = append(m.None, other.None...)
 
@@ -104,6 +106,7 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 func (m *memberSet) nonAdmins() []member {
 	var ret []member
 	ret = append(ret, m.RestrictedBots...)
+	ret = append(ret, m.Bots...)
 	ret = append(ret, m.Readers...)
 	ret = append(ret, m.Writers...)
 	return ret
@@ -135,6 +138,11 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	m.Readers, err = m.loadGroup(ctx, g, req.Readers, storeMemberKindRecipient, forcePoll)
+	if err != nil {
+		return err
+	}
+	// regular bots do get the PTK, store them as a regular recipient
+	m.Bots, err = m.loadGroup(ctx, g, req.Bots, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
@@ -354,6 +362,10 @@ func (m *memberSet) Section() (res *SCTeamMembers, err error) {
 	if err != nil {
 		return nil, err
 	}
+	res.Bots, err = m.nameSeqList(m.Bots)
+	if err != nil {
+		return nil, err
+	}
 	res.RestrictedBots, err = m.nameSeqList(m.RestrictedBots)
 	if err != nil {
 		return nil, err
@@ -370,9 +382,9 @@ func (m *memberSet) HasRemoval() bool {
 }
 
 func (m *memberSet) HasAdditions() bool {
-	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.RestrictedBots)) > 0
+	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.Bots) + len(m.RestrictedBots)) > 0
 }
 
 func (m *memberSet) empty() bool {
-	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.RestrictedBots) == 0 && len(m.None) == 0
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.Bots) == 0 && len(m.RestrictedBots) == 0 && len(m.None) == 0
 }

@@ -4,19 +4,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  onBack: () => void
+  onBack?: () => void
   onSubmit: (paperKey: string) => void
   hint: string
   error: string
-  waitingForResponse?: boolean | null
 }
 
-class PaperKey extends React.Component<
-  Props,
-  {
-    paperKey: string
-  }
-> {
+class PaperKey extends React.Component<Props, {paperKey: string}> {
   state = {paperKey: ''}
   _onSubmit = () => this.props.onSubmit(this.state.paperKey)
 

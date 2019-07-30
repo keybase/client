@@ -187,7 +187,7 @@ check_for_url_scheme_launch() {
   # by checking argv.
 
   # If Keybase is already running, then pass it the link and exit.
-  if [[ $# -eq 1 && "$1" =~ ^web+.* ]]; then
+  if [[ $# -eq 1 && "$1" =~ ^(web\+|keybase).* ]]; then
       if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
           "$KEYBASE" "$1" &
           exit

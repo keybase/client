@@ -163,3 +163,7 @@ func (e *PaperKey) SigKey() libkb.GenericKey {
 func (e *PaperKey) EncKey() libkb.GenericKey {
 	return e.gen.EncKey()
 }
+
+func (e *PaperKey) DeviceID() keybase1.DeviceID {
+	return e.gen.DeviceID()
+}

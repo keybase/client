@@ -1630,7 +1630,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "WalletAccountLocal"
     },
     "setWalletAccountAsDefaultLocal": {
       "request": [
@@ -1643,7 +1643,10 @@
           "type": "AccountID"
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
     },
     "deleteWalletAccountLocal": {
       "request": [
@@ -1707,7 +1710,7 @@
           "type": "OutsideCurrencyCode"
         }
       ],
-      "response": null
+      "response": "CurrencyLocal"
     },
     "getDisplayCurrencyLocal": {
       "request": [

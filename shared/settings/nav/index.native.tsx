@@ -54,12 +54,20 @@ function SettingsNav(props: Props) {
             {
               badgeNumber: props.badgeNumbers[TabConstants.settingsTab],
               onClick: () => props.onTabChange(Constants.accountTab),
-              text: 'Account',
+              text: 'Your account',
             },
             {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
             },
+            ...(flags.sbsContacts
+              ? [
+                  {
+                    onClick: () => props.onTabChange(Constants.contactsTab),
+                    text: props.contactsLabel,
+                  },
+                ]
+              : []),
             ...(flags.kbfsOfflineMode
               ? [
                   {
@@ -77,7 +85,7 @@ function SettingsNav(props: Props) {
               ? [
                   {
                     onClick: () => props.onTabChange(Constants.screenprotectorTab),
-                    text: 'Screen Protector',
+                    text: 'Screen protector',
                   },
                 ]
               : []),

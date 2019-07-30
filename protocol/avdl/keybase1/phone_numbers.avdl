@@ -2,10 +2,6 @@
 protocol phoneNumbers {
     import idl "common.avdl";
 
-    // Phone number, possibly invalid
-    @typedef("string")
-    record RawPhoneNumber {}
-
     /**
      Phone number support for TOFU chats.
     */

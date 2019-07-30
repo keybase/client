@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
@@ -1817,23 +1818,53 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
     topicName: channelname,
     topicType: RPCChatTypes.TopicType.chat,
     visibility: RPCTypes.TLFVisibility.private,
-  }).then(results => {
-    const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(row))
-      .filter(Boolean)
-
-    const first = resultMetas[0]
-    if (!first) return
-
-    const conversationIDKey = first.conversationIDKey
-    RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
-    })
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey,
-      reason: 'previewResolved',
-    })
   })
+    .then(results => {
+      const resultMetas = (results.uiConversations || [])
+        .map(row => Constants.inboxUIItemToConversationMeta(row))
+        .filter(Boolean)
+
+      const first = resultMetas[0]
+      if (!first) {
+        if (action.payload.reason === 'appLink') {
+          return [
+            DeeplinksGen.createSetKeybaseLinkError({
+              error:
+                "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+            }),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+            }),
+          ]
+        } else {
+          return undefined
+        }
+      }
+
+      const conversationIDKey = first.conversationIDKey
+      RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+        convID: Types.keyToConversationID(conversationIDKey),
+      })
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey,
+        reason: 'previewResolved',
+      })
+    })
+    .catch(err => {
+      if (err.code === RPCTypes.StatusCode.scteamnotfound && action.payload.reason === 'appLink') {
+        return [
+          DeeplinksGen.createSetKeybaseLinkError({
+            error:
+              "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
+          }),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          }),
+        ]
+      } else {
+        throw err
+      }
+    })
 }
 
 const startupInboxLoad = (state: TypedState) =>
@@ -2367,7 +2398,8 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey) => {
     visible.routeName === 'chatConversation' &&
     visible &&
     visible.params &&
-    visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey
+    (visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+      visible.params.conversationIDKey === Constants.pendingErrorConversationIDKey)
   ) {
     replace = true
   }
@@ -2402,7 +2434,10 @@ const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConver
       return // never nav if this is from a nav
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
-  } else if (action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+  } else if (
+    action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+    action.payload.conversationIDKey === Constants.pendingErrorConversationIDKey
+  ) {
     return navigateToThreadRoute(action.payload.conversationIDKey)
   }
   return undefined
@@ -2636,6 +2671,13 @@ function* createConversation(
     }
   } catch (e) {
     logger.error(`Failed to create new conversation: ${e.message}`)
+    yield Saga.put(Chat2Gen.createConversationErrored({message: e.message}))
+    yield Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingErrorConversationIDKey,
+        reason: 'justCreated',
+      })
+    )
   }
 }
 

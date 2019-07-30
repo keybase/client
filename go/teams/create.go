@@ -102,6 +102,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 		Admins:         &[]SCTeamMember{},
 		Writers:        &[]SCTeamMember{},
 		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
 		RestrictedBots: &[]SCTeamMember{},
 	}
 	if len(owners) > 0 {
@@ -312,6 +313,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 		Admins:         &[]SCTeamMember{},
 		Writers:        &[]SCTeamMember{},
 		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
 		RestrictedBots: &[]SCTeamMember{},
 	}
 
@@ -516,6 +518,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		Admins:         &[]SCTeamMember{},
 		Writers:        &[]SCTeamMember{},
 		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
 		RestrictedBots: &[]SCTeamMember{},
 	}
 
@@ -529,6 +532,8 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		meUV := me.ToUserVersion()
 		memList := []SCTeamMember{SCTeamMember(meUV)}
 		switch addSelfAs {
+		case keybase1.TeamRole_BOT:
+			members.Bots = &memList
 		case keybase1.TeamRole_READER:
 			members.Readers = &memList
 		case keybase1.TeamRole_WRITER:

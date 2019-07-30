@@ -48,8 +48,7 @@
     "editPhone": {
       "phone": "string",
       "delete?": "boolean",
-      "toggleSearchable?": "boolean",
-      "verify?": "boolean"
+      "setSearchable?": "boolean",
     },
     "sentVerificationEmail": {
       "email": "string"
@@ -69,8 +68,12 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "importContactsLater": {},
     "setContactImportedCount": {
       "count": "number | null"
+    },
+    "loadedUserCountryCode": {
+      "code": "string | null"
     },
     "addEmail": {
       "email": "string",

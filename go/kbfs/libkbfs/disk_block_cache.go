@@ -32,8 +32,6 @@ import (
 )
 
 const (
-	// 10 GB maximum storage by default
-	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
 	defaultBlockCacheCapacity       int    = 8 * opt.MiB

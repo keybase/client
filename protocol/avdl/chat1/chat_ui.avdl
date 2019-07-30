@@ -62,8 +62,9 @@ protocol chatUi {
 
     enum UIParticipantType {
     NONE_0,
-    USER_1,
-    CONTACT_2 // phone number or email address
+    USER_1, // Keybase or SBS
+    PHONENO_2,
+    EMAIL_3
   }
 
   record UIParticipant {
