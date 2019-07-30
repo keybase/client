@@ -311,7 +311,11 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
 
-  const hasNontrivialPath = !!props.sourceAmount && props.pathIntermediate.length > 0
+  const hasNontrivialPath =
+    !!props.sourceAmount &&
+    props.assetCode !== props.sourceAsset &&
+    props.issuerAccountID !== props.sourceIssuerAccountID &&
+    props.issuerDescription !== props.sourceIssuer
 
   // If we don't have a sourceAsset, the source is native Lumens
   const sourceIssuer =
