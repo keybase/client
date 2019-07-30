@@ -213,8 +213,8 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 				contactsFetched = true
 			}
 			participant.ContactName = findContactName(contacts, participant.Username)
+			participants[i] = participant
 		}
-		participants[i] = participant
 	}
 }
 
