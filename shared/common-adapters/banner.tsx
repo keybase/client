@@ -195,11 +195,6 @@ const styles = Styles.styleSheetCreate({
       textDecorationLine: 'underline',
     },
   }),
-  wideTextContainer: {
-    flex: 1,
-    maxWidth: '100%',
-    padding: Styles.globalMargins.tiny,
-  },
 })
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate({
