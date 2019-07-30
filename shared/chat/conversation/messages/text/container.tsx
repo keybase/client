@@ -3,6 +3,8 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import TextMessage, {Props} from '.'
 import * as Container from '../../../../util/container'
+import * as WalletConstants from '../../../../constants/wallets'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   message: Types.MessageText
@@ -49,13 +51,35 @@ const getReplyProps = (replyTo: Types.Message | undefined, onReplyClick: (m: Typ
   return undefined
 }
 
+const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+  if (!paymentInfo) {
+    return undefined
+  }
+
+  const youAreSender = ownProps.message.author === state.config.username
+  const cancelable = paymentInfo.status === 'claimable'
+  const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
+  if (youAreSender || !cancelable || acceptedDisclaimer) {
+    return undefined
+  }
+  const label = `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
+  const amountDescription = paymentInfo.sourceAmount
+    ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
+    : paymentInfo.amountDescription
+  const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
+  return {amount, label}
+}
+
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
   const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
-  return {isEditing}
+  const claim = getClaimProps(state, ownProps)
+  return {claim, isEditing}
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
+  _onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   _onReplyClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
@@ -70,6 +94,12 @@ export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    claim: stateProps.claim
+      ? {
+          onClaim: dispatchProps._onClaim,
+          ...stateProps.claim,
+        }
+      : undefined,
     isEditing: stateProps.isEditing,
     message: ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
