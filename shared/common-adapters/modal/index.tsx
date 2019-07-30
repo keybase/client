@@ -82,9 +82,11 @@ const Header = (props: HeaderProps) => (
     {!!props.icon && props.icon}
     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.headerWrapper}>
       <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
-        {!!props.leftButton && props.leftButton}
+        <Kb.Box2 direction="horizontal" style={styles.headerLeftInside}>
+          {!!props.leftButton && props.leftButton}
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={styles.headerTextWrapper}>
+      <Kb.Box2 direction="horizontal" noShrink={true} style={styles.headerTextWrapper}>
         {typeof props.title === 'string' ? (
           <Kb.Text type="Header" lineClamp={1} ellipsizeMode="tail" style={styles.headerText}>
             {props.title}
@@ -153,6 +155,8 @@ const styles = Styles.styleSheetCreate({
     display: 'flex',
     flexGrow: 0,
     justifyContent: 'flex-start',
+  },
+  headerLeftInside: {
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
@@ -167,6 +171,7 @@ const styles = Styles.styleSheetCreate({
     borderLeftWidth: 4,
   },
   headerTextWrapper: {
+    display: 'flex',
     flexGrow: 2,
     alignItems: 'center',
     justifyContent: 'center',
