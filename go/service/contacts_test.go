@@ -22,6 +22,8 @@ type contactSyncTest struct {
 	contactsMock    *contacts.MockContactsProvider
 	searchMock      *testUserSearchProvider
 	user            *kbtest.FakeUser
+
+	contactsCache *contacts.CachedContactsProvider
 }
 
 func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncTest) {
@@ -47,7 +49,12 @@ func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncT
 		contactsMock:    mockContactsProv,
 		searchMock:      searchProv,
 		user:            user,
+		contactsCache:   contactsProv,
 	}
+}
+
+func (c *contactSyncTest) clearCache(mctx libkb.MetaContext) error {
+	return c.contactsCache.CleanCache(mctx)
 }
 
 func TestContactSyncAndSearch(t *testing.T) {
@@ -125,6 +132,11 @@ func TestContactSyncAndSearch(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Contact)
+		pres := pluckSearchResultForTest(res[0])
+		require.Equal(t, "48111222333@phone", pres.id)
+		require.Equal(t, "alice", pres.displayName)
+		require.Equal(t, "+48111222333", pres.displayLabel)
 
 		res, err = all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
@@ -134,6 +146,11 @@ func TestContactSyncAndSearch(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Contact)
+		pres = pluckSearchResultForTest(res[0])
+		require.Equal(t, "[alice@example.org]@email", pres.id)
+		require.Equal(t, "Alice A", pres.displayName)
+		require.Equal(t, "alice@example.org (email)", pres.displayLabel)
 	}
 }
 
@@ -195,4 +212,81 @@ func TestRecommendationsPreferEmail(t *testing.T) {
 	require.True(t, list[0].Resolved)
 	require.Equal(t, "alice", list[0].Username)
 	require.Equal(t, "[alice@example.org]@email", list[0].Assertion)
+}
+
+func TestDuplicateContactAssertions(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	rawContacts := []keybase1.Contact{
+		contacts.MakeContact("Alice A",
+			contacts.MakePhoneComponent("mobile", "+48111222333"),
+		),
+		contacts.MakeContact("Mom",
+			contacts.MakePhoneComponent("mobile", "+48111222333"),
+		),
+	}
+
+	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+
+	{
+		// We expect to see both contacts here.
+		res, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
+		require.NoError(t, err)
+		require.Len(t, res, 2)
+	}
+
+	{
+		// Same when searching
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "111",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 2)
+	}
+
+	{
+		// Make the number resolvable, re-import contacts.
+		all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "A. Alice")
+
+		require.NoError(t, all.clearCache(tc.MetaContext()))
+		err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+			Contacts: rawContacts,
+		})
+		require.NoError(t, err)
+	}
+
+	{
+		// We expect to see only one result here. Second contact is filtered out
+		// because of username deduplication.
+		res, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+		require.Equal(t, "alice", res[0].DisplayName)
+		require.Equal(t, "Alice A", res[0].DisplayLabel)
+		require.Equal(t, "48111222333@phone", res[0].Assertion)
+	}
+
+	{
+		// Only one contact when searching as well
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "111",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+		pres := pluckSearchResultForTest(res[0])
+		require.Equal(t, "48111222333@phone", pres.id)
+		require.Equal(t, "alice", pres.displayName)
+		// Selecting query match to display label is still at play here.
+		require.Equal(t, "+48111222333", pres.displayLabel)
+	}
 }
