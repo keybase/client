@@ -102,7 +102,7 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region: string | null) => {
+export const validateNumber = (rawNumber: string, region?: string | null) => {
   try {
     const number = phoneUtil.parse(rawNumber, region || '')
     const valid = phoneUtil.isValidNumber(number)

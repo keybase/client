@@ -19,6 +19,7 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {validateNumber, formatPhoneNumber} from '../util/phone-numbers'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -59,18 +60,23 @@ const deriveSearchResults = memoize(
     preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&
-    searchResults.map(info => ({
-      contact: !!info.contact,
-      displayLabel: info.label || '',
-      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-      inTeam: teamSoFar.some(u => u.id === info.id),
-      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-      key: [info.id, info.prettyName, info.label].join('&'),
-      prettyName: info.prettyName,
-      services: info.serviceMap,
-      userId: info.id,
-      username: info.id.split('@')[0],
-    }))
+    searchResults.map(info => {
+      const label = info.label || ''
+      return {
+        contact: !!info.contact,
+        displayLabel: validateNumber(label).valid ? formatPhoneNumber(label) : label,
+        followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+        inTeam: teamSoFar.some(u => u.id === info.id),
+        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+        key: [info.id, info.prettyName, info.label].join('&'),
+        prettyName: validateNumber(info.prettyName).valid
+          ? formatPhoneNumber(info.prettyName)
+          : info.prettyName,
+        services: info.serviceMap,
+        userId: info.id,
+        username: info.id.split('@')[0],
+      }
+    })
 )
 
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
