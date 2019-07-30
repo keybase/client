@@ -113,70 +113,73 @@ const RuntimeStatsDesktop = (props: Props) => {
   }
 
   return !props.hasData ? null : (
-    <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-      {props.processStats.map((stats, i) => {
-        return (
-          <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
-            <Kb.Text type="BodyTinyBold" style={styles.stat}>
-              {processTypeString(stats.type)}
-            </Kb.Text>
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
-              type="BodyTiny"
-            >{`CPU: ${stats.cpu}`}</Kb.Text>
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
-              type="BodyTiny"
-            >{`Res: ${stats.resident}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stats.virt}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stats.free}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stats.goheap}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stats.goheapsys}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
-            <Kb.Divider />
-            <Kb.Divider />
-          </Kb.Box2>
-        )
-      })}
-      <Kb.Divider />
-      <Kb.Text type="BodyTinyBold" style={styles.stat}>
-        Chat Bkg Activity
-      </Kb.Text>
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.convLoaderActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTiny"
-      >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTiny"
-      >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
-      <Kb.Divider />
-      <Kb.Text type="BodyTinyBold" style={styles.stat}>
-        LevelDB Compaction
-      </Kb.Text>
-      {props.dbStats.map((stats, i) => {
-        return (
-          <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-            <Kb.Text
-              type="BodyTiny"
-              style={Styles.collapseStyles([
-                styles.stat,
-                stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
-              ])}
-            >
-              {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
-            </Kb.Text>
-          </Kb.Box2>
-        )
-      })}
-      <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
-    </Kb.Box2>
+    <>
+      <Kb.Box style={Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+        {props.processStats.map((stats, i) => {
+          return (
+            <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
+              <Kb.Text type="BodyTinyBold" style={styles.stat}>
+                {processTypeString(stats.type)}
+              </Kb.Text>
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
+                type="BodyTiny"
+              >{`CPU: ${stats.cpu}`}</Kb.Text>
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
+                type="BodyTiny"
+              >{`Res: ${stats.resident}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stats.virt}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stats.free}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stats.goheap}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stats.goheapsys}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
+              <Kb.Divider />
+              <Kb.Divider />
+            </Kb.Box2>
+          )
+        })}
+        <Kb.Divider />
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
+          Chat Bkg Activity
+        </Kb.Text>
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            props.convLoaderActive ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+        <Kb.Divider />
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
+          LevelDB Compaction
+        </Kb.Text>
+        {props.dbStats.map((stats, i) => {
+          return (
+            <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  styles.stat,
+                  stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
+                ])}
+              >
+                {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
+              </Kb.Text>
+            </Kb.Box2>
+          )
+        })}
+        <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -279,7 +282,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       overflow: 'auto',
-      padding: Styles.globalMargins.xtiny,
+      padding: Styles.globalMargins.tiny,
       position: 'relative',
     },
     isMobile: {
@@ -294,8 +297,8 @@ const styles = Styles.styleSheetCreate({
       borderRadius: '50%',
       height: radarSize,
       position: 'absolute',
-      right: 2,
-      top: 2,
+      right: Styles.globalMargins.tiny,
+      top: Styles.globalMargins.tiny,
       width: radarSize,
     },
   }),
