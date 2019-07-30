@@ -436,3 +436,47 @@ func TestUserSearchResolvedUsersShouldGoFirst(t *testing.T) {
 		keybaseUsername: "tuser1",
 	}, pluckSearchResultForTest(res[0]))
 }
+
+func TestSearchContactDeduplicateNameAndLabel(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 0, name: "Alice", email: "a@example.org", username: "alice"}),
+		makeContact(makeContactArg{index: 1, name: "Mary Elizabeth Smith", email: "smith@example.com", username: "keybasetester"}),
+		makeContact(makeContactArg{index: 2, name: "Mary Elizabeth Smith", email: "mary.smith@example.com", username: "keybasetester"}),
+		makeContact(makeContactArg{index: 3, name: "Mary Elizabeth Smith", phone: "+1555123456", username: "keybasetester"}),
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	{
+		// Best match here is `smith@example.com` and we expect to see only that
+		// because they all resolve to same user.
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "smith",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Contact)
+		require.Equal(t, "[smith@example.com]@email", res[0].Contact.Assertion)
+	}
+
+	{
+		// But others are still findable
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "555123456",
+			MaxResults:      50,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Contact)
+		require.Equal(t, "1555123456@phone", res[0].Contact.Assertion)
+	}
+}

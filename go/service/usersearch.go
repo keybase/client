@@ -89,7 +89,7 @@ func queryToRegexp(q string) (*regexp.Regexp, error) {
 			nonEmptyParts = append(nonEmptyParts, p)
 		}
 	}
-	rxx, err := regexp.Compile(".*" + strings.Join(nonEmptyParts, ".*") + ".*")
+	rxx, err := regexp.Compile(strings.Join(nonEmptyParts, ".*"))
 	if err != nil {
 		return nil, err
 	}
@@ -147,23 +147,26 @@ var fieldsAndScores = []struct {
 }
 
 func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (found bool, score float64, plumbMatchedVal string) {
+	var currentScore float64
+	var multiplier float64
 	for _, v := range fieldsAndScores {
 		str := v.getter(&contact)
 		if str == "" {
 			continue
 		}
-		// TODO: Do not return first match, return *BEST* match based on score.
-		found, score := query.scoreString(str)
-		if found {
+		matchFound, matchScore := query.scoreString(str)
+		if matchFound && matchScore > currentScore {
 			plumbMatchedVal = ""
 			if v.plumb {
 				plumbMatchedVal = str
 			}
-			return true, score * v.multiplier, plumbMatchedVal
+			found = true
+			currentScore = matchScore
+			multiplier = v.multiplier
 		}
 
 	}
-	return false, 0, ""
+	return found, currentScore * multiplier, plumbMatchedVal
 }
 
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
@@ -218,9 +221,16 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 			}
 
 			key := displayNameAndLabel{contact.DisplayName, contact.DisplayLabel}
-			searchResults[key] = keybase1.APIUserSearchResult{
-				Contact:  &contact,
-				RawScore: score,
+			replace := true
+			if current, found := searchResults[key]; found {
+				replace = (contact.Resolved && !current.Contact.Resolved) || (score > current.RawScore)
+			}
+
+			if replace {
+				searchResults[key] = keybase1.APIUserSearchResult{
+					Contact:  &contact,
+					RawScore: score,
+				}
 			}
 		}
 	}

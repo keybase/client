@@ -105,7 +105,7 @@ func TestLookupCache(t *testing.T) {
 	res1, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 
-	// One result in list, there is one contact with a component that resolves to a Keybase user.
+	// All components were processed.
 	require.Len(t, res1, 4)
 	// 4 calls to the provider, all components were queried
 	require.Equal(t, 4, provider.queryCount)
@@ -129,7 +129,9 @@ func TestLookupCache(t *testing.T) {
 	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res2, 5)
-	require.Equal(t, res1, res2[0:4]) // first 4 elements are the same
+	require.Equal(t, res1, res2[0:4])                               // first 4 elements are the same
+	require.Equal(t, "[tester2@keyba.se]@email", res2[4].Assertion) // new processed contact for new email
+	require.False(t, res2[4].Resolved)
 
 	require.Equal(t, 1, provider.queryCount) // only queried the new email
 
