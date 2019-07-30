@@ -895,7 +895,7 @@ func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, e
 }
 
 func (t *Team) makeRatchet(ctx context.Context) (ret *hidden.Ratchet, err error) {
-	return hidden.MakeRatchet(libkb.NewMetaContext(ctx, t.G()), t.ID)
+	return t.chain().makeHiddenRatchet(libkb.NewMetaContext(ctx, t.G()))
 }
 
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
@@ -2159,8 +2159,6 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			mctx.Debug("| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 		case isHiddenAppendPrecheckError(err):
 			mctx.Debug("| retrying since we hit a hidden append precheck error")
-		case isBadGenerationError(err):
-			mctx.Debug("| retrying, since we raced the per-team-kehy generation")
 		default:
 			return err
 		}

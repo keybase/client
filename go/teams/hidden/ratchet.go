@@ -267,21 +267,22 @@ func generateRatchet(mctx libkb.MetaContext, b sig3.Tail) (ret *Ratchet, err err
 // MakeRatchet constructs a new Ratachet object for the given team's hidden tail, blinds
 // it with a randomly-generated blinding key, and then packages all relevant info up into
 // and encoding that can be easily posted to the API server.
-func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err error) {
+func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *Ratchet, err error) {
 
-	defer mctx.Trace(fmt.Sprintf("MakeRatchet(%s)", id), func() error { return err })()
+	if state == nil {
+		mctx.Debug("hidden.MakeRatchet: returning a nil ratchet since hidden team is nil")
+		return nil, nil
+	}
+	id := state.Id
 
+	defer mctx.Trace(fmt.Sprintf("hidden.MakeRatchet(%s)", id), func() error { return err })()
 
 	err = CheckFeatureGateForSupport(mctx, id, true /* isWrite */)
 	if err != nil {
 		mctx.VLogf(libkb.VLog0, "skipping ratchet for team id %s due to feature-flag", id)
 		return nil, nil
 	}
-
-	tail, err := mctx.G().GetHiddenTeamChainManager().Tail(mctx, id)
-	if err != nil {
-		return nil, err
-	}
+	tail := state.TailTriple()
 	if tail == nil || tail.Seqno == keybase1.Seqno(0) {
 		mctx.Debug("no tail found")
 		return nil, nil
@@ -290,7 +291,7 @@ func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err 
 	if err != nil {
 		return nil, err
 	}
-	mctx.Debug("ratcheting at tail %+v", *itail)
+	mctx.Debug("ratcheting at tail (%s,%d)", itail.Hash, itail.Seqno)
 	ret, err = generateRatchet(mctx, *itail)
 	if err != nil {
 		return nil, err
