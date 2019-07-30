@@ -27,10 +27,16 @@ repos:
         entry: shared/node_modules/.bin/prettier --write
         language: node
         files: \.(js|ts|tsx)$
+    -   id: golangci-lint
+        name: golangci-lint
+        description: Fast linters runner for Go.
+        entry: golangci-lint run --fix
+        types: [go]
+        language: golang
+        pass_filenames: false
 -   repo: https://github.com/keybase/pre-commit-golang.git
     rev: b8194ff9d85455a702480677ada13ac4dbe94146
     hooks:
     -   id: go-fmt
     -   id: go-vet
     -   id: go-lint
-    -   id: golangci-lint
