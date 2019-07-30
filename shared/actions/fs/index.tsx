@@ -57,8 +57,12 @@ const rpcConflictStateToConflictState = (
         rpcConflictState.manualresolvinglocalview && rpcConflictState.manualresolvinglocalview.normalView
       return Constants.makeConflictStateManualResolvingLocalView({
         normalViewTlfPath:
-          // @ts-ignore TODO fix p.kbfs.path is a path already
-          nv && nv.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(nv.kbfs.path) : Constants.defaultPath,
+          nv && nv.PathType === RPCTypes.PathType.kbfs
+            ? Types.stringToPath(
+                // @ts-ignore TODO fix p.kbfs.path is a path already
+                nv.kbfs.path
+              )
+            : Constants.defaultPath,
       })
     }
   } else {
@@ -682,16 +686,8 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-<<<<<<< HEAD
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      refreshSubscription: false,
       path: Constants.pathToRPCPath(path),
-||||||| merged common ancestors
-      path: Constants.pathToRPCPath(path),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-=======
-      path: Constants.pathToRPCPath(path),
->>>>>>> review feedback from strib
-      refreshSubscription,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
@@ -722,15 +718,7 @@ const updateFsBadge = (state: TypedState) =>
 const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-<<<<<<< HEAD
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     opID,
-||||||| merged common ancestors
-    opID,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-=======
-    opID,
->>>>>>> review feedback from strib
     path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
   })

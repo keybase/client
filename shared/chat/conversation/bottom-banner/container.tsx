@@ -2,6 +2,7 @@ import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import {InviteBanner} from '.'
 import openSMS from '../../../util/sms'
 import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
@@ -52,12 +53,10 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({})
-
 export default Container.connect(
   mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
+  () => ({}),
+  (stateProps, __, _: OwnProps) => {
     let type
     let users: Array<string> = []
 

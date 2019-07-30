@@ -13,7 +13,11 @@ type Props = {
   users: Array<string> | null
 }
 
-const ProofBrokenBannerNonEmpty = (props: Props) => {
+type ProofBrokenBannerNonEmptyProps = {
+  users: Array<string>
+}
+
+const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
   const dispatch = Container.useDispatch()
   const onClickUsername = React.useCallback(
     isMobile
@@ -44,7 +48,7 @@ const ProofBrokenBannerNonEmpty = (props: Props) => {
                     ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
                     : [{onClick: () => onClickUsername(user), text: user}, ', ']),
                 ],
-                []
+                [] as Array<string | {text: string; onClick: () => void}>
               )),
           ' have changed their proofs since you last followed them.',
         ]
@@ -56,6 +60,7 @@ const ProofBrokenBannerNonEmpty = (props: Props) => {
 }
 
 // Skip hooks if `users` is empty.
-const ProofBrokenBanner = (props: Props) => !!props.users.length && <ProofBrokenBannerNonEmpty {...props} />
+const ProofBrokenBanner = (props: Props) =>
+  props.users && props.users.length ? <ProofBrokenBannerNonEmpty users={props.users} /> : null
 
 export default ProofBrokenBanner

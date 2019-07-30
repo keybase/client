@@ -1255,9 +1255,9 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 		var s = stdpath.Join(*p.Local__, leaf)
 		p.Local__ = &s
 	case p.Kbfs__ != nil:
-		var s = stdpath.Join(*p.Kbfs__, leaf)
+		var s = stdpath.Join(p.Kbfs__.Path, leaf)
 		p = p.DeepCopy()
-		p.Kbfs__.Path = &s
+		p.Kbfs__.Path = s
 	case p.KbfsArchived__ != nil:
 		var s = stdpath.Join(p.KbfsArchived__.Path, leaf)
 		p = p.DeepCopy()
