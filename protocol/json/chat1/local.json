@@ -3378,23 +3378,28 @@
       "fields": [
         {
           "type": "string",
-          "name": "name"
+          "name": "name",
+          "jsonkey": "name"
         },
         {
           "type": "boolean",
-          "name": "public"
+          "name": "public",
+          "jsonkey": "public"
         },
         {
           "type": "string",
-          "name": "membersType"
+          "name": "membersType",
+          "jsonkey": "members_type"
         },
         {
           "type": "string",
-          "name": "topicType"
+          "name": "topicType",
+          "jsonkey": "topic_type"
         },
         {
           "type": "string",
-          "name": "topicName"
+          "name": "topicName",
+          "jsonkey": "topic_name"
         }
       ]
     },
@@ -3404,7 +3409,8 @@
       "fields": [
         {
           "type": "string",
-          "name": "body"
+          "name": "body",
+          "jsonkey": "body"
         }
       ]
     },
@@ -3414,19 +3420,23 @@
       "fields": [
         {
           "type": "string",
-          "name": "uid"
+          "name": "uid",
+          "jsonkey": "uid"
         },
         {
           "type": "string",
-          "name": "username"
+          "name": "username",
+          "jsonkey": "username"
         },
         {
           "type": "string",
-          "name": "deviceID"
+          "name": "deviceID",
+          "jsonkey": "device_id"
         },
         {
           "type": "string",
-          "name": "deviceName"
+          "name": "deviceName",
+          "jsonkey": "device_name"
         }
       ]
     },
@@ -3436,29 +3446,34 @@
       "fields": [
         {
           "type": "string",
-          "name": "text"
+          "name": "text",
+          "jsonkey": "text"
         },
         {
           "type": "string",
-          "name": "gameID"
+          "name": "gameID",
+          "jsonkey": "game_id"
         },
         {
           "type": "string",
-          "name": "flipConvID"
+          "name": "flipConvID",
+          "jsonkey": "flip_conv_id"
         },
         {
           "type": {
             "type": "array",
             "items": "KnownUserMention"
           },
-          "name": "userMentions"
+          "name": "userMentions",
+          "jsonkey": "user_mentions"
         },
         {
           "type": {
             "type": "array",
             "items": "KnownTeamMention"
           },
-          "name": "teamMentions"
+          "name": "teamMentions",
+          "jsonkey": "team_mentions"
         }
       ]
     },
@@ -3468,98 +3483,112 @@
       "fields": [
         {
           "type": "string",
-          "name": "typeName"
+          "name": "typeName",
+          "jsonkey": "type_name"
         },
         {
           "type": [
             null,
             "MessageText"
           ],
-          "name": "text"
+          "name": "text",
+          "jsonkey": "text"
         },
         {
           "type": [
             null,
             "MessageAttachment"
           ],
-          "name": "attachment"
+          "name": "attachment",
+          "jsonkey": "attachment"
         },
         {
           "type": [
             null,
             "MessageEdit"
           ],
-          "name": "edit"
+          "name": "edit",
+          "jsonkey": "edit"
         },
         {
           "type": [
             null,
             "MessageReaction"
           ],
-          "name": "reaction"
+          "name": "reaction",
+          "jsonkey": "reaction"
         },
         {
           "type": [
             null,
             "MessageDelete"
           ],
-          "name": "delete"
+          "name": "delete",
+          "jsonkey": "delete"
         },
         {
           "type": [
             null,
             "MessageConversationMetadata"
           ],
-          "name": "metadata"
+          "name": "metadata",
+          "jsonkey": "metadata"
         },
         {
           "type": [
             null,
             "MessageHeadline"
           ],
-          "name": "headline"
+          "name": "headline",
+          "jsonkey": "headline"
         },
         {
           "type": [
             null,
             "MessageAttachmentUploaded"
           ],
-          "name": "attachmentUploaded"
+          "name": "attachmentUploaded",
+          "jsonkey": "attachment_uploaded"
         },
         {
           "type": [
             null,
             "MessageSystem"
           ],
-          "name": "system"
+          "name": "system",
+          "jsonkey": "system"
         },
         {
           "type": [
             null,
             "MessageSendPayment"
           ],
-          "name": "sendPayment"
+          "name": "sendPayment",
+          "jsonkey": "send_payment"
         },
         {
           "type": [
             null,
             "MessageRequestPayment"
           ],
-          "name": "requestPayment"
+          "name": "requestPayment",
+          "jsonkey": "request_payment"
         },
         {
           "type": [
             null,
             "MessageUnfurl"
           ],
-          "name": "unfurl"
+          "name": "unfurl",
+          "jsonkey": "unfurl"
         },
         {
           "type": [
             null,
             "MsgFlipContent"
           ],
-          "name": "flip"
+          "name": "flip",
+          "jsonkey": "flip"
         }
       ]
     },
@@ -3569,95 +3598,115 @@
       "fields": [
         {
           "type": "MessageID",
-          "name": "id"
+          "name": "id",
+          "jsonkey": "id"
         },
         {
           "type": "string",
-          "name": "convID"
+          "name": "convID",
+          "jsonkey": "conv_id"
         },
         {
           "type": "ChatChannel",
-          "name": "channel"
+          "name": "channel",
+          "jsonkey": "channel"
         },
         {
           "type": "MsgSender",
-          "name": "sender"
+          "name": "sender",
+          "jsonkey": "sender"
         },
         {
           "type": "int64",
-          "name": "sentAt"
+          "name": "sentAt",
+          "jsonkey": "sent_at"
         },
         {
           "type": "int64",
-          "name": "sentAtMs"
+          "name": "sentAtMs",
+          "jsonkey": "sent_at_ms"
         },
         {
           "type": "MsgContent",
-          "name": "content"
+          "name": "content",
+          "jsonkey": "content"
         },
         {
           "type": {
             "type": "array",
             "items": "MessagePreviousPointer"
           },
-          "name": "prev"
+          "name": "prev",
+          "jsonkey": "prev"
         },
         {
           "type": "boolean",
-          "name": "unread"
+          "name": "unread",
+          "jsonkey": "unread"
         },
         {
           "type": "boolean",
-          "name": "revokedDevice"
+          "name": "revokedDevice",
+          "jsonkey": "revoked_device"
         },
         {
           "type": "boolean",
-          "name": "offline"
+          "name": "offline",
+          "jsonkey": "offline"
         },
         {
           "type": "boolean",
-          "name": "kbfsEncrypted"
+          "name": "kbfsEncrypted",
+          "jsonkey": "kbfs_encrypted"
         },
         {
           "type": "boolean",
-          "name": "isEphemeral"
+          "name": "isEphemeral",
+          "jsonkey": "is_ephemeral"
         },
         {
           "type": "boolean",
-          "name": "isEphemeralExpired"
+          "name": "isEphemeralExpired",
+          "jsonkey": "is_ephemeral_expired"
         },
         {
           "type": "gregor1.Time",
-          "name": "eTime"
+          "name": "eTime",
+          "jsonkey": "e_time"
         },
         {
           "type": [
             null,
             "ReactionMap"
           ],
-          "name": "reactions"
+          "name": "reactions",
+          "jsonkey": "reactions"
         },
         {
           "type": "boolean",
-          "name": "hasPairwiseMacs"
+          "name": "hasPairwiseMacs",
+          "jsonkey": "has_pairwise_macs"
         },
         {
           "type": {
             "type": "array",
             "items": "string"
           },
-          "name": "atMentionUsernames"
+          "name": "atMentionUsernames",
+          "jsonkey": "at_mention_usernames"
         },
         {
           "type": "string",
-          "name": "channelMention"
+          "name": "channelMention",
+          "jsonkey": "channel_mention"
         },
         {
           "type": {
             "type": "array",
             "items": "UIChannelNameMention"
           },
-          "name": "channelNameMentions"
+          "name": "channelNameMentions",
+          "jsonkey": "channel_name_mentions"
         }
       ]
     },
@@ -3670,14 +3719,16 @@
             null,
             "MsgSummary"
           ],
-          "name": "msg"
+          "name": "msg",
+          "jsonkey": "msg"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "error"
+          "name": "error",
+          "jsonkey": "error"
         }
       ]
     },
@@ -3690,32 +3741,37 @@
             "type": "array",
             "items": "Message"
           },
-          "name": "messages"
+          "name": "messages",
+          "jsonkey": "messages"
         },
         {
           "type": [
             null,
             "Pagination"
           ],
-          "name": "pagination"
+          "name": "pagination",
+          "jsonkey": "pagination"
         },
         {
           "type": "boolean",
-          "name": "offline"
+          "name": "offline",
+          "jsonkey": "offline"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3725,59 +3781,70 @@
       "fields": [
         {
           "type": "string",
-          "name": "id"
+          "name": "id",
+          "jsonkey": "id"
         },
         {
           "type": "ChatChannel",
-          "name": "channel"
+          "name": "channel",
+          "jsonkey": "channel"
         },
         {
           "type": "boolean",
-          "name": "unread"
+          "name": "unread",
+          "jsonkey": "unread"
         },
         {
           "type": "int64",
-          "name": "activeAt"
+          "name": "activeAt",
+          "jsonkey": "active_at"
         },
         {
           "type": "int64",
-          "name": "activeAtMs"
+          "name": "activeAtMs",
+          "jsonkey": "active_at_ms"
         },
         {
           "type": "string",
-          "name": "memberStatus"
+          "name": "memberStatus",
+          "jsonkey": "member_status"
         },
         {
           "type": {
             "type": "array",
             "items": "string"
           },
-          "name": "resetUsers"
+          "name": "resetUsers",
+          "jsonkey": "reset_users"
         },
         {
           "type": [
             null,
             "ConversationFinalizeInfo"
           ],
-          "name": "finalizeInfo"
+          "name": "finalizeInfo",
+          "jsonkey": "finalize_info"
         },
         {
           "type": {
             "type": "array",
             "items": "string"
           },
-          "name": "supersedes"
+          "name": "supersedes",
+          "jsonkey": "supersedes"
         },
         {
           "type": {
             "type": "array",
             "items": "string"
           },
-          "name": "supersededBy"
+          "name": "supersededBy",
+          "jsonkey": "superseded_by"
         },
         {
           "type": "string",
-          "name": "error"
+          "name": "error",
+          "jsonkey": "error"
         }
       ]
     },
@@ -3790,32 +3857,37 @@
             "type": "array",
             "items": "ConvSummary"
           },
-          "name": "conversations"
+          "name": "conversations",
+          "jsonkey": "conversations"
         },
         {
           "type": "boolean",
-          "name": "offline"
+          "name": "offline",
+          "jsonkey": "offline"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": [
             null,
             "Pagination"
           ],
-          "name": "pagination"
+          "name": "pagination",
+          "jsonkey": "pagination"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3825,35 +3897,40 @@
       "fields": [
         {
           "type": "string",
-          "name": "message"
+          "name": "message",
+          "jsonkey": "message"
         },
         {
           "type": [
             null,
             "MessageID"
           ],
-          "name": "messageID"
+          "name": "messageID",
+          "jsonkey": "message_id"
         },
         {
           "type": [
             null,
             "OutboxID"
           ],
-          "name": "outboxID"
+          "name": "outboxID",
+          "jsonkey": "outbox_id"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3866,21 +3943,24 @@
             null,
             "ChatSearchInboxResults"
           ],
-          "name": "results"
+          "name": "results",
+          "jsonkey": "results"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3893,21 +3973,24 @@
             "type": "array",
             "items": "ChatSearchHit"
           },
-          "name": "hits"
+          "name": "hits",
+          "jsonkey": "hits"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3917,21 +4000,24 @@
       "fields": [
         {
           "type": "string",
-          "name": "id"
+          "name": "id",
+          "jsonkey": "id"
         },
         {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "identifyFailures"
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3944,14 +4030,16 @@
             "type": "array",
             "items": "UserBotCommandOutput"
           },
-          "name": "commands"
+          "name": "commands",
+          "jsonkey": "commands"
         },
         {
           "type": {
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     },
@@ -3964,7 +4052,8 @@
             "type": "array",
             "items": "RateLimitRes"
           },
-          "name": "rateLimits"
+          "name": "rateLimits",
+          "jsonkey": "rate_limits"
         }
       ]
     }

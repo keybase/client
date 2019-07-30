@@ -5376,9 +5376,9 @@ func (o RateLimitRes) DeepCopy() RateLimitRes {
 type ChatChannel struct {
 	Name        string `codec:"name" json:"name"`
 	Public      bool   `codec:"public" json:"public"`
-	MembersType string `codec:"membersType" json:"membersType"`
-	TopicType   string `codec:"topicType" json:"topicType"`
-	TopicName   string `codec:"topicName" json:"topicName"`
+	MembersType string `codec:"membersType" json:"members_type"`
+	TopicType   string `codec:"topicType" json:"topic_type"`
+	TopicName   string `codec:"topicName" json:"topic_name"`
 }
 
 func (o ChatChannel) DeepCopy() ChatChannel {
@@ -5404,8 +5404,8 @@ func (o ChatMessage) DeepCopy() ChatMessage {
 type MsgSender struct {
 	Uid        string `codec:"uid" json:"uid"`
 	Username   string `codec:"username" json:"username"`
-	DeviceID   string `codec:"deviceID" json:"deviceID"`
-	DeviceName string `codec:"deviceName" json:"deviceName"`
+	DeviceID   string `codec:"deviceID" json:"device_id"`
+	DeviceName string `codec:"deviceName" json:"device_name"`
 }
 
 func (o MsgSender) DeepCopy() MsgSender {
@@ -5419,10 +5419,10 @@ func (o MsgSender) DeepCopy() MsgSender {
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       string             `codec:"gameID" json:"gameID"`
-	FlipConvID   string             `codec:"flipConvID" json:"flipConvID"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	GameID       string             `codec:"gameID" json:"game_id"`
+	FlipConvID   string             `codec:"flipConvID" json:"flip_conv_id"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`
 }
 
 func (o MsgFlipContent) DeepCopy() MsgFlipContent {
@@ -5456,7 +5456,7 @@ func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 }
 
 type MsgContent struct {
-	TypeName           string                       `codec:"typeName" json:"typeName"`
+	TypeName           string                       `codec:"typeName" json:"type_name"`
 	Text               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
 	Attachment         *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
 	Edit               *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
@@ -5464,10 +5464,10 @@ type MsgContent struct {
 	Delete             *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
 	Metadata           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 	Headline           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
-	AttachmentUploaded *MessageAttachmentUploaded   `codec:"attachmentUploaded,omitempty" json:"attachmentUploaded,omitempty"`
+	AttachmentUploaded *MessageAttachmentUploaded   `codec:"attachmentUploaded,omitempty" json:"attachment_uploaded,omitempty"`
 	System             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
-	SendPayment        *MessageSendPayment          `codec:"sendPayment,omitempty" json:"sendPayment,omitempty"`
-	RequestPayment     *MessageRequestPayment       `codec:"requestPayment,omitempty" json:"requestPayment,omitempty"`
+	SendPayment        *MessageSendPayment          `codec:"sendPayment,omitempty" json:"send_payment,omitempty"`
+	RequestPayment     *MessageRequestPayment       `codec:"requestPayment,omitempty" json:"request_payment,omitempty"`
 	Unfurl             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
 	Flip               *MsgFlipContent              `codec:"flip,omitempty" json:"flip,omitempty"`
 }
@@ -5571,25 +5571,25 @@ func (o MsgContent) DeepCopy() MsgContent {
 
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
-	ConvID              string                   `codec:"convID" json:"convID"`
+	ConvID              string                   `codec:"convID" json:"conv_id"`
 	Channel             ChatChannel              `codec:"channel" json:"channel"`
 	Sender              MsgSender                `codec:"sender" json:"sender"`
-	SentAt              int64                    `codec:"sentAt" json:"sentAt"`
-	SentAtMs            int64                    `codec:"sentAtMs" json:"sentAtMs"`
+	SentAt              int64                    `codec:"sentAt" json:"sent_at"`
+	SentAtMs            int64                    `codec:"sentAtMs" json:"sent_at_ms"`
 	Content             MsgContent               `codec:"content" json:"content"`
 	Prev                []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Unread              bool                     `codec:"unread" json:"unread"`
-	RevokedDevice       bool                     `codec:"revokedDevice" json:"revokedDevice"`
+	RevokedDevice       bool                     `codec:"revokedDevice" json:"revoked_device"`
 	Offline             bool                     `codec:"offline" json:"offline"`
-	KbfsEncrypted       bool                     `codec:"kbfsEncrypted" json:"kbfsEncrypted"`
-	IsEphemeral         bool                     `codec:"isEphemeral" json:"isEphemeral"`
-	IsEphemeralExpired  bool                     `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
-	ETime               gregor1.Time             `codec:"eTime" json:"eTime"`
+	KbfsEncrypted       bool                     `codec:"kbfsEncrypted" json:"kbfs_encrypted"`
+	IsEphemeral         bool                     `codec:"isEphemeral" json:"is_ephemeral"`
+	IsEphemeralExpired  bool                     `codec:"isEphemeralExpired" json:"is_ephemeral_expired"`
+	ETime               gregor1.Time             `codec:"eTime" json:"e_time"`
 	Reactions           *ReactionMap             `codec:"reactions,omitempty" json:"reactions,omitempty"`
-	HasPairwiseMacs     bool                     `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
-	AtMentionUsernames  []string                 `codec:"atMentionUsernames" json:"atMentionUsernames"`
-	ChannelMention      string                   `codec:"channelMention" json:"channelMention"`
-	ChannelNameMentions []UIChannelNameMention   `codec:"channelNameMentions" json:"channelNameMentions"`
+	HasPairwiseMacs     bool                     `codec:"hasPairwiseMacs" json:"has_pairwise_macs"`
+	AtMentionUsernames  []string                 `codec:"atMentionUsernames" json:"at_mention_usernames"`
+	ChannelMention      string                   `codec:"channelMention" json:"channel_mention"`
+	ChannelNameMentions []UIChannelNameMention   `codec:"channelNameMentions" json:"channel_name_mentions"`
 }
 
 func (o MsgSummary) DeepCopy() MsgSummary {
@@ -5681,8 +5681,8 @@ type Thread struct {
 	Messages         []Message                     `codec:"messages" json:"messages"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline          bool                          `codec:"offline" json:"offline"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o Thread) DeepCopy() Thread {
@@ -5735,13 +5735,13 @@ type ConvSummary struct {
 	Id           string                    `codec:"id" json:"id"`
 	Channel      ChatChannel               `codec:"channel" json:"channel"`
 	Unread       bool                      `codec:"unread" json:"unread"`
-	ActiveAt     int64                     `codec:"activeAt" json:"activeAt"`
-	ActiveAtMs   int64                     `codec:"activeAtMs" json:"activeAtMs"`
-	MemberStatus string                    `codec:"memberStatus" json:"memberStatus"`
-	ResetUsers   []string                  `codec:"resetUsers" json:"resetUsers"`
-	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ActiveAt     int64                     `codec:"activeAt" json:"active_at"`
+	ActiveAtMs   int64                     `codec:"activeAtMs" json:"active_at_ms"`
+	MemberStatus string                    `codec:"memberStatus" json:"member_status"`
+	ResetUsers   []string                  `codec:"resetUsers" json:"reset_users"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalize_info,omitempty"`
 	Supersedes   []string                  `codec:"supersedes" json:"supersedes"`
-	SupersededBy []string                  `codec:"supersededBy" json:"supersededBy"`
+	SupersededBy []string                  `codec:"supersededBy" json:"superseded_by"`
 	Error        string                    `codec:"error" json:"error"`
 }
 
@@ -5800,9 +5800,9 @@ func (o ConvSummary) DeepCopy() ConvSummary {
 type ChatList struct {
 	Conversations    []ConvSummary                 `codec:"conversations" json:"conversations"`
 	Offline          bool                          `codec:"offline" json:"offline"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o ChatList) DeepCopy() ChatList {
@@ -5853,10 +5853,10 @@ func (o ChatList) DeepCopy() ChatList {
 
 type SendRes struct {
 	Message          string                        `codec:"message" json:"message"`
-	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"messageID,omitempty"`
-	OutboxID         *OutboxID                     `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"message_id,omitempty"`
+	OutboxID         *OutboxID                     `codec:"outboxID,omitempty" json:"outbox_id,omitempty"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o SendRes) DeepCopy() SendRes {
@@ -5903,8 +5903,8 @@ func (o SendRes) DeepCopy() SendRes {
 
 type SearchInboxResOutput struct {
 	Results          *ChatSearchInboxResults       `codec:"results,omitempty" json:"results,omitempty"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o SearchInboxResOutput) DeepCopy() SearchInboxResOutput {
@@ -5943,8 +5943,8 @@ func (o SearchInboxResOutput) DeepCopy() SearchInboxResOutput {
 
 type RegexpRes struct {
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o RegexpRes) DeepCopy() RegexpRes {
@@ -5987,8 +5987,8 @@ func (o RegexpRes) DeepCopy() RegexpRes {
 
 type NewConvRes struct {
 	Id               string                        `codec:"id" json:"id"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o NewConvRes) DeepCopy() NewConvRes {
@@ -6021,7 +6021,7 @@ func (o NewConvRes) DeepCopy() NewConvRes {
 
 type ListCommandsRes struct {
 	Commands   []UserBotCommandOutput `codec:"commands" json:"commands"`
-	RateLimits []RateLimitRes         `codec:"rateLimits" json:"rateLimits"`
+	RateLimits []RateLimitRes         `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o ListCommandsRes) DeepCopy() ListCommandsRes {
@@ -6052,7 +6052,7 @@ func (o ListCommandsRes) DeepCopy() ListCommandsRes {
 }
 
 type EmptyRes struct {
-	RateLimits []RateLimitRes `codec:"rateLimits" json:"rateLimits"`
+	RateLimits []RateLimitRes `codec:"rateLimits" json:"rate_limits"`
 }
 
 func (o EmptyRes) DeepCopy() EmptyRes {
