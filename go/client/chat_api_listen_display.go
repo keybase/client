@@ -29,18 +29,8 @@ func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding
 
 const notifTypeChat = "chat"
 
-type msgNotification struct {
-	// always `chat`
-	Type string `json:"type"`
-	// `local` or  `remote`
-	Source     string              `json:"source"`
-	Msg        *chat1.MsgSummary   `json:"msg,omitempty"`
-	Error      *string             `json:"error,omitempty"`
-	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
-}
-
-func newMsgNotification(source string) *msgNotification {
-	return &msgNotification{
+func newMsgNotification(source string) *chat1.MsgNotification {
+	return &chat1.MsgNotification{
 		Type:   notifTypeChat,
 		Source: source,
 	}

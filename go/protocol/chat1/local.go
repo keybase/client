@@ -5456,7 +5456,7 @@ func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 }
 
 type MsgContent struct {
-	TypeName           string                       `codec:"typeName" json:"type_name"`
+	TypeName           string                       `codec:"typeName" json:"type"`
 	Text               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
 	Attachment         *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
 	Edit               *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
@@ -5571,7 +5571,7 @@ func (o MsgContent) DeepCopy() MsgContent {
 
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
-	ConvID              string                   `codec:"convID" json:"conv_id"`
+	ConvID              string                   `codec:"convID" json:"conversation_id"`
 	Channel             ChatChannel              `codec:"channel" json:"channel"`
 	Sender              MsgSender                `codec:"sender" json:"sender"`
 	SentAt              int64                    `codec:"sentAt" json:"sent_at"`
@@ -5682,7 +5682,7 @@ type Thread struct {
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline          bool                          `codec:"offline" json:"offline"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o Thread) DeepCopy() Thread {
@@ -5802,7 +5802,7 @@ type ChatList struct {
 	Offline          bool                          `codec:"offline" json:"offline"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o ChatList) DeepCopy() ChatList {
@@ -5856,7 +5856,7 @@ type SendRes struct {
 	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"message_id,omitempty"`
 	OutboxID         *OutboxID                     `codec:"outboxID,omitempty" json:"outbox_id,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o SendRes) DeepCopy() SendRes {
@@ -5904,7 +5904,7 @@ func (o SendRes) DeepCopy() SendRes {
 type SearchInboxResOutput struct {
 	Results          *ChatSearchInboxResults       `codec:"results,omitempty" json:"results,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o SearchInboxResOutput) DeepCopy() SearchInboxResOutput {
@@ -5944,7 +5944,7 @@ func (o SearchInboxResOutput) DeepCopy() SearchInboxResOutput {
 type RegexpRes struct {
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o RegexpRes) DeepCopy() RegexpRes {
@@ -5988,7 +5988,7 @@ func (o RegexpRes) DeepCopy() RegexpRes {
 type NewConvRes struct {
 	Id               string                        `codec:"id" json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
-	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"rate_limits"`
+	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o NewConvRes) DeepCopy() NewConvRes {
@@ -6021,7 +6021,7 @@ func (o NewConvRes) DeepCopy() NewConvRes {
 
 type ListCommandsRes struct {
 	Commands   []UserBotCommandOutput `codec:"commands" json:"commands"`
-	RateLimits []RateLimitRes         `codec:"rateLimits" json:"rate_limits"`
+	RateLimits []RateLimitRes         `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o ListCommandsRes) DeepCopy() ListCommandsRes {
@@ -6052,7 +6052,7 @@ func (o ListCommandsRes) DeepCopy() ListCommandsRes {
 }
 
 type EmptyRes struct {
-	RateLimits []RateLimitRes `codec:"rateLimits" json:"rate_limits"`
+	RateLimits []RateLimitRes `codec:"rateLimits" json:"ratelimits"`
 }
 
 func (o EmptyRes) DeepCopy() EmptyRes {
@@ -6068,6 +6068,42 @@ func (o EmptyRes) DeepCopy() EmptyRes {
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type MsgNotification struct {
+	Type       string        `codec:"type" json:"type"`
+	Source     string        `codec:"source" json:"source"`
+	Msg        *MsgSummary   `codec:"msg,omitempty" json:"msg,omitempty"`
+	Error      *string       `codec:"error,omitempty" json:"error,omitempty"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+func (o MsgNotification) DeepCopy() MsgNotification {
+	return MsgNotification{
+		Type:   o.Type,
+		Source: o.Source,
+		Msg: (func(x *MsgSummary) *MsgSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Msg),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+		Pagination: (func(x *UIPagination) *UIPagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
 	}
 }
 

@@ -1196,7 +1196,7 @@ protocol local {
   // message.
   // It is included in MsgSummary.
   record MsgContent {
-    @jsonkey("type_name")
+    @jsonkey("type")
     string typeName;
     @jsonkey("text")
     union { null, MessageText } text;
@@ -1230,7 +1230,7 @@ protocol local {
   record MsgSummary {
     @jsonkey("id")
     MessageID id;
-    @jsonkey("conv_id")
+    @jsonkey("conversation_id")
     string convID;
     @jsonkey("channel")
     ChatChannel channel;
@@ -1289,7 +1289,7 @@ protocol local {
     boolean offline;
     @jsonkey("identify_failures")
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
@@ -1308,14 +1308,18 @@ protocol local {
     @jsonkey("member_status")
     string memberStatus;
     @jsonkey("reset_users")
+    @optional(true)
     array<string> resetUsers;
     @jsonkey("finalize_info")
     union { null, ConversationFinalizeInfo } finalizeInfo;
     @jsonkey("supersedes")
+    @optional(true)
     array<string> supersedes;
     @jsonkey("superseded_by")
+    @optional(true)
     array<string> supersededBy;
     @jsonkey("error")
+    @optional(true)
     string error;
   }
 
@@ -1329,7 +1333,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("pagination")
     union { null, Pagination } pagination;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
@@ -1343,7 +1347,7 @@ protocol local {
     union { null, OutboxID } outboxID;
     @jsonkey("identify_failures")
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
@@ -1352,7 +1356,7 @@ protocol local {
     union { null, ChatSearchInboxResults } results;
     @jsonkey("identify_failures")
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
@@ -1361,7 +1365,7 @@ protocol local {
     array<ChatSearchHit> hits;
     @jsonkey("identify_failures")
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
@@ -1370,20 +1374,30 @@ protocol local {
     string id;
     @jsonkey("identify_failures")
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
   record ListCommandsRes {
     @jsonkey("commands")
     array<UserBotCommandOutput> commands;
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
   }
 
   // EmptyRes is used for JSON output of a boring command.
   record EmptyRes {
-    @jsonkey("rate_limits")
+    @jsonkey("ratelimits")
     array<RateLimitRes> rateLimits;
+  }
+
+  record MsgNotification {
+    // should always be `chat`
+    string type;
+    // `local` or  `remote`
+    string source;
+    union { null, MsgSummary } msg;
+    union { null, string } error;
+    union { null, UIPagination } pagination;
   }
 }

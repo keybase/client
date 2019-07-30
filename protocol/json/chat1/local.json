@@ -3484,7 +3484,7 @@
         {
           "type": "string",
           "name": "typeName",
-          "jsonkey": "type_name"
+          "jsonkey": "type"
         },
         {
           "type": [
@@ -3604,7 +3604,7 @@
         {
           "type": "string",
           "name": "convID",
-          "jsonkey": "conv_id"
+          "jsonkey": "conversation_id"
         },
         {
           "type": "ChatChannel",
@@ -3771,7 +3771,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -3815,7 +3815,8 @@
             "items": "string"
           },
           "name": "resetUsers",
-          "jsonkey": "reset_users"
+          "jsonkey": "reset_users",
+          "optional": true
         },
         {
           "type": [
@@ -3831,7 +3832,8 @@
             "items": "string"
           },
           "name": "supersedes",
-          "jsonkey": "supersedes"
+          "jsonkey": "supersedes",
+          "optional": true
         },
         {
           "type": {
@@ -3839,12 +3841,14 @@
             "items": "string"
           },
           "name": "supersededBy",
-          "jsonkey": "superseded_by"
+          "jsonkey": "superseded_by",
+          "optional": true
         },
         {
           "type": "string",
           "name": "error",
-          "jsonkey": "error"
+          "jsonkey": "error",
+          "optional": true
         }
       ]
     },
@@ -3887,7 +3891,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -3930,7 +3934,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -3960,7 +3964,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -3990,7 +3994,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -4017,7 +4021,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -4039,7 +4043,7 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
         }
       ]
     },
@@ -4053,7 +4057,42 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "rate_limits"
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgNotification",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": [
+            null,
+            "MsgSummary"
+          ],
+          "name": "msg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
         }
       ]
     }
