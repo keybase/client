@@ -139,8 +139,6 @@ type SCTeamBot struct {
 	Cmds bool `json:"cmds"`
 	// Should the bot be summoned for @-mentions
 	Mentions bool `json:"mentions"`
-	// Should the bot be keyed for join messages
-	Joins bool `json:"joins"`
 	// Phrases that should trigger the bot to be keyed for content. Will be
 	// check as a valid regex.
 	Triggers *[]string `json:"triggers,omitempty"`
@@ -386,7 +384,6 @@ func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSetting
 			Bot:      ToSCTeamBotUV(bot),
 			Cmds:     botSettings.Cmds,
 			Mentions: botSettings.Mentions,
-			Joins:    botSettings.Joins,
 			Triggers: triggers,
 			Convs:    convs,
 		})

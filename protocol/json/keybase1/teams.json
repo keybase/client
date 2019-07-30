@@ -2488,10 +2488,6 @@
           "name": "mentions"
         },
         {
-          "type": "boolean",
-          "name": "joins"
-        },
-        {
           "type": {
             "type": "array",
             "items": "string"

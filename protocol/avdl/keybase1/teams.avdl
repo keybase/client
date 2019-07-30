@@ -1081,7 +1081,6 @@ protocol teams {
   record TeamBotSettings {
     boolean cmds;
     boolean mentions;
-    boolean joins;
     array<string> triggers;
     // chat1.ConversationID
     array<string> convs;

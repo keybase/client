@@ -52,7 +52,6 @@ func TestTeamBotSettings(t *testing.T) {
 	settings1 := keybase1.TeamBotSettings{
 		Cmds:     true,
 		Mentions: true,
-		Joins:    true,
 		Triggers: []string{"shipit"},
 		Convs:    []string{chat1.ConversationID([]byte("convo")).String()},
 	}
@@ -87,7 +86,7 @@ func TestTeamBotSettings(t *testing.T) {
 	require.Equal(t, expectedBots, teamBotSettings)
 
 	// add a second bot
-	settings2 := keybase1.TeamBotSettings{Joins: true}
+	settings2 := keybase1.TeamBotSettings{Cmds: true}
 	expectedBots = map[keybase1.UserVersion]keybase1.TeamBotSettings{
 		rBotua2UV: settings2,
 	}

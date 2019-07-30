@@ -2302,7 +2302,6 @@ func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *Te
 		newState.inner.Bots[bot.Bot.ToUserVersion()] = keybase1.TeamBotSettings{
 			Cmds:     bot.Cmds,
 			Mentions: bot.Mentions,
-			Joins:    bot.Joins,
 			Triggers: triggers,
 			Convs:    convs,
 		}

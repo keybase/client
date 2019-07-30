@@ -2870,7 +2870,6 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 type TeamBotSettings struct {
 	Cmds     bool     `codec:"cmds" json:"cmds"`
 	Mentions bool     `codec:"mentions" json:"mentions"`
-	Joins    bool     `codec:"joins" json:"joins"`
 	Triggers []string `codec:"triggers" json:"triggers"`
 	Convs    []string `codec:"convs" json:"convs"`
 }
@@ -2879,7 +2878,6 @@ func (o TeamBotSettings) DeepCopy() TeamBotSettings {
 	return TeamBotSettings{
 		Cmds:     o.Cmds,
 		Mentions: o.Mentions,
-		Joins:    o.Joins,
 		Triggers: (func(x []string) []string {
 			if x == nil {
 				return nil
