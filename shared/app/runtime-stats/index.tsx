@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import {isIPhoneX} from '../../constants/platform'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import lagRadar from 'lag-radar'
+import flags from '../../util/feature-flags'
 
 type ProcessProps = {
   cpu: string
@@ -74,26 +75,42 @@ const dbTypeString = (s: RPCTypes.DbType) => {
   }
 }
 
-let destroyRadar: any
+let destroyRadar: (() => void) | undefined
+let radarNode: HTMLDivElement | undefined
+const radarSize = 30
+
+const makeRadar = (show: boolean) => {
+  if (destroyRadar) {
+    destroyRadar()
+    destroyRadar = undefined
+  }
+  if (!radarNode || !show) {
+    return
+  }
+
+  destroyRadar = lagRadar({
+    frames: 5,
+    inset: 1,
+    parent: radarNode,
+    size: radarSize,
+    speed: 0.0017 * 0.7,
+  })
+}
 
 const RuntimeStatsDesktop = (props: Props) => {
-  const refContainer = React.useCallback(node => {
-    if (destroyRadar) {
-      destroyRadar()
-      destroyRadar = null
-    }
-    if (node) {
-      destroyRadar = lagRadar({
-        frames: 20,
-        inset: 1,
-        parent: node,
-        size: 30,
-        speed: 0.0017 * 0.7,
-      })
-    }
-  }, [])
-
-  const [hideRadar, setHideRadar] = React.useState(false)
+  const [showRadar, setShowRadar] = React.useState(flags.lagRadar)
+  const refContainer = React.useCallback(
+    node => {
+      radarNode = node
+      makeRadar(showRadar)
+    },
+    [showRadar]
+  )
+  const toggleRadar = () => {
+    const show = !showRadar
+    setShowRadar(show)
+    makeRadar(show)
+  }
 
   return !props.hasData ? null : (
     <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
@@ -158,13 +175,7 @@ const RuntimeStatsDesktop = (props: Props) => {
           </Kb.Box2>
         )
       })}
-      {!hideRadar && (
-        <Kb.Box
-          style={styles.radarContainer}
-          forwardedRef={refContainer}
-          onClick={() => setHideRadar(true)}
-        />
-      )}
+      <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
     </Kb.Box2>
   )
 }
@@ -277,11 +288,17 @@ const styles = Styles.styleSheetCreate({
       right: isIPhoneX ? 10 : 0,
     },
   }),
-  radarContainer: {
-    position: 'absolute',
-    right: 2,
-    top: 2,
-  },
+  radarContainer: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white_20,
+      borderRadius: '50%',
+      height: radarSize,
+      position: 'absolute',
+      right: 2,
+      top: 2,
+      width: radarSize,
+    },
+  }),
   stat: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
