@@ -390,7 +390,9 @@ const mergeProps = (
   } = stateProps
 
   const showingContactsButton =
-    stateProps.contactsPermissionStatus !== 'never_ask_again' && !stateProps.contactsImported
+    Container.isMobile &&
+    stateProps.contactsPermissionStatus !== 'never_ask_again' &&
+    !stateProps.contactsImported
 
   // Contacts props
   const contactProps = {
