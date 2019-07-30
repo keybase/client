@@ -192,6 +192,7 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 
 // AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
 func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
+	withContacts = make([]chat1.ConversationLocalParticipant, 0, len(participants))
 	var contacts []keybase1.ProcessedContact
 	var err error
 	contactsFetched := false
@@ -204,33 +205,27 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 					return participants
 				}
 			}
-			// todo separate phone / email from assertion
-			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
-			if err == nil {
-				phoneOrEmail := assertion.GetValue()
-				isPhone := assertion.GetKey() == "phone"
-				contactName := findContactName(contacts, phoneOrEmail, isPhone)
-				participant.ContactName = contactName
-			} else {
-				mctx.Debug("Error parsing assertion: %s", err)
-			}
+			participant.ContactName = findContactName(contacts, participant.Username)
 		}
 		withContacts = append(withContacts, participant)
 	}
 	return withContacts
 }
 
-func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
+func findContactName(contacts []keybase1.ProcessedContact, assertion string) *string {
+	var result *string
 	for _, contact := range contacts {
-		cPhoneOrEmail := contact.Component.ValueString()
-		if isPhone {
-			cPhoneOrEmail = keybase1.PhoneNumberToAssertionValue(cPhoneOrEmail)
-		}
-		if cPhoneOrEmail == phoneOrEmail {
-			return &contact.ContactName
+		if contact.Assertion == assertion {
+			if result != nil {
+				// Found multiple contacts for one phone or email value, return
+				// nil rather than potentially chosing wrong name.
+				return nil
+			}
+			contactName := contact.ContactName
+			result = &contactName
 		}
 	}
-	return nil
+	return result
 }
 
 func isPhoneOrEmail(username string) bool {
