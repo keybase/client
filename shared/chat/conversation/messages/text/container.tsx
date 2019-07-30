@@ -1,7 +1,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage, {Props} from '.'
+import TextMessage, {Props, ClaimProps} from '.'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -89,17 +89,16 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnPro
     ),
 })
 
+const mergeClaimProps = (stateProps, dispatchProps): ClaimProps => {
+  return !!stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined
+}
+
 type MsgType = Props['type']
 export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    claim: stateProps.claim
-      ? {
-          onClaim: dispatchProps._onClaim,
-          ...stateProps.claim,
-        }
-      : undefined,
+    claim: mergeClaimProps(stateProps, dispatchProps),
     isEditing: stateProps.isEditing,
     message: ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
