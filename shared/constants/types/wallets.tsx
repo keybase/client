@@ -59,6 +59,7 @@ export type _Assets = {
   balanceAvailableToSend: string
   balanceTotal: string
   canAddTrustline: boolean
+  depositButtonText: string
   infoUrl: string
   infoUrlText: string
   issuerAccountID: string
@@ -66,6 +67,9 @@ export type _Assets = {
   issuerVerifiedDomain: string
   name: string
   reserves: I.List<Reserve>
+  showDepositButton: boolean
+  showWithdrawButton: boolean
+  withdrawButtonText: string
   worth: string
   worthCurrency: string
 }

@@ -17,6 +17,8 @@ export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addTrustline = 'wallets:addTrustline'
+export const assetDepositLocal = 'wallets:assetDepositLocal'
+export const assetWithdrawLocal = 'wallets:assetWithdrawLocal'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
@@ -142,6 +144,14 @@ type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
 type _AddTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
+type _AssetDepositLocalPayload = {
+  readonly code: Types.CurrencyCode
+  readonly issuerAccountID: Types.AccountID
+}
+type _AssetWithdrawLocalPayload = {
+  readonly code: Types.CurrencyCode
+  readonly issuerAccountID: Types.AccountID
+}
 type _AssetsReceivedPayload = {readonly accountID: Types.AccountID; readonly assets: Array<Types.Assets>}
 type _BadgesUpdatedPayload = {readonly accounts: Array<RPCTypes.WalletAccountInfo>}
 type _BuildPaymentPayload = void
@@ -573,6 +583,20 @@ export const createInflationDestinationReceived = (
 export const createInflationDestinationReceivedError = (
   payload: _InflationDestinationReceivedPayloadError
 ): InflationDestinationReceivedPayloadError => ({error: true, payload, type: inflationDestinationReceived})
+/**
+ * Handle a SEP6 Deposit link
+ */
+export const createAssetDepositLocal = (payload: _AssetDepositLocalPayload): AssetDepositLocalPayload => ({
+  payload,
+  type: assetDepositLocal,
+})
+/**
+ * Handle a SEP6 Withdraw link
+ */
+export const createAssetWithdrawLocal = (payload: _AssetWithdrawLocalPayload): AssetWithdrawLocalPayload => ({
+  payload,
+  type: assetWithdrawLocal,
+})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -1136,6 +1160,14 @@ export type AccountsReceivedPayload = {
   readonly type: typeof accountsReceived
 }
 export type AddTrustlinePayload = {readonly payload: _AddTrustlinePayload; readonly type: typeof addTrustline}
+export type AssetDepositLocalPayload = {
+  readonly payload: _AssetDepositLocalPayload
+  readonly type: typeof assetDepositLocal
+}
+export type AssetWithdrawLocalPayload = {
+  readonly payload: _AssetWithdrawLocalPayload
+  readonly type: typeof assetWithdrawLocal
+}
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
   readonly type: typeof assetsReceived
@@ -1616,6 +1648,8 @@ export type Actions =
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddTrustlinePayload
+  | AssetDepositLocalPayload
+  | AssetWithdrawLocalPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload

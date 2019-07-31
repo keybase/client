@@ -36,6 +36,16 @@
       "_description": "We received an updated account record",
       "account": "Types.Account"
     },
+    "assetDepositLocal": {
+      "_description": "Handle a SEP6 Deposit link",
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
+    },
+    "assetWithdrawLocal": {
+      "_description": "Handle a SEP6 Withdraw link",
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
+    },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",

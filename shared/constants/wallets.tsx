@@ -315,6 +315,7 @@ export const makeAssets = I.Record<Types._Assets>({
   balanceAvailableToSend: '',
   balanceTotal: '',
   canAddTrustline: false,
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -322,6 +323,9 @@ export const makeAssets = I.Record<Types._Assets>({
   issuerVerifiedDomain: '',
   name: '',
   reserves: I.List(),
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
 })
@@ -332,6 +336,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    depositButtonText: w.depositButtonText,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -339,6 +344,9 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     reserves: I.List((w.reserves || []).map(makeReserve)),
+    showDepositButton: w.showDepositButton,
+    showWithdrawButton: w.showWithdrawButton,
+    withdrawButtonText: w.withdrawButtonText,
     worth: w.worth,
   })
 
