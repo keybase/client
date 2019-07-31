@@ -1515,7 +1515,7 @@ const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
         issuerAccountID: action.payload.issuerAccountID,
       })
     ),
-  }).then(res => res.externalURL && openURL(res.externalURL))
+  }).then(res => res.externalUrl ? openURL(res.externalUrl) : null)
 
 const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
   RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
@@ -1526,7 +1526,7 @@ const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =
         issuerAccountID: action.payload.issuerAccountID,
       })
     ),
-  }).then(res => res.externalURL && openURL(res.externalURL))
+  }).then(res => res.externalUrl ? openURL(res.externalUrl) : null)
 
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload) {
   if (state.wallets.staticConfig) {
