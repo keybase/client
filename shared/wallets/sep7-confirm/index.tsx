@@ -133,7 +133,8 @@ const Header = (props: HeaderProps) => (
         )}
       </Kb.Box2>
       <Kb.Text negative={true} type="BodyBig">
-        is requesting {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
+        {!props.requester && 'This link'} is requesting{' '}
+        {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
       </Kb.Text>
       {props.signed && (
         <Kb.Text style={styles.subHeaderText} negative={true} type="Body">

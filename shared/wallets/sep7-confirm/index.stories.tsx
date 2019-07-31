@@ -90,12 +90,29 @@ const txProps = {
   },
 }
 
+const unsignedTxProps = {
+  amount: '',
+  message: '',
+  operation: 'tx' as const,
+  originDomain: '',
+  recipient: '',
+  signed: false,
+  summary: {
+    fee: '100',
+    memo: 'test memo',
+    memoType: 'MEMO_TEXT',
+    operations: ['Establish trust line to WHAT/GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB'],
+    source: 'GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB',
+  },
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/SEP7ConfirmForm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
     .add('Signed Pay', () => <SEP7Confirm {...commonProps} {...payProps} />)
     .add('Unsigned Pay', () => <SEP7Confirm {...commonProps} {...payUnsignedProps} />)
     .add('Signed Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
+    .add('Unsigned Tx', () => <SEP7Confirm {...commonProps} {...unsignedTxProps} />)
   Sb.storiesOf('Wallets/SEP7Error', module).add('Error', () => (
     <KeybaseLinkErrorBody errorText="This Stellar link claims to be signed by keybaze.io, but the Keybase app cannot currently verify the signature came from keybaze.io. Sorry, there's nothing you can do with this Stellar link." />
   ))
