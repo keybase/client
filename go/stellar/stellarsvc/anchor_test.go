@@ -173,7 +173,6 @@ func TestAnchorInteractor(t *testing.T) {
 		if res.ExternalUrl != nil {
 			if test.DepositExternalURL != *res.ExternalUrl {
 				t.Errorf("valid test %d [%s] deposit: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.DepositExternalURL)
-
 			}
 		}
 
@@ -193,7 +192,6 @@ func TestAnchorInteractor(t *testing.T) {
 		if res.ExternalUrl != nil {
 			if test.WithdrawExternalURL != *res.ExternalUrl {
 				t.Errorf("valid test %d [%s] withdraw: result external url field %s, expected %s", i, test.Name, *res.ExternalUrl, test.WithdrawExternalURL)
-
 			}
 		}
 	}
