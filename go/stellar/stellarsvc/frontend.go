@@ -184,6 +184,10 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				Desc:                   d.Asset.Desc,
 				InfoUrl:                d.Asset.InfoUrl,
 				InfoUrlText:            d.Asset.InfoUrlText,
+				ShowDepositButton:      d.Asset.ShowDepositButton,
+				DepositButtonText:      d.Asset.DepositButtonText,
+				ShowWithdrawButton:     d.Asset.ShowWithdrawButton,
+				WithdrawButtonText:     d.Asset.WithdrawButtonText,
 			})
 		}
 	}

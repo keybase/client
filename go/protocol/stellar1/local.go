@@ -55,6 +55,10 @@ type AccountAssetLocal struct {
 	Desc                   string           `codec:"desc" json:"desc"`
 	InfoUrl                string           `codec:"infoUrl" json:"infoUrl"`
 	InfoUrlText            string           `codec:"infoUrlText" json:"infoUrlText"`
+	ShowDepositButton      bool             `codec:"showDepositButton" json:"showDepositButton"`
+	DepositButtonText      string           `codec:"depositButtonText" json:"depositButtonText"`
+	ShowWithdrawButton     bool             `codec:"showWithdrawButton" json:"showWithdrawButton"`
+	WithdrawButtonText     string           `codec:"withdrawButtonText" json:"withdrawButtonText"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
@@ -80,9 +84,13 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 			}
 			return ret
 		})(o.Reserves),
-		Desc:        o.Desc,
-		InfoUrl:     o.InfoUrl,
-		InfoUrlText: o.InfoUrlText,
+		Desc:               o.Desc,
+		InfoUrl:            o.InfoUrl,
+		InfoUrlText:        o.InfoUrlText,
+		ShowDepositButton:  o.ShowDepositButton,
+		DepositButtonText:  o.DepositButtonText,
+		ShowWithdrawButton: o.ShowWithdrawButton,
+		WithdrawButtonText: o.WithdrawButtonText,
 	}
 }
 

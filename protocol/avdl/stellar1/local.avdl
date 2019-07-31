@@ -46,6 +46,11 @@ protocol local {
     string desc;
     string infoUrl;                 // 'https://...' or empty
     string infoUrlText;             // the text to use in the infoUrl link
+
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
