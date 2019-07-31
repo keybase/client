@@ -114,7 +114,7 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 				Writers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"alice", "bob"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{
+						{
 							User:    "jason",
 							Service: keybase1.SocialAssertionService("github"),
 						},
@@ -123,15 +123,15 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 				Readers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"charlie", "doug"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{
+						{
 							User:    "beth",
 							Service: keybase1.SocialAssertionService("reddit"),
 						},
-						keybase1.SocialAssertion{
+						{
 							User:    "keith",
 							Service: keybase1.SocialAssertionService("github"),
 						},
-						keybase1.SocialAssertion{
+						{
 							User:    "keith",
 							Service: keybase1.SocialAssertionService("twitter"),
 						},
