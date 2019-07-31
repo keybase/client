@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -201,7 +202,8 @@ func TestAnchorInteractor(t *testing.T) {
 // mockKeybaseTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw
 func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
-	switch url {
+	parts := strings.Split(url, "?")
+	switch parts[0] {
 	case "https://transfer.keybase.io/transfer/deposit":
 		return http.StatusForbidden, []byte(depositBody), nil
 	case "https://transfer.keybase.io/transfer/withdraw":
@@ -215,7 +217,8 @@ func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, er
 // mockAnchorUSDTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw
 func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
-	switch url {
+	parts := strings.Split(url, "?")
+	switch parts[0] {
 	case "https://api.anchorusd.com/transfer/deposit":
 		return http.StatusForbidden, []byte(depositBody), nil
 	case "https://api.anchorusd.com/transfer/withdraw":

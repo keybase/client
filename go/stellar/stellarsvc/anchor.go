@@ -42,6 +42,12 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
+
+	v := url.Values{}
+	v.Set("account", a.accountID.String())
+	v.Set("asset_code", a.asset.Code)
+	u.RawQuery = v.Encode()
+
 	var okResponse okDepositResponse
 	return a.get(mctx, u, &okResponse)
 }
@@ -55,6 +61,12 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
+
+	// TODO: `type` is supposedly optional, but actually required...so figure it out.
+	v := url.Values{}
+	v.Set("asset_code", a.asset.Code)
+	u.RawQuery = v.Encode()
+
 	var okResponse okWithdrawResponse
 	return a.get(mctx, u, &okResponse)
 }
