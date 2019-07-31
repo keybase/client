@@ -420,11 +420,17 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   }
 }
 
+let maybeLoadAppLinkOnce = false
 const maybeLoadAppLink = (state: Container.TypedState) => {
   const phones = state.settings.phoneNumbers.phones
   if (!phones || phones.size > 0) {
     return
   }
+
+  if (maybeLoadAppLinkOnce || !state.config.startupLink || !state.config.startupLink.endsWith('/phone-app')) {
+    return
+  }
+  maybeLoadAppLinkOnce = true
 
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
