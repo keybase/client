@@ -20,7 +20,7 @@ const debounced = debounce((f, param) => f(param), 500)
 
 const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, filter) => {
   if (!filter) {
-    return users.concat(teams).toArray()
+    return users.concat(teams)
   }
   const fil = filter.toLowerCase()
   let match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
@@ -29,7 +29,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
     const channelfil = match[2]
     if (!channelfil) {
       // All the team's channels
-      return allChannels.filter(v => v.teamname === teamname).toArray()
+      return allChannels.filter(v => v.teamname === teamname)
     }
     return allChannels
       .filter(v => v.teamname === teamname)
@@ -47,7 +47,6 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
       .filter(withScore => !!withScore.score)
       .sort((a, b) => b.score - a.score)
       .map(({v}) => v)
-      .toArray()
   }
   const sortedUsers = users
     .map(u => {
@@ -71,14 +70,13 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
     .filter(withScore => !!withScore.score)
     .sort((a, b) => b.score - a.score)
     .map(userWithScore => userWithScore.user)
-    .toArray()
   const sortedTeams = teams.filter(t => {
     return t.teamname.includes(fil)
   })
   let usersAndTeams = sortedUsers.concat(sortedTeams)
   if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
     // The only user+team result is a single team. Present its channels as well.
-    return usersAndTeams.concat(allChannels.filter(v => v.teamname === usersAndTeams[0].teamname).toArray())
+    return usersAndTeams.concat(allChannels.filter(v => v.teamname === usersAndTeams[0].teamname))
   }
   return usersAndTeams
 })
@@ -457,10 +455,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestChannels
-      .filter(ch => ch.toLowerCase().includes(fil))
-      .sort()
-      .toArray()
+    return this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort()
   }
 
   _renderChannelSuggestion = (channelname: string, selected) => (

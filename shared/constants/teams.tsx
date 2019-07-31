@@ -9,7 +9,7 @@ import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from '../constants/team-building'
 import {Service} from './types/search'
-import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
+import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
@@ -131,10 +131,10 @@ export const makeTeamSettings = I.Record<Types._TeamSettings>({
   open: false,
 })
 
-export const makeRetentionPolicy = I.Record<_RetentionPolicy>({
-  seconds: 0,
-  title: '',
-  type: 'retain',
+export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPolicy => ({
+  seconds: (r && r.seconds) || 0,
+  title: (r && r.title) || '',
+  type: (r && r.type) || 'retain',
 })
 
 export const makeState = I.Record<Types._State>({
