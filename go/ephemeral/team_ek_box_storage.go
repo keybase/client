@@ -146,8 +146,7 @@ func (s *TeamEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, teamID keybase1
 	// cache unboxing/missing box errors so we don't continually try to fetch
 	// something nonexistent.
 	defer func() {
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			s.Lock()
 			defer s.Unlock()
 			if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEphemeralKeyBoxed{}, err); perr != nil {

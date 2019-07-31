@@ -56,6 +56,7 @@ func TestNewTeamEK(t *testing.T) {
 	maxGeneration, err := teamEKBoxStorage.MaxGeneration(mctx, teamID, false)
 	require.NoError(t, err)
 	ek, err := teamEKBoxStorage.Get(mctx, teamID, maxGeneration, nil)
+	require.NoError(t, err)
 	typ, err := ek.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeam())
