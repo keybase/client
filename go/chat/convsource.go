@@ -527,7 +527,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Get conversation metadata
 	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
-	if false && err == nil {
+	if err == nil {
 		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first
