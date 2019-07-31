@@ -74,14 +74,14 @@ export default Container.connect(
       const broken = stateProps._meta.participants.filter(
         p => stateProps._users.infoMap.getIn([p, 'broken'], false) && stateProps._following.has(p)
       )
-      if (!broken.isEmpty()) {
+      if (broken.length > 0) {
         type = 'broken'
-        users = broken.toArray()
+        users = broken
       } else {
         const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
-        if (!toInvite.isEmpty()) {
+        if (toInvite.length > 0) {
           type = 'invite'
-          users = toInvite.toArray()
+          users = toInvite
         } else {
           type = 'none'
         }
@@ -97,7 +97,7 @@ export default Container.connect(
           mimeType: 'text/plain',
         }),
       type,
-      usernameToContactName: stateProps._meta.participantToContactName.toObject(),
+      usernameToContactName: stateProps._meta.participantToContactName,
       users,
     }
   }

@@ -1,5 +1,4 @@
 // Metadata about a conversation.
-import * as I from 'immutable'
 import * as Common from './common'
 import * as RPCChatTypes from '../rpc-chat-gen'
 import {RetentionPolicy} from '../retention-policy'
@@ -11,7 +10,7 @@ export type TeamType = 'small' | 'big' | 'adhoc'
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
-export type _ConversationMeta = {
+export type ConversationMeta = {
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
@@ -30,11 +29,11 @@ export type _ConversationMeta = {
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
-  participantToContactName: I.Map<string, string>
-  participants: I.List<string> // was OrderedSet but is quite slow,
+  participantToContactName: {[key: string]: string}
+  participants: Array<string> // was OrderedSet but is quite slow,
   readMsgID: number
-  rekeyers: I.Set<string>
-  resetParticipants: I.Set<string>
+  rekeyers: Set<string>
+  resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
   snippet: string
   snippetDecoration: string
@@ -53,5 +52,3 @@ export type _ConversationMeta = {
   trustedState: MetaTrustedState
   wasFinalizedBy: string // a conversation can be finalized but not superseded,
 }
-
-export type ConversationMeta = I.RecordOf<_ConversationMeta>

@@ -8,6 +8,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
+import {produce} from 'immer'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
@@ -57,7 +58,11 @@ const metaMapReducer = (
   switch (action.type) {
     case Chat2Gen.setConversationOffline:
       return metaMap.update(action.payload.conversationIDKey, meta =>
-        meta ? meta.set('offline', action.payload.offline) : meta
+        meta
+          ? produce(meta, draftState => {
+              draftState.offline = action.payload.offline
+            })
+          : meta
       )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
@@ -69,7 +74,13 @@ const metaMapReducer = (
       return metaMap.withMutations(map =>
         Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap).forEach(
           conversationIDKey =>
-            map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
+            map.update(conversationIDKey, meta =>
+              meta
+                ? produce(meta, draftState => {
+                    draftState.trustedState = 'requesting'
+                  })
+                : meta
+            )
         )
       )
     case Chat2Gen.metaReceivedError: {
@@ -80,15 +91,17 @@ const metaMapReducer = (
           case RPCChatTypes.ConversationErrorType.selfrekeyneeded: {
             const {username, conversationIDKey} = action.payload
             const rekeyInfo = error.rekeyInfo
-            const participants = rekeyInfo
-              ? I.Set<string>(
-                  ([] as Array<string>)
-                    .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
-                    .filter(Boolean)
-                ).toList()
-              : I.OrderedSet<string>(error.unverifiedTLFName.split(',')).toList()
+            const participants = [
+              ...(rekeyInfo
+                ? new Set<string>(
+                    ([] as Array<string>)
+                      .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+                      .filter(Boolean)
+                  )
+                : new Set<string>(error.unverifiedTLFName.split(','))),
+            ]
 
-            const rekeyers = I.Set<string>(
+            const rekeyers = new Set<string>(
               error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
@@ -98,22 +111,22 @@ const metaMapReducer = (
               // public conversation, do nothing
               return metaMap
             }
-            newMeta = newMeta.merge({
-              participants,
-              rekeyers,
-              snippet: error.message,
-              snippetDecoration: '',
-              trustedState: 'error' as const,
+            newMeta = produce(newMeta, draftState => {
+              draftState.participants = participants
+              draftState.rekeyers = rekeyers
+              draftState.snippet = error.message
+              draftState.snippetDecoration = ''
+              draftState.trustedState = 'error' as const
             })
             return metaMap.set(conversationIDKey, newMeta)
           }
           default:
             return metaMap.update(action.payload.conversationIDKey, old =>
               old
-                ? old.withMutations(m => {
-                    m.set('trustedState', 'error')
-                    m.set('snippet', error.message)
-                    m.set('snippetDecoration', '')
+                ? produce(old, draftState => {
+                    draftState.trustedState = 'error'
+                    draftState.snippet = error.message
+                    draftState.snippetDecoration = ''
                   })
                 : old
             )
@@ -168,7 +181,10 @@ const metaMapReducer = (
       const {cannotWrite, conversationIDKey, role} = action.payload
       return metaMap.update(conversationIDKey, old => {
         if (old) {
-          return old.set('cannotWrite', cannotWrite).set('minWriterRole', role)
+          return produce(old, draftState => {
+            draftState.cannotWrite = cannotWrite
+            draftState.minWriterRole = role
+          })
         }
         // if we haven't loaded it yet we'll load it on navigation into the
         // convo

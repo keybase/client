@@ -1129,7 +1129,7 @@ function* loadMoreMessages(
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
-  if (meta.membershipType === 'youAreReset' || !meta.rekeyers.isEmpty()) {
+  if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
     logger.info('bail: we are reset')
     return
   }
@@ -2036,9 +2036,7 @@ const onUpdateUserReacjis = (state: TypedState) => {
 const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc'
-      ? teamFolder(meta.teamname)
-      : privateFolderWithUsers(meta.participants.toArray())
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.participants)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -2221,9 +2219,15 @@ const resetChatWithoutThem = (state: TypedState, action: Chat2Gen.ResetChatWitho
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
+  const goodParticipants = new Set(meta.participants)
+  for (let r of meta.resetParticipants) {
+    if (goodParticipants.has(r)) {
+      goodParticipants.delete(r)
+    }
+  }
+
   return Chat2Gen.createPreviewConversation({
-    participants: goodParticipants.toArray(),
+    participants: [...goodParticipants],
     reason: 'resetChatWithoutThem',
   })
 }

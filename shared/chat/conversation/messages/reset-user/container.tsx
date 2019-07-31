@@ -11,8 +11,18 @@ type OwnProps = {
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const username = meta.resetParticipants.first() || ''
-  const nonResetUsers = meta.participants.toSet().subtract(meta.resetParticipants)
+  let username = ''
+  for (var u of meta.resetParticipants) {
+    username = u || ''
+    break
+  }
+
+  const nonResetUsers = new Set(meta.participants)
+  for (var r of meta.resetParticipants) {
+    if (nonResetUsers.has(r)) {
+      nonResetUsers.delete(r)
+    }
+  }
   const allowChatWithoutThem = nonResetUsers.size > 1
   return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
 }

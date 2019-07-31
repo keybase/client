@@ -52,7 +52,7 @@ export default Container.namedConnect(
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
       (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
-    const hasResetUsers = !stateProps._meta.resetParticipants.isEmpty()
+    const hasResetUsers = !(stateProps._meta.resetParticipants.size === 0)
 
     return {
       backgroundColor: styles.backgroundColor,
@@ -80,7 +80,7 @@ export default Container.namedConnect(
       // Don't allow you to select yourself
       onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
       participantNeedToRekey,
-      participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
+      participants: Constants.getRowParticipants(stateProps._meta, stateProps._username),
       showBold: styles.showBold,
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,

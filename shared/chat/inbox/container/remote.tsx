@@ -110,9 +110,7 @@ export const serialize = ({
     isSelected: false,
     isTypingSnippet: false,
     participantNeedToRekey,
-    participants: conversation.teamname
-      ? []
-      : Constants.getRowParticipants(conversation, _username).toArray(),
+    participants: conversation.teamname ? [] : Constants.getRowParticipants(conversation, _username),
     showBold: styles.showBold,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,

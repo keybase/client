@@ -262,7 +262,7 @@ const ConnectedInfoPanel = Container.connect(
     participants: stateProps._participants
       .map(p => ({
         fullname:
-          stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
+          stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName[p] || '',
         isAdmin: stateProps.teamname
           ? TeamConstants.userIsRoleInTeamWithInfo(
               // @ts-ignore
@@ -290,8 +290,7 @@ const ConnectedInfoPanel = Container.connect(
           return 1
         }
         return l.username.localeCompare(r.username)
-      })
-      .toArray(),
+      }),
     selectedAttachmentView: stateProps.selectedAttachmentView,
     selectedConversationIDKey: stateProps.selectedConversationIDKey,
     selectedTab: stateProps.selectedTab,

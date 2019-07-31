@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
@@ -9,6 +8,8 @@ import {anyErrors} from '../../../../constants/waiting'
 import AddToChannel from '.'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+
+const noParticipants: Array<string> = []
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(
@@ -22,7 +23,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const _fullnames = state.users.infoMap
   const title = `Add to #${meta.channelname}`
   return {
-    _allMembers: generalChannel ? generalChannel.participants : I.List<string>(),
+    _allMembers: generalChannel ? generalChannel.participants : noParticipants,
     _alreadyAdded: meta.participants,
     _conversationIDKey: conversationIDKey,
     _fullnames,
@@ -54,7 +55,6 @@ export default Container.namedConnect(
         if (a.alreadyAdded === b.alreadyAdded) return a.username.localeCompare(b.username)
         return a.alreadyAdded ? 1 : -1
       })
-      .toArray()
     let error: string | null = null
     if (stateProps.error) {
       const e = stateProps.error

@@ -37,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (otherParticipants.size !== 1) {
     logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
   }
-  const to = otherParticipants.first()
+  const to = [...otherParticipants][0]
   return {
     isNew: stateProps.isNew,
     onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),

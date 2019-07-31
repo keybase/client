@@ -26,7 +26,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
-  const _participantsCount = meta.participants.count()
+  const _participantsCount = meta.participants.length
   return {
     _canAdminDelete,
     _canDeleteHistory,

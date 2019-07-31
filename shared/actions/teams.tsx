@@ -272,7 +272,7 @@ const addReAddErrorHandler = (username, e) => {
       return Tracker2Gen.createShowUser({asTracker: true, username})
     }
   }
-    return undefined
+  return undefined
 }
 
 const addToTeam = (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
@@ -452,7 +452,7 @@ function* createNewTeamFromConversation(
   let participants: Array<string> = []
 
   const meta = ChatConstants.getMeta(state, conversationIDKey)
-  participants = meta.participants.toArray()
+  participants = meta.participants
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -717,7 +717,7 @@ const getChannelInfo = (_: TypedState, action: TeamsGen.GetChannelInfoPayload, l
       hasAllMembers: null,
       memberStatus: convs[0].memberStatus,
       mtime: meta.timestamp,
-      numParticipants: meta.participants.size,
+      numParticipants: meta.participants.length,
     })
 
     return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})

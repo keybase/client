@@ -207,7 +207,7 @@ const Connected = Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const meta = stateProps._meta
-    const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+    const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '')
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
@@ -229,7 +229,7 @@ const Connected = Container.connect(
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
       onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
+      participants: meta.teamType === 'adhoc' ? meta.participants : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
       username: stateProps.username,
