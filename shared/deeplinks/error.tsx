@@ -35,7 +35,8 @@ const KeybaseLinkError = (props: OwnProps) => {
         return s.wallets.sep6Message
     }
   })
-  const isError = Container.useSelector(s => (!s.wallets.sep6Error && errorSource === 'sep6' ? false : true))
+  const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
+  const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return <Body onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
