@@ -145,11 +145,11 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 
 	require.Equal(t, serverHalf3, half3)
 
-	half4, err := ko1.GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey1)
+	_, err = ko1.GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey1)
 	require.IsType(t, kbfsmd.ServerErrorUnauthorized{}, err)
 
 	// try to get uid2's key now as uid2
-	half4, err = ko2.GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey2)
+	half4, err := ko2.GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey2)
 	require.NoError(t, err)
 
 	require.Equal(t, serverHalf4, half4)

@@ -97,17 +97,17 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize Int64Offset,
 		var nextOff Int64Offset
 		size = int(maxBlockSize)
 		makeFinalHole := false
-		if nextHole < len(holes) &&
-			off+maxBlockSize >= holes[nextHole].start {
+		switch {
+		case nextHole < len(holes) && off+maxBlockSize >= holes[nextHole].start:
 			size = int(holes[nextHole].start - off)
 			nextOff = holes[nextHole].end
 			nextHole++
 			makeFinalHole = nextHole >= len(holes) &&
 				nextOff >= fullDataLen
-		} else if off+maxBlockSize > fullDataLen {
+		case off+maxBlockSize > fullDataLen:
 			size = int(fullDataLen - off)
 			nextOff = fullDataLen
-		} else {
+		default:
 			nextOff = off + maxBlockSize
 		}
 		dirty := off < endWrite && startWrite < off+Int64Offset(size)
@@ -283,9 +283,10 @@ func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize Int64Offset,
 	fd, cleanBcache, dirtyBcache, df := setupFileDataTest(
 		t, int64(maxBlockSize), maxPtrsPerBlock)
 	topBlock := NewFileBlock().(*FileBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		fd.rootBlockPointer(), fd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 	de := DirEntry{}
 	data := make([]byte, fullDataLen)
 	for i := 0; i < int(fullDataLen); i++ {
@@ -343,17 +344,17 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 		endOff := off + maxBlockSize
 		var nextOff Int64Offset
 		makeFinalHole := false
-		if nextHole < len(holes) &&
-			endOff > holes[nextHole].start {
+		switch {
+		case nextHole < len(holes) && endOff > holes[nextHole].start:
 			endOff = holes[nextHole].start
 			nextOff = holes[nextHole].end
 			nextHole++
 			makeFinalHole = nextHole >= len(holes) &&
 				nextOff >= existingDataLen
-		} else if endOff > existingDataLen {
+		case endOff > existingDataLen:
 			endOff = existingDataLen
 			nextOff = existingDataLen
-		} else {
+		default:
 			nextOff = endOff
 		}
 
@@ -413,8 +414,9 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 					BlockInfo: BlockInfo{ptr, 0},
 					Off:       off,
 				})
-				cleanBcache.Put(
+				err = cleanBcache.Put(
 					ptr, fd.tree.file.Tlf, child, TransientEntry, SkipCacheHash)
+				require.NoError(t, err)
 			}
 			prevChildIndex = newIndex
 			level = append(level, fblock)
@@ -427,9 +429,10 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 		fd.tree.file.Path[len(fd.tree.file.Path)-1].DirectType = IndirectBlock
 	}
 
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		fd.rootBlockPointer(), fd.tree.file.Tlf, prevChildren[0],
 		TransientEntry, SkipCacheHash)
+	require.NoError(t, err)
 	return prevChildren[0], numLevels
 }
 

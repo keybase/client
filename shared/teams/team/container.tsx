@@ -20,7 +20,7 @@ type OwnProps = Container.RouteProps<{teamname: string}> & {
 const lastSelectedTabs = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
@@ -78,18 +78,18 @@ type State = {
 
 // We don't use route state anymore
 class TabsState extends React.PureComponent<Props, State> {
-  static navigationOptions = ({navigation}: {navigation: any}) => ({
+  static navigationOptions = (ownProps: Container.RouteProps<{teamname: string}>) => ({
     headerExpandable: true,
     headerHideBorder: true,
     headerRightActions: Container.isMobile
       ? undefined
-      : () => <HeaderRightActions teamname={navigation.getParam('teamname')} />,
+      : () => <HeaderRightActions teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
     headerTitle: Container.isMobile
       ? undefined
-      : () => <HeaderTitle teamname={navigation.getParam('teamname')} />,
+      : () => <HeaderTitle teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
     subHeader: Container.isMobile
       ? undefined
-      : () => <SubHeader teamname={navigation.getParam('teamname')} />,
+      : () => <SubHeader teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
   })
   state = {selectedTab: lastSelectedTabs[this.props.teamname]}
   _setSelectedTab = selectedTab => {

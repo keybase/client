@@ -101,7 +101,7 @@ func NewKBFSService(kbCtx Context, config kbfsServiceConfig) (
 
 // Run starts listening on the passed-in listener.
 func (k *KBFSService) Run(l net.Listener) {
-	go k.listenLoop(l)
+	go func() { _ = k.listenLoop(l) }()
 }
 
 // registerProtocols registers protocols for this KBFSService.

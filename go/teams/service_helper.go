@@ -99,6 +99,7 @@ func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, member
 		&members.Writers,
 		&members.Readers,
 		&members.Bots,
+		&members.RestrictedBots,
 	}
 	for _, rows := range lists {
 		filtered := []keybase1.TeamMemberDetails{}
@@ -126,6 +127,7 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 		&members.Writers,
 		&members.Readers,
 		&members.Bots,
+		&members.RestrictedBots,
 	}
 	// Scan for active rows
 	for _, rows := range lists {
@@ -169,6 +171,10 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 		return ret, err
 	}
 	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots)
+	if err != nil {
+		return ret, err
+	}
+	ret.RestrictedBots, err = userVersionsToDetails(ctx, g, m.RestrictedBots)
 	if err != nil {
 		return ret, err
 	}
@@ -249,6 +255,14 @@ func SetRoleBot(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 		return err
 	}
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Bots: []keybase1.UserVersion{uv}})
+}
+
+func SetRoleRestrictedBot(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return err
+	}
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{RestrictedBots: []keybase1.UserVersion{uv}})
 }
 
 func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
@@ -1057,6 +1071,8 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 		req.Readers = list
 	case keybase1.TeamRole_BOT:
 		req.Bots = list
+	case keybase1.TeamRole_RESTRICTEDBOT:
+		req.RestrictedBots = list
 	default:
 		return keybase1.TeamChangeReq{}, errors.New("invalid team role")
 	}
@@ -1618,7 +1634,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return true, nil
 	}
 
-	isReader := isRoleOrAbove(keybase1.TeamRole_READER)
+	isBot := isRoleOrAbove(keybase1.TeamRole_BOT)
 	isWriter := isRoleOrAbove(keybase1.TeamRole_WRITER)
 	isAdmin := isRoleOrAbove(keybase1.TeamRole_ADMIN)
 	isOwner := isRoleOrAbove(keybase1.TeamRole_OWNER)
@@ -1662,7 +1678,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	}
 
 	// chat settings
-	ret.Chat = isReader
+	ret.Chat = isBot
 	ret.CreateChannel = isWriter
 	ret.RenameChannel = isWriter
 	ret.EditChannelDescription = isWriter
@@ -1887,7 +1903,7 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	logPoints := team.chain().inner.UserLog[uv]
 	demotionPredicate := func(p keybase1.UserLogPoint) bool {
 		if arg.AnyRoleAllowed {
-			return !p.Role.IsReaderOrAbove()
+			return !p.Role.IsBotOrAbove()
 		}
 		return !p.Role.IsWriterOrAbove()
 	}

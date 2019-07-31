@@ -36,6 +36,10 @@ class UpdatePassword extends Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.props.onUpdatePGPSettings && this.props.onUpdatePGPSettings()
+  }
+
   _handlePasswordChange(password: string) {
     this.setState({
       errorSaving: this._errorSaving(password, this.state.passwordConfirm),

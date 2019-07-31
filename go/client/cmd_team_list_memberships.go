@@ -255,6 +255,7 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
 	c.outputRole("bot", details.Members.Bots)
+	c.outputRole("restricted_bot", details.Members.RestrictedBots)
 	c.outputInvites(details.AnnotatedActiveInvites)
 	c.tabw.Flush()
 

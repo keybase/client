@@ -30,7 +30,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	require.NoError(t, err)
 	defer func() {
 		if err != nil {
-			ioutil.RemoveAll(tempdir)
+			_ = ioutil.RemoveAll(tempdir)
 		}
 	}()
 	err = cfg.EnableDiskLimiter(tempdir)

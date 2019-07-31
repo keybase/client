@@ -3,6 +3,7 @@ import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type UserListItem = {
   username: string
@@ -25,6 +26,7 @@ export type BaseUsernamesProps = {
   inline?: boolean
   inlineGrammar?: boolean
   joinerStyle?: Styles.StylesCrossPlatform
+  lineClamp?: number
   prefix?: string | null
   redColor?: string
   selectable?: boolean
@@ -109,7 +111,7 @@ function UsernameText(props: Props) {
               }
               style={userStyle}
             >
-              {u.username}
+              {assertionToDisplay(u.username)}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
@@ -158,6 +160,7 @@ class Usernames extends React.Component<Props> {
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         ellipsizeMode="tail"
+        lineClamp={this.props.lineClamp}
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (
@@ -210,10 +213,28 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
         title={this.props.title}
         {...inlineProps}
       >
-        {rwers.map(u => u.username).join(divider)}
+        {rwers.map(u => assertionToDisplay(u.username)).join(divider)}
       </Text>
     )
   }
+}
+
+// 15550123456@phone => +1 (555) 012-3456
+// [test@example.com]@email => test@example.com
+export const assertionToDisplay = (assertion: string): string => {
+  if (assertion.includes('@email') || assertion.includes('@phone')) {
+    const noSuffix = assertion.substring(0, assertion.length - 6)
+    if (assertion.includes('@email')) {
+      return noSuffix.substring(1, noSuffix.length - 1)
+    }
+    // phone number
+    try {
+      return e164ToDisplay('+' + noSuffix)
+    } catch (e) {
+      return '+' + noSuffix
+    }
+  }
+  return assertion
 }
 
 const styles = Styles.styleSheetCreate({

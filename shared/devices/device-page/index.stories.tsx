@@ -38,6 +38,24 @@ const store = {
   ),
 }
 
+const storeNOPW = {
+  ...common,
+  devices: common.devices.mergeDeep(
+    I.Map({
+      deviceMap: {
+        'desktop last nopw': makeDevice({type: 'desktop'}),
+      },
+    })
+  ),
+  settings: common.settings.mergeDeep(
+    I.Map({
+      password: {
+        randomPW: true,
+      },
+    })
+  ),
+}
+
 const load = () => {
   Sb.storiesOf('Devices/Device', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
@@ -49,6 +67,9 @@ const load = () => {
     .add('Mobile Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'mobile revoked'})} />)
     .add('Paper key', () => <DevicePage {...Sb.createNavigator({deviceID: 'backup'})} />)
     .add('Paper key Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'backup revoked'})} />)
+  Sb.storiesOf('Devices/Device/NOPW', module)
+    .addDecorator((story: any) => <Sb.MockStore store={storeNOPW}>{story()}</Sb.MockStore>)
+    .add('Desktop only device', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop last nopw'})} />)
 }
 
 export default load

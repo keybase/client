@@ -3,11 +3,11 @@ import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
+import * as SettingsGen from '../settings-gen'
 import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
-import * as WalletsGen from '../wallets-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -395,7 +395,9 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
-        if (username) {
+        if (username === 'phone-app') {
+          return [SettingsGen.createLoadSettings(), RouteTreeGen.createSwitchLoggedIn({loggedIn: true})]
+        } else if (username && username !== 'app') {
           return [
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
@@ -418,21 +420,16 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   }
 }
 
-const handleAppLink = (_: Container.TypedState, action: ConfigGen.LinkPayload) => {
-  const url = new URL(action.payload.link)
-  if (action.payload.link.startsWith('web+stellar:')) {
-    console.warn('Got SEP7 link:', action.payload.link)
-    return WalletsGen.createValidateSEP7Link({link: action.payload.link})
-  } else {
-    const username = Constants.urlToUsername(url)
-    if (username) {
-      return [
-        RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
-        ProfileGen.createShowUserProfile({username}),
-      ]
-    }
+const maybeLoadAppLink = (state: Container.TypedState) => {
+  const phones = state.settings.phoneNumbers.phones
+  if (!phones || phones.size > 0) {
+    return
   }
-  return undefined
+
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
+    RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
+  ]
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>
@@ -628,11 +625,12 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1LogUiLogPayload>(EngineGen.keybase1LogUiLog, onLog)
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingInfoPayload>(
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
   )
+
+  yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

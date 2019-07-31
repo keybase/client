@@ -2,6 +2,7 @@ import * as React from 'react'
 import Git, {Props as GitProps} from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/git'
 import * as Types from '../constants/types/git'
 import * as Kb from '../common-adapters'
@@ -11,7 +12,7 @@ import {sortBy, partition} from 'lodash-es'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 const sortRepos = (git: Array<Types.GitInfo>) => sortBy(git, ['teamname', 'name'])
 
@@ -39,21 +40,21 @@ const mapStateToProps = (state: Container.TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigateUp}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
   clearBadges: () => dispatch(GitGen.createClearBadges()),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onNewPersonalRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: false}, selected: 'gitNewRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
   },
   onNewTeamRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: true}, selected: 'gitNewRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
   },
   onShowDelete: (id: string) => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {id}, selected: 'gitDeleteRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
   },
 })
 
@@ -119,7 +120,7 @@ if (!Container.isMobile) {
 export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, _ownProps) => ({
+  (stateProps, dispatchProps, _: OwnProps) => ({
     _loadGit: dispatchProps._loadGit,
     clearBadges: dispatchProps.clearBadges,
     loading: stateProps.loading,

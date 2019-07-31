@@ -29,7 +29,7 @@ export const footerProvider = {
   }),
 }
 
-const provider = Sb.createPropProvider(footerProvider)
+const provider = Sb.createPropProviderWithCommon(footerProvider)
 
 const load = () =>
   Sb.storiesOf('Files', module)

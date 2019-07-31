@@ -29,7 +29,6 @@ const (
 	testFirst  testMutexLevel = 1
 	testSecond testMutexLevel = 2
 	testThird  testMutexLevel = 3
-	testFourth testMutexLevel = 4
 )
 
 func (o testMutexLevel) String() string {

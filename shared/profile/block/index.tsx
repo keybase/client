@@ -4,7 +4,7 @@ import * as Constants from '../../constants/profile'
 
 type Props = {
   username: string
-  errorMessage?: string | null
+  errorMessage?: string
   idle: boolean
   onClose: () => void
   onSubmit: () => void

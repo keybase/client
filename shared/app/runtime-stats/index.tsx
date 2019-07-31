@@ -3,6 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isIPhoneX} from '../../constants/platform'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import lagRadar from 'lag-radar'
+import flags from '../../util/feature-flags'
 
 type ProcessProps = {
   cpu: string
@@ -73,71 +75,111 @@ const dbTypeString = (s: RPCTypes.DbType) => {
   }
 }
 
+let destroyRadar: (() => void) | undefined
+let radarNode: HTMLDivElement | undefined
+const radarSize = 30
+
+const makeRadar = (show: boolean) => {
+  if (destroyRadar) {
+    destroyRadar()
+    destroyRadar = undefined
+  }
+  if (!radarNode || !show) {
+    return
+  }
+
+  destroyRadar = lagRadar({
+    frames: 5,
+    inset: 1,
+    parent: radarNode,
+    size: radarSize,
+    speed: 0.0017 * 0.7,
+  })
+}
+
 const RuntimeStatsDesktop = (props: Props) => {
+  const [showRadar, setShowRadar] = React.useState(flags.lagRadar)
+  const refContainer = React.useCallback(
+    node => {
+      radarNode = node
+      makeRadar(showRadar)
+    },
+    [showRadar]
+  )
+  const toggleRadar = () => {
+    const show = !showRadar
+    setShowRadar(show)
+    makeRadar(show)
+  }
+
   return !props.hasData ? null : (
-    <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-      {props.processStats.map((stats, i) => {
-        return (
-          <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true}>
-            <Kb.Text type="BodyTinyBold" style={styles.stat}>
-              {processTypeString(stats.type)}
-            </Kb.Text>
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
-              type="BodyTiny"
-            >{`CPU: ${stats.cpu}`}</Kb.Text>
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
-              type="BodyTiny"
-            >{`Res: ${stats.resident}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stats.virt}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stats.free}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stats.goheap}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stats.goheapsys}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
-            <Kb.Divider />
-            <Kb.Divider />
-          </Kb.Box2>
-        )
-      })}
-      <Kb.Divider />
-      <Kb.Text type="BodyTinyBold" style={styles.stat}>
-        Chat Bkg Activity
-      </Kb.Text>
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.convLoaderActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTiny"
-      >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTiny"
-      >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
-      <Kb.Divider />
-      <Kb.Text type="BodyTinyBold" style={styles.stat}>
-        LevelDB Compaction
-      </Kb.Text>
-      {props.dbStats.map((stats, i) => {
-        return (
-          <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-            <Kb.Text
-              type="BodyTiny"
-              style={Styles.collapseStyles([
-                styles.stat,
-                stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
-              ])}
-            >
-              {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
-            </Kb.Text>
-          </Kb.Box2>
-        )
-      })}
-    </Kb.Box2>
+    <>
+      <Kb.Box style={Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+        {props.processStats.map((stats, i) => {
+          return (
+            <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
+              <Kb.Text type="BodyTinyBold" style={styles.stat}>
+                {processTypeString(stats.type)}
+              </Kb.Text>
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
+                type="BodyTiny"
+              >{`CPU: ${stats.cpu}`}</Kb.Text>
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
+                type="BodyTiny"
+              >{`Res: ${stats.resident}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stats.virt}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stats.free}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stats.goheap}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stats.goheapsys}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
+              <Kb.Divider />
+              <Kb.Divider />
+            </Kb.Box2>
+          )
+        })}
+        <Kb.Divider />
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
+          Chat Bkg Activity
+        </Kb.Text>
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            props.convLoaderActive ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+        <Kb.Divider />
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
+          LevelDB Compaction
+        </Kb.Text>
+        {props.dbStats.map((stats, i) => {
+          return (
+            <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  styles.stat,
+                  stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
+                ])}
+              >
+                {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
+              </Kb.Text>
+            </Kb.Box2>
+          )
+        })}
+        <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -175,7 +217,7 @@ const RuntimeStatsMobile = (props: Props) => {
   const coreCompaction = coreCompactionActive(props)
   const kbfsCompaction = kbfsCompactionActive(props)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny">
+    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
           <Kb.Text
@@ -239,12 +281,25 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.black,
     },
     isElectron: {
-      padding: Styles.globalMargins.xtiny,
+      overflow: 'auto',
+      padding: Styles.globalMargins.tiny,
+      position: 'relative',
     },
     isMobile: {
       bottom: isIPhoneX ? 15 : 0,
       position: 'absolute',
       right: isIPhoneX ? 10 : 0,
+    },
+  }),
+  radarContainer: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white_20,
+      borderRadius: '50%',
+      height: radarSize,
+      position: 'absolute',
+      right: Styles.globalMargins.tiny,
+      top: Styles.globalMargins.tiny,
+      width: radarSize,
     },
   }),
   stat: Styles.platformStyles({

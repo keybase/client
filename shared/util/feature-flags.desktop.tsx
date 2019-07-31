@@ -18,12 +18,13 @@ const ff: FeatureFlags = {
   fastAccountSwitch: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
+  lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: false,
+  sbsContacts: true,
   stellarExternalPartners: true,
 }
 

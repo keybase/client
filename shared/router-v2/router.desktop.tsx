@@ -62,7 +62,7 @@ class AppView extends React.PureComponent<any> {
         {sceneView}
       </Kb.Box2>
     ) : (
-      sceneView
+      <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
     )
 
     return (
@@ -73,14 +73,16 @@ class AppView extends React.PureComponent<any> {
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
-          {/*
+          <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+            {/*
           // @ts-ignore Header typing not finished yet */}
-          <Header
-            loggedIn={!!selectedTab}
-            options={descriptor.options}
-            onPop={() => childNav.goBack(activeKey)}
-            allowBack={activeIndex !== 0}
-          />
+            <Header
+              loggedIn={!!selectedTab}
+              options={descriptor.options}
+              onPop={() => childNav.goBack(activeKey)}
+              allowBack={activeIndex !== 0}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -345,12 +347,9 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
-  modalContainer: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
-  transparentSceneUnderHeader: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
+  modalContainer: {...Styles.globalStyles.fillAbsolute},
+  sceneContainer: {flexDirection: 'column'},
+  transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
 })
 
 export default ElectronApp

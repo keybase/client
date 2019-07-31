@@ -22,7 +22,7 @@ function Modal<P extends {}>(
   )(withPopup)
 }
 
-export function modalizeRoute(route: Route) {
+export function modalizeRoute<T extends Route>(route: T) {
   if (isMobile) {
     return route
   }

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -55,11 +56,17 @@ func testExpectedMissingDirty(
 	}
 }
 
+func testDirtyBcacheShutdown(
+	t *testing.T, dirtyBcache *DirtyBlockCacheStandard) {
+	err := dirtyBcache.Shutdown()
+	require.NoError(t, err)
+}
+
 func TestDirtyBcachePut(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 	testDirtyBcachePut(
 		context.Background(), t, kbfsblock.FakeID(1), dirtyBcache)
 }
@@ -68,7 +75,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 	id1 := kbfsblock.FakeID(1)
 
 	// Dirty a specific reference nonce, and make sure the
@@ -116,7 +123,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 
 	id1 := kbfsblock.FakeID(1)
 	ctx := context.Background()
@@ -130,7 +137,8 @@ func TestDirtyBcacheDelete(t *testing.T) {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
-	dirtyBcache.Delete(id, BlockPointer{ID: id1}, MasterBranch)
+	err = dirtyBcache.Delete(id, BlockPointer{ID: id1}, MasterBranch)
+	require.NoError(t, err)
 	testExpectedMissingDirty(ctx, t, id1, dirtyBcache)
 	if !dirtyBcache.IsDirty(id, BlockPointer{ID: id1}, newBranch) {
 		t.Errorf("New branch block is now unexpectedly clean")
@@ -142,7 +150,7 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		&WallClock{}, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 	blockedChan := make(chan int64, 1)
 	dirtyBcache.blockedChanForTesting = blockedChan
 	ctx := context.Background()
@@ -221,6 +229,10 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	dirtyBcache.BlockSyncFinished(id, bufSize)
 	dirtyBcache.BlockSyncFinished(id, bufSize+1)
 	dirtyBcache.SyncFinished(id, 4*bufSize+2)
+	// c2.
+	dirtyBcache.UpdateSyncingBytes(id, bufSize)
+	dirtyBcache.BlockSyncFinished(id, bufSize)
+	dirtyBcache.SyncFinished(id, bufSize)
 }
 
 func TestDirtyBcacheCalcBackpressure(t *testing.T) {
@@ -229,7 +241,7 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		clock, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 	// no backpressure yet
 	bp := dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if bp != 0 {
@@ -264,6 +276,10 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	if g, e := bp, 5*time.Second; g != e {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)
 	}
+
+	dirtyBcache.UpdateSyncingBytes(id, 20)
+	dirtyBcache.BlockSyncFinished(id, 20)
+	dirtyBcache.SyncFinished(id, 20)
 }
 
 func TestDirtyBcacheResetBufferCap(t *testing.T) {
@@ -271,7 +287,7 @@ func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
 		&WallClock{}, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
-	defer dirtyBcache.Shutdown()
+	defer testDirtyBcacheShutdown(t, dirtyBcache)
 	dirtyBcache.resetBufferCapTime = 1 * time.Millisecond
 	blockedChan := make(chan int64, 1)
 	dirtyBcache.blockedChanForTesting = blockedChan

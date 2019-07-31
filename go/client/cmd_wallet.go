@@ -21,7 +21,6 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletExport(cl, g),
 		newCmdWalletGetInflation(cl, g),
 		newCmdWalletGetStarted(cl, g),
-		newCmdWalletHandleURI(cl, g),
 		newCmdWalletHistory(cl, g),
 		newCmdWalletImport(cl, g),
 		newCmdWalletLookup(cl, g),

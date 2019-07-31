@@ -18,7 +18,7 @@ func TestMerkleClientHistorical(t *testing.T) {
 	q := libkb.NewHTTPArgs()
 	q.Add("uid", libkb.UIDArg(fu.UID()))
 	mc := tc.G.MerkleClient
-	leaf, err := mc.LookupUser(m, q, nil)
+	leaf, err := mc.LookupUser(m, q, nil, libkb.MerkleOpts{})
 
 	require.NoError(t, err)
 	root := mc.LastRoot(m)

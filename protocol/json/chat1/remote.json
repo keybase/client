@@ -1454,6 +1454,15 @@
       ],
       "response": null
     },
+    "teamIDOfConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "keybase1.TeamID"
+    },
     "serverNow": {
       "request": [],
       "response": "ServerNowRes"

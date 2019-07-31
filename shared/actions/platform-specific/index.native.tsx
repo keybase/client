@@ -375,13 +375,13 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
 
 const editAvatar = (): Promise<Saga.MaybeAction> =>
   launchImageLibraryAsync('photo')
-    .then(result => {
+    .then(result =>
       result.cancelled === true
         ? null
         : RouteTreeGen.createNavigateAppend({
             path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
-    })
+    )
     .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
@@ -497,6 +497,11 @@ async function manageContactsCache(
   let defaultCountryCode: string
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+    if (__DEV__ && !defaultCountryCode) {
+      // behavior of parsing can be unexpectedly different with no country code.
+      // iOS sim + android emu don't supply country codes, so use this one.
+      defaultCountryCode = 'us'
+    }
   } catch (e) {
     logger.warn(`Error loading default country code: ${e.message}`)
   }
@@ -525,7 +530,10 @@ async function manageContactsCache(
   return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
     .then(() => {
       logger.info(`Success`)
-      return SettingsGen.createSetContactImportedCount({count: mapped.length})
+      return [
+        SettingsGen.createSetContactImportedCount({count: mapped.length}),
+        SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode}),
+      ]
     })
     .catch(e => {
       logger.error('Error saving contacts list: ', e.message)

@@ -1970,6 +1970,9 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Bots {
 		m[u.Uid] = true
 	}
+	for _, u := range t.RestrictedBots {
+		m[u.Uid] = true
+	}
 	var all []UID
 	for u := range m {
 		all = append(all, u)
@@ -1992,6 +1995,9 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 		m[u.Uid] = u
 	}
 	for _, u := range t.Bots {
+		m[u.Uid] = u
+	}
+	for _, u := range t.RestrictedBots {
 		m[u.Uid] = u
 	}
 	var all []UserVersion
@@ -2328,19 +2334,42 @@ func (r TeamRole) IsBotOrAbove() bool {
 	return r.IsOrAbove(TeamRole_BOT)
 }
 
-func (r TeamRole) IsBot() bool {
-	return r == TeamRole_BOT
+func (r TeamRole) IsRestrictedBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
+}
+
+func (r TeamRole) IsBotLike() bool {
+	switch r {
+	case TeamRole_BOT, TeamRole_RESTRICTEDBOT:
+		return true
+	}
+	return false
+}
+
+func (r TeamRole) IsRestrictedBot() bool {
+	return r == TeamRole_RESTRICTEDBOT
+}
+
+func (r TeamRole) teamRoleForOrderingOnly() int {
+	switch r {
+	case TeamRole_NONE:
+		return 0
+	case TeamRole_RESTRICTEDBOT:
+		return 1
+	case TeamRole_BOT:
+		return 2
+	case TeamRole_READER,
+		TeamRole_WRITER,
+		TeamRole_ADMIN,
+		TeamRole_OWNER:
+		return int(r) + 2
+	default:
+		return 0
+	}
 }
 
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
-	switch r {
-	case TeamRole_NONE:
-		return min == TeamRole_NONE
-	case TeamRole_BOT:
-		return min == TeamRole_NONE || min == TeamRole_BOT
-	default:
-		return int(r) >= int(min) || min == TeamRole_BOT
-	}
+	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
 }
 
 type idSchema struct {
@@ -2558,6 +2587,8 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	switch role {
+	case TeamRole_RESTRICTEDBOT:
+		req.RestrictedBots = append(req.RestrictedBots, uv)
 	case TeamRole_BOT:
 		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
@@ -2582,6 +2613,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.RestrictedBots...)
 	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
@@ -2708,6 +2740,16 @@ func (p PhoneNumber) String() string {
 	return string(p)
 }
 
+var nonDigits = regexp.MustCompile("[^\\d]")
+
+func PhoneNumberToAssertionValue(phoneNumber string) string {
+	return nonDigits.ReplaceAllString(phoneNumber, "")
+}
+
+func (p PhoneNumber) AssertionValue() string {
+	return PhoneNumberToAssertionValue(p.String())
+}
+
 func (d TeamData) ID() TeamID {
 	return d.Chain.Id
 }
@@ -2730,6 +2772,24 @@ func (d HiddenTeamChain) ID() TeamID {
 
 func (d HiddenTeamChain) IsPublic() bool {
 	return d.Public
+}
+
+func (d HiddenTeamChain) Summary() string {
+	type pair struct {
+		g       PerTeamKeyGeneration
+		q       Seqno
+		stubbed bool
+	}
+	var arr []pair
+	for g, q := range d.ReaderPerTeamKeys {
+		var full bool
+		if d.Inner != nil {
+			_, full = d.Inner[q]
+		}
+		arr = append(arr, pair{g: g, q: q, stubbed: !full})
+	}
+	sort.Slice(arr, func(i, j int) bool { return arr[i].g < arr[j].g })
+	return fmt.Sprintf("{Team:%s, Last:%d, ReaderPerTeamKeys: %+v}", d.Id, d.Last, arr)
 }
 
 func (f FullName) String() string {
@@ -2770,6 +2830,17 @@ func (c ContactComponent) ValueString() string {
 		return string(*c.Email)
 	case c.PhoneNumber != nil:
 		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) AssertionType() string {
+	switch {
+	case c.Email != nil:
+		return "email"
+	case c.PhoneNumber != nil:
+		return "phone"
 	default:
 		return ""
 	}
@@ -2953,6 +3024,10 @@ func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
 }
 
+func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
+	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
+}
+
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
 
 	for seqno, link := range newData.Outer {
@@ -2992,6 +3067,18 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		}
 	}
 
+	for k, v := range newData.MerkleRoots {
+		existing, ok := d.MerkleRoots[k]
+		if ok && !existing.Eq(v) {
+			return false, fmt.Errorf("bad merge since at seqno %d, merkle root clash: %+v != %+v", k, existing, v)
+		}
+		if ok {
+			continue
+		}
+		d.MerkleRoots[k] = v
+		updated = true
+	}
+
 	if d.RatchetSet.Merge(newData.RatchetSet) {
 		updated = true
 	}
@@ -3011,6 +3098,7 @@ func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
 		Outer:             make(map[Seqno]LinkID),
 		Inner:             make(map[Seqno]HiddenTeamChainLink),
+		MerkleRoots:       make(map[Seqno]MerkleRootV2),
 	}
 }
 

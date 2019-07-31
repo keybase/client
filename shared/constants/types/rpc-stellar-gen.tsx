@@ -73,11 +73,11 @@ export type MessageTypes = {
   }
   'stellar.1.local.changeDisplayCurrencyLocal': {
     inParam: {readonly accountID: AccountID; readonly currency: OutsideCurrencyCode}
-    outParam: void
+    outParam: CurrencyLocal
   }
   'stellar.1.local.changeWalletAccountNameLocal': {
     inParam: {readonly accountID: AccountID; readonly newName: String}
-    outParam: void
+    outParam: WalletAccountLocal
   }
   'stellar.1.local.createWalletAccountLocal': {
     inParam: {readonly name: String}
@@ -213,7 +213,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.setWalletAccountAsDefaultLocal': {
     inParam: {readonly accountID: AccountID}
-    outParam: void
+    outParam: Array<WalletAccountLocal> | null
   }
   'stellar.1.local.startBuildPaymentLocal': {
     inParam: void
@@ -362,7 +362,7 @@ export enum TransactionStatus {
   errorTransient = 3,
   errorPermanent = 4,
 }
-export type AccountAssetLocal = {readonly name: String; readonly assetCode: String; readonly issuerName: String; readonly issuerAccountID: String; readonly issuerVerifiedDomain: String; readonly balanceTotal: String; readonly balanceAvailableToSend: String; readonly worthCurrency: String; readonly worth: String; readonly availableToSendWorth: String; readonly reserves?: Array<AccountReserve> | null; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String}
+export type AccountAssetLocal = {readonly name: String; readonly assetCode: String; readonly issuerName: String; readonly issuerAccountID: String; readonly issuerVerifiedDomain: String; readonly balanceTotal: String; readonly balanceAvailableToSend: String; readonly worthCurrency: String; readonly worth: String; readonly availableToSendWorth: String; readonly reserves?: Array<AccountReserve> | null; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String}
 export type AccountBundle = {readonly prev: Hash; readonly ownHash: Hash; readonly accountID: AccountID; readonly signers?: Array<SecretKey> | null}
 export type AccountBundleSecretUnsupported = {}
 export type AccountBundleSecretV1 = {readonly accountID: AccountID; readonly signers?: Array<SecretKey> | null}
@@ -374,7 +374,8 @@ export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: St
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
-export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String}
+export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly transferServer: String; readonly authEndpoint: String}
+export type AssetActionResultLocal = {readonly externalUrl?: String | null; readonly messageFromAnchor?: String | null}
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
@@ -425,10 +426,10 @@ export type PaymentCLILocal = {readonly txID: TransactionID; readonly time: Time
 export type PaymentDetails = {readonly summary: PaymentSummary; readonly memo: String; readonly memoType: String; readonly externalTxURL: String; readonly feeCharged: String; readonly pathIntermediate?: Array<Asset> | null}
 export type PaymentDetailsLocal = {readonly summary: PaymentLocal; readonly details: PaymentDetailsOnlyLocal}
 export type PaymentDetailsOnlyLocal = {readonly publicNote: String; readonly publicNoteType: String; readonly externalTxURL: String; readonly feeChargedDescription: String; readonly pathIntermediate?: Array<Asset> | null}
-export type PaymentDirectPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly displayAmount: String; readonly displayCurrency: String; readonly noteB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null}
+export type PaymentDirectPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly displayAmount: String; readonly displayCurrency: String; readonly noteB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null; readonly batchID: String}
 export type PaymentID = String
 export type PaymentLocal = {readonly id: PaymentID; readonly txID: TransactionID; readonly time: TimeMs; readonly statusSimplified: PaymentStatus; readonly statusDescription: String; readonly statusDetail: String; readonly showCancel: Boolean; readonly amountDescription: String; readonly delta: BalanceDelta; readonly worth: String; readonly worthAtSendTime: String; readonly issuerDescription: String; readonly issuerAccountID?: AccountID | null; readonly fromType: ParticipantType; readonly toType: ParticipantType; readonly assetCode: String; readonly fromAccountID: AccountID; readonly fromAccountName: String; readonly fromUsername: String; readonly toAccountID?: AccountID | null; readonly toAccountName: String; readonly toUsername: String; readonly toAssertion: String; readonly originalToAssertion: String; readonly note: String; readonly noteErr: String; readonly sourceAmountMax: String; readonly sourceAmountActual: String; readonly sourceAsset: Asset; readonly sourceConvRate: String; readonly isAdvanced: Boolean; readonly summaryAdvanced: String; readonly operations?: Array<String> | null; readonly unread: Boolean; readonly batchID: String; readonly fromAirdrop: Boolean; readonly isInflation: Boolean; readonly inflationSource?: String | null; readonly trustline?: PaymentTrustlineLocal | null}
-export type PaymentMultiPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly signedTransaction: String; readonly operations?: Array<PaymentOp> | null}
+export type PaymentMultiPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly signedTransaction: String; readonly operations?: Array<PaymentOp> | null; readonly batchID: String}
 export type PaymentNotificationMsg = {readonly accountID: AccountID; readonly paymentID: PaymentID}
 export type PaymentOp = {readonly to?: Keybase1.UserVersion | null; readonly direct?: DirectOp | null; readonly relay?: RelayOp | null}
 export type PaymentOrErrorCLILocal = {readonly payment?: PaymentCLILocal | null; readonly err?: String | null}
@@ -436,7 +437,7 @@ export type PaymentOrErrorLocal = {readonly payment?: PaymentLocal | null; reado
 export type PaymentPath = {readonly sourceAmount: String; readonly sourceAmountMax: String; readonly sourceAsset: Asset; readonly path?: Array<Asset> | null; readonly destinationAmount: String; readonly destinationAsset: Asset; readonly sourceInsufficientBalance: String}
 export type PaymentPathLocal = {readonly sourceDisplay: String; readonly sourceMaxDisplay: String; readonly destinationDisplay: String; readonly exchangeRate: String; readonly amountError: String; readonly destinationAccount: AccountID; readonly fullPath: PaymentPath}
 export type PaymentPathQuery = {readonly source: AccountID; readonly destination: AccountID; readonly sourceAsset: Asset; readonly destinationAsset: Asset; readonly amount: String}
-export type PaymentRelayPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly toAssertion: String; readonly relayAccount: AccountID; readonly teamID: Keybase1.TeamID; readonly displayAmount: String; readonly displayCurrency: String; readonly boxB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null}
+export type PaymentRelayPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly toAssertion: String; readonly relayAccount: AccountID; readonly teamID: Keybase1.TeamID; readonly displayAmount: String; readonly displayCurrency: String; readonly boxB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null; readonly batchID: String}
 export type PaymentResult = {readonly senderAccountID: AccountID; readonly keybaseID: KeybaseTransactionID; readonly stellarID: TransactionID; readonly pending: Boolean}
 export type PaymentStatusMsg = {readonly accountID: AccountID; readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
 export type PaymentSummary = {typ: PaymentSummaryType.stellar; stellar: PaymentSummaryStellar | null} | {typ: PaymentSummaryType.direct; direct: PaymentSummaryDirect | null} | {typ: PaymentSummaryType.relay; relay: PaymentSummaryRelay | null} | {typ: PaymentSummaryType.none}
@@ -547,6 +548,8 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
+// 'stellar.1.local.assetDepositLocal'
+// 'stellar.1.local.assetWithdrawLocal'
 // 'stellar.1.local.balancesLocal'
 // 'stellar.1.local.sendCLILocal'
 // 'stellar.1.local.sendPathCLILocal'

@@ -454,6 +454,21 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
+    println "Running golangci-lint"
+    dir("..") {
+      retry(5) {
+        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
+      }
+    }
+    dir('kbfs') {
+      retry(5) {
+        timeout(activity: true, time: 180, unit: 'SECONDS') {
+        // Ignore the `dokan` directory since it contains lots of c code.
+        sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+        }
+      }
+    }
+
     if (isUnix()) {
       // Windows `gofmt` pukes on CRLF, so only run on *nix.
       println "Running mockgen"

@@ -59,6 +59,10 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },
@@ -115,6 +119,10 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },
@@ -256,6 +264,10 @@
             "items": "PaymentOp"
           },
           "name": "operations"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },

@@ -448,7 +448,9 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	p = "ui.importContacts"
 	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
 	if err != nil {
-		errs = append(errs, err)
+		if !isJSONNoSuchKeyError(err) {
+			errs = append(errs, err)
+		}
 	} else {
 		syncSettings, ok := syncSettings.(map[string]interface{})
 		if !ok {
@@ -479,7 +481,7 @@ func (g *GlobalContext) ConfigureGUIConfig() error {
 			// old GUI config values from the main config file best-effort.
 			serviceConfig := g.Env.GetConfig()
 			if migrateErr := migrateGUIConfig(serviceConfig, guiConfig); migrateErr != nil {
-				g.Log.Warning("Failed to migrate config to new GUI config file: %s", migrateErr)
+				g.Log.Debug("Failed to migrate config to new GUI config file: %s", migrateErr)
 			}
 
 		}

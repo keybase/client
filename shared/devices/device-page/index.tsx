@@ -85,6 +85,11 @@ const Timeline = ({device}) => {
 
 const DevicePage = (props: Props) => {
   const device = Container.useSelector(state => Constants.getDevice(state, props.id))
+  const canRevoke = Container.useSelector(state => {
+    const {numActive} = Constants.getDeviceCounts(state)
+    const hasRandomPW = state.settings.password.randomPW
+    return numActive > 1 || !hasRandomPW
+  })
   const dispatch = Container.useDispatch()
   const showRevokeDevicePage = React.useCallback(
     () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),
@@ -128,8 +133,14 @@ const DevicePage = (props: Props) => {
       <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={device} />
       {!device.revokedAt && (
-        <Kb.Button type="Danger" label={`Revoke this ${revokeName}`} onClick={showRevokeDevicePage} />
+        <Kb.Button
+          disabled={!canRevoke}
+          type="Danger"
+          label={`Revoke this ${revokeName}`}
+          onClick={showRevokeDevicePage}
+        />
       )}
+      {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
     </Kb.Box2>
   )
 }

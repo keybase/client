@@ -2,14 +2,13 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
 import * as Container from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
 import * as LoginGen from '../../actions/login-gen'
 import HiddenString from '../../util/hidden-string'
 
 type OwnProps = {
   deviceName: string
   onChange: (text: string) => void
-} & RouteProps
+}
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _existingDevices: state.provision.existingDevices,
@@ -27,7 +26,7 @@ export default Container.compose(
     {deviceName: ''},
     {onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)})}
   ),
-    Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
+  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
     const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
     const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
     const loggedInAccounts = stateProps.configuredAccounts

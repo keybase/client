@@ -9,32 +9,32 @@ type OwnProps = Container.RouteProps<{
   email: string
 }>
 
-const mapStateToProps = (_, ownProps) => ({
-  member: Container.getRouteProps(ownProps, 'username') || Container.getRouteProps(ownProps, 'email'),
-  name: Container.getRouteProps(ownProps, 'teamname'),
-})
+export default Container.connect(
+  (_, ownProps: OwnProps) => ({
+    member:
+      Container.getRouteProps(ownProps, 'username', '') || Container.getRouteProps(ownProps, 'email', ''),
+    name: Container.getRouteProps(ownProps, 'teamname', ''),
+  }),
+  (dispatch, ownProps: OwnProps) => {
+    const teamname = Container.getRouteProps(ownProps, 'teamname', '')
+    const email = Container.getRouteProps(ownProps, 'email', '')
+    const username = Container.getRouteProps(ownProps, 'username', '')
+    return {
+      onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onRemove: () => {
+        dispatch(
+          TeamsGen.createRemoveMemberOrPendingInvite({
+            email: email,
+            inviteID: '',
+            teamname,
+            username,
+          })
+        )
+        dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
+        dispatch(TeamsGen.createGetDetails({teamname}))
+      },
+    }
+  },
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname')
-  const email = Container.getRouteProps(ownProps, 'email')
-  const username = Container.getRouteProps(ownProps, 'username')
-  return {
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onRemove: () => {
-      dispatch(
-        TeamsGen.createRemoveMemberOrPendingInvite({
-          email: email,
-          inviteID: '',
-          teamname,
-          username,
-        })
-      )
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
-      dispatch(TeamsGen.createGetDetails({teamname}))
-    },
-  }
-}
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}))(
-  ReallyLeaveTeam
-)
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+)(ReallyLeaveTeam)

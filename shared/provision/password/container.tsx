@@ -4,15 +4,14 @@ import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
 import Password from '.'
 import * as React from 'react'
-import {connect} from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
+import * as Container from '../../util/container'
 import * as WaitingConstants from '../../constants/waiting'
 
 type OwnProps = {
   prompt: string
   username?: string
   waitingForResponse: boolean
-} & RouteProps
+}
 
 type State = {
   showTyping: boolean
@@ -77,8 +76,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(_Password)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...o,
+  ...s,
+  ...d,
+}))(_Password)

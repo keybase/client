@@ -187,7 +187,7 @@ func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *ke
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
-	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
 
 	var data *keybase1.HiddenTeamChain
 	data, err = l.updatePrecheck(mctx, update)
@@ -379,7 +379,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
 	// BOTs are excluded since they do not have any seed access
-	if l.newData == nil || l.role.IsBot() {
+	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil
 	}
 	for _, update := range l.newData.Inner {
@@ -417,7 +417,7 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 // the PTK at the given generation. Whether in the preloaded data or the update.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
 	// BOTs are excluded since they do not have any PTK access
-	if l.data == nil || l.role.IsBot() {
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return false
 	}
 	_, ok := l.data.ReaderPerTeamKeys[gen]
@@ -427,8 +427,10 @@ func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyG
 // Commit the update from the server to main HiddenTeamChain storage.
 func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	if l.newData == nil {
+		mctx.Debug("LoaderPackage#Commit: nil newData")
 		return nil
 	}
+	mctx.Debug("LoaderPackage#Commit: %s", l.newData.Summary())
 	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData, l.expectedPrev)
 	return err
 }
@@ -442,7 +444,7 @@ func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
 // data.
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
 	// BOTs are excluded since they do not have any PTK access
-	if l.data == nil || l.role.IsBot() {
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()

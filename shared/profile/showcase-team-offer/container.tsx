@@ -8,9 +8,9 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {HeaderOrPopup} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   return {
     _teamNameToAllowPromote: state.teams.getIn(['teamNameToAllowPromote'], I.Map()),
     _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
@@ -25,7 +25,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
@@ -45,24 +45,22 @@ const mapDispatchToProps = dispatch => ({
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    customCancelText: 'Close',
-    onCancel: () => dispatchProps.onCancel(stateProps._you),
-    teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
-    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
-    teamNameToRole: stateProps._teamNameToRole.toObject(),
-    teammembercounts: stateProps._teammembercounts.toObject(),
-    title: 'Publish your teams',
-    waiting: stateProps._waiting.toObject(),
-  }
-}
-
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
+    return {
+      ...stateProps,
+      ...dispatchProps,
+      customCancelText: 'Close',
+      onCancel: () => dispatchProps.onCancel(stateProps._you),
+      teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
+      teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
+      teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
+      teamNameToRole: stateProps._teamNameToRole.toObject(),
+      teammembercounts: stateProps._teammembercounts.toObject(),
+      title: 'Publish your teams',
+      waiting: stateProps._waiting.toObject(),
+    }
+  }),
   Container.lifecycle({
     componentDidMount() {
       this.props.loadTeams()

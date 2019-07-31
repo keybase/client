@@ -95,6 +95,20 @@ func (rh *RPCHandler) waitForJournal(
 	return nil
 }
 
+func (rh *RPCHandler) doShutdown(
+	ctx context.Context, gitConfig libkbfs.Config, tempDir string) {
+	shutdownErr := gitConfig.Shutdown(ctx)
+	if shutdownErr != nil {
+		rh.log.CDebugf(
+			ctx, "Error shutting down git: %+v\n", shutdownErr)
+	}
+	rmErr := os.RemoveAll(tempDir)
+	if rmErr != nil {
+		rh.log.CDebugf(
+			ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+	}
+}
+
 func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.FolderHandle) (
 	newCtx context.Context, gitConfigRet libkbfs.Config,
@@ -106,12 +120,7 @@ func (rh *RPCHandler) getHandleAndConfig(
 	}
 	defer func() {
 		if err != nil {
-			gitConfig.Shutdown(ctx)
-			rmErr := os.RemoveAll(tempDir)
-			if rmErr != nil {
-				rh.log.CDebugf(
-					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-			}
+			rh.doShutdown(ctx, gitConfig, tempDir)
 		}
 	}()
 
@@ -145,14 +154,7 @@ func (rh *RPCHandler) CreateRepo(
 	if err != nil {
 		return "", err
 	}
-	defer func() {
-		rmErr := os.RemoveAll(tempDir)
-		if rmErr != nil {
-			rh.log.CDebugf(
-				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-		}
-	}()
-	defer gitConfig.Shutdown(ctx)
+	defer rh.doShutdown(ctx, gitConfig, tempDir)
 
 	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
 	gitID, err := CreateRepoAndID(ctx, gitConfig, tlfHandle, string(arg.Name))
@@ -179,18 +181,13 @@ func (rh *RPCHandler) scheduleCleaning(folder keybase1.FolderHandle) {
 		ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
 			ctx, folder)
 		if err != nil {
-			log.CDebugf(nil, "Couldn't init for scheduled cleaning of %s: %+v",
+			log.CDebugf(
+				context.TODO(),
+				"Couldn't init for scheduled cleaning of %s: %+v",
 				folder.Name, err)
 			return
 		}
-		defer func() {
-			rmErr := os.RemoveAll(tempDir)
-			if rmErr != nil {
-				rh.log.CDebugf(
-					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-			}
-		}()
-		defer gitConfig.Shutdown(ctx)
+		defer rh.doShutdown(ctx, gitConfig, tempDir)
 
 		log.CDebugf(ctx, "Starting a scheduled repo clean for folder %s",
 			tlfHandle.GetCanonicalPath())
@@ -226,14 +223,7 @@ func (rh *RPCHandler) DeleteRepo(
 	if err != nil {
 		return err
 	}
-	defer func() {
-		rmErr := os.RemoveAll(tempDir)
-		if rmErr != nil {
-			rh.log.CDebugf(
-				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-		}
-	}()
-	defer gitConfig.Shutdown(ctx)
+	defer rh.doShutdown(ctx, gitConfig, tempDir)
 
 	err = DeleteRepo(ctx, gitConfig, tlfHandle, string(arg.Name))
 	if err != nil {
@@ -265,14 +255,7 @@ func (rh *RPCHandler) Gc(
 	if err != nil {
 		return err
 	}
-	defer func() {
-		rmErr := os.RemoveAll(tempDir)
-		if rmErr != nil {
-			rh.log.CDebugf(
-				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-		}
-	}()
-	defer gitConfig.Shutdown(ctx)
+	defer rh.doShutdown(ctx, gitConfig, tempDir)
 
 	gco := GCOptions{
 		MaxLooseRefs:         arg.Options.MaxLooseRefs,
@@ -305,14 +288,7 @@ func (rh *RPCHandler) RenameRepo(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	defer func() {
-		rmErr := os.RemoveAll(tempDir)
-		if rmErr != nil {
-			rh.log.CDebugf(
-				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-		}
-	}()
-	defer gitConfig.Shutdown(ctx)
+	defer rh.doShutdown(ctx, gitConfig, tempDir)
 
 	err = RenameRepo(ctx, gitConfig, tlfHandle, oldName, newName)
 	if err != nil {

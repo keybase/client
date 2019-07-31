@@ -346,18 +346,33 @@ func (u *unvalidatedURI) validateTx(getter HTTPGetter) (*ValidatedStellarURI, er
 		return nil, err
 	}
 
-	validated := u.newValidated("tx")
-	validated.XDR = xdrEncoded
-
 	// this isn't in the spec (as of May 2019), but the tx parameter
 	// is actually a TransactionEnvelope.
-	var txEnv xdr.TransactionEnvelope
-	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &txEnv); err != nil {
+	var unvalidatedTxEnv xdr.TransactionEnvelope
+	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &unvalidatedTxEnv); err != nil {
 		return nil, ErrInvalidParameter{Key: "xdr"}
 	}
-	validated.TxEnv = &txEnv
+
+	validatedTxEnv, err := validateTxEnv(unvalidatedTxEnv)
+	if err != nil {
+		return nil, err
+	}
+	validated := u.newValidated("tx")
+	validated.XDR = xdrEncoded
+	validated.TxEnv = &validatedTxEnv
 
 	return validated, nil
+}
+
+func validateTxEnv(txEnv xdr.TransactionEnvelope) (validated xdr.TransactionEnvelope, err error) {
+	var emptyTxEnv xdr.TransactionEnvelope
+	var emptySourceAccount xdr.AccountId
+	for _, op := range txEnv.Tx.Operations {
+		if op.SourceAccount != nil && *op.SourceAccount == emptySourceAccount {
+			return emptyTxEnv, ErrInvalidParameter{Key: "SourceAccount"}
+		}
+	}
+	return txEnv, nil
 }
 
 // newValidated returns a new ValidatedStellarURI with the common

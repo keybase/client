@@ -51,5 +51,5 @@ const ProxySettings = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(HeaderHoc(ProxySettingsComponent))
+)(ProxySettingsComponent)
 export {ProxySettings}

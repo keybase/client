@@ -264,7 +264,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
+	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0)
 
 	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
 		context.Background(), keys, false)

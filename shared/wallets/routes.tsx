@@ -15,7 +15,7 @@ import {
 } from './wallet/settings/popups'
 import Receive from './receive-modal/container'
 import Sep7Confirm from './sep7-confirm/container'
-import Sep7ConfirmError from './sep7-confirm/error'
+import KeybaseLinkError from '../deeplinks/error'
 import Trustline from './trustline/container'
 import WalletOnboarding from './onboarding/container'
 import WhatIsStellarModal from './what-is-stellar-modal'
@@ -25,16 +25,12 @@ import TransactionDetails from './transaction-details/container'
 import Wallet from './wallet/container'
 
 const sharedRoutes = {
-  airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default, upgraded: true},
+  airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
   // TODO connect broken
-  settings: {
-    getScreen: (): typeof Settings => require('./wallet/settings/container').default,
-    upgraded: true,
-  },
+  settings: {getScreen: (): typeof Settings => require('./wallet/settings/container').default},
   // TODO connect broken
   transactionDetails: {
     getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
-    upgraded: true,
   },
 }
 
@@ -42,7 +38,7 @@ const walletsSubRoutes = isMobile
   ? {}
   : {
       ...sharedRoutes,
-      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default, upgraded: true},
+      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
     }
 
 class WalletsSubNav extends React.PureComponent<any> {
@@ -93,63 +89,38 @@ export const newRoutes = {
         return WalletsSubNavigator
       }
     },
-    upgraded: true,
   },
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  airdropQualify: {
-    getScreen: (): typeof AirdropQualify => require('./airdrop/qualify/container').default,
-    upgraded: true,
-  },
-  createNewAccount: {
-    getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
-    upgraded: true,
-  },
-  linkExisting: {
-    getScreen: (): typeof LinkExisting => require('./link-existing/container').default,
-    upgraded: true,
-  },
+  airdropQualify: {getScreen: (): typeof AirdropQualify => require('./airdrop/qualify/container').default},
+  createNewAccount: {getScreen: (): typeof CreateNewAccount => require('./create-account/container').default},
+  keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
+  linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,
-    upgraded: true,
   },
-  receive: {getScreen: (): typeof Receive => require('./receive-modal/container').default, upgraded: true},
+  receive: {getScreen: (): typeof Receive => require('./receive-modal/container').default},
   removeAccount: {
     getScreen: (): typeof RemoveAccountPopup => require('./wallet/settings/popups').RemoveAccountPopup,
-    upgraded: true,
   },
   renameAccount: {
     getScreen: (): typeof RenameAccountPopup => require('./wallet/settings/popups').RenameAccountPopup,
-    upgraded: true,
   },
-  sep7Confirm: {
-    getScreen: (): typeof Sep7Confirm => require('./sep7-confirm/container').default,
-    upgraded: true,
-  },
-  sep7ConfirmError: {
-    getScreen: (): typeof Sep7ConfirmError => require('./sep7-confirm/error').default,
-    upgraded: true,
-  },
+  sep7Confirm: {getScreen: (): typeof Sep7Confirm => require('./sep7-confirm/container').default},
   setDefaultAccount: {
     getScreen: (): typeof SetDefaultAccountPopup =>
       require('./wallet/settings/popups').SetDefaultAccountPopup,
-    upgraded: true,
   },
   setInflation: {
     getScreen: (): typeof InflationDestination => require('./wallet/settings/popups').InflationDestination,
-    upgraded: true,
   },
-  trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default, upgraded: true},
-  walletOnboarding: {
-    getScreen: (): typeof WalletOnboarding => require('./onboarding/container').default,
-    upgraded: true,
-  },
+  trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default},
+  walletOnboarding: {getScreen: (): typeof WalletOnboarding => require('./onboarding/container').default},
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
-    upgraded: true,
   },
 }

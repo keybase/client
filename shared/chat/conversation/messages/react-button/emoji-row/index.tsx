@@ -60,27 +60,29 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
         </Kb.Box2>
-        {!!this.props.onReply && (
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Divider style={styles.divider} vertical={true} />
-            <Kb.WithTooltip text="React">
+        <Kb.Box2 direction="horizontal">
+          <Kb.Divider style={styles.divider} vertical={true} />
+          <Kb.WithTooltip text="React">
+            <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
               <Kb.Icon
-                hoverColor={Styles.globalColors.blue}
-                onClick={this._showPicker}
+                className="hover_contained_color_blue"
                 style={Kb.iconCastPlatformStyles(styles.icon)}
                 type="iconfont-reacji"
               />
-            </Kb.WithTooltip>
+            </Kb.Box>
+          </Kb.WithTooltip>
+          {!!this.props.onReply && (
             <Kb.WithTooltip text="Reply">
-              <Kb.Icon
-                hoverColor={Styles.globalColors.blue}
-                onClick={this.props.onReply}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                type="iconfont-reply"
-              />
+              <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
+                <Kb.Icon
+                  className="hover_contained_color_blue"
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-reply"
+                />
+              </Kb.Box>
             </Kb.WithTooltip>
-          </Kb.Box2>
-        )}
+          )}
+        </Kb.Box2>
         {this.state.showingPicker && (
           <Kb.FloatingBox
             attachTo={this._getAttachmentRef}
@@ -107,8 +109,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   divider: {
+    marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.xsmall,
     marginRight: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -122,6 +126,14 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
+  iconContainer: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+    },
+  }),
   pickerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,

@@ -102,10 +102,10 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region?: string) => {
+export const validateNumber = (rawNumber: string, region?: string | null) => {
   try {
-    const number = phoneUtil.parse(rawNumber, region)
-    const valid = phoneUtil.isValidNumberForRegion(number, region)
+    const number = phoneUtil.parse(rawNumber, region || '')
+    const valid = phoneUtil.isValidNumber(number)
     return {
       e164: phoneUtil.format(number, PNF.E164),
       valid,
@@ -116,16 +116,18 @@ export const validateNumber = (rawNumber: string, region?: string) => {
 }
 
 export const formatPhoneNumber = (rawNumber: string) => {
-  // TODO: support non-US numbers
-  const number = phoneUtil.parse(rawNumber, 'US')
+  const number = phoneUtil.parse(rawNumber, '')
   return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
 }
 
-// Return phone number in international format, e.g. +1 (800) 555 0123
+// Return phone number in international format, e.g. +1 800 555 0123
 // or e.164 if parsing fails
 export const e164ToDisplay = (e164: string): string => {
   try {
     const number = phoneUtil.parse(e164)
+    if (number.getCountryCode() === 1) {
+      return '+1 ' + phoneUtil.format(number, PNF.NATIONAL)
+    }
     return phoneUtil.format(number, PNF.INTERNATIONAL)
   } catch (e) {
     return e164

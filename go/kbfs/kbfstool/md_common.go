@@ -17,7 +17,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-var mdInputRegexp = regexp.MustCompile("^(.+?)(?::(.*?))?(?:\\^(.*?)(?:-(.*?))?)?$")
+var mdInputRegexp = regexp.MustCompile(
+	`^(.+?)(?::(.*?))?(?:\^(.*?)(?:-(.*?))?)?$`)
 
 func mdSplitInput(input string) (
 	tlfStr, branchStr, startStr, stopStr string, err error) {

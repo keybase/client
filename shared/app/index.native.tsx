@@ -1,4 +1,5 @@
 import * as ConfigGen from '../actions/config-gen'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
 import Main from './main.native'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
@@ -47,7 +48,7 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
-    store && store.dispatch(ConfigGen.createLink({link: event.url}))
+    store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
   }
 
   _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {

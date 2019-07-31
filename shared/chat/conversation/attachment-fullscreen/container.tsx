@@ -5,14 +5,13 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import * as Container from '../../../util/container'
-import {RouteProps} from '../../../route-tree/render-route'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = RouteProps
+type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState, _: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState) => {
   const selection = state.chat2.attachmentFullscreenSelection
   const message = selection ? selection.message : blankMessage
   return {

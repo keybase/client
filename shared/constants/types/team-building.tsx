@@ -1,18 +1,11 @@
 import * as I from 'immutable'
 import {TeamRoleType} from './teams'
+import {ServiceId} from '../../util/platforms'
 
 export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-export type ServiceIdWithContact =
-  | 'keybase'
-  | 'contact'
-  | 'twitter'
-  | 'facebook'
-  | 'github'
-  | 'reddit'
-  | 'hackernews'
-  | 'pgp'
+export type ServiceIdWithContact = ServiceId | 'contact'
 
 export type SearchString = string
 type UsernameOnService = string
@@ -24,6 +17,7 @@ export type User = {
   id: UserID
   prettyName: string
   label?: string
+  contact?: boolean // not a keybase user, a phone / email from our contacts
 }
 
 // Treating this as a tuple

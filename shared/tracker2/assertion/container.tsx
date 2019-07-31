@@ -75,7 +75,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-  _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
+  _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
   _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
   _onRevokeProof: (type: string, value: string, id: string, icon: Types.SiteIconSet) =>
     dispatch(

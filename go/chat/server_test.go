@@ -3755,8 +3755,17 @@ func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
 			Query: &chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{conv.Id},
 			},
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
+	require.Error(t, err)
+	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case <-listener0.threadsStale:
+	case <-time.After(timeout):
+		require.Fail(t, "no inbox stale")
+	}
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{})
 	require.Error(t, err)
 	require.Equal(t, errGetInboxNonblockFailingUI, err)
 	tc.Context().FetchRetrier.Force(ctx)

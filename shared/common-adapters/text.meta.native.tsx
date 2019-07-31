@@ -14,7 +14,9 @@ function defaultColor(backgroundMode: Background | null) {
   }[backgroundMode || 'Normal']
 }
 
-function lineClamp(lines: number | null, mode: string | null): Object {
+// need to be `undefined` instead of `null` since `null` doesn't ellipsize at
+// all.
+function lineClamp(lines: number | undefined, mode: string | undefined): Object {
   return {
     ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }

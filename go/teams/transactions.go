@@ -368,7 +368,8 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
-	case keybase1.TeamRole_BOT,
+	case keybase1.TeamRole_RESTRICTEDBOT,
+		keybase1.TeamRole_BOT,
 		keybase1.TeamRole_READER,
 		keybase1.TeamRole_WRITER,
 		keybase1.TeamRole_ADMIN,
@@ -724,7 +725,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		// Only add a ratchet to the first link in the sequence, it doesn't make sense
 		// to add more than one, and it may as well be the first.
 		if ratchet == nil {
-			ratchet, err = hidden.MakeRatchet(mctx, team.ID)
+			ratchet, err = team.makeRatchet(mctx.Ctx())
 			if err != nil {
 				return err
 			}
@@ -893,7 +894,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
-	createTeambotKeys(team.G(), team.ID, memSet.botRecipientUids())
+	createTeambotKeys(team.G(), team.ID, memSet.restrictedBotRecipientUids())
 
 	return nil
 }

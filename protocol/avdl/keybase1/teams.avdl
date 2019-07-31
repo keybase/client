@@ -8,7 +8,8 @@ protocol teams {
     WRITER_2,
     ADMIN_3,
     OWNER_4,
-    BOT_5
+    BOT_5,
+    RESTRICTEDBOT_6
   }
 
   // Note: If you add to this list, take heed.
@@ -136,6 +137,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> bots;
+    array<UserVersion> restrictedBots;
   }
 
   enum TeamMemberStatus {
@@ -159,6 +161,7 @@ protocol teams {
     array<TeamMemberDetails> writers;
     array<TeamMemberDetails> readers;
     array<TeamMemberDetails> bots;
+    array<TeamMemberDetails> restrictedBots;
   }
 
   record TeamDetails {
@@ -178,6 +181,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> bots;
+    array<UserVersion> restrictedBots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
@@ -191,7 +195,7 @@ protocol teams {
 
     array<UserVersion> writers;
     array<UserVersion> onlyReaders;
-    array<UserVersion> onlyBots;
+    array<UserVersion> onlyRestrictedBots;
 
     array<TeamApplicationKey> applicationKeys;
   }
@@ -354,6 +358,13 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // The loader might need to pass data back to the box auditor that at the time of the
+    // load, the hidden chain needed a rotation; this is the way todo it.
+    boolean needRotate;
+
+    // Merkle roots at each seqno
+    map<Seqno, MerkleRootV2> merkleRoots;
   }
 
   record LinkTriple {
@@ -499,6 +510,10 @@ protocol teams {
     map<Seqno,Probe> postProbes;
     // For each chain tail we audit, write down the corresponding linkID
     map<Seqno,LinkID> tails;
+
+    // If we just created this team, and it's implicit, then we can skip the audit
+    // for a while (as dictated by the rootFreshness of the Audit Parameters).
+    Time skipUntil;
   }
 
   enum TeamInviteCategory {
@@ -637,6 +652,9 @@ protocol teams {
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;
+
+    // restricted-bot configurations
+    map<UserVersion, TeamBotSettings> bots;
 
     // The list of TLF ID that have been associated with this team in time ascending order.
     array<TLFID> tlfIDs;
@@ -925,6 +943,7 @@ protocol teams {
     boolean forceRepoll;               // Force a sync with merkle.
     boolean staleOK;                   // If a very stale cache hit is OK.
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
+    boolean skipAudit;                 // don't run the stochastic team audit
   }
 
   record FastTeamLoadArg {
@@ -1057,6 +1076,14 @@ protocol teams {
   record TeamSettings {
     boolean open;
     TeamRole joinAs;
+  }
+
+  record TeamBotSettings {
+    boolean cmds;
+    boolean mentions;
+    array<string> triggers;
+    // chat1.ConversationID
+    array<string> convs;
   }
 
   record TeamRequestAccessResult {

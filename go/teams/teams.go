@@ -78,7 +78,7 @@ func (t *Team) CanSkipKeyRotation() bool {
 	}
 
 	// If cannot decide because of an error, return default false.
-	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
+	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_BOT)
 	if err != nil {
 		return false
 	}
@@ -295,26 +295,36 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Owners = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Admins = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_WRITER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Writers = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_READER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+
 	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Bots = x
+
+	x, err = t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.RestrictedBots = x
 
 	return members, nil
 }
@@ -484,6 +494,22 @@ func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t, application, generation)
 }
 
+func (t *Team) TeamBotSettings() (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	botSettings := t.chain().TeamBotSettings()
+	// It's possible that we added a RESTRICTEDBOT member without posting any
+	// settings for them. Fill in default values (no access) for those members
+	restrictedBots, err := t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
+	if err != nil {
+		return nil, err
+	}
+	for _, uv := range restrictedBots {
+		if _, ok := botSettings[uv]; !ok {
+			botSettings[uv] = keybase1.TeamBotSettings{}
+		}
+	}
+	return botSettings, nil
+}
+
 func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
 	if boxes == nil {
 		return nil
@@ -576,7 +602,7 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	}
 
 	t.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
-	createTeambotKeys(t.G(), t.ID, memSet.botRecipientUids())
+	createTeambotKeys(t.G(), t.ID, memSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -827,7 +853,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	for uv := range memberSet.recipients {
 		recipients = append(recipients, uv)
 	}
-	for uv := range memberSet.botRecipients {
+	for uv := range memberSet.restrictedBotRecipients {
 		botRecipients = append(botRecipients, uv)
 	}
 	newMemSet := newMemberSet()
@@ -835,7 +861,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	if err != nil {
 		return err
 	}
-	_, err = newMemSet.loadGroup(ctx, t.G(), botRecipients, storeMemberKindBotRecipient, true)
+	_, err = newMemSet.loadGroup(ctx, t.G(), botRecipients, storeMemberKindRestrictedBotRecipient, true)
 	if err != nil {
 		return err
 	}
@@ -850,7 +876,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 
 	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 	t.storeTeamEKPayload(ctx, teamEKPayload)
-	createTeambotKeys(t.G(), t.ID, memberSet.botRecipientUids())
+	createTeambotKeys(t.G(), t.ID, memberSet.restrictedBotRecipientUids())
 
 	return nil
 }
@@ -885,7 +911,7 @@ func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, e
 }
 
 func (t *Team) makeRatchet(ctx context.Context) (ret *hidden.Ratchet, err error) {
-	return hidden.MakeRatchet(libkb.NewMetaContext(ctx, t.G()), t.ID)
+	return t.chain().makeHiddenRatchet(libkb.NewMetaContext(ctx, t.G()))
 }
 
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
@@ -1351,8 +1377,8 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_BOT:
-		return fmt.Errorf("bot role disallowed for invites")
+	case keybase1.TeamRole_RESTRICTEDBOT, keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot roles disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
 	case keybase1.TeamRole_WRITER:
@@ -1747,7 +1773,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing or bot members, so remove them from the set
+	// don't need keys for existing or restricted bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1769,7 +1795,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members except bots.
+	// rotate the team key for all current members except restricted bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err
@@ -2103,7 +2129,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		payloadArgs.secretBoxes = secretBoxes
 		payloadArgs.teamEKPayload = teamEKPayload
 		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
-		botMembers = memSet.botRecipientUids()
+		botMembers = memSet.restrictedBotRecipientUids()
 	}
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, mr, payloadArgs)
 	if err != nil {
@@ -2120,6 +2146,41 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	return nil
 }
 
+func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	admin, err := t.getAdminPermission(ctx)
+	if err != nil {
+		return err
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+
+	scBotSettings, err := CreateTeamBotSettings(bots)
+	if err != nil {
+		return err
+	}
+
+	section := SCTeamSection{
+		ID:          SCTeamID(t.ID),
+		Admin:       admin,
+		BotSettings: &scBotSettings,
+	}
+
+	var payloadArgs sigPayloadArgs
+	_, err = t.postChangeItem(ctx, section, libkb.LinkTypeTeamBotSettings, mr, payloadArgs)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.SigMultiItem) (err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -2132,36 +2193,46 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 // Retry it several times if it fails due to being behind the latest team sigchain state or due to other retryable errors.
 // Passes the attempt number (initially 0) to `post`.
 func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
-	defer g.CTraceTimed(ctx, "RetryIfPossible", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("RetryIfPossible", func() error { return err })()
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
-		err = post(ctx, i)
-		if isSigOldSeqnoError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError %d", i)
-			continue
+		mctx.Debug("| RetryIfPossible(%v)", i)
+		err = post(mctx.Ctx(), i)
+		switch {
+		case isSigOldSeqnoError(err):
+			mctx.Debug("| retrying due to SigOldSeqnoError %d", i)
+		case isStaleBoxError(err):
+			mctx.Debug("| retrying due to StaleBoxError %d", i)
+		case isSigBadTotalOrder(err):
+			mctx.Debug("| retrying since update would violate total ordering for team %d", i)
+		case isSigMissingRatchet(err):
+			mctx.Debug("| retrying since the server wanted a ratchet and we didn't provide one %d", i)
+		case isHiddenAppendPrecheckError(err):
+			mctx.Debug("| retrying since we hit a hidden append precheck error")
+		default:
+			return err
 		}
-		if isStaleBoxError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError %d", i)
-			continue
-		}
-		if isSigBadTotalOrder(err) {
-			g.Log.CDebugf(ctx, "| retrying since update would violate total ordering for team %d", i)
-			continue
-		}
-		if isSigMissingRatchet(err) {
-			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
-			continue
-		}
-		return err
 	}
-	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
+	mctx.Debug("| RetryIfPossible exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
 	}
 	// Return the error from the final round
 	return err
+}
+
+func isHiddenAppendPrecheckError(err error) bool {
+	perr, ok := err.(PrecheckAppendError)
+	if !ok {
+		return false
+	}
+	_, ok = perr.Inner.(hidden.LoaderError)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func isSigOldSeqnoError(err error) bool {

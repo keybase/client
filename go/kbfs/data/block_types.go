@@ -334,7 +334,7 @@ func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 		panic("IndirectPtr called on a direct directory block")
 	}
 	iptr := db.IPtrs[i]
-	off := StringOffset(iptr.Off)
+	off := iptr.Off
 	return iptr.BlockInfo, &off
 }
 
@@ -455,7 +455,7 @@ var _ BlockWithPtrs = (*FileBlock)(nil)
 // NewFileBlock creates a new, empty FileBlock.
 func NewFileBlock() Block {
 	return &FileBlock{
-		Contents: make([]byte, 0, 0),
+		Contents: make([]byte, 0),
 	}
 }
 

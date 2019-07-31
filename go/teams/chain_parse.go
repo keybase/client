@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams/hidden"
 )
@@ -45,15 +47,17 @@ type SCTeamSection struct {
 	KBFS             *SCTeamKBFS            `json:"kbfs,omitempty"`
 	BoxSummaryHash   *SCTeamBoxSummaryHash  `json:"box_summary_hash,omitempty"`
 	Ratchets         []hidden.SCTeamRatchet `json:"ratchets,omitempty"`
+	BotSettings      *[]SCTeamBot           `json:"bot_settings,omitempty"`
 }
 
 type SCTeamMembers struct {
-	Owners  *[]SCTeamMember `json:"owner,omitempty"`
-	Admins  *[]SCTeamMember `json:"admin,omitempty"`
-	Writers *[]SCTeamMember `json:"writer,omitempty"`
-	Readers *[]SCTeamMember `json:"reader,omitempty"`
-	Bots    *[]SCTeamMember `json:"bot,omitempty"`
-	None    *[]SCTeamMember `json:"none,omitempty"`
+	Owners         *[]SCTeamMember `json:"owner,omitempty"`
+	Admins         *[]SCTeamMember `json:"admin,omitempty"`
+	Writers        *[]SCTeamMember `json:"writer,omitempty"`
+	Readers        *[]SCTeamMember `json:"reader,omitempty"`
+	Bots           *[]SCTeamMember `json:"bot,omitempty"`
+	RestrictedBots *[]SCTeamMember `json:"restricted_bot,omitempty"`
+	None           *[]SCTeamMember `json:"none,omitempty"`
 }
 
 type SCTeamInvites struct {
@@ -122,6 +126,38 @@ type SCTeamKBFSLegacyUpgrade struct {
 	TeamGeneration   keybase1.PerTeamKeyGeneration        `json:"team_generation"`
 	LegacyGeneration int                                  `json:"legacy_generation"`
 	KeysetHash       keybase1.TeamEncryptedKBFSKeysetHash `json:"encrypted_keyset_hash"`
+}
+
+type SCTeamBotUV struct {
+	UID         keybase1.UID   `json:"uid"`
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
+}
+
+type SCTeamBot struct {
+	Bot SCTeamBotUV `json:"bot"`
+	// Should the bot be summoned for !-commands
+	Cmds bool `json:"cmds"`
+	// Should the bot be summoned for @-mentions
+	Mentions bool `json:"mentions"`
+	// Phrases that should trigger the bot to be keyed for content. Will be
+	// check as a valid regex.
+	Triggers *[]string `json:"triggers,omitempty"`
+	// Conversations the bot can participate in, `nil` indicates all
+	Convs *[]string `json:"convs,omitempty"`
+}
+
+func ToSCTeamBotUV(uv keybase1.UserVersion) SCTeamBotUV {
+	return SCTeamBotUV{
+		UID:         uv.Uid,
+		EldestSeqno: uv.EldestSeqno,
+	}
+}
+
+func (u SCTeamBotUV) ToUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{
+		Uid:         u.UID,
+		EldestSeqno: u.EldestSeqno,
+	}
 }
 
 func (i SCTeamInvites) Len() int {
@@ -320,6 +356,39 @@ func CreateTeamSettings(open bool, joinAs keybase1.TeamRole) (SCTeamSettings, er
 			},
 		},
 	}, nil
+}
+
+func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSettings) ([]SCTeamBot, error) {
+	var res []SCTeamBot
+	for bot, botSettings := range bots {
+		// Sanity check the triggers are valid
+		for _, trigger := range botSettings.Triggers {
+			if _, err := regexp.Compile(trigger); err != nil {
+				return nil, err
+			}
+		}
+		// Sanity check the conversation IDs are well formed
+		for _, convID := range botSettings.Convs {
+			if _, err := chat1.MakeConvID(convID); err != nil {
+				return nil, err
+			}
+		}
+		var convs, triggers *[]string
+		if len(botSettings.Triggers) > 0 {
+			triggers = &(botSettings.Triggers)
+		}
+		if len(botSettings.Convs) > 0 {
+			convs = &(botSettings.Convs)
+		}
+		res = append(res, SCTeamBot{
+			Bot:      ToSCTeamBotUV(bot),
+			Cmds:     botSettings.Cmds,
+			Mentions: botSettings.Mentions,
+			Triggers: triggers,
+			Convs:    convs,
+		})
+	}
+	return res, nil
 }
 
 func (n SCTeamName) LastPart() (string, error) {

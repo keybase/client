@@ -33,7 +33,7 @@ class Icon extends Component<Props, void> {
       return null
     }
 
-    if (!iconMeta[iconType]) {
+    if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
       throw new Error('Unknown icontype passed ' + iconType)
     }

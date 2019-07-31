@@ -67,7 +67,7 @@ const Avatar = ({
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
   } else if (resultForService === 'keybase' || resultForService === 'contact') {
-    return <Kb.Avatar size={AvatarSize} username={'invalid username for placeholder avatar'} />
+    return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
@@ -131,7 +131,9 @@ const Username = (props: {
           {props.username}
         </Kb.Text>
         {props.isPreExistingTeamMember ? (
-          <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {isPreExistingTeamMemberText(props.prettyName)}
+          </Kb.Text>
         ) : (
           <FormatPrettyName
             displayLabel={props.displayLabel}
@@ -147,8 +149,8 @@ const Username = (props: {
       </>
     ) : (
       <>
-        <Kb.Text type="BodySemibold"> {props.prettyName} </Kb.Text>
-        {props.displayLabel && props.displayLabel !== props.prettyName && (
+        <Kb.Text type="BodySemibold">{props.prettyName}</Kb.Text>
+        {!!props.displayLabel && props.displayLabel !== props.prettyName && (
           <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
         )}
       </>
@@ -185,6 +187,7 @@ const AlreadyAddedIconButton = () => (
 )
 
 const ActionButtonSize = 40
+export const userResultHeight = Styles.globalMargins.xlarge
 const styles = Styles.styleSheetCreate({
   actionButton: {
     height: ActionButtonSize,
@@ -206,10 +209,8 @@ const styles = Styles.styleSheetCreate({
     width: ActionButtonSize,
   },
   rowContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.tiny,
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    height: userResultHeight,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,

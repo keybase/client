@@ -67,8 +67,9 @@ export default function() {
   appState.manageWindow(mainWindow.window)
 
   const app = SafeElectron.getApp()
-  // Register for SEP7 links.
+  // Register for SEP7 and Keybase links.
   app.setAsDefaultProtocolClient('web+stellar')
+  app.setAsDefaultProtocolClient('keybase')
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows

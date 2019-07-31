@@ -30,7 +30,7 @@ type Extra struct {
 // given prefix.
 func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 	mac := hmac.New(sha256.New, []byte("fake extra key"))
-	mac.Write([]byte("fake extra buf"))
+	_, _ = mac.Write([]byte("fake extra buf"))
 	h := mac.Sum(nil)
 	return Extra{
 		Extra1: fakeEncryptedData{

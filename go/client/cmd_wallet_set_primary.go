@@ -48,7 +48,7 @@ func (c *cmdWalletSetPrimary) Run() (err error) {
 		AccountID: stellar1.AccountID(c.accountID),
 	}
 
-	if err := cli.SetWalletAccountAsDefaultLocal(context.Background(), arg); err != nil {
+	if _, err := cli.SetWalletAccountAsDefaultLocal(context.Background(), arg); err != nil {
 		return err
 	}
 

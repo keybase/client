@@ -13,7 +13,7 @@ type storeMemberKind int
 const (
 	storeMemberKindNone = iota
 	storeMemberKindRecipient
-	storeMemberKindBotRecipient
+	storeMemberKindRestrictedBotRecipient
 )
 
 type member struct {
@@ -24,22 +24,23 @@ type member struct {
 type MemberMap map[keybase1.UserVersion]keybase1.PerUserKey
 
 type memberSet struct {
-	Owners  []member
-	Admins  []member
-	Writers []member
-	Readers []member
-	Bots    []member
-	None    []member
+	Owners         []member
+	Admins         []member
+	Writers        []member
+	Readers        []member
+	Bots           []member
+	RestrictedBots []member
+	None           []member
 
 	// the per-user-keys of everyone in the lists above
-	recipients    MemberMap
-	botRecipients MemberMap
+	recipients              MemberMap
+	restrictedBotRecipients MemberMap
 }
 
 func newMemberSet() *memberSet {
 	return &memberSet{
-		recipients:    make(MemberMap),
-		botRecipients: make(MemberMap),
+		recipients:              make(MemberMap),
+		restrictedBotRecipients: make(MemberMap),
 	}
 }
 
@@ -77,9 +78,9 @@ func (m *memberSet) recipientUids() []keybase1.UID {
 	return uids
 }
 
-func (m *memberSet) botRecipientUids() []keybase1.UID {
-	uids := make([]keybase1.UID, 0, len(m.botRecipients))
-	for uv := range m.botRecipients {
+func (m *memberSet) restrictedBotRecipientUids() []keybase1.UID {
+	uids := make([]keybase1.UID, 0, len(m.restrictedBotRecipients))
+	for uv := range m.restrictedBotRecipients {
 		uids = append(uids, uv.Uid)
 	}
 	return uids
@@ -91,18 +92,20 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Writers = append(m.Writers, other.Writers...)
 	m.Readers = append(m.Readers, other.Readers...)
 	m.Bots = append(m.Bots, other.Bots...)
+	m.RestrictedBots = append(m.RestrictedBots, other.RestrictedBots...)
 	m.None = append(m.None, other.None...)
 
 	for k, v := range other.recipients {
 		m.recipients[k] = v
 	}
-	for k, v := range other.botRecipients {
-		m.botRecipients[k] = v
+	for k, v := range other.restrictedBotRecipients {
+		m.restrictedBotRecipients[k] = v
 	}
 }
 
 func (m *memberSet) nonAdmins() []member {
 	var ret []member
+	ret = append(ret, m.RestrictedBots...)
 	ret = append(ret, m.Bots...)
 	ret = append(ret, m.Readers...)
 	ret = append(ret, m.Writers...)
@@ -138,8 +141,13 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 	if err != nil {
 		return err
 	}
-	// bots are not recipients of of the PTK
-	m.Bots, err = m.loadGroup(ctx, g, req.Bots, storeMemberKindBotRecipient, forcePoll)
+	// regular bots do get the PTK, store them as a regular recipient
+	m.Bots, err = m.loadGroup(ctx, g, req.Bots, storeMemberKindRecipient, forcePoll)
+	if err != nil {
+		return err
+	}
+	// restricted bots are not recipients of of the PTK
+	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBots, storeMemberKindRestrictedBotRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
@@ -244,8 +252,8 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv k
 	switch storeMemberKind {
 	case storeMemberKindRecipient:
 		m.recipients[res.version] = res.perUserKey
-	case storeMemberKindBotRecipient:
-		m.botRecipients[res.version] = res.perUserKey
+	case storeMemberKindRestrictedBotRecipient:
+		m.restrictedBotRecipients[res.version] = res.perUserKey
 	}
 	return res, nil
 }
@@ -260,28 +268,28 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 			delete(m.recipients, k)
 		}
 	}
-	for k := range m.botRecipients {
+	for k := range m.restrictedBotRecipients {
 		if checker.IsMember(ctx, k) {
-			delete(m.botRecipients, k)
+			delete(m.restrictedBotRecipients, k)
 		}
 	}
 }
 
 // AddRemainingRecipients adds everyone in existing to m.recipients or
-// m.botRecipients that isn't in m.None.
+// m.restrictedBotRecipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
 
 	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
 
-	// make a map of the None and Bot members
+	// make a map of the None members
 	filtered := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
 		filtered[n.version] = true
 	}
 
-	existingBots := make(map[keybase1.UserVersion]bool)
-	for _, uv := range existing.Bots {
-		existingBots[uv] = true
+	existingRestrictedBots := make(map[keybase1.UserVersion]bool)
+	for _, uv := range existing.RestrictedBots {
+		existingRestrictedBots[uv] = true
 	}
 
 	auv := existing.AllUserVersions()
@@ -297,13 +305,13 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, ok := m.botRecipients[uv]; ok {
+		if _, ok := m.restrictedBotRecipients[uv]; ok {
 			continue
 		}
 
 		var storeMemberKind storeMemberKind
-		if _, ok := existingBots[uv]; ok {
-			storeMemberKind = storeMemberKindBotRecipient
+		if _, ok := existingRestrictedBots[uv]; ok {
+			storeMemberKind = storeMemberKindRestrictedBotRecipient
 		} else {
 			storeMemberKind = storeMemberKindRecipient
 		}
@@ -358,6 +366,10 @@ func (m *memberSet) Section() (res *SCTeamMembers, err error) {
 	if err != nil {
 		return nil, err
 	}
+	res.RestrictedBots, err = m.nameSeqList(m.RestrictedBots)
+	if err != nil {
+		return nil, err
+	}
 	res.None, err = m.nameSeqList(m.None)
 	if err != nil {
 		return nil, err
@@ -370,9 +382,9 @@ func (m *memberSet) HasRemoval() bool {
 }
 
 func (m *memberSet) HasAdditions() bool {
-	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.Bots)) > 0
+	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.Bots) + len(m.RestrictedBots)) > 0
 }
 
 func (m *memberSet) empty() bool {
-	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.Bots) == 0 && len(m.None) == 0
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.Bots) == 0 && len(m.RestrictedBots) == 0 && len(m.None) == 0
 }

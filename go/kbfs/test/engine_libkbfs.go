@@ -99,8 +99,11 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %s: %+v", name, err))
 			}
-			config.EnableJournaling(context.Background(), journalRoot,
+			err = config.EnableJournaling(context.Background(), journalRoot,
 				libkbfs.TLFJournalBackgroundWorkEnabled)
+			if err != nil {
+				panic(fmt.Sprintf("Couldn't enable journaling: %+v", err))
+			}
 			jManager, err := libkbfs.GetJournalManager(config)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %s: %+v", name, err))
@@ -183,7 +186,10 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	}
 
 	return ctx, func() {
-		libcontext.CleanupCancellationDelayer(ctx)
+		err := libcontext.CleanupCancellationDelayer(ctx)
+		if err != nil {
+			panic(err)
+		}
 		cancel()
 	}
 }

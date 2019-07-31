@@ -362,6 +362,13 @@
             "items": "string"
           },
           "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "restrictedBots"
         }
       ]
     },

@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
@@ -9,7 +8,6 @@ import View from './view-container'
 
 type NormalPreviewProps = {
   path: Types.Path
-  routePath: I.List<string>
 }
 
 type State = {
@@ -29,11 +27,7 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
           <Kbfs.Errs />
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
-            <View
-              path={this.props.path}
-              routePath={this.props.routePath}
-              onLoadingStateChange={this._onLoadingStateChange}
-            />
+            <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
             {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
           </Kb.Box2>
           <Footer />

@@ -116,9 +116,11 @@ export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
 export type _ContactsState = {
   importEnabled: boolean | null
+  importPromptDismissed: boolean
   importedCount: number | null
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+  userCountryCode: string | null
 }
 export type ContactsState = I.RecordOf<_ContactsState>
 
@@ -158,6 +160,7 @@ type ScreenprotectorTab = 'settingsTabs.screenprotector'
 type LogOutTab = 'settingsTabs.logOutTab'
 type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 type WalletsTab = 'settingsTabs.walletsTab'
+type ContactsTab = 'settingsTabs.contactsTab'
 
 export type Tab =
   | AccountTab
@@ -177,5 +180,6 @@ export type Tab =
   | PasswordTab
   | WalletsTab
   | ChatTab
+  | ContactsTab
 
 export type PlanLevel = string

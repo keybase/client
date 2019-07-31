@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
@@ -12,7 +11,8 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 type OwnProps = {
   index: number
 }
-type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps>
+type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps> &
+  Container.RouteProps<{index: number}>
 
 const mapStateToProps = (state: TypedState) => ({
   _destinationPicker: state.fs.destinationPicker,
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 type StateProps = ReturnType<typeof mapStateToProps>
 
-const getIndex = (ownProps: OwnPropsWithSafeNavigation) => ownProps.getParam('index') || 0
+const getIndex = (ownProps: OwnPropsWithSafeNavigation) => Container.getRouteProps(ownProps, 'index', 0)
 const getDestinationParentPath = (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation): Types.Path =>
   stateProps._destinationPicker.destinationParentPath.get(
     getIndex(ownProps),
@@ -35,23 +35,22 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
     Constants.makeActionsForDestinationPickerOpen(
       getIndex(ownProps) + 1,
       Types.getPathParent(currentPath),
-      ownProps.navigateAppend
+      ownProps.safeNavigateAppendPayload
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(ownProps.navigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]}))
+    dispatch(
+      ownProps.safeNavigateAppendPayload({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
+    )
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
@@ -76,7 +75,7 @@ const canCopy = memoize((stateProps: StateProps, ownProps: OwnPropsWithSafeNavig
     const source: Types.MoveOrCopySource = stateProps._destinationPicker.source
     return getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(source.path)
   }
-    return undefined
+  return undefined
 })
 
 const canMove = memoize(
@@ -118,7 +117,6 @@ const mergeProps = (
       ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
       : null,
     parentPath: getDestinationParentPath(stateProps, ownProps),
-    routePath: I.List(), // ownProps.routePath,
     targetName,
   }
 }

@@ -8,6 +8,11 @@ const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; la
     icon: 'iconfont-identity-twitter',
     label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
   },
+  email: {
+    color: '#000',
+    icon: 'iconfont-mention',
+    label: 'Email', // TODO: rethink this for the empty state when we're actually using it
+  },
   facebook: {
     color: '#3B5998',
     icon: 'iconfont-identity-facebook',
@@ -25,8 +30,8 @@ const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; la
   },
   keybase: {
     color: '#4C8EFF',
-    icon: 'iconfont-keybase',
-    label: 'Keybase',
+    icon: 'iconfont-contact-book',
+    label: 'Keybase and contacts',
   },
   pgp: {
     color: '#000',

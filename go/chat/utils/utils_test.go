@@ -407,3 +407,118 @@ func TestAddUserToTlfName(t *testing.T) {
 	s = AddUserToTLFName(g, "alice,bob", pub, mem)
 	require.Equal(t, "alice,bob", s)
 }
+
+func TestPresentConversationParticipantsLocal(t *testing.T) {
+	tofurkeyhq := "Tofurkey HQ"
+	tofurus := "Tofu-R-Us"
+	danny := "Danny"
+	rawParticipants := []chat1.ConversationLocalParticipant{
+		chat1.ConversationLocalParticipant{
+			Username:    "[tofurkey@example.com]@email",
+			ContactName: &tofurkeyhq,
+		},
+		chat1.ConversationLocalParticipant{
+			Username:    "18005558638@phone",
+			ContactName: &tofurus,
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "ayoubd",
+			Fullname: &danny,
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "example@twitter",
+		},
+	}
+	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
+
+	require.Equal(t, res[0].ContactName, &tofurkeyhq)
+	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)
+
+	require.Equal(t, res[1].ContactName, &tofurus)
+	require.Equal(t, res[1].Type, chat1.UIParticipantType_PHONENO)
+
+	require.Equal(t, res[2].Assertion, "ayoubd")
+	require.Equal(t, res[2].FullName, &danny)
+	require.Equal(t, res[2].Type, chat1.UIParticipantType_USER)
+
+	require.Equal(t, res[3].Assertion, "example@twitter")
+	require.Equal(t, res[3].Type, chat1.UIParticipantType_USER)
+}
+
+type contactStoreMock struct {
+	contacts []keybase1.ProcessedContact
+}
+
+func (c *contactStoreMock) SaveProcessedContacts(libkb.MetaContext, []keybase1.ProcessedContact) error {
+	return errors.New("contactStoreMock not impl")
+}
+
+func (c *contactStoreMock) RetrieveContacts(libkb.MetaContext) ([]keybase1.ProcessedContact, error) {
+	return c.contacts, nil
+}
+
+func TestAttachContactNames(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat-utils", 0)
+	defer tc.Cleanup()
+
+	var email keybase1.EmailAddress = "tofurkey@example.com"
+	var phone keybase1.RawPhoneNumber = "+18005558638"
+	contacts := []keybase1.ProcessedContact{
+		keybase1.ProcessedContact{
+			ContactIndex: 0,
+			ContactName:  "Tofu R-Key",
+			Component: keybase1.ContactComponent{
+				Email: &email,
+			},
+			Assertion: "[tofurkey@example.com]@email",
+		},
+		keybase1.ProcessedContact{
+			ContactIndex: 1,
+			ContactName:  "Alice",
+			Component: keybase1.ContactComponent{
+				PhoneNumber: &phone,
+			},
+			Assertion: "18005558638@phone",
+		},
+	}
+
+	mock := &contactStoreMock{contacts}
+	tc.G.SyncedContactList = mock
+
+	rawParticipants := []chat1.ConversationLocalParticipant{
+		chat1.ConversationLocalParticipant{
+			Username: "[tofurkey@example.com]@email",
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "18005558638@phone",
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "ayoubd",
+		},
+		chat1.ConversationLocalParticipant{
+			Username: "example@twitter",
+		},
+	}
+
+	AttachContactNames(tc.MetaContext(), rawParticipants)
+	require.NotNil(t, rawParticipants[0].ContactName)
+	require.Equal(t, "Tofu R-Key", *rawParticipants[0].ContactName)
+	require.NotNil(t, rawParticipants[1].ContactName)
+	require.Equal(t, "Alice", *rawParticipants[1].ContactName)
+	require.Nil(t, rawParticipants[2].ContactName)
+	require.Nil(t, rawParticipants[3].ContactName)
+
+	// Add new contact that has same phone number as alice. AttachContactNames
+	// should no longer attach name for that number because of ambiguity.
+	bob := contacts[1]
+	bob.ContactIndex = 2
+	bob.ContactName = "Bob"
+	mock.contacts = append(mock.contacts, bob)
+
+	AttachContactNames(tc.MetaContext(), rawParticipants)
+	require.NotNil(t, rawParticipants[0].ContactName)
+	require.Equal(t, "Tofu R-Key", *rawParticipants[0].ContactName)
+	require.Nil(t, rawParticipants[1].ContactName)
+	require.Nil(t, rawParticipants[2].ContactName)
+	require.Nil(t, rawParticipants[3].ContactName)
+}

@@ -3,18 +3,11 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
 import {withNavigation} from '@react-navigation/core'
 
-type Path = Array<
-  | string
-  | {
-      props?: any
-      selected?: string
-    }
->
+type Path = Array<string | {props?: any; selected?: string}>
 
 export type PropsWithSafeNavigation<P> = {
-  getParam: (key: string) => any
-  navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
-  navigateUp: () => RouteTreeGen.NavigateUpPayload
+  safeNavigateAppendPayload: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
+  safeNavigateUpPayload: () => RouteTreeGen.NavigateUpPayload
 } & P
 
 function withSafeNavigation<P extends {}>(
@@ -34,15 +27,14 @@ function withSafeNavigation<P extends {}>(
     _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: getActiveKey(this.props.navigation.state)})
 
     render() {
-      const {navigation, forwardedRef, ...rest} = this.props
+      const {forwardedRef, ...rest} = this.props
       return (
         // @ts-ignore
         <Component
           ref={forwardedRef}
           {...rest}
-          getParam={navigation.getParam}
-          navigateAppend={this._navigateAppend}
-          navigateUp={this._navigateUp}
+          safeNavigateAppendPayload={this._navigateAppend}
+          safeNavigateUpPayload={this._navigateUp}
         />
       )
     }

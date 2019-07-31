@@ -28,4 +28,10 @@ protocol NotifyFS {
 
   @lint("ignore")
   void FSOnlineStatusChanged(boolean online) oneway;
+
+  @lint("ignore")
+  void FSSubscriptionNotifyPath(string subscriptionID, string path, PathSubscriptionTopic topic) oneway;
+
+  @lint("ignore")
+  void FSSubscriptionNotify(string subscriptionID, SubscriptionTopic topic) oneway;
 }

@@ -43,7 +43,7 @@ const externalPartner = {
   adminOnly: false,
   description: 'Example description.',
   extra: 'Example extra.',
-  iconFilename: '',
+  iconFilename: 'icon-stellar-logo-grey-32',
   showDivider: false,
   title: 'Example title.',
   url: 'https://example.com/%{accountId}',

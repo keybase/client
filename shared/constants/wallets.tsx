@@ -3,6 +3,7 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
+import {assertionToDisplay} from '../common-adapters/usernames'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as Router2Constants from './router2'
@@ -807,6 +808,10 @@ export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTa
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
+
+// Info text for cancelable payments
+export const makeCancelButtonInfo = (username: string) =>
+  `${assertionToDisplay(username)} can claim this when they set up their wallet.`
 
 export const getShowAirdropBanner = (state: TypedState) =>
   flags.airdrop &&

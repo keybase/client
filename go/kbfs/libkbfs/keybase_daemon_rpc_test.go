@@ -327,22 +327,6 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// truncateNotificationTimestamps is a helper function to truncate
-// timestamps to second resolution. This is needed because some
-// methods of storing timestamps (e.g., relying on the filesystem) are
-// lossy.
-func truncateNotificationTimestamps(
-	notifications []keybase1.FSNotification) []keybase1.FSNotification {
-	roundedNotifications := make(
-		[]keybase1.FSNotification, len(notifications))
-	for i, n := range notifications {
-		n.LocalTime = keybase1.ToTime(
-			n.LocalTime.Time().Truncate(time.Second))
-		roundedNotifications[i] = n
-	}
-	return roundedNotifications
-}
-
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)

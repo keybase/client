@@ -13,5 +13,5 @@ export default connect(
       dispatch(RouteTreeGen.createNavigateUp())
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  (s, d, _: OwnProps) => ({...s, ...d})
 )(RequestInviteSuccess)

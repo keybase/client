@@ -2,43 +2,56 @@ import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import {refreshNotificationsWaitingKey} from '../../constants/settings'
-import {connect, isMobile} from '../../util/container'
-import Notifications from './index'
+import * as Container from '../../util/container'
+import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {}
-const mapStateToProps = state => ({
-  allowEdit: state.settings.notifications.allowEdit,
-  groups: state.settings.notifications.groups.toJS(),
-  mobileHasPermissions: state.push.hasPermissions,
-  sound: state.config.notifySound,
-  waitingForResponse: state.settings.waitingForResponse,
-})
 
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
-  onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
-  onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
-  onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
-  title: 'Notifications',
-})
+type ExtraProps = {
+  onRefresh: () => void
+  title: string
+}
 
-const ReloadableNotifications = props => (
-  <Reloadable
-    onBack={isMobile ? props.onBack : undefined}
-    waitingKeys={refreshNotificationsWaitingKey}
-    onReload={props.onRefresh}
-    reloadOnMount={true}
-    title={props.title}
-  >
-    <Notifications {...props} />
-  </Reloadable>
-)
+const ReloadableNotifications = (props: Props & ExtraProps) => {
+  const {title, onRefresh, ...rest} = props
+  return (
+    <Reloadable
+      onBack={Container.isMobile ? props.onBack : undefined}
+      waitingKeys={refreshNotificationsWaitingKey}
+      onReload={onRefresh}
+      reloadOnMount={true}
+      title={title}
+    >
+      <Notifications {...rest} />
+    </Reloadable>
+  )
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+export default Container.connect(
+  state => ({
+    _groups: state.settings.notifications.groups,
+    allowEdit: state.settings.notifications.allowEdit,
+    mobileHasPermissions: state.push.hasPermissions,
+    sound: state.config.notifySound,
+    waitingForResponse: state.settings.waitingForResponse,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
+    onToggle: (group: string, name?: string) =>
+      dispatch(SettingsGen.createNotificationsToggle({group, name})),
+    onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
+    onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    ...dispatchProps,
+    allowEdit: stateProps.allowEdit,
+    groups: (stateProps._groups.toObject() as unknown) as Props['groups'],
+    mobileHasPermissions: stateProps.mobileHasPermissions,
+    sound: stateProps.sound,
+    title: 'Notifications',
+    waitingForResponse: stateProps.waitingForResponse,
+  })
 )(ReloadableNotifications)

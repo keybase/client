@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -10,12 +11,16 @@ import {anyWaiting} from '../../constants/waiting'
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; teamname: string}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = Container.getRouteProps<Types.ConversationIDKey>(ownProps, 'conversationIDKey')
+  const conversationIDKey = Container.getRouteProps(
+    ownProps,
+    'conversationIDKey',
+    ChatConstants.noConversationIDKey
+  )
   if (!conversationIDKey) {
     throw new Error('conversationIDKey unexpectedly empty')
   }
 
-  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   if (!teamname) {
     throw new Error('teamname unexpectedly empty')
   }

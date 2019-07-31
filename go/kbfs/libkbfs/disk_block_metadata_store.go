@@ -15,13 +15,6 @@ import (
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
-type blockMetadataType int
-
-const (
-	_ blockMetadataType = iota
-	blockMetadataXattr
-)
-
 // XattrType represents the xattr type.
 type XattrType int
 

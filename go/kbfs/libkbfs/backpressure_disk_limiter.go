@@ -554,10 +554,6 @@ func (jt journalTracker) release(blockBytes, blockFiles int64) {
 	jt.file.release(blockFiles)
 }
 
-func (jt journalTracker) getUsedBytes() int64 {
-	return jt.byte.used
-}
-
 func (jt journalTracker) getStatusLine(chargedTo keybase1.UserOrTeamID) string {
 	quota := jt.getQuotaTracker(chargedTo)
 	return fmt.Sprintf("journalBytes=%d, freeBytes=%d, "+
@@ -984,7 +980,12 @@ func (bdl *backpressureDiskLimiter) reserveWithBackpressure(
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 
-	bdl.overallByteTracker.reserve(ctx, blockBytes)
+	_, err = bdl.overallByteTracker.reserve(ctx, blockBytes)
+	if err != nil {
+		// Just log this error -- let the journal tracker error stand
+		// as the real returned error.
+		bdl.log.CDebugf(ctx, "Error reserving overall tracker: %+v", err)
+	}
 	return bdl.journalTracker.reserve(ctx, blockBytes, blockFiles)
 }
 

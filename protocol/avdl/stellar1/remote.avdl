@@ -19,6 +19,7 @@ protocol remote {
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
+    string batchID; // if this payment is part of a batch
   }
 
   record PaymentRelayPost {
@@ -35,6 +36,7 @@ protocol remote {
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
+    string batchID; // if this payment is part of a batch
   }
 
   record RelayClaimPost {
@@ -78,6 +80,7 @@ protocol remote {
     keybase1.DeviceID fromDeviceID;
     string signedTransaction;
     array<PaymentOp> operations;
+    string batchID; // end-to-end identifier
   }
 
   enum PaymentSummaryType {
