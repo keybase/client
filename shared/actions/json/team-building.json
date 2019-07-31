@@ -5,10 +5,11 @@
   ],
   "actions": {
     "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
-    "fetchUserRecs": {"namespace": "Types.AllowedNamespace"},
+    "fetchUserRecs": {"includeContacts": "boolean", "namespace": "Types.AllowedNamespace"},
     "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamname?": "string"},
     "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
     "search": {
+      "includeContacts": "boolean",
       "namespace": "Types.AllowedNamespace",
       "query": "string",
       "service": "Types.ServiceIdWithContact",
