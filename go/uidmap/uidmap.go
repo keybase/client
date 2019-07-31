@@ -223,7 +223,7 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 	if err != nil {
 		return nil, err
 	}
-	ret := make([]libkb.UsernamePackage, len(uids), len(uids))
+	ret := make([]libkb.UsernamePackage, len(uids))
 	cachedAt := keybase1.ToTime(g.GetClock().Now())
 	for i, uid := range uids {
 		if row, ok := r.Users[uid]; ok {
@@ -301,13 +301,15 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 
 	voidp, ok := u.fullNameCache.Get(uid)
 	if ok {
-		if tmp, ok := voidp.(keybase1.FullNamePackage); !ok {
+		tmp, ok := voidp.(keybase1.FullNamePackage)
+		switch {
+		case !ok:
 			g.GetLog().CDebugf(ctx, "Found non-FullNamePackage in LRU cache for uid=%s", uid)
-		} else if tmp.EldestSeqno < uv.EldestSeqno {
+		case tmp.EldestSeqno < uv.EldestSeqno:
 			g.GetLog().CDebugf(ctx, "Stale eldest memory mapping for uid=%s; we had %d, but latest is %d", uid, tmp.EldestSeqno, uv.EldestSeqno)
 			u.fullNameCache.Remove(uid)
 			isCurrent = false
-		} else {
+		default:
 			// If the memory state of this UID->Eldest mapping is correct,
 			// then there is no reason to check the disk state, since we should
 			// never have a case that the memory state is newer than the disk
@@ -322,11 +324,12 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 		found, err := g.GetKVStore().GetInto(&tmp, key)
 		if err != nil {
 			g.GetLog().CDebugf(ctx, "Error reading %s from UID map disk-backed cache: %s", uid, err)
-			err = nil // don't break the return
 		}
 		if found && tmp.EldestSeqno < uv.EldestSeqno {
 			g.GetLog().CDebugf(ctx, "Stale eldest disk mapping for uid=%s; we had %d, but latest is %d", uid, tmp.EldestSeqno, uv.EldestSeqno)
-			g.GetKVStore().Delete(key)
+			if err := g.GetKVStore().Delete(key); err != nil {
+				return false, err
+			}
 			isCurrent = false
 		}
 	}
@@ -366,7 +369,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 	u.Lock()
 	defer u.Unlock()
 
-	res = make([]libkb.UsernamePackage, len(uids), len(uids))
+	res = make([]libkb.UsernamePackage, len(uids))
 	apiLookupIndex := make(map[int]int)
 
 	var uidsToLookup []keybase1.UID
@@ -477,7 +480,10 @@ func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperCon
 	}
 	if clearDB {
 		key := fullNameDBKey(uid)
-		g.GetKVStore().Delete(key)
+		if err := g.GetKVStore().Delete(key); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
@@ -493,7 +499,7 @@ func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.U
 	u.Lock()
 	defer u.Unlock()
 
-	res = make([]libkb.UsernamePackage, len(uids), len(uids))
+	res = make([]libkb.UsernamePackage, len(uids))
 	for i, uid := range uids {
 		up, _ := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness)
 		// If we successfully looked up some of the user, set the return slot here.
@@ -569,7 +575,7 @@ func (o *OfflineUIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapp
 
 func (o *OfflineUIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration) (res []libkb.UsernamePackage, err error) {
 	// Offline uid map offline call always succeeds but returns nothing.
-	res = make([]libkb.UsernamePackage, len(uids), len(uids))
+	res = make([]libkb.UsernamePackage, len(uids))
 	return res, nil
 }
 
