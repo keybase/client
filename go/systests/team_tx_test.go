@@ -42,20 +42,29 @@ func testTeamTx1(t *testing.T, byUV bool) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 
+	var err error
 	tx := teams.CreateAddMemberTx(teamObj)
 	if byUV {
-		tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER, nil)
-		tx.AddMemberByUV(context.Background(), tracy.userVersion(), keybase1.TeamRole_READER, nil)
-		tx.AddMemberByUV(context.Background(), botua.userVersion(), keybase1.TeamRole_BOT, nil)
-		tx.AddMemberByUV(context.Background(), restrictedBotua.userVersion(), keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+		err = tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUV(context.Background(), tracy.userVersion(), keybase1.TeamRole_READER, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUV(context.Background(), botua.userVersion(), keybase1.TeamRole_BOT, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUV(context.Background(), restrictedBotua.userVersion(), keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+		require.NoError(t, err)
 	} else {
-		tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
-		tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER, nil)
-		tx.AddMemberByUsername(context.Background(), botua.username, keybase1.TeamRole_BOT, nil)
-		tx.AddMemberByUsername(context.Background(), restrictedBotua.username, keybase1.TeamRole_RESTRICTEDBOT, nil)
+		err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUsername(context.Background(), botua.username, keybase1.TeamRole_BOT, nil)
+		require.NoError(t, err)
+		err = tx.AddMemberByUsername(context.Background(), restrictedBotua.username, keybase1.TeamRole_RESTRICTEDBOT, nil)
+		require.NoError(t, err)
 	}
 
-	err := tx.Post(libkb.NewMetaContextForTest(*ann.tc))
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)

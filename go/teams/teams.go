@@ -852,7 +852,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 
 	// Add a ChangeMembership section and possibly a BotSettings section.
 	sections := []teamSectionWithLinkType{
-		teamSectionWithLinkType{
+		{
 			linkType: libkb.LinkTypeChangeMembership,
 			section:  section,
 		},

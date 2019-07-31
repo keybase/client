@@ -739,7 +739,8 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	tx := CreateAddMemberTx(team)
 	for _, otherUser := range []*kbtest.FakeUser{otherA, otherB, otherC} {
 		val := &keybase1.TeamChangeReq{}
-		val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER, nil)
+		err = val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER, nil)
+		require.NoError(t, err)
 		payload := txPayload{
 			Tag: txPayloadTagCryptomembers,
 			Val: val,

@@ -472,7 +472,8 @@ def testGo(prefix, packagesToTest) {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
           // Ignore the `dokan` directory since it contains lots of c code.
-          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+          // Ignore the `protocol` directory, autogeneration has some critques
+          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run'
           }
         }
       }
