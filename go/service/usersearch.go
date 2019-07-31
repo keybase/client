@@ -235,8 +235,6 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		}
 	}
 
-	// NOTE: this adds results in random order, but that's OK because we are
-	// sorting the final search results list before returning from RPC.
 	for _, entry := range searchResults {
 		if !entry.Contact.Resolved {
 			if _, seen := seenResolvedContacts[entry.Contact.ContactIndex]; seen {
@@ -247,6 +245,17 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		}
 
 		res = append(res, entry)
+	}
+
+	// Return best matches first.
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].RawScore > res[j].RawScore
+	})
+
+	// Trim to maxResults to reduce complexity on the call site.
+	maxRes := arg.MaxResults
+	if maxRes > 0 && len(res) > maxRes {
+		res = res[:maxRes]
 	}
 
 	return res, nil
