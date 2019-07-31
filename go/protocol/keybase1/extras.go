@@ -2604,6 +2604,9 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
 	botSettings *TeamBotSettings) error {
+	if !role.IsRestrictedBot() && botSettings != nil {
+		return fmt.Errorf("Unexpected botSettings for role %v", role)
+	}
 	switch role {
 	case TeamRole_RESTRICTEDBOT:
 		if botSettings == nil {

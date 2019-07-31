@@ -1082,6 +1082,9 @@ func filterUserCornerCases(ctx context.Context, upak keybase1.UserPlusKeysV2) (k
 
 func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (req keybase1.TeamChangeReq, err error) {
 	list := []keybase1.UserVersion{uv}
+	if !role.IsRestrictedBot() && botSettings != nil {
+		return req, fmt.Errorf("Unexpected botSettings for role %v", role)
+	}
 	switch role {
 	case keybase1.TeamRole_OWNER:
 		req.Owners = list

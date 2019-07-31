@@ -613,6 +613,59 @@ func TestBotMember(t *testing.T) {
 	require.Len(t, members.RestrictedBots, 1)
 	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
 
+	kbtest.ResetAccount(*tcs[2], botua)
+	// BOT invites not supported, add support in HOTPOT-460
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.Error(t, err)
+
+	err = botua.Login(tcs[2].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[2])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.NoError(t, err)
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[3].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+
+	kbtest.ResetAccount(*tcs[3], restrictedBotua)
+	team, err = Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+	// RESTRICTEDBOT invites not supported
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.Error(t, err)
+
+	err = restrictedBotua.Login(tcs[3].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[3])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.NoError(t, err)
+
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
 	require.NoError(t, err)
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username)

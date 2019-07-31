@@ -160,14 +160,14 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 }
 
 // createKeybaseInvite queues Keybase-type invite for given UV and role.
-func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
+func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
 	// Preconditions: UV is a PUKless user, and not already in the
 	// team, role is valid enum value and not NONE or OWNER.
-	tx.createInvite("keybase", uv.TeamInviteName(), role, uv.Uid)
+	return tx.createInvite("keybase", uv.TeamInviteName(), role, uv.Uid)
 }
 
 // createInvite queues an invite for invite name with role.
-func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) {
+func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) error {
 	var payload *SCTeamInvites
 	if typ == "keybase" {
 		payload = tx.inviteKeybasePayload(uid)
@@ -190,7 +190,11 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 		payload.Admins = appendToInviteList(invite, payload.Admins)
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
+	default:
+		// TODO HOTPOT-460 add support for BOT invites
+		return fmt.Errorf("invalid role for invite %v", role)
 	}
+	return nil
 }
 
 // sweepCryptoMembers will queue "removes" for all cryptomembers with given UID.
@@ -340,7 +344,9 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {
-		tx.createKeybaseInvite(uv, role)
+		if err = tx.createKeybaseInvite(uv, role); err != nil {
+			return false, err
+		}
 		return true, nil
 	}
 	if err := tx.addMember(uv, role, botSettings); err != nil {
@@ -489,7 +495,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 
 	if !doInvite {
 		username = libkb.NewNormalizedUsername(upak.Username)
-		invite, err = tx.addMemberByUPKV2(ctx, upak, role, nil)
+		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
 	}
@@ -503,7 +509,9 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
-	tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */)
+	if err = tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */); err != nil {
+		return "", uv, false, err
+	}
 	return "", uv, true, nil
 }
 
@@ -609,14 +617,17 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
-		tx.createKeybaseInvite(uv, role)
+		if err := tx.createKeybaseInvite(uv, role); err != nil {
+			return err
+		}
 		tx.sweepKeybaseInvites(uv.Uid)
-		// We cannot sweep crypto members here because we need to
-		// ensure that we are only posting one link, and if we want to
-		// add pukless member, it has to be invite link. So old crypto
-		// members have to stay for now. However, old crypto member
-		// should be sweeped when Keybase-type invite goes through SBS
-		// handler and invited member becomes a real crypto dude.
+		// We cannot sweep crypto members here because we need to ensure that
+		// we are only posting one link, and if we want to add a pukless
+		// member, it has to be invite link. Otherwise we would attempt to
+		// remove the old member without adding a new one. So old crypto
+		// members have to stay for now. However, old crypto member should be
+		// swept when Keybase-type invite goes through SBS handler and invited
+		// member becomes a real crypto dude.
 	}
 
 	if len(tx.payloads) != 1 {
@@ -775,6 +786,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.Invites = p.Val.(*SCTeamInvites)
+			if section.Invites.Len() == 0 {
+				return fmt.Errorf("invalid invite, 0 members invited")
+			}
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
