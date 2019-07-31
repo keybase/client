@@ -398,10 +398,6 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		if err != nil {
 			mctx.Warning("Failed to do contacts search: %s", err)
 		} else {
-			sort.Slice(contactsRes, func(i, j int) bool {
-				return contactsRes[i].RawScore > contactsRes[j].RawScore
-			})
-
 			// Filter contacts - If we have a username match coming from the
 			// service, prefer it instead of contact result for the same user
 			// but with SBS assertion in it.
@@ -427,6 +423,10 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 				}
 				res = append(res, contact)
 			}
+
+			sort.Slice(res, func(i, j int) bool {
+				return res[i].RawScore > res[j].RawScore
+			})
 
 			for i := range res {
 				res[i].Score = 1.0 / float64(1+i)

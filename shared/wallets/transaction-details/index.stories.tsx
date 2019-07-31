@@ -215,7 +215,22 @@ const load = () => {
         sourceConvRate="22.4474953"
       />
     ))
-    .add('Sent path payment (Asset -> Asset)', () => (
+    .add('Sent path payment (Asset -> Same Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="1 FROG"
+        assetCode="FROG"
+        sourceAmount="1"
+        sourceAsset="FROG"
+        sourceIssuer="froggycoin.io"
+        issuerDescription="froggycoin.io"
+        sourceConvRate="1.000000"
+        pathIntermediate={[]}
+      />
+    ))
+    .add('Sent path payment (Asset -> Different Asset)', () => (
       <TransactionDetails
         {...props}
         counterpartyMeta="Addie Stokes"

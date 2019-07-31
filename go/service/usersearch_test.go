@@ -480,3 +480,42 @@ func TestSearchContactDeduplicateNameAndLabel(t *testing.T) {
 		require.Equal(t, "1555123456@phone", res[0].Contact.Assertion)
 	}
 }
+
+func TestContactSearchMixing(t *testing.T) {
+	tc, searchHandler, searchProv := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 0, name: "Isaac Newton", phone: "+1555123456"}),
+		makeContact(makeContactArg{index: 1, name: "Pierre de Fermat", email: "fermatp@keyba.se", username: "pierre"}),
+		makeContact(makeContactArg{index: 2, name: "Gottfried Wilhelm Leibniz", phone: "+1555165432"}),
+	}
+
+	searchProv.addUser(testAddUserArg{username: "pierre"}) // the one we have in contacts
+	for i := 0; i < 5; i++ {
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac%d", i), fmt.Sprintf("The Isaac %d", i)})
+		// Longer names score lower
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac_____%d", i), fmt.Sprintf("The Isaac %d", i)})
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaacsxzzz%d", i), fmt.Sprintf("The Isaac %d", i)})
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	{
+		// Expecting to see our contact within the results. All the `isaacX`
+		// users will score higher than our contact, so it will come 6th on the
+		// list.
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "isaac",
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 10)
+		require.NotNil(t, res[5].Contact)
+		require.Equal(t, "1555123456@phone", res[5].Contact.Assertion)
+		require.Equal(t, "Isaac Newton", res[5].Contact.DisplayName)
+	}
+}

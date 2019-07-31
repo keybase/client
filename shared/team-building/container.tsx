@@ -19,6 +19,7 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {validateNumber, formatPhoneNumber} from '../util/phone-numbers'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -59,18 +60,23 @@ const deriveSearchResults = memoize(
     preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&
-    searchResults.map(info => ({
-      contact: !!info.contact,
-      displayLabel: info.label || '',
-      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-      inTeam: teamSoFar.some(u => u.id === info.id),
-      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-      key: [info.id, info.prettyName, info.label].join('&'),
-      prettyName: info.prettyName,
-      services: info.serviceMap,
-      userId: info.id,
-      username: info.id.split('@')[0],
-    }))
+    searchResults.map(info => {
+      const label = info.label || ''
+      return {
+        contact: !!info.contact,
+        displayLabel: validateNumber(label).valid ? formatPhoneNumber(label) : label,
+        followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+        inTeam: teamSoFar.some(u => u.id === info.id),
+        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+        key: [info.id, info.prettyName, info.label].join('&'),
+        prettyName: validateNumber(info.prettyName).valid
+          ? formatPhoneNumber(info.prettyName)
+          : info.prettyName,
+        services: info.serviceMap,
+        userId: info.id,
+        username: info.id.split('@')[0],
+      }
+    })
 )
 
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
@@ -316,26 +322,40 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 // 1-26 - a-z sections
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
-  (results: Unpacked<typeof deriveSearchResults>): Array<SearchRecSection> | null => {
+  (
+    results: Unpacked<typeof deriveSearchResults>,
+    showingContactsButton: boolean
+  ): Array<SearchRecSection> | null => {
     if (!results) return null
 
     const sections: Array<SearchRecSection> = [
+      ...(showingContactsButton
+        ? [
+            {
+              data: [{isImportButton: true as const}],
+              label: '',
+              shortcut: false,
+            },
+          ]
+        : []),
       {
         data: [],
         label: 'Recommendations',
         shortcut: false,
       },
     ]
+    const recSectionIdx = sections.length - 1
+    const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
       if (!rec.contact) {
-        sections[0].data.push(rec)
+        sections[recSectionIdx].data.push(rec)
         return
       }
       if (rec.prettyName || rec.displayLabel) {
         const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
-          const sectionIdx = letterToAlphaIndex(letter) + 1
+          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
           if (!sections[sectionIdx]) {
             sections[sectionIdx] = {
               data: [],
@@ -345,14 +365,14 @@ const sortAndSplitRecommendations = memoize(
           }
           sections[sectionIdx].data.push(rec)
         } else {
-          if (!sections[27]) {
-            sections[27] = {
+          if (!sections[numSectionIdx]) {
+            sections[numSectionIdx] = {
               data: [],
               label: numSectionLabel,
               shortcut: true,
             }
           }
-          sections[27].data.push(rec)
+          sections[numSectionIdx].data.push(rec)
         }
       }
     })
@@ -374,6 +394,11 @@ const mergeProps = (
     recommendations,
     waitingForCreate,
   } = stateProps
+
+  const showingContactsButton =
+    Container.isMobile &&
+    stateProps.contactsPermissionStatus !== 'never_ask_again' &&
+    !stateProps.contactsImported
 
   // Contacts props
   const contactProps = {
@@ -495,7 +520,7 @@ const mergeProps = (
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
-    recommendations: sortAndSplitRecommendations(recommendations),
+    recommendations: sortAndSplitRecommendations(recommendations, showingContactsButton),
     rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,

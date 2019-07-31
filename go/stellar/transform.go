@@ -256,6 +256,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	}
 	loc.Unread = p.Unread
 
+	loc.FromAirdrop = p.FromAirdrop
+
 	return loc, nil
 }
 
@@ -371,6 +373,8 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	} else {
 		loc.NoteErr = fmt.Sprintf("error decrypting note: %s", err)
 	}
+
+	loc.FromAirdrop = p.FromAirdrop
 
 	return loc, nil
 }

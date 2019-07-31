@@ -36,9 +36,9 @@ func (r *ContactLookupResults) FindComponent(component keybase1.ContactComponent
 	var key ContactLookupKey
 	switch {
 	case component.Email != nil:
-		key = makeEmailLookupKey(*component.Email)
+		key = MakeEmailLookupKey(*component.Email)
 	case component.PhoneNumber != nil:
-		key = makePhoneLookupKey(*component.PhoneNumber)
+		key = MakePhoneLookupKey(*component.PhoneNumber)
 	default:
 		return res, false
 	}
@@ -46,11 +46,11 @@ func (r *ContactLookupResults) FindComponent(component keybase1.ContactComponent
 	return res, found
 }
 
-func makeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
+func MakeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
 	return ContactLookupKey(fmt.Sprintf("e:%s", string(e)))
 }
 
-func makePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
+func MakePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
 	return ContactLookupKey(fmt.Sprintf("p:%s", string(p)))
 }
 

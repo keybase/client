@@ -725,7 +725,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		// Only add a ratchet to the first link in the sequence, it doesn't make sense
 		// to add more than one, and it may as well be the first.
 		if ratchet == nil {
-			ratchet, err = hidden.MakeRatchet(mctx, team.ID)
+			ratchet, err = team.makeRatchet(mctx.Ctx())
 			if err != nil {
 				return err
 			}
