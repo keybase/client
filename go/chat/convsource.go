@@ -1013,7 +1013,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	case types.UnboxModeFull:
 		s.Debug(ctx, "mergeMaybeNotify: full mode, merging %d messages", len(msgs))
 	case types.UnboxModeQuick:
-		s.Debug(ctx, "mergeMaybeNotify: in quick mode, skipping %d messages", len(msgs))
+		s.Debug(ctx, "mergeMaybeNotify: quick mode, skipping %d messages", len(msgs))
 		globals.CtxAddMessageCacheSkips(ctx, msgs)
 		return nil
 	}
