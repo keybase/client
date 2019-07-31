@@ -1,7 +1,9 @@
 package stellarsvc
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,7 +20,7 @@ import (
 type anchorInteractor struct {
 	accountID     stellar1.AccountID
 	asset         stellar1.Asset
-	httpGetClient func(mctx libkb.MetaContext, url string) (body []byte, err error)
+	httpGetClient func(mctx libkb.MetaContext, url string) (code int, body []byte, err error)
 }
 
 // newAnchorInteractor creates an anchorInteractor for an account to interact
@@ -40,7 +42,8 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
-	return a.get(mctx, u)
+	var okResponse okDepositResponse
+	return a.get(mctx, u, &okResponse)
 }
 
 // Withdraw runs the withdraw action for accountID on the transfer server for asset.
@@ -52,7 +55,8 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
-	return a.get(mctx, u)
+	var okResponse okWithdrawResponse
+	return a.get(mctx, u, &okResponse)
 }
 
 // checkAsset sanity-checks the asset to make sure it is verified and looks like
@@ -104,41 +108,102 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 	return u, nil
 }
 
-// get performs the http GET requests and parses the result.
-func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL) (stellar1.AssetActionResultLocal, error) {
-	body, err := a.httpGetClient(mctx, u.String())
-	if err != nil {
-		return stellar1.AssetActionResultLocal{}, err
-	}
-	_ = body
-	return stellar1.AssetActionResultLocal{}, nil
+type okDepositResponse struct {
+	How        string  `json:"how"`
+	ETA        int     `json:"int"`
+	MinAmount  float64 `json:"min_amount"`
+	MaxAmount  float64 `json:"max_amount"`
+	FeeFixed   float64 `json:"fee_fixed"`
+	FeePercent float64 `json:"fee_percent"`
+	ExtraInfo  struct {
+		Message string `json:"message"`
+	} `json:"extra_info"`
 }
 
-/*
-	// perform the GET request
-	// parse the output into a message or a url to open in a browser (or an error)
-	// return that info
-*/
+// this will never happen, but:
+func (r *okDepositResponse) String() string {
+	return fmt.Sprintf("Deposit request approved by anchor.  %s: %s", r.How, r.ExtraInfo.Message)
+}
+
+type okWithdrawResponse struct {
+	AccountID  string  `json:"account_id"`
+	MemoType   string  `json:"memo_type"` // text, id or hash
+	Memo       string  `json:"memo"`
+	ETA        int     `json:"int"`
+	MinAmount  float64 `json:"min_amount"`
+	MaxAmount  float64 `json:"max_amount"`
+	FeeFixed   float64 `json:"fee_fixed"`
+	FeePercent float64 `json:"fee_percent"`
+}
+
+// this will never happen, but:
+func (r *okWithdrawResponse) String() string {
+	return fmt.Sprintf("Withdraw request approved by anchor.  Send token to %s.  Memo: %s (%s)", r.AccountID, r.Memo, r.MemoType)
+}
+
+type forbiddenResponse struct {
+	Type  string `json:"type"`
+	URL   string `json:"url"`
+	ID    string `json:"id"`
+	Error string `json:"error"`
+}
+
+// get performs the http GET requests and parses the result.
+func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fmt.Stringer) (stellar1.AssetActionResultLocal, error) {
+	mctx.Debug("performing http GET to %s", u)
+	code, body, err := a.httpGetClient(mctx, u.String())
+	if err != nil {
+		mctx.Debug("GET failed: %s", err)
+		return stellar1.AssetActionResultLocal{}, err
+	}
+	switch code {
+	case http.StatusOK:
+		if err := json.Unmarshal(body, okResponse); err != nil {
+			mctx.Debug("json unmarshal of 200 response failed: %s", err)
+			return stellar1.AssetActionResultLocal{}, err
+		}
+		msg := okResponse.String()
+		return stellar1.AssetActionResultLocal{MessageFromAnchor: &msg}, nil
+	case http.StatusForbidden:
+		var resp forbiddenResponse
+		if err := json.Unmarshal(body, &resp); err != nil {
+			mctx.Debug("json unmarshal of 403 response failed: %s", err)
+			mctx.Debug("body: %s", string(body))
+			return stellar1.AssetActionResultLocal{}, err
+		}
+		if resp.Error != "" {
+			return stellar1.AssetActionResultLocal{}, fmt.Errorf("Error from anchor: %s", resp.Error)
+		}
+		if resp.Type == "interactive_customer_info_needed" {
+			return stellar1.AssetActionResultLocal{ExternalUrl: &resp.URL}, nil
+		}
+		mctx.Debug("unhandled anchor response for %s: %+v", u, resp)
+		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response")
+	default:
+		mctx.Debug("unhandled anchor response code for %s: %d", u, code)
+		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response code")
+	}
+}
 
 // httpGet is the live version of httpGetClient that is used
 // by default.
-func httpGet(mctx libkb.MetaContext, url string) ([]byte, error) {
+func httpGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 	client := http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
-	return body, nil
+	return res.StatusCode, body, nil
 }
