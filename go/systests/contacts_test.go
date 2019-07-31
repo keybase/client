@@ -223,7 +223,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			// We found one!
 			if !x.Match {
 				require.Fail(t, "found %v in the result", x.LookupKey)
-				return
+				break
 			}
 
 			// Evaluate coerced
@@ -234,7 +234,7 @@ func TestBulkLookupContacts(t *testing.T) {
 				"%v coerced value was expected to be %v, got %v",
 				x.LookupKey, x.Coerced, v.Coerced != "",
 			)
-			return
+			break
 		}
 
 		// We didn't find anything
