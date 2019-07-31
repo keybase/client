@@ -435,6 +435,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			if len(messages) == 0 {
 				return nil
 			}
+			ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeFull)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				500*time.Millisecond)
 			t.Debug(ctx, "LoadNonblock: resolving %d message skips", len(messages))

@@ -1011,6 +1011,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
 	switch globals.CtxUnboxMode(ctx) {
 	case types.UnboxModeFull:
+		s.Debug(ctx, "mergeMaybeNotify: full mode, merging %d messages", len(msgs))
 	case types.UnboxModeQuick:
 		s.Debug(ctx, "mergeMaybeNotify: in quick mode, skipping %d messages", len(msgs))
 		globals.CtxAddMessageCacheSkips(ctx, msgs)
