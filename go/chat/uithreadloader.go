@@ -388,7 +388,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(),
-			200*time.Millisecond)
+			500*time.Millisecond)
 		var remoteThread chat1.ThreadView
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
@@ -436,7 +436,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				return nil
 			}
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
-				200*time.Millisecond)
+				500*time.Millisecond)
 			t.Debug(ctx, "LoadNonblock: resolving %d message skips", len(messages))
 			resolved, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
 			if err != nil {
@@ -444,6 +444,14 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			}
 			if err := t.G().ConvSource.PushUnboxed(ctx, convID, uid, resolved); err != nil {
 				return err
+			}
+			conv, ierr := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
+			if ierr != nil {
+				return ierr
+			}
+			if resolved, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, resolved,
+				query, nil, nil); ierr != nil {
+				return ierr
 			}
 			notif := chat1.MessagesUpdated{
 				ConvID: convID,
@@ -463,6 +471,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	// Clean up context and set final loading status
 	if getDisplayedStatus() {
 		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
+		t.clock.Sleep(100 * time.Millisecond)
 		if fullErr == nil {
 			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)

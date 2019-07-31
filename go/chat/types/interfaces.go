@@ -97,7 +97,8 @@ type ConversationSource interface {
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
-		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
+		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
 	ClearFromDelete(ctx context.Context, uid gregor1.UID,
@@ -530,6 +531,16 @@ type BotCommandManager interface {
 	Clear(ctx context.Context) error
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
+}
+
+type SupersedesTransform interface {
+	Run(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID,
+		originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+}
+
+type ReplyFiller interface {
+	Fill(ctx context.Context, uid gregor1.UID, conv UnboxConversationInfo,
+		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
 type InternalError interface {

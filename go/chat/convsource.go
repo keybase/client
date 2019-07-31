@@ -84,7 +84,7 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	superXform supersedesTransform, replyFiller *ReplyFiller, checkPrev bool, patchPagination bool) (err error) {
+	superXform types.SupersedesTransform, replyFiller types.ReplyFiller, checkPrev bool, patchPagination bool) (err error) {
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
@@ -111,17 +111,10 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 		s.patchPaginationLast(ctx, conv, uid, thread.Pagination, thread.Messages)
 	}
 
-	// Resolve supersedes
-	if q == nil || !q.DisableResolveSupersedes {
-		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
-		if superXform == nil {
-			superXform = newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{
-				UseDeletePlaceholders: deletePlaceholders,
-			})
-		}
-		if thread.Messages, err = superXform.Run(ctx, conv, uid, thread.Messages); err != nil {
-			return err
-		}
+	// Resolve supersedes & replies
+	if thread.Messages, err = s.TransformSupersedes(ctx, conv, uid, thread.Messages, q, superXform,
+		replyFiller); err != nil {
+		return err
 	}
 	s.Debug(ctx, "postProcessThread: thread messages after supersedes: %d", len(thread.Messages))
 
@@ -142,21 +135,30 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
-	// Set reply to messages
-	if replyFiller == nil {
-		replyFiller = NewReplyFiller(s.G())
-	}
-	if thread.Messages, err = replyFiller.Fill(ctx, uid, conv, thread.Messages); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
-	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
-	transform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-	return transform.Run(ctx, unboxInfo, uid, msgs)
+	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+	q *chat1.GetThreadQuery, superXform types.SupersedesTransform, replyFiller types.ReplyFiller) (res []chat1.MessageUnboxed, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TransformSupersedes")()
+	if q == nil || !q.DisableResolveSupersedes {
+		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
+		if superXform == nil {
+			superXform = newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{
+				UseDeletePlaceholders: deletePlaceholders,
+			})
+		}
+		if res, err = superXform.Run(ctx, unboxInfo, uid, msgs); err != nil {
+			return nil, err
+		}
+	} else {
+		res = msgs
+	}
+	if replyFiller == nil {
+		replyFiller = NewReplyFiller(s.G())
+	}
+	return replyFiller.Fill(ctx, uid, unboxInfo, res)
 }
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
@@ -894,7 +896,7 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
@@ -925,7 +927,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return
 		}
-		msgs, err = s.TransformSupersedes(ctx, conv, uid, msgs)
+		msgs, err = s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to transform supersedes: %s", err)
 			return

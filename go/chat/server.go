@@ -2335,7 +2335,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs)
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
 		if err != nil {
 			return err
 		}

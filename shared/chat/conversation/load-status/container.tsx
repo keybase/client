@@ -8,7 +8,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
-    status: state.chat2.threadLoadStatus.get(ownProps.conversationIDKey),
+    status: state.chat2.threadLoadStatus.get(ownProps.conversationIDKey, null),
   }
 }
 
