@@ -58,6 +58,22 @@ const payProps = {
   },
 }
 
+const payUnsignedProps = {
+  amount: '10',
+  message: 'test message',
+  operation: 'pay' as const,
+  originDomain: '',
+  recipient: 'GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB',
+  signed: false,
+  summary: {
+    fee: '',
+    memo: '',
+    memoType: 'MEMO_NONE',
+    operations: [],
+    source: '',
+  },
+}
+
 const txProps = {
   amount: '',
   message: '',
@@ -77,8 +93,9 @@ const txProps = {
 const load = () => {
   Sb.storiesOf('Wallets/SEP7ConfirmForm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
-    .add('Pay', () => <SEP7Confirm {...commonProps} {...payProps} />)
-    .add('Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
+    .add('Signed Pay', () => <SEP7Confirm {...commonProps} {...payProps} />)
+    .add('Unsigned Pay', () => <SEP7Confirm {...commonProps} {...payUnsignedProps} />)
+    .add('Signed Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
   Sb.storiesOf('Wallets/SEP7Error', module).add('Error', () => (
     <KeybaseLinkErrorBody errorText="This Stellar link claims to be signed by keybaze.io, but the Keybase app cannot currently verify the signature came from keybaze.io. Sorry, there's nothing you can do with this Stellar link." />
   ))
