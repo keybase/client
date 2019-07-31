@@ -584,6 +584,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
     case WalletsGen.calculateBuildingAdvanced:
+    case WalletsGen.assetDeposit:
+    case WalletsGen.assetWithdraw:
       return state
     default:
       return state

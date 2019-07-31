@@ -15,35 +15,39 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onDeposit: (code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetDepositLocal({code, issuerAccountID})),
-  onWithdraw: (code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetWithdrawLocal({code, issuerAccountID})),
+  onDeposit: (accountID: string, code: string, issuerAccountID: string) =>
+    dispatch(WalletsGen.createAssetDeposit({accountID, code, issuerAccountID})),
+  onWithdraw: (accountID: string, code: string, issuerAccountID: string) =>
+    dispatch(WalletsGen.createAssetWithdraw({accountID, code, issuerAccountID})),
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _) => {
-  const asset = stateProps._asset
-  return {
-    availableToSend: asset.balanceAvailableToSend,
-    balance: asset.balanceTotal,
-    code: asset.assetCode,
-    equivAvailableToSend: `${asset.availableToSendWorth}`,
-    depositButtonText: asset.showDepositButton ? asset.depositButtonText : '',
-    equivBalance: `${asset.worth}`,
-    infoUrlText: asset.infoUrlText,
-    isNative: asset.assetCode === 'XLM' && asset.issuerAccountID === '',
-    issuerAccountID: asset.issuerAccountID,
-    issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
-    name: asset.name,
-    onDeposit: asset.showDepositButton
-      ? () => dispatchProps.onDeposit(asset.assetCode, asset.issuerAccountID)
-      : undefined,
-    onWithdraw: asset.showWithdrawButton
-      ? () => dispatchProps.onWithdraw(asset.assetCode, asset.issuerAccountID)
-      : undefined,
-    openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
-    openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
-    reserves: asset.reserves.toArray(),
-    withdrawButtonText: asset.showWithdrawButton ? asset.withdrawButtonText : '',
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => {
+    const asset = stateProps._asset
+    return {
+      availableToSend: asset.balanceAvailableToSend,
+      balance: asset.balanceTotal,
+      code: asset.assetCode,
+      equivAvailableToSend: `${asset.availableToSendWorth}`,
+      depositButtonText: asset.showDepositButton ? asset.depositButtonText : '',
+      equivBalance: `${asset.worth}`,
+      infoUrlText: asset.infoUrlText,
+      isNative: asset.assetCode === 'XLM' && asset.issuerAccountID === '',
+      issuerAccountID: asset.issuerAccountID,
+      issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
+      name: asset.name,
+      onDeposit: asset.showDepositButton
+        ? () => dispatchProps.onDeposit(ownProps.accountID, asset.assetCode, asset.issuerAccountID)
+        : undefined,
+      onWithdraw: asset.showWithdrawButton
+        ? () => dispatchProps.onWithdraw(ownProps.accountID, asset.assetCode, asset.issuerAccountID)
+        : undefined,
+      openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
+      openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
+      reserves: asset.reserves.toArray(),
+      withdrawButtonText: asset.showWithdrawButton ? asset.withdrawButtonText : '',
+    }
   }
-})(Asset)
+)(Asset)

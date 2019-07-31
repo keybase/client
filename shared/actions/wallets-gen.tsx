@@ -17,8 +17,8 @@ export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addTrustline = 'wallets:addTrustline'
-export const assetDepositLocal = 'wallets:assetDepositLocal'
-export const assetWithdrawLocal = 'wallets:assetWithdrawLocal'
+export const assetDeposit = 'wallets:assetDeposit'
+export const assetWithdraw = 'wallets:assetWithdraw'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
@@ -144,11 +144,13 @@ type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
 type _AddTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
-type _AssetDepositLocalPayload = {
+type _AssetDepositPayload = {
+  readonly accountID: Types.AccountID
   readonly code: Types.CurrencyCode
   readonly issuerAccountID: Types.AccountID
 }
-type _AssetWithdrawLocalPayload = {
+type _AssetWithdrawPayload = {
+  readonly accountID: Types.AccountID
   readonly code: Types.CurrencyCode
   readonly issuerAccountID: Types.AccountID
 }
@@ -586,16 +588,16 @@ export const createInflationDestinationReceivedError = (
 /**
  * Handle a SEP6 Deposit link
  */
-export const createAssetDepositLocal = (payload: _AssetDepositLocalPayload): AssetDepositLocalPayload => ({
+export const createAssetDeposit = (payload: _AssetDepositPayload): AssetDepositPayload => ({
   payload,
-  type: assetDepositLocal,
+  type: assetDeposit,
 })
 /**
  * Handle a SEP6 Withdraw link
  */
-export const createAssetWithdrawLocal = (payload: _AssetWithdrawLocalPayload): AssetWithdrawLocalPayload => ({
+export const createAssetWithdraw = (payload: _AssetWithdrawPayload): AssetWithdrawPayload => ({
   payload,
-  type: assetWithdrawLocal,
+  type: assetWithdraw,
 })
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
@@ -1160,13 +1162,10 @@ export type AccountsReceivedPayload = {
   readonly type: typeof accountsReceived
 }
 export type AddTrustlinePayload = {readonly payload: _AddTrustlinePayload; readonly type: typeof addTrustline}
-export type AssetDepositLocalPayload = {
-  readonly payload: _AssetDepositLocalPayload
-  readonly type: typeof assetDepositLocal
-}
-export type AssetWithdrawLocalPayload = {
-  readonly payload: _AssetWithdrawLocalPayload
-  readonly type: typeof assetWithdrawLocal
+export type AssetDepositPayload = {readonly payload: _AssetDepositPayload; readonly type: typeof assetDeposit}
+export type AssetWithdrawPayload = {
+  readonly payload: _AssetWithdrawPayload
+  readonly type: typeof assetWithdraw
 }
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
@@ -1648,8 +1647,8 @@ export type Actions =
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddTrustlinePayload
-  | AssetDepositLocalPayload
-  | AssetWithdrawLocalPayload
+  | AssetDepositPayload
+  | AssetWithdrawPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload

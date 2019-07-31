@@ -19,6 +19,7 @@ import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
+import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {actionHasError, TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
@@ -1505,6 +1506,28 @@ const sendPaymentAdvanced = (state: TypedState) =>
     })
   )
 
+const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
+  RPCStellarTypes.localAssetDepositLocalRpcPromise({
+    accountID: action.payload.accountID,
+    asset: assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: action.payload.code,
+        issuerAccountID: action.payload.issuerAccountID,
+      })
+    ),
+  }).then(res => res.externalURL && openURL(res.externalURL))
+
+const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
+  RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
+    accountID: action.payload.accountID,
+    asset: assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: action.payload.code,
+        issuerAccountID: action.payload.issuerAccountID,
+      })
+    ),
+  }).then(res => res.externalURL && openURL(res.externalURL))
+
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload) {
   if (state.wallets.staticConfig) {
     return
@@ -1991,6 +2014,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshake,
     loadStaticConfig,
     'loadStaticConfig'
+  )
+  yield* Saga.chainAction<WalletsGen.AssetDepositPayload>(
+    WalletsGen.assetDeposit,
+    assetDeposit,
+    'assetDeposit'
+  )
+  yield* Saga.chainAction<WalletsGen.AssetWithdrawPayload>(
+    WalletsGen.assetWithdraw,
+    assetWithdraw,
+    'assetWithdraw'
   )
 }
 
