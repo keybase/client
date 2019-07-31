@@ -543,6 +543,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
+    case WalletsGen.assetDeposit:
+    case WalletsGen.assetWithdraw:
+      return state.merge({
+        sep6Error: false,
+        sep6Message: '',
+      })
+    case WalletsGen.setSEP6Message:
+      return state.merge({
+        sep6Error: action.payload.error,
+        sep6Message: action.payload.message,
+      })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
@@ -584,8 +595,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
     case WalletsGen.calculateBuildingAdvanced:
-    case WalletsGen.assetDeposit:
-    case WalletsGen.assetWithdraw:
       return state
     default:
       return state

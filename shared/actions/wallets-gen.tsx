@@ -113,6 +113,7 @@ export const setBuiltPaymentAdvanced = 'wallets:setBuiltPaymentAdvanced'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const setSEP6Message = 'wallets:setSEP6Message'
 export const setSEP7Tx = 'wallets:setSEP7Tx'
 export const setTrustlineAcceptedAssets = 'wallets:setTrustlineAcceptedAssets'
 export const setTrustlineAcceptedAssetsByUsername = 'wallets:setTrustlineAcceptedAssetsByUsername'
@@ -347,6 +348,7 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
+type _SetSEP6MessagePayload = {readonly error: boolean; readonly message: string}
 type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
@@ -842,6 +844,13 @@ export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload): SetLastSe
 export const createSetReadyToReview = (payload: _SetReadyToReviewPayload): SetReadyToReviewPayload => ({
   payload,
   type: setReadyToReview,
+})
+/**
+ * Show the user an external message from a SEP6 action
+ */
+export const createSetSEP6Message = (payload: _SetSEP6MessagePayload): SetSEP6MessagePayload => ({
+  payload,
+  type: setSEP6Message,
 })
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
@@ -1544,6 +1553,10 @@ export type SetReadyToReviewPayload = {
   readonly payload: _SetReadyToReviewPayload
   readonly type: typeof setReadyToReview
 }
+export type SetSEP6MessagePayload = {
+  readonly payload: _SetSEP6MessagePayload
+  readonly type: typeof setSEP6Message
+}
 export type SetSEP7TxPayload = {readonly payload: _SetSEP7TxPayload; readonly type: typeof setSEP7Tx}
 export type SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly payload: _SetTrustlineAcceptedAssetsByUsernamePayload
@@ -1748,6 +1761,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | SetSEP6MessagePayload
   | SetSEP7TxPayload
   | SetTrustlineAcceptedAssetsByUsernamePayload
   | SetTrustlineAcceptedAssetsPayload

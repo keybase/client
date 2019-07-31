@@ -1506,6 +1506,25 @@ const sendPaymentAdvanced = (state: TypedState) =>
     })
   )
 
+const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
+  if (res.externalUrl) {
+    return openURL(res.externalUrl)
+  }
+  if (res.messageFromAnchor) {
+    return WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor})
+  }
+  console.warn('SEP6 result without Url or Message', res)
+  return null
+}
+
+const handleSEP6Error = (err: RPCError) => [
+  WalletsGen.createSetSEP6Message({error: true, message: err.desc}),
+  RouteTreeGen.createClearModals(),
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+  }),
+]
+
 const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
   RPCStellarTypes.localAssetDepositLocalRpcPromise({
     accountID: action.payload.accountID,
@@ -1515,7 +1534,9 @@ const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
         issuerAccountID: action.payload.issuerAccountID,
       })
     ),
-  }).then(res => res.externalUrl ? openURL(res.externalUrl) : null)
+  })
+    .then(res => handleSEP6Result(res))
+    .catch(err => handleSEP6Error(err))
 
 const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
   RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
@@ -1526,7 +1547,9 @@ const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =
         issuerAccountID: action.payload.issuerAccountID,
       })
     ),
-  }).then(res => res.externalUrl ? openURL(res.externalUrl) : null)
+  })
+    .then(res => handleSEP6Result(res))
+    .catch(err => handleSEP6Error(err))
 
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload) {
   if (state.wallets.staticConfig) {

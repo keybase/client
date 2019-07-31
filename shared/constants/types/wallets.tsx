@@ -408,6 +408,8 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep6Error: boolean
+  sep6Message: string
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmPath: BuiltPaymentAdvanced

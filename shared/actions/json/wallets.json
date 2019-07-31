@@ -527,6 +527,11 @@
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
+    },
+    "setSEP6Message": {
+      "_description": "Show the user an external message from a SEP6 action",
+      "error": "boolean",
+      "message": "string"
     }
   }
 }
