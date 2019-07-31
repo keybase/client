@@ -48,6 +48,7 @@ const payProps = {
   operation: 'pay' as const,
   originDomain: 'blog.stathat.com',
   recipient: 'GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB',
+  signed: true,
   summary: {
     fee: '',
     memo: '',
@@ -63,6 +64,7 @@ const txProps = {
   operation: 'tx' as const,
   originDomain: 'stathat.com',
   recipient: '',
+  signed: true,
   summary: {
     fee: '100',
     memo: 'test memo',

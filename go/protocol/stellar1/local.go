@@ -1184,6 +1184,7 @@ type ValidateStellarURIResultLocal struct {
 	DisplayAmountFiat     string           `codec:"displayAmountFiat" json:"displayAmountFiat"`
 	AvailableToSendNative string           `codec:"availableToSendNative" json:"availableToSendNative"`
 	AvailableToSendFiat   string           `codec:"availableToSendFiat" json:"availableToSendFiat"`
+	Signed                bool             `codec:"signed" json:"signed"`
 }
 
 func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal {
@@ -1203,6 +1204,7 @@ func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal 
 		DisplayAmountFiat:     o.DisplayAmountFiat,
 		AvailableToSendNative: o.AvailableToSendNative,
 		AvailableToSendFiat:   o.AvailableToSendFiat,
+		Signed:                o.Signed,
 	}
 }
 

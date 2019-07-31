@@ -35,6 +35,7 @@ type Props = {
   path: Types._BuiltPaymentAdvanced
   readyToSend: boolean
   recipient: string | null
+  signed: boolean | null
   summary: Summary
   userAmount: string | null
   waitingKey: string
@@ -93,13 +94,26 @@ const InfoRow = (props: InfoRowProps) => (
 )
 
 type HeaderProps = {
-  originDomain: string
+  requester: string | null
   isPayment: boolean
+  signed: boolean | null
 }
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
-      {!!props.isPayment && <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" />}
+      {!props.signed && (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content="This link does not have an attached signature! Ensure that you trust the source of this link."
+            />
+          </Kb.Banner>
+        </Kb.Box2>
+      )}
+      {!!props.isPayment && (
+        <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" style={styles.sendIcon} />
+      )}
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -107,21 +121,25 @@ const Header = (props: HeaderProps) => (
         style={{marginTop: Styles.globalMargins.xlarge}}
       >
         <Kb.Text selectable={true} type="BodyBig" negative={true}>
-          {props.originDomain}
+          {props.requester}
         </Kb.Text>
-        <Kb.Box2
-          direction="horizontal"
-          style={{backgroundColor: Styles.globalColors.transparent, marginLeft: Styles.globalMargins.xtiny}}
-        >
-          <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
-        </Kb.Box2>
+        {props.signed && (
+          <Kb.Box2
+            direction="horizontal"
+            style={{backgroundColor: Styles.globalColors.transparent, marginLeft: Styles.globalMargins.xtiny}}
+          >
+            <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
       <Kb.Text negative={true} type="BodyBig">
         is requesting {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
       </Kb.Text>
-      <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
-        Keybase verified the request's signature.
-      </Kb.Text>
+      {props.signed && (
+        <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
+          Keybase verified the request's signature.
+        </Kb.Text>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -206,6 +224,19 @@ const TxInfo = (props: TxInfoProps) => (
   </Kb.Box2>
 )
 
+// Trim the given string to the first 20 characters if necessary. Note that we are doing it this way rather than
+// using shortenAccountID since it doesn't feel right to chop out the middle of `reallylongnameonanotherservice@example.com`
+const TrimString = (s: string | null) => {
+  if (s === null) {
+    return s
+  }
+  if (s.length < 20) {
+    return s
+  } else {
+    return s.substring(0, 20) + '...'
+  }
+}
+
 const SEP7Confirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
@@ -219,7 +250,11 @@ const SEP7Confirm = (props: Props) => (
         contentContainerStyle={styles.scrollViewContents}
         alwaysBounceVertical={false}
       >
-        <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} />
+        <Header
+          isPayment={props.operation === 'pay'}
+          requester={props.signed ? props.originDomain : TrimString(props.recipient)}
+          signed={props.signed}
+        />
         {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
           <PaymentInfo
@@ -279,7 +314,12 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' 
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (
-    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} readyToSend={props.assetCode ? !!props.path.exchangeRate : (!!props.amount || !!userAmount)} />
+    <SEP7Confirm
+      {...props}
+      onChangeAmount={onChangeAmount}
+      userAmount={userAmount}
+      readyToSend={props.assetCode ? !!props.path.exchangeRate : !!props.amount || !!userAmount}
+    />
   )
 }
 
@@ -360,7 +400,6 @@ const styles = Styles.styleSheetCreate({
   }),
   headerContent: {
     alignItems: 'center',
-    marginTop: Styles.globalMargins.tiny,
   },
   headingText: {
     color: Styles.globalColors.black_50,
@@ -393,6 +432,9 @@ const styles = Styles.styleSheetCreate({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+  },
+  sendIcon: {
+    marginTop: Styles.globalMargins.tiny,
   },
   stellarIcon: {
     alignSelf: 'flex-start',

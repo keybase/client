@@ -645,6 +645,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		AssetIssuer:  validated.AssetIssuer,
 		Memo:         validated.Memo,
 		MemoType:     validated.MemoType,
+		Signed:       validated.Signed,
 	}
 
 	if validated.AssetCode == "" {

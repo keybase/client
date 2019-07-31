@@ -181,6 +181,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   operation: '',
   originDomain: '',
   recipient: '',
+  signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
 })
