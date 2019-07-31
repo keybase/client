@@ -58,6 +58,7 @@ const useTopNTlfs = (
       tlfs
         .valueSeq()
         .toArray()
+        .filter(({isIgnored}) => !isIgnored)
         .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
         .slice(0, n)
         .map(({name, tlfMtime}) => ({
