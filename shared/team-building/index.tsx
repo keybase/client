@@ -327,7 +327,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         this.props.highlightedIndex,
         this.props.recommendations
       )
-      // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
       return (
         <Kb.Box2
           direction="vertical"
