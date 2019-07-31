@@ -29,7 +29,7 @@ const AddWithIconHover = Kb.HoverHoc(Go('Add'), GoIcon)
 
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
-    {props.label === 'Go!' ? <GoWithIconHover /> : <AddWithIconHover />}
+    {props.label === 'Go!' ? <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} /> : <AddWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />}
   </Kb.ClickableBox>
 )
 
@@ -46,10 +46,15 @@ const styles = Styles.styleSheetCreate({
     common: {color: Styles.globalColors.white},
     isElectron: {lineHeight: 40},
   }),
-
   goIcon: Styles.platformStyles({
     isElectron: {
       lineHeight: 40,
+    },
+  }),
+  hoverContainerStyle: Styles.platformStyles({
+    isElectron: {
+      justifyContent: 'center',
+      width: '100%',
     },
   }),
 })
