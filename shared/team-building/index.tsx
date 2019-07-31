@@ -268,18 +268,18 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     (
       highlightedIndex: number | null,
       sections: SearchRecSection[] | null
-    ): [SearchRecSection | null, number] => {
+    ): {index: number; section: SearchRecSection} | null => {
       if (highlightedIndex !== null && sections !== null) {
         let index = highlightedIndex
-        for (const s of sections) {
-          if (index >= s.data.length) {
-            index -= s.data.length
+        for (const section of sections) {
+          if (index >= section.data.length) {
+            index -= section.data.length
           } else {
-            return [s, index]
+            return {index, section}
           }
         }
       }
-      return [null, 0]
+      return null
     }
   )
 
@@ -323,7 +323,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs && this.props.recommendations) {
-      const [highlightedSection, localIndex] = this._listIndexToSectionAndLocalIndex(
+      const highlightDetails = this._listIndexToSectionAndLocalIndex(
         this.props.highlightedIndex,
         this.props.recommendations
       )
@@ -353,9 +353,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   followingState={result.followingState}
                   highlight={
                     !Styles.isMobile &&
-                    !!highlightedSection &&
-                    highlightedSection === section &&
-                    localIndex === index
+                    !!highlightDetails &&
+                    highlightDetails.section === section &&
+                    highlightDetails.index === index
                   }
                   onAdd={() => this.props.onAdd(result.userId)}
                   onRemove={() => this.props.onRemove(result.userId)}
