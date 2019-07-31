@@ -10,6 +10,7 @@ import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './s
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
+import {memoize} from '../util/memoize'
 
 export const numSectionLabel = '0-9'
 
@@ -172,6 +173,7 @@ const ContactsImportButton = (props: ContactProps) => {
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
+
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }
@@ -263,19 +265,24 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     return {index: indexInList, length, offset}
   }
 
-  _listIndexToSectionAndLocalIndex = (): [SearchRecSection | null, number] => {
-    if (this.props.recommendations && this.props.highlightedIndex !== null) {
-      let index = this.props.highlightedIndex
-      for (const s of this.props.recommendations) {
-        if (index >= s.data.length) {
-          index -= s.data.length
-        } else {
-          return [s, index]
+  _listIndexToSectionAndLocalIndex = memoize(
+    (
+      highlightedIndex: number | null,
+      sections: SearchRecSection[] | null
+    ): [SearchRecSection | null, number] => {
+      if (highlightedIndex !== null && sections !== null) {
+        let index = highlightedIndex
+        for (const s of sections) {
+          if (index >= s.data.length) {
+            index -= s.data.length
+          } else {
+            return [s, index]
+          }
         }
       }
+      return [null, 0]
     }
-    return [null, 0]
-  }
+  )
 
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
@@ -317,7 +324,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs && this.props.recommendations) {
-      const [highlightedSection, localIndex] = this._listIndexToSectionAndLocalIndex()
+      const [highlightedSection, localIndex] = this._listIndexToSectionAndLocalIndex(
+        this.props.highlightedIndex,
+        this.props.recommendations
+      )
       // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
       return (
         <Kb.Box2
@@ -327,6 +337,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
+            selectedIndex={this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
             renderItem={({index, item: result, section}) =>
