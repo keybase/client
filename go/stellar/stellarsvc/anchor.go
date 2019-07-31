@@ -85,15 +85,7 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 	}
 	u.Path = path.Join(u.Path, action)
 
-	urlTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(u.Host))
-	if err != nil {
-		return nil, err
-	}
-	assetTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(a.asset.VerifiedDomain))
-	if err != nil {
-		return nil, err
-	}
-	if urlTLD != assetTLD {
+	if !a.domainMatches(u.Host) {
 		return nil, errors.New("transfer server hostname does not match asset hostname")
 	}
 
@@ -168,13 +160,21 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 		var resp forbiddenResponse
 		if err := json.Unmarshal(body, &resp); err != nil {
 			mctx.Debug("json unmarshal of 403 response failed: %s", err)
-			mctx.Debug("body: %s", string(body))
 			return stellar1.AssetActionResultLocal{}, err
 		}
 		if resp.Error != "" {
 			return stellar1.AssetActionResultLocal{}, fmt.Errorf("Error from anchor: %s", resp.Error)
 		}
 		if resp.Type == "interactive_customer_info_needed" {
+			parsed, err := url.Parse(resp.URL)
+			if err != nil {
+				mctx.Debug("invalid URL received from anchor: %s", resp.URL)
+				return stellar1.AssetActionResultLocal{}, errors.New("invalid URL received from anchor")
+			}
+			if !a.domainMatches(parsed.Host) {
+				mctx.Debug("response URL on a different domain than asset domain: %s vs. %s", resp.URL, a.asset.VerifiedDomain)
+				return stellar1.AssetActionResultLocal{}, errors.New("anchor requesting opening a different domain")
+			}
 			return stellar1.AssetActionResultLocal{ExternalUrl: &resp.URL}, nil
 		}
 		mctx.Debug("unhandled anchor response for %s: %+v", u, resp)
@@ -206,4 +206,16 @@ func httpGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 	}
 
 	return res.StatusCode, body, nil
+}
+
+func (a *anchorInteractor) domainMatches(url string) bool {
+	urlTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(url))
+	if err != nil {
+		return false
+	}
+	assetTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(a.asset.VerifiedDomain))
+	if err != nil {
+		return false
+	}
+	return urlTLD == assetTLD
 }

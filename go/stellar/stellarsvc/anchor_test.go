@@ -2,7 +2,6 @@ package stellarsvc
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -106,11 +105,8 @@ var errAnchorTests = []anchorTest{
 			TransferServer: "https://transfer.keybase.io/nope",
 		},
 	},
-}
-
-var validAnchorTests = []anchorTest{
 	{
-		Name: "legit for now",
+		Name: "external url changes domain name",
 		Asset: stellar1.Asset{
 			Type:           "credit_alphanum4",
 			Code:           "EUR",
@@ -123,12 +119,27 @@ var validAnchorTests = []anchorTest{
 	},
 }
 
+var validAnchorTests = []anchorTest{
+	{
+		Name: "valid",
+		Asset: stellar1.Asset{
+			Type:           "credit_alphanum4",
+			Code:           "EUR",
+			Issuer:         "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
+			VerifiedDomain: "www.anchorusd.com",
+			TransferServer: "https://api.anchorusd.com/transfer",
+		},
+		DepositExternalURL:  "https://portal.anchorusd.com/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566",
+		WithdrawExternalURL: "https://portal.anchorusd.com/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
+	},
+}
+
 func TestAnchorInteractor(t *testing.T) {
 	tc := SetupTest(t, "AnchorInteractor", 1)
 	for i, test := range errAnchorTests {
 		accountID, _ := randomStellarKeypair()
 		ai := newAnchorInteractor(accountID, test.Asset)
-		ai.httpGetClient = mockTransferGet
+		ai.httpGetClient = mockKeybaseTransferGet
 		_, err := ai.Deposit(tc.MetaContext())
 		if err == nil {
 			t.Errorf("err test %d [%s]: Deposit returned no error, but expected one", i, test.Name)
@@ -139,19 +150,17 @@ func TestAnchorInteractor(t *testing.T) {
 			t.Errorf("err test %d [%s]: Withdraw returned no error, but expected one", i, test.Name)
 			continue
 		}
-		fmt.Printf("%d %s: %s\n", i, test.Name, err)
 	}
 
 	for i, test := range validAnchorTests {
 		accountID, _ := randomStellarKeypair()
 		ai := newAnchorInteractor(accountID, test.Asset)
-		ai.httpGetClient = mockTransferGet
+		ai.httpGetClient = mockAnchorUSDTransferGet
 		res, err := ai.Deposit(tc.MetaContext())
 		if err != nil {
 			t.Errorf("valid test %d [%s]: Deposit returned an error: %s", i, test.Name, err)
 			continue
 		}
-		fmt.Printf("%d %s: %+v\n", i, test.Name, res)
 		if res.ExternalUrl == nil && res.MessageFromAnchor == nil {
 			t.Errorf("valid test %d [%s] deposit: result fields are all nil", i, test.Name)
 			continue
@@ -172,7 +181,6 @@ func TestAnchorInteractor(t *testing.T) {
 			t.Errorf("valid test %d [%s]: Withdraw returned an error: %s", i, test.Name, err)
 			continue
 		}
-		fmt.Printf("%d %s: %+v\n", i, test.Name, res)
 		if res.ExternalUrl == nil && res.MessageFromAnchor == nil {
 			t.Errorf("valid test %d [%s] withdraw: result fields are all nil", i, test.Name)
 			continue
@@ -190,15 +198,27 @@ func TestAnchorInteractor(t *testing.T) {
 	}
 }
 
-// mockTransferGet is an httpGetClient func that returns a stored result
+// mockKeybaseTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw
-func mockTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 	switch url {
 	case "https://transfer.keybase.io/transfer/deposit":
-		mctx.Debug("returning mocked depositBody for %s", url)
 		return http.StatusForbidden, []byte(depositBody), nil
 	case "https://transfer.keybase.io/transfer/withdraw":
-		mctx.Debug("returning mocked withdrawBody for %s", url)
+		return http.StatusForbidden, []byte(withdrawBody), nil
+	default:
+		return 0, nil, errors.New("unknown mocked url")
+	}
+
+}
+
+// mockAnchorUSDTransferGet is an httpGetClient func that returns a stored result
+// for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw
+func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+	switch url {
+	case "https://api.anchorusd.com/transfer/deposit":
+		return http.StatusForbidden, []byte(depositBody), nil
+	case "https://api.anchorusd.com/transfer/withdraw":
 		return http.StatusForbidden, []byte(withdrawBody), nil
 	default:
 		return 0, nil, errors.New("unknown mocked url")
