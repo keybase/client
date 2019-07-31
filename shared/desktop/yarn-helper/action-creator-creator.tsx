@@ -25,6 +25,8 @@ type FileDesc = {
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
 
 const reservedPayloadKeys = ['_description']
+const typeMap = []
+const cleanName = c => c.replace(/-/g, '')
 
 const payloadHasType = (payload, toFind) => {
   return Object.keys(payload).some(param => {
@@ -65,15 +67,21 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: {}}
-  `
+${compileAllActionsType(actions)}  | {type: 'common:resetStore', payload: {}}
+`
 }
 
 function canError(x: ActionDesc): x is ErrorPayload {
   return !!(x as ErrorPayload).canError
 }
 
-function compileAllActionsType(_: ActionNS, actions: Actions): string {
+const compileActionMap = (ns: ActionNS, actions: Actions) => {
+  Object.keys(actions).forEach(name => {
+    typeMap.push(`    '${ns}:${name}': ${cleanName(ns)}.${capitalize(name)}Payload`)
+  })
+}
+
+function compileAllActionsType(actions: Actions): string {
   const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
@@ -170,13 +178,15 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: Actio
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-const cleanName = c => c.replace(/-/g, '')
 function makeTypedActions(created) {
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,no-use-before-define */
-  ${created.map(c => `import {Actions as ${cleanName(c)}Actions} from './${c}-gen'`).join('\n')}
+  ${created.map(c => `import * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
 
-  export type TypedActions = ${created.map(c => `${cleanName(c)}Actions`).join(' | ')}
+  export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
+
+  export type TypedActionsMap = {${typeMap.join(',\n')}
+  }
 `
 }
 
@@ -197,6 +207,7 @@ function main() {
         parser: 'typescript',
       })
       fs.writeFileSync(outPath, generated)
+      compileActionMap(ns, desc.actions)
     })
 
   console.log(`Generating typed-actions-gen`)
