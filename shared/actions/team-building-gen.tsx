@@ -24,7 +24,7 @@ type _AddUsersToTeamSoFarPayload = {
 }
 type _CancelTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace}
 type _ChangeSendNotificationPayload = {readonly namespace: 'teams'; readonly sendNotification: boolean}
-type _FetchUserRecsPayload = {readonly namespace: Types.AllowedNamespace}
+type _FetchUserRecsPayload = {readonly includeContacts: boolean; readonly namespace: Types.AllowedNamespace}
 type _FetchedUserRecsPayload = {readonly namespace: Types.AllowedNamespace; readonly users: Array<Types.User>}
 type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamname?: string}
 type _RemoveUsersFromTeamSoFarPayload = {
@@ -32,6 +32,7 @@ type _RemoveUsersFromTeamSoFarPayload = {
   readonly users: Array<Types.UserID>
 }
 type _SearchPayload = {
+  readonly includeContacts: boolean
   readonly namespace: Types.AllowedNamespace
   readonly query: string
   readonly service: Types.ServiceIdWithContact
