@@ -199,6 +199,7 @@ func TestBulkLookupContacts(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+tableLoop:
 	for _, x := range []struct {
 		LookupKey contacts.ContactLookupKey
 		Match     bool
@@ -223,7 +224,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			// We found one!
 			if !x.Match {
 				require.Fail(t, "found %v in the result", x.LookupKey)
-				break
+				continue tableLoop
 			}
 
 			// Evaluate coerced
@@ -234,7 +235,7 @@ func TestBulkLookupContacts(t *testing.T) {
 				"%v coerced value was expected to be %v, got %v",
 				x.LookupKey, x.Coerced, v.Coerced != "",
 			)
-			break
+			continue tableLoop
 		}
 
 		// We didn't find anything
