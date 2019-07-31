@@ -183,7 +183,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	newCacheEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
 
 	for _, email := range emails {
-		key := makeEmailLookupKey(email)
+		key := MakeEmailLookupKey(email)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.
@@ -196,7 +196,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	}
 
 	for _, number := range numbers {
-		key := makePhoneLookupKey(number)
+		key := MakePhoneLookupKey(number)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.

@@ -287,6 +287,10 @@ func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPr
 	return false, false, nil
 }
 
+func OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	return getGlobal(mctx.G()).OwnAccountCached(mctx, accountID)
+}
+
 func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntry, stellar1.AccountBundle, error) {
 	if accountID == "" {
 		bundle, err := remote.FetchSecretlessBundle(mctx)

@@ -240,7 +240,7 @@ func TestLookupCacheExpiration(t *testing.T) {
 		// last lookup should be cached.
 		cacheObj := cacheProvider.getCache(mctx)
 		require.Len(t, cacheObj.Lookups, 1)
-		_, ok := cacheObj.Lookups[makePhoneLookupKey("+48111222333")]
+		_, ok := cacheObj.Lookups[MakePhoneLookupKey("+48111222333")]
 		require.True(t, ok)
 	}
 

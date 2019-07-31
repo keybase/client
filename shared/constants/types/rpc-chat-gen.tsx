@@ -1468,6 +1468,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.registerSharePost'
 // 'chat.1.remote.failSharePost'
 // 'chat.1.remote.broadcastGregorMessageToConv'
+// 'chat.1.remote.teamIDOfConv'
 // 'chat.1.remote.serverNow'
 // 'chat.1.remote.getExternalAPIKeys'
 // 'chat.1.remote.advertiseBotCommands'

@@ -911,7 +911,7 @@ func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, e
 }
 
 func (t *Team) makeRatchet(ctx context.Context) (ret *hidden.Ratchet, err error) {
-	return hidden.MakeRatchet(libkb.NewMetaContext(ctx, t.G()), t.ID)
+	return t.chain().makeHiddenRatchet(libkb.NewMetaContext(ctx, t.G()))
 }
 
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
@@ -2193,34 +2193,28 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 // Retry it several times if it fails due to being behind the latest team sigchain state or due to other retryable errors.
 // Passes the attempt number (initially 0) to `post`.
 func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
-	defer g.CTraceTimed(ctx, "RetryIfPossible", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("RetryIfPossible", func() error { return err })()
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
-		err = post(ctx, i)
-		if isSigOldSeqnoError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError %d", i)
-			continue
+		mctx.Debug("| RetryIfPossible(%v)", i)
+		err = post(mctx.Ctx(), i)
+		switch {
+		case isSigOldSeqnoError(err):
+			mctx.Debug("| retrying due to SigOldSeqnoError %d", i)
+		case isStaleBoxError(err):
+			mctx.Debug("| retrying due to StaleBoxError %d", i)
+		case isSigBadTotalOrder(err):
+			mctx.Debug("| retrying since update would violate total ordering for team %d", i)
+		case isSigMissingRatchet(err):
+			mctx.Debug("| retrying since the server wanted a ratchet and we didn't provide one %d", i)
+		case isHiddenAppendPrecheckError(err):
+			mctx.Debug("| retrying since we hit a hidden append precheck error")
+		default:
+			return err
 		}
-		if isStaleBoxError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError %d", i)
-			continue
-		}
-		if isSigBadTotalOrder(err) {
-			g.Log.CDebugf(ctx, "| retrying since update would violate total ordering for team %d", i)
-			continue
-		}
-		if isSigMissingRatchet(err) {
-			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
-			continue
-		}
-		if isHiddenAppendPrecheckError(err) {
-			g.Log.CDebugf(ctx, "| retrying since we hit a hidden append precheck error")
-			continue
-		}
-		return err
 	}
-	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
+	mctx.Debug("| RetryIfPossible exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
