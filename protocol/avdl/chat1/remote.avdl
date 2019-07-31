@@ -314,8 +314,11 @@ protocol remote {
   void registerSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
   void failSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
 
-  // Message an entire conv with an arbitrary Gregor message
+  // Message an entire conv with an arbitrary Gregor message (server-to-server only)
   void broadcastGregorMessageToConv(ConversationID convID, gregor1.Message msg);
+
+  // Get the team ID of a conversation (server-to-server only)
+  keybase1.TeamID teamIDOfConv(ConversationID convID);
 
   record ServerNowRes {
     union { null, RateLimit } rateLimit;
