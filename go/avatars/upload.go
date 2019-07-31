@@ -49,15 +49,30 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	}
 
 	if teamID != nil {
-		mpart.WriteField("team_id", string(*teamID))
+		err := mpart.WriteField("team_id", string(*teamID))
+		if err != nil {
+			return err
+		}
 	}
 
 	if crop != nil {
 		mctx.Debug("Adding crop fields: %+v", crop)
-		mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
-		mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
-		mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
-		mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		err := mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := mpart.Close(); err != nil {
