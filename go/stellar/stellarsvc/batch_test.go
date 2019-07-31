@@ -30,13 +30,15 @@ func TestPrepareBatchRelays(t *testing.T) {
 		{Recipient: "t_rebecca", Amount: "3"},
 		{Recipient: tcw.Fu.Username, Amount: "2"},
 	}
+	batchID, err := libkb.RandHexString("", 8)
+	require.NoError(t, err)
 
 	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx)
 	require.NoError(t, err)
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments, batchID)
 	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)
@@ -51,6 +53,7 @@ func TestPrepareBatchRelays(t *testing.T) {
 			require.Nil(t, p.Error)
 			require.NotEmpty(t, p.Seqno)
 			require.NotEmpty(t, p.TxID)
+			require.Equal(t, batchID, p.Relay.BatchID)
 		case tcw.Fu.Username:
 			require.NotNil(t, p.Direct)
 			require.Nil(t, p.Relay)
@@ -58,6 +61,7 @@ func TestPrepareBatchRelays(t *testing.T) {
 			require.Nil(t, p.Error)
 			require.NotEmpty(t, p.Seqno)
 			require.NotEmpty(t, p.TxID)
+			require.Equal(t, batchID, p.Direct.BatchID)
 		default:
 			t.Fatalf("unknown username in result: %s", p.Username)
 		}
@@ -85,13 +89,15 @@ func TestPrepareBatchLowAmounts(t *testing.T) {
 		{Recipient: "t_rebecca", Amount: "1"},
 		{Recipient: tcw.Fu.Username, Amount: "0.2"},
 	}
+	batchID, err := libkb.RandHexString("", 8)
+	require.NoError(t, err)
 
 	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx)
 	require.NoError(t, err)
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments, batchID)
 	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)
