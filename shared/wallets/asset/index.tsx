@@ -87,7 +87,7 @@ export default class Asset extends React.Component<Props, State> {
                       {this.props.depositButtonText}
                     </Kb.Text>
                     <Kb.Text style={styles.equivDivider} type="BodySmall">
-                      ·
+                      |
                     </Kb.Text>
                   </>
                 )}
@@ -102,7 +102,7 @@ export default class Asset extends React.Component<Props, State> {
                       {this.props.withdrawButtonText}
                     </Kb.Text>
                     <Kb.Text style={styles.equivDivider} type="BodySmall">
-                      ·
+                      |
                     </Kb.Text>
                   </>
                 )}
