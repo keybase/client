@@ -173,7 +173,6 @@ const ContactsImportButton = (props: ContactProps) => {
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
-
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }
