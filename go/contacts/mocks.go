@@ -51,15 +51,15 @@ func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybas
 	ret := NewContactLookupResults()
 	for _, email := range emails {
 		if user, found := c.Emails[email]; found {
-			ret.Results[makeEmailLookupKey(email)] = ContactLookupResult{UID: user.UID}
+			ret.Results[MakeEmailLookupKey(email)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	for _, number := range numbers {
 		if user, found := c.PhoneNumbers[number]; found {
-			ret.Results[makePhoneLookupKey(number)] = ContactLookupResult{UID: user.UID}
+			ret.Results[MakePhoneLookupKey(number)] = ContactLookupResult{UID: user.UID}
 		}
 		if errStr, found := c.PhoneNumberErrors[number]; found {
-			ret.Results[makePhoneLookupKey(number)] = ContactLookupResult{Error: errStr}
+			ret.Results[MakePhoneLookupKey(number)] = ContactLookupResult{Error: errStr}
 		}
 	}
 	ret.ResolvedFreshness = 10 * 24 * time.Hour  // approx 10 days
