@@ -89,7 +89,7 @@ func NewSubteamSig(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb
 		return nil, nil, err
 	}
 
-	ratchet, err := hidden.MakeRatchet(mctx, parentTeam.GetID())
+	ratchet, err := parentTeam.makeHiddenRatchet(mctx)
 	if err != nil {
 		return nil, nil, err
 	}

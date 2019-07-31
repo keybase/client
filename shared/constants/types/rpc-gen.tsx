@@ -2047,6 +2047,7 @@ export enum StatusCode {
   scteamexists = 2619,
   scteamreaderror = 2623,
   scteamwritepermdenied = 2625,
+  scteambadgeneration = 2636,
   scnoop = 2638,
   scteaminvitebadtoken = 2646,
   scteamtarduplicate = 2663,
