@@ -24,10 +24,14 @@ type SearchResult = {
   followingState: FollowingState
 }
 
+export type ImportContactsEntry = {
+  isImportButton: true
+}
+
 export type SearchRecSection = {
   label: string
   shortcut: boolean
-  data: Array<SearchResult>
+  data: Array<SearchResult | ImportContactsEntry>
 }
 
 export type RolePickerProps = {
@@ -136,6 +140,33 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
+  )
+}
+
+const ContactsImportButton = (props: ContactProps) => {
+  // If we've imported contacts already, then there's nothing for us to do.
+  if (
+    props.contactsImported === null ||
+    props.contactsImported ||
+    props.contactsPermissionStatus === 'never_ask_again'
+  )
+    return null
+
+  return (
+    <Kb.ClickableBox onClick={props.onImportContacts}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.importContactsContainer}
+      >
+        <Kb.Icon type="iconfont-phone-contact" fontSize={24} />
+        <Kb.Text type="BodyBig" lineClamp={1}>
+          Import your phone contacts
+        </Kb.Text>
+        <Kb.Icon type="iconfont-arrow-right" fontSize={24} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
   )
 }
 
@@ -283,21 +314,25 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             ref={this.sectionListRef}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result}) => (
-              <UserResult
-                resultForService={this.props.selectedService}
-                username={result.username}
-                prettyName={result.prettyName}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                followingState={result.followingState}
-                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
-              />
-            )}
+            renderItem={({index, item: result}) =>
+              result.isImportButton ? (
+                <ContactsImportButton {...this.props} />
+              ) : (
+                <UserResult
+                  resultForService={this.props.selectedService}
+                  username={result.username}
+                  prettyName={result.prettyName}
+                  displayLabel={result.displayLabel}
+                  services={result.services}
+                  inTeam={result.inTeam}
+                  isPreExistingTeamMember={result.isPreExistingTeamMember}
+                  followingState={result.followingState}
+                  highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                  onAdd={() => this.props.onAdd(result.userId)}
+                  onRemove={() => this.props.onRemove(result.userId)}
+                />
+              )
+            }
             renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
           />
           {Styles.isMobile && this._alphabetIndex()}
@@ -462,6 +497,10 @@ const styles = Styles.styleSheetCreate({
   gapAlphaIndices: {
     ...Styles.padding(2, 6, 2, 2),
     flexShrink: 1,
+  },
+  importContactsContainer: {
+    justifyContent: 'space-between',
+    padding: Styles.globalMargins.xsmall,
   },
   list: Styles.platformStyles({
     common: {
