@@ -78,7 +78,7 @@ const AccountsRows = (props: Props) => (
 )
 const AccountSwitcher = (props: Props) => (
   <Kb.ScrollView alwaysBounceVertical={false}>
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true} centerChildren={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
       {Styles.isMobile && <MobileHeader {...props} />}
       <Kb.Divider style={styles.divider} />
       {Styles.isMobile ? (
@@ -99,7 +99,6 @@ const styles = Styles.styleSheetCreate({
   avatarSignedOut: {opacity: 0.4},
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
-    ...Styles.padding(0, Styles.globalMargins.tiny),
     maxHeight: 170,
     width: 200,
   },
