@@ -199,7 +199,7 @@ func TestBulkLookupContacts(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	lookupTable := []struct {
+	for _, x := range []struct {
 		LookupKey contacts.ContactLookupKey
 		Match     bool
 		Coerced   bool
@@ -214,42 +214,32 @@ func TestBulkLookupContacts(t *testing.T) {
 		{contacts.MakePhoneLookupKey(pvpNumberRaw), false, false},
 		{contacts.MakePhoneLookupKey(ppvNumberRaw), false, false},
 		{contacts.MakeEmailLookupKey(randomNumber), false, false},
-	}
-
-	matchRes := func(
-		assertion contacts.ContactLookupKey,
-		shouldExist bool,
-		shouldBeCoerced bool,
-	) {
+	} {
 		for k, v := range res.Results {
-			if k != assertion {
+			if k != x.LookupKey {
 				continue
 			}
 
 			// We found one!
-			if !shouldExist {
-				require.Fail(t, "found %v in the result", assertion)
+			if !x.Match {
+				require.Fail(t, "found %v in the result", x.LookupKey)
 				return
 			}
 
 			// Evaluate coerced
 			require.True(
 				t,
-				(shouldBeCoerced && v.Coerced != "") ||
-					(!shouldBeCoerced && v.Coerced == ""),
+				(x.Coerced && v.Coerced != "") ||
+					(!x.Coerced && v.Coerced == ""),
 				"%v coerced value was expected to be %v, got %v",
-				assertion, shouldBeCoerced, v.Coerced != "",
+				x.LookupKey, x.Coerced, v.Coerced != "",
 			)
 			return
 		}
 
 		// We didn't find anything
-		if shouldExist {
-			require.Fail(t, "did not find %v in the result", assertion)
+		if x.Match {
+			require.Fail(t, "did not find %v in the result", x.LookupKey)
 		}
-	}
-
-	for _, x := range lookupTable {
-		matchRes(x.LookupKey, x.Match, x.Coerced)
 	}
 }
