@@ -335,7 +335,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
-            selectedIndex={this.props.highlightedIndex || 0}
+            selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
             renderItem={({index, item: result, section}) =>
