@@ -886,6 +886,26 @@
     },
     {
       "type": "record",
+      "name": "AssetActionResultLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "externalUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "messageFromAnchor"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -2333,6 +2353,32 @@
         }
       ],
       "response": "PaymentPathLocal"
+    },
+    "assetDepositLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        }
+      ],
+      "response": "AssetActionResultLocal"
+    },
+    "assetWithdrawLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        }
+      ],
+      "response": "AssetActionResultLocal"
     },
     "balancesLocal": {
       "request": [

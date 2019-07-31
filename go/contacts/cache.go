@@ -146,6 +146,11 @@ func (c *CachedContactsProvider) getCache(mctx libkb.MetaContext) lookupResultCa
 	return conCache
 }
 
+func (c *CachedContactsProvider) CleanCache(mctx libkb.MetaContext) error {
+	cacheKey := c.Store.dbKey(mctx.CurrentUID())
+	return c.Store.encryptedDB.Delete(mctx.Ctx(), cacheKey)
+}
+
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupResults, err error) {
 

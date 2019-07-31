@@ -116,11 +116,11 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
       t: RPCTypes.ImpTofuSearchType.phone,
     }
   } else {
-    // Consider the query a valid email if it contains at sign and a period
-    // after the at sign.
+    // Consider the query a valid email if it contains at sign (but not at 0
+    // index) and a period after the at sign.
     const atIndex = query.indexOf('@')
     const periodIndex = query.lastIndexOf('.')
-    if (atIndex !== -1 && periodIndex > atIndex && periodIndex !== query.length - 1) {
+    if (atIndex > 0 && periodIndex > atIndex && periodIndex !== query.length - 1) {
       return {
         email: query,
         t: RPCTypes.ImpTofuSearchType.email,
@@ -162,7 +162,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
   Promise.all([
     RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
     flags.sbsContacts
-      ? RPCTypes.contactsLookupSavedContactsListRpcPromise()
+      ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
       : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
     .then(([_suggestionRes, _contactRes]) => {

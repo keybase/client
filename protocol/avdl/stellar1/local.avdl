@@ -555,6 +555,13 @@ protocol local {
 
   PaymentPathLocal findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
 
+  record AssetActionResultLocal {
+    union { null, string } externalUrl;
+    union { null, string } messageFromAnchor;
+  }
+  AssetActionResultLocal assetDepositLocal(AccountID accountID, Asset asset);
+  AssetActionResultLocal assetWithdrawLocal(AccountID accountID, Asset asset);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

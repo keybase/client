@@ -57,6 +57,15 @@
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="keybase" />
         </intent-filter>
+        <intent-filter android:autoVerify="true">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="http" android:host="keybase.io" android:pathPrefix="/app" />
+          <data android:scheme="http" android:host="keybase.io" android:pathPrefix="/phone-app" />
+          <data android:scheme="https" android:host="keybase.io" android:pathPrefix="/app" />
+          <data android:scheme="https" android:host="keybase.io" android:pathPrefix="/phone-app" />
+        </intent-filter>
         <!-- TODO: enable
         <intent-filter>
           <action android:name="android.intent.action.SEND_MULTIPLE" />

@@ -374,7 +374,8 @@ export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: St
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
-export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly transferServer: String; readonly authEndpoint: String}
+export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly transferServer: String; readonly authEndpoint: String}
+export type AssetActionResultLocal = {readonly externalUrl?: String | null; readonly messageFromAnchor?: String | null}
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
@@ -547,6 +548,8 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
+// 'stellar.1.local.assetDepositLocal'
+// 'stellar.1.local.assetWithdrawLocal'
 // 'stellar.1.local.balancesLocal'
 // 'stellar.1.local.sendCLILocal'
 // 'stellar.1.local.sendPathCLILocal'

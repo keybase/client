@@ -281,6 +281,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const {isSender} = props
   const goToPickAsset = useGoToPickAssetCallback(_buildingAdvanced, isSender)
   const asset = isSender ? _buildingAdvanced.senderAsset : _buildingAdvanced.recipientAsset
+  const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
       <Kb.Box style={styles.pickAssetButtonOverlayInner}>
@@ -292,8 +293,8 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           style={styles.pickAssetButton}
         >
           <Kb.ClickableBox
-            onClick={goToPickAsset || undefined}
-            style={!goToPickAsset ? styles.disabled : undefined}
+            onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
+            style={!goToPickAsset || isLoading ? styles.disabled : undefined}
           >
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
               <Kb.Text

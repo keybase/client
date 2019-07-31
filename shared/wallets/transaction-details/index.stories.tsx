@@ -59,12 +59,16 @@ const props = {
 const partialAsset = {
   authEndpoint: '',
   code: '',
+  depositButtonText: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuerName: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
   transferServer: '',
   type: '',
+  withdrawButtonText: '',
 }
 
 const load = () => {

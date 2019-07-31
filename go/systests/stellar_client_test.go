@@ -750,4 +750,12 @@ func (s *stellarRetryClient) GetStaticConfigLocal(ctx context.Context) (res stel
 	return s.cli.GetStaticConfigLocal(ctx)
 }
 
+func (s *stellarRetryClient) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return s.cli.AssetDepositLocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return s.cli.AssetWithdrawLocal(ctx, arg)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
