@@ -104,9 +104,7 @@ const Root = (_: Props) => {
     },
   ]
   return (
-    <Kb.BoxGrow>
-      <Kb.SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
-    </Kb.BoxGrow>
+    <Kb.SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
   )
 }
 
