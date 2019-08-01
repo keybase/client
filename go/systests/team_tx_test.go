@@ -96,7 +96,8 @@ func testTeamTx1(t *testing.T, byUV bool) {
 
 	teamObj = ann.loadTeam(team, true /* admin */)
 	tx = teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
@@ -176,8 +177,10 @@ func TestTeamTxDependency(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER, nil)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	err = tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 
 	payloads := tx.DebugPayloads()
 	require.Equal(t, 3, len(payloads))
@@ -210,8 +213,10 @@ func TestTeamTxDependency(t *testing.T) {
 	bob.loginAfterResetPukless()
 
 	tx = teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByAssertionOrEmail(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER, nil)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	_, _, _, err = tx.AddMemberByAssertionOrEmail(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 
 	payloads = tx.DebugPayloads()
 	require.Equal(t, 3, len(payloads))
