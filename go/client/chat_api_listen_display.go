@@ -16,14 +16,16 @@ type chatNotificationDisplay struct {
 	showLocal         bool
 	hideExploding     bool
 	filtersNormalized []ChatChannel
+	tidToMsgCache     *TransactionIDToMessageCache
 }
 
-func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
+func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool, tidToMsgCache *TransactionIDToMessageCache) *chatNotificationDisplay {
 	return &chatNotificationDisplay{
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
 		showLocal:               showLocal,
 		hideExploding:           hideExploding,
 		svc:                     newChatServiceHandler(g),
+		tidToMsgCache:           tidToMsgCache,
 	}
 }
 
@@ -187,6 +189,12 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		notif.Msg = msg.Msg
 		notif.Error = msg.Error
 		notif.Pagination = inMsg.Pagination
+		if notif.Msg != nil && notif.Msg.Content.Text != nil && notif.Msg.Content.Text.Payments != nil {
+			for _, payment := range notif.Msg.Content.Text.Payments {
+				txID := payment.Result.Sent__
+				d.tidToMsgCache.Set(*txID, notif.Msg.Content.Text.Body)
+			}
+		}
 		d.printJSON(notif)
 	}
 	return nil

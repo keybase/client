@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/keybase/cli"
@@ -140,13 +141,39 @@ func (c *CmdChatAPIListen) ErrWriteLn(format string, obj ...interface{}) {
 	c.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, obj...) + "\n"))
 }
 
+type TransactionIDToMessageCache struct {
+	lock  sync.Mutex
+	cache map[stellar1.PaymentID]string
+	// TODO: Do some fancy stuff with a priority queue so memory doesn't build forever
+}
+
+func (c *TransactionIDToMessageCache) Set(id stellar1.PaymentID, msg string) {
+	c.lock.Lock()
+	c.cache[id] = msg
+	c.lock.Unlock()
+}
+
+func NewTransactionIDToMessageCache() *TransactionIDToMessageCache {
+	return &TransactionIDToMessageCache{
+		lock:  sync.Mutex{},
+		cache: make(map[stellar1.PaymentID]string),
+	}
+}
+
+func (c *TransactionIDToMessageCache) Get(id stellar1.PaymentID) (string, bool) {
+	msg, ok := c.cache[id]
+	return msg, ok
+}
+
 func (c *CmdChatAPIListen) Run() error {
 	sessionClient, err := GetSessionClient(c.G())
 	if err != nil {
 		return err
 	}
 
-	chatDisplay := newChatNotificationDisplay(c.G(), c.showLocal, c.hideExploding)
+	tidToMsgCache := NewTransactionIDToMessageCache()
+
+	chatDisplay := newChatNotificationDisplay(c.G(), c.showLocal, c.hideExploding, tidToMsgCache)
 
 	if err := chatDisplay.setupFilters(context.TODO(), c.channelFilters); err != nil {
 		return err
@@ -163,7 +190,7 @@ func (c *CmdChatAPIListen) Run() error {
 		chat1.NotifyChatProtocol(chatDisplay),
 	}
 	if c.subscribeWallet {
-		stellarDisplay := newWalletNotificationDisplay(c.G())
+		stellarDisplay := newWalletNotificationDisplay(c.G(), tidToMsgCache)
 		protocols = append(protocols, stellar1.NotifyProtocol(stellarDisplay))
 	}
 

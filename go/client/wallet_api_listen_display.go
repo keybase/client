@@ -22,6 +22,7 @@ type walletNotification struct {
 	Source       string      `json:"source"`
 	Notification interface{} `json:"notification,omitempty"`
 	Error        *string     `json:"error,omitempty"`
+	SourceMsg    string      `json:"source_msg,omitempty"`
 }
 
 func newWalletNotification(source string) *walletNotification {
@@ -34,11 +35,12 @@ func newWalletNotification(source string) *walletNotification {
 
 type walletNotificationDisplay struct {
 	*baseNotificationDisplay
-	cli     stellar1.LocalClient
-	deduper map[string]bool
+	cli           stellar1.LocalClient
+	deduper       map[string]bool
+	tidToMsgCache *TransactionIDToMessageCache
 }
 
-func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDisplay {
+func newWalletNotificationDisplay(g *libkb.GlobalContext, tidToMsgCache *TransactionIDToMessageCache) *walletNotificationDisplay {
 	cli, err := GetWalletClient(g)
 	if err != nil {
 		panic(err.Error())
@@ -47,6 +49,7 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
 		cli:                     cli,
 		deduper:                 make(map[string]bool),
+		tidToMsgCache:           tidToMsgCache,
 	}
 }
 
@@ -73,6 +76,9 @@ func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, s
 
 	d.deduper[deduperKey(details)] = true
 	notif.Notification = details
+	if msg, ok := d.tidToMsgCache.Get(details.Summary.Id); ok {
+		notif.SourceMsg = msg
+	}
 	d.printJSON(notif)
 	return nil
 }
