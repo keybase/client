@@ -92,3 +92,21 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 	}
 	return cache.Contacts, nil
 }
+
+func (s *SavedContactsStore) ClearPhoneNumber(mctx libkb.MetaContext,
+	phoneNumber keybase1.PhoneNumber) {
+	contactList, err := s.RetrieveContacts(mctx)
+	if err != nil {
+		mctx.Warning("Failed to get cached contact list: %x", err)
+	}
+	for i, con := range contactList {
+		if *con.Component.PhoneNumber == keybase1.RawPhoneNumber(phoneNumber) {
+			con.Resolved = false
+			contactList[i] = con
+		}
+	}
+	err = s.SaveProcessedContacts(mctx, contactList)
+	if err != nil {
+		mctx.Warning("Failed to put cached contact list: %x", err)
+	}
+}
