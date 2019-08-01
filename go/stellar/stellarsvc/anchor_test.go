@@ -129,6 +129,7 @@ var validAnchorTests = []anchorTest{
 			Issuer:         "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
 			VerifiedDomain: "www.anchorusd.com",
 			TransferServer: "https://api.anchorusd.com/transfer",
+			WithdrawType:   "bank_account",
 		},
 		DepositExternalURL:  "https://portal.anchorusd.com/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566",
 		WithdrawExternalURL: "https://portal.anchorusd.com/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
