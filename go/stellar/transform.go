@@ -71,14 +71,15 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		loc.ToUserType = stellar1.ParticipantType_SBS
 	}
 
-	if details.Currency != nil {
+	switch {
+	case details.Currency != nil:
 		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, stellarnet.Round)
 		if err != nil {
 			amountDesc = details.Amount
 			mctx.Debug("error formatting external currency: %s", err)
 		}
 		loc.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
-	} else if details.Asset != nil {
+	case details.Asset != nil:
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
@@ -97,7 +98,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 			mctx.Debug("error formatting amount for asset: %s", err)
 		}
 		loc.AmountDescription = amountDesc
-	} else {
+	default:
 		return nil, errors.New("malformed request - currency/asset not defined")
 	}
 

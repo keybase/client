@@ -237,7 +237,9 @@ func (p *Loader) Shutdown() error {
 
 func (p *Loader) runPayments() {
 	for id := range p.pqueue {
-		p.loadPayment(libkb.NewMetaContextTODO(p.G()), id)
+		if err := p.loadPayment(libkb.NewMetaContextTODO(p.G()), id); err != nil {
+			p.G().GetLog().CDebugf(context.TODO(), "Unable to load payment: %v", err)
+		}
 		p.cleanPayments(maxPayments)
 	}
 }
