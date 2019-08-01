@@ -46,7 +46,7 @@ export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
 type ActionTypes = keyof TypedActionsMap
 type ChainActionReturnInner = void | false | TypedActions | null
 type ChainActionReturnInPromise = ChainActionReturnInner | Array<ChainActionReturnInner>
-type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
+export type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
 
 interface ChainAction {
   <AT extends ActionTypes>(

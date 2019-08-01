@@ -234,8 +234,8 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (_, action: FsGen.DriverEnablePayload) =>
-  new Promise<any>(resolve => {
+const driverEnableFuse = (_, action: FsGen.DriverEnablePayload): Saga.ChainActionReturn =>
+  new Promise(resolve => {
     RPCTypes.installInstallFuseRpcPromise().then(result => {
       if (fuseInstallResultIsKextPermissionError(result)) {
         resolve([
