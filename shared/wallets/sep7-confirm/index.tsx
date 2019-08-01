@@ -124,10 +124,7 @@ const Header = (props: HeaderProps) => (
           {props.requester}
         </Kb.Text>
         {props.signed && (
-          <Kb.Box2
-            direction="horizontal"
-            style={{backgroundColor: Styles.globalColors.transparent, marginLeft: Styles.globalMargins.xtiny}}
-          >
+          <Kb.Box2 direction="horizontal" style={styles.verifiedIconBox}>
             <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
           </Kb.Box2>
         )}
@@ -451,6 +448,10 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.green,
     },
   }),
+  verifiedIconBox: {
+    backgroundColor: Styles.globalColors.transparent,
+    marginLeft: Styles.globalMargins.xtiny,
+  },
 })
 
 export default SEP7ConfirmWrapper
