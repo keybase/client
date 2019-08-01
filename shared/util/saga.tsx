@@ -54,6 +54,42 @@ interface ChainAction {
     handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn,
     loggerTag?: string
   ): IterableIterator<any>
+  <AT extends [ActionTypes]>(
+    actions: AT,
+    handler: (state: TypedState, action: TypedActionsMap[AT[0]], logger: SagaLogger) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
+  <AT extends [ActionTypes, ActionTypes]>(
+    actions: AT,
+    handler: (
+      state: TypedState,
+      action: TypedActionsMap[AT[0]] | TypedActionsMap[AT[1]],
+      logger: SagaLogger
+    ) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
+  <AT extends [ActionTypes, ActionTypes, ActionTypes]>(
+    actions: AT,
+    handler: (
+      state: TypedState,
+      action: TypedActionsMap[AT[0]] | TypedActionsMap[AT[1]] | TypedActionsMap[AT[2]],
+      logger: SagaLogger
+    ) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
+  <AT extends [ActionTypes, ActionTypes, ActionTypes, ActionTypes]>(
+    actions: AT,
+    handler: (
+      state: TypedState,
+      action:
+        | TypedActionsMap[AT[0]]
+        | TypedActionsMap[AT[1]]
+        | TypedActionsMap[AT[2]]
+        | TypedActionsMap[AT[3]],
+      logger: SagaLogger
+    ) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
 }
 
 function* chainAction<Actions extends {readonly type: string}>(
