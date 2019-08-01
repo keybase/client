@@ -138,8 +138,8 @@ class Airdrop extends React.Component<Props> {
                 <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
-                <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
-                <Kb.Markdown styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
                 <Kb.Button
                   backgroundColor="purple"
                   label="See if you qualify"
@@ -160,7 +160,7 @@ class Airdrop extends React.Component<Props> {
                 style={styles.shrink}
               >
                 <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
-                  <Kb.Markdown style={styles.section} styleOverride={sectionOverride}>
+                  <Kb.Markdown selectable={true} style={styles.section} styleOverride={sectionOverride}>
                     {b.section}
                   </Kb.Markdown>
                   {b.lines.map(l => (
@@ -173,7 +173,7 @@ class Airdrop extends React.Component<Props> {
                           style={styles.bullet}
                         />
                       )}
-                      <Kb.Markdown styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
+                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
                     </Kb.Box2>
                   ))}
                 </Kb.Box2>
