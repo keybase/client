@@ -7,6 +7,7 @@ export type Props = {
   availableToSend: string // non-empty only if native currency
   balance: string
   code: string // The same as `name` except for XLM
+  depositButtonText?: string // SEP6 link
   equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string // non-empty only if native currency
   expanded?: boolean // for testing
@@ -15,9 +16,12 @@ export type Props = {
   issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string // issuing public key
   name: string // Asset code or 'Lumens'
-  reserves: Array<Types.Reserve> // non-empty only if native currency
+  onDeposit?: () => void
+  onWithdraw?: () => void
   openInfoURL?: () => void
   openStellarURL: () => void
+  reserves: Array<Types.Reserve> // non-empty only if native currency
+  withdrawButtonText?: string // SEP6 link
 }
 
 type State = {
@@ -38,6 +42,15 @@ export default class Asset extends React.Component<Props, State> {
     this.props.openInfoURL && this.props.openInfoURL()
   }
 
+  _onDeposit = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    e.stopPropagation()
+    this.props.onDeposit && this.props.onDeposit()
+  }
+
+  _onWithdraw = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    e.stopPropagation()
+    this.props.onWithdraw && this.props.onWithdraw()
+  }
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -62,13 +75,46 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
               </Kb.Text>
-              <Kb.Text
-                type="BodySmallSecondaryLink"
-                lineClamp={1}
-                onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
-              >
-                {this.props.infoUrlText || this.props.equivBalance}
-              </Kb.Text>
+
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.equivContainer}>
+                {!!this.props.depositButtonText && (
+                  <>
+                    <Kb.Text
+                      type="BodySmallSecondaryLink"
+                      lineClamp={1}
+                      onClick={this.props.onDeposit ? this._onDeposit : undefined}
+                    >
+                      {this.props.depositButtonText}
+                    </Kb.Text>
+                    <Kb.Text style={styles.equivDivider} type="BodySmall">
+                      |
+                    </Kb.Text>
+                  </>
+                )}
+
+                {!!this.props.withdrawButtonText && (
+                  <>
+                    <Kb.Text
+                      type="BodySmallSecondaryLink"
+                      lineClamp={1}
+                      onClick={this.props.onWithdraw ? this._onWithdraw : undefined}
+                    >
+                      {this.props.withdrawButtonText}
+                    </Kb.Text>
+                    <Kb.Text style={styles.equivDivider} type="BodySmall">
+                      |
+                    </Kb.Text>
+                  </>
+                )}
+
+                <Kb.Text
+                  type="BodySmallSecondaryLink"
+                  lineClamp={1}
+                  onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
+                >
+                  {this.props.infoUrlText || this.props.equivBalance}
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox>
@@ -188,6 +234,13 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   dividerTop: {marginBottom: Styles.globalMargins.tiny},
+  equivContainer: {
+    justifyContent: 'flex-end',
+  },
+  equivDivider: {
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.xtiny,
+  },
   expandedRowContainer: {
     justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.tiny,

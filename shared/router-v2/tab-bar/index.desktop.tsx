@@ -184,6 +184,7 @@ const styles = Styles.styleSheetCreate({
   fullname: {maxWidth: 180},
   header: {flexShrink: 0, height: 80, marginBottom: 20},
   headerBox: {
+    paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
   iconBox: {

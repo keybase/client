@@ -11,6 +11,7 @@ const native = {
   availableToSend: '122.0000000',
   balance: '123.5000000',
   code: 'XLM',
+  depositButtonText: '',
   equivAvailableToSend: '$53.41 USD',
   equivBalance: '$54.14 USD',
   infoUrl: '',
@@ -24,12 +25,14 @@ const native = {
     Constants.makeReserve({amount: '1', description: 'account'}),
     Constants.makeReserve({amount: '0.5', description: 'KEYZ/keybase.io trust line'}),
   ],
+  withdrawButtonText: '',
 }
 
 const keyz = {
   availableToSend: '',
   balance: '12.0000000',
   code: 'KEYZ',
+  depositButtonText: 'Deposit',
   equivAvailableToSend: '',
   equivBalance: '',
   infoUrl:
@@ -39,15 +42,19 @@ const keyz = {
   issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   issuerName: 'keybase.io',
   name: 'KEYZ',
+  onDeposit: Sb.action('onDeposit'),
+  onWithdraw: Sb.action('onWithdraw'),
   openInfoURL,
   openStellarURL,
   reserves: [],
+  withdrawButtonText: 'Withdraw',
 }
 
 const btc = {
   availableToSend: '',
   balance: '0.1324354',
   code: 'BTC',
+  depositButtonText: 'Deposit',
   equivAvailableToSend: '',
   equivBalance: '',
   infoUrl: 'https://www.stellarx.com/markets/BTC:GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH',
@@ -56,15 +63,19 @@ const btc = {
   issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   issuerName: 'FarcicalBTCAnchor.eg',
   name: 'BTC',
+  onDeposit: Sb.action('onDeposit'),
+  onWithdraw: Sb.action('onWithdraw'),
   openInfoURL,
   openStellarURL,
   reserves: [],
+  withdrawButtonText: 'Withdraw',
 }
 
 const btexcadv = {
   availableToSend: '',
   balance: '0.0284664',
   code: 'BTEXCADV',
+  depositButtonText: 'Deposit',
   equivAvailableToSend: '',
   equivBalance: '',
   infoUrl:
@@ -74,9 +85,12 @@ const btexcadv = {
   issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   issuerName: 'Unknown',
   name: 'BTEXCADV',
+  onDeposit: Sb.action('onDeposit'),
+  onWithdraw: Sb.action('onWithdraw'),
   openInfoURL,
   openStellarURL,
   reserves: [],
+  withdrawButtonText: 'Withdraw',
 }
 
 const load = () => {

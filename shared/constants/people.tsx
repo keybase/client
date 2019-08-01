@@ -111,7 +111,7 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
-      return `Allow friends to find you using *${todo.legacyEmailVisibility}*`
+      return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
     case T.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case T.verifyAllPhoneNumber: {
