@@ -296,11 +296,11 @@ export type MessageTypes = {
     outParam: Dirent
   }
   'keybase.1.SimpleFS.simpleFSSubscribeNonPath': {
-    inParam: {readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSubscribePath': {
-    inParam: {readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus': {
@@ -312,7 +312,7 @@ export type MessageTypes = {
     outParam: FSSyncStatus
   }
   'keybase.1.SimpleFS.simpleFSUnsubscribe': {
-    inParam: {readonly subscriptionID: String}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSUserEditHistory': {
