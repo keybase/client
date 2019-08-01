@@ -485,14 +485,14 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 }
 
 func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, replyTo *chat1.MessageID) chat1.MessagePlaintext {
+	msg chat1.MessagePlaintext, replyTo *chat1.MessageID) (chat1.MessagePlaintext, error) {
 	if replyTo == nil {
-		return msg
+		return msg, nil
 	}
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		s.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
-		return msg
+		return msg, nil
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
@@ -502,11 +502,11 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 		reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
 		if err != nil {
 			s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
-			return msg
+			return msg, err
 		}
 		if !reply.IsValid() {
 			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
-			return msg
+			return msg, nil
 		}
 		replyToUID := reply.Valid().ClientHeader.Sender
 		return chat1.MessagePlaintext{
@@ -518,11 +518,11 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 				ReplyToUID: &replyToUID,
 			}),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}
+		}, nil
 	default:
 		s.Debug(ctx, "handleReplyTo: skipping message of type: %v", typ)
 	}
-	return msg
+	return msg, nil
 }
 
 func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
@@ -711,7 +711,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg.MessageBody = body
 
 		// Handle reply to
-		msg = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo)
+		if msg, err = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo); err != nil {
+			return res, err
+		}
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
