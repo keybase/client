@@ -252,3 +252,28 @@ func (c *CachedContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []ke
 func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
 	return c.Provider.FindFollowing(mctx, uids)
 }
+
+// Try to remove the given phone number from the on-disk cache.
+func (c *ContactCacheStore) RemoveContactsCachePhoneEntry(mctx libkb.
+	MetaContext, pn keybase1.PhoneNumber) {
+	var conCache lookupResultCache
+	cacheKey := c.dbKey(mctx.CurrentUID())
+	found, err := c.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
+	if err != nil {
+		mctx.Warning("Unable to pull contact lookup cache: %s", err)
+		return
+	} else if !found {
+		mctx.Debug("No contact lookup cache found")
+		return
+	} else if conCache.Version.Major != cacheCurrentMajorVersion {
+		mctx.Debug("Found contact cache object but major version is %d (need %d)", conCache.Version.Major, cacheCurrentMajorVersion)
+		return
+	}
+	// TODO: this type conversion shouldn't have to be here,
+	//  since this cache should take `PhoneNumber`s.
+	delete(conCache.Lookups, makePhoneLookupKey(keybase1.RawPhoneNumber(pn)))
+	err = c.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
+	if err != nil {
+		mctx.Warning("Unable to update cache: %s", err)
+	}
+}

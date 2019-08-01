@@ -4,6 +4,7 @@
 package phonenumbers
 
 import (
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -72,6 +73,11 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 	}
 
 	_, err := mctx.G().API.Delete(mctx, arg)
+
+	if err != nil {
+		cache := contacts.NewContactCacheStore(mctx.G())
+		cache.RemoveContactsCachePhoneEntry(mctx, phoneNumber)
+	}
 	return err
 }
 
