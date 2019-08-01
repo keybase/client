@@ -309,6 +309,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
 		skipAudit:                             lArg.SkipAudit,
+		skipNeedHiddenRotateCheck:             lArg.SkipNeedHiddenRotateCheck,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -397,13 +398,14 @@ type load2ArgT struct {
 	needKBFSKeyGeneration                 keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
-	wantMembers     []keybase1.UserVersion
-	wantMembersRole keybase1.TeamRole
-	forceFullReload bool
-	forceRepoll     bool
-	staleOK         bool
-	public          bool
-	skipAudit       bool
+	wantMembers               []keybase1.UserVersion
+	wantMembersRole           keybase1.TeamRole
+	forceFullReload           bool
+	forceRepoll               bool
+	staleOK                   bool
+	public                    bool
+	skipAudit                 bool
+	skipNeedHiddenRotateCheck bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -848,9 +850,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	var needHiddenRotate bool
-	needHiddenRotate, err = l.checkNeedRotate(mctx, ret, arg.me, hiddenPackage)
-	if err != nil {
-		return nil, err
+	if !arg.skipNeedHiddenRotateCheck {
+		needHiddenRotate, err = l.checkNeedRotate(mctx, ret, arg.me, hiddenPackage)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = hiddenPackage.Commit(mctx)

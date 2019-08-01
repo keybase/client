@@ -24,7 +24,7 @@ func TestObsoletingInvites1(t *testing.T) {
 	// person but does not complete the invite. 2 is canceled by
 	// "invite" link. 3 should be still active when the chain is done
 	// replaying.
-	team := runUnitFromFilename(t, "invite_obsolete.json")
+	team, _ := runUnitFromFilename(t, "invite_obsolete.json")
 
 	require.Equal(t, 1, team.NumActiveInvites())
 
@@ -63,7 +63,7 @@ func TestObsoletingInvites2(t *testing.T) {
 	// This chain is a backwards-compatibility test to see if even if
 	// someone got tricked into accepting obsolete invite, such chain
 	// should still play and result in predictable end state.
-	team := runUnitFromFilename(t, "invite_obsolete_trick.json")
+	team, _ := runUnitFromFilename(t, "invite_obsolete_trick.json")
 	require.Equal(t, 0, len(team.chain().inner.ActiveInvites))
 	require.True(t, team.IsMember(context.Background(), keybase1.UserVersion{Uid: "579651b0d574971040b531b66efbc519", EldestSeqno: 1}))
 }
