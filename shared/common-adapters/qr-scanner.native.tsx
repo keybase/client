@@ -42,18 +42,17 @@ const QRScanner = (p: Props) => {
   }
 
   return (
-    <>
-      <BarCodeScanner
-        onBarCodeScanned={
-          scanned
-            ? () => {}
-            : ({data}) => {
-                setScanned(true)
-                p.onBarCodeRead(data)
-              }
-        }
-      />
-    </>
+    <BarCodeScanner
+      onBarCodeScanned={
+        scanned
+          ? () => {}
+          : ({data}) => {
+              setScanned(true)
+              p.onBarCodeRead(data)
+            }
+      }
+      style={p.style}
+    />
   )
 }
 
