@@ -431,39 +431,47 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	// Resolve any messages we didn't cache and get full information about
 	if fullErr == nil {
 		fullErr = func() error {
-			messages := globals.CtxMessageCacheSkips(ctx)
-			if len(messages) == 0 {
-				return nil
-			}
-			ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeFull)
+			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				500*time.Millisecond)
-			t.Debug(ctx, "LoadNonblock: resolving %d message skips", len(messages))
-			resolved, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
-			if err != nil {
-				return err
+			for _, skip := range skips {
+				messages := skip.Msgs
+				if len(messages) == 0 {
+					continue
+				}
+				ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeFull)
+				t.Debug(ctx, "LoadNonblock: resolving message skips: convID: %s num: %d",
+					skip.ConvID, len(messages))
+				resolved, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
+				if err != nil {
+					return err
+				}
+				if err := t.G().ConvSource.PushUnboxed(ctx, skip.ConvID, uid, resolved); err != nil {
+					return err
+				}
+				if !skip.ConvID.Eq(convID) {
+					// only deliver these updates for the current conv
+					continue
+				}
+				conv, ierr := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
+				if ierr != nil {
+					return ierr
+				}
+				if resolved, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, resolved,
+					query, nil, nil); ierr != nil {
+					return ierr
+				}
+				notif := chat1.MessagesUpdated{
+					ConvID: convID,
+				}
+				for _, msg := range resolved {
+					notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
+						convID))
+				}
+				act := chat1.NewChatActivityWithMessagesUpdated(notif)
+				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+					&act, chat1.ChatActivitySource_LOCAL)
 			}
-			if err := t.G().ConvSource.PushUnboxed(ctx, convID, uid, resolved); err != nil {
-				return err
-			}
-			conv, ierr := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
-			if ierr != nil {
-				return ierr
-			}
-			if resolved, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, resolved,
-				query, nil, nil); ierr != nil {
-				return ierr
-			}
-			notif := chat1.MessagesUpdated{
-				ConvID: convID,
-			}
-			for _, msg := range resolved {
-				notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
-					convID))
-			}
-			act := chat1.NewChatActivityWithMessagesUpdated(notif)
-			t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
-				&act, chat1.ChatActivitySource_LOCAL)
 			setDisplayedStatus(cancelUIStatus)
 			return nil
 		}()

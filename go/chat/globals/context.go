@@ -107,17 +107,27 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 	return res
 }
 
-func CtxAddMessageCacheSkips(ctx context.Context, skips []chat1.MessageUnboxed) {
+func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(*[]chat1.MessageUnboxed); ok && existingSkips != nil {
-		*existingSkips = append(*existingSkips, skips...)
+	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
+		existingSkips[convID.String()] = MessageCacheSkip{
+			ConvID: convID,
+			Msgs:   append(existingSkips[convID.String()].Msgs, msgs...),
+		}
 	}
 }
 
-func CtxMessageCacheSkips(ctx context.Context) (res []chat1.MessageUnboxed) {
+type MessageCacheSkip struct {
+	ConvID chat1.ConversationID
+	Msgs   []chat1.MessageUnboxed
+}
+
+func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
 	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(*[]chat1.MessageUnboxed); ok && existingSkips != nil {
-		return *existingSkips
+	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
+		for _, skips := range existingSkips {
+			res = append(res, skips)
+		}
 	}
 	return res
 }
@@ -212,9 +222,8 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
 	}
 	val = res.Value(messageSkipsKey)
-	if _, ok := val.([]chat1.MessageUnboxed); !ok {
-		skips := new([]chat1.MessageUnboxed)
-		res = context.WithValue(res, messageSkipsKey, skips)
+	if _, ok := val.(map[string]MessageCacheSkip); !ok {
+		res = context.WithValue(res, messageSkipsKey, make(map[string]MessageCacheSkip))
 	}
 	val = res.Value(unboxModeKey)
 	if _, ok := val.(types.UnboxMode); !ok {

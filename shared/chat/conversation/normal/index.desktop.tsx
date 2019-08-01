@@ -7,7 +7,6 @@ import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import {Props} from './index.types'
 import '../conversation.css'
-import ThreadLoadStatus from '../load-status/container'
 
 type State = {
   showDropOverlay: boolean
@@ -57,7 +56,6 @@ class Conversation extends React.PureComponent<Props, State> {
             scrollListUpCounter={this.props.scrollListUpCounter}
             conversationIDKey={this.props.conversationIDKey}
           />
-          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}

@@ -511,7 +511,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 // maxHolesForPull is the number of misses in the body storage cache we will tolerate missing. A good
 // way to think about this number is the number of extra reads from the cache we need to do before
 // formally declaring the request a failure.
-var maxHolesForPull = 10
+var maxHolesForPull = 50
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
@@ -1014,7 +1014,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		s.Debug(ctx, "mergeMaybeNotify: full mode, merging %d messages", len(msgs))
 	case types.UnboxModeQuick:
 		s.Debug(ctx, "mergeMaybeNotify: quick mode, skipping %d messages", len(msgs))
-		globals.CtxAddMessageCacheSkips(ctx, msgs)
+		globals.CtxAddMessageCacheSkips(ctx, convID, msgs)
 		return nil
 	}
 
