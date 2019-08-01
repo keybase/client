@@ -75,7 +75,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
     case 'airdrop':
       return (
-        <Text style={{color: globalColors.white}} type={props.textTypeSemibold}>
+        <Text style={{color: globalColors.purpleDark}} type={props.textTypeSemibold}>
           Stellar airdrop
         </Text>
       )
@@ -296,7 +296,7 @@ type AmountProps = {
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'airdrop':
-      return globalColors.white
+      return globalColors.purpleDark
     case 'senderOnly':
       return globalColors.black
     case 'receiverOnly':
@@ -473,11 +473,8 @@ export const Transaction = (props: Props) => {
   }
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.fromAirdrop
-    ? globalColors.purpleLight
-    : (props.unread || pending) && !props.detailView
-    ? globalColors.blueLighter2
-    : globalColors.white
+  const backgroundColor =
+    (props.unread || pending) && !props.detailView ? globalColors.blueLighter2 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -495,7 +492,6 @@ export const Transaction = (props: Props) => {
             <TimestampLine
               detailView={props.detailView || false}
               error={props.status === 'error' ? props.statusDetail : ''}
-              reverseColor={props.fromAirdrop}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
