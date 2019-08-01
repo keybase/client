@@ -235,16 +235,20 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
   ) !== -1
 
 const driverEnableFuse = (_, action: FsGen.DriverEnablePayload) =>
-  RPCTypes.installInstallFuseRpcPromise().then(result =>
-    fuseInstallResultIsKextPermissionError(result)
-      ? [
+  new Promise<any>(resolve => {
+    RPCTypes.installInstallFuseRpcPromise().then(result => {
+      if (fuseInstallResultIsKextPermissionError(result)) {
+        resolve([
           FsGen.createDriverKextPermissionError(),
           ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
-        ]
-      : RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
+        ])
+      } else {
+        RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
           .then(() => waitForMount(0))
-          .then(() => FsGen.createRefreshDriverStatus())
-  )
+          .then(() => resolve(FsGen.createRefreshDriverStatus()))
+      }
+    })
+  })
 
 const uninstallKBFSConfirm = () =>
   new Promise(resolve =>
