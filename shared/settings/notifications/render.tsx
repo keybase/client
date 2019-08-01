@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile, desktopStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
 import {Props} from './index'
 
@@ -12,8 +12,8 @@ const SubscriptionCheckbox = (props: {
   onToggle: (groupName: string, name: string) => void
   subscribed: boolean
 }) => (
-  <Checkbox
-    style={{marginRight: 0, marginTop: globalMargins.tiny}}
+  <Kb.Checkbox
+    style={styles.checkbox}
     key={props.name}
     disabled={!props.allowEdit}
     onCheck={() => props.onToggle(props.groupName, props.name)}
@@ -25,6 +25,7 @@ const SubscriptionCheckbox = (props: {
 const Group = (props: {
   allowEdit: boolean
   groupName: string
+  label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
   settings: Array<Types._NotificationsSettingsState> | null
@@ -32,11 +33,17 @@ const Group = (props: {
   unsub?: string
   unsubscribedFromAll: boolean
 }) => (
-  <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-    <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
-      {props.title}
-    </Text>
-    <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
+  <Kb.Box2 direction="vertical">
+    <Kb.Text type="Header">{props.title}</Kb.Text>
+    {props.label && (
+      <Kb.Text
+        type="BodySmall"
+        style={{marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny}}
+      >
+        {props.label}
+      </Kb.Text>
+    )}
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginBottom: Styles.globalMargins.tiny}}>
       {props.settings &&
         props.settings.map(s => (
           <SubscriptionCheckbox
@@ -49,56 +56,89 @@ const Group = (props: {
             subscribed={s.subscribed}
           />
         ))}
-    </Box>
+    </Kb.Box>
     {props.unsub && (
-      <Box style={{...globalStyles.flexBoxColumn}}>
-        <Text type="BodyBig">Or:</Text>
-        <Checkbox
-          style={{marginTop: globalMargins.small}}
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+        <Kb.Text type="BodySmall">Or</Kb.Text>
+        <Kb.Checkbox
+          style={{marginTop: Styles.globalMargins.xtiny}}
           onCheck={props.onToggleUnsubscribeAll || null}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe me from all ${props.unsub} notifications`}
         />
-      </Box>
+      </Kb.Box>
     )}
-  </Box>
+    <Kb.Divider style={styles.divider} />
+  </Kb.Box2>
 )
-
+const EmailSection = (props: Props) => (
+  <Group
+    allowEdit={props.allowEdit}
+    groupName="email"
+    label="All email notifications will be sent to your primary email address."
+    onToggle={props.onToggle}
+    onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
+    title="Email notifications"
+    unsub="mail"
+    settings={props.groups.email && props.groups.email.settings}
+    unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
+  />
+)
+const PhoneSection = (props: Props) => (
+  <Group
+    allowEdit={props.allowEdit}
+    label="Notifications sent directly to your phone."
+    groupName="app_push"
+    onToggle={props.onToggle}
+    onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('app_push')}
+    title="Phone notifications"
+    unsub="phone"
+    settings={props.groups.app_push.settings}
+    unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
+  />
+)
 const Notifications = (props: Props) =>
   !props.groups || !props.groups.email || !props.groups.email.settings ? (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
-      <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
-    </Box>
+    <Kb.Box
+      style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}
+    >
+      <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
+    </Kb.Box>
   ) : (
-    <Box style={{...desktopStyles.scrollable, flex: 1, padding: globalMargins.small}}>
-      <Group
-        allowEdit={props.allowEdit}
-        groupName="email"
-        onToggle={props.onToggle}
-        onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
-        title="Email me:"
-        unsub="mail"
-        settings={props.groups.email && props.groups.email.settings}
-        unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
-      />
+    <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1, padding: Styles.globalMargins.small}}>
+      {props.showEmailSection ? (
+        <EmailSection {...props} />
+      ) : (
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="Header">Email notifications</Kb.Text>
+          <Kb.Text type="BodySmall">
+            Go to{' '}
+            <Kb.Text type="BodySmallSemiboldSecondaryLink" onClick={props.onClickYourAccount}>
+              Your account
+            </Kb.Text>{' '}
+            and add an email address.
+          </Kb.Text>
+          <Kb.Divider style={styles.divider} />
+        </Kb.Box2>
+      )}
+      {(!Styles.isMobile || props.mobileHasPermissions) &&
+      props.groups.app_push &&
+      props.groups.app_push.settings ? (
+        <PhoneSection {...props} />
+      ) : Styles.isMobile ? (
+        {
+          /* TODO: display something if the user needs to enable push? */
+        }
+      ) : (
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="Header">Phone notifications</Kb.Text>
+          <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>
+          <Kb.Divider style={styles.divider} />
+        </Kb.Box2>
+      )}
 
-      {(!isMobile || props.mobileHasPermissions) &&
-        props.groups.app_push &&
-        props.groups.app_push.settings && (
-          <Group
-            allowEdit={props.allowEdit}
-            groupName="app_push"
-            onToggle={props.onToggle}
-            onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('app_push')}
-            title="Phone - push notifications:"
-            unsub="push"
-            settings={props.groups.app_push.settings}
-            unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
-          />
-        )}
-
-      {(!isMobile || props.mobileHasPermissions) &&
+      {(!Styles.isMobile || props.mobileHasPermissions) &&
         props.groups.security &&
         props.groups.security.settings && (
           <Group
@@ -111,22 +151,27 @@ const Notifications = (props: Props) =>
           />
         )}
 
-      {!isMobile && (
-        <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-          <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
-            Sound
-          </Text>
-          <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
-            <Checkbox
-              style={{marginRight: 0, marginTop: globalMargins.tiny}}
-              onCheck={props.onToggleSound || null}
-              checked={!!props.sound}
-              label="Desktop chat notification sound"
-            />
-          </Box>
-        </Box>
+      {!Styles.isMobile && (
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="Header">Sound</Kb.Text>
+          <Kb.Checkbox
+            style={styles.checkbox}
+            onCheck={props.onToggleSound || null}
+            checked={!!props.sound}
+            label="Desktop chat notification sound"
+          />
+        </Kb.Box2>
       )}
-    </Box>
+    </Kb.Box>
   )
 
 export default Notifications
+
+const styles = Styles.styleSheetCreate({
+  checkbox: {marginRight: 0, marginTop: Styles.globalMargins.xtiny},
+  divider: {
+    marginBottom: Styles.globalMargins.small,
+    marginLeft: -Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
+  },
+})
