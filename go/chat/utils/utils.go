@@ -679,29 +679,13 @@ func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
-	if msg.ReplyTo != nil {
-		if replyMention := GetReplyAtMention(ctx, g, uid, convID, *msg.ReplyTo, debug); replyMention != nil {
-			atRes = append(atRes, *replyMention)
-		}
+	if msg.ReplyToUID != nil {
+		atRes = append(atRes, chat1.KnownUserMention{
+			Text: "",
+			Uid:  *msg.ReplyToUID,
+		})
 	}
 	return atRes, maybeRes, chanRes
-}
-
-func GetReplyAtMention(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, l *DebugLabeler) *chat1.KnownUserMention {
-	reply, err := g.ChatHelper.GetMessage(ctx, uid, convID, msgID, false, nil)
-	if err != nil {
-		l.Debug(ctx, "GetReplyAtMention: failed to get message: %s", err)
-		return nil
-	}
-	if !reply.IsValid() {
-		l.Debug(ctx, "GetReplyAtMention: invalid reply message: %s", err)
-		return nil
-	}
-	return &chat1.KnownUserMention{
-		Text: "",
-		Uid:  reply.Valid().ClientHeader.Sender,
-	}
 }
 
 func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,
