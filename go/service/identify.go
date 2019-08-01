@@ -317,6 +317,8 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 	// lock guarding res.TrackBreaks
 	var trackBreaksLock sync.Mutex
 
+	var okUsernames, brokenUsernames []string
+
 	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
 	for _, resolvedAssertion := range resolvedAssertions {
 		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
@@ -352,20 +354,23 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
 			idRes, idErr := eng.Result(m)
+			if idErr != nil {
+				h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
+			}
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
-				if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {
-					trackBreaksLock.Lock()
-					defer trackBreaksLock.Unlock()
-					if res.TrackBreaks == nil {
-						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
-					}
-					res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
-				}
-				if idErr != nil {
-					h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
-				}
 				return err
+			}
+			if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {
+				trackBreaksLock.Lock()
+				defer trackBreaksLock.Unlock()
+				if res.TrackBreaks == nil {
+					res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
+				}
+				res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
+				brokenUsernames = append(brokenUsernames, idRes.Upk.GetName())
+			} else {
+				okUsernames = append(okUsernames, idRes.Upk.GetName())
 			}
 			return nil
 		})
@@ -376,6 +381,11 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 		// Return the masked error together with a populated response.
 		return res, libkb.NewIdentifiesFailedError()
 	}
+
+	if arg.IdentifyBehavior.NotifyGUIAboutBreaks() && len(res.TrackBreaks) > 0 {
+		h.G().NotifyRouter.HandleIdentifyUpdate(ctx, okUsernames, brokenUsernames)
+	}
+
 	return res, err
 }
 
