@@ -118,7 +118,9 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 	require.NotEqual(l.t, len(teamSpec.TeamKeyBoxes), 0, "need some team key boxes")
 	for _, boxSpec := range teamSpec.TeamKeyBoxes {
 		require.NotEqual(l.t, 0, boxSpec.Seqno, "bad box seqno")
-		if boxSpec.Seqno <= latestLinkToSend || l.state.loadSpec.ForceLastBox {
+		if (boxSpec.Seqno <= latestLinkToSend && boxSpec.ChainType == keybase1.SeqType_SEMIPRIVATE) ||
+			(boxSpec.ChainType == keybase1.SeqType_TEAM_PRIVATE_HIDDEN) ||
+			l.state.loadSpec.ForceLastBox {
 			box2 := boxSpec.TeamBox
 			box = &box2
 
@@ -163,6 +165,7 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 		Prevs:          prevs,
 		ReaderKeyMasks: readerKeyMasks,
 		SubteamReader:  l.state.loadSpec.SubteamReader,
+		HiddenChain:    teamSpec.Hidden,
 	}, nil
 }
 

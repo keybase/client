@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 	storage "github.com/keybase/client/go/teams/storage"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -25,10 +26,12 @@ type TestCase struct {
 	Teams    map[string] /*team label*/ struct {
 		ID           keybase1.TeamID   `json:"id"`
 		Links        []json.RawMessage `json:"links"`
+		Hidden       []sig3.ExportJSON `json:"hidden"`
 		TeamKeyBoxes []struct {
-			Seqno   keybase1.Seqno        `json:"seqno"` // the team seqno at which the box was added
-			TeamBox TeamBox               `json:"box"`
-			Prev    *prevKeySealedEncoded `json:"prev"`
+			ChainType keybase1.SeqType      `json:"chain_type"`
+			Seqno     keybase1.Seqno        `json:"seqno"` // the team seqno at which the box was added
+			TeamBox   TeamBox               `json:"box"`
+			Prev      *prevKeySealedEncoded `json:"prev"`
 		} `json:"team_key_boxes"`
 	} `json:"teams"`
 	Users map[string] /*user label*/ struct {
@@ -157,6 +160,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				t.Logf("team link '%v' #'%v': %v", teamLabel, i+1, string(bs))
 			}
 		}
+		for i, bundle := range team.Hidden {
+			t.Logf("team hidden'%v' #'%v': %+v", teamLabel, i+1, bundle)
+		}
 	}
 
 	require.NotNil(t, unit.Sessions, "unit has no sessions")
@@ -184,9 +190,10 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				loadSpec: loadSpec,
 			}
 			loadArg := keybase1.LoadTeamArg{
-				NeedAdmin:   loadSpec.NeedAdmin,
-				ForceRepoll: iLoad > 0,
-				Name:        mock.defaultTeamName.String(),
+				NeedAdmin:                 loadSpec.NeedAdmin,
+				ForceRepoll:               iLoad > 0,
+				Name:                      mock.defaultTeamName.String(),
+				SkipNeedHiddenRotateCheck: true,
 			}
 			if loadSpec.NeedKeyGeneration > 0 {
 				loadArg.Refreshers = keybase1.TeamRefreshers{

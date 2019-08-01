@@ -219,7 +219,11 @@ func (r RotateKey) verifyReverseSig() (err error) {
 		}
 		err = revSig.verify(ptk.SigningKID, b)
 		if err != nil {
-			return newSig3Error("bad reverse signature: %s", err.Error())
+			e := func(b []byte) string {
+				return base64.StdEncoding.EncodeToString(b)
+			}
+			ei, _ := msgpack.Encode(r.Base.inner)
+			return newSig3Error("bad reverse signature: %s %s %s %s %s", err.Error(), e((*revSig)[:]), e(ptk.SigningKID[:]), e(b), e(ei))
 		}
 	}
 
