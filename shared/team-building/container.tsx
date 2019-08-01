@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding, {RolePickerProps, SearchRecSection, numSectionLabel} from '.'
+import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -383,6 +383,20 @@ const sortAndSplitRecommendations = memoize(
   }
 )
 
+// Flatten list of recommendation sections. After recommendations are organized
+// in sections, we also need a flat list of all recommendations to be able to
+// know how many we have in total (including "fake" "import contacts" row), and
+// which one is currently highlighted, to support keyboard events.
+//
+// Resulting list may have nulls in place of fake rows.
+const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>) => {
+  const result: Array<SearchResult | null> = []
+  for (const section of recommendations) {
+    result.push(...section.data.map(rec => ('isImportButton' in rec ? null : rec)))
+  }
+  return result
+})
+
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
@@ -420,7 +434,10 @@ const mergeProps = (
   }
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
-  const userResultsToShow = showRecs ? recommendations : searchResults
+  const recommendationsSections = showRecs
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    : null
+  const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
@@ -523,7 +540,7 @@ const mergeProps = (
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
-    recommendations: sortAndSplitRecommendations(recommendations, showingContactsButton),
+    recommendations: recommendationsSections,
     rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,
