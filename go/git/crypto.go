@@ -117,7 +117,7 @@ func (c *Crypto) loadTeam(ctx context.Context, teamSpec keybase1.TeamIDWithVisib
 	}
 	if needKeyGeneration != 0 {
 		arg.Refreshers.NeedApplicationsAtGenerations = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-			needKeyGeneration: []keybase1.TeamApplication{keybase1.TeamApplication_GIT_METADATA},
+			needKeyGeneration: {keybase1.TeamApplication_GIT_METADATA},
 		}
 	}
 	team, err := teams.Load(ctx, c.G(), arg)
