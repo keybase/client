@@ -114,7 +114,10 @@ const load = () => {
     .add('Signed Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
     .add('Unsigned Tx', () => <SEP7Confirm {...commonProps} {...unsignedTxProps} />)
   Sb.storiesOf('Wallets/SEP7Error', module).add('Error', () => (
-    <KeybaseLinkErrorBody errorText="This Stellar link claims to be signed by keybaze.io, but the Keybase app cannot currently verify the signature came from keybaze.io. Sorry, there's nothing you can do with this Stellar link." />
+    <KeybaseLinkErrorBody
+      isError={true}
+      message="This Stellar link claims to be signed by keybaze.io, but the Keybase app cannot currently verify the signature came from keybaze.io. Sorry, there's nothing you can do with this Stellar link."
+    />
   ))
 }
 

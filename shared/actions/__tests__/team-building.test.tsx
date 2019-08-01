@@ -136,7 +136,14 @@ describe('Search Actions', () => {
   it('Calls search', () => {
     const {dispatch} = init
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
+    dispatch(
+      TeamBuildingGen.createSearch({
+        includeContacts: false,
+        namespace: testNamespace,
+        query: 'marcopolo',
+        service: 'keybase',
+      })
+    )
     expect(rpc).toHaveBeenCalled()
   })
 
@@ -145,7 +152,14 @@ describe('Search Actions', () => {
     const query = 'marcopolo'
     const service = 'keybase'
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
+    dispatch(
+      TeamBuildingGen.createSearch({
+        includeContacts: false,
+        namespace: testNamespace,
+        query: 'marcopolo',
+        service: 'keybase',
+      })
+    )
     expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
     expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {

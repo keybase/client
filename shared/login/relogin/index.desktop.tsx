@@ -17,12 +17,9 @@ const ItemBox = Styles.styled(Kb.Box)({
 
 const other = 'Someone else...'
 
-const UserRow = ({user, hasStoredSecret}) => (
+const UserRow = ({user}) => (
   <ItemBox>
-    <Kb.Text
-      type="Header"
-      style={user === other ? styles.other : hasStoredSecret ? styles.loggedIn : styles.loggedOut}
-    >
+    <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
   </ItemBox>
@@ -77,8 +74,8 @@ class Login extends React.Component<Props, State> {
     ]
 
     const userRows = this.props.users
-      .concat(ConfigConstants.makeConfiguredAccount({hasStoredSecret: false, username: other}))
-      .map(u => <UserRow user={u.username} hasStoredSecret={u.hasStoredSecret} key={u.username} />)
+      .concat(ConfigConstants.makeConfiguredAccount({username: other}))
+      .map(u => <UserRow user={u.username} key={u.username} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
@@ -136,9 +133,8 @@ const stylesContainer = {
 }
 
 const styles = Styles.styleSheetCreate({
-  loggedIn: {color: Styles.globalColors.orange},
-  loggedOut: {color: Styles.globalColors.orange, opacity: 0.6},
   other: {color: Styles.globalColors.black},
+  provisioned: {color: Styles.globalColors.orange},
 })
 
 export default Login

@@ -255,6 +255,8 @@
   "stellar.1.local.airdropDetailsLocal": {"promise": true},
   "stellar.1.local.airdropRegisterLocal": {"promise": true},
   "stellar.1.local.airdropStatusLocal": {"promise": true},
+  "stellar.1.local.assetDepositLocal": {"promise": true},
+  "stellar.1.local.assetWithdrawLocal": {"promise": true},
   "stellar.1.local.buildPaymentLocal": {"promise": true},
   "stellar.1.local.buildRequestLocal": {"promise": true},
   "stellar.1.local.cancelPaymentLocal": {"promise": true},
