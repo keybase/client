@@ -483,7 +483,6 @@ func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperCon
 		if err := g.GetKVStore().Delete(key); err != nil {
 			return err
 		}
-
 	}
 	return nil
 }
