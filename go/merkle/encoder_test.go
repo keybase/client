@@ -37,7 +37,7 @@ func TestEncode(t *testing.T) {
 			leaf: Teamv1Leaf{
 				TeamID: dummy16(0),
 				Tails: map[keybase1.SeqType]Teamv1HiddenTail{
-					0: Teamv1HiddenTail{
+					0: {
 						SigID:  dummy(1),
 						LinkID: dummy32(2),
 						Seqno:  123,
@@ -56,7 +56,7 @@ func TestEncode(t *testing.T) {
 			encodingType: EncodingTypeBlindedSHA512_256v1,
 			leaf: Teamv1Leaf{
 				Tails: map[keybase1.SeqType]Teamv1HiddenTail{
-					0: Teamv1HiddenTail{
+					0: {
 						SigID:  dummy(1),
 						LinkID: dummy32(2),
 						Seqno:  123,
@@ -76,7 +76,7 @@ func TestEncode(t *testing.T) {
 			leaf: Teamv1Leaf{
 				TeamID: dummy16(0),
 				Tails: map[keybase1.SeqType]Teamv1HiddenTail{
-					0: Teamv1HiddenTail{
+					0: {
 						SigID:  dummy(1),
 						LinkID: dummy32(3),
 						Seqno:  123,
