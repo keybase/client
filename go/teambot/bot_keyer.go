@@ -245,12 +245,13 @@ func (k *BotKeyer) fetch(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	// key. This logic currently lives in
 	// teambot/bot_keyer.go#getTeambotKeyLocked
 	metadata, wrongKID, err := verifyTeambotKeySigWithLatestPTK(mctx, teamID, resp.Result.Sig)
-	if wrongKID {
+	switch {
+	case wrongKID:
 		// charge forward, caller handles wrongKID
 		mctx.Debug("signed with wrongKID, bubbling up to caller")
-	} else if err != nil {
+	case err != nil:
 		return boxed, false, err
-	} else if metadata == nil { // shouldn't happen
+	case metadata == nil: // shouldn't happen
 		return boxed, false, fmt.Errorf("unable to fetch valid teambotKeyMetadata")
 	}
 
@@ -354,8 +355,7 @@ func (k *BotKeyer) GetTeambotKeyAtGeneration(mctx libkb.MetaContext, teamID keyb
 
 	key, _, err = k.get(mctx, teamID, generation)
 	if err != nil {
-		switch err.(type) {
-		case TeambotTransientKeyError:
+		if _, ok := err.(TeambotTransientKeyError); ok {
 			// Ping team members to generate the key for us
 			if err2 := NotifyTeambotKeyNeeded(mctx, teamID, generation); err2 != nil {
 				mctx.Debug("Unable to NotifyTeambotKeyNeeded %v", err2)

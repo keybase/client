@@ -97,6 +97,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, keybase1.UserEk{}, userEK)
 
 	s.ClearCache()
 
@@ -154,8 +155,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 
 	// Test empty
 	expired := s.getExpiredGenerations(mctx, make(keyExpiryMap), now)
-	var expected []keybase1.EkGeneration
-	expected = nil
+	expected := []keybase1.EkGeneration(nil)
 	require.Equal(t, expected, expired)
 
 	// Test with a single key that is not expired

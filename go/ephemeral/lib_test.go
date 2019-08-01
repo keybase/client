@@ -273,7 +273,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// Fake the teamEK creation time so we are forced to generate a new one.
 	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
-		rawTeamEKBoxStorage.Get(mctx, teamID, generation, nil)
+		_, err = rawTeamEKBoxStorage.Get(mctx, teamID, generation, nil)
+		require.NoError(t, err)
 		cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(mctx, teamID)
 		require.NoError(t, err)
 		require.True(t, found)
@@ -377,14 +378,12 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 
 	// Even though we return an error, we charge through on the deletion
 	// successfully.
-	select {
-	case <-ch:
-		deviceEK, err := s.Get(mctx, 0)
-		require.Error(t, err)
-		_, ok = err.(libkb.UnboxError)
-		require.True(t, ok)
-		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
-	}
+	<-ch
+	deviceEK, err := s.Get(mctx, 0)
+	require.Error(t, err)
+	_, ok = err.(libkb.UnboxError)
+	require.True(t, ok)
+	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 	err = ekLib.keygenIfNeeded(mctx, libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
 	_, ok = err.(libkb.UnboxError)
@@ -405,7 +404,7 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 
 	ekLib := NewEKLib(mctx)
 	defer ekLib.Shutdown()
-	teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(mctx, teamID)
+	_, created, err := ekLib.GetOrCreateLatestTeamEK(mctx, teamID)
 	require.NoError(t, err)
 	require.True(t, created)
 
@@ -431,12 +430,11 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 	defer ekLib2.Shutdown()
 
 	// Make sure we can't access or create any ephemeral keys
-	teamEK, created, err = ekLib2.GetOrCreateLatestTeamEK(mctx2, teamID)
+	_, created, err = ekLib2.GetOrCreateLatestTeamEK(mctx2, teamID)
 	require.Error(t, err)
 	require.False(t, created)
 	_, ok := err.(EphemeralKeyError)
 	require.False(t, ok)
-	require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 
 	deks := tc2.G.GetDeviceEKStorage()
 	gen, err := deks.MaxGeneration(mctx2, false)

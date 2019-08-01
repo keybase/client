@@ -40,7 +40,7 @@ func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 		shutdownCh:   make(chan struct{}),
 		clock:        clockwork.NewRealClock(),
 	}
-	g.PushShutdownHook(func() error { return b.Shutdown() })
+	g.PushShutdownHook(b.Shutdown)
 	return b
 }
 
@@ -109,7 +109,9 @@ func (b *BackgroundTLFUpdater) monitorAppState() {
 			b.runAll()
 		case keybase1.MobileAppState_BACKGROUND:
 			b.debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
-			b.Shutdown()
+			if err := b.Shutdown(); err != nil {
+				b.debug(ctx, "unable to shut down %v", err)
+			}
 		}
 	}
 }

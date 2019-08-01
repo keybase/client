@@ -43,7 +43,7 @@ func usernameAtSortedIndex(i int) string {
 
 func initUsernameSort() {
 	findInit()
-	usernameSortOrder = make([]uint16, len(lengths), len(lengths))
+	usernameSortOrder = make([]uint16, len(lengths))
 	for i := 0; i < len(lengths); i++ {
 		usernameSortOrder[i] = uint16(i)
 	}
@@ -65,7 +65,7 @@ func (b *bufWriter) Write(p []byte) (int, error) {
 
 func initUsernameOffsets() {
 	var offset uint32
-	offsets = make([]uint32, len(lengths), len(lengths))
+	offsets = make([]uint32, len(lengths))
 	for index, length := range lengths {
 		offsets[index] = offset
 		offset += uint32(length)
@@ -86,7 +86,7 @@ func initUsernames() {
 	if err != nil {
 		panic(err)
 	}
-	usernames = make([]byte, usernamesLen, usernamesLen)
+	usernames = make([]byte, usernamesLen)
 	buf := bufWriter{usernames, 0}
 	n, err := io.Copy(&buf, zip)
 	if err != nil {
