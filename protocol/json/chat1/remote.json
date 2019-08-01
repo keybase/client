@@ -1461,7 +1461,10 @@
           "type": "ConversationID"
         }
       ],
-      "response": "keybase1.TeamID"
+      "response": [
+        null,
+        "keybase1.TeamID"
+      ]
     },
     "serverNow": {
       "request": [],
