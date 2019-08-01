@@ -121,7 +121,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       {!!menuItems.length && (
         <>
           <Kb.ClickableBox className="hover_container" onClick={props.toggleShowingMenu} style={styles.gearIconContainer}>
-            <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" ref={props.setAttachmentRef} style={styles.gerIcon} />
+            <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" ref={props.setAttachmentRef} style={styles.gearIcon} />
             {gearIconBadge}
           </Kb.ClickableBox>
           <Kb.FloatingMenu
