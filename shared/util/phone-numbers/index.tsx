@@ -108,6 +108,7 @@ export const validateNumber = (rawNumber: string, region?: string | null) => {
     const valid = phoneUtil.isValidNumber(number)
     return {
       e164: phoneUtil.format(number, PNF.E164),
+      number,
       valid,
     }
   } catch (e) {
@@ -118,6 +119,16 @@ export const validateNumber = (rawNumber: string, region?: string | null) => {
 export const formatPhoneNumber = (rawNumber: string) => {
   const number = phoneUtil.parse(rawNumber, '')
   return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+}
+
+export const formatAnyPhoneNumbers = (rawText: string) => {
+  const found = rawText.match(/(\+)?(\d)+/)
+  const rawNumber = found ? found[0] : ''
+  const validatedNumber = validateNumber(rawNumber)
+  if (!validatedNumber.valid) return rawText
+  const number = validatedNumber.number
+  const replacement = `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+  return rawText.replace(rawNumber, replacement)
 }
 
 // Return phone number in international format, e.g. +1 800 555 0123
