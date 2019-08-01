@@ -80,6 +80,7 @@ type Asset struct {
 	DepositButtonText  string `codec:"depositButtonText" json:"depositButtonText"`
 	ShowWithdrawButton bool   `codec:"showWithdrawButton" json:"showWithdrawButton"`
 	WithdrawButtonText string `codec:"withdrawButtonText" json:"withdrawButtonText"`
+	WithdrawType       string `codec:"withdrawType" json:"withdrawType"`
 	TransferServer     string `codec:"transferServer" json:"transferServer"`
 	AuthEndpoint       string `codec:"authEndpoint" json:"authEndpoint"`
 }
@@ -98,6 +99,7 @@ func (o Asset) DeepCopy() Asset {
 		DepositButtonText:  o.DepositButtonText,
 		ShowWithdrawButton: o.ShowWithdrawButton,
 		WithdrawButtonText: o.WithdrawButtonText,
+		WithdrawType:       o.WithdrawType,
 		TransferServer:     o.TransferServer,
 		AuthEndpoint:       o.AuthEndpoint,
 	}
