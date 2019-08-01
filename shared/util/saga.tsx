@@ -90,6 +90,20 @@ interface ChainAction {
     ) => ChainActionReturn,
     loggerTag?: string
   ): IterableIterator<any>
+  <AT extends [ActionTypes, ActionTypes, ActionTypes, ActionTypes, ActionTypes]>(
+    actions: AT,
+    handler: (
+      state: TypedState,
+      action:
+        | TypedActionsMap[AT[0]]
+        | TypedActionsMap[AT[1]]
+        | TypedActionsMap[AT[2]]
+        | TypedActionsMap[AT[3]]
+        | TypedActionsMap[AT[4]],
+      logger: SagaLogger
+    ) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
 }
 
 function* chainAction<Actions extends {readonly type: string}>(
