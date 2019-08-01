@@ -1,11 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-// import {RNCamera} from 'react-native-camera'
 import {Props} from '.'
-
-//TODO
-const RNCamera = () => null
 
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -15,16 +11,9 @@ const QRScan = (props: Props) => (
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.topContainer} gap="small">
       <Kb.Box2 direction="vertical" style={styles.cameraContainer}>
-        <RNCamera
-          type={RNCamera.Constants.Type.back}
-          autoFocus={RNCamera.Constants.AutoFocus.on}
-          captureAudio={false}
-          flashMode={RNCamera.Constants.FlashMode.off}
-          permissionDialogTitle={'Permission to use camera'}
-          permissionDialogMessage={'We need access to your camera to scan in the stellar key'}
+        <Kb.QRScanner
           notAuthorizedView={<Kb.QRNotAuthorized />}
-          onBarCodeRead={({data}) => props.onSubmitCode(data)}
-          barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
+          onBarCodeRead={data => props.onSubmitCode(data)}
           style={styles.camera}
         />
         <Kb.QRLines canScan={true} color={Styles.globalColors.purpleLight} />
