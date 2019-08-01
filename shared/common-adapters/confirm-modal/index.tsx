@@ -100,7 +100,7 @@ class ConfirmModal extends React.PureComponent<Props> {
               {this.props.header}
             </Box2>
           )}
-          <Text center={true} style={styles.text} type="HeaderBig">
+          <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
             {this.props.prompt}
           </Text>
           <Text center={true} style={styles.text} type="Body">
