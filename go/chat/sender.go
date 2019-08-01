@@ -484,8 +484,8 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	return errors.New("failed to find message to edit")
 }
 
-func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext,
-	replyTo *chat1.MessageID) chat1.MessagePlaintext {
+func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, replyTo *chat1.MessageID) chat1.MessagePlaintext {
 	if replyTo == nil {
 		return msg
 	}
@@ -499,12 +499,23 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 		s.Debug(ctx, "handleReplyTo: handling text message")
 		header := msg.ClientHeader
 		header.Supersedes = *replyTo
+		reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+		if err != nil {
+			s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+			return msg
+		}
+		if !reply.IsValid() {
+			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
+			return msg
+		}
+		replyToUID := reply.Valid().ClientHeader.Sender
 		return chat1.MessagePlaintext{
 			ClientHeader: header,
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body:     msg.MessageBody.Text().Body,
-				Payments: msg.MessageBody.Text().Payments,
-				ReplyTo:  replyTo,
+				Body:       msg.MessageBody.Text().Body,
+				Payments:   msg.MessageBody.Text().Payments,
+				ReplyTo:    replyTo,
+				ReplyToUID: &replyToUID,
 			}),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}
@@ -700,7 +711,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg.MessageBody = body
 
 		// Handle reply to
-		msg = s.handleReplyTo(ctx, msg, opts.ReplyTo)
+		msg = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo)
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
