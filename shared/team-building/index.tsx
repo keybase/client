@@ -14,7 +14,7 @@ import {memoize} from '../util/memoize'
 
 export const numSectionLabel = '0-9'
 
-type SearchResult = {
+export type SearchResult = {
   userId: string
   username: string
   prettyName: string
