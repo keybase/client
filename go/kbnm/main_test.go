@@ -27,7 +27,7 @@ func TestProcess(t *testing.T) {
 	out := json.NewEncoder(&outBuf)
 
 	// Check invalid JSON:
-	io.WriteString(&inBuf, "invalid json, hi\n")
+	_, _ = io.WriteString(&inBuf, "invalid json, hi\n")
 	err := process(h, in, out)
 	if _, ok := err.(*json.SyntaxError); !ok {
 		t.Errorf("incorrect error on invalid JSON: %T", err)
@@ -53,7 +53,7 @@ func TestProcess(t *testing.T) {
 	for i, test := range testCases {
 		outBuf.Reset()
 
-		io.WriteString(&inBuf, test.In)
+		_, _ = io.WriteString(&inBuf, test.In)
 		if err := process(h, in, out); err != nil {
 			t.Fatalf("[case #%d] processing failed early: %s", i, err)
 		}
