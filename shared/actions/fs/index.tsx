@@ -686,8 +686,8 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-      refreshSubscription: false,
       path: Constants.pathToRPCPath(path),
+      refreshSubscription: false,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
