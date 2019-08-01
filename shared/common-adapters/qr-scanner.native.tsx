@@ -34,11 +34,7 @@ const QRScanner = (p: Props) => {
     )
   }
   if (hasCameraPermission === false) {
-    return (
-      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([p.style, styles.gettingPermissions])}>
-        <Kb.Text type="Body">No access to camera</Kb.Text>
-      </Kb.Box2>
-    )
+    return p.notAuthorizedView
   }
 
   return (

@@ -2,7 +2,7 @@ PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
   - EXAppLoaderProvider (5.0.0)
-  - EXBarCodeScanner (6.0.0):
+  - EXBarCodeScanner (5.0.1):
     - UMCore
     - UMImageLoaderInterface
   - EXConstants (5.0.0):
@@ -287,7 +287,7 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
   EXAppLoaderProvider: aa94f26f982453a23c69f382d2f013c9904df79a
-  EXBarCodeScanner: 3b36378bfc891b6fd3518e244784eb8d3ab00653
+  EXBarCodeScanner: cf3ebfef605cec340474b1c049c084bd7dfe924b
   EXConstants: f1d63f5bcf9a790fea747ceba6411b7814005191
   EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
