@@ -9,7 +9,6 @@ import logger from '../../../../logger'
 import * as Styles from '../../../../styles'
 import {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
-import ThreadLoadStatus from '../../load-status/container'
 
 const debugEnabled = false
 
@@ -207,7 +206,6 @@ class ConversationList extends React.PureComponent<Props> {
             onScrollToIndexFailed={this._onScrollToIndexFailed}
             removeClippedSubviews={Styles.isAndroid}
           />
-          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
           )}

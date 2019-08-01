@@ -381,15 +381,14 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
 		// Run the full Pull operation, and redo pagination
-		if t.remoteThreadDelay != nil {
-			t.clock.Sleep(*t.remoteThreadDelay)
-		}
 		ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(),
 			500*time.Millisecond)
 		var remoteThread chat1.ThreadView
+		if t.remoteThreadDelay != nil {
+			t.clock.Sleep(*t.remoteThreadDelay)
+		}
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {

@@ -21,7 +21,6 @@ import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
 import JumpToRecent from './jump-to-recent'
 import ThreadSearch from '../../search/container'
-import ThreadLoadStatus from '../../load-status/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -527,7 +526,6 @@ class Thread extends React.PureComponent<Props, State> {
               )}
             </Measure>
           </div>
-          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
           {this.props.showThreadSearch && (
             <ThreadSearch style={threadSearchStyle} conversationIDKey={this.props.conversationIDKey} />
           )}
