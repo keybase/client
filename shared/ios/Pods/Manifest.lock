@@ -2,6 +2,9 @@ PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
   - EXAppLoaderProvider (5.0.0)
+  - EXBarCodeScanner (6.0.0):
+    - UMCore
+    - UMImageLoaderInterface
   - EXConstants (5.0.0):
     - UMConstantsInterface
     - UMCore
@@ -32,14 +35,6 @@ PODS:
     - React
   - React (0.59.10):
     - React/Core (= 0.59.10)
-  - react-native-camera (2.0.0):
-    - React
-    - react-native-camera/RCT (= 2.0.0)
-    - react-native-camera/RN (= 2.0.0)
-  - react-native-camera/RCT (2.0.0):
-    - React
-  - react-native-camera/RN (2.0.0):
-    - React
   - react-native-contacts (2.2.5):
     - React
   - react-native-fast-image (6.1.1):
@@ -141,6 +136,7 @@ PODS:
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAppLoaderProvider (from `../node_modules/expo-app-loader-provider/ios`)
+  - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
@@ -151,7 +147,6 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
-  - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
   - react-native-fast-image (from `../node_modules/react-native-fast-image`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -200,6 +195,9 @@ EXTERNAL SOURCES:
   EXAppLoaderProvider:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-app-loader-provider/ios"
+  EXBarCodeScanner:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-barcode-scanner/ios"
   EXConstants:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-constants/ios"
@@ -228,8 +226,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   React:
     :path: "../node_modules/react-native"
-  react-native-camera:
-    :path: "../node_modules/react-native-camera"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
   react-native-fast-image:
@@ -291,6 +287,7 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
   EXAppLoaderProvider: aa94f26f982453a23c69f382d2f013c9904df79a
+  EXBarCodeScanner: 3b36378bfc891b6fd3518e244784eb8d3ab00653
   EXConstants: f1d63f5bcf9a790fea747ceba6411b7814005191
   EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
@@ -302,7 +299,6 @@ SPEC CHECKSUMS:
   lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
   lottie-react-native: 3d8181d43619b1fe804c828bd5a09d20fe8bdea7
   React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
-  react-native-camera: 4b810becdf9bebf269b252552ee9a074f5f03bd4
   react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
   react-native-fast-image: fdfc612dba58fd73136cf5efdaeb8cfcad7f63b2
   react-native-netinfo: 8b18f11bd389677d79eca48a07cedd4b3cc10f15
@@ -327,6 +323,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: 4af7acae0df5c99e54c8dc325f2ba1014c50c367
+PODFILE CHECKSUM: 90218e8e6c119afcddcb8ab5948231bdc58d0574
 
-COCOAPODS: 1.7.4
+COCOAPODS: 1.7.3

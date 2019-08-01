@@ -1,23 +1,21 @@
 import * as React from 'react'
-import {RNCamera} from 'react-native-camera'
-import {Box2, ProgressIndicator, QRLines, QRNotAuthorized} from '../../../common-adapters'
+import {
+  Box2,
+  ProgressIndicator,
+  QRLines,
+  QRNotAuthorized,
+  QRScanner,
+} from '../../../common-adapters/mobile.native'
 import {globalColors, styleSheetCreate, globalStyles} from '../../../styles'
+import {BarCodeScanner} from 'expo-barcode-scanner'
 import {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>
     {!props.waiting && (
-      <RNCamera
-        key={props.mountKey}
-        type={RNCamera.Constants.Type.back}
-        autoFocus={RNCamera.Constants.AutoFocus.on}
-        captureAudio={false}
-        flashMode={RNCamera.Constants.FlashMode.off}
-        permissionDialogTitle={'Permission to use camera'}
-        permissionDialogMessage={'We need access to your camera to scan in the secret code'}
+      <QRScanner
         notAuthorizedView={<QRNotAuthorized />}
-        onBarCodeRead={({data}) => props.onSubmitTextCode(data)}
-        barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
+        onBarCodeRead={data => props.onSubmitTextCode(data)}
         style={styles.camera}
       />
     )}

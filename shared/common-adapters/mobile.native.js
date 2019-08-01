@@ -10,4 +10,5 @@ export * from '.'
 export * from './native-wrappers.native'
 export * from './form-input.native'
 export * from './zoomable-box'
+export * from './qr-scanner'
 export {ReAnimated, ReAnimatedEasing, RectButton, Swipeable}

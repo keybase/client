@@ -1,8 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {RNCamera} from 'react-native-camera'
+// import {RNCamera} from 'react-native-camera'
 import {Props} from '.'
+
+//TODO
+const RNCamera = () => null
 
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
