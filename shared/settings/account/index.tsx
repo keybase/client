@@ -57,7 +57,7 @@ const EmailPhone = (props: Props) => (
 )
 
 const Password = (props: Props) => {
-  let passwordLabel
+  let passwordLabel: string
   if (props.hasPassword) {
     passwordLabel = Styles.isMobile ? 'Change' : 'Change password'
   } else {
@@ -71,7 +71,7 @@ const Password = (props: Props) => {
           Allows you to log out and log back in, and use the keybase.io website.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {props.hasPassword && (
           <Kb.Text type="BodySemibold" style={styles.password}>
             ********************
@@ -171,6 +171,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.medium,
         Styles.globalMargins.small
       ),
+      maxWidth: 600,
     },
     isMobile: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
