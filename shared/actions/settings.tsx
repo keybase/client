@@ -524,10 +524,7 @@ const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdown
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
-const sendFeedback = (
-  state: TypedState,
-  action: SettingsGen.SendFeedbackPayload
-): Promise<Saga.MaybeAction> => {
+const sendFeedback = (state: TypedState, action: SettingsGen.SendFeedbackPayload) => {
   const {feedback, sendLogs, sendMaxBytes} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}
