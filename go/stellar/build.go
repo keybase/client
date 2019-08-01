@@ -291,7 +291,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					if err == nil {
 						if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
 							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-								Level: "info",
+								Level:                 "info",
 								OfferAdvancedSendForm: offerAdvancedForm,
 							})
 						}
@@ -725,7 +725,7 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 }
 
 func isKeybaseAssertion(mctx libkb.MetaContext, assertion string) bool {
-	expr, err := externals.AssertionParse(mctx, string(assertion))
+	expr, err := externals.AssertionParse(mctx, assertion)
 	if err != nil {
 		mctx.Debug("error parsing assertion: %s", err)
 		return false
