@@ -10,10 +10,11 @@ import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './s
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
+import {memoize} from '../util/memoize'
 
 export const numSectionLabel = '0-9'
 
-type SearchResult = {
+export type SearchResult = {
   userId: string
   username: string
   prettyName: string
@@ -263,6 +264,25 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     return {index: indexInList, length, offset}
   }
 
+  _listIndexToSectionAndLocalIndex = memoize(
+    (
+      highlightedIndex: number | null,
+      sections: SearchRecSection[] | null
+    ): {index: number; section: SearchRecSection} | null => {
+      if (highlightedIndex !== null && sections !== null) {
+        let index = highlightedIndex
+        for (const section of sections) {
+          if (index >= section.data.length) {
+            index -= section.data.length
+          } else {
+            return {index, section}
+          }
+        }
+      }
+      return null
+    }
+  )
+
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
@@ -303,7 +323,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs && this.props.recommendations) {
-      // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
+      const highlightDetails = this._listIndexToSectionAndLocalIndex(
+        this.props.highlightedIndex,
+        this.props.recommendations
+      )
       return (
         <Kb.Box2
           direction="vertical"
@@ -312,9 +335,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
+            selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result}) =>
+            renderItem={({index, item: result, section}) =>
               result.isImportButton ? (
                 <ContactsImportButton {...this.props} />
               ) : (
@@ -327,7 +351,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   inTeam={result.inTeam}
                   isPreExistingTeamMember={result.isPreExistingTeamMember}
                   followingState={result.followingState}
-                  highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                  highlight={
+                    !Styles.isMobile &&
+                    !!highlightDetails &&
+                    highlightDetails.section === section &&
+                    highlightDetails.index === index
+                  }
                   onAdd={() => this.props.onAdd(result.userId)}
                   onRemove={() => this.props.onRemove(result.userId)}
                 />
