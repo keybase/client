@@ -87,6 +87,9 @@ const (
 	markAndSweepPeriod = 1 * time.Hour
 	// A hard-coded reason used to derive the log obfuscator secret.
 	obfuscatorDerivationString = "Keybase-Derived-KBFS-Log-Obfuscator-1"
+	// How long to we skip identifies after seeing one with a broken
+	// proof warning?
+	cacheBrokenProofIdentifiesDuration = 5 * time.Minute
 )
 
 // ErrStillStagedAfterCR indicates that conflict resolution failed to take
@@ -2187,7 +2190,25 @@ func (fbo *folderBranchOps) identifyOnce(
 	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
 		len(ei.GetTlfBreakAndClose().Breaks) > 0:
 		fbo.log.CDebugf(ctx,
-			"Identify finished with no error but broken proof warnings")
+			"Identify finished with no error but broken proof warnings; "+
+				"caching result for %d", cacheBrokenProofIdentifiesDuration)
+		fbo.identifyDone = true
+		fbo.identifyTime = fbo.config.Clock().Now()
+		timer := time.NewTimer(cacheBrokenProofIdentifiesDuration)
+		fbo.goTracked(func() {
+			select {
+			case <-timer.C:
+				fbo.identifyLock.Lock()
+				defer fbo.identifyLock.Unlock()
+				fbo.vlog.CLogf(
+					context.TODO(), libkb.VLog1,
+					"Expiring cached identify with broken proofs")
+				fbo.identifyDone = false
+			case <-fbo.shutdownChan:
+				timer.Stop()
+			}
+		})
+
 	case ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP:
 		fbo.log.CDebugf(ctx, "Identify skipped")
 	default:
