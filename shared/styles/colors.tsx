@@ -172,7 +172,7 @@ export const darkColors: {[P in keyof typeof colors]: string} = {
   brown: 'rgb(184, 224, 238)',
   brown_75: 'rgba(184, 224, 238,  0.75)',
   brown_75_on_white: 'rgb(138, 168, 177)',
-  fastBlank: 'undefined',
+  fastBlank: undefined,
   green: '#C84266',
   greenDark: '#E76185',
   greenDarker: '#ED87A2',
@@ -222,7 +222,12 @@ export const darkColors: {[P in keyof typeof colors]: string} = {
 
 const wrapped = {
   get: function(_, prop) {
-    return isDarkMode() ? darkColors[prop] : colors[prop]
+    const c = isDarkMode() ? darkColors[prop] : colors[prop]
+    // if (__DEV__ && (c === undefined || c === 'undefined')) {
+    // // eslint-ignore-next-line
+    // debugger
+    // }
+    return c
   },
 }
 

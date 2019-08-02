@@ -75,7 +75,7 @@ export {
 } from './shared'
 export {default as glamorous} from '@emotion/native'
 export {default as styled, css as styledCss} from '@emotion/native'
-export {default as globalColors} from './colors'
+export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width

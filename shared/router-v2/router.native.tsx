@@ -38,6 +38,7 @@ const defaultNavigationOptions = {
       />
     ),
   headerStyle: {
+    backgroundColor: Styles.globalColors.white,
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
   headerTitle: hp => (
