@@ -2170,12 +2170,15 @@ func (fbo *folderBranchOps) identifyOnce(
 	defer fbo.identifyLock.Unlock()
 
 	ei := tlfhandle.GetExtendedIdentify(ctx)
-	if (fbo.identifyDone && !ei.Behavior.AlwaysRunIdentify()) ||
-		(fbo.identifyDoneWithWarning &&
-			ei.Behavior.WarningInsteadOfErrorOnBrokenTracks()) {
-		// TODO: provide a way for the service to break this cache when identify
-		// state changes on a TLF. For now, we do it this way to make chat work.
-		return nil
+	if !ei.Behavior.AlwaysRunIdentify() {
+		if fbo.identifyDone ||
+			(fbo.identifyDoneWithWarning &&
+				ei.Behavior.WarningInsteadOfErrorOnBrokenTracks()) {
+			// TODO: provide a way for the service to break this cache
+			// when identify state changes on a TLF. For now, we do it
+			// this way to make chat work.
+			return nil
+		}
 	}
 
 	h := md.GetTlfHandle()
