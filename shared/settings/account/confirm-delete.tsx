@@ -46,6 +46,7 @@ const ConfirmDeleteAddress = (props: Props) => (
     }
     onCancel={props.onCancel}
     onConfirm={props.onConfirm}
+    confirmText="Yes, delete"
   />
 )
 
