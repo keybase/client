@@ -416,6 +416,15 @@ const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const styleMarkdownMemo = {
+  paragraph: {
+    color: globalColors.purpleDark,
+  },
+  strong: {
+    color: globalColors.purpleDark,
+  },
+}
+
 export type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {
@@ -596,14 +605,5 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
   },
 })
-
-const styleMarkdownMemo = {
-  paragraph: {
-    color: globalColors.purpleDark,
-  },
-  strong: {
-    color: globalColors.purpleDark,
-  },
-}
 
 export default Transaction
