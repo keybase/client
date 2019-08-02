@@ -142,8 +142,6 @@ export const initDesktopStyles = () => {
 
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => styleSheeCreateProxy(obj, o => o)
-// dark mode aware classname
-// export const className = (name: string) => (name ? `${name}${isDarkMode() ? '_dark' : ''}` : name)
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
