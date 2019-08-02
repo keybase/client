@@ -21,14 +21,13 @@ type cmdUploadAvatar struct {
 	SkipChatNotification bool
 }
 
-func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext, hidden bool) cli.Command {
 	cmd := &cmdUploadAvatar{
 		Contextified: libkb.NewContextified(g),
 	}
-	return cli.Command{
+	clicmd := cli.Command{
 		Name:         "upload-avatar",
 		ArgumentHelp: "[--team <teamname>] <filename>",
-		Usage:        "Upload avatar for user or team",
 		Description:  "Upload avatar for user or team",
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -44,6 +43,11 @@ func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cl.ChooseCommand(cmd, "upload-avatar", c)
 		},
 	}
+	if !hidden {
+		clicmd.Usage = "Upload avatar for user or team"
+	}
+
+	return clicmd
 }
 
 func (c *cmdUploadAvatar) ParseArgv(ctx *cli.Context) error {

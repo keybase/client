@@ -9,6 +9,7 @@ export type _State = {
   // shared by all errors, we only ever want one error
   error: RPCError | null
   registerUserPassLoading: boolean
+  isOnline: boolean | null
 }
 
 export type State = I.RecordOf<_State>

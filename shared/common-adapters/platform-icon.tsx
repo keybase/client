@@ -46,7 +46,7 @@ const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
   return {...standardOffsets, ...specs[platform]}
 }
 
-const Render = ({platform, overlay, overlayColor, style}: Props) => {
+const Render = ({platform, overlay, style}: Props) => {
   const iconSpec = getSpecForPlatform(platform)
   return (
     <Box style={{position: 'relative', ...style}}>

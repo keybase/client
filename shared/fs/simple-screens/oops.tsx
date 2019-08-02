@@ -114,18 +114,23 @@ const Oops = (props: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, props: OwnPropsWithSafeNavigation) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => ({
   openParent: () =>
     dispatch(
-      props.navigateAppend({
-        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'main'}],
+      ownProps.safeNavigateAppendPayload({
+        path: [{props: {path: Types.getPathParent(ownProps.path)}, selected: 'main'}],
       })
     ),
 })
 
 export default Container.withSafeNavigation(
-  Container.namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Oops')(Oops)
-)
+  Container.namedConnect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o: OwnPropsWithSafeNavigation) => ({...o, ...s, ...d}),
+    'Oops'
+  )(Oops)
+) as any
 
 const styles = Styles.styleSheetCreate({
   button: {

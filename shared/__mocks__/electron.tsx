@@ -6,7 +6,7 @@ if (!__STORYBOOK__) {
 
 // Does not fully mock members
 // Add properties & functions as necessary
-export const clipboard = {writeText: s => {}}
+export const clipboard = {writeText: _ => {}}
 export const remote = {
   BrowserWindow: {},
   Menu: {},
@@ -28,8 +28,7 @@ export const systemPreferences = {}
 export const ipcMain = {on: () => {}}
 export const app = {getPath: () => '', on: () => {}}
 export const screen = {}
-
-export const BrowserWindow = {}
+export const BrowserWindow = {getFocusedWindow: () => {}}
 export const Menu = {}
 export const powerMonitor = {}
 export const powerSaveBlocker = {}

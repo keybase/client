@@ -3,10 +3,10 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = state => ({
-  _details: state.wallets.airdropDetails,
+  _details: state.wallets.airdropDetails.details,
   loading: state.wallets.airdropState === 'loading',
   signedUp: state.wallets.airdropState === 'accepted',
 })
@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch => ({
   onReject: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   headerBody: stateProps._details.header.body,
   headerTitle: stateProps._details.header.title,
   loading: stateProps.loading,

@@ -22,6 +22,7 @@ import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
 import markdown from './markdown/index.stories'
 import meta from './meta.stories'
+import modal from './modal/index.stories'
 import nameWithIcon from './name-with-icon/index.stories'
 import newInput from './new-input.stories'
 import placeholder from './placeholder.stories'
@@ -64,6 +65,7 @@ const load = () => {
     listItem2,
     markdown,
     meta,
+    modal,
     nameWithIcon,
     newInput,
     placeholder,

@@ -1,4 +1,9 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// https://github.com/DylanVann/react-native-fast-image/issues/516
+project.ext {
+    excludeAppGlideModule = true
+    glideVersion = "4.9.0"
+}
 
 buildscript {
     ext {
@@ -33,7 +38,7 @@ buildscript {
 //
 // See https://github.com/DylanVann/react-native-fast-image/issues/366 .
 subprojects {project ->
-    if (project.name.contains('react-native-fast-image') || project.name.contains('react-native-image-picker')) {
+    if (project.name.contains('react-native-fast-image')) {
             buildscript {
                 repositories {
                 maven { url = 'https://dl.bintray.com/android/android-tools/'  }
@@ -50,10 +55,6 @@ allprojects {
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url "$rootDir/../node_modules/react-native/android"
-        }
-        maven {
-            // Local Maven repo containing AARs with JSC library built for Android
-            url "$rootDir/../node_modules/@kudo-ci/jsc-android/dist"
         }
     }
 }

@@ -25,7 +25,7 @@ const placeholder = 'Search Keybase'
 // TODO: Once UserInput is cleaned up, we may be able to stretch it
 // properly horizontally without wrapping a vertical Box2 around it.
 class Search extends React.Component<SearchProps, SearchState> {
-  _row: ParticipantsRow | null
+  _row: ParticipantsRow | null = null
   state = {
     displayResultsList: false,
     hideClearSearch: true,
@@ -99,8 +99,8 @@ class Search extends React.Component<SearchProps, SearchState> {
             positionFallbacks={[]}
             propagateOutsideClicks={true}
           >
-            {/* If changing layout here, make sure to test on a notched and un-notched phone */}
-            <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+            {/* If changing layout here, make sure to test on a notched and un-notched iphone and android */}
+            {Styles.isIOS && <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />}
             <Kb.Box pointerEvents="box-none" style={styles.resultsFloatingContainer}>
               <Kb.Box2 direction="vertical" style={styles.resultsFloatingInnerContainer}>
                 <Kb.Box2 direction="vertical" style={styles.resultsContainer}>

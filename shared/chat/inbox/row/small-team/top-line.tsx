@@ -12,20 +12,21 @@ type Props = {
   forceShowMenu: boolean
   hasUnread: boolean
   iconHoverColor: string
+  isSelected: boolean
   onForceHideMenu: () => void
   participants: Array<string>
   showBold: boolean
   showGear: boolean
-  backgroundColor: string | null
+  backgroundColor?: string
   subColor: string
-  timestamp: string | null
-  usernameColor: string | null
+  timestamp?: string
+  usernameColor?: string
   hasBadge: boolean
 } & Kb.OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (_, __, key) => {
       if (key === 'participants') {
         return shallowEqual(this.props.participants, nextProps.participants)
       }
@@ -89,7 +90,7 @@ class _SimpleTopLine extends React.Component<Props> {
           style={Styles.collapseStyles([
             boldStyle,
             styles.timestamp,
-            !this.props.hasBadge && {color: this.props.subColor},
+            (!this.props.hasBadge || this.props.isSelected) && {color: this.props.subColor},
           ])}
         >
           {this.props.timestamp}

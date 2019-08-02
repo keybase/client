@@ -60,7 +60,7 @@ func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingIn
 
 	cacheKey := libkb.DbKey{
 		Typ: libkb.DBHasRandomPW,
-		Key: m.G().ActiveDevice.UID().String(),
+		Key: m.CurrentUID().String(),
 	}
 	hasRandomPW := false
 	if err := m.G().GetKVStore().PutObj(cacheKey, nil, hasRandomPW); err == nil {

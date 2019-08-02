@@ -63,13 +63,6 @@ func (fl *FolderList) reportErr(ctx context.Context,
 
 }
 
-func (fl *FolderList) addToFavorite(ctx context.Context, h *tlfhandle.Handle) (err error) {
-	cName := h.GetCanonicalName()
-	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "adding %s to favorites", cName)
-	return fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(),
-		h.FavoriteData())
-}
-
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, cst dokan.CreateStatus, err error) {
@@ -151,7 +144,9 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 				ctx, libkb.VLog1, "FL Lookup set alias: %q -> %q",
 				name, aliasTarget)
 			if !fl.isValidAliasTarget(ctx, aliasTarget) {
-				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)
+				fl.fs.vlog.CLogf(
+					ctx, libkb.VLog1,
+					"FL Refusing alias to non-valid target %q", aliasTarget)
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
 			fl.mu.Lock()
@@ -168,7 +163,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			path[0] = aliasTarget
 			continue
 
-		case idutil.NoSuchNameError, idutil.BadTLFNameError:
+		case idutil.NoSuchNameError, idutil.BadTLFNameError,
+			tlf.NoSuchUserError, idutil.NoSuchUserError:
 			return nil, 0, dokan.ErrObjectNameNotFound
 
 		default:

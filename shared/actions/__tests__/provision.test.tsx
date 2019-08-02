@@ -30,7 +30,7 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   const effect: any = mockIncomingCall(payload as any, response as any)
   if (effect) {
     // Throws in the generator only, so we have to stash it
-    let thrown
+    let thrown: Error | null = null
     sagaMiddleware.run(function*(): IterableIterator<any> {
       try {
         yield effect
@@ -50,19 +50,19 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   }
 }
 
-const startReduxSaga = (initialStore = undefined) => {
+const startReduxSaga = (initialStore?: Object) => {
   const sagaMiddleware = createSagaMiddleware({
     onError: e => {
       throw e
     },
   })
-  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+  const store = createStore(rootReducer as any, initialStore, applyMiddleware(sagaMiddleware))
   const getState: () => any = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}))
+  dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+  dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
 
   return {
     dispatch,
@@ -669,8 +669,8 @@ describe('final errors show', () => {
 
   it('shows the final error page (devices add)', () => {
     const {getState, dispatch} = startReduxSaga()
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
     // expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
     const error = new RPCError('something bad happened', 1, [])
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
@@ -680,8 +680,8 @@ describe('final errors show', () => {
 
   it('ignore cancel (devices add)', () => {
     const {getState, dispatch} = startReduxSaga()
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
     const error = new RPCError('Input canceled', RPCTypes.StatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
     expect(getState().provision.finalError).toEqual(null)
@@ -691,7 +691,7 @@ describe('final errors show', () => {
 
 describe('reset works', () => {
   const {getState, dispatch} = startReduxSaga()
-  dispatch({type: 'common:resetStore'})
+  dispatch({payload: {}, type: 'common:resetStore'})
   expect(getState().provision).toEqual(Constants.makeState())
 })
 

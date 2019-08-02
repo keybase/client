@@ -73,7 +73,7 @@ if [ ! "$cache_npm" = "1" ]; then
   echo "Cleaning up main node_modules from previous runs"
   rm -rf "$shared_dir/node_modules"
 
-  yarn install --pure-lockfile
+  yarn install --frozen-lockfile --prefer-offline
   yarn global add react-native-cli
 fi
 

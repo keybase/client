@@ -2,7 +2,7 @@ import {globalStyles, globalColors, isDarkMode} from '../styles'
 
 import {MetaType, TextType, Background} from './text'
 
-function defaultColor(backgroundMode: Background | null) {
+export function defaultColor(backgroundMode: Background | null) {
   return {
     Announcements: globalColors.white,
     Documentation: globalColors.white,
@@ -14,13 +14,15 @@ function defaultColor(backgroundMode: Background | null) {
   }[backgroundMode || 'Normal']
 }
 
-function lineClamp(lines: number | null, mode: string | null): Object {
+// need to be `undefined` instead of `null` since `null` doesn't ellipsize at
+// all.
+export function lineClamp(lines: number | undefined, mode: string | undefined): Object {
   return {
     ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }
 }
 
-function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} | null {
+export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} | null {
   const lineHeight = {
     '13': 17,
     '15': 19,
@@ -35,9 +37,6 @@ function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: n
     lineHeight,
   }
 }
-
-let _darkMetaData = null
-let _lightMetaData = null
 
 const _metaData = (): {[K in TextType]: MetaType} => {
   const whiteNegative = {
@@ -230,6 +229,14 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       fontSize: 13,
       styleOverride: globalStyles.fontBold,
     },
+    BodyTinyExtrabold: {
+      colorForBackground: {
+        ...whiteNegative,
+        positive: globalColors.black_50,
+      },
+      fontSize: 13,
+      styleOverride: globalStyles.fontExtrabold,
+    },
     BodyTinyLink: {
       colorForBackground: {
         ...whiteNegative,
@@ -246,6 +253,17 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       },
       fontSize: 13,
       styleOverride: globalStyles.fontSemibold,
+    },
+    BodyTinySemiboldItalic: {
+      colorForBackground: {
+        ...whiteNegative,
+        positive: globalColors.black_50,
+      },
+      fontSize: 13,
+      styleOverride: {
+        ...globalStyles.fontSemibold,
+        fontStyle: 'italic',
+      },
     },
     Header: {
       colorForBackground: whiteNegative,
@@ -333,7 +351,10 @@ const _metaData = (): {[K in TextType]: MetaType} => {
   }
 }
 
-const metaData = (): {[K in TextType]: MetaType} => {
+let _darkMetaData: {[K in TextType]: MetaType} | undefined
+let _lightMetaData: {[K in TextType]: MetaType} | undefined
+
+export const metaData = (): {[K in TextType]: MetaType} => {
   if (isDarkMode()) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
@@ -342,4 +363,3 @@ const metaData = (): {[K in TextType]: MetaType} => {
     return _lightMetaData
   }
 }
-export {defaultColor, fontSizeToSizeStyle, lineClamp, metaData}

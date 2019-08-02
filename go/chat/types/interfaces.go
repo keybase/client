@@ -32,9 +32,18 @@ type Suspendable interface {
 	Resume(ctx context.Context) bool
 }
 
+type BackgroundRunnable interface {
+	IsBackgroundActive() bool
+}
+
 type CryptKey interface {
 	Material() keybase1.Bytes32
 	Generation() int
+}
+
+type EphemeralCryptKey interface {
+	Material() keybase1.Bytes32
+	Generation() keybase1.EkGeneration
 }
 
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
@@ -44,15 +53,15 @@ type NameInfoSource interface {
 	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (CryptKey, NameInfo, error)
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
+		keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (CryptKey, error)
 	EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (EphemeralCryptKey, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }
@@ -120,6 +129,7 @@ type RegexpSearcher interface {
 type Indexer interface {
 	Resumable
 	Suspendable
+	BackgroundRunnable
 
 	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
@@ -244,6 +254,7 @@ type FetchRetrier interface {
 type ConvLoader interface {
 	Resumable
 	Suspendable
+	BackgroundRunnable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
 }
@@ -323,15 +334,15 @@ type IdentifyNotifier interface {
 
 type KeyFinder interface {
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (CryptKey, NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
-		kbfsEncrypted bool) (CryptKey, error)
+		kbfsEncrypted bool, botUID *gregor1.UID) (CryptKey, error)
 	EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (EphemeralCryptKey, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 	Reset()
@@ -359,6 +370,7 @@ type AttachmentFetcher interface {
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 	OnDbNuke(mctx libkb.MetaContext) error
+	OnStart(mctx libkb.MetaContext)
 }
 
 type AttachmentURLSrv interface {
@@ -510,6 +522,14 @@ type LiveLocationTracker interface {
 	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
 	ActivelyTracking(ctx context.Context) bool
 	StopAllTracking(ctx context.Context)
+}
+
+type BotCommandManager interface {
+	Resumable
+	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
+	Clear(ctx context.Context) error
+	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
+	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
 
 type InternalError interface {

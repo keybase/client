@@ -15,7 +15,7 @@ const Kb = {
   Text,
 }
 
-type Status = 'error' | 'pending' | 'completed'
+type Status = 'error' | 'pending' | 'completed' | 'claimable'
 
 type State = {
   showPopup: boolean
@@ -36,6 +36,8 @@ const getIcon = status => {
   switch (status) {
     case 'completed':
       return 'iconfont-success'
+    case 'claimable':
+      return 'iconfont-time'
     case 'pending':
       return 'iconfont-time'
     case 'error':
@@ -119,6 +121,12 @@ class PaymentStatus extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  claimable: {
+    backgroundColor: Styles.globalColors.black_05,
+    borderRadius: Styles.globalMargins.xxtiny,
+    color: Styles.globalColors.black_50,
+  },
+  claimableIcon: {},
   completed: {
     backgroundColor: Styles.globalColors.purple_10,
     borderRadius: Styles.globalMargins.xxtiny,

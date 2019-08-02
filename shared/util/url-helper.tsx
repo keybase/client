@@ -6,7 +6,7 @@ const linkFuncs = {
   user: ({username}) => `${keybaseUrl}/${username || ''}`,
 }
 
-export function urlHelper(type: string, params?: any): string | null {
+export function urlHelper(type: string, params?: any): string | undefined {
   const linkFunc = linkFuncs[type]
   if (linkFunc) {
     const link = linkFunc(params)
@@ -16,4 +16,5 @@ export function urlHelper(type: string, params?: any): string | null {
   } else {
     console.warn(`No openURL handler for ${type}`, params)
   }
+    return undefined
 }

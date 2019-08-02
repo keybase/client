@@ -17,7 +17,7 @@ const generateTeamSofar = (count: number) => {
   const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
   const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
   const services: Array<Types.ServiceIdWithContact> = ['keybase', 'twitter', 'reddit']
-  return new Array(count).fill('').map((v, i) => {
+  return new Array(count).fill('').map((_, i) => {
     const adj = adjs[i % adjs.length]
     const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
     const service = services[i % services.length]
@@ -31,11 +31,22 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const contactProps = {
+  contactsImported: false,
+  contactsPermissionStatus: 'granted',
+  isImportPromptDismissed: false,
+  numContactsImported: 0,
+  onAskForContactsLater: Sb.action('onAskForContactsLater'),
+  onImportContacts: Sb.action('onImportContacts'),
+  onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -80,8 +91,10 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -95,8 +108,10 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -109,8 +124,10 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -127,6 +144,7 @@ const load = () => {
     ))
     .add('Team Building - No search string', () => (
       <TeamBuilding
+        {...contactProps}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -171,8 +189,10 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -186,8 +206,10 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -200,8 +222,10 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -216,8 +240,54 @@ const load = () => {
         ]}
       />
     ))
+    .add('Team Building - Show role picker', () => (
+      <TeamBuilding
+        {...contactProps}
+        rolePickerProps={{
+          changeSendNotification: Sb.action('changeSendNotification'),
+          changeShowRolePicker: Sb.action('changeShowRolePicker'),
+          disabledRoles: {},
+          onSelectRole: Sb.action('confirmRolePicker'),
+          selectedRole: 'writer',
+          sendNotification: true,
+          showRolePicker: true,
+        }}
+        searchString=""
+        selectedService="keybase"
+        waitingForCreate={false}
+        onChangeService={Sb.action('onChangeService')}
+        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+        onChangeText={Sb.action('onChangeText')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onBackspace={Sb.action('onBackspace')}
+        onRemove={Sb.action('onRemove')}
+        onMakeItATeam={Sb.action('onMakeItATeam')}
+        showRecs={false}
+        recommendations={[]}
+        fetchUserRecs={() => {}}
+        onSearchForMore={() => {
+          Sb.action('onSearchForMore')
+        }}
+        teamSoFar={[
+          {
+            prettyName: 'max (Max Krohn)',
+            service: 'keybase',
+            userId: 'max',
+            username: 'max',
+          },
+        ]}
+        serviceResultCount={{}}
+        showServiceResultCount={false}
+        onAdd={Sb.action('onAdd')}
+        highlightedIndex={1}
+        searchResults={[]}
+      />
+    ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
+        {...contactProps}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -246,6 +316,7 @@ const load = () => {
     ))
     .add('Team Building - One line of users', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -271,8 +342,10 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -286,8 +359,10 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -300,8 +375,10 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -318,6 +395,7 @@ const load = () => {
     ))
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -343,8 +421,10 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -358,8 +438,10 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -372,8 +454,10 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -390,6 +474,7 @@ const load = () => {
     ))
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
+        {...contactProps}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -415,8 +500,10 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -430,8 +517,10 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -444,8 +533,10 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -499,7 +590,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)
@@ -568,6 +659,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
         resultForService={'keybase'}
         services={{
@@ -578,7 +670,8 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
-        followingState={'Following'}
+        isPreExistingTeamMember={false}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -587,6 +680,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
         resultForService={'keybase'}
         services={{
@@ -597,7 +691,8 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        isPreExistingTeamMember={false}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -607,10 +702,12 @@ const load = () => {
         resultForService={'github'}
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
-        followingState={'Following'}
+        isPreExistingTeamMember={false}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -620,18 +717,22 @@ const load = () => {
         resultForService={'github'}
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState={'NoState'}
+        followingState={'NoState' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
+        isPreExistingTeamMember={false}
       />
     ))
     .add('Chris Highlighted (already in team)', () => (
       <UserResult
+        isPreExistingTeamMember={false}
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -640,7 +741,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}

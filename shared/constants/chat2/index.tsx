@@ -10,6 +10,7 @@ import {isMobile} from '../platform'
 import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  pendingErrorConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
@@ -20,14 +21,18 @@ import HiddenString from '../../util/hidden-string'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
+export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
+  botCommandsUpdateStatusMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
+  createConversationError: null,
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -49,11 +54,13 @@ export const makeState = I.Record<Types._State>({
   paymentConfirmInfo: null,
   paymentStatusMap: I.Map(),
   pendingOutboxToOrdinal: I.Map(),
+  prependTextMap: I.Map(),
   quote: null,
   replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
@@ -61,10 +68,7 @@ export const makeState = I.Record<Types._State>({
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
-  userReacjis: {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis},
-
-  // Team Building
-  ...TeamBuildingConstants.makeSubState(),
+  userReacjis: defaultUserReacjis,
 })
 
 export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
@@ -157,7 +161,7 @@ export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.
   state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.OrderedSet())
+  state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
@@ -390,6 +394,7 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
 
 export {
   getAllChannels,
+  getBotCommands,
   getChannelForTeam,
   getChannelSuggestions,
   getCommands,
@@ -451,5 +456,6 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
+  pendingErrorConversationIDKey,
   pendingWaitingConversationIDKey,
 }

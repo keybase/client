@@ -8,7 +8,7 @@ import Participants from './participants/container'
 import {anyWaiting} from '../../constants/waiting'
 import {namedConnect, isMobile, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => {
   const build = state.wallets.building
@@ -48,7 +48,7 @@ const mapDispatchToProps = dispatch => ({
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps) => {
+    (stateProps, dispatchProps, _: OwnProps) => {
     const {_built, _sentPaymentError} = stateProps
     const exchangeRateChanged = _sentPaymentError && _sentPaymentError.toLowerCase().includes('exchange rate')
     const banners = (_sentPaymentError
@@ -91,6 +91,7 @@ export default namedConnect(
       readyToSend: stateProps.readyToSend,
       sendFailed: !!_sentPaymentError,
       sendingIntentionXLM: stateProps.sendingIntentionXLM,
+      showCancelInsteadOfBackOnMobile: false,
       waitingKey: stateProps.waitingKey,
     }
   },

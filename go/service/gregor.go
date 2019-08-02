@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"sync"
 	"time"
@@ -1370,7 +1369,7 @@ func (g *gregorHandler) isReachable() bool {
 	}
 
 	// If we currently think we are online, then make sure
-	conn, err := net.DialTimeout("tcp", url.Host, timeout)
+	conn, err := libkb.ProxyDialTimeout(g.G().Env, "tcp", url.Host, timeout)
 	if conn != nil {
 		conn.Close()
 		return true
@@ -1512,11 +1511,12 @@ func (g *gregorHandler) connectTLS() error {
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
-	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+	g.conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
 		logger.LogOutputWithDepthAdder{Logger: g.G().Log},
-		rpc.DefaultMaxFrameLength, opts)
+		rpc.DefaultMaxFrameLength, opts,
+		libkb.NewProxyDialable(g.G().Env))
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not

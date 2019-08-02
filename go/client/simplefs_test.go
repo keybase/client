@@ -291,6 +291,39 @@ func (s SimpleFSMock) SimpleFSSetNotificationThreshold(_ context.Context, _ int6
 	return nil
 }
 
+// SimpleFSObfuscatePath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSObfuscatePath(
+	_ context.Context, _ keybase1.Path) (string, error) {
+	return "", nil
+}
+
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSDeobfuscatePath(
+	_ context.Context, _ keybase1.Path) ([]string, error) {
+	return nil, nil
+}
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetStats(_ context.Context) (
+	keybase1.SimpleFSStats, error) {
+	return keybase1.SimpleFSStats{}, nil
+}
+
+// SimpleFSSubscribeNonPath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	return nil
+}
+
+// SimpleFSSubscribePath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	return nil
+}
+
+// SimpleFSUnsubscribe implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

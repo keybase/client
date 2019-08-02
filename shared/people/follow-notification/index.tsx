@@ -1,7 +1,7 @@
 import * as React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text, WithTooltip} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 const connectedUsernamesProps = {
@@ -29,36 +29,37 @@ export default (props: any) => {
   return <MultiFollowNotification {...props} />
 }
 
-export const FollowNotification = (props: Props) => {
+const FollowNotification = (props: Props) => {
   if (props.newFollows.length !== 1) {
     throw new Error('Single follow notification must have exactly one user supplied')
   }
   const username = props.newFollows[0].username
   return (
-    <ClickableBox onClick={() => props.onClickUser(username)}>
+    <Kb.ClickableBox onClick={() => props.onClickUser(username)}>
       <PeopleItem
         badged={props.badged}
         icon={
-          <Avatar
+          <Kb.Avatar
             username={username}
             onClick={() => props.onClickUser(username)}
             size={Styles.isMobile ? 48 : 32}
           />
         }
+        iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
-        contentStyle={{justifyContent: 'center'}}
+        contentStyle={styles.peopleItem}
         format="single"
       >
-        <Text type="Body">
-          <ConnectedUsernames
+        <Kb.Text type="Body">
+          <Kb.ConnectedUsernames
             {...connectedUsernamesProps}
             usernames={[username]}
             onUsernameClicked={props.onClickUser}
           />{' '}
           followed you.
-        </Text>
+        </Kb.Text>
       </PeopleItem>
-    </ClickableBox>
+    </Kb.ClickableBox>
   )
 }
 
@@ -69,9 +70,9 @@ export const MultiFollowNotification = (props: Props) => {
   const usernames = props.newFollows.map(f => f.username)
   return (
     <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
-      <Text type="Body" style={multiTextStyle}>
-        <ConnectedUsernames
-          containerStyle={Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}})}
+      <Kb.Text type="Body" style={styles.multiText}>
+        <Kb.ConnectedUsernames
+          containerStyle={styles.usernames}
           inlineGrammar={true}
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
@@ -80,47 +81,52 @@ export const MultiFollowNotification = (props: Props) => {
         />
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
-      </Text>
-      <ScrollView
+      </Kb.Text>
+      <Kb.ScrollView
         {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
-        contentContainerStyle={scrollViewContainerStyle}
+        contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (
-          <WithTooltip key={username} text={username}>
-            <Avatar
+          <Kb.WithTooltip key={username} text={username}>
+            <Kb.Avatar
               onClick={() => props.onClickUser(username)}
               username={username}
               size={32}
-              style={{marginRight: Styles.globalMargins.xtiny}}
+              style={styles.avatar}
             />
-          </WithTooltip>
+          </Kb.WithTooltip>
         ))}
-      </ScrollView>
+      </Kb.ScrollView>
     </PeopleItem>
   )
 }
 
-const multiTextStyle = Styles.platformStyles({
-  common: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.xlarge,
-    marginTop: 2,
-  },
-  isElectron: {display: 'inline'},
+const styles = Styles.styleSheetCreate({
+  avatar: {marginRight: Styles.globalMargins.xtiny},
+  iconContainer: {width: 'auto'},
+  multiText: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.xlarge,
+      marginTop: 2,
+    },
+    isElectron: {display: 'inline'},
+  }),
+  peopleItem: {justifyContent: 'center'},
+  scrollViewContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      ...Styles.globalStyles.flexBoxRow,
+      flexWrap: 'wrap',
+      height: 32,
+      overflow: 'hidden',
+      width: '100%',
+    },
+  }),
+  usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}}),
 })
-
-const scrollViewContainerStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  paddingBottom: Styles.globalMargins.tiny,
-  paddingLeft: Styles.globalMargins.small,
-  paddingRight: Styles.globalMargins.small,
-  ...(Styles.isMobile
-    ? null
-    : ({
-        ...Styles.globalStyles.flexBoxRow,
-        flexWrap: 'wrap',
-        height: 32,
-        overflow: 'hidden',
-        width: '100%',
-      } as const)),
-}

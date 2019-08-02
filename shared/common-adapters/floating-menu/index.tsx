@@ -8,20 +8,23 @@ import * as React from 'react'
 import Overlay from '../overlay'
 import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItem, MenuItems} from './menu-layout'
-import {StylesCrossPlatform} from '../../styles'
+import {Color, StylesCrossPlatform} from '../../styles'
 
 export type Props = {
   closeOnSelect: boolean
-  closeText?: string | null // mobile only; default to "Close",
+  closeText?: string // mobile only; default to "Close",
   containerStyle?: StylesCrossPlatform
   items: MenuItems
-  header?: MenuItem | null
+  header?: MenuItem
+  backgroundColor?: Color
+  listStyle?: Object
   onHidden: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean
+  textColor?: Color
 }
 
 export default (props: Props) => {
@@ -44,6 +47,9 @@ export default (props: Props) => {
         items={props.items}
         closeOnClick={props.closeOnSelect}
         closeText={props.closeText}
+        listStyle={props.listStyle}
+        textColor={props.textColor}
+        backgroundColor={props.backgroundColor}
       />
     </Overlay>
   )

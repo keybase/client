@@ -164,7 +164,10 @@ type Node interface {
 	GetFolderBranch() data.FolderBranch
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
-	GetBasename() string
+	GetBasename() data.PathPartString
+	// GetPathPlaintextSansTlf returns the cleaned path of the node in
+	// plaintext.
+	GetPathPlaintextSansTlf() (string, bool)
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -188,9 +191,9 @@ type Node interface {
 	// wraps another `Node` (`inner`) must return
 	// `inner.ShouldCreateMissedLookup()` if it decides not to return
 	// `true` on its own.
-	ShouldCreateMissedLookup(ctx context.Context, name string) (
+	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
-		fi os.FileInfo, sympath string)
+		fi os.FileInfo, sympath data.PathPartString)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -201,7 +204,7 @@ type Node interface {
 	// `RemoveDir` flow, to give the Node a chance to handle it in a
 	// custom way.  If the `Node` handles it internally, it should
 	// return `true`.
-	RemoveDir(ctx context.Context, dirName string) (
+	RemoveDir(ctx context.Context, dirName data.PathPartString) (
 		removeHandled bool, err error)
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
@@ -236,6 +239,9 @@ type Node interface {
 	// entries of this Node in the case of directories; for other
 	// types, it returns nil.
 	Obfuscator() data.Obfuscator
+	// ChildName returns an obfuscatable version of the given name of
+	// a child entry of this node.
+	ChildName(name string) data.PathPartString
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -271,6 +277,11 @@ type Node interface {
 // Context derived from it), allowing the caller to determine whether
 // the notification is a result of their own action or an external
 // action.
+//
+// Each directory and file name is specified with a
+// `data.PathPartString`, to protect against accidentally logging
+// plaintext filenames.  These can be easily created from the parent
+// node's `Node` object with the `ChildName` function.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation when the cache
@@ -333,12 +344,14 @@ type KBFSOps interface {
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
-	GetDirChildren(ctx context.Context, dir Node) (map[string]data.EntryInfo, error)
+	GetDirChildren(ctx context.Context, dir Node) (
+		map[data.PathPartString]data.EntryInfo, error)
 	// Lookup returns the Node and entry info associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil
 	// if the name is a symlink.  This is a remote-access operation.
-	Lookup(ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error)
+	Lookup(ctx context.Context, dir Node, name data.PathPartString) (
+		Node, data.EntryInfo, error)
 	// Stat returns the entry info associated with a
 	// given Node, if the logged-in user has read permissions to the
 	// top-level folder.  This is a remote-access operation.
@@ -347,7 +360,7 @@ type KBFSOps interface {
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Node for the created subdirectory, and
 	// its new entry info.  This is a remote-sync operation.
-	CreateDir(ctx context.Context, dir Node, name string) (
+	CreateDir(ctx context.Context, dir Node, name data.PathPartString) (
 		Node, data.EntryInfo, error)
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
@@ -357,23 +370,30 @@ type KBFSOps interface {
 	// Unix open() call.
 	//
 	// This is a remote-sync operation.
-	CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-		Node, data.EntryInfo, error)
+	CreateFile(
+		ctx context.Context, dir Node, name data.PathPartString, isExec bool,
+		excl Excl) (Node, data.EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new entry info for the created symlink.  This
-	// is a remote-sync operation.
-	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
+	// Returns the new entry info for the created symlink.  The
+	// symlink is represented as a single `data.PathPartString`
+	// (generally obfuscated by `dir`'s Obfuscator) to avoid
+	// accidental logging, even though it could point outside of the
+	// directory.  The deobfuscate command will inspect symlinks when
+	// deobfuscating to make this easier to debug.  This is a
+	// remote-sync operation.
+	CreateLink(
+		ctx context.Context, dir Node, fromName, toPath data.PathPartString) (
 		data.EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
 	// not empty.  This is a remote-sync operation.
-	RemoveDir(ctx context.Context, dir Node, dirName string) error
+	RemoveDir(ctx context.Context, dir Node, dirName data.PathPartString) error
 	// RemoveEntry removes the directory entry represented by the
 	// given node, if the logged-in user has write permission to the
 	// top-level folder.  This is a remote-sync operation.
-	RemoveEntry(ctx context.Context, dir Node, name string) error
+	RemoveEntry(ctx context.Context, dir Node, name data.PathPartString) error
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
 	// that folder, and will return an error if nodes from different
@@ -381,8 +401,9 @@ type KBFSOps interface {
 	// already has an entry corresponding to an existing directory
 	// (only non-dir types may be renamed over).  This is a
 	// remote-sync operation.
-	Rename(ctx context.Context, oldParent Node, oldName string, newParent Node,
-		newName string) error
+	Rename(
+		ctx context.Context, oldParent Node, oldName data.PathPartString,
+		newParent Node, newName data.PathPartString) error
 	// Read fills in the given buffer with data from the file at the
 	// given node starting at the given offset, if the logged-in user
 	// has read permission to the top-level folder.  The read data
@@ -574,6 +595,7 @@ type gitMetadataPutter interface {
 type KeybaseService interface {
 	idutil.KeybaseService
 	gitMetadataPutter
+	SubscriptionNotifier
 
 	// FavoriteAdd adds the given folder to the list of favorites.
 	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
@@ -819,6 +841,10 @@ type mdDecryptionKeyGetter interface {
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
 		kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
+	// GetFirstTLFCryptKey gets the first valid crypt key for the
+	// TLF with the given metadata.
+	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
+		kbfscrypto.TLFCryptKey, error)
 }
 
 type blockDecryptionKeyGetter interface {
@@ -839,11 +865,6 @@ type blockKeyGetter interface {
 type KeyManager interface {
 	blockKeyGetter
 	mdDecryptionKeyGetter
-
-	// GetFirstTLFCryptKey gets the first valid crypt key for the
-	// TLF with the given metadata.
-	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
-		kbfscrypto.TLFCryptKey, error)
 
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
@@ -1303,9 +1324,10 @@ type MDOps interface {
 	// that journalMDOps doesn't support any priority other than
 	// MDPriorityNormal for now. If journaling is enabled, use FinishSinbleOp
 	// to override priority.
-	Put(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey,
-		lockContext *keybase1.LockContext, priority keybase1.MDPriority) (
+	Put(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+		priority keybase1.MDPriority, bps data.BlockPutState) (
 		ImmutableRootMetadata, error)
 
 	// PutUnmerged is the same as the above but for unmerged metadata
@@ -1315,8 +1337,10 @@ type MDOps interface {
 	// the verifying key, which might not be the same as the local
 	// user's verifying key if the MD has been copied from a previous
 	// update.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+	PutUnmerged(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
@@ -1331,9 +1355,11 @@ type MDOps interface {
 	// ImmutableRootMetadata requires knowing the verifying key, which
 	// might not be the same as the local user's verifying key if the
 	// MD has been copied from a previous update.
-	ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+	ResolveBranch(
+		ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest
 	// handle for the TLF, which may not yet be reflected in the MD if
@@ -1756,7 +1782,7 @@ type blockServerLocal interface {
 type NodeChange struct {
 	Node Node
 	// Basenames of entries added/removed.
-	DirUpdated  []string
+	DirUpdated  []data.PathPartString
 	FileUpdated []WriteRange
 }
 
@@ -1918,6 +1944,17 @@ type InitMode interface {
 	// DoLogObfuscation indicates whether senstive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
+	// InitialDelayForBackgroundWork indicates how long non-critical
+	// work that happens in the background on startup should wait
+	// before it begins.
+	InitialDelayForBackgroundWork() time.Duration
+	// BackgroundWorkPeriod indicates how long to wait between
+	// non-critical background work tasks.
+	BackgroundWorkPeriod() time.Duration
+	// DiskCacheWriteBufferSize indicates how large the write buffer
+	// should be on disk caches -- this also controls how big the
+	// on-disk tables are before compaction.
+	DiskCacheWriteBufferSize() int
 }
 
 type initModeGetter interface {
@@ -1932,6 +1969,64 @@ type blockCryptVersioner interface {
 	// BlockCryptVersion returns the block encryption version to be used for
 	// new blocks.
 	BlockCryptVersion() kbfscrypto.EncryptionVer
+}
+
+// SubscriptionID identifies a subscription.
+type SubscriptionID string
+
+// SubscriptionNotifier defines a group of methods for notifying about changes
+// on subscribed topics.
+type SubscriptionNotifier interface {
+	// OnPathChange notifies about a change that's related to a specific path.
+	OnPathChange(subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic)
+	// OnNonPathChange notifies about a change that's not related to a specific path.
+	OnNonPathChange(subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic)
+}
+
+// Subscriber defines a type that can be used to subscribe to different topic.
+//
+// The two Subscribe methods are for path and non-path subscriptions
+// respectively. Notes on some common arguments:
+// 1) subscriptionID needs to be unique among all subscriptions that happens
+//    with this process. A UUID or even just a timestamp might work. If
+//    duplicate subscriptionIDs are used, an error is returned.
+// 2) Optionally a deduplicateInterval can be used. When this arg is set, we
+//    debounce the events so it doesn't send more frequently than the interval.
+//    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
+//    all events will be delivered.
+type Subscriber interface {
+	// SubscribePath subscribes to changes about path, when topic happens.
+	SubscribePath(
+		ctx context.Context, subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// SubscribeNonPath subscribes to changes when topic happens.
+	SubscribeNonPath(ctx context.Context, subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// Unsubscribe unsubscribes a previsous subscription. The subscriptionID
+	// should be the same as when caller subscribed. Otherwise, it's a no-op.
+	Unsubscribe(context.Context, SubscriptionID)
+}
+
+// SubscriptionManager manages subscriptions. Use the Subscriber interface to
+// subscribe and unsubscribe. Multiple subscribers can be used with the same
+// SubscriptionManager.
+type SubscriptionManager interface {
+	// Subscriber returns a new subscriber. All subscriptions made on this
+	// subscriber causes notifications sent through the give notifier here.
+	Subscriber(SubscriptionNotifier) Subscriber
+	// Shutdown shuts the subscription manager down.
+	Shutdown(ctx context.Context)
+}
+
+// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
+// used to publish changes to subscribers mangaged by it.
+type SubscriptionManagerPublisher interface {
+	FavoritesChanged()
+	JournalStatusChanged()
 }
 
 // Config collects all the singleton instance instantiations needed to
@@ -2115,6 +2210,13 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
+
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+	// SubscriptionManagerPublisher retursn a publisher that can be used to
+	// publish events to the subscription manager.
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
@@ -2128,7 +2230,8 @@ type NodeCache interface {
 	// "parent" parameters here.  name must not be empty. Returns
 	// an error if parent cannot be found.
 	GetOrCreate(
-		ptr data.BlockPointer, name string, parent Node, et data.EntryType) (Node, error)
+		ptr data.BlockPointer, name data.PathPartString, parent Node,
+		et data.EntryType) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
 	Get(ref data.BlockRef) Node
@@ -2145,7 +2248,7 @@ type NodeCache interface {
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
 	// error and a `nil` undo function.
-	Move(ref data.BlockRef, newParent Node, newName string) (
+	Move(ref data.BlockRef, newParent Node, newName data.PathPartString) (
 		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
@@ -2154,7 +2257,8 @@ type NodeCache interface {
 	// already that shouldn't be reflected in the cached path.  It
 	// returns a function that can be called to undo the effect of the
 	// unlink (or `nil` if nothing needs to be done).
-	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func())
+	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (
+		undoFn func())
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
@@ -2189,7 +2293,8 @@ type NodeCache interface {
 // (duplicating pointer for any indirect blocks) and generates a new
 // random temporary block ID for it.  It returns the new BlockPointer,
 // and internally saves the block for future uses.
-type fileBlockDeepCopier func(context.Context, string, data.BlockPointer) (
+type fileBlockDeepCopier func(
+	context.Context, data.PathPartString, data.BlockPointer) (
 	data.BlockPointer, error)
 
 // crAction represents a specific action to take as part of the
@@ -2348,8 +2453,6 @@ type Chat interface {
 type blockPutState interface {
 	data.BlockPutState
 	oldPtr(ctx context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error)
-	ptrs() []data.BlockPointer
-	getBlock(ctx context.Context, blockPtr data.BlockPointer) (data.Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error)
 	synced(blockPtr data.BlockPointer) error

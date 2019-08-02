@@ -35,6 +35,7 @@ protocol constants {
     SCRateLimit_602,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
+    SCBadSignupTeamName_711,
     SCFeatureFlag_712,
     SCMissingResult_801,
     SCKeyNotFound_901,
@@ -60,6 +61,8 @@ protocol constants {
     SCSigWrongKey_1008,
     SCSigOldSeqno_1010,
     SCSigCreationDisallowed_1016,
+    SCSigMissingRatchet_1021,
+    SCSigBadTotalOrder_1022,
     SCBadTrackSession_1301,
     SCDeviceBadName_1404,
     SCDeviceNameInUse_1408,
@@ -126,6 +129,7 @@ protocol constants {
     SCTeamExists_2619,
     SCTeamReadError_2623,
     SCTeamWritePermDenied_2625,
+    SCTeamBadGeneration_2636,
     SCNoOp_2638,
     SCTeamInviteBadToken_2646,
     SCTeamTarDuplicate_2663,
@@ -204,6 +208,14 @@ protocol constants {
     SCNISTBadClock_3219,
     SCNISTSigBadCtime_3220,
     SCBadSignupUsernameDeleted_3221,
-    SCNoPaperKeys_3605
+    SCPhoneNumberUnknown_3400,
+    SCPhoneNumberAlreadyVerified_3401,
+    SCPhoneNumberVerificationCodeExpired_3402,
+    SCPhoneNumberWrongVerificationCode_3403,
+    SCPhoneNumberLimitExceeded_3404,
+    SCNoPaperKeys_3605,
+    SCTeambotKeyGenerationExists_3800,
+    SCTeambotKeyOldBoxedGeneration_3801,
+    SCTeambotKeyBadGeneration_3802
   }
 }

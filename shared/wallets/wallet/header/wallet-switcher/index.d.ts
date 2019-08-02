@@ -3,8 +3,10 @@ import * as Types from '../../../../constants/types/wallets'
 
 export type Props = {
   accountIDs: Array<Types.AccountID>
-  getAttachmentRef: (() => React.Component<any>) | null
+  airdropIsLive: boolean
+  getAttachmentRef?: () => React.Component<any>
   hideMenu: () => void
+  inAirdrop: boolean
   onAddNew: () => void
   onJoinAirdrop: () => void
   onLinkExisting: () => void

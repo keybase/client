@@ -3,9 +3,10 @@ import DeleteConfirm, {Props} from '.'
 import React, {Component} from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HOCTimers, PropsWithTimer} from '../../common-adapters'
-import {compose, connect} from '../../util/container'
+import * as Container from '../../util/container'
 
 type OwnProps = {}
+
 class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   componentDidMount() {
     this.props.setAllowDeleteAccount(false)
@@ -23,28 +24,22 @@ class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   }
 }
 
-const mapStateToProps = state => {
-  if (!state.config.username) {
-    throw new Error('No current username for delete confirm container')
-  }
+export default Container.connect(
+  state => {
+    if (!state.config.username) {
+      throw new Error('No current username for delete confirm container')
+    }
 
-  return {
-    allowDeleteForever: state.settings.allowDeleteAccount,
-    username: state.config.username,
-  }
-}
+    return {
+      allowDeleteForever: state.settings.allowDeleteAccount,
+      username: state.config.username,
+    }
+  },
+  dispatch => ({
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
+    setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
+  }),
 
-const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
-  setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
-})
-
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  HOCTimers
-)(DeleteConfirmContainer)
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+)(HOCTimers(DeleteConfirmContainer))

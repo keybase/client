@@ -97,6 +97,34 @@
         {
           "type": "string",
           "name": "infoUrlText"
+        },
+        {
+          "type": "boolean",
+          "name": "showDepositButton"
+        },
+        {
+          "type": "string",
+          "name": "depositButtonText"
+        },
+        {
+          "type": "boolean",
+          "name": "showWithdrawButton"
+        },
+        {
+          "type": "string",
+          "name": "withdrawButtonText"
+        },
+        {
+          "type": "string",
+          "name": "withdrawType"
+        },
+        {
+          "type": "string",
+          "name": "transferServer"
+        },
+        {
+          "type": "string",
+          "name": "authEndpoint"
         }
       ]
     },
@@ -132,6 +160,10 @@
         {
           "type": "string",
           "name": "limit"
+        },
+        {
+          "type": "boolean",
+          "name": "isAuthorized"
         }
       ]
     },
@@ -457,6 +489,10 @@
         {
           "type": "Asset",
           "name": "destinationAsset"
+        },
+        {
+          "type": "string",
+          "name": "sourceInsufficientBalance"
         }
       ]
     }

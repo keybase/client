@@ -159,6 +159,9 @@ type ConfigLocal struct {
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 	rekeyFSMLimiter *OngoingWorkLimiter
+
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 // DiskCacheMode represents the mode of initialization for the disk cache.
@@ -256,7 +259,8 @@ func NewConfigLocal(mode InitMode,
 	}
 	config.SetCodec(kbfscodec.NewMsgpack())
 	if diskCacheMode == DiskCacheModeLocal {
-		config.loadSyncedTlfsLocked()
+		// Any error is logged in the function itself.
+		_ = config.loadSyncedTlfsLocked()
 	}
 	config.SetClock(data.WallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
@@ -294,6 +298,9 @@ func NewConfigLocal(mode InitMode,
 
 	config.conflictResolutionDB = openCRDB(config)
 	config.settingsDB = openSettingsDB(config)
+
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
 
 	return config
 }
@@ -899,7 +906,9 @@ func (c *ConfigLocal) ResetCaches() {
 	if err == nil {
 		if err := c.journalizeBcaches(jManager); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil, "Error journalizing dirty block cache: %+v", err)
+				log.CWarningf(
+					context.TODO(),
+					"Error journalizing dirty block cache: %+v", err)
 			}
 		}
 	}
@@ -908,7 +917,8 @@ func (c *ConfigLocal) ResetCaches() {
 		// access to this config.
 		if err := oldDirtyBcache.Shutdown(); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil,
+				log.CWarningf(
+					context.TODO(),
 					"Error shutting down old dirty block cache: %+v", err)
 			}
 		}
@@ -1079,7 +1089,6 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 		// Continue with shutdown regardless of err.
-		err = nil
 	}
 	err = c.BlockOps().Shutdown(ctx)
 	if err != nil {
@@ -1141,6 +1150,8 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	for _, cancel := range c.tlfClearCancels {
 		cancel()
 	}
+
+	c.subscriptionManager.Shutdown(ctx)
 
 	return nil
 }
@@ -1216,7 +1227,10 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
-	os.MkdirAll(configRoot, 0700)
+	err := os.MkdirAll(configRoot, 0700)
+	if err != nil {
+		return err
+	}
 
 	diskLimiter, err := newBackpressureDiskLimiter(log, params)
 	if err != nil {
@@ -1376,7 +1390,7 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskMDCacheLocked() error {
-	dmc, err := newDiskMDCacheLocal(c, c.storageRoot)
+	dmc, err := newDiskMDCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1399,7 +1413,7 @@ func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskQuotaCacheLocked() error {
-	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot)
+	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1432,7 +1446,7 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	if c.blockMetadataStore != nil {
 		return nil
 	}
-	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
+	c.blockMetadataStore, err = newDiskBlockMetadataStore(c, c.mode)
 	if err != nil {
 		// TODO (KBFS-3659): when we can open levelDB read-only,
 		//  do that instead of returning a Noop version.
@@ -1448,12 +1462,12 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 	if err != nil {
 		return nil, err
 	}
-	return openLevelDB(stor)
+	return openLevelDB(stor, c.mode)
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	defer func() {
-		c.MakeLogger("").CDebugf(nil, "Loaded synced TLFs: %+v", err)
+		c.MakeLogger("").CDebugf(context.TODO(), "Loaded synced TLFs: %+v", err)
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
@@ -1701,7 +1715,7 @@ func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 func (c *ConfigLocal) RootNodeWrappers() []func(Node) Node {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.rootNodeWrappers[:]
+	return c.rootNodeWrappers
 }
 
 // AddRootNodeWrapper implements the Config interface for ConfigLocal.
@@ -1738,6 +1752,21 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 	defer c.lock.Unlock()
 	c.diskCacheMode = m
 	if c.diskCacheMode == DiskCacheModeLocal {
-		c.loadSyncedTlfsLocked()
+		// Any error is logged in the function itself.
+		_ = c.loadSyncedTlfsLocked()
 	}
+}
+
+// SubscriptionManager implements the Config interface.
+func (c *ConfigLocal) SubscriptionManager() SubscriptionManager {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.subscriptionManager
+}
+
+// SubscriptionManagerPublisher implements the Config interface.
+func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.subscriptionManagerPublisher
 }

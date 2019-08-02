@@ -25,7 +25,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
         key={index}
         className={hoverClassName}
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
-        onClick={event => {
+        onClick={() => {
           item.onClick && item.onClick()
           if (this.props.closeOnClick && this.props.onHidden) {
             this.props.onHidden()
@@ -94,9 +94,12 @@ class MenuLayout extends Component<MenuLayoutProps> {
           {this.props.header && this.props.header.view}
           {/* Display menu items */}
           {this.props.items.length > 0 && (
-            <Box style={styles.menuItemList}>
+            <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>
               {this.props.items
-                .filter(Boolean)
+                .reduce<Array<'Divider' | MenuItem>>((arr, item) => {
+                  item && arr.push(item)
+                  return arr
+                }, [])
                 .map((item, index) =>
                   item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
                 )}
@@ -117,12 +120,8 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 8,
     marginTop: 8,
   },
-  horizBox: {
-    ...Styles.globalStyles.flexBoxRow,
-  },
-  itemBodyText: {
-    color: undefined,
-  },
+  horizBox: {...Styles.globalStyles.flexBoxRow},
+  itemBodyText: {color: undefined},
   itemContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     paddingBottom: Styles.globalMargins.xtiny,

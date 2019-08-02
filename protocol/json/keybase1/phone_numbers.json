@@ -9,12 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "RawPhoneNumber",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "UserPhoneNumber",
       "fields": [
         {
@@ -141,6 +135,19 @@
         {
           "name": "code",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "resendVerificationForPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
         }
       ],
       "response": null

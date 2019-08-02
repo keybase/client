@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItem, RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index.types'
+import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index.types'
 
 /*
  * Rows
@@ -134,7 +134,7 @@ const mapPropProviderProps = {
     backgroundColor: isMobile ? commonSmallFilter.backgroundColor : globalColors.blue,
     conversationIDKey: '4',
     hasUnread: false,
-    hasBadge: false,
+    hasBadge: true,
     iconHoverColor: globalColors.white_75,
     isSelected: !isMobile,
     showBold: false,
@@ -482,11 +482,11 @@ const provider = Sb.createPropProviderWithCommon({
     onSetFilter: Sb.action('onSetFilter'),
     rows: p.rows,
   }),
-  BuildTeam: p => ({
+  BuildTeam: () => ({
     onBuildTeam: Sb.action('onBuildTeam'),
     loaded: true,
   }),
-  NewChooser: p => ({
+  NewChooser: () => ({
     isSelected: false,
     onCancel: Sb.action('onCancel'),
     onClick: Sb.action('onClick'),
@@ -502,7 +502,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   InboxBigTeamHeader: getPropProviderProps,
   SmallTeam: getPropProviderProps,
-  BigTeamsDivider: ownProps => ({badgeCount: 5}),
+  BigTeamsDivider: () => ({badgeCount: 5}),
   BigTeamChannel: getPropProviderProps,
   FilterSmallTeam: getPropProviderProps,
   FilterBigTeamChannel: getPropProviderProps,

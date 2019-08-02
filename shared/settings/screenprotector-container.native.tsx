@@ -1,15 +1,15 @@
 import Screenprotector from './screenprotector.native'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = {}
 
-const mapStateToProps = () => ({
-  title: 'Screen Protector',
-})
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  Screenprotector
-)
+export default Container.connect(
+  () => ({title: 'Screen Protector'}),
+  dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
+  (s, d, o: OwnProps) => ({
+    ...o,
+    ...s,
+    ...d,
+  })
+)(Screenprotector)

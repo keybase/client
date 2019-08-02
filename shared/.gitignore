@@ -6,8 +6,9 @@ android/.idea
 android/**/build/
 android/dist
 android/**/*.iml
-android/.project
-android/.settings/**
+android/**/.classpath
+android/**/.project
+android/**/.settings/**
 
 # iOS
 !default.mode1v3
@@ -38,3 +39,4 @@ ios/AppStore_keybase.ios.mobileprovision
 ios/dist
 
 main.jsbundle
+.eslintcache

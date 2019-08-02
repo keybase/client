@@ -13,11 +13,14 @@ import (
 	"io"
 	"path/filepath"
 	"strings"
+	"time"
 
 	secsrv "github.com/keybase/go-keychain/secretservice"
 	dbus "github.com/keybase/go.dbus"
 	"golang.org/x/crypto/hkdf"
 )
+
+const sessionOpenTimeout = 5 * time.Second
 
 type SecretStoreRevokableSecretService struct{}
 
@@ -131,6 +134,7 @@ func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, use
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
+	srv.SetSessionOpenTimeout(sessionOpenTimeout)
 	session, err := srv.OpenSession(secsrv.AuthenticationDHAES)
 	if err != nil {
 		return LKSecFullSecret{}, err
@@ -183,6 +187,7 @@ func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, userna
 	if err != nil {
 		return err
 	}
+	srv.SetSessionOpenTimeout(sessionOpenTimeout)
 	session, err := srv.OpenSession(secsrv.AuthenticationDHAES)
 	if err != nil {
 		return err
@@ -246,6 +251,7 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 	if err != nil {
 		return CombineErrors(keystoreErr, err)
 	}
+	srv.SetSessionOpenTimeout(sessionOpenTimeout)
 	// Only delete the ones for the identifier we care about, so as not to erase
 	// other passwords for the same user in a different home directory on the
 	// same computer.

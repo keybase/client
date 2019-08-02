@@ -1,7 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/waiting'
 import {RPCError} from '../util/errors'
-import {isString} from 'lodash-es'
 
 export const anyWaiting = (
   state: {
@@ -22,7 +21,7 @@ export const anyErrors = (
     return state.waiting.errors.get(keys, null)
   }
 
-  return keys.reduce((acc, k) => acc || state.waiting.errors.get(k, null), null)
+  return keys.reduce<RPCError | null>((acc, k) => acc || state.waiting.errors.get(k, null), null)
 }
 
 export const makeState = I.Record<Types._State>({

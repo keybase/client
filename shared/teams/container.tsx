@@ -16,7 +16,7 @@ import {memoize} from '../util/memoize'
 
 type OwnProps = Container.PropsWithSafeNavigation<{}>
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _deletedTeams: state.teams.deletedTeams,
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
@@ -30,32 +30,34 @@ const mapStateToProps = state => ({
 })
 
 // share some between headerRightActions on desktop and component on mobile
-const headerActions = (dispatch, {navigateAppend}) => ({
+const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onCreateTeam: () => {
     dispatch(
-      navigateAppend({
+      ownProps.safeNavigateAppendPayload({
         path: [{props: {}, selected: 'teamNewTeamDialog'}],
       })
     )
   },
   onJoinTeam: () => {
-    dispatch(navigateAppend({path: ['teamJoinTeamDialog']}))
+    dispatch(ownProps.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   },
 })
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
-  ...headerActions(dispatch, {navigateAppend}),
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  ...headerActions(dispatch, ownProps),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
-    dispatch(navigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})),
+    dispatch(
+      ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
   onViewTeam: (teamname: Teamname) =>
-    dispatch(navigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+    dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
 })
 
 const makeTeamToRequest = memoize(tr =>
@@ -64,22 +66,6 @@ const makeTeamToRequest = memoize(tr =>
     return map
   }, {})
 )
-
-const mergeProps = (stateProps, dispatchProps) => {
-  return {
-    deletedTeams: stateProps._deletedTeams.toArray(),
-    loaded: stateProps.loaded,
-    newTeams: stateProps._newTeams.toArray(),
-    sawChatBanner: stateProps.sawChatBanner,
-    teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
-    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
-    teammembercounts: stateProps._teammembercounts.toObject(),
-    teamnames: stateProps.teamnames,
-    teamresetusers: stateProps._teamresetusers.toObject(),
-    ...dispatchProps,
-  }
-}
 
 class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void; _onClearBadges: () => void}> {
   _onWillBlur = () => {
@@ -115,7 +101,19 @@ class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void; _o
 
 const Connected = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => ({
+    deletedTeams: stateProps._deletedTeams.toArray(),
+    loaded: stateProps.loaded,
+    newTeams: stateProps._newTeams.toArray(),
+    sawChatBanner: stateProps.sawChatBanner,
+    teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
+    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
+    teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
+    teammembercounts: stateProps._teammembercounts.toObject(),
+    teamnames: stateProps.teamnames,
+    teamresetusers: stateProps._teamresetusers.toObject(),
+    ...dispatchProps,
+  }))
 )(Reloadable)
 
 const ConnectedHeaderRightActions = Container.compose(

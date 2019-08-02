@@ -484,34 +484,45 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	return errors.New("failed to find message to edit")
 }
 
-func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext,
-	replyTo *chat1.MessageID) chat1.MessagePlaintext {
+func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, replyTo *chat1.MessageID) (chat1.MessagePlaintext, error) {
 	if replyTo == nil {
-		return msg
+		return msg, nil
 	}
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		s.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
-		return msg
+		return msg, nil
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
 		s.Debug(ctx, "handleReplyTo: handling text message")
 		header := msg.ClientHeader
 		header.Supersedes = *replyTo
+		reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+		if err != nil {
+			s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+			return msg, err
+		}
+		if !reply.IsValid() {
+			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
+			return msg, nil
+		}
+		replyToUID := reply.Valid().ClientHeader.Sender
 		return chat1.MessagePlaintext{
 			ClientHeader: header,
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body:     msg.MessageBody.Text().Body,
-				Payments: msg.MessageBody.Text().Payments,
-				ReplyTo:  replyTo,
+				Body:       msg.MessageBody.Text().Body,
+				Payments:   msg.MessageBody.Text().Payments,
+				ReplyTo:    replyTo,
+				ReplyToUID: &replyToUID,
 			}),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}
+		}, nil
 	default:
 		s.Debug(ctx, "handleReplyTo: skipping message of type: %v", typ)
 	}
-	return msg
+	return msg, nil
 }
 
 func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
@@ -597,7 +608,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
+			uid, conv.GetConvID(), msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -700,7 +711,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg.MessageBody = body
 
 		// Handle reply to
-		msg = s.handleReplyTo(ctx, msg, opts.ReplyTo)
+		if msg, err = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo); err != nil {
+			return res, err
+		}
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
@@ -1700,19 +1713,26 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
 	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	if err != nil {
+		return nil, nil, err
+	}
+	// The strategy here is to select the larger prev between what the UI provides, and what we have
+	// stored locally. If we just use the UI version, then we can race for creating ordinals in
+	// Outbox.PushMessage. However, in rare cases we might not have something locally, in that case just
+	// fallback to the UI provided number.
+	var storedPrev chat1.MessageID
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		s.Debug(ctx, "Send: failed to get local inbox info: %s", err)
+	} else {
+		storedPrev = conv.Conv.GetMaxMessageID()
+	}
+	if storedPrev > clientPrev {
+		clientPrev = storedPrev
+	}
 	if clientPrev == 0 {
-		uid, err := utils.AssertLoggedInUID(ctx, s.G())
-		if err != nil {
-			return nil, nil, err
-		}
-		s.Debug(ctx, "Send: clientPrev not specified using local storage")
-		thread, err := s.G().ConvSource.PullLocalOnly(ctx, convID, uid, nil, &chat1.Pagination{Num: 1}, 0)
-		if err != nil || len(thread.Messages) == 0 {
-			s.Debug(ctx, "Send: unable to read local storage, setting ClientPrev to 1")
-			clientPrev = 1
-		} else {
-			clientPrev = thread.Messages[0].GetMessageID()
-		}
+		clientPrev = 1
 	}
 	s.Debug(ctx, "Send: using prevMsgID: %d", clientPrev)
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{

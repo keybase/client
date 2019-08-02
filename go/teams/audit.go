@@ -28,11 +28,20 @@ var desktopParams = libkb.TeamAuditParams{
 	LRUSize:               1000,
 }
 
-var mobileParams = libkb.TeamAuditParams{
+var mobileParamsWifi = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(100000),
 	NumPreProbes:          10,
 	NumPostProbes:         10,
+	Parallelism:           3,
+	LRUSize:               500,
+}
+
+var mobileParamsNoWifi = libkb.TeamAuditParams{
+	RootFreshness:         15 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(150000),
+	NumPreProbes:          5,
+	NumPostProbes:         5,
 	Parallelism:           3,
 	LRUSize:               500,
 }
@@ -58,7 +67,10 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 		return devParams
 	}
 	if libkb.IsMobilePlatform() {
-		return mobileParams
+		if m.G().MobileNetState.State().IsLimited() {
+			return mobileParamsNoWifi
+		}
+		return mobileParamsWifi
 	}
 	return desktopParams
 }
@@ -66,14 +78,15 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 type dummyAuditor struct{}
 
 func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool,
-	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) error {
+	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno,
+	justCreated bool) error {
 	return nil
 }
 
 type Auditor struct {
 
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Map of TeamID -> AuditHistory
 	// The LRU is protected by a mutex, because it's swapped out on logout.
@@ -83,7 +96,9 @@ type Auditor struct {
 
 // NewAuditor makes a new auditor
 func NewAuditor(g *libkb.GlobalContext) *Auditor {
-	ret := &Auditor{}
+	ret := &Auditor{
+		locktab: libkb.NewLockTable(),
+	}
 	ret.newLRU(libkb.NewMetaContextBackground(g))
 	return ret
 }
@@ -109,7 +124,7 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) {
 // current one. headMerkleSeqno is is the Merkle Root claimed in the head of the team.
 // maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
 // Seqno for which chain[s] is defined.
-func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, justCreated bool) (err error) {
 
 	m = m.WithLogTag("AUDIT")
 	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
@@ -122,7 +137,7 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	lock := a.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	return a.auditLocked(m, id, headMerkleSeqno, chain, maxSeqno)
+	return a.auditLocked(m, id, headMerkleSeqno, chain, maxSeqno, justCreated)
 }
 
 func (a *Auditor) getLRU() *lru.Cache {
@@ -471,15 +486,51 @@ func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory,
 	return nil
 }
 
-func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) skipAuditSinceJustCreated(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno) (err error) {
+	now := m.G().Clock().Now()
+	until := now.Add(getAuditParams(m).RootFreshness)
+	m.Debug("team (%s) was just created; skipping the audit until %v", id, until)
+	history := makeHistory(nil, id)
+	history.SkipUntil = keybase1.ToTime(until)
+	history.PriorMerkleSeqno = headMerkleSeqno
+	lru := a.getLRU()
+	return a.putToCache(m, id, lru, history)
+}
+
+func (a *Auditor) holdOffSinceJustCreated(m libkb.MetaContext, history *keybase1.AuditHistory) (res bool, err error) {
+	if history == nil || history.SkipUntil == keybase1.Time(0) {
+		return false, nil
+	}
+	now := m.G().Clock().Now()
+	until := keybase1.FromTime(history.SkipUntil)
+	if now.After(until) {
+		return false, nil
+	}
+	m.Debug("holding off on subsequent audits since the team (%s) was just created (until %v)", history.ID, until)
+	return true, nil
+}
+
+func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, justCreated bool) (err error) {
 
 	defer m.Trace(fmt.Sprintf("Auditor#auditLocked(%v)", id), func() error { return err })()
 
 	lru := a.getLRU()
 
+	if justCreated {
+		return a.skipAuditSinceJustCreated(m, id, headMerkleSeqno)
+	}
+
 	history, err := a.getFromCache(m, id, lru)
 	if err != nil {
 		return err
+	}
+
+	holdOff, err := a.holdOffSinceJustCreated(m, history)
+	if err != nil {
+		return err
+	}
+	if holdOff {
+		return nil
 	}
 
 	last := lastAudit(history)

@@ -1,20 +1,14 @@
 import * as React from 'react'
-import {connect, getRouteProps} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
+import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-    ordinal: Types.Ordinal
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
 
 type WrapperProps = {
   topReacjis: Array<string>
@@ -26,27 +20,6 @@ type WrapperState = {
   filter: string
   width: number
 }
-
-const mapStateToProps = (state, ownProps: OwnProps) => ({
-  topReacjis: state.chat2.userReacjis.topReacjis,
-})
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
-  const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
-  const ordinal = getRouteProps(ownProps, 'ordinal')
-  return {
-    onAddReaction: (emoji: string) => {
-      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }
-}
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {filter: '', width: 0}
@@ -104,8 +77,22 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export default Container.connect(
+  state => ({topReacjis: state.chat2.userReacjis.topReacjis}),
+  (dispatch, ownProps: OwnProps) => {
+    const conversationIDKey = Container.getRouteProps(
+      ownProps,
+      'conversationIDKey',
+      Constants.noConversationIDKey
+    )
+    const ordinal = Container.getRouteProps(ownProps, 'ordinal', Types.numberToOrdinal(0))
+    return {
+      onAddReaction: (emoji: string) => {
+        dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
+        dispatch(RouteTreeGen.createNavigateUp())
+      },
+      onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    }
+  },
+  (stateProps, dispatchProps, _: OwnProps) => ({...stateProps, ...dispatchProps})
 )(Wrapper)

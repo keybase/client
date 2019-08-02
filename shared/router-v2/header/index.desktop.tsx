@@ -1,9 +1,12 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
+import * as WalletsConstants from '../../constants/wallets'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
+import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
@@ -12,7 +15,14 @@ import * as ReactIs from 'react-is'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
-type Props = any
+type Props = {
+  allowBack: boolean
+  airdropWillShowBanner: boolean
+  loggedIn: boolean
+  onPop: () => void
+  options: any
+  style?: any
+}
 
 const useNativeFrame = new AppState().state.useNativeFrame
 const initialUseNativeFrame =
@@ -26,7 +36,7 @@ const PlainTitle = ({title}) => (
   </Kb.Box2>
 )
 
-const SystemButtons = () => (
+export const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
@@ -98,7 +108,7 @@ class Header extends React.PureComponent<Props> {
       return null
     }
 
-    let title = null
+    let title: React.ReactNode | string = null
     if (opt.title) {
       title = <PlainTitle title={opt.title} />
     }
@@ -112,19 +122,19 @@ class Header extends React.PureComponent<Props> {
       }
     }
 
-    let rightActions = null
+    let rightActions: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.headerRightActions)) {
       const CustomActions = opt.headerRightActions
       rightActions = <CustomActions />
     }
 
-    let subHeader = null
+    let subHeader: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.subHeader)) {
       const CustomSubHeader = opt.subHeader
       subHeader = <CustomSubHeader />
     }
 
-    let style = null
+    let style: Styles.StylesCrossPlatform = null
     if (opt.headerTransparent) {
       style = {position: 'absolute'}
     }
@@ -133,6 +143,12 @@ class Header extends React.PureComponent<Props> {
     if (opt.headerHideBorder) {
       showDivider = false
     }
+
+    // Normally this component is responsible for rendering the system buttons,
+    // but if we're showing a banner then that banner component needs to do it.
+    const windowDecorationsAreNeeded = !Platform.isMac && !initialUseNativeFrame
+    const windowDecorationsDrawnByBanner =
+      windowDecorationsAreNeeded && flags.airdrop && this.props.loggedIn && this.props.airdropWillShowBanner
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
@@ -163,6 +179,9 @@ class Header extends React.PureComponent<Props> {
             opt.headerStyle,
           ])}
         >
+          {flags.airdrop && this.props.loggedIn && (
+            <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
+          )}
           <Kb.Box2
             key="topBar"
             direction="horizontal"
@@ -180,9 +199,18 @@ class Header extends React.PureComponent<Props> {
               />
             )}
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
-              {flags.kbfsOfflineMode && <SyncingFolders />}
+              {flags.kbfsOfflineMode && (
+                <SyncingFolders
+                  negative={
+                    this.props.style &&
+                    this.props.style.backgroundColor &&
+                    this.props.style.backgroundColor !== Styles.globalColors.transparent &&
+                    this.props.style.backgroundColor !== Styles.globalColors.white
+                  }
+                />
+              )}
               {!title && rightActions}
-              {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
+              {windowDecorationsAreNeeded && !windowDecorationsDrawnByBanner && <SystemButtons />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -273,4 +301,14 @@ const styles = Styles.styleSheetCreate({
   topRightContainer: {flex: 1, justifyContent: 'flex-end'},
 })
 
-export default Header
+const mapStateToProps = (state: Container.TypedState) => ({
+  airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
+})
+
+const mapDispatchToProps = () => ({})
+
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
+  ...s,
+  ...d,
+  ...o,
+}))(Header)

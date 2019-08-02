@@ -73,7 +73,7 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
-func MakeTestBlockServerOrBust(t logger.TestLogBackend,
+func MakeTestBlockServerOrBust(t logger.TestLogBackend, c *ConfigLocal,
 	config blockServerRemoteConfig,
 	rpcLogFactory rpc.LogFactory) BlockServer {
 	// see if a local remote server is specified
@@ -92,7 +92,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		if err != nil {
 			t.Fatal(err)
 		}
-		return NewBlockServerRemote(config, remote, rpcLogFactory)
+		return NewBlockServerRemote(c.kbCtx, config, remote, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -165,7 +165,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	config.SetCrypto(crypto)
 
 	blockServer := MakeTestBlockServerOrBust(
-		t, config, newTestRPCLogFactory(t))
+		t, config, config, newTestRPCLogFactory(t))
 	config.SetBlockServer(blockServer)
 
 	// see if a local remote server is specified
@@ -192,7 +192,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 			t.Fatal(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(config, remote, newTestRPCLogFactory(t))
+		mdServer = NewMDServerRemote(config.kbCtx, config, remote, newTestRPCLogFactory(t))
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 
@@ -219,6 +219,9 @@ func MakeTestConfigOrBustLoggedInWithMode(
 
 	configs := []Config{config}
 	config.allKnownConfigsForTesting = &configs
+
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
 
 	return config
 }
@@ -288,7 +291,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		if err != nil {
 			panic(err)
 		}
-		blockServer := NewBlockServerRemote(c, remote, s.putConn.rpcLogFactory)
+		blockServer := NewBlockServerRemote(c.kbCtx, c, remote, s.putConn.rpcLogFactory)
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -308,7 +311,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 			panic(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(c, remote, s.rpcLogFactory)
+		mdServer = NewMDServerRemote(c.kbCtx, c, remote, s.rpcLogFactory)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
@@ -347,14 +350,14 @@ func ConfigAsUser(config *ConfigLocal,
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2
 func NewEmptyTLFWriterKeyBundle() kbfsmd.TLFWriterKeyBundleV2 {
 	return kbfsmd.TLFWriterKeyBundleV2{
-		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 
 // NewEmptyTLFReaderKeyBundle creates a new empty kbfsmd.TLFReaderKeyBundleV2
 func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
 	return kbfsmd.TLFReaderKeyBundleV2{
-		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 

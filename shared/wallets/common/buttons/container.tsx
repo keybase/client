@@ -28,7 +28,7 @@ const mapDispatchToPropsSendButton = dispatch => ({
   },
 })
 
-const mergePropsSendButton = (stateProps, dispatchProps, ownProps) => ({
+const mergePropsSendButton = (stateProps, dispatchProps, ownProps: SendButtonOwnProps) => ({
   disabled: !stateProps._account.name || stateProps.thisDeviceIsLockedOut,
   onSendToAnotherAccount: () =>
     dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'otherAccount'),
@@ -53,17 +53,6 @@ type DropdownButtonOwnProps = {
 const mapStateToPropsDropdownButton = mapStateToPropsSendButton
 
 const mapDispatchToPropsDropdownButton = dispatch => ({
-  _onSettings: (accountID: Types.AccountID) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {accountID},
-            selected: 'settings',
-          },
-        ],
-      })
-    ),
   _onShowSecretKey: (accountID: Types.AccountID, walletName: string | null) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -75,11 +64,12 @@ const mapDispatchToPropsDropdownButton = dispatch => ({
         ],
       })
     ),
+  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
 
-const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps) => ({
+const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps: DropdownButtonOwnProps) => ({
   disabled: !stateProps._account.name,
-  onSettings: () => dispatchProps._onSettings(stateProps._account.accountID),
+  onSettings: dispatchProps.onSettings,
   onShowSecretKey: stateProps.thisDeviceIsLockedOut
     ? null
     : () => dispatchProps._onShowSecretKey(stateProps._account.accountID, stateProps._account.name),

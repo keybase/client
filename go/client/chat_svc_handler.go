@@ -41,6 +41,9 @@ type ChatServiceHandler interface {
 	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
+	AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply
+	ClearCommandsV1(context.Context) Reply
+	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -267,6 +270,88 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 		return c.errReply(err)
 	}
 	return Reply{Result: true}
+}
+
+func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	default:
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+	}
+}
+
+func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts advertiseCommandsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	var alias *string
+	if opts.Alias != "" {
+		alias = new(string)
+		*alias = opts.Alias
+	}
+	var ads []chat1.AdvertiseCommandsParam
+	for _, ad := range opts.Advertisements {
+		typ, err := c.getAdvertTyp(ad.Typ)
+		if err != nil {
+			return c.errReply(err)
+		}
+		var teamName *string
+		if ad.TeamName != "" {
+			adTeamName := ad.TeamName
+			teamName = &adTeamName
+		}
+		ads = append(ads, chat1.AdvertiseCommandsParam{
+			Typ:      typ,
+			Commands: ad.Commands,
+			TeamName: teamName,
+		})
+	}
+	res, err := client.AdvertiseBotCommandsLocal(ctx, chat1.AdvertiseBotCommandsLocalArg{
+		Alias:          alias,
+		Advertisements: ads,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.ClearBotCommandsLocal(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) ListCommandsV1(ctx context.Context, opts listCommandsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	lres, err := client.ListBotCommandsLocal(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res := ListCommandsRes{
+		Commands: lres.Commands,
+	}
+	res.RateLimits.RateLimits = c.aggRateLimits(append(rl, lres.RateLimits...))
+	return Reply{Result: res}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
@@ -1453,6 +1538,11 @@ type SearchRegexpRes struct {
 type NewConvRes struct {
 	ID               string                        `json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
+	RateLimits
+}
+
+type ListCommandsRes struct {
+	Commands []chat1.UserBotCommandOutput `json:"commands"`
 	RateLimits
 }
 

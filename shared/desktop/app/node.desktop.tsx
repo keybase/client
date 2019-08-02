@@ -4,18 +4,18 @@ import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import os from 'os'
+import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {sendToMainWindow} from '../remote/util.desktop'
-import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
 
-let mainWindow = null
+let mainWindow: (ReturnType<typeof MainWindow>) | null = null
 let reduxLaunched = false
-let startupURL = null
+let startupURL: string | null = null
 
 const installCrashReporter = () => {
   if (process.env.KEYBASE_CRASH_REPORT) {
@@ -67,14 +67,17 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   }
 
   mainWindow.show()
-  if (isWindows) {
+  if (isWindows || isLinux) {
     mainWindow.window && mainWindow.window.focus()
   }
 
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
-  if (commandLine.length > 1 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
-    sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
+  if (commandLine.length > 1 && commandLine[1]) {
+    const link = commandLine[1]
+    if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
+      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+    }
   }
 }
 
@@ -115,7 +118,7 @@ const handleCrashes = () => {
   })
 
   if (!__DEV__) {
-    SafeElectron.getApp().on('browser-window-created', (e, win) => {
+    SafeElectron.getApp().on('browser-window-created', (_, win) => {
       if (!win) {
         return
       }
@@ -126,7 +129,7 @@ const handleCrashes = () => {
       })
 
       if (win.webContents) {
-        win.webContents.on('crashed', (e, killed) => {
+        win.webContents.on('crashed', (_, killed) => {
           if (killed) {
             console.log('browser window killed')
           } else {
@@ -156,16 +159,16 @@ const createMainWindow = () => {
     if (startupURL) {
       // Mac calls open-url for a launch URL before redux is up, so we
       // stash a startupURL to be dispatched when we're ready for it.
-      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: DeeplinksGen.link})
       startupURL = null
     } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
       // Windows and Linux instead store a launch URL in argv.
-      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: DeeplinksGen.link})
     }
   })
 }
 
-const handleInstallCheck = (event, arg) => {
+const handleInstallCheck = event => {
   installer(err => {
     if (err) {
       console.log('Error: ', err)
@@ -174,7 +177,7 @@ const handleInstallCheck = (event, arg) => {
   })
 }
 
-const handleKBServiceCheck = (event, arg) => {
+const handleKBServiceCheck = () => {
   if (isWindows) {
     console.log('kb-service-check: starting keybase.exe')
     startWinService()
@@ -183,7 +186,7 @@ const handleKBServiceCheck = (event, arg) => {
 
 const handleActivate = () => mainWindow && mainWindow.show()
 
-const handleCloseWindows = event => {
+const handleCloseWindows = () => {
   const windows = SafeElectron.BrowserWindow.getAllWindows()
   windows.forEach(w => {
     // We tell it to close, we can register handlers for the 'close' event if we want to
@@ -204,7 +207,7 @@ const willFinishLaunching = () => {
     if (!reduxLaunched) {
       startupURL = link
     } else {
-      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
     }
   })
 }

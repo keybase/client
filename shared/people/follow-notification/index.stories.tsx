@@ -63,9 +63,13 @@ const multiFollowProps2 = {
 
 const load = () => {
   Sb.storiesOf('People/Follow notification', module)
+    // @ts-ignore not sure why this is being weird w/ records
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
+    // @ts-ignore not sure why this is being weird w/ records
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
+    // @ts-ignore not sure why this is being weird w/ records
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
+    // @ts-ignore not sure why this is being weird w/ records
     .add('Many people followed you', () => <FollowNotification {...multiFollowProps2} />)
 }
 

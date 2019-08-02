@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {ConnectionType} from '@react-native-community/netinfo'
+import {ConnectionType} from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -21,9 +21,9 @@ export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
+export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
-export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
@@ -40,6 +40,7 @@ export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
+export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
@@ -56,14 +57,12 @@ export const updateNow = 'config:updateNow'
 type _BootstrapStatusLoadedPayload = {
   readonly deviceID: string
   readonly deviceName: string
-  readonly followers: Array<string>
-  readonly following: Array<string>
   readonly fullname: string
   readonly loggedIn: boolean
   readonly registered: boolean
   readonly uid: string
   readonly username: string
-  readonly userReacjis: RPCTypes.UserReacjis | null
+  readonly userReacjis: RPCTypes.UserReacjis
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
@@ -81,9 +80,13 @@ type _DaemonHandshakeWaitPayload = {
 }
 type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
 type _FilePickerErrorPayload = {readonly error: Error}
+type _FollowerInfoUpdatedPayload = {
+  readonly uid: string
+  readonly followers: Array<string>
+  readonly followees: Array<string>
+}
 type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
 type _InstallerRanPayload = void
-type _LinkPayload = {readonly link: string}
 type _LoadAvatarsPayload = {readonly usernames: Array<string>}
 type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
 type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
@@ -107,7 +110,8 @@ type _OsNetworkStatusChangedPayload = {
 type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RestartHandshakePayload = void
-type _SetAccountsPayload = {readonly defaultUsername: string; readonly usernames: Array<string>}
+type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
+type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
 type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
@@ -247,11 +251,13 @@ export const createDaemonError = (payload: _DaemonErrorPayload): DaemonErrorPayl
   type: daemonError,
 })
 export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({payload, type: dumpLogs})
+export const createFollowerInfoUpdated = (
+  payload: _FollowerInfoUpdatedPayload
+): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
 export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayload => ({
   payload,
   type: globalError,
 })
-export const createLink = (payload: _LinkPayload): LinkPayload => ({payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload): LoadAvatarsPayload => ({
   payload,
   type: loadAvatars,
@@ -283,6 +289,10 @@ export const createPushLoaded = (payload: _PushLoadedPayload): PushLoadedPayload
 export const createSetAccounts = (payload: _SetAccountsPayload): SetAccountsPayload => ({
   payload,
   type: setAccounts,
+})
+export const createSetDefaultUsername = (payload: _SetDefaultUsernamePayload): SetDefaultUsernamePayload => ({
+  payload,
+  type: setDefaultUsername,
 })
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload): SetDeletedSelfPayload => ({
   payload,
@@ -350,9 +360,12 @@ export type FilePickerErrorPayload = {
   readonly payload: _FilePickerErrorPayload
   readonly type: typeof filePickerError
 }
+export type FollowerInfoUpdatedPayload = {
+  readonly payload: _FollowerInfoUpdatedPayload
+  readonly type: typeof followerInfoUpdated
+}
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LinkPayload = {readonly payload: _LinkPayload; readonly type: typeof link}
 export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: typeof loadAvatars}
 export type LoadTeamAvatarsPayload = {
   readonly payload: _LoadTeamAvatarsPayload
@@ -393,6 +406,10 @@ export type RestartHandshakePayload = {
   readonly type: typeof restartHandshake
 }
 export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
+export type SetDefaultUsernamePayload = {
+  readonly payload: _SetDefaultUsernamePayload
+  readonly type: typeof setDefaultUsername
+}
 export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
   readonly type: typeof setDeletedSelf
@@ -440,9 +457,9 @@ export type Actions =
   | DaemonHandshakeWaitPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
+  | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
-  | LinkPayload
   | LoadAvatarsPayload
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload
@@ -459,6 +476,7 @@ export type Actions =
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
+  | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload
@@ -470,4 +488,4 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

@@ -383,7 +383,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 	require.NoError(t, err)
 
 	var expectedLen int
-	for i := 1025; i < 2000; i++ {
+	for i := startSize; i < endSize; i++ {
 		data := randomData[:i]
 		_, encBlock, err := c.EncryptBlock(&data, tlfCryptKey, blockServerHalf)
 		require.NoError(t, err)
@@ -413,7 +413,8 @@ func benchmarkEncryptBlock(b *testing.B, blockSize int) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		_, _, err := c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		require.NoError(b, err)
 	}
 }
 

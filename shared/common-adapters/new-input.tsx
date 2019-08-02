@@ -1,8 +1,8 @@
 import * as React from 'react'
-import PlainInput, {PropsWithInput, KeyboardType} from './plain-input'
+import PlainInput, {PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {IconType, castPlatformStyles} from './icon'
-import {getStyle as getTextStyle, TextType} from './text'
+import {getStyle as getTextStyle} from './text'
 import {
   StylesCrossPlatform,
   collapseStyles,
@@ -50,7 +50,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
   }
 
   render() {
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType || 'BodySemibold')
     const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, ...plainInputProps} = this.props
     return (
       <Box2

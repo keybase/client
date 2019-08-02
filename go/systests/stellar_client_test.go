@@ -128,24 +128,24 @@ func (s *stellarRetryClient) ValidateAccountNameLocal(ctx context.Context, arg s
 	return err
 }
 
-func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (acct stellar1.WalletAccountLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
+		acct, err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return acct, err
 }
 
-func (s *stellarRetryClient) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
+func (s *stellarRetryClient) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (accts []stellar1.WalletAccountLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetWalletAccountAsDefaultLocal(ctx, arg)
+		accts, err = s.cli.SetWalletAccountAsDefaultLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return accts, err
 }
 
 func (s *stellarRetryClient) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
@@ -178,14 +178,14 @@ func (s *stellarRetryClient) CreateWalletAccountLocal(ctx context.Context, arg s
 	return res, err
 }
 
-func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
+		res, err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return res, err
 }
 
 func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
@@ -604,7 +604,7 @@ func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchL
 	return res, err
 }
 
-func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res string, err error) {
+func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res stellar1.AirdropDetails, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.AirdropDetailsLocal(ctx, sessionID)
 		if err == nil {
@@ -674,6 +674,16 @@ func (s *stellarRetryClient) GetTrustlinesLocal(ctx context.Context, arg stellar
 	return ret, err
 }
 
+func (s *stellarRetryClient) GetTrustlinesForRecipientLocal(ctx context.Context, arg stellar1.GetTrustlinesForRecipientLocalArg) (ret stellar1.RecipientTrustlinesLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.GetTrustlinesForRecipientLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return ret, err
+}
+
 func (s *stellarRetryClient) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (ret stellar1.PaymentPathLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		ret, err = s.cli.FindPaymentPathLocal(ctx, arg)
@@ -734,6 +744,18 @@ func (s *stellarRetryClient) FuzzyAssetSearchLocal(ctx context.Context, arg stel
 
 func (s *stellarRetryClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res stellar1.AssetListResult, err error) {
 	return s.cli.ListPopularAssetsLocal(ctx, sessionID)
+}
+
+func (s *stellarRetryClient) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticConfig, err error) {
+	return s.cli.GetStaticConfigLocal(ctx)
+}
+
+func (s *stellarRetryClient) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return s.cli.AssetDepositLocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (stellar1.AssetActionResultLocal, error) {
+	return s.cli.AssetWithdrawLocal(ctx, arg)
 }
 
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

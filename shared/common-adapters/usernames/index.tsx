@@ -3,6 +3,7 @@ import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type UserListItem = {
   username: string
@@ -25,6 +26,7 @@ export type BaseUsernamesProps = {
   inline?: boolean
   inlineGrammar?: boolean
   joinerStyle?: Styles.StylesCrossPlatform
+  lineClamp?: number
   prefix?: string | null
   redColor?: string
   selectable?: boolean
@@ -86,20 +88,17 @@ function UsernameText(props: Props) {
         // as to not override any existing onClick handler from containers
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
+        const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
         return (
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
-              <Text
-                type={props.type}
-                negative={backgroundModeIsNegative(props.backgroundMode)}
-                style={derivedJoinerStyle}
-              >
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 {'and '}
               </Text>
             )}
             <Text
               type={props.type}
-              negative={backgroundModeIsNegative(props.backgroundMode)}
+              negative={isNegative}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
               onClick={
@@ -112,15 +111,11 @@ function UsernameText(props: Props) {
               }
               style={userStyle}
             >
-              {u.username}
+              {assertionToDisplay(u.username)}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
-              <Text
-                type={props.type}
-                negative={backgroundModeIsNegative(props.backgroundMode)}
-                style={derivedJoinerStyle}
-              >
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 ,
               </Text>
             )}
@@ -155,22 +150,21 @@ class Usernames extends React.Component<Props> {
     const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
+    const bgMode = this.props.backgroundMode || null
+    const isNegative = backgroundModeIsNegative(bgMode)
 
     return (
       <Text
         type={this.props.type}
-        negative={backgroundModeIsNegative(this.props.backgroundMode)}
+        negative={isNegative}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         ellipsizeMode="tail"
+        lineClamp={this.props.lineClamp}
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (
-          <Text
-            type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
-            style={this.props.style}
-          >
+          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
             {this.props.prefix}
           </Text>
         )}
@@ -178,7 +172,7 @@ class Usernames extends React.Component<Props> {
         {!!readers.length && (
           <Text
             type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
+            negative={isNegative}
             style={Styles.collapseStyles([this.props.style, {marginRight: 1}])}
           >
             #
@@ -186,11 +180,7 @@ class Usernames extends React.Component<Props> {
         )}
         <UsernameText {...this.props} users={readers} />
         {!!this.props.suffix && (
-          <Text
-            type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
-            style={this.props.style}
-          >
+          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
             {this.props.suffix}
           </Text>
         )}
@@ -218,15 +208,33 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
     return (
       <Text
         type={this.props.type}
-        negative={backgroundModeIsNegative(this.props.backgroundMode)}
+        negative={backgroundModeIsNegative(this.props.backgroundMode || null)}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle, styles.kerning])}
         title={this.props.title}
         {...inlineProps}
       >
-        {rwers.map(u => u.username).join(divider)}
+        {rwers.map(u => assertionToDisplay(u.username)).join(divider)}
       </Text>
     )
   }
+}
+
+// 15550123456@phone => +1 (555) 012-3456
+// [test@example.com]@email => test@example.com
+export const assertionToDisplay = (assertion: string): string => {
+  if (assertion.includes('@email') || assertion.includes('@phone')) {
+    const noSuffix = assertion.substring(0, assertion.length - 6)
+    if (assertion.includes('@email')) {
+      return noSuffix.substring(1, noSuffix.length - 1)
+    }
+    // phone number
+    try {
+      return e164ToDisplay('+' + noSuffix)
+    } catch (e) {
+      return '+' + noSuffix
+    }
+  }
+  return assertion
 }
 
 const styles = Styles.styleSheetCreate(() => ({

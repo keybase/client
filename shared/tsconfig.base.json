@@ -9,16 +9,21 @@
     "jsx": "preserve",
     "module": "commonjs",
     "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "resolveJsonModule": true,
     "sourceMap": true,
+    "strict": true,
     "target": "es2017",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["globals.d.ts"],
   "exclude": [
     "node_modules",
-    "node_modules/popper.js/index.d.ts",
     "react-native",
     "desktop/dist",
     "desktop/build"

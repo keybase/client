@@ -64,7 +64,7 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ConfirmModal
-        confirmText={`Delete ${this.props.teamname}`}
+        confirmText="Delete team"
         content={
           <Checkboxes
             box1={this.state.box1}
@@ -78,7 +78,7 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
         description="This cannot be undone. By deleting the team, you agree that:"
         header={<Header {...this.props} />}
         onCancel={this.props.onBack}
-        onConfirm={this.state.box1 && this.state.box2 && this.state.box3 ? this.props.onDelete : null}
+        onConfirm={this.state.box1 && this.state.box2 && this.state.box3 ? this.props.onDelete : undefined}
         prompt={`Are you sure you want to delete ${this.props.teamname}?`}
         waitingKey={Constants.deleteTeamWaitingKey(this.props.teamname)}
       />

@@ -369,7 +369,7 @@ func (a *FakeAccount) Check() bool {
 		return false
 	case b < 0:
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
-	case b < int64(minimumReserve):
+	case b < minimumReserve:
 		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
 			stellarnet.StringFromStellarAmount(b), stellarnet.StringFromStellarAmount(minimumReserve), a.accountID)
 	default:
@@ -400,8 +400,9 @@ func (a *FakeAccount) AdjustAssetBalance(amount int64, asset stellar1.Asset) {
 	}
 
 	balance := stellar1.Balance{
-		Amount: stellarnet.StringFromStellarAmount(amount),
-		Asset:  asset,
+		Amount:       stellarnet.StringFromStellarAmount(amount),
+		Asset:        asset,
+		IsAuthorized: true,
 	}
 	a.otherBalances = append(a.otherBalances, balance)
 }
@@ -1066,8 +1067,9 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
 		balance: stellar1.Balance{
-			Asset:  stellar1.Asset{Type: "native"},
-			Amount: amount,
+			Asset:        stellar1.Asset{Type: "native"},
+			Amount:       amount,
+			IsAuthorized: true,
 		},
 	}
 
@@ -1086,8 +1088,9 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 		T:         r.T,
 		accountID: accountID,
 		balance: stellar1.Balance{
-			Asset:  stellar1.AssetNative(),
-			Amount: amount,
+			Asset:        stellar1.AssetNative(),
+			Amount:       amount,
+			IsAuthorized: true,
 		},
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
@@ -1107,7 +1110,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 			continue
 		}
 		acc := r.addAccountByID(account.AccountID, false /* funded */)
-		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
+		acc.secretKey = bundle.AccountBundles[account.AccountID].Signers[0]
 		res = append(res, acc)
 	}
 	r.Unlock()
@@ -1338,8 +1341,9 @@ func (r *BackendMock) ChangeTrustline(ctx context.Context, tc *TestContext, sign
 					Code:   c,
 					Issuer: i,
 				},
-				Limit:  limitStr,
-				Amount: stellarnet.StringFromStellarAmount(0),
+				Limit:        limitStr,
+				Amount:       stellarnet.StringFromStellarAmount(0),
+				IsAuthorized: true,
 			})
 			tc.T.Logf("BackendMock set limit added trustline %s with limit %s for account %s",
 				setOpt.Line.String(), limitStr, accountID)

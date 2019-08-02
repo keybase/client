@@ -30,19 +30,19 @@ export type DispatchProps = {
 export function connectedPropsToProps<T>(
   stateProps: T,
   dispatchProps: DispatchProps,
-  connectedProps: ConnectedProps,
+  connectedProps: OwnProps,
   userDataFromState: (t: T, array: Array<string>) => UserList
 ): Props {
   const userData = userDataFromState(stateProps, connectedProps.usernames).filter(
     u => !connectedProps.skipSelf || !u.you
   )
-  let onUsernameClickedNew: (username: string) => void | null
+  let onUsernameClickedNew: ((username: string) => void) | null = null
   if (connectedProps.onUsernameClicked === 'tracker') {
-    onUsernameClickedNew = dispatchProps.onOpenTracker
+    onUsernameClickedNew = dispatchProps.onOpenTracker || null
   } else if (connectedProps.onUsernameClicked === 'profile') {
-    onUsernameClickedNew = dispatchProps.onOpenProfile
+    onUsernameClickedNew = dispatchProps.onOpenProfile || null
   } else if (typeof connectedProps.onUsernameClicked === 'function') {
-    onUsernameClickedNew = connectedProps.onUsernameClicked as (username: string) => void
+    onUsernameClickedNew = connectedProps.onUsernameClicked || null
   }
 
   // Remove onUsernameClicked
@@ -59,12 +59,7 @@ export function connectedPropsToProps<T>(
 
 const userDataFromState = (stateProps, usernames) =>
   usernames.map(username => ({
-    // Auto generated from flowToTs. Please clean me!
-    broken:
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== null &&
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== undefined
-        ? UsersConstants.getIsBroken(stateProps._userInfo, username)
-        : false,
+    broken: UsersConstants.getIsBroken(stateProps._userInfo, username) || false,
     following: stateProps._following.has(username),
     username,
     you: stateProps._you === username,

@@ -21,6 +21,11 @@ export type FixedHeight = {
   type: 'fixed'
 }
 
+export type FixedListItem2Auto = {
+  sizeType: 'Small' | 'Large'
+  type: 'fixedListItem2Auto'
+}
+
 // Having flex in the list messes with creating the right size inner container
 // for scroll
 type DisallowedStyles = {
@@ -34,7 +39,7 @@ export type Props<Item> = {
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
   items: Array<Item>
   renderItem: (index: number, item: Item) => React.ReactNode
-  itemHeight: VariableItemHeight<Item> | FixedHeight
+  itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItem2Auto
   estimatedItemHeight?: number
   selectedIndex?: number // TODO,
   bounces?: boolean // mobile only,

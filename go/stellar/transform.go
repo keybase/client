@@ -71,14 +71,15 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		loc.ToUserType = stellar1.ParticipantType_SBS
 	}
 
-	if details.Currency != nil {
+	switch {
+	case details.Currency != nil:
 		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, stellarnet.Round)
 		if err != nil {
 			amountDesc = details.Amount
 			mctx.Debug("error formatting external currency: %s", err)
 		}
 		loc.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
-	} else if details.Asset != nil {
+	case details.Asset != nil:
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
@@ -97,7 +98,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 			mctx.Debug("error formatting amount for asset: %s", err)
 		}
 		loc.AmountDescription = amountDesc
-	} else {
+	default:
 		return nil, errors.New("malformed request - currency/asset not defined")
 	}
 
@@ -117,13 +118,15 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 			}
 		}
 
-		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
-			// Asset is also expected to be missing.
-			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
-			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+		asset := p.Asset // p.Asset is also expected to be missing.
+		if p.Trustline != nil && asset.IsEmpty() {
+			asset = p.Trustline.Asset
+		}
+		if !asset.IsEmpty() && !asset.IsNativeXLM() {
+			loc.IssuerDescription = FormatAssetIssuerString(asset)
+			issuerAcc := stellar1.AccountID(asset.Issuer)
 			loc.IssuerAccountID = &issuerAcc
 		}
-
 	} else {
 		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 		if err != nil {
@@ -142,6 +145,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
+	loc.AssetCode = p.Asset.Code
 	loc.FromAccountID = p.From
 	loc.FromType = stellar1.ParticipantType_STELLAR
 	loc.ToAccountID = &p.To
@@ -155,10 +159,18 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAsset = p.SourceAsset
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
 	loc.Operations = p.Operations
+	loc.Unread = p.Unread
+	loc.Trustline = p.Trustline
 
 	return loc, nil
 }
@@ -213,6 +225,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		}
 	}
 
+	loc.AssetCode = p.Asset.Code
+
 	fillOwnAccounts(mctx, loc, oc)
 	switch {
 	case loc.FromAccountName != "":
@@ -235,6 +249,15 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
 	loc.SourceAsset = p.SourceAsset
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
+	loc.Unread = p.Unread
+
+	loc.FromAirdrop = p.FromAirdrop
 
 	return loc, nil
 }
@@ -258,6 +281,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		return nil, err
 	}
 
+	loc.AssetCode = "XLM" // We can hardcode relay payments, since the asset will always be XLM
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
@@ -297,7 +321,13 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""
 		loc.ToAccountName = ""
-		if p.Claim.ToPaymentStatus() == stellar1.PaymentStatus_CANCELED {
+		claimStatus := p.Claim.ToPaymentStatus()
+		if claimStatus != stellar1.PaymentStatus_ERROR {
+			// if there's a claim and it's not currently erroring, then hide the
+			// `cancel` button
+			loc.ShowCancel = false
+		}
+		if claimStatus == stellar1.PaymentStatus_CANCELED {
 			// canceled payment. blank out toAssertion and stow in originalToAssertion
 			// set delta to what it would have been had the payment completed
 			loc.ToAssertion = ""
@@ -313,7 +343,6 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		}
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
-			loc.ShowCancel = false
 			loc.StatusDetail = ""
 		} else {
 			claimantUsername, err := lookupUsername(mctx, p.Claim.To.Uid)
@@ -345,6 +374,8 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	} else {
 		loc.NoteErr = fmt.Sprintf("error decrypting note: %s", err)
 	}
+
+	loc.FromAirdrop = p.FromAirdrop
 
 	return loc, nil
 }
@@ -529,12 +560,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		}
 	}
 	baseFee := getGlobal(mctx.G()).BaseFee(mctx)
-	canSubmitTx := availableInt > int64(baseFee)
 	// TODO: this is something that stellard can just tell us.
 	isFunded, err := hasPositiveLumenBalance(details.Balances)
 	if err != nil {
 		return empty, err
 	}
+	const trustlineReserveStroops int64 = stellarnet.StroopsPerLumen / 2
 
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
@@ -546,7 +577,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountModeEditable: editable,
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
-		CanSubmitTx:         canSubmitTx,
+		CanSubmitTx:         availableInt > int64(baseFee),
+		CanAddTrustline:     availableInt > int64(baseFee)+trustlineReserveStroops,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())

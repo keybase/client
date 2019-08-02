@@ -9,7 +9,11 @@ import VerifyPhoneNumber, {Props} from './verify'
 const mapStateToProps = (state: Container.TypedState) => ({
   error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
   phoneNumber: state.settings.phoneNumbers.pendingVerification,
-  resendWaiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
+  resendWaiting: anyWaiting(
+    state,
+    SettingsConstants.resendVerificationForPhoneWaitingKey,
+    SettingsConstants.addPhoneNumberWaitingKey
+  ),
   verificationStatus: state.settings.phoneNumbers.verificationState,
   verifyWaiting: anyWaiting(state, SettingsConstants.verifyPhoneNumberWaitingKey),
 })
@@ -17,10 +21,10 @@ const mapStateToProps = (state: Container.TypedState) => ({
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onContinue: (phoneNumber: string, code: string) =>
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
+  _onResend: (phoneNumber: string) =>
+    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
-  onResend: () =>
-    dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+  onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberAdd()),
   onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
@@ -31,7 +35,7 @@ type WatcherProps = Props & {
 }
 // Watches for verification to succeed and exits
 class WatchForSuccess extends React.Component<WatcherProps> {
-  componentDidUpdate(prevProps: WatcherProps) {
+  componentDidUpdate() {
     if (this.props.verificationStatus === 'success') {
       this.props.onSuccess()
     }
@@ -63,7 +67,7 @@ const ConnectedVerifyPhoneNumber = Container.namedConnect(
     onBack: d.onBack,
     onCleanup: d.onCleanup,
     onContinue: (code: string) => d._onContinue(s.phoneNumber, code),
-    onResend: d.onResend,
+    onResend: () => d._onResend(s.phoneNumber),
     onSuccess: d.onSuccess,
   }),
   'ConnectedVerifyPhoneNumber'

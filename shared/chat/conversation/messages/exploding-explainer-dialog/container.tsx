@@ -1,24 +1,15 @@
 import ExplodingExplainer from '.'
-import {RouteProps} from '../../../../route-tree/render-route'
-import {compose, connect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {}
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({})
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onCancel: () => {},
-})
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onCancel,
-  onCancel: dispatchProps.onCancel,
-})
-
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
+export default Container.compose(
+  Container.connect(
+    _ => ({}),
+    () => ({onCancel: () => {}}),
+    (_, dispatchProps, __: OwnProps) => ({
+      onBack: dispatchProps.onCancel,
+      onCancel: dispatchProps.onCancel,
+    })
   )
 )(ExplodingExplainer)

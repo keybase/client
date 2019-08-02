@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -124,11 +125,16 @@ func newNonblockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	}
 }
 
-func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
+func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) (types.Inbox, error) {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 	// Loop through and look for empty convs or known errors and skip them
 	var res []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
+		select {
+		case <-ctx.Done():
+			return types.Inbox{}, ctx.Err()
+		default:
+		}
 		if utils.IsConvEmpty(conv.Conv) {
 			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.Conv.GetConvID())
 			continue
@@ -140,7 +146,7 @@ func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 		ConvsUnverified: res,
 		Convs:           inbox.Convs,
 		Pagination:      inbox.Pagination,
-	}
+	}, nil
 }
 
 func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox,
@@ -148,10 +154,17 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
 	inbox = b.filterSelfFinalized(ctx, inbox)
-	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
+	filteredInbox, err := b.filterInboxRes(ctx, inbox, uid)
+	if err != nil {
+		return res, err
+	}
 	// Send inbox over localize channel
-	b.localizeCb <- types.AsyncInboxResult{
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	case b.localizeCb <- types.AsyncInboxResult{
 		InboxRes: &filteredInbox,
+	}:
 	}
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
 	go func(ctx context.Context) {
@@ -984,6 +997,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
 		}
+		utils.AttachContactNames(s.G().MetaContext(ctx), conversationLocal.Info.Participants)
 	default:
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			"unknown members type", conversationRemote, unverifiedTLFName,
@@ -995,6 +1009,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
+	}
+	botCommands, err := s.G().BotCommandManager.ListCommands(ctx,
+		conversationLocal.GetConvID())
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
+	} else {
+		if len(botCommands) > 0 {
+			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
+		} else {
+			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		}
 	}
 	return conversationLocal
 }

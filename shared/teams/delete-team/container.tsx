@@ -5,34 +5,28 @@ import ReallyDeleteTeam from '.'
 import {deleteTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
-
-const mapStateToProps = (state, ownProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname')
-  return {
-    _deleting: anyWaiting(state, deleteTeamWaitingKey(teamname)),
-    teamname,
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onDelete: teamname => dispatch(TeamsGen.createDeleteTeam({teamname})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  _deleting: stateProps._deleting,
-  onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
-  onDelete: () => dispatchProps.onDelete(stateProps.teamname),
-  teamname: stateProps.teamname,
-})
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(
+    (state, ownProps: OwnProps) => {
+      const teamname = Container.getRouteProps(ownProps, 'teamname', '')
+      return {
+        _deleting: anyWaiting(state, deleteTeamWaitingKey(teamname)),
+        teamname,
+      }
+    },
+
+    dispatch => ({
+      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onDelete: (teamname: string) => dispatch(TeamsGen.createDeleteTeam({teamname})),
+    }),
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      _deleting: stateProps._deleting,
+      onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
+      onDelete: () => dispatchProps.onDelete(stateProps.teamname),
+      teamname: stateProps.teamname,
+    })
+  ),
   Container.safeSubmit(['onDelete'], ['_deleting'])
 )(ReallyDeleteTeam)

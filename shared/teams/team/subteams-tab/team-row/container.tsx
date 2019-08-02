@@ -18,7 +18,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => ({
   yourRole: Constants.getRole(state, teamname),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChat: (teamname: Types.Teamname) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   _onOpenFolder: (teamname: Types.Teamname) =>

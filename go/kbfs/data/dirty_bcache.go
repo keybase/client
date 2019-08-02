@@ -446,7 +446,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			// Apply any backpressure?
 			backpressure = d.calcBackpressure(currentReq.start,
 				currentReq.deadline)
-			if backpressure == 0 && d.acceptNewWrite(currentReq.bytes) {
+			switch {
+			case backpressure == 0 && d.acceptNewWrite(currentReq.bytes):
 				// If we have an active request, and we have room in
 				// our buffers to deal with it, grant permission to
 				// the requestor by closing the response channel.
@@ -455,12 +456,12 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 				if d.blockedChanForTesting != nil {
 					d.blockedChanForTesting <- -1
 				}
-			} else if d.blockedChanForTesting != nil && newReq {
+			case d.blockedChanForTesting != nil && newReq:
 				// Otherwise, if this is the first time we've
 				// considered this request, inform any tests that the
 				// request is blocked.
 				d.blockedChanForTesting <- currentReq.bytes
-			} else if backpressure != 0 {
+			case backpressure != 0:
 				func() {
 					d.lock.Lock()
 					defer d.lock.Unlock()

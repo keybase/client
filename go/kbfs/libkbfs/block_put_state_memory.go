@@ -115,7 +115,7 @@ func (bps *blockPutStateMemory) removeOtherBps(
 	return nil
 }
 
-func (bps *blockPutStateMemory) ptrs() []data.BlockPointer {
+func (bps *blockPutStateMemory) Ptrs() []data.BlockPointer {
 	ret := make([]data.BlockPointer, len(bps.blockStates))
 	i := 0
 	for ptr := range bps.blockStates {
@@ -125,7 +125,7 @@ func (bps *blockPutStateMemory) ptrs() []data.BlockPointer {
 	return ret
 }
 
-func (bps *blockPutStateMemory) getBlock(
+func (bps *blockPutStateMemory) GetBlock(
 	_ context.Context, blockPtr data.BlockPointer) (data.Block, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {

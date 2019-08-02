@@ -67,6 +67,11 @@
             value = "disable"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "GODEBUG"
+            value = "gctrace=1,schedtrace=5000"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>

@@ -22,10 +22,9 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createGlobalError({globalError: null}))
     if (loggedIn) {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createSwitchTo({path: [settingsTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
       dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [settingsTab],
+        RouteTreeGen.createNavigateAppend({
           path: [
             {
               props: {heading: 'Oh no, a bug!'},
@@ -40,7 +39,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   copyToClipboard: dispatchProps.copyToClipboard,
   daemonError: stateProps.daemonError,
   error: stateProps.error,

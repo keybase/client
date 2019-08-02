@@ -59,6 +59,10 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },
@@ -115,6 +119,10 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },
@@ -256,6 +264,10 @@
             "items": "PaymentOp"
           },
           "name": "operations"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
         }
       ]
     },
@@ -373,6 +385,13 @@
             "items": "string"
           },
           "name": "operations"
+        },
+        {
+          "type": [
+            null,
+            "PaymentTrustlineLocal"
+          ],
+          "name": "trustline"
         }
       ]
     },
@@ -472,6 +491,10 @@
         {
           "type": "string",
           "name": "cursorToken"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         },
         {
           "type": "boolean",
@@ -655,6 +678,13 @@
         {
           "type": "string",
           "name": "feeCharged"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },

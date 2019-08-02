@@ -16,7 +16,7 @@ import {TypedState, Dispatch} from '../util/container'
 
 type WaitingKey = string | Array<string>
 
-function capitalize(s) {
+function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
@@ -40,7 +40,7 @@ class Engine {
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 
-  _queuedChanges = []
+  _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
@@ -65,17 +65,13 @@ class Engine {
     // setup some static vars
     Engine._dispatch = dispatch
     Engine._getState = getState
-    this._setupClient()
-    this._setupIgnoredHandlers()
-    this._setupDebugging()
-  }
-
-  _setupClient() {
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
+    this._setupIgnoredHandlers()
+    this._setupDebugging()
   }
 
   _setupDebugging() {
@@ -160,7 +156,7 @@ class Engine {
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
     const {method, param: incomingParam, response} = payload
-    const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
+    const param = incomingParam && incomingParam.length ? incomingParam[0] || {} : {}
     // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     // @ts-ignore codemode issue
@@ -299,26 +295,26 @@ class Engine {
 
 // Dummy engine for snapshotting
 class FakeEngine {
-  _deadSessionsMap: {[K in SessionIDKey]: Session} // just to bookkeep
-  _sessionsMap: {[K in SessionIDKey]: Session}
+  _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
+  _sessionsMap: {[K in SessionIDKey]: Session} = {}
   constructor() {
     logger.info('Engine disabled!')
     this._sessionsMap = {}
   }
   reset() {}
-  cancelSession(sessionID: SessionID) {}
+  cancelSession(_: SessionID) {}
   rpc() {}
   setFailOnError() {}
   hasEverConnected() {}
   setIncomingActionCreator(
-    method: MethodKey,
-    actionCreator: (arg0: {param: Object; response: Object | null; state: any}) => any | null
+    _: MethodKey,
+    __: (arg0: {param: Object; response: Object | null; state: any}) => any | null
   ) {}
   createSession(
-    incomingCallMap: IncomingCallMapType | null,
-    waitingHandler: WaitingHandlerType | null,
-    cancelHandler: CancelHandlerType | null,
-    dangling: boolean = false
+    _: IncomingCallMapType | null,
+    __: WaitingHandlerType | null,
+    ___: CancelHandlerType | null,
+    ____: boolean = false
   ) {
     return new Session({
       endHandler: () => {},
@@ -327,21 +323,21 @@ class FakeEngine {
       sessionID: 0,
     })
   }
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any) {
+  _channelMapRpcHelper(_: Array<string>, __: string, ___: any) {
     return null
   }
   _rpcOutgoing(
-    method: string,
-    params: {
+    _: string,
+    __: {
       incomingCallMap?: any
       waitingHandler?: WaitingHandlerType
     } | null,
-    callback: (...args: Array<any>) => void
+    ___: (...args: Array<any>) => void
   ) {}
 }
 
 // don't overwrite this on HMR
-let engine
+let engine: Engine
 if (__DEV__) {
   engine = global.DEBUGEngine
 }
@@ -352,7 +348,10 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
+    engine =
+      process.env.KEYBASE_NO_ENGINE || isTesting
+        ? ((new FakeEngine() as unknown) as Engine)
+        : new Engine(dispatch, getState)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }

@@ -70,9 +70,14 @@ class _EditChannel extends React.Component<Props, State> {
             </Kb.Text>
           )
         )}
-        {!!this.props.errorText && <Kb.Banner color="red" text={this.props.errorText} />}
+        {!!this.props.errorText && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.errorText} />
+          </Kb.Banner>
+        )}
         <Kb.Box style={{position: 'relative'}}>
           <Kb.Input
+            autoFocus={true}
             onChangeText={this._onChangeChannelName}
             hintText={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
             editable={!this.props.waitingForGetInfo && !this.props.deleteRenameDisabled}
@@ -103,6 +108,13 @@ class _EditChannel extends React.Component<Props, State> {
                 : 'Description or topic (optional)'
             }
             value={this.state.newTopic}
+            multiline={true}
+            rowsMin={1}
+            rowsMax={isMobile ? 4 : 10}
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+            maxLength={280}
           />
         </Kb.Box>
         <Kb.Box style={_bottomRowStyle}>

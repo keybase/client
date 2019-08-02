@@ -868,9 +868,10 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	mctx = mctx.WithLogTag("HASRPW")
 	defer mctx.TraceTimed(fmt.Sprintf("User#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
+	currentUID := mctx.CurrentUID()
 	cacheKey := DbKey{
 		Typ: DBHasRandomPW,
-		Key: mctx.ActiveDevice().UID().String(),
+		Key: currentUID.String(),
 	}
 
 	var cachedValue, hasCache bool
@@ -888,7 +889,7 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	}
 
 	var initialTimeout time.Duration
-	if !arg.ForceRepoll {
+	if !arg.ForceRepoll && !arg.NoShortTimeout {
 		// If we are do not need accurate response from the API server, make
 		// the request with a timeout for quicker overall RPC response time
 		// if network is bad/unavailable.

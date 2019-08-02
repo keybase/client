@@ -53,6 +53,9 @@ export declare const globalStyles: {
   fullHeight: {
     height: '100%'
   }
+  fullWidth: {
+    width: '100%'
+  }
   italic: _fakeFontDefSeeCommentsOnThisStyle
   loadingTextStyle: CSS._StylesCrossPlatform
   rounded: {

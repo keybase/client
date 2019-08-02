@@ -43,7 +43,7 @@ const externalPartner = {
   adminOnly: false,
   description: 'Example description.',
   extra: 'Example extra.',
-  iconFilename: '',
+  iconFilename: 'icon-stellar-logo-grey-32',
   showDivider: false,
   title: 'Example title.',
   url: 'https://example.com/%{accountId}',
@@ -64,11 +64,14 @@ const sharedSettingsProps = {
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onDelete: Sb.action('onDelete'),
   onEditName: Sb.action('onEditName'),
+  onLoadSecretKey: Sb.action('onLoadSecretKey'),
   onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
+  onSecretKeySeen: Sb.action('onSecretKeySeen'),
   onSetDefault: Sb.action('setDefault'),
   onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  secretKey: 'NOTASECRETKEY',
   showExternalPartners: true,
   thisDeviceIsLockedOut: false,
   user: 'testuser',
@@ -76,14 +79,14 @@ const sharedSettingsProps = {
 
 const defaultSettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(1),
+  currency: testCurrencies.get(1) as Types.Currency,
   isDefault: true,
   name: 'awesome account',
 }
 
 const secondarySettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(0),
+  currency: testCurrencies.get(0) as Types.Currency,
   isDefault: false,
   mobileOnlyMode: true,
   name: 'some other account',
@@ -110,6 +113,7 @@ const load = () => {
     .add("Not funded account (can't make tx)", () => (
       <Settings {...defaultSettingsProps} canSubmitTx={false} />
     ))
+    .add('Default with loading secret key', () => <Settings {...defaultSettingsProps} secretKey="" />)
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
     .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
     .add('Device is locked out', () => <Settings {...secondarySettingsProps} thisDeviceIsLockedOut={true} />)

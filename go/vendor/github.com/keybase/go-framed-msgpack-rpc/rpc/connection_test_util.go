@@ -66,7 +66,6 @@ func (st singleTransport) Close() {}
 type testStatus struct {
 	Code int
 }
-type testUnwrapper struct{}
 
 func testWrapError(err error) interface{} {
 	return &testStatus{}
@@ -109,7 +108,6 @@ func (eu testErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispa
 	switch s.Code {
 	case 15:
 		appError = throttleError{errors.New("throttle")}
-		break
 	default:
 		panic("Unknown testing error")
 	}

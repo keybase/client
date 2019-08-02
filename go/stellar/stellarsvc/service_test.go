@@ -954,10 +954,12 @@ func TestBundleFlows(t *testing.T) {
 	assertFetchAccountBundles(t, tcs[0], a2)
 
 	// switch which account is primary
-	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
+	defaultChangeRes, err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: a1,
 	})
 	require.NoError(t, err)
+	require.Equal(t, a1, defaultChangeRes[0].AccountID)
+	require.True(t, defaultChangeRes[0].IsDefault)
 	assertFetchAccountBundles(t, tcs[0], a1)
 
 	fullBundle, err := fetchWholeBundleForTesting(mctx)
@@ -981,11 +983,12 @@ func TestBundleFlows(t *testing.T) {
 	require.EqualValues(t, s2, privKey)
 
 	// ChangeAccountName
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
+	res, err := tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: a2,
 		NewName:   "rename",
 	})
 	require.NoError(t, err)
+	require.Equal(t, "rename", res.Name)
 	bundle, err = remote.FetchAccountBundle(mctx, a2)
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {
@@ -1276,6 +1279,8 @@ var _ libkb.MerkleStore = (*DummyMerkleStore)(nil)
 func TestGetPartnerUrlsLocal(t *testing.T) {
 	// inject some fake data into the merkle store hanging off G
 	// and then verify that the stellar exchange urls are extracted correctly
+	// the only one of the three that should show up is the stellar_partners url which is
+	// not marked as admin_only.
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
 	ctx := context.Background()
@@ -1302,13 +1307,10 @@ func TestGetPartnerUrlsLocal(t *testing.T) {
 
 	res, err := tc.Srv.GetPartnerUrlsLocal(ctx, 0)
 	require.NoError(t, err)
-	require.Equal(t, len(res), 2)
+	require.Equal(t, len(res), 1)
 	require.Equal(t, res[0].Url, firstPartnerURL)
 	require.Equal(t, res[0].Extra, `{"superfun":true}`)
 	require.False(t, res[0].AdminOnly)
-	require.Equal(t, res[1].Url, secondPartnerURL)
-	require.Equal(t, res[1].Extra, `{"superfun":false}`)
-	require.True(t, res[1].AdminOnly)
 }
 
 func TestAutoClaimLoop(t *testing.T) {

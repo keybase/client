@@ -1,15 +1,16 @@
-import {Component, ReactNode} from 'react'
-import {StylesCrossPlatform} from '../styles'
+import * as React from 'react'
+import {Color, StylesCrossPlatform} from '../styles'
 
 export type Props = {
+  boxBackgroundColor?: Color // desktop only
   key?: string
   label?: string
-  labelComponent?: ReactNode
-  onCheck: (newCheckedValue: boolean) => void | null
+  labelComponent?: React.ReactNode
+  onCheck: ((newCheckedValue: boolean) => void) | null
   checked: boolean
   style?: StylesCrossPlatform
   disabled?: boolean
 }
 
-declare class Checkbox extends Component<Props> {}
+declare class Checkbox extends React.Component<Props> {}
 export default Checkbox

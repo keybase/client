@@ -1,36 +1,23 @@
 import * as React from 'react'
 import WalletsAndDetails from '.'
 import Onboarding from '../onboarding/container'
-import {connect, RouteProps} from '../../util/container'
+import {connect} from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}> & {
+type OwnProps = {children: React.ReactNode}
+
+type Props = {
+  acceptedDisclaimer: boolean
   children: React.ReactNode
 }
 
-const mapStateToProps = state => ({
-  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-})
-
-const mapDispatchToProps = dispatch => ({})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  acceptedDisclaimer: stateProps.acceptedDisclaimer,
-  children: ownProps.children,
-  navigateAppend: ownProps.navigateAppend,
-  navigateUp: ownProps.navigateUp,
-})
-
-const WalletsOrOnboarding = props =>
-  props.acceptedDisclaimer ? (
-    <WalletsAndDetails navigateUp={props.navigateUp} navigateAppend={props.navigateAppend}>
-      {props.children}
-    </WalletsAndDetails>
-  ) : (
-    <Onboarding />
-  )
+const WalletsOrOnboarding = (props: Props) =>
+  props.acceptedDisclaimer ? <WalletsAndDetails>{props.children}</WalletsAndDetails> : <Onboarding />
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  state => ({acceptedDisclaimer: state.wallets.acceptedDisclaimer}),
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => ({
+    acceptedDisclaimer: stateProps.acceptedDisclaimer,
+    children: ownProps.children,
+  })
 )(WalletsOrOnboarding)

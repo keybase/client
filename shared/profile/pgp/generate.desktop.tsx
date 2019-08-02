@@ -29,6 +29,9 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Generate')(
-  Generate
-)
+export default namedConnect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  'Generate'
+)(Generate)

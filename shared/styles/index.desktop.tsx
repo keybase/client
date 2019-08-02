@@ -128,6 +128,7 @@ export const initDesktopStyles = () => {
         s +
         `.color_${name} {color: ${color};}\n` +
         `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.hover_container:hover .hover_contained_color_${name} {color: ${color};}\n` +
         `.background_color_${name} {background-color: ${color};}\n` +
         `.hover_background_color_${name}:hover {background-color: ${color};}\n`
       )
@@ -139,10 +140,11 @@ export const initDesktopStyles = () => {
   head.appendChild(style)
 }
 
-export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => o)
-// export const className = (name: string) => (name ? `${name}${isDarkMode() ? '_dark' : ''}` : name)
 export const hairlineWidth = 1
-export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object => {
+export const styleSheetCreate = (obj: Object) => styleSheeCreateProxy(obj, o => o)
+// dark mode aware classname
+// export const className = (name: string) => (name ? `${name}${isDarkMode() ? '_dark' : ''}` : name)
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -150,7 +152,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
-      return s
+      return s as Object
     }
   }
 
@@ -158,7 +160,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
     []
   ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce<Object>((o, e) => (e ? {...o, ...e} : o), {})
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'

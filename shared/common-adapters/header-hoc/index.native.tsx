@@ -82,7 +82,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
-          onLeftAction={onLeftAction}
+          onLeftAction={onLeftAction || null}
           theme={this.props.theme}
         />
         {this.props.titleComponent && (
@@ -178,19 +178,13 @@ const RightActions = ({
   </Box>
 )
 
-const RightActionsOverflow = ({
-  floatingMenuVisible,
-  hideFloatingMenu,
-  rightActions,
-  showFloatingMenu,
-}): React.ReactElement =>
-  rightActions &&
-  rightActions.length > MAX_RIGHT_ACTIONS && (
+const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu}) =>
+  rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
       <Icon fontSize={22} onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
         visible={floatingMenuVisible}
-        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
+        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
           onClick: action.onPress,
           title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
         }))}
@@ -199,7 +193,7 @@ const RightActionsOverflow = ({
         closeOnSelect={true}
       />
     </>
-  )
+  ) : null
 
 const renderAction = (action: Action, index: number): React.ReactNode =>
   action.custom ? (
@@ -216,7 +210,12 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
       type={action.icon}
     />
   ) : (
-    <Text key={action.label} type="BodyBigLink" style={styles.action} onClick={action.onPress}>
+    <Text
+      key={action.label}
+      type="BodyBigLink"
+      style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
+      onClick={action.onPress}
+    >
       {action.label}
     </Text>
   )
@@ -323,6 +322,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flexGrow: 1,
+      flexShrink: 2,
       justifyContent: 'center',
     },
     isAndroid: {

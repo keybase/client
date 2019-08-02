@@ -15,7 +15,6 @@ package libkb
 import (
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -93,6 +92,7 @@ type configGetter interface {
 	GetUPAKCacheSize() (int, bool)
 	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
+	GetGUIConfigFilename() string
 	GetDeviceCloneStateFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
@@ -114,6 +114,7 @@ type configGetter interface {
 	GetExtraNetLogging() (bool, bool)
 	GetForceLinuxKeyring() (bool, bool)
 	GetForceSecretStoreFile() (bool, bool)
+	GetRuntimeStatsEnabled() (bool, bool)
 }
 
 type CommandLine interface {
@@ -151,6 +152,7 @@ type LocalDb interface {
 	LocalDbOps
 	Open() error
 	Stats() string
+	CompactionStats() (bool, bool, error)
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
@@ -222,6 +224,8 @@ type JSONWriter interface {
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
 	SetNullAtPath(string) error
+	SetWrapperAtPath(string, *jsonw.Wrapper) error
+	DeleteAtPath(string)
 }
 
 type ConfigWriter interface {
@@ -230,8 +234,6 @@ type ConfigWriter interface {
 	SwitchUser(un NormalizedUsername) error
 	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
-	SetWrapperAtPath(string, *jsonw.Wrapper) error
-	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
@@ -430,8 +432,11 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
+	ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
+	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
+		[]chat1.UICommandStatusActionTyp) error
+	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
 }
 
 type PromptDefault int
@@ -721,7 +726,7 @@ type FastTeamLoader interface {
 type HiddenTeamChainManager interface {
 	// We got gossip about what the latest chain-tail should be, so ratchet the
 	// chain forward; the next call to Advance() has to match.
-	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
 	// onto the HiddenTeamChain state. Ensure that the updated state is at least up to the
 	// given ratchet value.
@@ -739,7 +744,7 @@ type HiddenTeamChainManager interface {
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, justCreated bool) (err error)
 }
 
 type TeamBoxAuditor interface {
@@ -748,6 +753,7 @@ type TeamBoxAuditor interface {
 	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
 	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
 	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
+	MaybeScheduleDelayedBoxAuditTeam(m MetaContext, id keybase1.TeamID)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 }
 
@@ -788,12 +794,13 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
-	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
+	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
+	InformDefaultCurrencyChange(MetaContext)
 }
 
 type DeviceEKStorage interface {
@@ -820,8 +827,8 @@ type UserEKBoxStorage interface {
 }
 
 type TeamEKBoxStorage interface {
-	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed) error
+	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	MaxGeneration(mctx MetaContext, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	PurgeCacheForTeamID(mctx MetaContext, teamID keybase1.TeamID) error
@@ -831,10 +838,20 @@ type TeamEKBoxStorage interface {
 
 type EKLib interface {
 	KeygenIfNeeded(mctx MetaContext) error
-	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
-	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	PurgeCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	PurgeCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+	// Team ephemeral keys
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	PurgeTeamEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeamEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+
+	// Teambot ephemeral keys
+	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+	PurgeAllTeambotMetadataCaches(mctx MetaContext)
+	PurgeTeambotMetadataCache(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration)
+
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(mctx MetaContext, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
@@ -845,6 +862,21 @@ type EKLib interface {
 	ClearCaches(mctx MetaContext)
 	// For testing
 	NewTeamEKNeeded(mctx MetaContext, teamID keybase1.TeamID) (bool, error)
+}
+
+type TeambotBotKeyer interface {
+	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeambotKey, error)
+	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID,
+		generation keybase1.TeambotKeyGeneration) (keybase1.TeambotKey, error)
+
+	DeleteTeambotKeyForTest(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) error
+}
+
+type TeambotMemberKeyer interface {
+	GetOrCreateTeambotKey(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		appKey keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
+	PurgeCache(mctx MetaContext)
+	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
 }
 
 type ImplicitTeamConflictInfoCacher interface {
@@ -960,13 +992,16 @@ type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
+	NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
 	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string, vis keybase1.TLFVisibility) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
@@ -1050,4 +1085,13 @@ type SaltpackRecipientKeyfinderArg struct {
 type SaltpackReceiverSymmetricKey struct {
 	Key        [32]byte
 	Identifier []byte
+}
+
+type StandaloneChatConnector interface {
+	StartStandaloneChat(g *GlobalContext) error
+}
+
+type SyncedContactListProvider interface {
+	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
+	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
 }

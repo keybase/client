@@ -3,12 +3,12 @@ import * as Constants from '../constants/signup'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
-import {loginTab} from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import {TypedState} from '../constants/reducer'
+import * as SettingsGen from './settings-gen'
+import flags from '../util/feature-flags'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -28,27 +28,31 @@ const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 const showUserOnNoErrors = (state: TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterUsername']}),
+    RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}),
   ]
 
-const showInviteScreen = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
+const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
 
 const showEmailScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
-    : RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
+    : RouteTreeGen.createNavigateAppend({path: ['signupError']})
+
+// If the email was set to be visible during signup, we need to set that with a separate RPC.
+const setEmailVisibilityAfterSignup = (state: TypedState) =>
+  flags.sbsContacts &&
+  noErrors(state) &&
+  state.signup.emailVisible &&
+  SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>
@@ -104,7 +108,7 @@ const checkUsername = (state: TypedState, _, logger) => {
           error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
           username: state.signup.username,
           usernameTaken:
-            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : null,
+            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
         })
       })
   )
@@ -159,6 +163,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
         skipMail: false,
         storeSecret: true,
         username,
+        verifyEmail: true,
       },
       waitingKey: Constants.waitingKey,
     })
@@ -199,6 +204,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
   // actually make the signup call
   yield* Saga.chainGenerator<SignupGen.CheckedDevicenamePayload>(

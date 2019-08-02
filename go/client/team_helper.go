@@ -44,6 +44,7 @@ func ParseUser(ctx *cli.Context) (string, error) {
 	return username, nil
 }
 
+// TODO(HOTPOT-227) add param to specify if BOT roles are allowed
 func ParseRole(ctx *cli.Context) (keybase1.TeamRole, error) {
 	srole := ctx.String("role")
 	if srole == "" {

@@ -148,7 +148,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 				printHeader(p)
 			}
 			for name, entryInfo := range children {
-				handleEntry(name, entryInfo.Type)
+				handleEntry(name.Plaintext(), entryInfo.Type)
 			}
 		} else {
 			_, name, err := p.DirAndBasename()

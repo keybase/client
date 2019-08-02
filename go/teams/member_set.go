@@ -8,6 +8,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+type storeMemberKind int
+
+const (
+	storeMemberKindNone = iota
+	storeMemberKindRecipient
+	storeMemberKindRestrictedBotRecipient
+)
+
 type member struct {
 	version    keybase1.UserVersion
 	perUserKey keybase1.PerUserKey
@@ -16,18 +24,24 @@ type member struct {
 type MemberMap map[keybase1.UserVersion]keybase1.PerUserKey
 
 type memberSet struct {
-	Owners  []member
-	Admins  []member
-	Writers []member
-	Readers []member
-	None    []member
+	Owners         []member
+	Admins         []member
+	Writers        []member
+	Readers        []member
+	Bots           []member
+	RestrictedBots []member
+	None           []member
 
 	// the per-user-keys of everyone in the lists above
-	recipients MemberMap
+	recipients              MemberMap
+	restrictedBotRecipients MemberMap
 }
 
 func newMemberSet() *memberSet {
-	return &memberSet{recipients: make(MemberMap)}
+	return &memberSet{
+		recipients:              make(MemberMap),
+		restrictedBotRecipients: make(MemberMap),
+	}
 }
 
 func (m MemberMap) Eq(n MemberMap) bool {
@@ -64,20 +78,35 @@ func (m *memberSet) recipientUids() []keybase1.UID {
 	return uids
 }
 
+func (m *memberSet) restrictedBotRecipientUids() []keybase1.UID {
+	uids := make([]keybase1.UID, 0, len(m.restrictedBotRecipients))
+	for uv := range m.restrictedBotRecipients {
+		uids = append(uids, uv.Uid)
+	}
+	return uids
+}
+
 func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Owners = append(m.Owners, other.Owners...)
 	m.Admins = append(m.Admins, other.Admins...)
 	m.Writers = append(m.Writers, other.Writers...)
 	m.Readers = append(m.Readers, other.Readers...)
+	m.Bots = append(m.Bots, other.Bots...)
+	m.RestrictedBots = append(m.RestrictedBots, other.RestrictedBots...)
 	m.None = append(m.None, other.None...)
 
 	for k, v := range other.recipients {
 		m.recipients[k] = v
 	}
+	for k, v := range other.restrictedBotRecipients {
+		m.restrictedBotRecipients[k] = v
+	}
 }
 
 func (m *memberSet) nonAdmins() []member {
 	var ret []member
+	ret = append(ret, m.RestrictedBots...)
+	ret = append(ret, m.Bots...)
 	ret = append(ret, m.Readers...)
 	ret = append(ret, m.Writers...)
 	return ret
@@ -96,39 +125,50 @@ func (m *memberSet) adminAndOwnerRecipients() MemberMap {
 
 func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq, forcePoll bool) error {
 	var err error
-	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, forcePoll)
+	m.Owners, err = m.loadGroup(ctx, g, req.Owners, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true, forcePoll)
+	m.Admins, err = m.loadGroup(ctx, g, req.Admins, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true, forcePoll)
+	m.Writers, err = m.loadGroup(ctx, g, req.Writers, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, forcePoll)
+	m.Readers, err = m.loadGroup(ctx, g, req.Readers, storeMemberKindRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.None, err = m.loadGroup(ctx, g, req.None, false, false)
+	// regular bots do get the PTK, store them as a regular recipient
+	m.Bots, err = m.loadGroup(ctx, g, req.Bots, storeMemberKindRecipient, forcePoll)
+	if err != nil {
+		return err
+	}
+	// restricted bots are not recipients of of the PTK
+	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBots, storeMemberKindRestrictedBotRecipient, forcePoll)
+	if err != nil {
+		return err
+	}
+	m.None, err = m.loadGroup(ctx, g, req.None, storeMemberKindNone, false)
 	return err
 }
 
 func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
-	group []keybase1.UserVersion, storeRecipient, forcePoll bool) ([]member, error) {
+	group []keybase1.UserVersion, storeMemberKind storeMemberKind, forcePoll bool) ([]member, error) {
 
 	var members []member
 	for _, uv := range group {
-		mem, err := m.loadMember(ctx, g, uv, storeRecipient, forcePoll)
+		mem, err := m.loadMember(ctx, g, uv, storeMemberKind, forcePoll)
 		if _, reset := err.(libkb.AccountResetError); reset {
-			if !storeRecipient {
+			switch storeMemberKind {
+			case storeMemberKindNone:
 				// If caller doesn't care about keys, it probably expects
 				// reset users to be passed through as well. This is used
 				// in reading reset users in impteams.
 				members = append(members, member{version: uv})
-			} else {
+			default:
 				g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
 			}
 			continue
@@ -202,14 +242,18 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 	}, nun, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, forcePoll bool) (res member, err error) {
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion,
+	storeMemberKind storeMemberKind, forcePoll bool) (res member, err error) {
 	res, _, err = loadMember(ctx, g, uv, forcePoll)
 	if err != nil {
 		return res, err
 	}
 	// store the key in a recipients table
-	if storeRecipient {
+	switch storeMemberKind {
+	case storeMemberKindRecipient:
 		m.recipients[res.version] = res.perUserKey
+	case storeMemberKindRestrictedBotRecipient:
+		m.restrictedBotRecipients[res.version] = res.perUserKey
 	}
 	return res, nil
 }
@@ -220,22 +264,32 @@ type MemberChecker interface {
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
 	for k := range m.recipients {
-		if !checker.IsMember(ctx, k) {
-			continue
+		if checker.IsMember(ctx, k) {
+			delete(m.recipients, k)
 		}
-		delete(m.recipients, k)
+	}
+	for k := range m.restrictedBotRecipients {
+		if checker.IsMember(ctx, k) {
+			delete(m.restrictedBotRecipients, k)
+		}
 	}
 }
 
-// AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
+// AddRemainingRecipients adds everyone in existing to m.recipients or
+// m.restrictedBotRecipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
 
 	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
 
 	// make a map of the None members
-	noneMap := make(map[keybase1.UserVersion]bool)
+	filtered := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
-		noneMap[n.version] = true
+		filtered[n.version] = true
+	}
+
+	existingRestrictedBots := make(map[keybase1.UserVersion]bool)
+	for _, uv := range existing.RestrictedBots {
+		existingRestrictedBots[uv] = true
 	}
 
 	auv := existing.AllUserVersions()
@@ -245,13 +299,24 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	}
 
 	for _, uv := range auv {
-		if noneMap[uv] {
+		if filtered[uv] {
 			continue
 		}
 		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, uv, true, forceUserPoll); err != nil {
+		if _, ok := m.restrictedBotRecipients[uv]; ok {
+			continue
+		}
+
+		var storeMemberKind storeMemberKind
+		if _, ok := existingRestrictedBots[uv]; ok {
+			storeMemberKind = storeMemberKindRestrictedBotRecipient
+		} else {
+			storeMemberKind = storeMemberKindRecipient
+		}
+
+		if _, err := m.loadMember(ctx, g, uv, storeMemberKind, forceUserPoll); err != nil {
 			if _, reset := err.(libkb.AccountResetError); reset {
 				g.Log.CDebugf(ctx, "Skipping user who was reset: %s", uv.String())
 				continue
@@ -297,6 +362,14 @@ func (m *memberSet) Section() (res *SCTeamMembers, err error) {
 	if err != nil {
 		return nil, err
 	}
+	res.Bots, err = m.nameSeqList(m.Bots)
+	if err != nil {
+		return nil, err
+	}
+	res.RestrictedBots, err = m.nameSeqList(m.RestrictedBots)
+	if err != nil {
+		return nil, err
+	}
 	res.None, err = m.nameSeqList(m.None)
 	if err != nil {
 		return nil, err
@@ -309,9 +382,9 @@ func (m *memberSet) HasRemoval() bool {
 }
 
 func (m *memberSet) HasAdditions() bool {
-	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers)) > 0
+	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.Bots) + len(m.RestrictedBots)) > 0
 }
 
 func (m *memberSet) empty() bool {
-	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.None) == 0
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.Bots) == 0 && len(m.RestrictedBots) == 0 && len(m.None) == 0
 }

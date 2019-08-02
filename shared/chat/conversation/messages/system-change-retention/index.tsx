@@ -28,31 +28,35 @@ const getPolicySummary = props => {
     case RPCChatTypes.RetentionPolicyType.retain:
       return 'be retained indefinitely'
     case RPCChatTypes.RetentionPolicyType.expire:
-      const expireDuration = moment
-        .duration(
-          // Auto generated from flowToTs. Please clean me!
-          props.policy.expire === null || props.policy.expire === undefined
-            ? undefined
-            : props.policy.expire.age,
-          'seconds'
-        )
-        .humanize()
-      if (expireDuration !== '') {
-        return `expire after ${expireDuration}`
+      {
+        const expireDuration = moment
+          .duration(
+            // Auto generated from flowToTs. Please clean me!
+            props.policy.expire === null || props.policy.expire === undefined
+              ? undefined
+              : props.policy.expire.age,
+            'seconds'
+          )
+          .humanize()
+        if (expireDuration !== '') {
+          return `expire after ${expireDuration}`
+        }
       }
       break
     case RPCChatTypes.RetentionPolicyType.ephemeral:
-      const ephemeralDuration = moment
-        .duration(
-          // Auto generated from flowToTs. Please clean me!
-          props.policy.ephemeral === null || props.policy.ephemeral === undefined
-            ? undefined
-            : props.policy.ephemeral.age,
-          'seconds'
-        )
-        .humanize()
-      if (ephemeralDuration !== '') {
-        return `explode after ${ephemeralDuration} by default`
+      {
+        const ephemeralDuration = moment
+          .duration(
+            // Auto generated from flowToTs. Please clean me!
+            props.policy.ephemeral === null || props.policy.ephemeral === undefined
+              ? undefined
+              : props.policy.ephemeral.age,
+            'seconds'
+          )
+          .humanize()
+        if (ephemeralDuration !== '') {
+          return `explode after ${ephemeralDuration} by default`
+        }
       }
       break
   }

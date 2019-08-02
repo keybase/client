@@ -47,7 +47,11 @@ type staticAssertionContext struct {
 	services map[string]libkb.ServiceType
 }
 
-func makeStaticAssertionContext(ctx context.Context) libkb.AssertionContext {
+// MakeStaticAssertionContext returns an AssertionContext that does not require
+// access to GlobalContext, but it does not understand parametrized proofs. So
+// only static assertions that are hardcoded in the client are valid according
+// to this context.
+func MakeStaticAssertionContext(ctx context.Context) libkb.AssertionContext {
 	services := make(map[string]libkb.ServiceType)
 	for _, st := range getStaticProofServices() {
 		if !useDevelProofCheckers && st.IsDevelOnly() {
@@ -70,11 +74,11 @@ func (a staticAssertionContext) NormalizeSocialName(service string, username str
 }
 
 func NormalizeSocialAssertionStatic(ctx context.Context, s string) (keybase1.SocialAssertion, bool) {
-	return libkb.NormalizeSocialAssertion(makeStaticAssertionContext(ctx), s)
+	return libkb.NormalizeSocialAssertion(MakeStaticAssertionContext(ctx), s)
 }
 
 func AssertionParseAndOnlyStatic(ctx context.Context, s string) (libkb.AssertionExpression, error) {
-	return libkb.AssertionParseAndOnly(makeStaticAssertionContext(ctx), s)
+	return libkb.AssertionParseAndOnly(MakeStaticAssertionContext(ctx), s)
 }
 
 //=============================================================================

@@ -25,7 +25,7 @@ class WithTooltip extends React.Component<Props, State> {
   }
   _setAttachmentRef = attachmentRef => this.setState({attachmentRef})
   _getAttachmentRef = () => this.state.attachmentRef
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(_: Props, prevState: State) {
     if (!prevState.mouseIn && this.state.mouseIn) {
       // Set visible after Toast is mounted, to trigger transition on opacity.
       // Note that we aren't doing anything to make ease out work. We don't
@@ -54,7 +54,7 @@ class WithTooltip extends React.Component<Props, State> {
               this.props.multiline && styles.containerMultiline,
             ])}
             visible={!!this.props.text && this.state.visible}
-            attachTo={this.state.attachmentRef && this._getAttachmentRef}
+            attachTo={this._getAttachmentRef}
             position={this.props.position || 'top center'}
             className={this.props.toastClassName}
           >

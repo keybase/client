@@ -37,14 +37,14 @@ class _TestArea extends React.Component<TestAreaProps> {
 }
 const TestArea = AddSuggestors(_TestArea)
 
-// eslint-disable-next-line no-unused-vars
+// @ts-ignore
 const typingTests = () => {
-  // eslint-disable-next-line no-unused-vars
-  let test
+  let test: unknown
   // @ts-ignore should error (bad other prop)
   test = <TestArea {...props} somethingElse="not this" />
   // @ts-ignore should error (bad suggestor prop)
   test = <TestArea {...props} dataSources={[1, 2]} />
+  console.log(test)
 
   const missingSug = {
     renderers: {},
@@ -71,7 +71,7 @@ const typingTests = () => {
   // @ts-ignore should error (extra prop)
   test = <TestArea {...extraJunk} />
 
-  const testAreaFunc = (props: TestAreaProps) => {}
+  const testAreaFunc = (_: TestAreaProps) => {}
   // @ts-ignore todo investigate
   AddSuggestors(testAreaFunc)
 }
@@ -113,9 +113,8 @@ const props = {
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
-    fruit: (fruit, marker, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
-    users: (username, marker, tData, preview) =>
-      Suggestors.standardTransformer(`@${username}`, tData, preview),
+    fruit: (fruit, _, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
+    users: (username, _, tData, preview) => Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }
 

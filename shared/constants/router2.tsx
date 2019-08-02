@@ -1,4 +1,4 @@
-let _navigator = null
+let _navigator: any = null
 // Private API only used by config sagas
 export const _setNavigator = (navigator: any) => {
   _navigator = navigator
@@ -25,7 +25,7 @@ const findVisibleRoute = (arr, s) => {
   return [...arr, route]
 }
 
-const findModalRoute = (arr, s) => {
+const findModalRoute = (_, s) => {
   const loggedInOut = s.routes[s.index]
   // only logged in has modals
   if (!loggedInOut || loggedInOut.routeName !== 'loggedIn') {

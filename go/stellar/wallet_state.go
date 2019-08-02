@@ -435,11 +435,12 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 // RecentPayments is an override of remoter's RecentPayments that uses stored data.
 func (w *WalletState) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	useAccountState := true
-	if arg.Limit != 0 && arg.Limit != 50 {
+	switch {
+	case arg.Limit != 0 && arg.Limit != 50:
 		useAccountState = false
-	} else if arg.Cursor != nil {
+	case arg.Cursor != nil:
 		useAccountState = false
-	} else if !arg.SkipPending {
+	case !arg.SkipPending:
 		useAccountState = false
 	}
 
@@ -963,10 +964,8 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 	if a.Available != b.Available {
 		return true
 	}
-	if a.ReadTransactionID != nil && b.ReadTransactionID != nil {
-		if *a.ReadTransactionID != *b.ReadTransactionID {
-			return true
-		}
+	if b.ReadTransactionID != nil && (a.ReadTransactionID == nil || *a.ReadTransactionID != *b.ReadTransactionID) {
+		return true
 	}
 	if a.SubentryCount != b.SubentryCount {
 		return true

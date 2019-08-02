@@ -3,7 +3,7 @@ import {Props as PropsCommon} from './copyable-text'
 import HOCTimers, {PropsWithTimer} from './hoc-timers'
 import Text from './text'
 import Box from './box'
-import {Clipboard, TouchableHighlight} from 'react-native'
+import {NativeClipboard, NativeTouchableHighlight} from './native-wrappers.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 export type Props = PropsWithTimer<
@@ -18,22 +18,22 @@ type State = {
 
 class CopyableText extends React.Component<Props, State> {
   state = {hasCopied: false}
-  lastCopyTimeoutId: number
+  lastCopyTimeoutId?: NodeJS.Timeout
 
   _handleCopy() {
-    Clipboard.setString(this.props.value)
+    NativeClipboard.setString(this.props.value)
     this.setState({hasCopied: true})
-    this.props.clearTimeout(this.lastCopyTimeoutId)
+    this.lastCopyTimeoutId && this.props.clearTimeout(this.lastCopyTimeoutId)
     this.lastCopyTimeoutId =
       this.props.setTimeout(() => {
         this.setState({hasCopied: false})
-      }, 5000) || null
+      }, 5000) || undefined
   }
 
   render() {
     const {value, style, textStyle} = this.props
     return (
-      <TouchableHighlight
+      <NativeTouchableHighlight
         activeOpacity={0.6}
         underlayColor={globalColors.white}
         onPress={() => this._handleCopy()}
@@ -51,7 +51,7 @@ class CopyableText extends React.Component<Props, State> {
             </Box>
           </Box>
         </Box>
-      </TouchableHighlight>
+      </NativeTouchableHighlight>
     )
   }
 }

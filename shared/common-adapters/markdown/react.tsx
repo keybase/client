@@ -212,10 +212,10 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  emoji: (node, output, state) => {
+  emoji: (node, _, state) => {
     return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
-  fence: (node, output, state) =>
+  fence: (node, _, state) =>
     Styles.isMobile ? (
       <Box key={state.key} style={codeSnippetBlockStyle}>
         <Text
@@ -235,7 +235,7 @@ const reactComponentsForMarkdownType = {
         {node.content}
       </Text>
     ),
-  inlineCode: (node, output, state) => {
+  inlineCode: (node, _, state) => {
     return (
       <Text
         type="Body"
@@ -247,7 +247,7 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  kbfsPath: (node, output, state) => {
+  kbfsPath: (node, _, state) => {
     return (
       <KbfsPath
         escapedPath={node.content}
@@ -257,7 +257,7 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  newline: (node, output, state) =>
+  newline: (_, __, state) =>
     !Styles.isMobile || state.inParagraph ? (
       '\n'
     ) : (
@@ -282,7 +282,7 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  serviceDecoration: (node, output, state) => (
+  serviceDecoration: (node, _, state) => (
     <ServiceDecoration
       json={node.content}
       key={state.key}
@@ -334,7 +334,7 @@ const ruleOutput = (rules: {[K in string]: ReactNodeOutput}) => (node, output, s
 const bigEmojiOutput = SimpleMarkdown.reactFor(
   ruleOutput({
     ...reactComponentsForMarkdownType,
-    emoji: (node, output, state) => {
+    emoji: (node, _, state) => {
       return (
         <Emoji
           emojiName={String(node.content)}

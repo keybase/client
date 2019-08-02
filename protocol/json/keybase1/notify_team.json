@@ -57,6 +57,10 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
         }
       ],
       "response": null,
@@ -79,6 +83,10 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
         }
       ],
       "response": null,

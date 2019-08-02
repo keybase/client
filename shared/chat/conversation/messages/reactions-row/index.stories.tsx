@@ -13,7 +13,7 @@ const ordinalToEmojis = (m: Types.Ordinal) => {
   if (n % 4 === 0) {
     const r = new Rnd(n)
     const numReactions = r.next() % 5
-    const res = []
+    const res: Array<string> = []
     for (let i = 0; i < numReactions; i++) {
       res.push(emojiNames[r.next() % numEmojis])
     }

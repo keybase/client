@@ -88,7 +88,7 @@ func testCreateFile(
 
 	children, err := fs.config.KBFSOps().GetDirChildren(ctx, parent)
 	require.NoError(t, err)
-	require.Contains(t, children, path.Base(file))
+	require.Contains(t, children, testPPS(path.Base(file)))
 
 	// Write to the file.
 	data := []byte{1}
@@ -131,6 +131,10 @@ func TestCreateFileInRoot(t *testing.T) {
 	testCreateFile(ctx, t, fs, "/bar", rootNode)
 }
 
+func testPPS(s string) data.PathPartString {
+	return data.NewPathPartString(s, nil)
+}
+
 func TestCreateFileInSubdir(t *testing.T) {
 	ctx, h, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
@@ -138,9 +142,9 @@ func TestCreateFileInSubdir(t *testing.T) {
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
+	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
-	bNode, _, err := fs.config.KBFSOps().CreateDir(ctx, aNode, "b")
+	bNode, _, err := fs.config.KBFSOps().CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 
 	testCreateFile(ctx, t, fs, "a/b/foo", bNode)
@@ -213,7 +217,7 @@ func TestRecreateAndExcl(t *testing.T) {
 	require.NoError(t, err)
 
 	// Try to create it with EXCL, and fail.
-	f, err = fs.OpenFile("foo", os.O_CREATE|os.O_EXCL, 0600)
+	_, err = fs.OpenFile("foo", os.O_CREATE|os.O_EXCL, 0600)
 	require.NotNil(t, err)
 
 	// Creating a different file exclusively should work though.
@@ -236,7 +240,7 @@ func TestStat(t *testing.T) {
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
+	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	testCreateFile(ctx, t, fs, "a/foo", aNode)
 
@@ -288,7 +292,8 @@ func TestStat(t *testing.T) {
 	rootNode2, _, err := fs2U2.config.KBFSOps().GetRootNode(
 		ctx, h2, data.MasterBranch)
 	require.NoError(t, err)
-	aNode2, _, err := fs2U2.config.KBFSOps().CreateDir(ctx, rootNode2, "a")
+	aNode2, _, err := fs2U2.config.KBFSOps().CreateDir(
+		ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	testCreateFile(ctx, t, fs2U2, "a/foo", aNode2)
 
@@ -383,7 +388,7 @@ func TestReadDir(t *testing.T) {
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
+	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	testCreateFile(ctx, t, fs, "a/foo", aNode)
 	testCreateFile(ctx, t, fs, "a/bar", aNode)
@@ -496,19 +501,19 @@ func TestSymlink(t *testing.T) {
 	require.NoError(t, err)
 	err = fs.Symlink("y", "x")
 	require.NoError(t, err)
-	bar, err = fs.Open("x")
+	_, err = fs.Open("x")
 	require.NotNil(t, err)
 
 	t.Log("Symlink that tries to break chroot")
 	err = fs.Symlink("../../a", "a/breakout")
 	require.NoError(t, err)
-	bar, err = fs.Open("a/breakout")
+	_, err = fs.Open("a/breakout")
 	require.NotNil(t, err)
 
 	t.Log("Symlink to absolute path")
 	err = fs.Symlink("/etc/passwd", "absolute")
 	require.NoError(t, err)
-	bar, err = fs.Open("absolute")
+	_, err = fs.Open("absolute")
 	require.NotNil(t, err)
 
 	t.Log("Readlink")

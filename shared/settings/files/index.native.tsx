@@ -1,6 +1,4 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
@@ -65,11 +63,6 @@ const SyncNotificationSetting = (props: Props) => (
     <Kb.Text type="Body">of storage space remaining</Kb.Text>
   </Kb.Box2>
 )
-
-const isPending = (props: Props) =>
-  props.driverStatus.type === Types.DriverStatusType.Unknown ||
-  (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
-  (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 const Files = (props: Props) => (
   <>

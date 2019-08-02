@@ -6,20 +6,10 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import EnterPhoneNumber, {Props} from '.'
 
-const mapStateToProps = (state: Container.TypedState, ownProps: {}) => ({
-  error: state.settings.phoneNumbers.error,
-  pendingVerification: state.settings.phoneNumbers.pendingVerification,
-  waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onContinue: (phoneNumber: string, allowSearch: boolean) =>
-    dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-  onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
-  onSkip: () => dispatch(RouteTreeGen.createClearModals()), // TODO route to add-email
-})
+type OwnProps = {}
 
 type WatcherProps = Props & {
+  onClear: () => void
   onGoToVerify: () => void
   pendingVerification: string
 }
@@ -34,6 +24,9 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
       this.props.onGoToVerify()
     }
   }
+  componentWillUnmount() {
+    this.props.onClear()
+  }
   render() {
     return (
       <EnterPhoneNumber
@@ -47,9 +40,23 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
 }
 
 const ConnectedEnterPhoneNumber = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  state => ({
+    error: state.settings.phoneNumbers.error,
+    pendingVerification: state.settings.phoneNumbers.pendingVerification,
+    waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
+  }),
+  dispatch => ({
+    onClear: () => dispatch(SettingsGen.createClearPhoneNumberErrors()),
+    onContinue: (phoneNumber: string, allowSearch: boolean) =>
+      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
+    onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
+    onSkip: () => {
+      dispatch(SettingsGen.createClearPhoneNumberAdd())
+      dispatch(RouteTreeGen.createClearModals())
+      // TODO route to add-email
+    },
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'ConnectedEnterPhoneNumber'
 )(WatchForGoToVerify)
 

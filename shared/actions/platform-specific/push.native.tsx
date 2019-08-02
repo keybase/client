@@ -17,6 +17,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
+import {TypedState} from '../../util/container'
 
 let lastCount = -1
 const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {
@@ -46,7 +47,7 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
   RNEmitter.addListener('androidIntentNotification', evt => {
-    logger.info('[PushAndroidIntent]', evt && evt.type)
+    logger.debug('[PushAndroidIntent]', evt && evt.type)
     const notification = evt && Constants.normalizePush(evt)
     if (!notification) {
       return
@@ -58,26 +59,27 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // TODO: move this out of this file.
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   RNEmitter.addListener('onShareData', evt => {
-    logger.info('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}))
+    logger.debug('[ShareDataIntent]', evt)
+    emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
-    logger.info('[ShareTextIntent]', evt)
-    emitter(RouteTreeGen.createNavigateTo({path: FsConstants.fsRootRouteForNav1}))
+    logger.debug('[ShareTextIntent]', evt)
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     // TODO: implement
   })
 }
 
 const listenForPushNotificationsFromJS = emitter => {
   const onRegister = token => {
-    console.log('[PushToken] received new token: ', token)
+    logger.debug('[PushToken] received new token: ', token)
     emitter(PushGen.createUpdatePushToken({token: token.token}))
   }
 
   const onNotification = n => {
-    logger.info('[onNotification]: ', n)
+    logger.debug('[onNotification]: ', n)
     const notification = Constants.normalizePush(n)
     if (!notification) {
       return
@@ -136,7 +138,7 @@ function* handleLoudMessage(notification) {
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
-      yield* Saga.callPromise(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+      yield RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
         convID: conversationIDKey,
         membersType,
         payload: unboxPayload,
@@ -176,8 +178,10 @@ function* handlePush(_, action: PushGen.NotificationPayload) {
         }
         break
       case 'chat.extension':
-        const {conversationIDKey} = notification
-        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        {
+          const {conversationIDKey} = notification
+          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        }
         break
     }
   } catch (e) {
@@ -222,7 +226,7 @@ function* deletePushToken(state, action: ConfigGen.LogoutHandshakePayload) {
       return
     }
 
-    yield* Saga.callPromise(RPCTypes.apiserverDeleteRpcPromise, {
+    yield RPCTypes.apiserverDeleteRpcPromise({
       args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
       endpoint: 'device/push_token',
     })
@@ -244,14 +248,13 @@ const requestPermissionsFromNative = () =>
   isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () =>
-  new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
+const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 function* neverShowMonsterAgain(state) {
   if (!state.push.showPushPrompt) {
     yield Saga.spawn(() =>
-      RPCTypes.configSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
+      RPCTypes.configGuiSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
     )
   }
 }
@@ -292,7 +295,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   } else {
     const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
     const shownMonsterPushPromptTask = yield Saga._fork(() =>
-      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+      RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
         .then(v => !!v.b)
         .catch(() => false)
     )
@@ -324,10 +327,10 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
     return false
   }
 
-  console.log('[PushCheck] checking ', action ? 'on foreground' : 'on startup')
+  logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
   const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
   if (permissions.alert || permissions.badge) {
-    const state = yield* Saga.selectState()
+    const state: TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))

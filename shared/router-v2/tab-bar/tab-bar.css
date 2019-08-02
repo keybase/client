@@ -7,11 +7,13 @@
   background-color: #2a51c5;
 }
 .tab {
+  flex-shrink: 0;
   height: 40px;
 }
 .tab-selected {
   background-color: rgba(76, 142, 255, 0.4);
   color: #ffffff;
+  flex-shrink: 0;
   height: 40px;
   transition-duration: 0.4s;
   transition-property: background-color;

@@ -6,26 +6,11 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import {InviteByEmailMobile, ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {
-  connect,
-  compose,
-  getRouteProps,
-  withHandlers,
-  withPropsOnChange,
-  withProps,
-  withStateHandlers,
-  lifecycle,
-  RouteProps,
-} from '../../util/container'
+import * as Container from '../../util/container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
-type OwnProps = RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 const cleanPhoneNumber: (arg0: string) => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
@@ -37,8 +22,8 @@ const extractPhoneNumber: (arg0: string) => string | null = (name: string) => {
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const teamname = getRouteProps(ownProps, 'teamname')
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   const inviteError = Constants.getEmailInviteError(state)
   return {
     _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : I.Set(),
@@ -48,14 +33,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
   },
   onInviteEmail: ({invitee, role}) => {
-    const teamname = getRouteProps(ownProps, 'teamname')
+    const teamname = Container.getRouteProps(ownProps, 'teamname', '')
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
       TeamsGen.createInviteToTeamByEmail({
@@ -73,7 +58,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         fullName,
         phoneNumber: invitee,
         role,
-        teamname: getRouteProps(ownProps, 'teamname'),
+        teamname: Container.getRouteProps(ownProps, 'teamname', ''),
       })
     )
     dispatch(TeamsGen.createGetTeams())
@@ -84,7 +69,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       TeamsGen.createRemoveMemberOrPendingInvite({
         email: invitee,
         inviteID: id || '',
-        teamname: getRouteProps(ownProps, 'teamname'),
+        teamname: Container.getRouteProps(ownProps, 'teamname', ''),
         username: '',
       })
     )
@@ -93,26 +78,22 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  compose(
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  Container.compose(
     // basic state setters
-    withStateHandlers({contacts: [], hasPermission: true, role: 'writer'}, {
+    Container.withStateHandlers({contacts: [], hasPermission: true, role: 'writer'}, {
       _setContacts: () => contacts => ({contacts}),
       _setHasPermission: () => hasPermission => ({hasPermission}),
       onRoleChange: () => role => ({role}),
     } as any),
-    withProps((props: any) => ({
+    Container.withProps((props: any) => ({
       headerStyle: {borderBottomWidth: 0},
       onBack: () => props.onClose(),
       title: 'Invite contacts',
     })),
     // Go through the permission flow on mount
-    lifecycle({
+    Container.lifecycle({
       componentDidMount() {
         // TODO test this permission flow on a real build
         getContacts().then(
@@ -128,7 +109,7 @@ export default compose(
       },
     } as any),
     // Checker for whether address is already in invited array
-    withHandlers({
+    Container.withHandlers({
       isLoading: ({loadingInvites, _pendingInvites}) => (
         email: string | null,
         phoneNo: string | null
@@ -144,13 +125,14 @@ export default compose(
               return recPhoneNumber === cleanPhoneNumber(phoneNo || '')
             }
           }
+          return undefined
         })
         if (relevantInvite) {
           return loadingInvites.get(relevantInvite.id)
         }
         return false
       },
-      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
+      isSelected: ({_pendingInvites}) => (addr: string): boolean => {
         return !!_pendingInvites.find(rec => {
           if (rec.email) {
             return rec.email === addr
@@ -166,16 +148,10 @@ export default compose(
       },
     } as any),
     // Delegate to add / remove
-    withHandlers({
-      onSelectContact: ({
-        _pendingInvites,
-        isSelected,
-        invited,
-        role,
-        onUninvite,
-        onInviteEmail,
-        onInvitePhone,
-      }) => (contact: ContactDisplayProps) => {
+    Container.withHandlers({
+      onSelectContact: ({_pendingInvites, isSelected, role, onUninvite, onInviteEmail, onInvitePhone}) => (
+        contact: ContactDisplayProps
+      ) => {
         if (!isSelected(contact.email || contact.phoneNo)) {
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
@@ -194,6 +170,7 @@ export default compose(
                   return recPhoneNumber === cleanPhoneNumber(contact.phoneNo || '')
                 }
               }
+              return undefined
             })
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
@@ -202,10 +179,11 @@ export default compose(
             }
           }
         }
+        return undefined
       },
     } as any),
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.
-    withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], (props: any) => {
+    Container.withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], (props: any) => {
       // Create static contact row props here
       const knownIDs = new Set()
       const contactRowProps = props.contacts

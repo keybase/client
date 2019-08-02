@@ -1,58 +1,66 @@
 import * as Constants from '../../constants/settings'
-import * as Types from '../../constants/types/settings'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as I from 'immutable'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import Bootstrapable, {BootstrapableProp} from '../../util/bootstrapable'
-import {connect, compose, TypedState, TypedDispatch} from '../../util/container'
-import AccountSettings, {Props} from '.'
+import {connect, TypedState, TypedDispatch} from '../../util/container'
+import {anyWaiting} from '../../constants/waiting'
+import AccountSettings from '.'
 import {isMobile} from '../../styles'
 
 type OwnProps = {}
-const mapStateToProps = (state: TypedState, o: OwnProps) => ({
-  _emails: state.settings.email.emails,
-  _phones: state.settings.phoneNumbers.phones,
-  bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
-  hasPassword: !state.settings.password.randomPW,
-})
+const mapStateToProps = (state: TypedState) => {
+  const supersededPhoneNumberRecord =
+    state.settings.phoneNumbers.phones &&
+    state.settings.phoneNumbers.phones.find(phoneNumber => phoneNumber.superseded)
+
+  return {
+    _emails: state.settings.email.emails,
+    _phones: state.settings.phoneNumbers.phones,
+    _supersededPhoneNumberKey: supersededPhoneNumberRecord && supersededPhoneNumberRecord.e164,
+    addedEmail: state.settings.email.addedEmail,
+    bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
+    hasPassword: !state.settings.password.randomPW,
+    supersededPhoneNumber: supersededPhoneNumberRecord
+      ? supersededPhoneNumberRecord.displayNumber
+      : undefined,
+    waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
+  }
+}
 
 const mapDispatchToProps = (dispatch: TypedDispatch) => ({
-  onAddEmail: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['addEmail']})),
-  onAddPhone: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['addPhone']})),
+  _onClearSupersededPhoneNumber: phone => dispatch(SettingsGen.createEditPhone({delete: true, phone})),
+  onAddEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
+  onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
-  onBootstrap: () => {
+  onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
+  onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
+  onReload: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassword())
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
-  onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
   onSetPassword: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})
     ),
 })
 
-// because for some reason I can't pass a generic parameter to Bootstrapable when it's in a compose
-const bootstrapped = Bootstrapable<Props>(AccountSettings)
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, o): BootstrapableProp<Props> => {
-    if (!stateProps.bootstrapDone) {
-      return {
-        bootstrapDone: false,
-        onBootstrap: dispatchProps.onBootstrap,
-      }
-    }
-    return {
-      bootstrapDone: true,
-      originalProps: {
-        ...dispatchProps,
-        contactKeys: I.List([...stateProps._emails.keys(), ...stateProps._phones.keys()]),
-        hasPassword: stateProps.hasPassword,
-        title: 'Account',
-      },
-    }
-  }
-)(bootstrapped)
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    ...dispatchProps,
+    addedEmail: stateProps.addedEmail,
+    contactKeys: I.List([
+      ...(stateProps._emails ? stateProps._emails.keys() : []),
+      ...(stateProps._phones ? stateProps._phones.keys() : []),
+    ]),
+    hasPassword: stateProps.hasPassword,
+    onClearSupersededPhoneNumber: () =>
+      stateProps._supersededPhoneNumberKey &&
+      dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
+    supersededPhoneNumber: stateProps.supersededPhoneNumber,
+    title: 'Your account',
+    waiting: stateProps.waiting,
+  })
+)(AccountSettings)

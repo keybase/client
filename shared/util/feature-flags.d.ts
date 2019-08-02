@@ -4,6 +4,7 @@ export type FeatureFlags = {
   chatIndexProfilingEnabled: boolean
   conflictResolution: boolean
   dbCleanEnabled: boolean
+  fastAccountSwitch: boolean
   foldersInProfileTab: boolean
   kbfsOfflineMode: boolean
   moveOrCopy: boolean
@@ -13,6 +14,7 @@ export type FeatureFlags = {
   proofProviders: boolean
   sbsContacts: boolean
   stellarExternalPartners: boolean
+  lagRadar: boolean
 }
 
 declare const ff: FeatureFlags

@@ -3,18 +3,11 @@ import RequestInvite from './request-invite/container'
 import RequestInviteSuccess from './request-invite-success/container'
 import SignupError from './error/container'
 
-const children = {
-  signupError: {component: SignupError},
-  signupInviteCode: {component: InviteCode},
-  signupRequestInvite: {component: RequestInvite},
-  signupRequestInviteSuccess: {component: RequestInviteSuccess},
-}
-
-export default children
-
 export const newRoutes = {
-  signupError: {getScreen: () => SignupError},
-  signupInviteCode: {getScreen: () => InviteCode},
-  signupRequestInvite: {getScreen: () => RequestInvite},
-  signupRequestInviteSuccess: {getScreen: () => RequestInviteSuccess},
+  signupError: {getScreen: (): typeof SignupError => require('./error/container').default},
+  signupInviteCode: {getScreen: (): typeof InviteCode => require('./invite-code/container').default},
+  signupRequestInvite: {getScreen: (): typeof RequestInvite => require('./request-invite/container').default},
+  signupRequestInviteSuccess: {
+    getScreen: (): typeof RequestInviteSuccess => require('./request-invite-success/container').default,
+  },
 }

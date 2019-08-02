@@ -45,6 +45,8 @@ const _HeaderRightActions = (props: Props) => (
     <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
       <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
     </Kb.Button>
+    {/*
+    // @ts-ignore */}
     <TeamMenu
       attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
@@ -59,9 +61,9 @@ type HeaderTitleProps = {
   teamname: string
   description: string
   members: number
-  onEditAvatar: (() => void) | null
-  onEditDescription: (() => void) | null
-  onRename: (() => void) | null
+  onEditAvatar?: () => void
+  onEditDescription?: () => void
+  onRename?: () => void
   role: string
 }
 
@@ -108,12 +110,16 @@ type SubHeaderProps = {
 export const SubHeader = (props: SubHeaderProps) =>
   props.onAddSelf ? (
     <Kb.Box2 direction="horizontal" style={styles.banner} fullWidth={true}>
-      <Kb.Banner
-        color="blue"
-        inline={true}
-        text="You are not a member of this team."
-        actions={[{onClick: props.onAddSelf, title: 'Add yourself'}]}
-      />
+      <Kb.Banner color="blue" inline={true}>
+        <Kb.BannerParagraph
+          bannerColor="red"
+          content={[
+            'You are not a member of this team. ',
+            {onClick: props.onAddSelf, text: 'Add yourself'},
+            '?',
+          ]}
+        />
+      </Kb.Banner>
     </Kb.Box2>
   ) : null
 

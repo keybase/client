@@ -9,15 +9,15 @@ export const scaledWidth = (width: number) => {
 // dynamic sized width GIFs. The basic idea is to try to form rows by either compressing down GIFs to fit,
 // or expanding to fit, and see which method works better.
 export const getMargins = (totalWidth: number, widths: Array<number>) => {
-  const images = []
+  const images: Array<Image> = []
   widths.forEach(w => {
     images.push(new Image(scaledWidth(w), 0))
   })
   // set to the desired size, some GIFs are very wide and take up too much space initially. We will allow
   // the expansion phase to go over this clamp however.
   clampAtMaxWidths(images)
-  let res = []
-  let longRow = []
+  let res: Array<number> = []
+  let longRow: Array<Image> = []
   for (let index = 0; index < images.length; index++) {
     const im = images[index]
     longRow.push(im)
@@ -127,7 +127,7 @@ const maxExpandPasses = 15
 
 // compressRow attempts to compress a candidate row down to a given width
 const compressRow = (totalWidth, row) => {
-  const compressed = []
+  const compressed: Array<Image> = []
   row.forEach(i => {
     compressed.push(new Image(i.origWidth, i.margin))
   })
@@ -154,7 +154,7 @@ const compressRow = (totalWidth, row) => {
 
 // expandRow attempt to expand a candidate row into a given width
 const expandRow = (totalWidth, row) => {
-  const expanded = []
+  const expanded: Array<Image> = []
   row.forEach(i => {
     expanded.push(new Image(i.origWidth, i.margin))
   })

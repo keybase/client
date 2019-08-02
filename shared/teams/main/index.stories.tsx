@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import BetaNote from './beta-note'
+import NoTeamsPlaceholder from './no-teams-placeholder'
 import Header from './header'
 import TeamList from '.'
 import {Box} from '../../common-adapters'
@@ -27,7 +27,7 @@ const load = () => {
     .add('Header', () => (
       <Header onCreateTeam={Sb.action('onCreateTeam')} onJoinTeam={Sb.action('onJoinTeam')} loaded={true} />
     ))
-    .add('BetaNote', () => <BetaNote onReadMore={Sb.action('onReadMore')} />)
+    .add('No teams placeholder', () => <NoTeamsPlaceholder />)
     .add('TeamList', () => (
       <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList

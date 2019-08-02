@@ -155,6 +155,9 @@ func TestChatMessageBox(t *testing.T) {
 	})
 }
 
+var convInfo = newBasicUnboxConversationInfo([]byte{0, 0, 1}, chat1.ConversationMembersType_KBFS, nil,
+	keybase1.TLFVisibility_PRIVATE)
+
 func TestChatMessageUnbox(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		key := cryptKey(t)
@@ -185,7 +188,7 @@ func TestChatMessageUnbox(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.NoError(t, err)
 		body := unboxed.MessageBody
 		typ, err := body.MessageType()
@@ -231,7 +234,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key, nil)
+	unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.NoError(t, err)
 
 	require.True(t, unboxed.ClientHeader.HasPairwiseMacs)
@@ -286,7 +289,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 		mac[0] ^= 1
 	}
 
-	_, err = boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key, nil)
+	_, err = boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.Error(t, err)
 
 	// Check that we get the right failure type.
@@ -331,7 +334,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, err = boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key, nil)
+	_, err = boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.Error(t, err)
 
 	// Check that we get the right failure type.
@@ -376,7 +379,7 @@ func TestChatMessageUnboxWithPairwiseMacsV4DummySigner(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key, nil)
+	unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.NoError(t, err)
 
 	require.True(t, unboxed.ClientHeader.HasPairwiseMacs)
@@ -422,7 +425,7 @@ func TestChatMessageMissingOutboxID(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, uberr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+	_, uberr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.Error(t, uberr)
 	ierr, ok := uberr.Inner().(HeaderMismatchError)
 	require.True(t, ok, "unexpected error: %T -> %T -> %v", uberr, uberr.Inner(), uberr)
@@ -462,7 +465,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 		// put original hash fn back
 		boxer.hashV1 = origHashFn
 
-		_, ierr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		_, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		_, ok := ierr.Inner().(BodyHashInvalid)
 		require.True(t, ok)
 	})
@@ -635,7 +638,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		_, ierr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		_, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.NotNil(t, ierr, "must have unbox error")
 		switch mbVersion {
 		case chat1.MessageBoxedVersion_V1:
@@ -673,7 +676,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		_, ierr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		_, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		if ierr != nil {
 			_, ok := ierr.Inner().(libkb.NoKeyError)
 			require.True(t, ok)
@@ -734,7 +737,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		}
 
 		// The message should not unbox
-		_, ierr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		_, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.NotNil(t, ierr, "unboxing must err because key was revoked before send")
 		require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
 
@@ -797,7 +800,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		require.NoError(t, err, "revoke device")
 
 		// The message should unbox but with senderDeviceRevokedAt set
-		unboxed, ierr := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		unboxed, ierr := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.Nil(t, ierr, "unboxing err")
 		require.NotNil(t, unboxed.SenderDeviceRevokedAt, "message should be noticed as signed by revoked key")
 
@@ -906,7 +909,7 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 		// Set the outer sender to something else
 		boxed.ClientHeader.Sender = gregor1.UID(gregor1.UID(u2.User.GetUID().ToBytes()))
 
-		_, err = boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		_, err = boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.Error(t, err, "should not unbox with sender mismatch")
 	})
 
@@ -954,7 +957,7 @@ func TestChatMessageDeletes(t *testing.T) {
 			SupersededBy: 4,
 		}
 
-		unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		require.NoError(t, err)
 		body := unboxed.MessageBody
 		typ, err := body.MessageType()
@@ -993,7 +996,7 @@ func TestChatMessageDeleted(t *testing.T) {
 			// Delete the body
 			boxed.BodyCiphertext = chat1.EncryptedData{}
 
-			unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+			unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 			require.NoError(t, err, "deleted message should still unbox")
 			body := unboxed.MessageBody
 			typ, err := body.MessageType()
@@ -1031,7 +1034,7 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 		// Delete the body
 		boxed.BodyCiphertext.E = []byte{}
 
-		unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+		unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 		// The server was not setting supersededBy on EDITs when their TEXT got deleted.
 		// So there are existing messages which have no supersededBy but are legitimately deleted.
 		// Tracked in CORE-4662
@@ -1068,7 +1071,7 @@ func TestChatMessageDeleteHistory(t *testing.T) {
 		SupersededBy: 4,
 	}
 
-	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_KBFS, key, nil)
+	unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
 	require.NoError(t, err)
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
@@ -1094,7 +1097,7 @@ func TestV1Message1(t *testing.T) {
 	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
 
 	// Unbox
-	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), chat1.ConversationMembersType_KBFS,
+	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), convInfo,
 		canned.EncryptionKey(t), nil)
 	require.NoError(t, err)
 
@@ -1151,7 +1154,7 @@ func TestV1Message2(t *testing.T) {
 	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
 
 	// Unbox
-	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), chat1.ConversationMembersType_KBFS,
+	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), convInfo,
 		canned.EncryptionKey(t), nil)
 	require.NoError(t, err)
 
@@ -1209,7 +1212,7 @@ func TestV1Message3(t *testing.T) {
 	require.Nil(t, boxed.ClientHeader.Deletes)
 
 	// Unbox
-	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), chat1.ConversationMembersType_KBFS,
+	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), convInfo,
 		canned.EncryptionKey(t), nil)
 	require.NoError(t, err)
 
@@ -1267,7 +1270,7 @@ func TestV1Message4(t *testing.T) {
 	require.Nil(t, boxed.ClientHeader.Deletes)
 
 	// Unbox
-	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), chat1.ConversationMembersType_KBFS,
+	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), convInfo,
 		canned.EncryptionKey(t), nil)
 	require.NoError(t, err)
 
@@ -1330,7 +1333,7 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, expectedDeletesIDs, boxed.ClientHeader.Deletes)
 
 	// Unbox
-	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), chat1.ConversationMembersType_KBFS,
+	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), convInfo,
 		canned.EncryptionKey(t), nil)
 	require.NoError(t, err)
 
@@ -1628,28 +1631,28 @@ func TestRemarshalBoxed(t *testing.T) {
 	require.Equal(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID, "obids should have same value")
 }
 
-func randomTeamEK() keybase1.TeamEk {
+func randomTeamEK() types.EphemeralCryptKey {
 	randBytes, err := libkb.RandBytes(32)
 	if err != nil {
 		panic(err)
 	}
 	seed := libkb.MakeByte32(randBytes)
 	dhKey := (*ephemeral.TeamEKSeed)(&seed).DeriveDHKey()
-	teamEK := keybase1.TeamEk{
+	return keybase1.NewTeamEphemeralKeyWithTeam(keybase1.TeamEk{
 		Seed: seed,
 		Metadata: keybase1.TeamEkMetadata{
 			Kid: dhKey.GetKID(),
 		},
-	}
-	return teamEK
+	})
 }
 
 func TestExplodingMessageUnbox(t *testing.T) {
+	tc, boxer := setupChatTest(t, "exploding")
+	defer tc.Cleanup()
+
 	key := cryptKey(t)
 	ephemeralKey := randomTeamEK()
 	text := "hello exploding"
-	tc, boxer := setupChatTest(t, "exploding")
-	defer tc.Cleanup()
 	// We need a user for unboxing to work.
 	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
 	require.NoError(t, err)
@@ -1662,7 +1665,8 @@ func TestExplodingMessageUnbox(t *testing.T) {
 
 	// Box it! Note that we pass in the ephemeral/exploding key, and also set
 	// V3 explicitly.
-	boxed, err := boxer.box(context.TODO(), msg, key, &ephemeralKey, getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
+	boxed, err := boxer.box(context.TODO(), msg, key, ephemeralKey,
+		getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageBoxedVersion_V3, boxed.Version)
 	require.True(t, len(boxed.BodyCiphertext.E) > 0)
@@ -1673,8 +1677,8 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	}
 
 	// Unbox it!!!
-	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key,
-		&ephemeralKey)
+	unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo,
+		key, ephemeralKey)
 	require.NoError(t, err)
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
@@ -1754,7 +1758,7 @@ func TestVersionError(t *testing.T) {
 	key := cryptKey(t)
 	t.Logf("unbox")
 	_, err := boxer.unbox(context.Background(), chat1.MessageBoxed{Version: maxMessageBoxedVersion},
-		chat1.ConversationMembersType_TEAM, key, nil)
+		convInfo, key, nil)
 	assertErr(err)
 
 	t.Logf("unversionHeaderMBV2")

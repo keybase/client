@@ -14,7 +14,7 @@ class Icon extends Component<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
   }
-  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
@@ -33,7 +33,7 @@ class Icon extends Component<Props, void> {
       return null
     }
 
-    if (!iconMeta[iconType]) {
+    if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
       throw new Error('Unknown icontype passed ' + iconType)
     }
@@ -57,7 +57,7 @@ class Icon extends Component<Props, void> {
     // explicit
     if (this.props.fontSize) {
       fontSizeHint = {fontSize: this.props.fontSize}
-    } else {
+    } else if (this.props.sizeType) {
       fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
     }
     // in style sheet, so don't apply
@@ -92,7 +92,7 @@ class Icon extends Component<Props, void> {
           draggable={false}
           title={this.props.hint}
           style={imgStyle}
-          onClick={onClick}
+          onClick={onClick || undefined}
           srcSet={iconTypeToSrcSet(iconType)}
         />
       )
@@ -149,9 +149,9 @@ class Icon extends Component<Props, void> {
               `icon-gen-${iconType}`,
               this.props.className
             )}
-            onMouseEnter={this.props.onMouseEnter}
-            onMouseLeave={this.props.onMouseLeave}
-            onClick={onClick}
+            onMouseEnter={this.props.onMouseEnter || undefined}
+            onMouseLeave={this.props.onMouseLeave || undefined}
+            onClick={onClick || undefined}
           >
             {iconElement}
           </span>

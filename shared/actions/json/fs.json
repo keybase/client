@@ -4,12 +4,21 @@
     "import * as ChatTypes from '../constants/types/chat2'"
   ],
   "actions": {
-    "clearRefreshTag": {
-      "refreshTag": "Types.RefreshTag"
-    },
-    "folderListLoad": {
+    "subscribePath": {
+      "subscriptionID": "string",
       "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag"
+      "topic": "RPCTypes.PathSubscriptionTopic"
+    },
+    "subscribeNonPath": {
+      "subscriptionID": "string",
+      "topic": "RPCTypes.SubscriptionTopic"
+    },
+    "unsubscribe": {
+      "subscriptionID": "string"
+    },
+    "onJournalNotification": {},
+    "folderListLoad": {
+      "path": "Types.Path"
     },
     "folderListLoaded": {
       "path": "Types.Path",
@@ -41,8 +50,7 @@
       "pathItem": "Types.PathItem"
     },
     "loadPathMetadata": {
-      "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag | null"
+      "path": "Types.Path"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -127,9 +135,6 @@
       "localViewTlfPath": "Types.Path"
     },
 
-    "notifyTlfUpdate": {
-      "tlfPath": "Types.Path"
-    },
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},
     "localHTTPServerInfo": {
@@ -273,7 +278,9 @@
       "spaceAvailableNotificationThreshold": "number"
     },
     "setTlfsAsUnloaded": {},
-
-    "placeholderAction": {}
+    "placeholderAction": {},
+    "setDebugLevel": {
+      "level": "string"
+    }
   }
 }

@@ -28,8 +28,10 @@ export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
+export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
+export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
@@ -99,6 +101,7 @@ export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
+export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -108,6 +111,7 @@ export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
+export const setPrependText = 'chat2:setPrependText'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
@@ -196,8 +200,10 @@ type _BlockConversationPayload = {
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
+type _ConversationErroredPayload = {readonly message: string}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
@@ -421,8 +427,10 @@ type _PreviewConversationPayload = {
     | 'memberView'
     | 'newChannel'
     | 'transaction'
+    | 'sentPayment'
     | 'requestedPayment'
     | 'teamMention'
+    | 'appLink'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -480,6 +488,10 @@ type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
 }
+type _SetCommandStatusInfoPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly info: Types.CommandStatusInfo
+}
 type _SetContainsLastMessagePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly contains: boolean
@@ -508,6 +520,10 @@ type _SetMinWriterRolePayload = {
 }
 type _SetPaymentConfirmInfoPayload = {readonly summary: RPCChatTypes.UIChatPaymentSummary}
 type _SetPaymentConfirmInfoPayloadError = {readonly error: RPCTypes.Status}
+type _SetPrependTextPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly text: HiddenString | null
+}
 type _SetThreadSearchQueryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
@@ -605,7 +621,7 @@ type _UpdateUnreadlinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }
-type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis | null}
+type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis}
 
 // Action Creators
 /**
@@ -647,6 +663,12 @@ export const createInboxSearchMoveSelectedIndex = (
 export const createClearAttachmentView = (
   payload: _ClearAttachmentViewPayload
 ): ClearAttachmentViewPayload => ({payload, type: clearAttachmentView})
+/**
+ * Clear command status info
+ */
+export const createClearCommandStatusInfo = (
+  payload: _ClearCommandStatusInfoPayload
+): ClearCommandStatusInfoPayload => ({payload, type: clearCommandStatusInfo})
 /**
  * Clear data for payment confirm modal
  */
@@ -811,11 +833,24 @@ export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload): S
   type: setCommandMarkdown,
 })
 /**
+ * Set command status info
+ */
+export const createSetCommandStatusInfo = (
+  payload: _SetCommandStatusInfoPayload
+): SetCommandStatusInfoPayload => ({payload, type: setCommandStatusInfo})
+/**
  * Set index percent complete
  */
 export const createInboxSearchSetIndexPercent = (
   payload: _InboxSearchSetIndexPercentPayload
 ): InboxSearchSetIndexPercentPayload => ({payload, type: inboxSearchSetIndexPercent})
+/**
+ * Set prepend text for a conversation
+ */
+export const createSetPrependText = (payload: _SetPrependTextPayload): SetPrependTextPayload => ({
+  payload,
+  type: setPrependText,
+})
 /**
  * Set team mention info
  */
@@ -1063,6 +1098,9 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createConversationErrored = (
+  payload: _ConversationErroredPayload
+): ConversationErroredPayload => ({payload, type: conversationErrored})
 export const createDeselectConversation = (
   payload: _DeselectConversationPayload
 ): DeselectConversationPayload => ({payload, type: deselectConversation})
@@ -1325,6 +1363,10 @@ export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
   readonly type: typeof clearAttachmentView
 }
+export type ClearCommandStatusInfoPayload = {
+  readonly payload: _ClearCommandStatusInfoPayload
+  readonly type: typeof clearCommandStatusInfo
+}
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
   readonly type: typeof clearPaymentConfirmInfo
@@ -1332,6 +1374,10 @@ export type ClearPaymentConfirmInfoPayload = {
 export type ConfirmScreenResponsePayload = {
   readonly payload: _ConfirmScreenResponsePayload
   readonly type: typeof confirmScreenResponse
+}
+export type ConversationErroredPayload = {
+  readonly payload: _ConversationErroredPayload
+  readonly type: typeof conversationErrored
 }
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
@@ -1573,6 +1619,10 @@ export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
 }
+export type SetCommandStatusInfoPayload = {
+  readonly payload: _SetCommandStatusInfoPayload
+  readonly type: typeof setCommandStatusInfo
+}
 export type SetContainsLastMessagePayload = {
   readonly payload: _SetContainsLastMessagePayload
   readonly type: typeof setContainsLastMessage
@@ -1613,6 +1663,10 @@ export type SetPaymentConfirmInfoPayloadError = {
   readonly error: true
   readonly payload: _SetPaymentConfirmInfoPayloadError
   readonly type: typeof setPaymentConfirmInfo
+}
+export type SetPrependTextPayload = {
+  readonly payload: _SetPrependTextPayload
+  readonly type: typeof setPrependText
 }
 export type SetThreadSearchQueryPayload = {
   readonly payload: _SetThreadSearchQueryPayload
@@ -1752,8 +1806,10 @@ export type Actions =
   | BlockConversationPayload
   | ChangeFocusPayload
   | ClearAttachmentViewPayload
+  | ClearCommandStatusInfoPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
+  | ConversationErroredPayload
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload
@@ -1823,6 +1879,7 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetCommandMarkdownPayload
+  | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
@@ -1833,6 +1890,7 @@ export type Actions =
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
+  | SetPrependTextPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
@@ -1864,4 +1922,4 @@ export type Actions =
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | UpdateUserReacjisPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

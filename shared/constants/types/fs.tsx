@@ -5,6 +5,7 @@ import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import {IconType} from '../../common-adapters/icon.constants'
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -29,8 +30,8 @@ export enum ProgressType {
 export type _FsError = {
   time: number
   errorMessage: string
-  erroredAction: FsGen.Actions
-  retriableAction?: FsGen.Actions | null
+  erroredAction: FsGen.Actions | EngineGen.Actions
+  retriableAction?: FsGen.Actions | EngineGen.Actions | null
 }
 export type FsError = I.RecordOf<_FsError>
 
@@ -832,19 +833,6 @@ export type ResetMetadata = {
   name: string
   visibility: Visibility
   resetParticipants: Array<string>
-}
-
-// RefreshTag is used by components in FsGen.folderListLoad and
-// FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
-// such data if some FS activity notification indicates it may have changed.
-// Note that this is not a subscrition based model where a component needs to
-// unsubscribe when it's not interested anymore. Instead, we use a simple
-// heuristic where Saga only keeps track of latest call from each component and
-// refresh only the most recently reuested paths for each component.
-export enum RefreshTag {
-  Main = 'main',
-  PathItemActionPopup = 'path-item-action-popup',
-  DestinationPicker = 'destination-picker',
 }
 
 export enum PathItemBadgeType {

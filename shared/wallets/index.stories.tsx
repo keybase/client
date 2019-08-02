@@ -7,7 +7,6 @@ import onboarding from './onboarding/index.stories'
 import sendForm from './send-form/index.stories'
 import confirmForm from './confirm-form/index.stories'
 import receiveModal from './receive-modal/index.stories'
-import exportSecretKey from './export-secret-key/index.stories'
 import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
@@ -16,6 +15,7 @@ import walletSwitcherRow from './wallet/header/wallet-switcher/wallet-row/index.
 import whatIsStellarModal from './what-is-stellar-modal/index.stories'
 import airdrop from './airdrop/index.stories'
 import trustline from './trustline/index.stories'
+import sep7Confirm from './sep7-confirm/index.stories'
 
 const load = () => {
   airdrop()
@@ -23,11 +23,11 @@ const load = () => {
   banner()
   common()
   createAccount()
-  exportSecretKey()
   linkExisting()
   onboarding()
   receiveModal()
   sendForm()
+  sep7Confirm()
   confirmForm()
   walletList()
   wallet()

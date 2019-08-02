@@ -6,7 +6,7 @@ apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "4.2.0"
+def VERSION_NAME = "4.3.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -208,11 +208,6 @@ android {
             }
         }
     }
-
-    // KB:
-    packagingOptions {
-        pickFirst '**/libjsc.so'
-    }
 }
 
 // KB:
@@ -222,9 +217,6 @@ play {
 }
 
 dependencies {
-    // Make sure to put android-jsc at the the first
-    implementation "org.webkit:android-jsc:r245459"
-
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.android.support:multidex:1.0.3"
@@ -237,10 +229,9 @@ dependencies {
     implementation project(':keybaselib')
     implementation project(':react-native-push-notification')
     implementation project(':react-native-camera')
-    implementation project(':react-native-image-picker')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-contacts')
-    // implementation project(':react-native-fast-image')
+    implementation project(':react-native-fast-image')
     implementation project(':lottie-react-native')
     implementation project(':react-native-gesture-handler')
     implementation project(':react-native-screens')

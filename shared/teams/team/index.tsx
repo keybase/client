@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/teams'
 import {renderItem as renderInvitesItem} from './invites-tab/helper'
 import {renderItem as renderMemberItem} from './members-tab/helper'
@@ -14,6 +13,7 @@ import {globalStyles} from '../../styles'
 export type Props = {
   teamname: Types.Teamname
   selectedTab: string
+  // TODO better type
   rows: Array<any>
   setSelectedTab: (arg0: Types.TabKey) => void
 }

@@ -39,7 +39,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
   _onDrop = e => {
     if (!this._validDrag(e)) return
     const fileList = e.dataTransfer.files
-    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
+    const paths: Array<string> = fileList.length
+      ? (Array.prototype.map.call(fileList, f => f.path) as any)
+      : []
     if (paths.length) {
       if (!this.props.allowFolders) {
         for (let path of paths) {
@@ -76,7 +78,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     }
   }
 
-  _onDragLeave = e => {
+  _onDragLeave = () => {
     this.setState({showDropOverlay: false})
   }
 

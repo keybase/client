@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import {AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 import flags from '../../util/feature-flags'
@@ -55,13 +54,13 @@ const JoinAirdrop = p => (
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
-        p.selected && {backgroundColor: Styles.globalColors.purple},
+        p.selected && {backgroundColor: Styles.globalColors.purpleLight},
       ])}
       direction="horizontal"
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>
@@ -82,12 +81,13 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 
 export type Props = {
   accountIDs: Array<AccountID>
+  airdropIsLive: boolean
   airdropSelected: boolean
   style?: Styles.StylesCrossPlatform
   loading: boolean
   inAirdrop: boolean
   onAddNew: () => void
-  onJoinAirdrop: () => void
+  onJoinAirdrop: (() => void) | null
   onLinkExisting: () => void
   onWhatIsStellar: () => void
   title: string
@@ -109,7 +109,7 @@ type Row =
     }
 
 class WalletList extends React.Component<Props> {
-  _renderRow = (i: number, row: Row): React.ReactNode => {
+  _renderRow = (_: number, row: Row): React.ReactNode => {
     switch (row.type) {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
@@ -148,7 +148,7 @@ class WalletList extends React.Component<Props> {
       accountID => ({accountID, key: accountID, type: 'wallet'} as const)
     )
 
-    if (flags.airdrop) {
+    if (flags.airdrop && this.props.airdropIsLive) {
       const joinAirdrop = 'join airdrop'
       rows.push({key: joinAirdrop, type: joinAirdrop})
     }
@@ -180,9 +180,6 @@ const styles = Styles.styleSheetCreate({
   },
   joinAirdrop: {
     alignItems: 'center',
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: `solid`,
-    borderTopWidth: 1,
     height: rowHeight,
   },
   progressHeader: {

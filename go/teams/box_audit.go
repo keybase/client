@@ -24,9 +24,14 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	}
 
 	if mctx.G().IsMobileAppType() {
-		state, stateMtime := mctx.G().MobileAppState.StateAndMtime()
-		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", state, stateMtime)
-		if stateMtime == nil || state != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
+		netState := mctx.G().MobileNetState.State()
+		if netState.IsLimited() {
+			mctx.Debug("ShouldRunBoxAudit: skipping box audit, network state: %v", netState)
+			return false
+		}
+		appState, stateMtime := mctx.G().MobileAppState.StateAndMtime()
+		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", appState, stateMtime)
+		if stateMtime == nil || appState != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
 			mctx.Debug("ShouldRunBoxAudit: mobile and backgrounded")
 			return false
 		}
@@ -71,12 +76,20 @@ func (e FatalBoxAuditError) Error() string {
 	return fmt.Sprintf("audit failed fatally; will not be retried until requested: %s", e.inner)
 }
 
-func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx libkb.MetaContext, shouldReload bool) {
+func shouldSkipBasedOnRecursion(mctx libkb.MetaContext) (libkb.MetaContext, bool) {
 	shouldSkip, ok := mctx.Ctx().Value(SkipBoxAuditCheckContextKey).(bool)
 	if ok && shouldSkip {
-		return mctx, false
+		return mctx, true
 	}
 	mctx = mctx.WithCtx(context.WithValue(mctx.Ctx(), SkipBoxAuditCheckContextKey, true))
+	return mctx, false
+}
+
+func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx libkb.MetaContext, shouldReload bool) {
+	mctx, shouldSkip := shouldSkipBasedOnRecursion(mctx)
+	if shouldSkip {
+		return mctx, false
+	}
 
 	didReaudit, err := mctx.G().GetTeamBoxAuditor().AssertUnjailedOrReaudit(mctx, teamID)
 	if err != nil {
@@ -100,7 +113,7 @@ type BoxAuditor struct {
 	Version boxAuditVersion
 
 	// Singleflight lock on team ID.
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// jailMutex and queueMutex are not per-team locks, since they are
 	// collections of multiple team IDs.  Two audits of two teams can happen at
@@ -113,6 +126,9 @@ type BoxAuditor struct {
 	// don't use a partially initialized jailLRU.
 	jailLRUMutex sync.Mutex
 	jailLRU      *lru.Cache
+
+	delayedSlotsMutex sync.Mutex
+	delayedSlots      map[keybase1.TeamID]bool
 }
 
 var _ libkb.TeamBoxAuditor = &BoxAuditor{}
@@ -152,7 +168,11 @@ func NewBoxAuditor(g *libkb.GlobalContext) *BoxAuditor {
 }
 
 func newBoxAuditorWithVersion(g *libkb.GlobalContext, version boxAuditVersion) *BoxAuditor {
-	a := &BoxAuditor{Version: version}
+	a := &BoxAuditor{
+		Version:      version,
+		locktab:      libkb.NewLockTable(),
+		delayedSlots: make(map[keybase1.TeamID]bool),
+	}
 	a.resetJailLRU()
 	return a
 }
@@ -199,6 +219,8 @@ func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID
 
 func (a *BoxAuditor) boxAuditTeamLocked(mctx libkb.MetaContext, teamID keybase1.TeamID) (attemptPtr *keybase1.BoxAuditAttempt, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("boxAuditTeamLocked(%s)", teamID), func() error { return err })()
+
+	a.clearDelayedSlotForTeam(teamID)
 
 	log, err := a.maybeGetLog(mctx, teamID)
 	if err != nil {
@@ -453,6 +475,15 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		attempt.Error = getErrorMessage(err)
 		return attempt
 	}
+
+	rotateType := keybase1.RotationType_VISIBLE
+	if team.Hidden != nil && team.Hidden.NeedRotate {
+		shouldAudit = true
+		rotateBeforeAudit = true
+		rotateType = keybase1.RotationType_CLKR
+		mctx.Debug("Hidden load said need rotate; so we're attempt a CLKR-style rotation, then will reaudit")
+	}
+
 	if !shouldAudit {
 		mctx.Debug("Not attempting box audit attempt; %s", attempt.Result)
 		attempt.Result = *shouldAuditResult
@@ -461,7 +492,7 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	if rotateBeforeAudit {
 		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx(), keybase1.RotationType_VISIBLE)
+		err := team.Rotate(mctx.Ctx(), rotateType)
 		if err != nil {
 			mctx.Warning("failed to rotate team before audit: %s", err)
 			// continue despite having failed to rotate
@@ -665,6 +696,8 @@ func (d DummyBoxAuditor) Attempt(mctx libkb.MetaContext, _ keybase1.TeamID, _ bo
 		Result: keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE,
 		Ctime:  keybase1.ToUnixTime(time.Now()),
 	}
+}
+func (d DummyBoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 }
 
 // BoxAuditLog is a log of audits for a particular team.
@@ -1001,13 +1034,11 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 
 // merkleSeqnoAtGenerationInception assumes TeamSigChainState.MerkleRoots is populated
 func merkleSeqnoAtGenerationInception(mctx libkb.MetaContext, teamchain *TeamSigChainState) (merkleSeqno keybase1.Seqno, err error) {
-	ptk, err := teamchain.GetLatestPerTeamKey(mctx)
+	_, mr, err := teamchain.getLatestPerTeamKeyWithMerkleSeqno(mctx)
 	if err != nil {
 		return 0, err
 	}
-	sigchainSeqno := ptk.Seqno
-	root := teamchain.GetMerkleRoots()[sigchainSeqno]
-	return root.Seqno, nil
+	return mr.Seqno, nil
 }
 
 // TeamIDKeys takes a set of DBKeys that must all be tid:-style DBKeys and
@@ -1140,4 +1171,58 @@ func randomKnownTeamID(mctx libkb.MetaContext) (teamID *keybase1.TeamID, err err
 		return nil, err
 	}
 	return &knownTeamIDs[idx.Int64()], nil
+}
+
+func (a *BoxAuditor) getDelayedSlotForTeam(teamID keybase1.TeamID) bool {
+	a.delayedSlotsMutex.Lock()
+	defer a.delayedSlotsMutex.Unlock()
+	found := a.delayedSlots[teamID]
+	if !found {
+		a.delayedSlots[teamID] = true
+	}
+	return !found
+}
+
+func (a *BoxAuditor) clearDelayedSlotForTeam(teamID keybase1.TeamID) {
+	a.delayedSlotsMutex.Lock()
+	defer a.delayedSlotsMutex.Unlock()
+	delete(a.delayedSlots, teamID)
+}
+
+func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+
+	mctx, shouldSkip := shouldSkipBasedOnRecursion(mctx)
+	if shouldSkip {
+		mctx.Debug("no re-scheduling a delayed box audit since we're calling recursively based on context")
+		return
+	}
+	go a.scheduleDelayedBoxAuditTeam(mctx, teamID)
+}
+
+func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+
+	defer mctx.Trace(fmt.Sprintf("BoxAuditor#ScheduleDelayedBoxAuditTeam(%s)", teamID), func() error { return nil })()
+
+	if !a.getDelayedSlotForTeam(teamID) {
+		mctx.Debug("not scheduling delayed audit, since one is already in progress")
+		return
+	}
+
+	if mctx.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		// We don't fire this immediately since likely everyone else on the team is going to try the same thing;
+		// So randomly backoff and maybe someone is going to win, and we won't all race to fix it.
+		base := libkb.TeamBackoffBeforeAuditOnNeedRotate
+		dur, err := libkb.RandomJitter(base)
+		if err != nil {
+			dur = base
+			mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
+		}
+		mctx.Debug("Sleeping %s random jitter before auditing the team", dur)
+		mctx.G().Clock().Sleep(dur)
+	}
+
+	_, err := a.BoxAuditTeam(mctx, teamID)
+	if err != nil {
+		mctx.Info("Box audit of team failed with error; we will continue to retry: %s", err)
+	}
 }

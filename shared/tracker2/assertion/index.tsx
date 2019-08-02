@@ -13,12 +13,12 @@ type Props = {
   notAUser: boolean
   onCopyAddress: () => void
   onRequestLumens: () => void
-  onRecheck: () => void | null
-  onRevoke: () => void | null
+  onRecheck: (() => void) | null
+  onRevoke: (() => void) | null
   onSendLumens: () => void
-  onShowProof: () => void | null
-  onShowSite: () => void | null
-  onCreateProof: () => void | null
+  onShowProof?: () => void
+  onShowSite: (() => void) | null
+  onCreateProof: (() => void) | null
   onWhatIsStellar: () => void
   proofURL: string
   siteIcon: Types.SiteIconSet | null
@@ -125,9 +125,9 @@ class _StellarValue extends React.PureComponent<
       {newTag: true, onClick: this.props.onSendLumens, title: 'Send Lumens (XLM)'},
       {newTag: true, onClick: this.props.onRequestLumens, title: 'Request Lumens (XLM)'},
       {onClick: this.props.onCopyAddress, title: 'Copy address'},
-      'Divider',
+      'Divider' as const,
       {onClick: this.props.onWhatIsStellar, title: 'What is Stellar?'},
-    ] as const
+    ]
 
     return Styles.isMobile ? (
       <Kb.Text
@@ -162,8 +162,8 @@ class _StellarValue extends React.PureComponent<
 }
 const StellarValue = Kb.OverlayParentHOC(_StellarValue)
 
-const Value = p => {
-  let content = null
+const Value = (p: Props) => {
+  let content: JSX.Element | null = null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
@@ -303,7 +303,6 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    if (this.props.notAUser) return null
     const set = full ? this.props.siteIconFull : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />

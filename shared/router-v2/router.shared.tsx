@@ -3,7 +3,7 @@ import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, tabRoots} from './routes'
+import {modalRoutes, tabRoots} from './routes'
 import logger from '../logger'
 import {getActiveKey} from './util'
 
@@ -36,8 +36,6 @@ export const desktopTabs = [
 // actual routing actions (or make RouteTreeGen append/up the only action)
 export const oldActionToNewActions = (action: any, navigation: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
-    case RouteTreeGen.navigateTo: // fallthrough
-    case RouteTreeGen.switchTo: // fallthrough
     case RouteTreeGen.navigateAppend: {
       if (!navigation) {
         return
@@ -48,8 +46,8 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       if (!p) {
         return
       }
-      let routeName = null
-      let params
+      let routeName: string | null = null
+      let params: unknown
 
       if (typeof p === 'string') {
         routeName = p
@@ -89,37 +87,8 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
     case RouteTreeGen.switchTab: {
       return [NavigationActions.navigate({routeName: action.payload.tab})]
     }
-    case RouteTreeGen.switchRouteDef: {
-      // used to tell if its the login one or app one. this will all change when we deprecate the old routing
-      const routeName = action.payload.loggedIn ? 'loggedIn' : 'loggedOut'
-
-      // You're logged out
-      if (routeName === 'loggedOut') {
-        return [NavigationActions.navigate({params: undefined, routeName: 'loggedOut'})]
-      }
-
-      // When we restore state we want the following stacks
-      let sa = [NavigationActions.navigate({params: undefined, routeName: 'loggedIn'})]
-
-      if (action.payload.path) {
-        const p = action.payload.path.last
-          ? action.payload.path.last()
-          : action.payload.path[action.payload.path.length - 1]
-
-        sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
-      }
-
-      // validate sa
-      if (
-        !sa.every(
-          a => a.routeName === 'loggedIn' || !!routes[a.routeName] || mobileTabs.includes(a.routeName)
-        )
-      ) {
-        logger.error('Invalid route found, bailing on push', sa)
-        sa = []
-      }
-
-      return sa
+    case RouteTreeGen.switchLoggedIn: {
+      return [NavigationActions.navigate({routeName: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
     }
     case RouteTreeGen.clearModals: {
       const numModals = getNumModals(navigation)
@@ -129,7 +98,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return [NavigationActions.back({key: action.payload.fromKey})]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
-      const popActions = []
+      const popActions: Array<unknown> = []
       const isInStack = fullPath.reverse().some(r => {
         if (r.routeName === action.payload.routeName) {
           return true
@@ -153,5 +122,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         }),
       ]
     }
+      default:
+          return undefined
   }
 }

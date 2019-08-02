@@ -3,6 +3,7 @@ import * as Sb from '../../stories/storybook'
 import {Avatar, Box} from '..'
 import ConfirmModal from '.'
 import * as Styles from '../../styles'
+import {repeat} from 'lodash-es'
 
 const styles = Styles.styleSheetCreate({
   avatarBox: {
@@ -62,7 +63,8 @@ const headerProps = {
   icon: undefined,
 }
 
-const errorText = 'Oh nOOooOOooOOooooOoooooOOoooooooooooooooo. Something went wrong while other things were going ok and to explain why the service has a very verbose message for you.'
+const errorText =
+  'Oh nOOooOOooOOooooOoooooOOoooooooooooooooo. Something went wrong while other things were going ok and to explain why the service has a very verbose message for you.'
 
 const load = () => {
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm', () => <ConfirmModal {...props} />)
@@ -81,6 +83,10 @@ const load = () => {
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm with error and header', () => (
     <ConfirmModal {...headerProps} error={errorText} />
   ))
+  Sb.storiesOf('Common/Confirm Modal', module).add(
+    'Confirm with error and header and long explanation',
+    () => <ConfirmModal {...headerProps} error={errorText} description={repeat('long text ', 100)} />
+  )
 }
 
 export default load

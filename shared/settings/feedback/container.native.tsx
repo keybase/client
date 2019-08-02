@@ -3,13 +3,14 @@ import * as React from 'react'
 import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import Feedback from './index'
 import logSend from '../../native/log-send'
-import {compose, connect, RouteProps, getRouteProps} from '../../util/container'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = RouteProps<{feedback: string}, {}>
+type OwnProps = Container.RouteProps<{feedback: string}>
 
 export type State = {
   sentFeedback: boolean
@@ -104,46 +105,41 @@ class FeedbackContainer extends React.Component<Props, State> {
         sending={this.state.sending}
         sendError={this.state.sendError}
         loggedOut={this.props.loggedOut}
+        showInternalSuccessBanner={true}
+        onFeedbackDone={() => null}
       />
     )
   }
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
-const mapStateToProps = state => {
-  return {
-    chat: getExtraChatLogsForLogSend(state),
-    loggedOut: !state.config.loggedIn,
-    push: getPushTokenForLogSend(state),
-    status: {
-      appVersionCode,
-      appVersionName,
-      deviceID: state.config.deviceID,
-      mobileOsVersion,
-      platform: isAndroid ? 'android' : 'ios',
-      uid: state.config.uid,
-      username: state.config.username,
-      version,
-    },
-  }
-}
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  title: 'Feedback',
-})
-
-const mergeProps = (s, d, o: OwnProps) => ({
-  ...s,
-  ...d,
-  feedback: getRouteProps(o, 'feedback') || '',
-})
-
-const connected = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
+const connected = Container.compose(
+  Container.connect(
+    state => ({
+      chat: getExtraChatLogsForLogSend(state),
+      loggedOut: !state.config.loggedIn,
+      push: getPushTokenForLogSend(state),
+      status: {
+        appVersionCode,
+        appVersionName,
+        deviceID: state.config.deviceID,
+        mobileOsVersion,
+        platform: isAndroid ? 'android' : 'ios',
+        uid: state.config.uid,
+        username: state.config.username,
+        version,
+      },
+    }),
+    dispatch => ({
+      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+      title: 'Feedback',
+    }),
+    (s, d, o: OwnProps) => ({
+      ...s,
+      ...d,
+      feedback: Container.getRouteProps(o, 'feedback', ''),
+    })
   ),
   HOCTimers
 )(FeedbackContainer)

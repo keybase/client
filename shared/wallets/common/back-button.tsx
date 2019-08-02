@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
+  showCancelInsteadOfBackOnMobile: boolean
   onBack: () => void
   isOnWhiteBackground?: boolean
 }
@@ -14,7 +15,7 @@ const WalletBackButton = (props: Props) =>
       style={Styles.collapseStyles([styles.backButton, !props.isOnWhiteBackground && styles.whiteText])}
       type="BodyPrimaryLink"
     >
-      Cancel
+      {props.showCancelInsteadOfBackOnMobile ? 'Cancel' : 'Back'}
     </Kb.Text>
   ) : (
     <Kb.BackButton

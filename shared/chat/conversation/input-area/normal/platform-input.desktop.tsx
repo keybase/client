@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
@@ -11,6 +12,7 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
+import {BotCommandUpdateStatus} from './shared'
 
 type State = {
   emojiPickerOpen: boolean
@@ -18,16 +20,12 @@ type State = {
 }
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
-  _input: Kb.PlainInput | null
-  _lastText: string | null
-  _fileInput: HTMLInputElement | null
-
-  constructor(props: PlatformInputPropsInternal) {
-    super(props)
-    this.state = {
-      emojiPickerOpen: false,
-      hasText: false,
-    }
+  _input: Kb.PlainInput | null = null
+  _lastText?: string
+  _fileInput: HTMLInputElement | null = null
+  state = {
+    emojiPickerOpen: false,
+    hasText: false,
   }
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
@@ -75,6 +73,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
       return true
+    } else if (e.key === 'Escape' && this.props.showReplyPreview) {
+      this.props.onCancelReply()
+      return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
       return true
@@ -119,6 +120,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowUp',
       'ArrowDown',
       'Enter',
+      'Escape',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
@@ -128,13 +130,10 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   _insertEmoji = (emojiColons: string) => {
     if (this._input) {
       this._input.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
-        const pos = selection.start + emojiColons.length
+        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
+        const pos = (selection.start || 0) + emojiColons.length
         return {
-          selection: {
-            end: pos,
-            start: pos,
-          },
+          selection: {end: pos, start: pos},
           text: newText,
         }
       }, true)
@@ -149,16 +148,17 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _pickFile = () => {
     const fileList = this._filePickerFiles()
-    const paths = fileList.length
+    const paths: Array<string> = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's
             // not part of the File spec.
-            // $ForceType
-            const path: string = f.path
-            return path
+            return f.path as string
           })
-          .filter(Boolean)
+          .reduce<Array<string>>((arr, p: any) => {
+            p && arr.push(p)
+            return arr
+          }, [])
       : []
     if (paths) {
       this.props.onAttach(paths)
@@ -188,6 +188,12 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
         onKeyDown={this._globalKeyDownPressHandler}
         onKeyPress={this._globalKeyDownPressHandler}
       >
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
+          (this.props.suggestionsVisible ||
+            this.props.suggestBotCommandsUpdateStatus ===
+              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          )}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={Styles.collapseStyles([

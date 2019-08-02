@@ -5,7 +5,6 @@
 //  Created by Chris Nojima on 9/28/16.
 //  Copyright © 2016 Keybase. All rights reserved.
 //
-
 #import "AppDelegate.h"
 #import <AVFoundation/AVFoundation.h> 
 #import <React/RCTPushNotificationManager.h>
@@ -27,31 +26,21 @@
 @property UIBackgroundTaskIdentifier shutdownTask;
 @end
 
-#if TARGET_OS_SIMULATOR
-const BOOL isSimulator = YES;
-#else
-const BOOL isSimulator = NO;
-#endif
-
-#if DEBUG
-const BOOL isDebug = YES;
-#else
-const BOOL isDebug = NO;
-#endif
 
 @implementation AppDelegate
 
 - (void) setupGo
 {
-#if TESTING
-  return
+#if TARGET_OS_SIMULATOR
+  BOOL securityAccessGroupOverride = YES;
+#else
+  BOOL securityAccessGroupOverride = NO;
 #endif
-
-  NSError* err;
-  BOOL securityAccessGroupOverride = isSimulator;
+  // set to true to see logs in xcode
   BOOL skipLogFile = false;
 
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
+  NSError* err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
                                                    @"homedir": fsPaths[@"home"],
@@ -111,7 +100,7 @@ const BOOL isDebug = NO;
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG
-  // uncomment to get a prod bundle
+  // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
 //  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 #else

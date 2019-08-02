@@ -15,7 +15,6 @@ import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
-import {TypedActions} from 'util/container'
 
 type pathType = 'file' | 'directory'
 
@@ -50,14 +49,15 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      SafeElectron.getShell().openExternal(url, {activate: true}, err => {
-        if (err) {
+      SafeElectron.getShell()
+        .openExternal(url, {activate: true})
+        .then(() => {
+          logger.info('Opened directory:', openPath)
+          resolve()
+        })
+        .catch(err => {
           reject(err)
-          return
-        }
-        logger.info('Opened directory:', openPath)
-        resolve()
-      })
+        })
     })
   })
 }
@@ -97,7 +97,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
       : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (state, action: FsGen.OpenLocalPathInSystemFileManagerPayload) =>
+const openLocalPathInSystemFileManager = (_, action: FsGen.OpenLocalPathInSystemFileManagerPayload) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -129,7 +129,7 @@ const openPathInSystemFileManager = (
         .catch(err => {
           return makeRetriableErrorHandler(action, action.payload.path)(err)
         })
-    : new Promise((resolve, reject) =>
+    : new Promise((_, reject) =>
         // This usually indicates a developer error as
         // openPathInSystemFileManager shouldn't be used when FUSE integration
         // is not enabled. So just blackbar to encourage a log send.
@@ -163,7 +163,7 @@ const fuseStatusToUninstallExecPath = isWindows
         status.status.fields.find(({key}) => key === 'uninstallString')
       return field && field.value
     }
-  : (status: RPCTypes.FuseStatus | null) => null
+  : (_: RPCTypes.FuseStatus | null) => null
 
 const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   status: RPCTypes.FuseStatus | null
@@ -230,13 +230,13 @@ const refreshDriverStatus = (
     .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
 
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
-  result &&
-  result.componentResults &&
+  !!result &&
+  !!result.componentResults &&
   result.componentResults.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (state, action: FsGen.DriverEnablePayload): Promise<Saga.MaybeAction> =>
+const driverEnableFuse = (_, action: FsGen.DriverEnablePayload): Promise<Saga.MaybeAction> =>
   RPCTypes.installInstallFuseRpcPromise().then((result: RPCTypes.InstallResult) =>
     fuseInstallResultIsKextPermissionError(result)
       ? [
@@ -249,9 +249,8 @@ const driverEnableFuse = (state, action: FsGen.DriverEnablePayload): Promise<Sag
   )
 
 const uninstallKBFSConfirm = () =>
-  new Promise((resolve, reject) =>
+  new Promise(resolve =>
     SafeElectron.getDialog().showMessageBox(
-      null,
       {
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -277,7 +276,6 @@ const uninstallDokanConfirm = state => {
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     return new Promise(resolve =>
       SafeElectron.getDialog().showMessageBox(
-        null,
         {
           buttons: ['Got it'],
           detail:
@@ -285,7 +283,7 @@ const uninstallDokanConfirm = state => {
           message: 'Please uninstall Dokan from the Control Panel.',
           type: 'info',
         },
-        resp => resolve(FsGen.createRefreshDriverStatus())
+        () => resolve(FsGen.createRefreshDriverStatus())
       )
     )
   }
@@ -307,22 +305,18 @@ const uninstallDokan = state => {
 }
 
 const openSecurityPreferences = () => {
-  SafeElectron.getShell().openExternal(
-    'x-apple.systempreferences:com.apple.preference.security?General',
-    {activate: true},
-    err => {
-      if (err) {
-        return
-      }
+  SafeElectron.getShell()
+    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+    .then(() => {
       logger.info('Opened Security Preferences')
-    }
-  )
+    })
+    .catch(() => {})
 }
 
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (state, action: FsGen.DriverEnablePayload) =>
+const installCachedDokan = (_, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -352,11 +346,8 @@ const installCachedDokan = (state, action: FsGen.DriverEnablePayload) =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action, null))
 
-const openAndUploadToPromise = (
-  state: TypedState,
-  action: FsGen.OpenAndUploadPayload
-): Promise<Array<string>> =>
-  new Promise((resolve, reject) =>
+const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
+  new Promise(resolve =>
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
@@ -377,10 +368,7 @@ const openAndUpload = (state, action: FsGen.OpenAndUploadPayload) =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
 
-const loadUserFileEdits = (
-  state,
-  action: FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload
-) =>
+const loadUserFileEdits = state =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
@@ -388,11 +376,11 @@ const loadUserFileEdits = (
     })
   )
 
-const openFilesFromWidget = (state, {payload: {path, type}}) => [
+const openFilesFromWidget = (_, {payload: {path}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
-    : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
+    : [RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})]),
 ]
 
 const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>

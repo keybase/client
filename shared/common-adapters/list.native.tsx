@@ -12,7 +12,7 @@ class List extends PureComponent<Props<any>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (data, index) => ({
+  _getItemLayout = (_, index) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,
@@ -48,6 +48,7 @@ class List extends PureComponent<Props<any>> {
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
             keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
+            ListHeaderComponent={this.props.ListHeaderComponent}
             onEndReached={this.props.onEndReached}
             windowSize={this.props.windowSize || 10}
             debug={false /* set to true to debug the list */}

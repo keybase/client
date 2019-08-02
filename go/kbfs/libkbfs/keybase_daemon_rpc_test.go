@@ -327,22 +327,6 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// truncateNotificationTimestamps is a helper function to truncate
-// timestamps to second resolution. This is needed because some
-// methods of storing timestamps (e.g., relying on the filesystem) are
-// lossy.
-func truncateNotificationTimestamps(
-	notifications []keybase1.FSNotification) []keybase1.FSNotification {
-	roundedNotifications := make(
-		[]keybase1.FSNotification, len(notifications))
-	for i, n := range notifications {
-		n.LocalTime = keybase1.ToTime(
-			n.LocalTime.Time().Truncate(time.Second))
-		roundedNotifications[i] = n
-	}
-	return roundedNotifications
-}
-
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
@@ -363,7 +347,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -375,7 +360,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	clock.Add(1 * time.Minute)
 	second := clock.Now()
 
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)

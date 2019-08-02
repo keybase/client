@@ -130,6 +130,6 @@ func bufToSlice(ptr unsafe.Pointer, nbytes int) []byte {
 	}
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(ptr),
-		Len:  int(nbytes),
-		Cap:  int(nbytes)}))
+		Len:  nbytes,
+		Cap:  nbytes}))
 }

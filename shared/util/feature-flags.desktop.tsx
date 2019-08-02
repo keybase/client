@@ -15,27 +15,29 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
+  fastAccountSwitch: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
+  lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: false,
-  stellarExternalPartners: false,
+  sbsContacts: true,
+  stellarExternalPartners: true,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
+  fastAccountSwitch: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
   sbsContacts: true,
-  stellarExternalPartners: true,
 }
 
 // load overrides

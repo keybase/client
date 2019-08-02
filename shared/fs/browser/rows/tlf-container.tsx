@@ -10,7 +10,7 @@ import flags from '../../../util/feature-flags'
 type OwnProps = {
   destinationPickerIndex?: number
   name: string
-  routePath: I.List<string>
+  showTlfTypeIcon?: boolean
   tlfType: Types.TlfType
 }
 
@@ -19,11 +19,7 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _username: state.config.username,
 })
 
-const mergeProps = (
-  stateProps,
-  dispatchProps,
-  {tlfType, name, routePath, destinationPickerIndex}: OwnProps
-) => {
+const mergeProps = (stateProps, _, {tlfType, name, showTlfTypeIcon, destinationPickerIndex}: OwnProps) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
@@ -37,7 +33,7 @@ const mergeProps = (
       stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     name,
     path,
-    routePath,
+    showTlfTypeIcon,
     // Only include the user if they're the only one
     usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
   }

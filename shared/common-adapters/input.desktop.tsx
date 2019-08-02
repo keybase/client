@@ -11,7 +11,7 @@ type State = {
 }
 
 class Input extends React.PureComponent<Props, State> {
-  _input: HTMLTextAreaElement | HTMLInputElement | null
+  _input: HTMLTextAreaElement | HTMLInputElement | null = null
   _isComposingIME: boolean = false
 
   state = {
@@ -27,7 +27,7 @@ class Input extends React.PureComponent<Props, State> {
     this.props.autoFocus && this.focus()
   }
 
-  componentDidUpdate = (prevProps: Props, prevState: State) => {
+  componentDidUpdate = (prevProps: Props) => {
     if (!this.props.uncontrolled && this.props.value !== prevProps.value) {
       this._autoResize()
     }
@@ -196,8 +196,8 @@ class Input extends React.PureComponent<Props, State> {
         // If multiline, inject a newline.
         if (this.props.multiline) {
           this._transformText(({text, selection}) => {
-            const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
-            const pos = selection.start + 1
+            const newText = text.slice(0, selection.start || 0) + '\n' + text.slice(selection.end || 0)
+            const pos = (selection.start || 0) + 1
             const newSelection = {end: pos, start: pos}
             return {
               selection: newSelection,
@@ -273,7 +273,7 @@ class Input extends React.PureComponent<Props, State> {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
 
-    const commonInputStyle = {
+    const commonInputStyle: any = {
       ...globalStyles.fontSemibold,
       backgroundColor: globalColors.transparent,
       border: 'none',
@@ -319,7 +319,7 @@ class Input extends React.PureComponent<Props, State> {
 
     const floatingHintText =
       !!value.length &&
-      (this.props.hasOwnProperty('floatingHintTextOverride')
+      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
@@ -335,7 +335,10 @@ class Input extends React.PureComponent<Props, State> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.hintText,
-      readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? true : undefined,
+      readOnly:
+        Object.prototype.hasOwnProperty.call(this.props, 'editable') && !this.props.editable
+          ? true
+          : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
     }
@@ -406,9 +409,9 @@ class Input extends React.PureComponent<Props, State> {
 }
 
 const _lineHeight = 20
-const _headerTextStyle = getTextStyle('Header')
-const _bodyTextStyle = getTextStyle('Body')
-const _bodySmallTextStyle = getTextStyle('BodySmall')
+const _headerTextStyle: any = getTextStyle('Header')
+const _bodyTextStyle: any = getTextStyle('Body')
+const _bodySmallTextStyle: any = getTextStyle('BodySmall')
 
 const _errorStyle = {
   marginTop: globalMargins.xtiny,

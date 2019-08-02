@@ -1,7 +1,6 @@
 import React from 'react'
-import {Box, Button, Input, Text, ScrollView} from '../../common-adapters/index'
+import {PopupDialog, Box, Button, Input, Text, ScrollView} from '../../common-adapters'
 import {SuccessComponent, styleContainer, stylePadding} from './index.shared'
-import {PopupDialog} from '../../common-adapters/'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import {Props} from '.'

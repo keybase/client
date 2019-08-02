@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Text, NativeImage} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
@@ -12,7 +12,7 @@ export type Props = {
 }
 
 const TurnOnNotifications = (props: Props) => (
-  <Box
+  <Kb.Box
     style={{
       ...globalStyles.flexBoxColumn,
       backgroundColor: globalColors.red,
@@ -22,10 +22,10 @@ const TurnOnNotifications = (props: Props) => (
       width: '100%',
     }}
   >
-    <Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
-      <NativeImage resizeMode="contain" source={notificationMonster} />
-    </Box>
-    <Text
+    <Kb.Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
+      <Kb.NativeImage resizeMode="contain" source={notificationMonster} />
+    </Kb.Box>
+    <Kb.Text
       type="BodySemibold"
       center={true}
       negative={true}
@@ -37,16 +37,16 @@ const TurnOnNotifications = (props: Props) => (
       }}
     >
       You turned off native notifications for Keybase. It’s{' '}
-      <Text type="BodySemiboldItalic" negative={true}>
+      <Kb.Text type="BodySemiboldItalic" negative={true}>
         very
-      </Text>{' '}
+      </Kb.Text>{' '}
       important you turn them back on.
       {'\n'}
-      <Text onClick={props.onEnable} type="BodySemiboldLink" negative={true}>
+      <Kb.Text onClick={props.onEnable} type="BodySemiboldLink" negative={true}>
         Enable notifications
-      </Text>
-    </Text>
-  </Box>
+      </Kb.Text>
+    </Kb.Text>
+  </Kb.Box>
 )
 
 const mapStateToProps = () => ({})

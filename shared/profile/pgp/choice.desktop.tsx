@@ -36,6 +36,6 @@ const mapDispatchToProps = dispatch => ({
   onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
 })
 
-export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Choice')(
+export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}), 'Choice')(
   Choice
 )

@@ -17,7 +17,7 @@ const mapDispatchToProps = dispatch => ({
   onOpenTeamProfile: (teamname: string) => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
-      RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
+      RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
     )
   },
   onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
@@ -27,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (
   _stateProps,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: ConnectedNameWithIconProps
+  ownProps: OwnProps
 ) => {
   const {onClick, username, teamname, ...props} = ownProps
 

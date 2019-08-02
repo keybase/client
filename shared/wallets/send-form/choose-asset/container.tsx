@@ -5,7 +5,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   displayChoices: (stateProps.currencies || []).map(c => ({
     currencyCode: c.code,
     selected: c.code === stateProps.selected,

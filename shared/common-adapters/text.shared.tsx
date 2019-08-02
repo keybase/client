@@ -29,7 +29,9 @@ export const allTextTypes = {
   BodyTiny: 'BodyTiny',
   BodyTinyLink: 'BodyTinyLink',
   BodyTinySemibold: 'BodyTinySemibold',
+  BodyTinySemiboldItalic: 'BodyTinySemiboldItalic',
   BodyTinyBold: 'BodyTinyBold',
+  BodyTinyExtrabold: 'BodyTinyBold',
   Header: 'Header',
   HeaderItalic: 'HeaderItalic',
   HeaderExtrabold: 'HeaderExtrabold',
@@ -42,5 +44,5 @@ export const allTextTypes = {
   TerminalInline: 'TerminalInline',
 }
 
-export const backgroundModeIsNegative = (bm: Background | null) =>
+export const backgroundModeIsNegative = (bm: Background | null): boolean =>
   !!bm && !['Normal', 'Information'].includes(bm)

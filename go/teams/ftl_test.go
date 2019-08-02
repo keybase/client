@@ -40,18 +40,24 @@ func TestFastLoaderBasic(t *testing.T) {
 
 // Test fast loading a team that does several key rotations.
 func TestFastLoaderKeyGen(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	fus, tcs, cleanup := setupNTests(t, 4)
 	defer cleanup()
 
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
-	m := make([]libkb.MetaContext, 2)
+	m := make([]libkb.MetaContext, 4)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
 
 	t.Logf("add B to the team so they can load it")
 	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+	t.Logf("add C to the team so they can load it")
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	require.NoError(t, err)
+	t.Logf("add D to the team so they can load it")
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_RESTRICTEDBOT)
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")
@@ -65,6 +71,36 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Equal(t, len(team.ApplicationKeys), 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("C's first load at gen 1")
+	arg = keybase1.FastTeamLoadArg{
+		ID:            teamID,
+		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		NeedLatestKey: true,
+	}
+	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+	require.NoError(t, err)
+	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("D's first load at gen 1")
+	arg = keybase1.FastTeamLoadArg{
+		ID: teamID,
+	}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.NoError(t, err)
+	// since D is a restricted bot, they should not have access to any keys
+	require.Zero(t, len(team.ApplicationKeys))
+	require.True(t, teamName.Eq(team.Name))
+	arg = keybase1.FastTeamLoadArg{
+		ID:            teamID,
+		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		NeedLatestKey: true,
+	}
+	_, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.IsType(t, FTLMissingSeedError{}, err)
+	require.Zero(t, len(team.ApplicationKeys))
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
@@ -130,6 +166,37 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
+	t.Logf("make sure D still doesn't have access")
+	arg = keybase1.FastTeamLoadArg{
+		ID: teamID,
+	}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.NoError(t, err)
+	require.Zero(t, len(team.ApplicationKeys))
+	require.True(t, teamName.Eq(team.Name))
+
+	arg = keybase1.FastTeamLoadArg{
+		ID:                   teamID,
+		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
+	}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.IsType(t, FTLMissingSeedError{}, err)
+	require.Zero(t, len(team.ApplicationKeys))
+
+	t.Logf("upgrade D to a bot and check they have access")
+	err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username)
+	require.NoError(t, err)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT)
+	require.NoError(t, err)
+
+	arg.NeedLatestKey = false
+	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(4)}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.NoError(t, err)
+	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
+	require.True(t, teamName.Eq(team.Name))
 }
 
 // Test loading a sub-sub-team: a.b.c.

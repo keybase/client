@@ -29,7 +29,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
     <Kb.FloatingMenu
       items={[
-        {onClick: props.onFeedback, title: 'Send feedback'},
+        {onClick: () => props.onFeedback(), title: 'Send feedback'},
         {onClick: props.onDocumentation, title: 'Documentation'},
       ]}
       attachTo={props.getAttachmentRef}
@@ -41,20 +41,31 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
 )
 
 export const InfoIcon = Container.namedConnect(
-  () => ({}),
-  () => ({
+  state => ({_loggedIn: state.config.loggedIn}),
+  dispatch => ({
+    _onFeedback: (loggedIn: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
+        })
+      )
+    },
     onDocumentation: () => openURL('https://keybase.io/docs'),
-    onFeedback: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})), // TODO Y2K-108 un-jankify this
   }),
-  (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
+  (s, d, o: InfoIconOwnProps) => ({
+    ...o,
+    onDocumentation: d.onDocumentation,
+    onFeedback: () => d._onFeedback(s._loggedIn),
+  }),
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {
-  onBack: () => void
+  onBack?: (() => void) | null
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
+  showInfoIconRow: boolean
   style: Styles.StylesCrossPlatform
   negative: boolean
 }
@@ -66,9 +77,9 @@ const Header = (props: HeaderProps) => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.headerContainer, props.style])}
   >
-    {props.showInfoIcon && (
+    {(props.showInfoIcon || props.showInfoIconRow) && (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-        <InfoIcon invisible={props.negative as boolean} />
+        <InfoIcon invisible={(props.negative as boolean) || (props.showInfoIconRow && !props.showInfoIcon)} />
       </Kb.Box2>
     )}
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
@@ -117,10 +128,11 @@ type SignupScreenProps = {
   titleComponent?: React.ReactNode
   header?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: () => void | null
+  onRightAction?: (() => void) | null
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean
+  showHeaderInfoiconRow?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
@@ -132,7 +144,8 @@ export const SignupScreen = (props: SignupScreenProps) => (
         title={props.title}
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
-        style={props.headerStyle}
+        showInfoIconRow={!!props.showHeaderInfoiconRow}
+        style={props.headerStyle || null}
         negative={!!props.negativeHeader}
       />
     )}
@@ -174,7 +187,13 @@ SignupScreen.defaultProps = {
 }
 
 export const errorBanner = (error: string) =>
-  error.trim() ? [<Kb.Banner key="generalError" color="red" text={error} />] : []
+  error.trim()
+    ? [
+        <Kb.Banner key="generalError" color="red">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>,
+      ]
+    : []
 
 const styles = Styles.styleSheetCreate({
   backButton: {

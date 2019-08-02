@@ -21,6 +21,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   ),
   asset: state.wallets.trustline.assetMap.get(ownProps.assetID, Constants.emptyAssetDescription),
   expandedAssets: state.wallets.trustline.expandedAssets,
+  thisDeviceIsLockedOut: Constants.getAccount(state, ownProps.accountID).deviceReadOnly,
   waitingRefresh: Waiting.anyWaiting(
     state,
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
@@ -54,13 +55,15 @@ const mergeProps = (s, d, o: OwnProps) => ({
   code: s.asset.code,
   expanded: s.expandedAssets.includes(o.assetID),
   firstItem: o.firstItem,
+  infoUrlText: s.asset.infoUrlText,
   issuerAccountID: s.asset.issuerAccountID,
   issuerVerifiedDomain: s.asset.issuerVerifiedDomain,
   onAccept: d.onAccept,
   onCollapse: d.onCollapse,
   onExpand: d.onExpand,
+  onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
   onRemove: d.onRemove,
-  onViewDetails: () => openUrl('https://keybase.io'), // TODO patrick
+  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
   trusted: !!s.acceptedAssets.get(o.assetID, 0),
   waitingAdd: s.waitingAdd,
   waitingDelete: s.waitingDelete,

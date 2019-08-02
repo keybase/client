@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -11,18 +12,72 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
-type EKType string
+type EphemeralKeyKind string
 
 const (
-	DeviceEKStr EKType = "deviceEK"
-	UserEKStr   EKType = "userEK"
-	TeamEKStr   EKType = "teamEK"
+	DeviceEKKind  EphemeralKeyKind = "deviceEK"
+	UserEKKind    EphemeralKeyKind = "userEK"
+	TeamEKKind    EphemeralKeyKind = "teamEK"
+	TeambotEKKind EphemeralKeyKind = "teambotEK"
+)
+
+type EphemeralKeyErrorKind int
+
+const (
+	EphemeralKeyErrorKind_DEVICENOTAUTHENTICATED EphemeralKeyErrorKind = iota
+	EphemeralKeyErrorKind_UNBOX
+	EphemeralKeyErrorKind_MISSINGBOX
+	EphemeralKeyErrorKind_WRONGKID
+	EphemeralKeyErrorKind_CORRUPTEDGEN
+	EphemeralKeyErrorKind_DEVICEAFTEREK
+	EphemeralKeyErrorKind_MEMBERAFTEREK
+	EphemeralKeyErrorKind_DEVICESTALE
+	EphemeralKeyErrorKind_USERSTALE
 )
 
 type EphemeralKeyError struct {
-	DebugMsg   string
-	HumanMsg   string
-	StatusCode int
+	DebugMsg    string
+	HumanMsg    string
+	StatusCode  int
+	Ctime       gregor1.Time
+	ErrKind     EphemeralKeyErrorKind
+	EKKind      EphemeralKeyKind
+	IsTransient bool
+}
+
+func (e EphemeralKeyError) HumanError() string {
+	return e.HumanMsg
+}
+
+func (e EphemeralKeyError) Error() string {
+	return e.DebugMsg
+}
+
+// AllowTransient determines if we allow the given error to be downgraded to a
+// transient error. If we encounter a MISSINGBOX  error for a TeambotEK we
+// allow this to be marked as transient for a 24 hour window. The intention is
+// to allow a chat message to be retried on send for this period instead of
+// permanently failing.
+func (e EphemeralKeyError) AllowTransient() bool {
+	return (e.EKKind == TeambotEKKind &&
+		e.ErrKind == EphemeralKeyErrorKind_MISSINGBOX &&
+		time.Since(e.Ctime.Time()) < time.Hour*24)
+}
+
+func (e EphemeralKeyError) IsPermanent() bool {
+	return !e.IsTransient
+}
+
+func newTransientEphemeralKeyError(err EphemeralKeyError) EphemeralKeyError {
+	return EphemeralKeyError{
+		DebugMsg:    err.DebugMsg,
+		HumanMsg:    err.HumanMsg,
+		StatusCode:  err.StatusCode,
+		Ctime:       err.Ctime,
+		ErrKind:     err.ErrKind,
+		EKKind:      err.EKKind,
+		IsTransient: true,
+	}
 }
 
 const (
@@ -31,6 +86,21 @@ const (
 	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after this message was sent"
 	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
 )
+
+type IncorrectTeamEphemeralKeyTypeError struct {
+	expected, actual keybase1.TeamEphemeralKeyType
+}
+
+func (e IncorrectTeamEphemeralKeyTypeError) Error() string {
+	return fmt.Sprintf("Incorrect team ephemeral key type received. Expected: %v, actual %v", e.expected, e.actual)
+}
+
+func NewIncorrectTeamEphemeralKeyTypeError(expected, actual keybase1.TeamEphemeralKeyType) IncorrectTeamEphemeralKeyTypeError {
+	return IncorrectTeamEphemeralKeyTypeError{
+		expected: expected,
+		actual:   actual,
+	}
+}
 
 func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID, contentCtime gregor1.Time) EphemeralKeyError {
 	var humanMsg string
@@ -43,7 +113,8 @@ func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.T
 			humanMsg = MemberAddedAfterContentCreationErrMsg
 		}
 	}
-	return newEphemeralKeyError("message not authenticated for device", humanMsg)
+	return newEphemeralKeyError("message not authenticated for device", humanMsg,
+		EphemeralKeyErrorKind_DEVICENOTAUTHENTICATED, DeviceEKKind)
 }
 
 func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, error) {
@@ -52,7 +123,7 @@ func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, err
 		return nil, err
 	}
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: keybase1.TeamID(teamID),
+		ID: teamID,
 	})
 	if err != nil {
 		return nil, err
@@ -64,27 +135,33 @@ func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, err
 	return team.MemberCtime(mctx.Ctx(), uv), nil
 }
 
-func newEKUnboxErr(mctx libkb.MetaContext, boxType EKType, boxGeneration keybase1.EkGeneration,
-	missingType EKType, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time) EphemeralKeyError {
-	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", boxType, boxGeneration, missingType, missingGeneration)
+func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration,
+	missingKind EphemeralKeyKind, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time) EphemeralKeyError {
+	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", ekKind, boxGeneration, missingKind, missingGeneration)
 	var humanMsg string
 	if deviceProvisionedAfterContentCreation(mctx, contentCtime) {
 		humanMsg = DeviceProvisionedAfterContentCreationErrMsg
 	} else if deviceIsCloned(mctx) {
 		humanMsg = DeviceCloneErrMsg
 	}
-	return newEphemeralKeyError(debugMsg, humanMsg)
+	return newEphemeralKeyError(debugMsg, humanMsg,
+		EphemeralKeyErrorKind_UNBOX, missingKind)
 }
 
-func newEKMissingBoxErr(mctx libkb.MetaContext, boxType EKType, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
-	debugMsg := fmt.Sprintf("Missing box for %s@generation:%v", boxType, boxGeneration)
-	return newEphemeralKeyError(debugMsg, "")
+func newEKMissingBoxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
+	debugMsg := fmt.Sprintf("Missing box for %s@generation:%v", ekKind, boxGeneration)
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_MISSINGBOX, ekKind)
 }
 
-func newEKCorruptedErr(mctx libkb.MetaContext, boxType EKType,
+func newTeambotEKWrongKIDErr(mctx libkb.MetaContext, ctime, now keybase1.Time) EphemeralKeyError {
+	debugMsg := fmt.Sprintf("Wrong KID for %v, first seen at %v, now %v", TeambotEKKind, ctime.Time(), now.Time())
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_WRONGKID, TeambotEKKind)
+}
+
+func newEKCorruptedErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind,
 	expectedGeneration, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
-	debugMsg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", boxType, boxGeneration, expectedGeneration)
-	return newEphemeralKeyError(debugMsg, "")
+	debugMsg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", ekKind, boxGeneration, expectedGeneration)
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_CORRUPTEDGEN, ekKind)
 }
 
 func humanMsgWithPrefix(humanMsg string) string {
@@ -96,35 +173,48 @@ func humanMsgWithPrefix(humanMsg string) string {
 	return humanMsg
 }
 
-func newEphemeralKeyError(debugMsg, humanMsg string) EphemeralKeyError {
+func newEphemeralKeyError(debugMsg, humanMsg string, errKind EphemeralKeyErrorKind,
+	ekKind EphemeralKeyKind) EphemeralKeyError {
 	humanMsg = humanMsgWithPrefix(humanMsg)
 	return EphemeralKeyError{
 		DebugMsg: debugMsg,
 		HumanMsg: humanMsg,
+		Ctime:    gregor1.ToTime(time.Now()),
+		ErrKind:  errKind,
+		EKKind:   ekKind,
 	}
 }
 func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
 	humanMsg := humanMsgWithPrefix(e.Desc)
+	var errKind EphemeralKeyErrorKind
+	var ekKind EphemeralKeyKind
+	switch e.Code {
+	case libkb.SCEphemeralDeviceAfterEK:
+		errKind = EphemeralKeyErrorKind_DEVICEAFTEREK
+		ekKind = DeviceEKKind
+	case libkb.SCEphemeralMemberAfterEK:
+		ekKind = TeamEKKind
+	case libkb.SCEphemeralDeviceStale:
+		errKind = EphemeralKeyErrorKind_DEVICESTALE
+		ekKind = DeviceEKKind
+	case libkb.SCEphemeralUserStale:
+		errKind = EphemeralKeyErrorKind_USERSTALE
+		ekKind = UserEKKind
+	}
 	return EphemeralKeyError{
 		DebugMsg:   e.Desc,
 		HumanMsg:   humanMsg,
 		StatusCode: e.Code,
+		Ctime:      gregor1.ToTime(time.Now()),
+		ErrKind:    errKind,
+		EKKind:     ekKind,
 	}
-}
-
-func (e EphemeralKeyError) HumanError() string {
-	return e.HumanMsg
-}
-
-func (e EphemeralKeyError) Error() string {
-	return e.DebugMsg
 }
 
 func errFromAppStatus(e error) error {
-	if e == nil {
-		return nil
-	}
 	switch e := e.(type) {
+	case nil:
+		return nil
 	case libkb.AppStatusError:
 		switch e.Code {
 		case libkb.SCEphemeralDeviceAfterEK,

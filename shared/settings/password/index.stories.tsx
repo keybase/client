@@ -6,10 +6,9 @@ const props = {
   errorMessage: null,
   hasPGPKeyOnServer: false,
   hasRandomPW: true,
-  heading: '',
-  newPasswordConfirmError: null,
-  newPasswordError: null,
-  onBack: action('onBack'),
+  newPasswordConfirmError: '',
+  newPasswordError: '',
+  onCancel: action('onCancel'),
   onChangeNewPassword: action('onChangeNewPassword'),
   onChangeNewPasswordConfirm: action('onChangeNewPasswordConfirm'),
   onChangeShowPassword: action('onChangeShowPassword'),
@@ -22,11 +21,10 @@ const props = {
 // TODO a lot of this seems like it doesn't work
 const load = () => {
   storiesOf('Settings/Password', module)
-    .add('Normal - Empty', () => <Password {...props} />)
-    .add('Normal - Has PGP on server', () => <Password {...props} hasPGPKeyOnServer={true} />)
     .add('Normal', () => <Password {...props} />)
+    .add('Normal - Change password', () => <Password {...props} hasRandomPW={false} />)
+    .add('Normal - Has PGP on server', () => <Password {...props} hasPGPKeyOnServer={true} />)
     .add('Normal - Show Typing', () => <Password {...props} showTyping={true} />)
-    .add('Error - Wrong Password', () => <Password {...props} />)
     .add('Error - New Password Requirements', () => (
       <Password {...props} newPasswordError={'Your new password must have minimum 12 characters.'} />
     ))

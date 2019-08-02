@@ -10,6 +10,7 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
+import flags from '../util/feature-flags'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
@@ -40,12 +41,12 @@ class ProvisioningManager {
     }
     return ProvisioningManager.singleton
   }
-  _stashedResponse = null
+  _stashedResponse: any = null
   _stashedResponseKey: ValidCallback | null = null
   _addingANewDevice: boolean
   _done: boolean = false
 
-  constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: 'ONLY_CALL_THIS_FROM_HELPER') {
+  constructor(addingANewDevice: boolean, _: 'ONLY_CALL_THIS_FROM_HELPER') {
     this._addingANewDevice = addingANewDevice
     ProvisioningManager.singleton = this
   }
@@ -104,13 +105,13 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (params, response) => {
+  chooseDeviceTypeHandler = (_, response) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
     }
     return Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
+      const state: TypedState = yield* Saga.selectState()
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':
@@ -208,7 +209,7 @@ class ProvisioningManager {
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (params, response) => {
+  chooseGPGMethodHandler = (_, response) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet chooseGPGMethodHandler called')
       return
@@ -247,7 +248,7 @@ class ProvisioningManager {
     ])
   }
 
-  submitGPGSignOK = (state, action) => {
+  submitGPGSignOK = (_, action) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitGPGSignOK called')
       return
@@ -339,12 +340,11 @@ class ProvisioningManager {
 
   showCodePage = () =>
     RouteTreeGen.createNavigateAppend({
-      parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
       path: ['codePage'],
       replace: true,
     })
 
-  maybeCancelProvision = state => {
+  maybeCancelProvision = () => {
     // TODO fix
     // let root = state.routeTree.routeState && state.routeTree.routeState.selected
     // let onDevicesTab = root === devicesRoot[0]
@@ -397,6 +397,7 @@ function* startProvisioning(state) {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
+        doUserSwitch: flags.fastAccountSwitch,
         paperKey: '',
         username: username,
       },
@@ -421,7 +422,7 @@ function* startProvisioning(state) {
   }
 }
 
-function* addNewDevice(state) {
+function* addNewDevice() {
   // Make a new handler each time just in case
   makeProvisioningManager(true)
   try {
@@ -434,7 +435,7 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [], path: devicesRoot}))
+    yield Saga.put(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     yield Saga.put(RouteTreeGen.createClearModals())
   } catch (finalError) {
     ProvisioningManager.getSingleton().done(finalError.message)
@@ -456,17 +457,15 @@ const submitPasswordOrPaperkey = (
   state,
   action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
 ) => ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
-const maybeCancelProvision = (state: TypedState) =>
-  ProvisioningManager.getSingleton().maybeCancelProvision(state)
+const maybeCancelProvision = () => ProvisioningManager.getSingleton().maybeCancelProvision()
 
 const showDeviceListPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true})
 
 const showNewDeviceNamePage = state =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({
-    parentPath: [Tabs.loginTab],
     path: ['setPublicName'],
     replace: true,
   })
@@ -476,15 +475,15 @@ const showCodePage = state =>
 
 const showGPGPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['gpgSign'], replace: true})
 
 const showPasswordPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['password'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['password'], replace: true})
 
 const showPaperkeyPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true})
 
 const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
@@ -495,18 +494,17 @@ const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayloa
     path = []
   }
 
-  return RouteTreeGen.createNavigateTo({path: [...parentPath, ...path], replace: true})
+  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace: true})
 }
 
-const showUsernameEmailPage = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
+const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
 
-const forgotUsername = (state, action: ProvisionGen.ForgotUsernamePayload) =>
+const forgotUsername = (_, action: ProvisionGen.ForgotUsernamePayload) =>
   RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
     {email: action.payload.email},
     Constants.forgotUsernameWaitingKey
   )
-    .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
+    .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),

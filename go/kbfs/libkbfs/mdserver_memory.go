@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"bytes"
 	"reflect"
 	"sync"
 	"time"
@@ -71,7 +70,7 @@ type mdServerMemShared struct {
 	// Protects all *db variables and truncateLockManager. After
 	// Shutdown() is called, all *db variables and
 	// truncateLockManager are nil.
-	lock sync.RWMutex
+	lock sync.RWMutex // nolint
 	// Bare TLF handle -> TLF ID
 	handleDb map[mdHandleKey]tlf.ID
 	// TLF ID -> latest bare TLF handle
@@ -87,7 +86,7 @@ type mdServerMemShared struct {
 	truncateLockManager *mdServerLocalTruncateLockManager
 	// tracks expire time and holder
 	lockIDs              map[mdLockMemKey]mdLockMemVal
-	implicitTeamsEnabled bool
+	implicitTeamsEnabled bool // nolint
 	iTeamMigrationLocks  map[tlf.ID]bool
 	merkleRoots          map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot
 
@@ -528,18 +527,6 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	}
 }
 
-func (md *MDServerMemory) iTeamMigrationRemoveLock(id tlf.ID) {
-	md.lock.Lock()
-	defer md.lock.Unlock()
-	delete(md.iTeamMigrationLocks, id)
-}
-
-func (md *MDServerMemory) iTeamMigrationIsLocked(id tlf.ID) bool {
-	md.lock.Lock()
-	defer md.lock.Unlock()
-	return md.iTeamMigrationLocks[id]
-}
-
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, lc *keybase1.LockContext, _ keybase1.MDPriority) error {
@@ -880,20 +867,6 @@ func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
 // CancelRegistration implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) CancelRegistration(_ context.Context, id tlf.ID) {
 	md.updateManager.cancel(id, md)
-}
-
-func (md *MDServerMemory) getCurrentDeviceKeyBytes(ctx context.Context) (
-	[]byte, error) {
-	buf := &bytes.Buffer{}
-	deviceKey, err := md.getCurrentDeviceKey(ctx)
-	if err != nil {
-		return []byte{}, err
-	}
-	_, err = buf.Write(deviceKey.KID().ToBytes())
-	if err != nil {
-		return []byte{}, err
-	}
-	return buf.Bytes(), nil
 }
 
 // TruncateLock implements the MDServer interface for MDServerMemory.

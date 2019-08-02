@@ -19,7 +19,7 @@ type SettingsPanelProps = {
   onShowBlockConversationDialog: () => void
   onShowClearConversationDialog: () => void
   spinnerForHide: boolean
-  teamname: string
+  teamname?: string
   channelname?: string
 }
 

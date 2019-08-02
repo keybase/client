@@ -682,8 +682,9 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 	return mr, ss, apiRes, err
 }
 
-func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, userInfo *merkleUserInfoT, apiRes *APIRes, err error) {
-	apiRes, err = mc.lookupPathAndSkipSequenceHelper(m, q, sigHints, lastRoot, true)
+func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, opts MerkleOpts) (vp *VerificationPath, ss SkipSequence, userInfo *merkleUserInfoT, apiRes *APIRes, err error) {
+	opts.isUser = true
+	apiRes, err = mc.lookupPathAndSkipSequenceHelper(m, q, sigHints, lastRoot, opts)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -708,7 +709,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(m MetaContext, q HTTPArgs,
 }
 
 func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs, lastRoot *MerkleRoot, opts MerkleOpts) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
-	apiRes, err := mc.lookupPathAndSkipSequenceHelper(m, q, nil, lastRoot, false)
+	apiRes, err := mc.lookupPathAndSkipSequenceHelper(m, q, nil, lastRoot, opts)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -727,15 +728,17 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs,
 }
 
 // `isUser` is true for loading a user and false for loading a team.
-func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
+func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, err error) {
 	defer m.VTrace(VLog1, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
-	// Poll for 10s and ask for a race-free state.
-	w := 10 * int(CITimeMultiplier(mc.G()))
+	if !opts.NoServerPolling {
+		// Poll for 10s and ask for a race-free state.
+		w := 10 * int(CITimeMultiplier(mc.G()))
+		q.Add("poll", I{w})
+	}
 
-	q.Add("poll", I{w})
 	q.Add("c", B{true})
-	if isUser {
+	if opts.isUser {
 		q.Add("load_deleted", B{true})
 		q.Add("load_reset_chain", B{true})
 	}
@@ -1119,6 +1122,9 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 		}
 	}
 
+	const maxClockDriftSeconds int64 = 5 * 60
+	var totalDrift int64
+
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
 		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
@@ -1135,14 +1141,29 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot), merkleErrorSkipHashMismatch}
 		}
 
-		// Check that ctimes in the sequence are also strictly ordered
+		// Check that ctimes in the sequence are nearly strictly ordered; we have to make sure we can handle slight
+		// clock jitters since the server might need to rewind time due to leap seconds or NTP issues.
+		// We'll allow at most 5 minutes of "time-travel" between 2 updates, and no more than 5minutes of time travel
+		// across the whole sequence
 		thisCTime, prevCTime := ss[index].ctime(), ss[nextIndex].ctime()
-		if thisCTime < prevCTime {
-			return MerkleClientError{
-				fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d", thisRoot, thisCTime, prevRoot, prevCTime),
-				merkleErrorOutOfOrderCtime,
+		if prevCTime > thisCTime {
+			drift := prevCTime - thisCTime
+			if drift > maxClockDriftSeconds {
+				return MerkleClientError{
+					fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d (even with %ds tolerance)", thisRoot, thisCTime, prevRoot, prevCTime, maxClockDriftSeconds),
+					merkleErrorOutOfOrderCtime,
+				}
 			}
+			totalDrift += drift
 		}
+	}
+
+	if totalDrift > maxClockDriftSeconds {
+		return MerkleClientError{
+			fmt.Sprintf("Too much clock drift detected (%ds) in skip sequence", totalDrift),
+			merkleErrorTooMuchClockDrift,
+		}
+
 	}
 
 	return nil
@@ -1588,7 +1609,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRoot(m MetaContext, ss SkipSequence
 	return mc.verifyAndStoreRootHelper(m, curr, prev.Seqno(), opts)
 }
 
-func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
+func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints, opts MerkleOpts) (u *MerkleUserLeaf, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupUser(%v)", q)
 
@@ -1607,7 +1628,7 @@ func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints
 	// was a change on the server side. See CORE-4064.
 	rootBeforeCall := mc.LastRoot(m)
 
-	path, ss, userInfo, apiRes, err := mc.lookupPathAndSkipSequenceUser(m, q, sigHints, rootBeforeCall)
+	path, ss, userInfo, apiRes, err := mc.lookupPathAndSkipSequenceUser(m, q, sigHints, rootBeforeCall, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1616,7 +1637,7 @@ func (mc *MerkleClient) LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints
 		return nil, fmt.Errorf("verification path has nil UID")
 	}
 
-	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, MerkleOpts{}); err != nil {
+	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, opts); err != nil {
 		return nil, err
 	}
 
@@ -1682,8 +1703,13 @@ func (mc *MerkleClient) checkHistoricalSeqno(s keybase1.Seqno) error {
 }
 
 type MerkleOpts struct {
+	// All used internally
 	noSigCheck bool
 	historical bool
+	isUser     bool
+
+	// Used externally
+	NoServerPolling bool
 }
 
 func (mc *MerkleClient) LookupLeafAtSeqno(m MetaContext, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {

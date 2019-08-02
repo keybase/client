@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
@@ -13,13 +12,12 @@ import NavHeaderTitle from '../../nav-header/title-container'
 type Props = {
   index: number
   parentPath: Types.Path
-  routePath: I.List<string>
   targetName: string
-  onCancel: () => void | null
-  onCopyHere?: () => void | null
-  onMoveHere?: () => void | null
-  onNewFolder?: () => void | null
-  onBackUp?: () => void | null
+  onCancel?: () => void
+  onCopyHere?: () => void
+  onMoveHere?: () => void
+  onNewFolder?: () => void
+  onBackUp?: () => void
 }
 
 const NewFolder = ({onNewFolder}) => (
@@ -51,11 +49,7 @@ const DesktopHeaders = (props: Props) => (
 )
 
 const DestinationPicker = (props: Props) => {
-  FsCommon.useFsLoadEffect({
-    path: props.parentPath,
-    refreshTag: Types.RefreshTag.DestinationPicker,
-    wantPathMetadata: true,
-  })
+  FsCommon.useFsPathMetadata(props.parentPath)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
       {!Styles.isMobile && <DesktopHeaders {...props} />}
@@ -96,7 +90,7 @@ const DestinationPicker = (props: Props) => {
         </Kb.ClickableBox>
       )}
       <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-        <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
+        <Rows path={props.parentPath} destinationPickerIndex={props.index} />
       </Kb.Box2>
       {Styles.isMobile && <Kb.Divider key="dfooter" />}
       <Kb.Box2
@@ -121,7 +115,7 @@ const HighOrderDestinationPickerMobile = withProps(
   (props: Props & HeaderHocProps): Partial<HeaderHocProps> => ({
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
+        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel || undefined}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>

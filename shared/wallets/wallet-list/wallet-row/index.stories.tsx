@@ -14,6 +14,7 @@ const load = () => {
     ))
     .add('Default', () => (
       <WalletRow
+        airdropSelected={false}
         contents="280.0871234 XLM + more"
         isSelected={true}
         keybaseUser="cecileb"
@@ -24,6 +25,7 @@ const load = () => {
     ))
     .add('Secondary', () => (
       <WalletRow
+        airdropSelected={false}
         contents="56.9618203 XLM"
         isSelected={false}
         keybaseUser=""
@@ -34,6 +36,7 @@ const load = () => {
     ))
     .add('Badged', () => (
       <WalletRow
+        airdropSelected={false}
         contents="56.9618203 XLM"
         isSelected={false}
         keybaseUser=""
@@ -44,6 +47,7 @@ const load = () => {
     ))
     .add('Long', () => (
       <WalletRow
+        airdropSelected={false}
         contents="56.9618203 XLM"
         isSelected={false}
         keybaseUser=""

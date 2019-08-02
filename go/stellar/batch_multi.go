@@ -98,6 +98,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	}
 	post.SignedTransaction = sr.Signed
 	post.FromDeviceID = mctx.ActiveDevice().DeviceID()
+	post.BatchID = arg.BatchID
 
 	// submit it
 	submitRes, err := walletState.SubmitMultiPayment(mctx.Ctx(), post)
@@ -110,6 +111,12 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		// make all ther results have success
 		now := stellar1.ToTimeMs(time.Now())
 		for i := 0; i < len(results); i++ {
+			if results[i].Status == stellar1.PaymentStatus_ERROR {
+				// some of the results have already been marked as an
+				// error, so skip those.
+				continue
+			}
+
 			results[i].TxID = submitRes.TxID
 			results[i].Status = stellar1.PaymentStatus_COMPLETED
 			results[i].EndTime = now

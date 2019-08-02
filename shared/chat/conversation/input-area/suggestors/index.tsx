@@ -7,8 +7,8 @@ import SuggestionList from './suggestion-list'
 type TransformerData = {
   text: string
   position: {
-    start: number
-    end: number
+    start: number | null
+    end: number | null
   }
 }
 
@@ -17,8 +17,10 @@ const standardTransformer = (
   {text, position: {start, end}}: TransformerData,
   preview: boolean
 ) => {
-  const newText = `${text.substring(0, start)}${toInsert}${preview ? '' : ' '}${text.substring(end)}`
-  const newSelection = start + toInsert.length + (preview ? 0 : 1)
+  const newText = `${text.substring(0, start || 0)}${toInsert}${preview ? '' : ' '}${text.substring(
+    end || 0
+  )}`
+  const newSelection = (start || 0) + toInsert.length + (preview ? 0 : 1)
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
@@ -63,7 +65,7 @@ type AddSuggestorsProps = {
 }
 
 type AddSuggestorsState = {
-  active: string | null
+  active?: string
   filter: string
   selected: number
 }
@@ -75,7 +77,7 @@ type SuggestorHooks = {
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onBlur: () => void
   onFocus: () => void
-  onSelectionChange: (arg0: {start: number; end: number}) => void
+  onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
 }
 
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
@@ -91,16 +93,16 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    state = {active: null, filter: '', selected: 0}
+    state: AddSuggestorsState = {active: undefined, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
-    _lastText = null
+    _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
-    _timeoutID: NodeJS.Timer
+    _timeoutID?: NodeJS.Timer
 
     componentWillUnmount() {
-      clearTimeout(this._timeoutID)
+      this._timeoutID && clearTimeout(this._timeoutID)
     }
 
     _setAttachmentRef = (r: null | typeof WrappedComponent) => {
@@ -118,16 +120,16 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _getInputRef = () => this._inputRef.current
     _getAttachmentRef: () => any = () => this._attachmentRef.current
 
-    _setInactive = () => this.setState(s => (s.active ? {active: null, filter: '', selected: 0} : null))
+    _setInactive = () => this.setState(s => (s.active ? {active: undefined, filter: '', selected: 0} : null))
 
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
         const input = this._inputRef.current
         const selection = input.getSelection()
-        if (!selection || this._lastText === null) {
+        const text = this._lastText
+        if (!selection || selection.start === null || text === undefined) {
           return null
         }
-        const text = this._lastText
         const upToCursor = text.substring(0, selection.start)
         const words = upToCursor.split(/ |\n/)
         const word = words[words.length - 1]
@@ -144,7 +146,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _checkTrigger = text => {
+    _checkTrigger = () => {
       this._timeoutID = setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
@@ -153,8 +155,9 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           return
         }
         const {word} = cursorInfo
-        if (this.state.active) {
-          const activeMarker = this.props.suggestorToMarker[this.state.active]
+        const {active} = this.state
+        if (active) {
+          const activeMarker = this.props.suggestorToMarker[active]
           const matchInfo = matchesMarker(word, activeMarker)
           if (!matchInfo.matches) {
             // not active anymore
@@ -211,12 +214,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _onChangeText = text => {
       this._lastText = text
       this.props.onChangeText && this.props.onChangeText(text)
-      this._checkTrigger(text)
+      this._checkTrigger()
     }
 
     _onKeyDown = (evt: React.KeyboardEvent, ici: boolean) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        this._checkTrigger(this._lastText || '')
+        this._checkTrigger()
       }
 
       if (!this.state.active || this._getResults().length === 0) {
@@ -263,18 +266,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onFocus = () => {
       this.props.onFocus && this.props.onFocus()
-      this._checkTrigger(this._lastText || '')
+      this._checkTrigger()
     }
 
     _onSelectionChange = selection => {
       this.props.onSelectionChange && this.props.onSelectionChange(selection)
-      this._checkTrigger(this._lastText || '')
+      this._checkTrigger()
     }
 
     _triggerTransform = (value, final = true) => {
       if (this._inputRef.current && this.state.active) {
         const input = this._inputRef.current
-        const active = this.state.active
+        const {active} = this.state
         const cursorInfo = this._getWordAtCursor()
         if (!cursorInfo) {
           return
@@ -290,7 +293,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           !final
         )
         this._lastText = transformedText.text
-        input.transformText(textInfo => transformedText, final)
+        input.transformText(() => transformedText, final)
       }
     }
 
@@ -313,13 +316,15 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = () =>
-      this.state.active ? this.props.dataSources[this.state.active](this.state.filter) : []
+    _getResults = () => {
+      const {active} = this.state
+      return active ? this.props.dataSources[active](this.state.filter) : []
+    }
 
     _getSelected = () => (this.state.active ? this._getResults()[this.state.selected] : null)
 
     render() {
-      let overlay = null
+      let overlay: React.ReactNode = null
       if (this.state.active) {
         this._validateProps()
       }
@@ -327,15 +332,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       const results = this._getResults()
       if (results.length) {
         suggestionsVisible = true
+        const active = this.state.active
         const content = (
           <SuggestionList
             style={this.props.suggestionListStyle}
             items={results}
             keyExtractor={
-              (this.props.keyExtractors &&
-                !!this.state.active &&
-                this.props.keyExtractors[this.state.active]) ||
-              null
+              (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
             }
             renderItem={this._itemRenderer}
             selectedIndex={this.state.selected}

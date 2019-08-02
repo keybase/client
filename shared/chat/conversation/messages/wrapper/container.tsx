@@ -6,23 +6,23 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
-import {namedConnect, isMobile} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: () => void | null
+  measure?: () => void
   ordinal: Types.Ordinal
-  previous: Types.Ordinal | null
+  previous?: Types.Ordinal
 }
 
 // If there is no matching message treat it like a deleted
 const missingMessage = MessageConstants.makeMessageDeleted({})
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
-  const previous = ownProps.previous
-    ? Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)
-    : null
+  const previous =
+    (ownProps.previous && Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)) ||
+    undefined
   const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
   const unfurlPrompts =
     message.type === 'text'
@@ -60,9 +60,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDisaptchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAuthorClick: (username: string) =>
-    isMobile
+    Container.isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -71,13 +71,20 @@ const mapDisaptchToProps = dispatch => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+  _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
 })
 
 // Used to decide whether to show the author for sequential messages
 const authorIsCollapsible = (m: Types.Message) =>
   m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
 
-const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
+const getUsernameToShow = (
+  message: Types.Message,
+  previous: Types.Message | undefined,
+  you: string,
+  orangeLineAbove: boolean
+) => {
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
@@ -129,7 +136,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancelRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = (message, you) => {
+const getDecorate = message => {
   switch (message.type) {
     case 'text':
       return !message.exploded && !message.errorReason
@@ -140,54 +147,63 @@ const getDecorate = (message, you) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {previous, message, _you} = stateProps
-  let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
-  // $ForceType
-  const outboxID = message.outboxID
-  let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {previous, message, _you} = stateProps
+    let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
+    // TODO type guard
+    const outboxID: Types.OutboxID | null = (message as any).outboxID || null
+    let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
+      message,
+      _you
+    )
 
-  // show send only if its possible we sent while you're looking at it
-  const showSendIndicator = _you === message.author && message.ordinal !== message.id
-  const decorate = getDecorate(message, _you)
-  const onCancel = allowCancelRetry
-    ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
-    : null
-  const onRetry =
-    allowCancelRetry && !resolveByEdit && outboxID
-      ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
-      : null
+    // show send only if its possible we sent while you're looking at it
+    const showSendIndicator = _you === message.author && message.ordinal !== message.id
+    const decorate = getDecorate(message)
+    const onCancel = allowCancelRetry
+      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
+      : undefined
+    const onRetry =
+      allowCancelRetry && !resolveByEdit && outboxID
+        ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
+        : undefined
 
-  // $ForceType
-  const forceAsh = !!message.explodingUnreadable
+    // TODO type guard
+    const forceAsh = !!(message as any).explodingUnreadable
 
-  return {
-    authorIsAdmin: stateProps.authorIsAdmin,
-    authorIsOwner: stateProps.authorIsOwner,
-    centeredOrdinal: stateProps.centeredOrdinal,
-    conversationIDKey: stateProps.conversationIDKey,
-    decorate,
-    exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
-    failureDescription,
-    forceAsh,
-    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
-    isLastInThread: stateProps.isLastInThread,
-    isPendingPayment: stateProps.isPendingPayment,
-    isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
-    measure: ownProps.measure,
-    message: message,
-    onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
-    onCancel,
-    onEdit: resolveByEdit ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
-    onRetry,
-    orangeLineAbove: stateProps.orangeLineAbove,
-    previous: stateProps.previous,
-    shouldShowPopup: stateProps.shouldShowPopup,
-    showCoinsIcon: stateProps.showCoinsIcon,
-    showCrowns: stateProps.showCrowns,
-    showSendIndicator,
-    showUsername,
-  }
-}
-
-export default namedConnect(mapStateToProps, mapDisaptchToProps, mergeProps, 'WrapperMessage')(WrapperMessage)
+    return {
+      authorIsAdmin: stateProps.authorIsAdmin,
+      authorIsOwner: stateProps.authorIsOwner,
+      centeredOrdinal: stateProps.centeredOrdinal,
+      conversationIDKey: stateProps.conversationIDKey,
+      decorate,
+      exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+      failureDescription,
+      forceAsh,
+      hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+      isLastInThread: stateProps.isLastInThread,
+      isPendingPayment: stateProps.isPendingPayment,
+      isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+      measure: ownProps.measure,
+      message: message,
+      onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
+      onCancel,
+      onEdit: resolveByEdit
+        ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal)
+        : undefined,
+      onRetry,
+      onSwipeLeft: () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal),
+      orangeLineAbove: stateProps.orangeLineAbove,
+      previous: stateProps.previous,
+      shouldShowPopup: stateProps.shouldShowPopup,
+      showCoinsIcon: stateProps.showCoinsIcon,
+      showCrowns: stateProps.showCrowns,
+      showSendIndicator,
+      showUsername,
+    }
+  },
+  'WrapperMessage'
+)(WrapperMessage)

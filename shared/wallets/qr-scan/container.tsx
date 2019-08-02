@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createNavigateUp())
   },
 })
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (_, dispatchProps, __: OwnProps) => ({
   ...dispatchProps,
 })
 

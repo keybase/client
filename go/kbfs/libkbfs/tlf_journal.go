@@ -54,6 +54,7 @@ type tlfJournalConfig interface {
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 	syncedTlfGetterSetter
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -104,9 +105,6 @@ const (
 	// unsquashed MD bytes in the journal that will trigger an
 	// automatic branch conversion (and subsequent resolution).
 	ForcedBranchSquashBytesThresholdDefault = uint64(25 << 20) // 25 MB
-	// Maximum number of blocks to delete from the local saved block
-	// journal at a time while holding the lock.
-	maxSavedBlockRemovalsAtATime = uint64(500)
 	// How often to check the server for conflicts while flushing.
 	tlfJournalServerMDCheckInterval = 1 * time.Minute
 
@@ -1064,9 +1062,10 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.vlog.CLogf(
-		ctx, libkb.VLog1, "Server is ahead of local journal (rev=%d), "+
-			"indicating a conflict", currHead.MD.RevisionNumber())
+	j.log.CDebugf(
+		ctx, "Server is ahead of local journal (rev=%d, nextMD=%d), "+
+			"indicating a conflict",
+		currHead.MD.RevisionNumber(), nextMDToFlush)
 	return j.convertMDsToBranch(ctx)
 }
 
@@ -1096,6 +1095,7 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
+	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
 	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
@@ -1327,19 +1327,20 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 	}
 
 	squashByRev := false
-	if j.singleOpMode == singleOpFinished {
+	switch {
+	case j.singleOpMode == singleOpFinished:
 		j.vlog.CLogf(ctx, libkb.VLog1, "Squashing due to single op completion")
 		// Always squash if we've finished the single op and have more
 		// than one revision pending.
 		squashByRev = true
 		j.unsquashedBytes = 0
-	} else if j.config.BGFlushDirOpBatchSize() == 1 {
+	case j.config.BGFlushDirOpBatchSize() == 1:
 		squashByRev, err =
 			j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
 		if err != nil {
 			return false, err
 		}
-	} else {
+	default:
 		// Squashing is already done in folderBranchOps, so just mark
 		// this revision as squashed, so simply turn it off here.
 		j.unsquashedBytes = 0
@@ -1585,17 +1586,18 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 		headMdID, err := getMdID(ctx, mdServer, j.config.Codec(),
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
 			rmds.MD.RevisionNumber(), nil)
-		if err != nil {
+		switch {
+		case err != nil:
 			j.log.CWarningf(ctx,
 				"getMdID failed for TLF %s, BID %s, and revision %d: %v",
 				rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.RevisionNumber(), err)
-		} else if headMdID == mdID {
+		case headMdID == mdID:
 			if headMdID == (kbfsmd.ID{}) {
 				panic("nil earliestID and revision conflict error returned by pushEarliestToServer")
 			}
 			// We must have already flushed this MD, so continue.
 			pushErr = nil
-		} else if rmds.MD.MergedStatus() == kbfsmd.Merged {
+		case rmds.MD.MergedStatus() == kbfsmd.Merged:
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and return -- the journal
 			// pauses until the resolution is complete.
@@ -2179,6 +2181,7 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
+	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,
@@ -2210,44 +2213,6 @@ func (j *tlfJournal) addBlockReference(
 	}
 
 	err := j.blockJournal.addReference(ctx, id, context)
-	if err != nil {
-		return err
-	}
-
-	j.signalWork()
-
-	return nil
-}
-
-func (j *tlfJournal) removeBlockReferences(
-	ctx context.Context, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
-	// Currently the block journal will still serve block data even if
-	// all journal references to a block have been removed (i.e.,
-	// because they have all been flushed to the remote server).  If
-	// we ever need to support the `BlockServer.RemoveReferences` call
-	// in the journal, we might need to change the journal so that it
-	// marks blocks as flushed-but-still-readable, so that we can
-	// distinguish them from blocks that has had all its references
-	// removed and shouldn't be served anymore.  For now, just fail
-	// this call to make sure no uses of it creep in.
-	return nil, errors.Errorf(
-		"Removing block references is currently unsupported in the journal")
-}
-
-func (j *tlfJournal) archiveBlockReferences(
-	ctx context.Context, contexts kbfsblock.ContextMap) error {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
-	if err := j.checkInfoFileLocked(); err != nil {
-		return err
-	}
-
-	err := j.blockJournal.archiveReferences(ctx, contexts)
 	if err != nil {
 		return err
 	}
@@ -2330,9 +2295,10 @@ func (j *tlfJournal) getMDRange(
 	return j.mdJournal.getRange(ctx, bid, start, stop)
 }
 
-func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
+func (j *tlfJournal) doPutMD(
+	ctx context.Context, rmd *RootMetadata,
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -2373,8 +2339,11 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// the journal, to guarantee it will be replaced if the journal is
 	// converted into a branch before any of the upper layer have a
 	// chance to cache it.
+	rmd = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
+
 	// Revisions created locally should always override anything else
 	// in the cache, so use `Replace` rather than `Put`.
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2442,8 +2411,10 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 	return nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (irmd ImmutableRootMetadata, err error) {
+func (j *tlfJournal) putMD(
+	ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+	irmd ImmutableRootMetadata, err error) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -2452,7 +2423,7 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doPutMD(
-				ctx, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, rmd, mdInfo, perRevMap, verifyingKey, bps)
 			return retry, err
 		})
 	if err != nil {
@@ -2489,10 +2460,11 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	return nil
 }
 
-func (j *tlfJournal) doResolveBranch(ctx context.Context,
-	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+func (j *tlfJournal) doResolveBranch(
+	ctx context.Context, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID,
+	rmd *RootMetadata, mdInfo unflushedPathMDInfo,
+	perRevMap unflushedPathsPerRevMap, verifyingKey kbfscrypto.VerifyingKey,
+	bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -2545,6 +2517,8 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// chance to cache it. Revisions created locally should always
 	// override anything else in the cache, so use `Replace` rather
 	// than `Put`.
+	rmd = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2622,7 +2596,7 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, err error) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
@@ -2632,7 +2606,8 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doResolveBranch(
-				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey,
+				bps)
 			return retry, err
 		})
 	if err != nil {

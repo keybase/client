@@ -1,5 +1,6 @@
 import chat2 from './chat2'
 import config from './config'
+import deeplinks from './deeplinks'
 import dev from './dev'
 import devices from './devices'
 import entities from './entities'
@@ -26,6 +27,7 @@ import {combineReducers} from 'redux'
 const reducers = {
   chat2,
   config,
+  deeplinks,
   dev,
   devices,
   entities,
@@ -52,6 +54,6 @@ const reducers = {
 const rootReducer = combineReducers(reducers)
 export type TypedState = ReturnType<typeof rootReducer>
 
-export default function(state: TypedState, action: any): TypedState {
+export default function(state: TypedState | undefined, action: any): TypedState {
   return rootReducer(state, action)
 }

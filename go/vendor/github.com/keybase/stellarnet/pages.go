@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/support/render/hal"
 )
 
 // TransactionEmbed is used to get the Links in addition to
@@ -16,9 +17,9 @@ type TransactionEmbed struct {
 // transactions endpoint.
 type TransactionsPage struct {
 	Links struct {
-		Self horizon.Link `json:"self"`
-		Next horizon.Link `json:"next"`
-		Prev horizon.Link `json:"prev"`
+		Self hal.Link `json:"self"`
+		Next hal.Link `json:"next"`
+		Prev hal.Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
 		Records []TransactionEmbed `json:"records"`
@@ -29,9 +30,9 @@ type TransactionsPage struct {
 // payments endpoint.
 type PaymentsPage struct {
 	Links struct {
-		Self horizon.Link `json:"self"`
-		Next horizon.Link `json:"next"`
-		Prev horizon.Link `json:"prev"`
+		Self hal.Link `json:"self"`
+		Next hal.Link `json:"next"`
+		Prev hal.Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
 		Records []horizon.Payment `json:"records"`
@@ -42,9 +43,9 @@ type PaymentsPage struct {
 // operations endpoint.
 type OperationsPage struct {
 	Links struct {
-		Self horizon.Link `json:"self"`
-		Next horizon.Link `json:"next"`
-		Prev horizon.Link `json:"prev"`
+		Self hal.Link `json:"self"`
+		Next hal.Link `json:"next"`
+		Prev hal.Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
 		Records []Operation `json:"records"`
@@ -88,7 +89,7 @@ type Effect struct {
 // AssetEmbed is a single asset in the AssetsPage.
 type AssetEmbed struct {
 	Links struct {
-		WellKnown horizon.Link `json:"toml"`
+		WellKnown hal.Link `json:"toml"`
 	} `json:"_links"`
 	AssetType   string `json:"asset_type"`
 	AssetCode   string `json:"asset_code"`
@@ -105,9 +106,9 @@ type AssetEmbed struct {
 // AssetsPage is a page of assets.
 type AssetsPage struct {
 	Links struct {
-		Self horizon.Link `json:"self"`
-		Next horizon.Link `json:"next"`
-		Prev horizon.Link `json:"prev"`
+		Self hal.Link `json:"self"`
+		Next hal.Link `json:"next"`
+		Prev hal.Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
 		Records []AssetEmbed `json:"records"`
@@ -180,9 +181,9 @@ func (f FullPath) DestinationAsset() AssetMinimal {
 // PathsPage is used to unmarshal the results from the /paths endpoint.
 type PathsPage struct {
 	Links struct {
-		Self horizon.Link `json:"self"`
-		Next horizon.Link `json:"next"`
-		Prev horizon.Link `json:"prev"`
+		Self hal.Link `json:"self"`
+		Next hal.Link `json:"next"`
+		Prev hal.Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
 		Records []FullPath `json:"records"`

@@ -1,8 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage, {Props} from '.'
+import TextMessage, {Props, ClaimProps} from '.'
 import * as Container from '../../../../util/container'
+import * as WalletConstants from '../../../../constants/wallets'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   message: Types.MessageText
@@ -10,7 +12,7 @@ type OwnProps = {
 
 const replyNoop = () => {}
 
-const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID) => void) => {
+const getReplyProps = (replyTo: Types.Message | undefined, onReplyClick: (m: Types.MessageID) => void) => {
   if (!replyTo) {
     return undefined
   }
@@ -23,9 +25,9 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
   }
   switch (replyTo.type) {
     case 'attachment':
-    case 'text':
-      const attachment: Types.MessageAttachment =
-        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : null
+    case 'text': {
+      const attachment: Types.MessageAttachment | undefined =
+        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
       return replyTo.exploded
         ? deletedProps
         : {
@@ -41,6 +43,7 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
                 : replyTo.text.stringValue(),
             username: replyTo.author,
           }
+    }
     case 'deleted':
     case 'placeholder':
       return deletedProps
@@ -48,13 +51,35 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
   return undefined
 }
 
+const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+  if (!paymentInfo) {
+    return undefined
+  }
+
+  const youAreSender = ownProps.message.author === state.config.username
+  const cancelable = paymentInfo.status === 'claimable'
+  const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
+  if (youAreSender || !cancelable || acceptedDisclaimer) {
+    return undefined
+  }
+  const label = `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
+  const amountDescription = paymentInfo.sourceAmount
+    ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
+    : paymentInfo.amountDescription
+  const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
+  return {amount, label}
+}
+
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
   const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
-  return {isEditing}
+  const claim = getClaimProps(state, ownProps)
+  return {claim, isEditing}
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
+  _onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   _onReplyClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
@@ -64,14 +89,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnPro
     ),
 })
 
+const mergeClaimProps = (stateProps, dispatchProps): ClaimProps => {
+  return stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined
+}
+
 type MsgType = Props['type']
 export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    claim: mergeClaimProps(stateProps, dispatchProps),
     isEditing: stateProps.isEditing,
     message: ownProps.message,
-    reply: getReplyProps(ownProps.message.replyTo, dispatchProps._onReplyClick),
+    reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),

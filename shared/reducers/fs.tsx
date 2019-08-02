@@ -8,8 +8,8 @@ import * as Types from '../constants/types/fs'
 const initialState = Constants.makeState()
 
 const updatePathItem = (
-  oldPathItem?: Types.PathItem | null,
-  newPathItemFromAction?: Types.PathItem
+  oldPathItem: Types.PathItem | null | undefined,
+  newPathItemFromAction: Types.PathItem
 ): Types.PathItem => {
   if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
     return newPathItemFromAction
@@ -28,14 +28,15 @@ const updatePathItem = (
   switch (newPathItem.type) {
     case Types.PathType.Unknown:
       return newPathItem
-    case Types.PathType.Symlink:
+    case Types.PathType.Symlink: {
       // @ts-ignore
       const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
       const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
       // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
       // what we want here.
       return oldSymlinkPathItem.merge(newSymlinkPathItem)
-    case Types.PathType.File:
+    }
+    case Types.PathType.File: {
       // @ts-ignore
       const oldFilePathItem: Types.FilePathItem = oldPathItem
       const newFilePathItem: Types.FilePathItem = newPathItem
@@ -72,7 +73,8 @@ const updatePathItem = (
       //    other fields from the new one if they change.
       // Either way, this can be done with a simple merge.
       return oldFilePathItem.merge(newFilePathItem)
-    case Types.PathType.Folder:
+    }
+    case Types.PathType.Folder: {
       // @ts-ignore
       const oldFolderPathItem: Types.FolderPathItem = oldPathItem
       const newFolderPathItem: Types.FolderPathItem = newPathItem
@@ -117,6 +119,7 @@ const updatePathItem = (
           newChildren.equals(oldFolderPathItem.children) ? oldFolderPathItem.children : newChildren
         )
       )
+    }
     default:
       return newPathItem
   }
@@ -129,7 +132,7 @@ const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
   tlf1.syncConfig.mode === Types.TlfSyncMode.Partial &&
   tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
 
-const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => {
+const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf => {
   if (!oldTlf) {
     return newTlf
   }
@@ -142,7 +145,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!newTlf.conflictState.equals(oldTlf.conflictState)) {
     return newTlf
   }
-  // syncConfig, resetParticipants, and conflict all stayed thte same in value,
+  // syncConfig, resetParticipants, and conflict all stayed the same in value,
   // so just reuse old reference.
   return oldTlf.merge(
     newTlf.withMutations(n =>
@@ -189,7 +192,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
       )
     case FsGen.saveMedia:
     case FsGen.shareNative:
-    case FsGen.download:
+    case FsGen.download: {
       const download = state.downloads.get(erroredAction.payload.key)
       if (!download || download.state.canceled) {
         // Ignore errors for canceled downloads.
@@ -201,6 +204,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
           download => download && download.update('state', original => original.set('error', fsError))
         )
       )
+    }
     default:
       return withFsErrorBar(state, action)
   }
@@ -215,7 +219,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
       )
     case FsGen.folderListLoaded: {
-      const toRemove = []
+      const toRemove: Array<Types.Path> = []
       const toMerge = action.payload.pathItems.map((newPathItem, path) => {
         const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
         const toSet =
@@ -335,16 +339,18 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore: // fallthrough
-    case FsGen.favoriteIgnoreError:
+    case FsGen.favoriteIgnoreError: {
       const elems = Types.getPathElements(action.payload.path)
       const visibility = Types.getVisibilityFromElems(elems)
       if (!visibility) {
         return state
       }
+      // @ts-ignore
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
-    case FsGen.newFolderRow:
+    }
+    case FsGen.newFolderRow: {
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
       if (parentPathItem.type !== Types.PathType.Folder) {
@@ -370,17 +376,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
       return state.mergeIn(
         ['edits'],
-        [
-          [
-            Constants.makeEditID(),
-            Constants.makeNewFolder({
-              hint: newFolderName,
-              name: newFolderName,
-              parentPath,
-            }),
-          ],
-        ]
+        I.Map({
+          [Constants.makeEditID()]: Constants.makeNewFolder({
+            hint: newFolderName,
+            name: newFolderName,
+            parentPath,
+          }),
+        })
       )
+    }
     case FsGen.newFolderName:
       return state.update('edits', edits =>
         edits.update(action.payload.editID, edit => edit && edit.set('name', action.payload.name))
@@ -590,7 +594,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
@@ -608,12 +611,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.closeDestinationPicker:
-    case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
     case FsGen.setSpaceAvailableNotificationThreshold:
+    case FsGen.subscribePath:
+    case FsGen.subscribeNonPath:
+    case FsGen.unsubscribe:
+    case FsGen.onJournalNotification:
       return state
     default:
       return state

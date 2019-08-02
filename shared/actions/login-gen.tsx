@@ -8,12 +8,16 @@ export const resetStore = 'common:resetStore' // not a part of login but is hand
 export const typePrefix = 'login:'
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
+export const loadIsOnline = 'login:loadIsOnline'
+export const loadedIsOnline = 'login:loadedIsOnline'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
 
 // Payload Types
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
+type _LoadIsOnlinePayload = void
+type _LoadedIsOnlinePayload = {readonly result: boolean}
 type _LoginErrorPayload = {readonly error: RPCError | null}
 type _LoginPayload = {readonly username: string; readonly password: HiddenString}
 
@@ -24,6 +28,14 @@ export const createLaunchAccountResetWebPage = (
 export const createLaunchForgotPasswordWebPage = (
   payload: _LaunchForgotPasswordWebPagePayload
 ): LaunchForgotPasswordWebPagePayload => ({payload, type: launchForgotPasswordWebPage})
+export const createLoadIsOnline = (payload: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
+  payload,
+  type: loadIsOnline,
+})
+export const createLoadedIsOnline = (payload: _LoadedIsOnlinePayload): LoadedIsOnlinePayload => ({
+  payload,
+  type: loadedIsOnline,
+})
 export const createLogin = (payload: _LoginPayload): LoginPayload => ({payload, type: login})
 export const createLoginError = (payload: _LoginErrorPayload): LoginErrorPayload => ({
   payload,
@@ -39,6 +51,11 @@ export type LaunchForgotPasswordWebPagePayload = {
   readonly payload: _LaunchForgotPasswordWebPagePayload
   readonly type: typeof launchForgotPasswordWebPage
 }
+export type LoadIsOnlinePayload = {readonly payload: _LoadIsOnlinePayload; readonly type: typeof loadIsOnline}
+export type LoadedIsOnlinePayload = {
+  readonly payload: _LoadedIsOnlinePayload
+  readonly type: typeof loadedIsOnline
+}
 export type LoginErrorPayload = {readonly payload: _LoginErrorPayload; readonly type: typeof loginError}
 export type LoginPayload = {readonly payload: _LoginPayload; readonly type: typeof login}
 
@@ -47,6 +64,8 @@ export type LoginPayload = {readonly payload: _LoginPayload; readonly type: type
 export type Actions =
   | LaunchAccountResetWebPagePayload
   | LaunchForgotPasswordWebPagePayload
+  | LoadIsOnlinePayload
+  | LoadedIsOnlinePayload
   | LoginErrorPayload
   | LoginPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

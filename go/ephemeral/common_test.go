@@ -36,10 +36,16 @@ func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.Us
 	require.Equal(t, metadata.Kid, keypair.GetKID())
 }
 
-func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.TeamEk) {
-	seed := TeamEKSeed(ek.Seed)
+func verifyTeamEK(t *testing.T, teamEKMetadata keybase1.TeamEkMetadata,
+	ek keybase1.TeamEphemeralKey) {
+	typ, err := ek.KeyType()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
+	teamEK := ek.Team()
+
+	seed := TeamEKSeed(teamEK.Seed)
 	keypair := seed.DeriveDHKey()
-	require.Equal(t, metadata.Kid, keypair.GetKID())
+	require.Equal(t, teamEKMetadata.Kid, keypair.GetKID())
 }
 
 func TestEphemeralCloneError(t *testing.T) {
@@ -65,7 +71,7 @@ func TestEphemeralCloneError(t *testing.T) {
 		err = s.Delete(mctx, dek.Metadata.Generation)
 		require.NoError(t, err)
 	}
-	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
@@ -94,7 +100,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	}
 
 	creationCtime := gregor1.ToTime(time.Now().Add(time.Hour * -100))
-	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, &creationCtime)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), &creationCtime)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
@@ -106,7 +112,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	require.NoError(t, err)
 
 	// If no creation ctime is specified, we just get the default error message
-	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)

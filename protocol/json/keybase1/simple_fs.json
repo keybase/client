@@ -718,6 +718,53 @@
           "name": "spaceAvailableNotificationThreshold"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSStats",
+      "fields": [
+        {
+          "type": "ProcessRuntimeStats",
+          "name": "processStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DbStats"
+          },
+          "name": "runtimeDbStats"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SubscriptionTopic",
+      "symbols": [
+        "FAVORITES_0",
+        "JOURNAL_STATUS_1"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathSubscriptionTopic",
+      "symbols": [
+        "CHILDREN_0",
+        "STAT_1"
+      ]
     }
   ],
   "messages": {
@@ -1220,6 +1267,78 @@
         {
           "name": "threshold",
           "type": "int64"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSObfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSDeobfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    "simpleFSGetStats": {
+      "request": [],
+      "response": "SimpleFSStats"
+    },
+    "simpleFSSubscribePath": {
+      "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "kbfsPath",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSubscribeNonPath": {
+      "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUnsubscribe": {
+      "request": [
+        {
+          "name": "subscriptionID",
+          "type": "string"
         }
       ],
       "response": null

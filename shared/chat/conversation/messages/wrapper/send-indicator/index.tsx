@@ -35,8 +35,8 @@ class SendIndicator extends React.Component<Props, State> {
     this.state = {iconStatus: 'encrypting', visible: !props.sent}
   }
 
-  encryptingTimeoutID: number
-  sentTimeoutID: number
+  encryptingTimeoutID?: NodeJS.Timeout
+  sentTimeoutID?: NodeJS.Timeout
 
   _setStatus(iconStatus: IconStatus) {
     this.setState({iconStatus})
@@ -48,15 +48,15 @@ class SendIndicator extends React.Component<Props, State> {
 
   _onSent() {
     this._setStatus('sent')
-    this.props.clearTimeout(this.sentTimeoutID)
+    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
     this.sentTimeoutID = this.props.setTimeout(() => this._setVisible(false), sentTimeout)
-    this.props.clearTimeout(this.encryptingTimeoutID)
+    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
   }
 
   _onFailed() {
     this._setStatus('error')
-    this.props.clearTimeout(this.encryptingTimeoutID)
-    this.props.clearTimeout(this.sentTimeoutID)
+    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
+    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
   }
 
   _onResend() {
@@ -82,7 +82,7 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.failed && !prevProps.failed) {
       this._onFailed()
     } else if (this.props.sent && !prevProps.sent) {
@@ -93,8 +93,8 @@ class SendIndicator extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.props.clearTimeout(this.encryptingTimeoutID)
-    this.props.clearTimeout(this.sentTimeoutID)
+    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
+    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
   }
 
   render() {

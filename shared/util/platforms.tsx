@@ -39,10 +39,19 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
   }
 }
 
-export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'pgp' | 'reddit' | 'twitter'
+export type ServiceId =
+  | 'email'
+  | 'facebook'
+  | 'github'
+  | 'hackernews'
+  | 'keybase'
+  | 'pgp'
+  | 'reddit'
+  | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return ({
+    email: 'iconfont-mention',
     facebook: 'iconfont-identity-facebook',
     github: 'iconfont-identity-github',
     hackernews: 'iconfont-identity-hn',
@@ -55,6 +64,7 @@ export function serviceIdToIcon(service: ServiceId): IconType {
 
 export function serviceIdToLogo24(service: ServiceId): IconType {
   return ({
+    email: 'icon-keybase-logo-24',
     facebook: 'icon-facebook-logo-24',
     github: 'icon-github-logo-24',
     hackernews: 'icon-hacker-news-logo-24',
@@ -69,16 +79,9 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
 // or 'foobar@github' if another service
 export type UserId = string
 
-export function parseUserId(
-  id: UserId
-): {
-  username: string
-  serviceId: ServiceId
-} {
-  const [username, maybeServiceId] = id.split('@')
-  let serviceId: ServiceId | null
-
-  switch (maybeServiceId) {
+export function serviceIdFromString(val: string): ServiceId {
+  switch (val) {
+    case 'email':
     case 'facebook':
     case 'github':
     case 'hackernews':
@@ -86,12 +89,28 @@ export function parseUserId(
     case 'pgp':
     case 'reddit':
     case 'twitter':
-      serviceId = maybeServiceId
-      break
+      return val
     default:
-      serviceId = 'keybase'
+      return 'keybase'
   }
+}
 
+export function parseUserId(
+  id: UserId
+): {
+  username: string
+  serviceId: ServiceId
+} {
+  // This regex matches [THING1]@THING2 where THING1 cannot contain [] and THING2 cannot contain []@
+  const matches = /^\[([^[\]]+)\]@([^@[\]]+)$/.exec(id)
+  if (matches) {
+    return {
+      serviceId: serviceIdFromString(matches[2]),
+      username: matches[1],
+    }
+  }
+  const [username, maybeServiceId] = id.split('@')
+  const serviceId = serviceIdFromString(maybeServiceId)
   return {
     serviceId,
     username,

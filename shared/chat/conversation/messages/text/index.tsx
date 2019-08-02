@@ -17,7 +17,10 @@ type ReplyProps = {
 
 const Reply = (props: ReplyProps) => {
   const [imageLoaded, setImageLoaded] = React.useState(false)
-  const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
+  const sizing =
+    props.imageWidth && props.imageHeight
+      ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
+      : undefined
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -40,11 +43,11 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {!!props.imageURL && (
               <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                <Kb.Box style={{...sizing.margins}}>
+                <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
                   <Kb.Image
                     src={props.imageURL}
                     onLoad={() => setImageLoaded(true)}
-                    style={{...sizing.dims}}
+                    style={{...(sizing ? sizing.dims : {})}}
                   />
                   {!imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
                 </Kb.Box>
@@ -71,7 +74,27 @@ const Reply = (props: ReplyProps) => {
   )
 }
 
+export type ClaimProps = {
+  amount: number
+  label: string
+  onClaim: () => void
+}
+
+const Claim = (props: ClaimProps) => {
+  return (
+    <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.claimButton}>
+      <Kb.Text style={styles.claimLabel} type="BodySemibold">
+        {props.label}{' '}
+        <Kb.Text style={styles.claimLabel} type="BodyExtrabold">
+          {props.amount}
+        </Kb.Text>
+      </Kb.Text>
+    </Kb.Button>
+  )
+}
+
 export type Props = {
+  claim?: ClaimProps
   isEditing: boolean
   // eslint-disable-next-line
   message: Types.MessageText
@@ -80,7 +103,7 @@ export type Props = {
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({isEditing, message, reply, text, type}: Props) => {
+const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}
@@ -95,11 +118,12 @@ const MessageText = ({isEditing, message, reply, text, type}: Props) => {
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {!!reply && <Reply {...reply} />}
       {markdown}
+      {!!claim && <Claim {...claim} />}
     </Kb.Box2>
   )
 
   return Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" style={styles.wrapper}>
+    <Kb.Box2 direction="vertical" style={styles.wrapper} fullWidth={true}>
       {content}
     </Kb.Box2>
   ) : (
@@ -147,6 +171,13 @@ const pendingFailEditing = {
   ...editing,
 }
 const styles = Styles.styleSheetCreate({
+  claimButton: {
+    alignSelf: 'flex-start',
+    marginTop: Styles.globalMargins.xtiny,
+  },
+  claimLabel: {
+    color: Styles.globalColors.white,
+  },
   editing,
   pendingFail,
   pendingFailEditing,

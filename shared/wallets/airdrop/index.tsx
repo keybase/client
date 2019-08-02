@@ -32,14 +32,14 @@ class Loading extends React.Component<
   }
 > {
   state = {waited: false}
-  _id: NodeJS.Timeout
+  _id: NodeJS.Timeout | undefined
 
   componentDidMount() {
     this._id = setTimeout(() => this.setState({waited: true}), 1000)
   }
 
   componentWillUnmount() {
-    clearTimeout(this._id)
+    this._id && clearTimeout(this._id)
   }
 
   render() {
@@ -57,6 +57,37 @@ class Loading extends React.Component<
 }
 
 const validIcon = (s: any) => !!s && !!iconMeta[s]
+
+const Friends = () => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={styles.friendContainer}
+    gap={Styles.isMobile ? 'small' : 'large'}
+    noShrink={true}
+  >
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
+        <Kb.Text type="Body" style={styles.friendText}>
+          Tell them to visit{' '}
+        </Kb.Text>
+        <Kb.Text type="Body">
+          <Kb.Text
+            selectable={true}
+            type="BodyPrimaryLink"
+            style={styles.link}
+            onClick={() => openURL('https://keybase.io/airdrop')}
+          >
+            https://keybase.io/airdrop
+          </Kb.Text>
+          .
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+    <Kb.Icon type="icon-fancy-airdrop-shining-80" />
+  </Kb.Box2>
+)
 
 class Airdrop extends React.Component<Props> {
   _ref = React.createRef<Kb.ScrollView>()
@@ -87,9 +118,9 @@ class Airdrop extends React.Component<Props> {
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
-                <Kb.Icon type="icon-airdrop-star-32" />
+                <Kb.Icon type="icon-airdrop-logo-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
                   You're in. The next Lumens airdrop will show up in your default wallet account.
                 </Kb.Text>
@@ -104,7 +135,7 @@ class Airdrop extends React.Component<Props> {
               style={styles.header}
             >
               <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon type="icon-fancy-airdrop-star-shining-120" />
+                <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
                 <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
@@ -118,6 +149,7 @@ class Airdrop extends React.Component<Props> {
               </Kb.Box2>
             </Kb.Box2>
           )}
+          {p.signedUp && <Friends />}
           <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} style={styles.body} gap="small">
             {p.sections.map(b => (
               <Kb.Box2
@@ -150,36 +182,19 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button type="Success" label="See if you qualify" onClick={this._onCheckQualify} />
+            <Kb.Box2 direction="horizontal">
+              <Kb.Button
+                style={styles.qualifyButton}
+                type="Success"
+                label="See if you qualify"
+                onClick={this._onCheckQualify}
+              />
+            </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={styles.friendContainer}
-            gap={Styles.isMobile ? 'small' : 'large'}
-            noShrink={true}
-          >
-            <Kb.Box2 direction="vertical" gap="tiny">
-              <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
-              <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
-                <Kb.Text type="Body" style={styles.friendText}>
-                  Tell them to visit{' '}
-                </Kb.Text>
-                <Kb.Text type="Body">
-                  <Kb.Text
-                    type="BodyPrimaryLink"
-                    style={styles.link}
-                    onClick={() => openURL('https://keybase.io/airdrop')}
-                  >
-                    https://keybase.io/airdrop
-                  </Kb.Text>
-                  .
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-            <Kb.Icon type="icon-fancy-airdrop-friends-120" />
-          </Kb.Box2>
+
+          {!p.signedUp && <Friends />}
+
           {p.signedUp && (
             <Kb.ButtonBar style={styles.leaveButtonBar}>
               <Kb.WaitingButton
@@ -238,9 +253,10 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
   },
   friendContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
     backgroundColor: Styles.globalColors.blueLighter3,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   friendText: Styles.platformStyles({
     isElectron: {whiteSpace: 'pre'},
@@ -269,6 +285,10 @@ const styles = Styles.styleSheetCreate({
   progress: {
     height: 20,
     width: 20,
+  },
+  qualifyButton: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   scrollView: {
     height: '100%',

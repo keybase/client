@@ -44,7 +44,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.Debug("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
-	prepared, unlock, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
+	prepared, unlock, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments, arg.BatchID)
 	if err != nil {
 		walletState.SeqnoUnlock()
 		return res, err
@@ -123,7 +123,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 				if update.Status == stellar1.PaymentStatus_COMPLETED || update.Status == stellar1.PaymentStatus_CLAIMABLE {
 					chatWaitGroup.Add(1)
 					go func(m libkb.MetaContext, recipient string, txID stellar1.TransactionID) {
-						if err := chatSendPaymentMessageTo(m, recipient, txID); err != nil {
+						if err := chatSendPaymentMessage(m, recipient, txID); err != nil {
 							m.Debug("chatSendPaymentMessageTo %s (%s): error: %s", recipient, txID, err)
 						} else {
 							m.Debug("chatSendPaymentMessageTo %s (%s): success", recipient, txID)
@@ -153,7 +153,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 // PrepareBatchPayments prepares a list of payments to be submitted.
 // Each payment is prepared concurrently.
 // (this is an exposed function to make testing from outside this package easier)
-func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, func(), error) {
+func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg, batchID string) ([]*MiniPrepared, func(), error) {
 	mctx.Debug("preparing %d batch payments", len(payments))
 
 	baseFee := walletState.BaseFee(mctx)
@@ -163,7 +163,7 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	for _, payment := range payments {
 		go func(p stellar1.BatchPaymentArg) {
-			prepared <- prepareBatchPayment(mctx, walletState, sp, senderSeed, p, baseFee)
+			prepared <- prepareBatchPayment(mctx, walletState, sp, senderSeed, p, baseFee, batchID)
 		}(payment)
 	}
 
@@ -177,7 +177,7 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 	return preparedList, unlock, nil
 }
 
-func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, baseFee uint64) *MiniPrepared {
+func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, baseFee uint64, batchID string) *MiniPrepared {
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(payment.Recipient), false /* isCLI for identify purposes */)
 	if err != nil {
 		mctx.Debug("LookupRecipient error: %s", err)
@@ -188,12 +188,12 @@ func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp buil
 	}
 
 	if recipient.AccountID == nil {
-		return prepareBatchPaymentRelay(mctx, remoter, sp, senderSeed, payment, recipient, baseFee)
+		return prepareBatchPaymentRelay(mctx, remoter, sp, senderSeed, payment, recipient, baseFee, batchID)
 	}
-	return prepareBatchPaymentDirect(mctx, remoter, sp, senderSeed, payment, recipient, baseFee)
+	return prepareBatchPaymentDirect(mctx, remoter, sp, senderSeed, payment, recipient, baseFee, batchID)
 }
 
-func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64) *MiniPrepared {
+func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64, batchID string) *MiniPrepared {
 	result := &MiniPrepared{Username: libkb.NewNormalizedUsername(payment.Recipient)}
 	funded, err := isAccountFunded(mctx.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
@@ -213,6 +213,7 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 		FromDeviceID: mctx.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
+		BatchID:      batchID,
 	}
 
 	var signResult stellarnet.SignResult
@@ -249,7 +250,7 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 	return result
 }
 
-func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64) *MiniPrepared {
+func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64, batchID string) *MiniPrepared {
 	result := &MiniPrepared{Username: libkb.NewNormalizedUsername(payment.Recipient)}
 
 	if isAmountLessThanMin(payment.Amount, minAmountRelayXLM) {
@@ -285,6 +286,7 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 		BoxB64:            relay.EncryptedB64,
 		SignedTransaction: relay.FundTx.Signed,
 		QuickReturn:       true,
+		BatchID:           batchID,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV

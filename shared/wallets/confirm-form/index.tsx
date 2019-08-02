@@ -20,6 +20,7 @@ type ConfirmSendProps = {
   displayAmountXLM: string
   displayAmountFiat: string
   readyToSend: string
+  showCancelInsteadOfBackOnMobile: boolean
 }
 
 const ConfirmSend = (props: ConfirmSendProps) => {
@@ -32,6 +33,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
           sendingIntentionXLM={props.sendingIntentionXLM}
           displayAmountXLM={props.displayAmountXLM}
           displayAmountFiat={props.displayAmountFiat}
+          showCancelInsteadOfBackOnMobile={props.showCancelInsteadOfBackOnMobile}
         />
         {(props.banners || []).map(banner => (
           <Banner

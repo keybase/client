@@ -45,10 +45,6 @@ type DbNukeHook interface {
 	OnDbNuke(mctx MetaContext) error
 }
 
-type StandaloneChatConnector interface {
-	StartStandaloneChat(g *GlobalContext) error
-}
-
 type GlobalContext struct {
 	Log              logger.Logger // Handles all logging
 	VDL              *VDebugLog    // verbose debug log
@@ -82,23 +78,26 @@ type GlobalContext struct {
 	teamLoader             TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
 	hiddenTeamChainManager HiddenTeamChainManager
-	IDLocktab              LockTable
-	loadUserLockTab        LockTable
+	IDLocktab              *LockTable
+	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
-	stellar                Stellar          // Stellar related ops
-	deviceEKStorage        DeviceEKStorage  // Store device ephemeral keys
-	userEKBoxStorage       UserEKBoxStorage // Store user ephemeral key boxes
-	teamEKBoxStorage       TeamEKBoxStorage // Store team ephemeral key boxes
-	ekLib                  EKLib            // Wrapper to call ephemeral key methods
-	itciCacher             LRUer            // Cacher for implicit team conflict info
-	iteamCacher            MemLRUer         // In memory cacher for implicit teams
-	cardCache              *UserCardCache   // cache of keybase1.UserCard objects
-	fullSelfer             FullSelfer       // a loader that gets the full self object
-	pvlSource              MerkleStore      // a cache and fetcher for pvl
-	paramProofStore        MerkleStore      // a cache and fetcher for param proofs
-	externalURLStore       MerkleStore      // a cache and fetcher for external urls
-	PayloadCache           *PayloadCache    // cache of ChainLink payload json wrappers
+	stellar                Stellar            // Stellar related ops
+	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
+	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
+	teamEKBoxStorage       TeamEKBoxStorage   // Store team ephemeral key boxes
+	teambotEKBoxStorage    TeamEKBoxStorage   // Store team bot ephemeral key boxes
+	ekLib                  EKLib              // Wrapper to call ephemeral key methods
+	teambotBotKeyer        TeambotBotKeyer    // TeambotKeyer for bot members
+	teambotMemberKeyer     TeambotMemberKeyer // TeambotKeyer for non-bot members
+	itciCacher             LRUer              // Cacher for implicit team conflict info
+	iteamCacher            MemLRUer           // In memory cacher for implicit teams
+	cardCache              *UserCardCache     // cache of keybase1.UserCard objects
+	fullSelfer             FullSelfer         // a loader that gets the full self object
+	pvlSource              MerkleStore        // a cache and fetcher for pvl
+	paramProofStore        MerkleStore        // a cache and fetcher for param proofs
+	externalURLStore       MerkleStore        // a cache and fetcher for external urls
+	PayloadCache           *PayloadCache      // cache of ChainLink payload json wrappers
 	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -161,6 +160,10 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+
+	SyncedContactList SyncedContactListProvider
+
+	GUIConfig *JSONFile
 }
 
 type GlobalTestOptions struct {
@@ -179,6 +182,8 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetTeambotBotKeyer() TeambotBotKeyer           { return g.teambotBotKeyer }
+func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return g.teambotMemberKeyer }
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
@@ -220,6 +225,10 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
+
+func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBotKeyer = keyer }
+
+func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
@@ -403,7 +412,81 @@ func (g *GlobalContext) ConfigureConfig() error {
 
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
+	guiConfigErr := g.ConfigureGUIConfig()
+	if guiConfigErr != nil {
+		g.Log.Debug("Failed to open gui config: %s", guiConfigErr)
+	}
 	g.ConfigureUpdaterConfig()
+	return err
+}
+
+// migrateGUIConfig does not delete old values from service's config.
+func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
+	var errs []error
+
+	p := "ui.routeState2"
+	if uiRouteState2, isSet := serviceConfig.GetStringAtPath(p); isSet {
+		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.shownMonsterPushPrompt"
+	if uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "stellar.lastSentXLM"
+	if stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.importContacts"
+	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
+	if err != nil {
+		if !isJSONNoSuchKeyError(err) {
+			errs = append(errs, err)
+		}
+	} else {
+		syncSettings, ok := syncSettings.(map[string]interface{})
+		if !ok {
+			errs = append(errs, fmt.Errorf("Failed to coerce ui.importContacts in migration"))
+		} else {
+			for username, syncEnabled := range syncSettings {
+				syncEnabled, ok := syncEnabled.(bool)
+				if !ok {
+					errs = append(errs, fmt.Errorf("Failed to coerce syncEnabled in migration for %s", username))
+				}
+				err := guiConfig.SetBoolAtPath(fmt.Sprintf("%s.%s", p, username), syncEnabled)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+	}
+	return CombineErrors(errs...)
+}
+
+func (g *GlobalContext) ConfigureGUIConfig() error {
+	guiConfig := NewJSONFile(g, g.Env.GetGUIConfigFilename(), "gui config")
+	found, err := guiConfig.LoadCheckFound()
+	if err == nil {
+		if !found {
+			guiConfig.SetBoolAtPath("gui", true)
+			// If this is the first time creating this file, manually migrate
+			// old GUI config values from the main config file best-effort.
+			serviceConfig := g.Env.GetConfig()
+			if migrateErr := migrateGUIConfig(serviceConfig, guiConfig); migrateErr != nil {
+				g.Log.Debug("Failed to migrate config to new GUI config file: %s", migrateErr)
+			}
+
+		}
+		g.Env.SetGUIConfig(guiConfig)
+	}
 	return err
 }
 
@@ -496,6 +579,8 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 
 	g.shutdownCachesLocked()
 
+	g.IDLocktab = NewLockTable()
+	g.loadUserLockTab = NewLockTable()
 	g.Resolver.EnableCaching(NewMetaContextBackground(g))
 	g.trackCache = NewTrackCache()
 	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
@@ -625,6 +710,12 @@ func (g *GlobalContext) GetTeamEKBoxStorage() TeamEKBoxStorage {
 	return g.teamEKBoxStorage
 }
 
+func (g *GlobalContext) GetTeambotEKBoxStorage() TeamEKBoxStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teambotEKBoxStorage
+}
+
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -711,12 +802,6 @@ func (g *GlobalContext) Shutdown() error {
 		if g.UI != nil {
 			epick.Push(g.UI.Shutdown())
 		}
-		if g.LocalDb != nil {
-			epick.Push(g.LocalDb.Close())
-		}
-		if g.LocalChatDb != nil {
-			epick.Push(g.LocalChatDb.Close())
-		}
 
 		// Shutdown can still race with Logout, so make sure that we hold onto
 		// the cacheMu before shutting down the caches. See comments in
@@ -733,6 +818,14 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
+		// shutdown the databases after the shutdown hooks run, we may want to
+		// flush memory caches to disk during shutdown.
+		if g.LocalDb != nil {
+			epick.Push(g.LocalDb.Close())
+		}
+		if g.LocalChatDb != nil {
+			epick.Push(g.LocalChatDb.Close())
+		}
 		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()
@@ -1235,6 +1328,12 @@ func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamEKBoxStorage = s
+}
+
+func (g *GlobalContext) SetTeambotEKBoxStorage(s TeamEKBoxStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teambotEKBoxStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

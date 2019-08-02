@@ -10,6 +10,7 @@ protocol notifyCtl {
     boolean kbfs;
     boolean kbfsdesktop;
     boolean kbfslegacy;
+    boolean kbfssubscription;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;
@@ -23,12 +24,14 @@ protocol notifyCtl {
     boolean reachability;
     boolean team;
     boolean ephemeral;
+    boolean teambot;
     boolean chatkbfsedits;
     boolean chatdev;
     boolean deviceclone;
     boolean chatattachments;
     boolean wallet;
     boolean audit;
+    boolean runtimestats;
   }
 
   void setNotifications(NotificationChannels channels);

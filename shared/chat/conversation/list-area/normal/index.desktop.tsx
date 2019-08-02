@@ -83,7 +83,7 @@ class Thread extends React.PureComponent<Props, State> {
           this._ignoreScrollOnetime
         )
       }
-    : (name, fn) => fn()
+    : (_, fn) => fn()
 
   _logScrollTop = debug
     ? (list, name, fn) => {
@@ -91,7 +91,7 @@ class Thread extends React.PureComponent<Props, State> {
         fn()
         logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _logAll = debug
     ? (list, name, fn) => {
@@ -111,7 +111,7 @@ class Thread extends React.PureComponent<Props, State> {
           list.scrollTop
         )
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _scrollToCentered = () => {
     const list = this._listRef.current
@@ -178,7 +178,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
-  getSnapshotBeforeUpdate(prevProps: Props, prevState: State) {
+  getSnapshotBeforeUpdate(prevProps: Props) {
     // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
@@ -190,7 +190,7 @@ class Thread extends React.PureComponent<Props, State> {
     return null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
+  componentDidUpdate(prevProps: Props, _: State, snapshot: Snapshot) {
     if (this.props === prevProps) {
       // don't do any of the below if just state changes
       return
@@ -275,11 +275,12 @@ class Thread extends React.PureComponent<Props, State> {
         const waypoints = list.querySelectorAll('[data-key]')
         // find an id that should be our parent
         const toFind = Types.ordinalToNumber(ordinal)
-        const found = Array.from(waypoints)
-          .reverse()
-          .find(w => parseInt((w as HTMLElement).dataset.key, 10) < toFind)
+        const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
+          const key = w.dataset.key
+          return key !== undefined && parseInt(key, 10) < toFind
+        })
         if (found) {
-          ;(found as HTMLElement).scrollIntoView({behavior: 'smooth', block: 'center'})
+          found.scrollIntoView({behavior: 'smooth', block: 'center'})
         }
       }
     }
@@ -295,7 +296,7 @@ class Thread extends React.PureComponent<Props, State> {
     this._checkForLoadMoreThrottled.cancel()
   }
 
-  _onScroll = e => {
+  _onScroll = () => {
     if (this._ignoreScrollOnetime) {
       this._logIgnoreScroll('_onScroll', () => {
         this._ignoreScrollOnetime = false
@@ -378,7 +379,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }, 200)
 
-  _rowRenderer = (ordinal: Types.Ordinal, previous: Types.Ordinal | null, measure: () => void) => (
+  _rowRenderer = (ordinal: Types.Ordinal, previous?: Types.Ordinal, measure?: () => void) => (
     <Message
       key={String(ordinal)}
       ordinal={ordinal}
@@ -391,7 +392,8 @@ class Thread extends React.PureComponent<Props, State> {
   _onCopyCapture = e => {
     // Copy text only, not HTML/styling.
     e.preventDefault()
-    this.props.copyToClipboard(window.getSelection().toString())
+    const sel = window.getSelection()
+    sel && this.props.copyToClipboard(sel.toString())
   }
 
   _handleListClick = (ev: React.MouseEvent) => {
@@ -401,7 +403,8 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
-    if (window.getSelection().isCollapsed) {
+    const sel = window.getSelection()
+    if (sel && sel.isCollapsed) {
       this.props.onFocusInput()
     }
   }
@@ -410,13 +413,13 @@ class Thread extends React.PureComponent<Props, State> {
     return this._makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
   }
   _makeItemsMemoized = memoize((conversationIDKey, messageOrdinals) => {
-    const items = []
+    const items: Array<React.ReactNode> = []
     items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
 
     const numOrdinals = messageOrdinals.size
-    let ordinals = []
-    let previous = null
-    let lastBucket = null
+    let ordinals: Array<Types.Ordinal> = []
+    let previous: undefined | Types.Ordinal
+    let lastBucket: number | undefined
     let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
     messageOrdinals.forEach((ordinal, idx) => {
       // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
@@ -424,7 +427,7 @@ class Thread extends React.PureComponent<Props, State> {
 
       // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
-      if (lastBucket === null) {
+      if (lastBucket === undefined) {
         lastBucket = bucket
       }
       const needNextWaypoint = bucket !== lastBucket
@@ -567,30 +570,26 @@ class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemSt
 
 type OrdinalWaypointProps = {
   id: string
-  rowRenderer: (
-    ordinal: Types.Ordinal,
-    previous: Types.Ordinal | null,
-    measure: () => void
-  ) => React.ReactNode
+  rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal, measure?: () => void) => React.ReactNode
   ordinals: Array<Types.Ordinal>
-  previous: Types.Ordinal | null
+  previous?: Types.Ordinal
 }
 
 type OrdinalWaypointState = {
-  height: number | null
+  height?: number
   heightForOrdinals: Array<Types.Ordinal>
   isVisible: boolean
-  width: number | null
+  width?: number
 }
 
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
-    height: null,
+    height: undefined,
     heightForOrdinals: [],
     isVisible: true,
-    width: null,
+    width: undefined,
   }
-  _animID: number
+  _animID?: number
 
   componentWillUnmount() {
     this._onResize.cancel()
@@ -607,20 +606,21 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
-  _handlePositionChange = ({currentPosition, event = null}) => {
+  _handlePositionChange = p => {
     // lets ignore when this happens, this seems like a large source of jiggliness
-    if (this.state.isVisible && !event) {
+    if (this.state.isVisible && !p.event) {
       return
     }
+    const {currentPosition} = p
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
       this._cancelAnim()
       if (isVisible) {
-        this.setState(p => (!p.isVisible ? {isVisible: true} : undefined))
+        this.setState(p => (!p.isVisible ? {isVisible: true} : null))
       } else {
         this._animID = window.requestAnimationFrame(() => {
           this._animID = 0
-          this.setState(p => (p.isVisible ? {isVisible: false} : undefined))
+          this.setState(p => (p.isVisible ? {isVisible: false} : null))
         })
       }
     }
@@ -658,7 +658,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   _measure = debounce(() => {
-    this.setState(p => (p.height ? {height: null} : null))
+    this.setState(p => (p.height ? {height: undefined} : null))
   }, 100)
 
   shouldComponentUpdate(nextProps, nextState) {

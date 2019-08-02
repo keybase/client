@@ -64,7 +64,9 @@ const paramsToErrorMsg = (
 }
 
 function isRPCErrorLike(err: Object): err is RPCErrorLike {
-  return err.hasOwnProperty('desc') && err.hasOwnProperty('code')
+  return (
+    Object.prototype.hasOwnProperty.call(err, 'desc') && Object.prototype.hasOwnProperty.call(err, 'code')
+  )
 }
 
 // convertToError converts an RPC error object (or any object) into an
@@ -137,7 +139,7 @@ export const niceError = (e: RPCError) => {
   }
 
   const caps = capitalize(e.desc || e.message || 'Unknown error')
-  return caps.endsWith('.') ? caps : `${caps}.`
+  return caps.endsWith('.') ? `${caps}.` : caps
 }
 
 function isRPCError(error: RPCError | Error): error is RPCError {

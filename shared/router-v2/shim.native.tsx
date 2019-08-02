@@ -16,13 +16,13 @@ const shimNewRoute = (Original: any) => {
           : Original.navigationOptions
       const body = <Original {...this.props} />
       const keyboardBody = (
-        <Kb.NativeKeyboardAvoidingView
+        <Kb.KeyboardAvoidingView
           style={styles.keyboard}
           behavior={Styles.isIOS ? 'padding' : undefined}
           keyboardVerticalOffset={(navigationOptions && navigationOptions.headerHeight) || undefined}
         >
           {body}
-        </Kb.NativeKeyboardAvoidingView>
+        </Kb.KeyboardAvoidingView>
       )
 
       // don't make safe areas

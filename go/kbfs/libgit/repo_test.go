@@ -94,7 +94,8 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo(4)", "")
 	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 
-	fs.SyncAll()
+	err = fs.SyncAll()
+	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, data.MasterBranch)
@@ -286,14 +287,15 @@ func TestDeleteRepo(t *testing.T) {
 	err = DeleteRepo(ctx, config, h, "Repo1")
 	require.NoError(t, err)
 
-	gitNode, _, err := config.KBFSOps().Lookup(ctx, rootNode, kbfsRepoDir)
+	gitNode, _, err := config.KBFSOps().Lookup(
+		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
 	require.NoError(t, err)
 	children, err := config.KBFSOps().GetDirChildren(ctx, gitNode)
 	require.NoError(t, err)
 	require.Len(t, children, 0) // .kbfs_deleted_repos is hidden
 
 	deletedReposNode, _, err := config.KBFSOps().Lookup(
-		ctx, gitNode, kbfsDeletedReposDir)
+		ctx, gitNode, gitNode.ChildName(kbfsDeletedReposDir))
 	require.NoError(t, err)
 	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
 	require.NoError(t, err)

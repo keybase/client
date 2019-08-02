@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -155,6 +156,10 @@ func hashInterface(i interface{}) (LinkID, error) {
 		return LinkID{}, err
 	}
 	return hash(b), nil
+}
+
+func (l LinkID) String() string {
+	return hex.EncodeToString(l[:])
 }
 
 func (o OuterLink) Hash() (LinkID, error) {
@@ -381,7 +386,7 @@ func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
 
 func genRandomBytes(i int) ([]byte, error) {
 	ret := make([]byte, i, i)
-	n, err := rand.Reader.Read(ret[:])
+	n, err := rand.Read(ret[:])
 	if err != nil {
 		return nil, err
 	}

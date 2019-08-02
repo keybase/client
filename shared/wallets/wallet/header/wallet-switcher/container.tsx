@@ -2,17 +2,18 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
-import openURL from '../../../../util/open-url'
 import {WalletSwitcher} from '.'
 
 type OwnProps = {
-  getAttachmentRef: () => React.Component<any> | null
+  getAttachmentRef?: (() => React.Component<any>) | null
   showingMenu: boolean
   hideMenu: () => void
 }
 
 const mapStateToProps = (state: Container.TypedState) => ({
   accounts: getAccountIDs(state),
+  airdropIsLive: state.wallets.airdropDetails.isPromoted,
+  inAirdrop: state.wallets.airdropState === 'accepted',
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -39,10 +40,13 @@ export default Container.connect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     accountIDs: stateProps.accounts.toArray(),
+    airdropIsLive: stateProps.airdropIsLive,
+    inAirdrop: stateProps.inAirdrop,
     onAddNew: dispatchProps.onAddNew,
     onJoinAirdrop: dispatchProps.onJoinAirdrop,
     onLinkExisting: dispatchProps.onLinkExisting,
     onWhatIsStellar: dispatchProps.onWhatIsStellar,
     ...ownProps,
   })
-)(WalletSwitcher)
+  // TODO fix
+)(WalletSwitcher) as any

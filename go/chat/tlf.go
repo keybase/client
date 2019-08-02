@@ -106,8 +106,11 @@ func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, p
 }
 
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, "EncryptionKey(%s,%v)", tlfName, public)()
+	if botUID != nil {
+		return res, ni, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
 	ni, allKeys, err := t.loadAll(ctx, tlfName, public)
 	if err != nil {
 		return res, ni, err
@@ -121,11 +124,17 @@ func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, 
 
 func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
 	defer t.Trace(ctx, func() error { return err }, "DecryptionKey(%s,%v)", tlfName, public)()
+
+	if botUID != nil {
+		return res, fmt.Errorf("TeambotKeys not supported by KBFS")
+	}
+
 	if public {
 		return publicCryptKey, nil
 	}
+
 	ni, err := t.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
 		// Banned folders are only detectable by the error string currently,
@@ -148,13 +157,13 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 }
 
 func (t *KBFSNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (teamEK types.EphemeralCryptKey, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 
 func (t *KBFSNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK types.EphemeralCryptKey, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 

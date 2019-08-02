@@ -3,7 +3,7 @@ import StandardScreen from './standard-screen'
 import Text from './text'
 import Box from './box'
 import {action, storiesOf} from '../stories/storybook'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles} from '../styles'
 
 const Wrapper = ({children}) => <Box style={{...globalStyles.flexBoxRow, height: 578}}>{children}</Box>
 const props = {
@@ -29,35 +29,16 @@ const load = () => {
         />
       </Wrapper>
     ))
-    .add('Success w/ Custom Notification Element', () => (
-      <Wrapper>
-        <StandardScreen
-          {...props}
-          notification={{
-            message: (
-              <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
-                You won a unicorn!{' '}
-                <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
-                  Make sure to feed it
-                </Text>{' '}
-                :-)
-              </Text>
-            ),
-            type: 'success',
-          }}
-        />
-      </Wrapper>
-    ))
     .add('Back Button', () => (
       <Wrapper>
-        <StandardScreen {...props} onClose={null} onBack={action('onBack')} />
+        <StandardScreen {...props} onClose={undefined} onBack={action('onBack')} />
       </Wrapper>
     ))
     .add('Error w/ Back Button', () => (
       <Wrapper>
         <StandardScreen
           {...props}
-          onClose={null}
+          onClose={undefined}
           onBack={action('onBack')}
           notification={{
             message: 'This is an error, but you can go back!',

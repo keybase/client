@@ -19,15 +19,26 @@ type State = {
 }
 
 class SectionList extends React.Component<Props, State> {
-  _flat = []
+  _flat: Array<any> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props, _: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+    }
+    if (
+      this.props.selectedIndex !== -1 &&
+      this.props.selectedIndex !== prevProps.selectedIndex &&
+      this.props.selectedIndex !== undefined &&
+      this._listRef &&
+      this._listRef.current
+    ) {
+      const index = this._itemIndexToFlatIndex(this.props.selectedIndex)
+      // If index is 1, scroll to 0 instead to show the first section header as well.
+      this._listRef.current.scrollAround(index === 1 ? 0 : index)
     }
   }
 
@@ -36,7 +47,7 @@ class SectionList extends React.Component<Props, State> {
   }
 
   /* Methods from native SectionList */
-  scrollToLocation(params: any) {
+  scrollToLocation() {
     console.warn('TODO desktop SectionList')
   }
   recordInteraction() {
@@ -47,7 +58,7 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, key, renderingSticky) => {
+  _itemRenderer = (index, _, renderingSticky) => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
@@ -187,6 +198,23 @@ class SectionList extends React.Component<Props, State> {
       return arr
     }, [])
   })
+
+  _itemIndexToFlatIndex = (index: number) => {
+    if (index < 0) {
+      return 0
+    }
+    for (let i = 0; i < this._flat.length; i++) {
+      const item = this._flat[i]
+      if (item.type === 'body') {
+        // are we there yet?
+        if (index === 0) {
+          return i // yes
+        }
+        --index // no
+      }
+    }
+    return this._flat.length - 1
+  }
 
   render() {
     this._flatten(this.props.sections)

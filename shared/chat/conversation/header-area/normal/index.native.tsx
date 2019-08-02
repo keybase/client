@@ -8,10 +8,11 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
+import * as Styles from '../../../../styles'
 import {Props} from './index.types'
 
-const shhIconColor = globalColors.black_20
+const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const Wrapper = (
@@ -26,16 +27,8 @@ const Wrapper = (
       props.pendingWaiting
         ? undefined
         : [
-            {
-              icon: 'iconfont-search',
-              label: 'search',
-              onPress: props.onToggleThreadSearch,
-            },
-            {
-              icon: 'iconfont-info',
-              label: 'Info',
-              onPress: props.onToggleInfoPanel,
-            },
+            {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
+            {icon: 'iconfont-info', label: 'Info', onPress: props.onToggleInfoPanel},
           ]
     }
     titleComponent={props.children}
@@ -55,10 +48,10 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : (12 as any)} />
+      <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
         type={
-          isMobile
+          Styles.isMobile
             ? props.smallTeam
               ? 'BodyBig'
               : 'BodyTinySemibold'
@@ -68,7 +61,7 @@ const ChannelHeader = (props: Props) => (
         }
         lineClamp={1}
         ellipsizeMode="middle"
-        style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
+        style={Styles.collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
       >
         &nbsp;
         {props.teamName}
@@ -77,7 +70,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName}>
+        <Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -92,8 +85,9 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
-        commaColor={globalColors.black_50}
-        type="BodyBig"
+        lineClamp={props.participants.length > 2 ? 2 : 1}
+        commaColor={Styles.globalColors.black_50}
+        type={props.participants.length > 2 ? 'BodyTiny' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -104,20 +98,45 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const styles = styleSheetCreate({
+const PhoneOrEmailHeader = (props: Props) => {
+  const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
+  const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
+  const name = props.contactNames[phoneOrEmail]
+  return (
+    <Wrapper {...props}>
+      <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+        <Box2 direction="horizontal" style={styles.lessMargins}>
+          <Text type="BodyBig">{formattedPhoneOrEmail}</Text>
+          {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+        </Box2>
+        {!!name && <Text type="BodyTiny">{name}</Text>}
+      </Box2>
+    </Wrapper>
+  )
+}
+
+const styles = Styles.styleSheetCreate({
   center: {
     justifyContent: 'center',
     textAlign: 'center',
   },
-  channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
+  channelHeaderContainer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
   channelName: {
-    color: globalColors.black,
+    color: Styles.globalColors.black,
   },
   channelNameLight: {
-    color: globalColors.black_50,
+    color: Styles.globalColors.black_50,
   },
-  shhIcon: {marginLeft: globalMargins.xtiny},
+  lessMargins: {
+    marginBottom: -5,
+  },
+  shhIcon: {marginLeft: Styles.globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
 })
 
-export {ChannelHeader, UsernameHeader}
+export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

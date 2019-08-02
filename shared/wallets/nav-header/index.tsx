@@ -2,12 +2,13 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
-import {SmallAccountID, SendButton, DropdownButton} from '../common'
+import {SmallAccountID, SendButton} from '../common'
 import AddAccount from './add-account'
 
 type HeaderTitleProps = {
   accountID: Types.AccountID
   accountName: string
+  airdropSelected: boolean
   isDefault: boolean
   loading: boolean
   noDisclaimer: boolean
@@ -18,11 +19,17 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
     <Kb.Box2 direction="horizontal">
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
-        <AddAccount />
+        {!props.airdropSelected && <AddAccount />}
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
         {props.loading ? (
           <Kb.ProgressIndicator type={'Small'} style={styles.loading} />
+        ) : props.airdropSelected ? (
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text selectable={false} type="Header">
+              Airdrop
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           <>
             <Kb.Box2
@@ -44,16 +51,34 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
   )
 
 type HeaderRightActionsProps = {
+  airdropSelected: boolean
+  loading: boolean
   noDisclaimer: boolean
   onReceive: () => void
+  onSettings: () => void
 }
 
 export const HeaderRightActions = (props: HeaderRightActionsProps) =>
-  props.noDisclaimer ? null : (
+  props.noDisclaimer || props.airdropSelected ? null : (
     <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="tiny" style={styles.rightActions}>
       <SendButton small={true} />
-      <Kb.Button type="Wallet" mode="Secondary" label="Receive" small={true} onClick={props.onReceive} />
-      <DropdownButton small={true} />
+      <Kb.Button
+        type="Wallet"
+        mode="Secondary"
+        label="Receive"
+        small={true}
+        onClick={props.onReceive}
+        disabled={props.loading}
+      />
+      <Kb.Button
+        onClick={props.onSettings}
+        mode="Secondary"
+        small={true}
+        type="Wallet"
+        disabled={props.loading}
+      >
+        <Kb.Icon type="iconfont-gear" style={styles.gear} />
+      </Kb.Button>
     </Kb.Box2>
   )
 
@@ -74,6 +99,10 @@ const styles = Styles.styleSheetCreate({
       marginTop: -Styles.globalMargins.xtiny,
     },
   }),
+  gear: {
+    position: 'relative',
+    top: 1,
+  },
   left: Styles.platformStyles({
     common: {
       minWidth: 240,

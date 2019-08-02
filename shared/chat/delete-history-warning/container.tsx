@@ -1,40 +1,30 @@
 import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Constants from '../../constants/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
 import DeleteHistoryWarning from '.'
-import {compose, connect, isMobile, getRouteProps, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
-  return {
-    onBack: isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp()),
+export default Container.connect(
+  () => ({}),
+  (dispatch, ownProps: OwnProps) => ({
+    onBack: Container.isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDeleteHistory: () => {
-      const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+      const conversationIDKey = Container.getRouteProps(
+        ownProps,
+        'conversationIDKey',
+        Constants.noConversationIDKey
+      )
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
     },
-  }
-}
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onBack,
-  onCancel: dispatchProps.onCancel,
-  onDeleteHistory: dispatchProps.onDeleteHistory,
-})
-
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
+  }),
+  (_, dispatchProps, __: OwnProps) => ({
+    onBack: dispatchProps.onBack,
+    onCancel: dispatchProps.onCancel,
+    onDeleteHistory: dispatchProps.onDeleteHistory,
+  })
 )(DeleteHistoryWarning)

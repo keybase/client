@@ -10,7 +10,9 @@
         "READER_1",
         "WRITER_2",
         "ADMIN_3",
-        "OWNER_4"
+        "OWNER_4",
+        "BOT_5",
+        "RESTRICTEDBOT_6"
       ]
     },
     {
@@ -268,6 +270,20 @@
             "items": "UserVersion"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "restrictedBots"
         }
       ]
     },
@@ -338,6 +354,20 @@
             "items": "TeamMemberDetails"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "restrictedBots"
         }
       ]
     },
@@ -414,6 +444,20 @@
             "type": "array",
             "items": "UserVersion"
           },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "restrictedBots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
           "name": "none"
         },
         {
@@ -463,6 +507,13 @@
             "items": "UserVersion"
           },
           "name": "onlyReaders"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "onlyRestrictedBots"
         },
         {
           "type": {
@@ -622,29 +673,25 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "RatchetType",
+      "symbols": [
+        "MAIN_0",
+        "BLINDED_1",
+        "SELF_2"
+      ]
+    },
+    {
       "type": "record",
-      "name": "HiddenTeamChainRatchet",
+      "name": "HiddenTeamChainRatchetSet",
       "fields": [
         {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "main"
-        },
-        {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "blinded"
-        },
-        {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "self"
+          "type": {
+            "type": "map",
+            "values": "LinkTripleAndTime",
+            "keys": "RatchetType"
+          },
+          "name": "ratchets"
         }
       ]
     },
@@ -713,12 +760,24 @@
           "name": "readerPerTeamKeys"
         },
         {
-          "type": "HiddenTeamChainRatchet",
-          "name": "ratchet"
+          "type": "HiddenTeamChainRatchetSet",
+          "name": "ratchetSet"
         },
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "needRotate"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleRoots"
         }
       ]
     },
@@ -1034,6 +1093,10 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": "Time",
+          "name": "skipUntil"
         }
       ]
     },
@@ -1367,6 +1430,14 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
+          },
+          "name": "bots"
         },
         {
           "type": {
@@ -2021,6 +2092,10 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        },
+        {
+          "type": "boolean",
+          "name": "skipAudit"
         }
       ]
     },
@@ -2402,6 +2477,34 @@
     },
     {
       "type": "record",
+      "name": "TeamBotSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "cmds"
+        },
+        {
+          "type": "boolean",
+          "name": "mentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "triggers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "convs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRequestAccessResult",
       "fields": [
         {
@@ -2715,7 +2818,8 @@
       "name": "RotationType",
       "symbols": [
         "VISIBLE_0",
-        "HIDDEN_1"
+        "HIDDEN_1",
+        "CLKR_2"
       ]
     },
     {

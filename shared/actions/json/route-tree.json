@@ -1,38 +1,22 @@
 {
   "prelude": ["import * as Tabs from '../constants/tabs'"],
   "actions": {
-    "switchRouteDef": {
-      "_description": "TODO for this whole json. replace all these actions with a cleaned up version",
-      "loggedIn": "boolean",
-      "path?": "any"
-    },
-    "switchTo": {
-      "path": "any",
-      "parentPath?": "any"
-    },
-    "navigateTo": {
-      "path": "any",
-      "parentPath?": "any",
-      "replace?": "boolean"
-    },
     "navigateAppend": {
       "fromKey?": "string",
       "path": "any",
-      "parentPath?": "any",
       "replace?": "boolean"
     },
     "navigateUp": {"fromKey?": "string"},
-    "putActionIfOnPath": {
-      "expectedPath": "any",
-      "otherAction": "any",
-      "parentPath?": "any"
-    },
     "clearModals": {
       "_description": "ONLY used by the new nav. use this to clear any modal routes"
     },
     "navUpToScreen": {
       "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
       "routeName": "string"
+    },
+    "switchLoggedIn": {
+      "_description": "ONLY used by the new nav. Switch login stacks",
+      "loggedIn": "boolean"
     },
     "switchTab": {
       "_description": "ONLY used by the new nav. Switch to a different tab.",

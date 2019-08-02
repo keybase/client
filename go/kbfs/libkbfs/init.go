@@ -295,8 +295,8 @@ func AddFlagsWithDefaults(
 		defaultParams.BGFlushPeriod,
 		"The amount of time to wait before syncing data in a TLF, if the "+
 			"batch size doesn't fill up.")
-	flags.IntVar((*int)(&params.BGFlushDirOpBatchSize), "sync-batch-size",
-		int(defaultParams.BGFlushDirOpBatchSize),
+	flags.IntVar(&params.BGFlushDirOpBatchSize, "sync-batch-size",
+		defaultParams.BGFlushDirOpBatchSize,
 		"The number of unflushed directory operations in a TLF that will "+
 			"trigger an immediate data sync.")
 
@@ -312,11 +312,11 @@ func AddFlagsWithDefaults(
 			InitMinimalString, InitSingleOpString, InitConstrainedString,
 			InitMemoryLimitedString))
 
-	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
+	flags.Float64Var(&params.DiskBlockCacheFraction,
 		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for caching ")
 
-	flags.Float64Var((*float64)(&params.SyncBlockCacheFraction),
+	flags.Float64Var(&params.SyncBlockCacheFraction,
 		"sync-block-cache-fraction", defaultParams.SyncBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for offline storage")
 
@@ -376,7 +376,7 @@ func parseRootDir(addr string) (string, bool) {
 	return serverRootDir, true
 }
 
-func makeMDServer(config Config, mdserverAddr string,
+func makeMDServer(kbCtx Context, config Config, mdserverAddr string,
 	rpcLogFactory rpc.LogFactory, log logger.Logger) (
 	MDServer, error) {
 	if mdserverAddr == memoryAddr {
@@ -403,7 +403,7 @@ func makeMDServer(config Config, mdserverAddr string,
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
 	log.Debug("Using remote mdserver %s", remote)
-	mdServer := NewMDServerRemote(config, remote, rpcLogFactory)
+	mdServer := NewMDServerRemote(kbCtx, config, remote, rpcLogFactory)
 	return mdServer, nil
 }
 
@@ -437,7 +437,7 @@ func makeKeyServer(
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, bserverAddr string,
+func makeBlockServer(kbCtx Context, config Config, bserverAddr string,
 	rpcLogFactory rpc.LogFactory,
 	log logger.Logger) (BlockServer, error) {
 	if bserverAddr == memoryAddr {
@@ -465,7 +465,7 @@ func makeBlockServer(config Config, bserverAddr string,
 		return nil, err
 	}
 	log.Debug("Using remote bserver %s", remote)
-	return NewBlockServerRemote(config, remote, rpcLogFactory), nil
+	return NewBlockServerRemote(kbCtx, config, remote, rpcLogFactory), nil
 }
 
 // InitLogWithPrefix sets up logging switching to a log file if
@@ -552,7 +552,7 @@ func InitWithLogPrefix(
 			// https://golang.org/pkg/os/signal/#hdr-Default_behavior_of_signals_in_Go_programs
 			switch sig {
 			case syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT:
-				pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
 			}
 
 			if onInterruptFn != nil {
@@ -660,11 +660,6 @@ func doInit(
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
-	if mode == InitConstrained {
-		// Until we have a way to turn on debug logging for mobile,
-		// log everything.
-		config.SetVLogLevel(libkb.VLog1String)
-	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -703,9 +698,8 @@ func doInit(
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
-	config.SetMetadataVersion(kbfsmd.MetadataVer(params.MetadataVersion))
-	config.SetBlockCryptVersion(
-		kbfscrypto.EncryptionVer(params.BlockCryptVersion))
+	config.SetMetadataVersion(params.MetadataVersion)
+	config.SetBlockCryptVersion(params.BlockCryptVersion)
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 
@@ -738,6 +732,17 @@ func doInit(
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
+	// Enable the disk limiter before the keybase service, since if
+	// that service receives a logged-in event it will create a disk
+	// block cache, which requires the disk limiter.
+	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
+	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
@@ -755,8 +760,7 @@ func doInit(
 	config.SetCrypto(crypto)
 
 	// Initialize MDServer connection.
-	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	mdServer, err := makeMDServer(kbCtx, config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
@@ -779,7 +783,7 @@ func doInit(
 
 	// Initialize BlockServer connection.
 	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+		kbCtx, config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
@@ -787,15 +791,6 @@ func doInit(
 		bserv = NewBlockServerMeasured(bserv, registry)
 	}
 	config.SetBlockServer(bserv)
-
-	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
-	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
-
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
 
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {

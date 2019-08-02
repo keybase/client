@@ -19,7 +19,7 @@ export default function(state: Types.State = initialState, action: Notifications
   switch (action.type) {
     case NotificationsGen.resetStore:
       return initialState
-    case NotificationsGen.setBadgeCounts:
+    case NotificationsGen.setBadgeCounts: {
       const chatCount = action.payload.counts.get(Tabs.chatTab)
       const newState = (chatCount ? state.set('mobileAppBadgeCount', chatCount) : state)
         .set(
@@ -44,6 +44,7 @@ export default function(state: Types.State = initialState, action: Notifications
         )
         .mergeIn(['navBadges'], action.payload.counts)
       return _updateWidgetBadge(newState)
+    }
     case NotificationsGen.badgeApp: {
       const newState = state.update('keyState', ks => ks.set(action.payload.key, action.payload.on))
       return _updateWidgetBadge(newState)

@@ -12,6 +12,13 @@ export const stringToItemID: (id: string) => ItemID = id => id
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 
+export type _TodoMetaEmail = {type: 'email'; email: string}
+export type _TodoMetaPhone = {type: 'phone'; phone: string}
+
+export type TodoMetaEmail = I.RecordOf<_TodoMetaEmail>
+export type TodoMetaPhone = I.RecordOf<_TodoMetaPhone>
+export type TodoMeta = TodoMetaEmail | TodoMetaPhone | null
+
 export type _Todo = {
   type: 'todo'
   badged: boolean
@@ -20,6 +27,7 @@ export type _Todo = {
   confirmLabel: string
   dismissable: boolean
   icon: IconType
+  metadata: TodoMeta
 }
 export type Todo = I.RecordOf<_Todo>
 

@@ -45,8 +45,8 @@ const ServiceIconDesktop = (props: IconProps) => (
           style={styles.serviceIcon}
         />
       </Kb.WithTooltip>
-      {!!props.showCount &&
-        (Number.isInteger(props.count) ? (
+      {props.showCount &&
+        (props.count !== null ? (
           <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
             {props.count && props.count > 10 ? '10+' : props.count}
           </Kb.Text>
@@ -80,14 +80,14 @@ const ServiceIconMobile = (props: IconProps) => (
           {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
         ])}
       />
-      {!!props.showCount && !Number.isInteger(props.count) && (
+      {!!props.showCount && props.count === null && (
         <Kb.Icon
           type="icon-progress-grey-animated"
           color={Styles.globalColors.greyDark}
           style={styles.pendingIcon}
         />
       )}
-      {!!props.showCount && Number.isInteger(props.count) && (
+      {!!props.showCount && props.count !== null && (
         <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
           {props.count && props.count === 11 ? '10+' : props.count}
         </Kb.Text>
@@ -106,6 +106,8 @@ const ServiceIconMobile = (props: IconProps) => (
 
 const ServiceIcon = Styles.isMobile ? ServiceIconMobile : ServiceIconDesktop
 
+const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
+
 const ServiceTabBar = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
     {Constants.services.map(service => (
@@ -113,7 +115,7 @@ const ServiceTabBar = (props: Props) => (
         key={service}
         service={service}
         onClick={() => props.onChangeService(service)}
-        count={props.serviceResultCount[service]}
+        count={undefToNull(props.serviceResultCount[service])}
         showCount={props.showServiceResultCount}
         isActive={props.selectedService === service}
       />

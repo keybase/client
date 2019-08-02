@@ -20,20 +20,6 @@ type State = {
   location: string
 }
 
-// TODO move this concept to common adapters
-const RoundedBox = ({side, children}) => (
-  <Kb.Box2
-    direction="vertical"
-    style={Styles.collapseStyles([
-      side === 'top' && styles.roundedBoxTop,
-      side === 'bottom' && styles.roundedBoxBottom,
-      side === 'middle' && styles.roundedBoxMiddle,
-    ])}
-  >
-    {children}
-  </Kb.Box2>
-)
-
 class EditProfile extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
@@ -71,15 +57,15 @@ class EditProfile extends React.Component<Props, State> {
               Edit Profile
             </Kb.Text>
           )}
-          <RoundedBox side="top">
+          <Kb.RoundedBox side="top">
             <Kb.PlainInput
               value={this.state.fullname}
               placeholder="Full name"
               autoFocus={true}
               onChangeText={this._updateFullname}
             />
-          </RoundedBox>
-          <RoundedBox side="middle">
+          </Kb.RoundedBox>
+          <Kb.RoundedBox side="middle">
             <Kb.PlainInput
               value={this.state.bio}
               placeholder="Bio"
@@ -88,15 +74,15 @@ class EditProfile extends React.Component<Props, State> {
               rowsMax={7}
               onChangeText={this._updateBio}
             />
-          </RoundedBox>
-          <RoundedBox side="bottom">
+          </Kb.RoundedBox>
+          <Kb.RoundedBox side="bottom">
             <Kb.PlainInput
               value={this.state.location}
               placeholder="Location"
               onChangeText={this._updateLocation}
               onEnterKeyDown={this._submit}
             />
-          </RoundedBox>
+          </Kb.RoundedBox>
           <Kb.Box2 direction="vertical" style={styles.gap} />
           <Kb.WaitingButton
             waitingKey={Constants.waitingKey}
@@ -111,16 +97,6 @@ class EditProfile extends React.Component<Props, State> {
   }
 }
 
-const roundedBox: Styles.StylesCrossPlatform = {
-  alignSelf: 'stretch',
-  borderBottomWidth: 1,
-  borderColor: Styles.globalColors.greyDark,
-  borderLeftWidth: 1,
-  borderRightWidth: 1,
-  borderStyle: 'solid',
-  borderTopWidth: 1,
-  padding: Styles.globalMargins.small,
-}
 const styles = Styles.styleSheetCreate({
   bio: {
     maxHeight: undefined,
@@ -136,21 +112,6 @@ const styles = Styles.styleSheetCreate({
   }),
   gap: {flexGrow: 1, minHeight: Styles.globalMargins.small},
   header: {marginBottom: Styles.globalMargins.small},
-  roundedBoxBottom: {
-    ...roundedBox,
-    borderBottomLeftRadius: Styles.borderRadius,
-    borderBottomRightRadius: Styles.borderRadius,
-  },
-  roundedBoxMiddle: {
-    ...roundedBox,
-    borderBottomWidth: 0,
-    borderTopWidth: 0,
-  },
-  roundedBoxTop: {
-    ...roundedBox,
-    borderTopLeftRadius: Styles.borderRadius,
-    borderTopRightRadius: Styles.borderRadius,
-  },
 })
 
 export default Kb.HeaderOrPopupWithHeader(EditProfile)

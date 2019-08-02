@@ -27,7 +27,7 @@ const font = isIOS
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
       fontTerminal: {fontFamily: 'SourceCodePro-Medium', fontWeight: 'normal'},
-      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
+      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold', fontWeight: 'normal'},
       italic: {fontStyle: 'italic'},
     }
 
@@ -54,15 +54,15 @@ export const globalStyles = {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => StyleSheet.create(obj))
+export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => StyleSheet.create(o))
 export const isDarkMode = () => true // TEMP
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
   return styles
 }
-export const transition = (...properties: Array<string>) => ({})
-export const backgroundURL = (...path: Array<string>) => ({})
+export const transition = () => ({})
+export const backgroundURL = () => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'

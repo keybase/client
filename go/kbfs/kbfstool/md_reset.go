@@ -105,8 +105,8 @@ func mdResetOne(
 		return err
 	}
 
-	newIrmd, err := config.MDOps().Put(ctx, rmdNext, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	newIrmd, err := config.MDOps().Put(
+		ctx, rmdNext, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	if err != nil {
 		return err
 	}

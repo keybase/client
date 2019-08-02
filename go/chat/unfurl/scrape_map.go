@@ -21,6 +21,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	slat := puri.Query().Get("lat")
 	slon := puri.Query().Get("lon")
 	sacc := puri.Query().Get("acc")
+	sdone := puri.Query().Get("done")
 	lat, err := strconv.ParseFloat(slat, 64)
 	if err != nil {
 		return res, err
@@ -30,6 +31,10 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		return res, err
 	}
 	acc, err := strconv.ParseFloat(sacc, 64)
+	if err != nil {
+		return res, err
+	}
+	done, err := strconv.ParseBool(sdone)
 	if err != nil {
 		return res, err
 	}
@@ -51,6 +56,9 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		}
 		timeStr = fmt.Sprintf("Posted %s.", time.Now().Format("15:04:05 MST"))
 		siteName = "Live Location Share"
+		if done {
+			siteName += " (finished)"
+		}
 	}
 	desc := fmt.Sprintf("Accurate to %dm. %s", int(acc), timeStr)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{

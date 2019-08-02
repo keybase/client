@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -185,6 +186,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 		teams.ServiceInit(w.G)
 		mctx := libkb.NewMetaContextTODO(w.G)
 		ephemeral.ServiceInit(mctx)
+		contacts.ServiceInit(w.G)
 	}
 	return res
 }
@@ -296,6 +298,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
+	g.BotCommandManager = types.DummyBotCommandManager{}
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = NewFlipManager(g, getRI)
 	g.CoinFlipManager.Start(context.TODO(), uid)

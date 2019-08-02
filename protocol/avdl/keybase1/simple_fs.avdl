@@ -532,4 +532,35 @@ protocol SimpleFS {
   FSSettings simpleFSSettings();
 
   void simpleFSSetNotificationThreshold(int64 threshold);
+
+  // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
+  string simpleFSObfuscatePath(Path path);
+
+  // simpleFSDeobfuscatePath returns a set of plaintext paths for the given
+  // obfuscated KBFS path.
+  array<string> simpleFSDeobfuscatePath(Path path);
+
+  record SimpleFSStats {
+    ProcessRuntimeStats processStats;
+    array<string> blockCacheDbStats;
+    array<string> syncCacheDbStats;
+    array<DbStats> runtimeDbStats;
+  }
+
+  SimpleFSStats simpleFSGetStats();
+
+  enum SubscriptionTopic {
+    FAVORITES_0,
+    JOURNAL_STATUS_1
+  }
+  enum PathSubscriptionTopic {
+    CHILDREN_0,
+    STAT_1
+  }
+
+  // returns subscription ID. Notifications are delivered through notify_fs
+  void simpleFSSubscribePath(string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+
+  void simpleFSUnsubscribe(string subscriptionID);
 }

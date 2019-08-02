@@ -298,7 +298,8 @@ func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node,
 	}
 
 	for _, component := range p.TLFComponents {
-		lookupNode, lookupEntryInfo, lookupErr := config.KBFSOps().Lookup(ctx, node, component)
+		lookupNode, lookupEntryInfo, lookupErr := config.KBFSOps().Lookup(
+			ctx, node, node.ChildName(component))
 		if lookupErr != nil {
 			return nil, data.EntryInfo{}, lookupErr
 		}

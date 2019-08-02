@@ -613,9 +613,7 @@
           },
           "name": "resetList"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -959,9 +957,7 @@
           "mpackkey": "u",
           "jsonkey": "u"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -991,9 +987,7 @@
           "mpackkey": "e",
           "jsonkey": "e"
         }
-      ],
-      "mpackkey": "pi",
-      "jsonkey": "pi"
+      ]
     },
     {
       "type": "record",
@@ -1094,6 +1088,15 @@
           "name": "pairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1180,6 +1183,15 @@
           "name": "hasPairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1417,7 +1429,8 @@
         "SEARCHER_6",
         "INDEXED_SEARCH_7",
         "KBFSFILEACTIVITY_8",
-        "COINFLIP_9"
+        "COINFLIP_9",
+        "BOTCOMMANDS_10"
       ]
     },
     {
@@ -1793,6 +1806,15 @@
           "type": "AssetTag",
           "name": "tag"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BotCommandsAdvertisementTyp",
+      "symbols": [
+        "PUBLIC_0",
+        "TLFID_MEMBERS_1",
+        "TLFID_CONVS_2"
       ]
     }
   ],

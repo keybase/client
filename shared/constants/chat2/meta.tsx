@@ -282,6 +282,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
 
   return makeConversationMeta({
+    botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
@@ -298,7 +299,15 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participants: I.List(i.participants || []),
+    participantToContactName: I.Map(
+      (i.participants || []).reduce<{[key: string]: string}>((map, part) => {
+        if (part.contactName) {
+          map[part.assertion] = part.contactName
+        }
+        return map
+      }, {})
+    ),
+    participants: I.List((i.participants || []).map(part => part.assertion)),
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -318,6 +327,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 }
 
 export const makeConversationMeta = I.Record<_ConversationMeta>({
+  botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
   commands: {} as RPCChatTypes.ConversationCommandGroups,
@@ -335,7 +345,8 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as Types.NotificationsType,
   offline: false,
-  participants: I.List(),
+  participantToContactName: I.Map(),
+  participants: I.List<string>(),
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
@@ -413,12 +424,25 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
     emptyMeta
   )
 
+const blankCommands = []
+
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin && commands.builtin) {
-    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
+    return state.chat2.staticConfig
+      ? state.chat2.staticConfig.builtinCommands[commands.builtin]
+      : blankCommands
   } else {
-    return []
+    return blankCommands
+  }
+}
+
+export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {botCommands} = getMeta(state, id)
+  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && botCommands.custom) {
+    return botCommands.custom.commands || blankCommands
+  } else {
+    return blankCommands
   }
 }
 

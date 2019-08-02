@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {List, Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
@@ -105,6 +106,7 @@ const InputContainer = (props: Props) => {
       Sb.action('onAttach').apply(null, paths)
     },
     onCancelEditing: Sb.action('onCancelEditing'),
+    onCancelReply: Sb.action('onCancelReply'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onRequestScrollDown: Sb.action('onRequestScrollDown'),
@@ -112,11 +114,13 @@ const InputContainer = (props: Props) => {
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
+    prependText: null,
     quoteCounter: 0,
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
     showCommandMarkdown: false,
+    showCommandStatus: false,
     showGiphySearch: false,
     showReplyPreview: false,
     showTypingStatus: false,
@@ -127,6 +131,24 @@ const InputContainer = (props: Props) => {
       {channelname: 'general', teamname: 'got'},
       {channelname: 'live', teamname: 'got'},
     ]),
+    suggestBotCommands: [
+      {
+        description: 'Build the app',
+        hasHelpText: true,
+        name: 'build',
+        usage: '[platform]',
+        username: 'mikem',
+      },
+      {description: '', hasHelpText: true, name: 'help', usage: '', username: 'mikem'},
+      {
+        description: 'What is this bot doing',
+        hasHelpText: false,
+        name: 'status',
+        usage: '[--extended]',
+        username: 'mikem',
+      },
+    ],
+    suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus.updating,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
@@ -143,8 +165,8 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
+    unsentText: null,
     unsentTextChanged: Sb.action('unsentTextChanged'),
-    unsentTextRefresh: false,
   }
 
   return (

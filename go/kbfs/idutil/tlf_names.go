@@ -55,7 +55,7 @@ func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
 		return strings.ToLower(s), nil
 	}
 
-	return "", BadTLFNameError{s}
+	return "", BadTLFNameError{Name: s}
 }
 
 // normalizeNames normalizes a slice of names and returns

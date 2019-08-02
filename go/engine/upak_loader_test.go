@@ -349,7 +349,7 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 
 	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false).WithForceMerkleServerPolling(true)
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {

@@ -14,7 +14,7 @@ type Props = {
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
   onChat: () => void
-  onEditProfile: () => void | null
+  onEditProfile: (() => void) | null
   onFollow: () => void
   onIgnoreFor24Hours: () => void
   onOpenPrivateFolder: () => void
@@ -40,7 +40,7 @@ type DropdownProps = Pick<
 > & {onUnfollow?: () => void}
 
 const Actions = (p: Props) => {
-  let buttons = []
+  let buttons: Array<React.ReactNode> = []
 
   const dropdown = (
     <DropdownButton
@@ -75,6 +75,7 @@ const Actions = (p: Props) => {
   } else if (p.onEditProfile) {
     buttons = [
       <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
+      chatButton,
     ]
   } else if (p.followThem) {
     if (p.state === 'valid') {
@@ -151,12 +152,15 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},
-  ].filter(Boolean)
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i)
+    return arr
+  }, [])
 
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} mode="Secondary" style={styles.dropdownButton}>
+        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>

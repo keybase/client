@@ -16,16 +16,20 @@ const Kb = {
 
 type Props = {
   collapsed?: boolean // if set, render the appropriate caret,
-  label: string
+  label: string | React.ReactNode
   onToggleCollapsed?: () => void
   showSpinner?: boolean
 }
 
 const SectionDivider = (props: Props) => {
-  const collapsible = props.hasOwnProperty('collapsed')
+  const collapsible = Object.prototype.hasOwnProperty.call(props, 'collapsed')
   const children = (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
+      {typeof props.label === 'string' ? (
+        <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
+      ) : (
+        props.label
+      )}
       {collapsible && (
         <Kb.Icon sizeType="Tiny" type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
       )}
@@ -40,20 +44,15 @@ const SectionDivider = (props: Props) => {
     children
   )
 }
+const height = Styles.isMobile ? 40 : 32
+SectionDivider.height = height
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.blueLighter3,
-    },
-    isElectron: {
-      height: 32,
-    },
-    isMobile: {
-      height: 40,
-    },
-  }),
+  container: {
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+    backgroundColor: Styles.globalColors.blueLighter3,
+    height,
+  },
   fullWidth: {
     width: '100%',
   },

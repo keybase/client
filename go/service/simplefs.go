@@ -554,3 +554,69 @@ func (s *SimpleFSHandler) SimpleFSSetNotificationThreshold(
 	}
 	return cli.SimpleFSSetNotificationThreshold(ctx, threshold)
 }
+
+// SimpleFSObfuscatePath implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSObfuscatePath(
+	ctx context.Context, path keybase1.Path) (res string, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return "", err
+	}
+	return cli.SimpleFSObfuscatePath(ctx, path)
+}
+
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSDeobfuscatePath(
+	ctx context.Context, path keybase1.Path) (res []string, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return nil, err
+	}
+	return cli.SimpleFSDeobfuscatePath(ctx, path)
+}
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetStats(ctx context.Context) (
+	keybase1.SimpleFSStats, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.SimpleFSStats{}, err
+	}
+	return cli.SimpleFSGetStats(ctx)
+}
+
+func (s *SimpleFSHandler) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSubscribeNonPath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSubscribePath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSUnsubscribe(ctx, sid)
+}

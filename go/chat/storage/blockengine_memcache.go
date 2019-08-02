@@ -43,7 +43,7 @@ func newBlockEngineMemCache() *blockEngineMemCacheImpl {
 	return &blockEngineMemCacheImpl{
 		blockCache: c,
 		logContext: newLogContext(),
-		lockTab:    &libkb.LockTable{},
+		lockTab:    libkb.NewLockTable(),
 	}
 }
 

@@ -31,6 +31,7 @@
       "error": "string"
     },
     "checkEmail": {
+      "allowSearch": "boolean",
       "email": "string"
     },
     "requestInvite": {
@@ -50,7 +51,7 @@
     "restartSignup": {},
     "signedup": {
       "canError": {
-        "error": "RPCError | null",
+        "error": "RPCError | null"
       }
     },
     "checkDevicename": {
@@ -62,6 +63,7 @@
         "devicename": "string",
         "error": "string"
       }
-    }
+    },
+    "clearJustSignedUpEmail": {}
   }
 }

@@ -98,7 +98,8 @@ const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
       <Kb.Text type="BodySmallSemibold">Your Stellar QR code:</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.qrContainer} centerChildren={true}>
-        <QrImage address={federatedAddress || stellarAddress} />
+        {/* use federatedAddress if available when more of the ecosystem supports it */}
+        <QrImage address={stellarAddress} />
       </Kb.Box2>
     </Kb.Box2>
   </Kb.Box2>

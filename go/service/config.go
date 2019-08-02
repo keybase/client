@@ -45,9 +45,17 @@ func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res
 	return status.GetCurrentStatus(mctx)
 }
 
-func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.ConfigValue, err error) {
+func (h ConfigHandler) GuiGetValue(ctx context.Context, path string) (ret keybase1.ConfigValue, err error) {
+	return h.getValue(ctx, path, h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) GetValue(ctx context.Context, path string) (ret keybase1.ConfigValue, err error) {
+	return h.getValue(ctx, path, h.G().Env.GetConfig())
+}
+
+func (h ConfigHandler) getValue(_ context.Context, path string, reader libkb.JSONReader) (ret keybase1.ConfigValue, err error) {
 	var i interface{}
-	i, err = h.G().Env.GetConfig().GetInterfaceAtPath(path)
+	i, err = reader.GetInterfaceAtPath(path)
 	if err != nil {
 		return ret, err
 	}
@@ -76,8 +84,15 @@ func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.Co
 	return ret, err
 }
 
-func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (err error) {
-	w := h.G().Env.GetConfigWriter()
+func (h ConfigHandler) GuiSetValue(ctx context.Context, arg keybase1.GuiSetValueArg) (err error) {
+	return h.setValue(ctx, keybase1.SetValueArg{Path: arg.Path, Value: arg.Value}, h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) SetValue(ctx context.Context, arg keybase1.SetValueArg) (err error) {
+	return h.setValue(ctx, arg, h.G().Env.GetConfigWriter())
+}
+
+func (h ConfigHandler) setValue(_ context.Context, arg keybase1.SetValueArg, w libkb.JSONWriter) (err error) {
 	if arg.Path == "users" {
 		err = fmt.Errorf("The field 'users' cannot be edited for fear of config corruption")
 		return err
@@ -106,8 +121,16 @@ func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (er
 	return err
 }
 
-func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
-	h.G().Env.GetConfigWriter().DeleteAtPath(path)
+func (h ConfigHandler) GuiClearValue(ctx context.Context, path string) error {
+	return h.clearValue(ctx, path, h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) ClearValue(ctx context.Context, path string) error {
+	return h.clearValue(ctx, path, h.G().Env.GetConfigWriter())
+}
+
+func (h ConfigHandler) clearValue(_ context.Context, path string, w libkb.JSONWriter) error {
+	w.DeleteAtPath(path)
 	h.G().ConfigReload()
 	return nil
 }
@@ -239,7 +262,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
+	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {
 		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
 	}
@@ -292,8 +315,13 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-
 	return eng.Status(), nil
+}
+
+func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
+	// Queue up a load for follower info
+	h.svc.trackerLoader.Queue(ctx, uid)
+	return nil
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
@@ -425,5 +453,20 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 		return err
 	}
 
+	return nil
+}
+
+func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
+	configWriter := h.G().Env.GetConfigWriter()
+	curValue := h.G().Env.GetRuntimeStatsEnabled()
+	configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	if err := h.G().ConfigReload(); err != nil {
+		return err
+	}
+	if curValue {
+		<-h.svc.runtimeStats.Stop(ctx)
+	} else {
+		h.svc.runtimeStats.Start(ctx)
+	}
 	return nil
 }

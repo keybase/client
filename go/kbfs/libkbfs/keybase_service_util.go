@@ -103,6 +103,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 			wg = jManager.MakeFBOsForExistingJournals(newCtx)
 		}
 	}
+
 	err := config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to enable disk cache: "+

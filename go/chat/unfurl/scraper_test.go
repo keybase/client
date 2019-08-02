@@ -342,7 +342,7 @@ func TestMapScraper(t *testing.T) {
 	lat := 40.800099
 	lon := -73.969341
 	acc := 65.00
-	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", types.MapsDomain, lat, lon, acc)
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&done=true", types.MapsDomain, lat, lon, acc)
 	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
 	require.NoError(t, err)
 	typ, err := unfurl.UnfurlType()
@@ -414,12 +414,22 @@ func TestLiveMapScraper(t *testing.T) {
 		Lon:      -74.010893,
 		Accuracy: 65,
 	})
-	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d", types.MapsDomain, first.Lat,
-		first.Lon, first.Accuracy, watchID)
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&done=false&livekey=mike",
+		types.MapsDomain, first.Lat, first.Lon, first.Accuracy, watchID)
 	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
 	require.NoError(t, err)
 	typ, err := unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_MAPS, typ)
 	require.NotZero(t, len(unfurl.Maps().ImageUrl))
+	require.Equal(t, "Live Location Share", unfurl.Maps().SiteName)
+
+	url = fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&done=true&livekey=mike", types.MapsDomain,
+		first.Lat, first.Lon, first.Accuracy, watchID)
+	unfurl, err = scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err = unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.Equal(t, "Live Location Share (finished)", unfurl.Maps().SiteName)
 }

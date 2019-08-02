@@ -11,37 +11,31 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const userEKBoxStorageDBVersion = 3
+const userEKBoxStorageDBVersion = 4
 
 type userEKBoxCacheItem struct {
 	UserEKBoxed keybase1.UserEkBoxed
-	ErrMsg      string
-	HumanMsg    string
+	Err         *EphemeralKeyError
 }
 
 func newUserEKBoxCacheItem(userEKBoxed keybase1.UserEkBoxed, err error) userEKBoxCacheItem {
-	errMsg := ""
-	humanMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-		if ekErr, ok := err.(EphemeralKeyError); ok {
-			humanMsg = ekErr.HumanError()
-		}
+	var ekErr *EphemeralKeyError
+	if e, ok := err.(EphemeralKeyError); ok {
+		ekErr = &e
 	}
 	return userEKBoxCacheItem{
 		UserEKBoxed: userEKBoxed,
-		ErrMsg:      errMsg,
-		HumanMsg:    humanMsg,
+		Err:         ekErr,
 	}
 }
 
 func (c userEKBoxCacheItem) HasError() bool {
-	return c.ErrMsg != ""
+	return c.Err != nil
 }
 
 func (c userEKBoxCacheItem) Error() error {
 	if c.HasError() {
-		return newEphemeralKeyError(c.ErrMsg, c.HumanMsg)
+		return *c.Err
 	}
 	return nil
 }
@@ -137,8 +131,7 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 	// cache unboxing/missing box errors so we don't continually try to fetch
 	// something nonexistent.
 	defer func() {
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			s.Lock()
 			defer s.Unlock()
 			if perr := s.putLocked(mctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
@@ -168,7 +161,7 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 	}
 
 	if result.Result == nil {
-		err = newEKMissingBoxErr(mctx, UserEKStr, generation)
+		err = newEKMissingBoxErr(mctx, UserEKKind, generation)
 		return userEK, err
 	}
 
@@ -187,8 +180,8 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata
 	if generation != userEKMetadata.Generation {
-		// sanity check that we go the right generation
-		return userEK, newEKCorruptedErr(mctx, UserEKStr, generation, userEKMetadata.Generation)
+		// sanity check that we got the right generation
+		return userEK, newEKCorruptedErr(mctx, UserEKKind, generation, userEKMetadata.Generation)
 	}
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
@@ -225,7 +218,7 @@ func (s *UserEKBoxStorage) putLocked(mctx libkb.MetaContext, generation keybase1
 
 	// sanity check that we got the right generation
 	if userEKBoxed.Metadata.Generation != generation && ekErr == nil {
-		return newEKCorruptedErr(mctx, UserEKStr, generation, userEKBoxed.Metadata.Generation)
+		return newEKCorruptedErr(mctx, UserEKKind, generation, userEKBoxed.Metadata.Generation)
 	}
 
 	key, err := s.dbKey(mctx)
@@ -248,9 +241,8 @@ func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybas
 	deviceEK, err := deviceEKStorage.Get(mctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
 		mctx.Debug("unable to get from deviceEKStorage %v", err)
-		switch err.(type) {
-		case libkb.UnboxError:
-			return userEK, newEKUnboxErr(mctx, UserEKStr, userEKGeneration, DeviceEKStr,
+		if _, ok := err.(libkb.UnboxError); ok {
+			return userEK, newEKUnboxErr(mctx, UserEKKind, userEKGeneration, DeviceEKKind,
 				userEKBoxed.DeviceEkGeneration, contentCtime)
 		}
 		return userEK, err
@@ -262,7 +254,7 @@ func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybas
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
 		mctx.Debug("unable to decrypt userEKBoxed %v", err)
-		return userEK, newEKUnboxErr(mctx, UserEKStr, userEKGeneration, DeviceEKStr,
+		return userEK, newEKUnboxErr(mctx, UserEKKind, userEKGeneration, DeviceEKKind,
 			userEKBoxed.DeviceEkGeneration, contentCtime)
 	}
 

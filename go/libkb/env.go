@@ -27,6 +27,7 @@ func (n NullConfiguration) GetMobileSharedHome() string                         
 func (n NullConfiguration) GetServerURI() (string, error)                                  { return "", nil }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetGUIConfigFilename() string                                   { return "" }
 func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
@@ -128,6 +129,7 @@ func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { re
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
+func (n NullConfiguration) GetRuntimeStatsEnabled() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -266,6 +268,7 @@ type Env struct {
 	writer        ConfigWriter
 	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
+	guiConfig     *JSONFile
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -297,6 +300,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetGUIConfig(j *JSONFile) {
+	e.Lock()
+	defer e.Unlock()
+	e.guiConfig = j
+}
+
+func (e *Env) GetGUIConfig() *JSONFile {
+	e.RLock()
+	defer e.RUnlock()
+	return e.guiConfig
 }
 
 func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {
@@ -387,7 +402,17 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
-		func() string { return e.cmd.GetHome() },
+		func() string {
+			home := e.cmd.GetHome()
+			if home == "" {
+				return ""
+			}
+			absHome, err := filepath.Abs(home)
+			if err != nil {
+				return home
+			}
+			return absHome
+		},
 	)
 }
 
@@ -670,6 +695,15 @@ func (e *Env) GetUpdaterConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetGUIConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUIConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
+		func() string { return e.GetConfig().GetGUIConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
 	)
 }
 
@@ -1897,6 +1931,13 @@ func (e *Env) ForceSecretStoreFile() bool {
 	)
 }
 
+func (e *Env) GetRuntimeStatsEnabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUNTIME_STATS_ENABLED") },
+		func() (bool, bool) { return e.GetConfig().GetRuntimeStatsEnabled() },
+	)
+}
+
 func (e *Env) RememberPassphrase() bool {
 	return e.GetBool(true,
 		e.cmd.GetRememberPassphrase,
@@ -1928,7 +1969,7 @@ func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
 
 	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
 		maxKeepFiles = 2
-		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
+		maxSize = 16 * opt.MiB
 	} else {
 		maxKeepFiles = 3
 		maxSize = 128 * opt.MiB

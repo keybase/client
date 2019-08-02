@@ -4,19 +4,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  onBack: () => void
+  onBack?: () => void
   onSubmit: (paperKey: string) => void
   hint: string
   error: string
-  waitingForResponse?: boolean | null
 }
 
-class PaperKey extends React.Component<
-  Props,
-  {
-    paperKey: string
-  }
-> {
+class PaperKey extends React.Component<Props, {paperKey: string}> {
   state = {paperKey: ''}
   _onSubmit = () => this.props.onSubmit(this.state.paperKey)
 
@@ -60,6 +54,7 @@ class PaperKey extends React.Component<
               waitingKey={Constants.waitingKey}
             />
           </Kb.ButtonBar>
+          {props.onBack && <Kb.Button label="Back to my existing account" onClick={props.onBack} />}
         </Kb.Box2>
       </Kb.Box2>
     )

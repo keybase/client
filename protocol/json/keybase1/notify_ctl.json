@@ -33,6 +33,10 @@
         },
         {
           "type": "boolean",
+          "name": "kbfssubscription"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {
@@ -85,6 +89,10 @@
         },
         {
           "type": "boolean",
+          "name": "teambot"
+        },
+        {
+          "type": "boolean",
           "name": "chatkbfsedits"
         },
         {
@@ -106,6 +114,10 @@
         {
           "type": "boolean",
           "name": "audit"
+        },
+        {
+          "type": "boolean",
+          "name": "runtimestats"
         }
       ]
     }

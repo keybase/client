@@ -3,9 +3,10 @@ import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import AddDevice from '.'
-import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>
+type OwnProps = Container.RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}>
+
+const noHighlight = []
 
 export default Container.namedConnect(
   () => ({}),
@@ -17,7 +18,7 @@ export default Container.namedConnect(
   }),
   (_, d, o: OwnProps) => ({
     ...d,
-    highlight: Container.getRouteProps(o, 'highlight') || [],
+    highlight: Container.getRouteProps(o, 'highlight', noHighlight),
   }),
   'AddDevice'
 )(AddDevice)

@@ -39,7 +39,8 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	s.parent.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Symlink Attr")
 	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
-	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
+	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(
+		ctx, s.parent.node, s.parent.node.ChildName(s.name))
 	if err != nil {
 		if _, ok := err.(idutil.NoSuchNameError); ok {
 			return fuse.ESTALE
@@ -47,7 +48,11 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 		return err
 	}
 
-	s.parent.folder.fillAttrWithUIDAndWritePerm(ctx, s.parent.node, &de, a)
+	err = s.parent.folder.fillAttrWithUIDAndWritePerm(
+		ctx, s.parent.node, &de, a)
+	if err != nil {
+		return err
+	}
 	a.Mode = os.ModeSymlink | a.Mode | 0500
 	a.Inode = s.inode
 	return nil
@@ -60,7 +65,8 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link
 	s.parent.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Symlink Readlink")
 	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
-	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
+	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(
+		ctx, s.parent.node, s.parent.node.ChildName(s.name))
 	if err != nil {
 		return "", err
 	}

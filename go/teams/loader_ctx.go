@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 )
 
 // Things TeamLoader uses that are mocked out for tests.
@@ -64,10 +65,11 @@ type rawTeam struct {
 	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
 	// Whether the user is only being allowed to view the chain
 	// because they are a member of a descendent team.
-	SubteamReader    bool                               `json:"subteam_reader"`
-	Showcase         keybase1.TeamShowcase              `json:"showcase"`
-	LegacyTLFUpgrade []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
-	HiddenChain      []sig3.ExportJSON                  `json:"hidden"`
+	SubteamReader         bool                               `json:"subteam_reader"`
+	Showcase              keybase1.TeamShowcase              `json:"showcase"`
+	LegacyTLFUpgrade      []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
+	HiddenChain           []sig3.ExportJSON                  `json:"hidden"`
+	RatchetBlindingKeySet *hidden.RatchetBlindingKeySet      `json:"ratchet_blinding_keys"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {

@@ -64,8 +64,8 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 func (km *KeyManagerStandard) GetFirstTLFCryptKey(
 	ctx context.Context, kmd libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
-	return km.getTLFCryptKeyUsingCurrentDevice(
-		ctx, kmd, kbfsmd.FirstValidKeyGen, false)
+	return km.getTLFCryptKey(
+		ctx, kmd, kbfsmd.FirstValidKeyGen, getTLFCryptKeyAnyDevice)
 }
 
 // GetTLFCryptKeyOfAllGenerations implements the KeyManager interface for
@@ -174,7 +174,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			session.Name, flags)
 
 	var notPerDeviceEncrypted bool
-	if _, notPerDeviceEncrypted = err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
+	if _, notPerDeviceEncrypted = err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted { // nolint
 		// get the key we want using the current crypt key
 		currKeyGen := kmd.LatestKeyGeneration()
 		// look in the cache first

@@ -1,4 +1,7 @@
+// Entry point to the chrome part of the app
+import '../../util/user-timings'
 import Main from '../../app/main.desktop'
+// order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -22,11 +25,11 @@ if (module.hot) {
   module.hot.accept()
 }
 
-let _store
+let _store: any
 
 const setupStore = () => {
   let store = _store
-  let runSagas
+  let runSagas: any
   if (!_store) {
     const configured = configureStore()
     store = configured.store
@@ -51,11 +54,11 @@ const setupApp = (store, runSagas) => {
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
   // Listen for the menubarWindowID
-  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (event, id) => {
+  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (_, id) => {
     store.dispatch(ConfigGen.createUpdateMenubarWindowID({id}))
   })
 
-  SafeElectron.getIpcRenderer().on('dispatchAction', (event, action) => {
+  SafeElectron.getIpcRenderer().on('dispatchAction', (_, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     // _.merge() to get a plain object back out which we can send
@@ -81,7 +84,7 @@ const setupApp = (store, runSagas) => {
   }, 5 * 1000)
 
   // Run installer
-  SafeElectron.getIpcRenderer().on('installed', (event, message) => {
+  SafeElectron.getIpcRenderer().on('installed', () => {
     store.dispatch(ConfigGen.createInstallerRan())
   })
   SafeElectron.getIpcRenderer().send('install-check')
@@ -128,7 +131,7 @@ const render = (Component = Main) => {
   )
 }
 
-const setupHMR = store => {
+const setupHMR = _ => {
   const accept = module.hot && module.hot.accept
   if (!accept) {
     return

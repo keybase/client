@@ -3,7 +3,7 @@ import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 type Props = {
-  onBack: () => void | null
+  onBack: (() => void)| null
   onCancel: () => void
   onDeleteHistory: () => void
 }

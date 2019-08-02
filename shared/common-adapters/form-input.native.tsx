@@ -14,7 +14,7 @@ export type Props = {
   // eslint-disable-next-line
   inputStyle?: any
   label?: string
-  onEnterKeyDown?: () => void | null
+  onEnterKeyDown?: (() => void)| null
   value?: string
   textType?: TextType
   secure?: boolean

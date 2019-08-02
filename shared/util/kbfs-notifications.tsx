@@ -29,12 +29,13 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   console.log('Notification (kbfs error):', notification)
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
-    case FSErrorType.accessDenied:
+    case FSErrorType.accessDenied: {
       let prefix = user ? `${user} does` : 'You do'
       return {
         body: `${prefix} not have ${notification.params.mode} access to ${notification.filename}`,
         title: 'Keybase: Access denied',
       }
+    }
 
     case FSErrorType.userNotFound:
       return {
@@ -74,7 +75,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
           }
     // Aggregate these cases together since they both use the usage/limit calc
     case FSErrorType.overQuota:
-    case FSErrorType.diskLimitReached:
+    case FSErrorType.diskLimitReached: {
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
@@ -99,6 +100,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
           }
         }
       }
+    }
     case FSErrorType.offlineArchived:
       return {
         body: `You cannot browse archived KBFS data while disconnected from the Keybase servers.`,

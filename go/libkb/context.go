@@ -150,6 +150,11 @@ func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithContext(ctx context.Context) MetaContext {
+	m.ctx = ctx
+	return m
+}
+
 func (m MetaContext) WithContextCancel() (MetaContext, func()) {
 	var f func()
 	m.ctx, f = context.WithCancel(m.ctx)

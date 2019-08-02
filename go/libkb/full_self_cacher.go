@@ -119,7 +119,7 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	var sigHints *SigHints
 	var leaf *MerkleUserLeaf
 
-	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true)
+	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true, MerkleOpts{})
 	if err != nil {
 		m.me = nil
 		return err

@@ -129,17 +129,17 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
-	irmd, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	irmd, err = mdOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
 	// (2) push some new metadata blocks
 	for i := kbfsmd.Revision(2); i < 8; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
-			nil, keybase1.MDPriorityNormal)
+		irmd, err := mdOps.Put(
+			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
@@ -171,15 +171,15 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	rmd.SetPrevRoot(prevRoot)
 	resolveMD, err := rmd.deepCopy(config.Codec())
 	require.NoError(t, err)
-	_, err = oldMDOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = oldMDOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	for i := kbfsmd.Revision(8); i <= 10; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
-			nil, keybase1.MDPriorityNormal)
+		irmd, err := mdOps.Put(
+			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
@@ -211,9 +211,9 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	for i := kbfsmd.Revision(11); i < 41; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+		irmd, err := mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 		require.Equal(t, bid, rmd.BID())
@@ -245,7 +245,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	// (7) resolve the branch
 	_, err = mdOps.ResolveBranch(
-		ctx, id, bid, nil, resolveMD, session.VerifyingKey)
+		ctx, id, bid, nil, resolveMD, session.VerifyingKey, nil)
 	require.NoError(t, err)
 
 	// (8) verify head is pruned
@@ -308,7 +308,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	rmd.SetPrevRoot(kbfsmd.FakeID(1))
 	rmd.SetBranchID(kbfsmd.FakeBranchID(1))
 
-	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 	require.NoError(t, err)
 }
 
@@ -342,7 +342,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
-	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == kbfsmd.NullBranchID")
 }
 

@@ -270,7 +270,7 @@ function ModalPositionRelative<PP>(
       style: {}
     }
   > {
-    popupNode: HTMLElement | null
+    popupNode: HTMLElement | null = null
     state: {
       style: {}
     }
@@ -301,14 +301,14 @@ function ModalPositionRelative<PP>(
       this.setState({style})
     }
 
-    getSnapshotBeforeUpdate(prevProps) {
+    getSnapshotBeforeUpdate() {
       const {width, height} = this.popupNode
         ? this.popupNode.getBoundingClientRect()
         : {height: -1, width: -1}
       return {height, width}
     }
 
-    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, prevState, snapshot) {
+    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, _, snapshot) {
       if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
         this._computeStyle(this.props.targetRect)
       }

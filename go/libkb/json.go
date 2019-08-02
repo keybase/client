@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -51,27 +52,37 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
+	found, err := f.LoadCheckFound()
+	if err != nil {
+		return err
+	}
+	if !found {
+		msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
+		if warnOnNotFound {
+			f.G().Log.Warning(msg)
+		} else {
+			f.G().Log.Debug(msg)
+		}
+	}
+	return nil
+}
+
+func (f *JSONFile) LoadCheckFound() (found bool, err error) {
 	f.G().Log.Debug("+ loading %q file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
-			if warnOnNotFound {
-				f.G().Log.Warning(msg)
-			} else {
-				f.G().Log.Debug(msg)
-			}
-			return nil
+			return false, nil
 		}
 
 		MobilePermissionDeniedCheck(f.G(), err, fmt.Sprintf("%s: %s", f.which, f.filename))
 
 		if os.IsPermission(err) {
 			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
-			return nil
+			return true, nil
 		}
 
-		return err
+		return true, err
 	}
 	f.exists = true
 	defer file.Close()
@@ -80,7 +91,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	fileTee := io.TeeReader(bufio.NewReader(file), &buf)
 	err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(fileTee))
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	decoder := json.NewDecoder(&buf)
@@ -88,12 +99,12 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
 		f.G().Log.Errorf("Error decoding %s file %s", f.which, f.filename)
-		return err
+		return true, err
 	}
 	f.jw = jsonw.NewWrapper(obj)
 
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
-	return nil
+	return true, nil
 }
 
 func (f *JSONFile) Nuke() error {
@@ -153,6 +164,19 @@ func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 	}
 	ret.tmpname = f.filename + "." + sffx
 	return ret, nil
+}
+
+func (f *JSONFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
+	err := f.jw.SetValueAtPath(p, w)
+	if err == nil {
+		err = f.Save()
+	}
+	return err
+}
+
+func (f *JSONFile) DeleteAtPath(p string) {
+	f.jw.DeleteValueAtPath(p)
+	f.Save()
 }
 
 func (f *JSONFile) Save() error {
@@ -470,4 +494,9 @@ func (f *JSONFile) SetNullAtPath(p string) (err error) {
 		}
 	}
 	return err
+}
+
+func isJSONNoSuchKeyError(err error) bool {
+	_, isJSONError := err.(*jsonw.Error)
+	return err != nil && isJSONError && strings.Contains(err.Error(), "no such key")
 }

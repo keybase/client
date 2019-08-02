@@ -13,14 +13,13 @@ import Editing from './editing-container'
 import Uploading from './uploading-container'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
-import {useFsLoadEffect} from '../../common'
+import {useFsChildren} from '../../common'
 
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   destinationPickerIndex?: number
   items: I.List<RowTypes.RowItem>
   path: Types.Path
-  routePath: I.List<string>
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
@@ -33,7 +32,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
 export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
 class Rows extends React.PureComponent<Props> {
-  _rowRenderer = (index: number, item: RowTypes.RowItem) => {
+  _rowRenderer = (_: number, item: RowTypes.RowItem) => {
     switch (item.rowType) {
       case RowTypes.RowType.Placeholder:
         return (
@@ -44,11 +43,7 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.TlfType:
         return (
           <WrapRow>
-            <TlfType
-              name={item.name}
-              destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
-            />
+            <TlfType name={item.name} destinationPickerIndex={this.props.destinationPickerIndex} />
           </WrapRow>
         )
       case RowTypes.RowType.Tlf:
@@ -58,7 +53,6 @@ class Rows extends React.PureComponent<Props> {
               name={item.name}
               tlfType={item.tlfType}
               destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
             />
           </WrapRow>
         )
@@ -69,7 +63,6 @@ class Rows extends React.PureComponent<Props> {
               name={item.name}
               path={item.path}
               destinationPickerIndex={this.props.destinationPickerIndex}
-              routePath={this.props.routePath}
             />
           </WrapRow>
         )
@@ -82,7 +75,7 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.Editing:
         return (
           <WrapRow>
-            <Editing editID={item.editID} routePath={this.props.routePath} />
+            <Editing editID={item.editID} />
           </WrapRow>
         )
       case RowTypes.RowType.Empty:
@@ -165,11 +158,7 @@ class Rows extends React.PureComponent<Props> {
 }
 
 const RowsWithAutoLoad = (props: Props) => {
-  useFsLoadEffect({
-    path: props.path,
-    refreshTag: props.destinationPickerIndex ? Types.RefreshTag.DestinationPicker : Types.RefreshTag.Main,
-    wantChildren: true,
-  })
+  useFsChildren(props.path)
   return <Rows {...props} />
 }
 

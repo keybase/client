@@ -62,7 +62,7 @@ class AppView extends React.PureComponent<any> {
         {sceneView}
       </Kb.Box2>
     ) : (
-      sceneView
+      <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
     )
 
     return (
@@ -73,12 +73,16 @@ class AppView extends React.PureComponent<any> {
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
-          <Header
-            loggedIn={!!selectedTab}
-            options={descriptor.options}
-            onPop={() => childNav.goBack(activeKey)}
-            allowBack={activeIndex !== 0}
-          />
+          <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+            {/*
+          // @ts-ignore Header typing not finished yet */}
+            <Header
+              loggedIn={!!selectedTab}
+              options={descriptor.options}
+              onPop={() => childNav.goBack(activeKey)}
+              allowBack={activeIndex !== 0}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -187,7 +191,7 @@ const LoggedOutStackNavigator = createNavigator(
   StackRouter(
     {...Shim.shim(loggedOutRoutes)},
     {
-      defaultNavigationOptions: p => ({headerHideBorder: true}),
+      defaultNavigationOptions: () => ({headerHideBorder: true}),
       initialRouteName: 'login',
     }
   ),
@@ -202,7 +206,7 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
-type Subscriber = (data: {action: Object; lastState: Object; state: any; type: string}) => void
+type Subscriber = (data: {action: Object | null; lastState: Object | null; state: any; type: string}) => void
 
 const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
@@ -343,12 +347,9 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
-  modalContainer: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
-  transparentSceneUnderHeader: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
+  modalContainer: {...Styles.globalStyles.fillAbsolute},
+  sceneContainer: {flexDirection: 'column'},
+  transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
 })
 
 export default ElectronApp

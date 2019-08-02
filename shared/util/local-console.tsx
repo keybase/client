@@ -1,6 +1,6 @@
 import {localLog} from './forward-logs'
 
-const _base = (messageObject, colors, shortLabel?, longerMessage?, optionalSuffix?, ...rest) => (
+const _base = (messageObject, colors) => (
   shortLabel: string,
   longerMessage?: string | null,
   optionalSuffix?: string | null,

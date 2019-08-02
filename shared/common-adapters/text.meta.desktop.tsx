@@ -1,7 +1,7 @@
 import {globalStyles, globalColors, isDarkMode} from '../styles'
 import {MetaType, TextType, Background} from './text'
 
-function defaultColor(backgroundMode: Background | null) {
+export function defaultColor(backgroundMode: Background | null) {
   return {
     Announcements: globalColors.white,
     Documentation: globalColors.white,
@@ -13,7 +13,7 @@ function defaultColor(backgroundMode: Background | null) {
   }[backgroundMode || 'Normal']
 }
 
-const lineClamp = (lines: number) => ({
+export const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
   display: '-webkit-box',
@@ -22,7 +22,7 @@ const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-function fontSizeToSizeStyle(fontSize: number): Object | null {
+export function fontSizeToSizeStyle(fontSize: number): Object | null {
   const height = {
     '12': 16,
     '13': 17,
@@ -212,6 +212,11 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       fontSize: 12,
       styleOverride: globalStyles.fontBold,
     },
+    BodyTinyExtrabold: {
+      colorForBackground: {...whiteNegative, positive: globalColors.black_50},
+      fontSize: 12,
+      styleOverride: globalStyles.fontExtrabold,
+    },
     BodyTinyLink: {
       colorForBackground: {...whiteNegative, positive: globalColors.black_50},
       fontSize: 12,
@@ -222,6 +227,14 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       colorForBackground: {...whiteNegative, positive: globalColors.black_50},
       fontSize: 12,
       styleOverride: globalStyles.fontSemibold,
+    },
+    BodyTinySemiboldItalic: {
+      colorForBackground: {...whiteNegative, positive: globalColors.black_50},
+      fontSize: 12,
+      styleOverride: {
+        ...globalStyles.fontSemibold,
+        fontStyle: 'italic',
+      },
     },
     Header: {
       colorForBackground: whiteNegative,
@@ -308,10 +321,10 @@ const _metaData = (): {[K in TextType]: MetaType} => {
   }
 }
 
-let _darkMetaData = null
-let _lightMetaData = null
+let _darkMetaData: {[K in TextType]: MetaType} | undefined
+let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-const metaData = (): {[K in TextType]: MetaType} => {
+export const metaData = (): {[K in TextType]: MetaType} => {
   if (isDarkMode()) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
@@ -320,5 +333,3 @@ const metaData = (): {[K in TextType]: MetaType} => {
     return _lightMetaData
   }
 }
-
-export {defaultColor, fontSizeToSizeStyle, lineClamp, metaData}

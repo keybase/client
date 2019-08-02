@@ -154,7 +154,7 @@ class ZoomableBox extends React.Component<Props, State> {
           scaleOffset,
         })
       },
-      onPanResponderRelease: (evt, gestureState) => {
+      onPanResponderRelease: () => {
         // Gesture completed successfully
         this.setState({
           pan: {
@@ -181,7 +181,7 @@ class ZoomableBox extends React.Component<Props, State> {
             y,
           })
       },
-      onPanResponderTerminate: (evt, gestureState) => {
+      onPanResponderTerminate: () => {
         // Gesture cancelled
         this.setState({
           panOffset: {
@@ -207,7 +207,7 @@ class ZoomableBox extends React.Component<Props, State> {
     })
   }
 
-  scale = () => clamp(this.state.scale * this.state.scaleOffset, 1, this.props.maxZoom)
+  scale = () => clamp(this.state.scale * this.state.scaleOffset, 1, this.props.maxZoom || 999999)
   panX = () =>
     clamp(
       this.state.pan.x + this.state.panOffset.x,

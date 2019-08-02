@@ -30,7 +30,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	require.NoError(t, err)
 	defer func() {
 		if err != nil {
-			ioutil.RemoveAll(tempdir)
+			_ = ioutil.RemoveAll(tempdir)
 		}
 	}()
 	err = cfg.EnableDiskLimiter(tempdir)
@@ -50,7 +50,8 @@ func makeTestKBFSConfig(t *testing.T) (
 
 	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = cfg.KBFSOps().CreateFile(ctx, root, "test.txt", false, false)
+	_, _, err = cfg.KBFSOps().CreateFile(
+		ctx, root, root.ChildName("test.txt"), false, false)
 	require.NoError(t, err)
 
 	return cfg, shutdown

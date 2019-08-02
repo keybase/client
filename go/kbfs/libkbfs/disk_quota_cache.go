@@ -94,13 +94,14 @@ type DiskQuotaCacheStatus struct {
 	Hits       MeterStatus
 	Misses     MeterStatus
 	Puts       MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskQuotaCacheLocalFromStorage creates a new *DiskQuotaCacheLocal
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskQuotaCacheLocalFromStorage(
-	config diskQuotaCacheConfig, quotaStorage storage.Storage) (
+	config diskQuotaCacheConfig, quotaStorage storage.Storage, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	closers := make([]io.Closer, 0, 1)
@@ -118,10 +119,10 @@ func newDiskQuotaCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	quotaDbOptions := *leveldbOptions
+	quotaDbOptions := leveldbOptionsFromMode(mode)
 	quotaDbOptions.CompactionTableSize = defaultQuotaCacheTableSize
 	quotaDbOptions.Filter = filter.NewBloomFilter(16)
-	db, err := openLevelDBWithOptions(quotaStorage, &quotaDbOptions)
+	db, err := openLevelDBWithOptions(quotaStorage, quotaDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +164,7 @@ func newDiskQuotaCacheLocalFromStorage(
 // newDiskQuotaCacheLocal creates a new *DiskQuotaCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskQuotaCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	defer func() {
@@ -187,7 +188,7 @@ func newDiskQuotaCacheLocal(
 			quotaStorage.Close()
 		}
 	}()
-	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage)
+	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -322,7 +323,8 @@ func (cache *DiskQuotaCacheLocal) Put(
 }
 
 // Status implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
-func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus {
+func (cache *DiskQuotaCacheLocal) Status(
+	ctx context.Context) DiskQuotaCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -334,12 +336,21 @@ func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "Quota(Status)"); err == nil {
+		dbStats, err = cache.db.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskQuotaCacheStatus{
 		StartState: DiskQuotaCacheStartStateStarted,
 		NumQuotas:  uint64(len(cache.quotasCached)),
 		Hits:       rateMeterToStatus(cache.hitMeter),
 		Misses:     rateMeterToStatus(cache.missMeter),
 		Puts:       rateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 

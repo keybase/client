@@ -207,7 +207,7 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
           <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
           {!!count && (
-            <Kb.Badge badgeNumber={count || 0} badgeStyle={{left: 14, position: 'absolute', top: -2}} />
+            <Kb.Badge badgeNumber={count || 0} badgeStyle={styles.badge} />
           )}
         </Kb.Box>
         <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
@@ -217,7 +217,7 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
-  _menuItems() {
+  _menuItems(): Kb.MenuItems {
     const countMap = this.props.badgeInfo || {}
     const startingUp = this.props.daemonHandshakeState !== 'done'
     const loggedOut = !this.props.username
@@ -268,7 +268,7 @@ class MenubarRender extends React.Component<Props, State> {
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
       {onClick: this.props.quit, title: 'Quit Keybase'},
-    ]
+    ] as any
   }
 
   _getAttachmentRef = () => this.attachmentRef.current
@@ -312,7 +312,7 @@ class MenubarRender extends React.Component<Props, State> {
             {!!badgeCountInMenu && (
               <Kb.Badge
                 badgeNumber={badgeCountInMenu}
-                badgeStyle={{left: 14, position: 'absolute', top: -2}}
+                badgeStyle={styles.badge}
               />
             )}
           </Kb.Box>
@@ -336,7 +336,7 @@ class MenubarRender extends React.Component<Props, State> {
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
-              <Loading path={undefined /* NOT here? TODO FS FIX FsTypes.defaultPath */} />
+              <Loading />
             </Kb.Box2>
           )}
         </Kb.ScrollView>
@@ -384,7 +384,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         style={styles.navIcons}
         type={iconType}
       />
-      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
+      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
     </Kb.Box>
   )
 }
@@ -406,6 +406,11 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: -6,
     width: 0,
+  },
+  badge: {
+    position: 'absolute',
+    right: -2,
+    top: -4,
   },
   footer: {width: 360},
   hamburgerIcon: {

@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
-import {compose, connect} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -25,7 +25,7 @@ const mapDispatchToProps = dispatch => ({
   _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   allowChatWithoutThem: stateProps.allowChatWithoutThem,
   chatWithoutThem: () => dispatchProps._chatWithoutThem(stateProps._conversationIDKey),
   letThemIn: () => dispatchProps._letThemIn(stateProps.username, stateProps._conversationIDKey),

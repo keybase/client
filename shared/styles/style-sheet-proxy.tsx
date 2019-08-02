@@ -8,8 +8,8 @@ type Transform = (o: Object) => Object
 
 const styleSheetCreate = (funcOrObj: FuncOrObject, transform: Transform) => {
   if (typeof funcOrObj === 'function') {
-    let lightCached = null
-    let darkCached = null
+    let lightCached: Object | undefined
+    let darkCached: Object | undefined
 
     const wrapped = {
       get: function(_: unknown, prop: string) {
@@ -26,7 +26,8 @@ const styleSheetCreate = (funcOrObj: FuncOrObject, transform: Transform) => {
     return new Proxy({}, wrapped)
   } else {
     if (__DEV__) {
-      console.log('Darkmode incompatible style passed', funcOrObj)
+      // TODO turn on to see whats not updated
+      // console.log('Darkmode incompatible style passed', funcOrObj)
     }
     return funcOrObj
   }

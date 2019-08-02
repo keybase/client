@@ -11,16 +11,20 @@ const pushOutOfBandMessages = (_, action: EngineGen.Keybase1GregorUIPushOutOfBan
   if (filteredOOBM.length) {
     return GregorGen.createPushOOBM({messages: filteredOOBM})
   }
+    return undefined
 }
 
 const pushState = (_, action: EngineGen.Keybase1GregorUIPushStatePayload) => {
   const {reason, state} = action.payload.params
   const items = state.items || []
 
-  const goodState = items.reduce((arr, {md, item}) => {
-    md && item && arr.push({item, md})
-    return arr
-  }, [])
+  const goodState = items.reduce<Array<{item: RPCTypes.Gregor1.Item; md: RPCTypes.Gregor1.Metadata}>>(
+    (arr, {md, item}) => {
+      md && item && arr.push({item, md})
+      return arr
+    },
+    []
+  )
 
   if (goodState.length !== items.length) {
     logger.warn('Lost some messages in filtering out nonNull gregor items')
@@ -37,7 +41,7 @@ const reachabilityChanged = (state, action: EngineGen.Keybase1ReachabilityReacha
 // If ever you want to get OOBMs for a different system, then you need to enter it here.
 const registerForGit = () =>
   RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git']})
-    .then(response => {
+    .then(() => {
       logger.info('Registered gregor listener')
     })
     .catch(error => {

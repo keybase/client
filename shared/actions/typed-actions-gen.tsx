@@ -1,7 +1,8 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,no-use-before-define */
 import {Actions as chat2Actions} from './chat2-gen'
 import {Actions as configActions} from './config-gen'
+import {Actions as deeplinksActions} from './deeplinks-gen'
 import {Actions as devActions} from './dev-gen'
 import {Actions as devicesActions} from './devices-gen'
 import {Actions as enginegenActions} from './engine-gen-gen'
@@ -31,6 +32,7 @@ import {Actions as walletsActions} from './wallets-gen'
 export type TypedActions =
   | chat2Actions
   | configActions
+  | deeplinksActions
   | devActions
   | devicesActions
   | enginegenActions

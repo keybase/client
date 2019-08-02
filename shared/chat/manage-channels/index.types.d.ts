@@ -7,9 +7,11 @@ export type RowProps = {
   name: string
   numParticipants: number
   mtimeHuman: string
+  selected: boolean
 }
 
 export type Props = {
+  onBack?: () => void
   canCreateChannels: boolean
   canEditChannels: boolean
   channels: Array<
@@ -20,7 +22,7 @@ export type Props = {
   onCreate: () => void
   onToggle: (convID: ConversationIDKey) => void
   onEdit: (convID: ConversationIDKey) => void
-  onClose: () => void
+  onClose?: () => void
   onClickChannel: (channelname: string) => void
   teamname: string
   unsavedSubscriptions: boolean

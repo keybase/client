@@ -6,7 +6,7 @@ import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
-import {useFsLoadEffect} from '../../common'
+import {useFsChildren, useFsPathMetadata} from '../../common'
 
 export type Props = {
   size: number
@@ -14,12 +14,11 @@ export type Props = {
   childrenFolders: number
   childrenFiles: number
   path: Types.Path
-  loadFolderList: () => void
-  loadPathMetadata: () => void
 }
 
-const filesAndFoldersCount = (props: Props) =>
-  props.type === Types.PathType.Folder && (
+const FilesAndFoldersCount = (props: Props) => {
+  useFsChildren(props.path)
+  return (
     <Kb.Text type="BodySmall">
       {props.childrenFolders
         ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
@@ -29,14 +28,10 @@ const filesAndFoldersCount = (props: Props) =>
       {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
     </Kb.Text>
   )
+}
 
 const Header = (props: Props) => {
-  useFsLoadEffect({
-    path: props.path,
-    refreshTag: Types.RefreshTag.PathItemActionPopup,
-    wantChildren: props.type === Types.PathType.Folder,
-    wantPathMetadata: true,
-  })
+  useFsPathMetadata(props.path)
   return (
     <Kb.Box
       onClick={
@@ -62,7 +57,7 @@ const Header = (props: Props) => {
         {props.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Kb.Text>
         )}
-        {filesAndFoldersCount(props)}
+        {props.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
         <TlfOrPathItemInfo path={props.path} mode="menu" />
       </Kb.Box2>
     </Kb.Box>

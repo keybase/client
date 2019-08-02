@@ -104,6 +104,17 @@ export type AttachmentFullscreenSelection = {
   message: Message.Message
 }
 
+export type CommandStatusInfo = {
+  displayText: string
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp
+  actions: Array<RPCChatTypes.UICommandStatusActionTyp>
+}
+
+export type UserReacjis = {
+  topReacjis: Array<string>
+  skinTone: number
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -139,16 +150,21 @@ export type _State = {
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  prependTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
+  commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>
+  botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  userReacjis: RPCTypes.UserReacjis
-} & TeamBuildingTypes.TeamBuildingSubState
+  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  userReacjis: UserReacjis
+  createConversationError: string | null
+}
 
 export type State = I.RecordOf<_State>
 

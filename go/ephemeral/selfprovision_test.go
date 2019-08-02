@@ -54,7 +54,7 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mctx.ActiveDevice().Name(), newName)
 
-	teamEK2, err := g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
+	teamEK2, err := g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
 	require.NoError(t, err)
 	require.Equal(t, teamEK1, teamEK2)
 

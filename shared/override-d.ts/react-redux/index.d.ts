@@ -229,13 +229,33 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  : [
-      "just to help you debug what's going on",
-      Exclude<keyof GetProps<C>, keyof TMergedProps>,
-      Exclude<keyof TMergedProps, keyof GetProps<C>>,
-      GetProps<C>,
-      TMergedProps
-    ]
+  : never 
+
+// To debug why the connect is returning never
+export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
+  component: C
+) => TMergedProps extends React.ComponentProps<C>
+  ? ConnectedComponentClass<C, TOwnProps>
+  :   [
+        "missing props:",
+        Exclude<keyof GetProps<C>, keyof TMergedProps>,
+        "extra props:",
+        Exclude<keyof TMergedProps, keyof GetProps<C>>,
+        GetProps<C>,
+        TMergedProps
+      ]
+
+export interface ConnectDEBUG {
+  <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
+    mapStateToProps: MapStateToProps<TStateProps, TOwnProps>,
+    mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
+    mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+    options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+  ): ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps>
+}
+
+export const connectDEBUG: ConnectDEBUG
+
 export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
   // when you really didn't. If the types don't match it spits out the missing keys (omit) as a way to help you out but the error cases

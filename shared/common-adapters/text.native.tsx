@@ -6,13 +6,11 @@ import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import {Props, TextType} from './text'
 
-const StyledText = Styles.styled(NativeText)({}, (props: any) => props.style)
-
 const modes = ['positive', 'negative']
 
-const styleMap = Object.keys(metaData()).reduce(
-  (map, type: TextType) => {
-    const meta = metaData()[type]
+const styleMap = Object.keys(metaData()).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
+  (map, type) => {
+    const meta = metaData()[type as TextType]
     modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
@@ -22,9 +20,7 @@ const styleMap = Object.keys(metaData()).reduce(
     })
     return map
   },
-  {
-    center: {textAlign: 'center'},
-  }
+  {center: {textAlign: 'center'}}
 )
 
 // TODO fix dark mode
@@ -49,7 +45,7 @@ class Text extends Component<Props> {
   }
 
   _urlClick = () => {
-    openURL(this.props.onClickURL)
+    this.props.onClickURL && openURL(this.props.onClickURL)
   }
 
   _urlCopy = (url: string | null) => {
@@ -112,20 +108,20 @@ class Text extends Component<Props> {
       this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
 
     return (
-      <StyledText
+      <NativeText
         ref={ref => {
           this._nativeText = ref
         }}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy}
         style={style}
-        {...lineClamp(this.props.lineClamp, this.props.ellipsizeMode)}
+        {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
-      </StyledText>
+      </NativeText>
     )
   }
 }
@@ -134,8 +130,8 @@ class Text extends Component<Props> {
 function _getStyle(
   type: TextType,
   negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null,
+  _?: number | null,
+  __?: boolean | null,
   // @ts-ignore the order of these parameters because this is used in a lot
   // of places
   forceUnderline: boolean
@@ -153,12 +149,7 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(
-  type: TextType,
-  negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null
-) {
+function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

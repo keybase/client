@@ -7,7 +7,6 @@ type Props = {
   error: string
   initialDevicename?: string
   onBack: () => void
-  onChangeDevicename: () => void
   onContinue: (devicename: string) => void
   waiting: boolean
 }

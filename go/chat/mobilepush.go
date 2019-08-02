@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
-	emoji "gopkg.in/kyokomi/emoji.v1"
+	"github.com/kyokomi/emoji"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"

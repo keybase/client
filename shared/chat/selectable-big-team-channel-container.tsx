@@ -20,7 +20,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, _, ownProps: OwnProps) => {
   return {
     channelname: stateProps.channelname,
     isSelected: ownProps.isSelected,

@@ -16,6 +16,11 @@ type nullChatUI struct {
 	libkb.ChatUI
 }
 
+func (n nullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
+	return nil
+}
+
 type baseCommand struct {
 	globals.Contextified
 	utils.DebugLabeler

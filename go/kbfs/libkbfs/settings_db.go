@@ -43,7 +43,7 @@ type SettingsDB struct {
 
 func openSettingsDBInternal(config Config) (*LevelDb, error) {
 	if config.IsTestMode() {
-		return openLevelDB(storage.NewMemStorage())
+		return openLevelDB(storage.NewMemStorage(), config.Mode())
 	}
 	dbPath := path.Join(config.StorageRoot(), settingsDBDir,
 		settingsDBVersionString)
@@ -57,7 +57,7 @@ func openSettingsDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	return openLevelDB(stor)
+	return openLevelDB(stor, config.Mode())
 }
 
 func openSettingsDB(config Config) *SettingsDB {

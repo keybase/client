@@ -14,7 +14,7 @@ import (
 
 var platformRootDirs []fuse.Dirent
 
-func shouldAppendPlatformRootDirs(parmas PlatformParams) bool {
+func shouldAppendPlatformRootDirs(parmas PlatformParams) bool { // nolint
 	return false
 }
 

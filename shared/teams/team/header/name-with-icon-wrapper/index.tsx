@@ -1,10 +1,9 @@
 import * as React from 'react'
-// @ts-ignore not typed yet
-import {Response} from 'react-native-image-picker'
+import * as ImagePicker from 'expo-image-picker'
 
 export type Props = {
   canEditDescription: boolean
-  onEditIcon: (image?: Response) => void
+  onEditIcon: (image?: ImagePicker.ImagePickerResult) => void
   onFilePickerError: (error: Error) => void
   teamname: string
   title: string | React.ReactNode

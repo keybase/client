@@ -68,6 +68,12 @@ protocol kbfs {
   @lint("ignore")
   void FSFavoritesChangedEvent();
 
+  @lint("ignore")
+  void FSSubscriptionNotifyPathEvent(string subscriptionID, string path,  PathSubscriptionTopic topic);
+
+  @lint("ignore")
+  void FSSubscriptionNotifyEvent(string subscriptionID, SubscriptionTopic topic);
+
   /**
     createTLF is called by KBFS to associate the tlfID with the given teamID,
     using the v2 Team-based system.

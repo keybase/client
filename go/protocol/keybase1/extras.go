@@ -1967,6 +1967,12 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Readers {
 		m[u.Uid] = true
 	}
+	for _, u := range t.Bots {
+		m[u.Uid] = true
+	}
+	for _, u := range t.RestrictedBots {
+		m[u.Uid] = true
+	}
 	var all []UID
 	for u := range m {
 		all = append(all, u)
@@ -1986,6 +1992,12 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 		m[u.Uid] = u
 	}
 	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Bots {
+		m[u.Uid] = u
+	}
+	for _, u := range t.RestrictedBots {
 		m[u.Uid] = u
 	}
 	var all []UserVersion
@@ -2310,16 +2322,54 @@ func (r TeamRole) IsAdminOrAbove() bool {
 	return r.IsOrAbove(TeamRole_ADMIN)
 }
 
-func (r TeamRole) IsReaderOrAbove() bool {
-	return r.IsOrAbove(TeamRole_READER)
-}
-
 func (r TeamRole) IsWriterOrAbove() bool {
 	return r.IsOrAbove(TeamRole_WRITER)
 }
 
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r.IsOrAbove(TeamRole_READER)
+}
+
+func (r TeamRole) IsBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_BOT)
+}
+
+func (r TeamRole) IsRestrictedBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
+}
+
+func (r TeamRole) IsBotLike() bool {
+	switch r {
+	case TeamRole_BOT, TeamRole_RESTRICTEDBOT:
+		return true
+	}
+	return false
+}
+
+func (r TeamRole) IsRestrictedBot() bool {
+	return r == TeamRole_RESTRICTEDBOT
+}
+
+func (r TeamRole) teamRoleForOrderingOnly() int {
+	switch r {
+	case TeamRole_NONE:
+		return 0
+	case TeamRole_RESTRICTEDBOT:
+		return 1
+	case TeamRole_BOT:
+		return 2
+	case TeamRole_READER,
+		TeamRole_WRITER,
+		TeamRole_ADMIN,
+		TeamRole_OWNER:
+		return int(r) + 2
+	default:
+		return 0
+	}
+}
+
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
-	return int(r) >= int(min)
+	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
 }
 
 type idSchema struct {
@@ -2537,6 +2587,10 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	switch role {
+	case TeamRole_RESTRICTEDBOT:
+		req.RestrictedBots = append(req.RestrictedBots, uv)
+	case TeamRole_BOT:
+		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
 		req.Readers = append(req.Readers, uv)
 	case TeamRole_WRITER:
@@ -2559,6 +2613,8 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.RestrictedBots...)
+	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
 	ret = append(ret, req.Admins...)
@@ -2684,6 +2740,16 @@ func (p PhoneNumber) String() string {
 	return string(p)
 }
 
+var nonDigits = regexp.MustCompile("[^\\d]")
+
+func PhoneNumberToAssertionValue(phoneNumber string) string {
+	return nonDigits.ReplaceAllString(phoneNumber, "")
+}
+
+func (p PhoneNumber) AssertionValue() string {
+	return PhoneNumberToAssertionValue(p.String())
+}
+
 func (d TeamData) ID() TeamID {
 	return d.Chain.Id
 }
@@ -2706,6 +2772,24 @@ func (d HiddenTeamChain) ID() TeamID {
 
 func (d HiddenTeamChain) IsPublic() bool {
 	return d.Public
+}
+
+func (d HiddenTeamChain) Summary() string {
+	type pair struct {
+		g       PerTeamKeyGeneration
+		q       Seqno
+		stubbed bool
+	}
+	var arr []pair
+	for g, q := range d.ReaderPerTeamKeys {
+		var full bool
+		if d.Inner != nil {
+			_, full = d.Inner[q]
+		}
+		arr = append(arr, pair{g: g, q: q, stubbed: !full})
+	}
+	sort.Slice(arr, func(i, j int) bool { return arr[i].g < arr[j].g })
+	return fmt.Sprintf("{Team:%s, Last:%d, ReaderPerTeamKeys: %+v}", d.Id, d.Last, arr)
 }
 
 func (f FullName) String() string {
@@ -2746,6 +2830,17 @@ func (c ContactComponent) ValueString() string {
 		return string(*c.Email)
 	case c.PhoneNumber != nil:
 		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) AssertionType() string {
+	switch {
+	case c.Email != nil:
+		return "email"
+	case c.PhoneNumber != nil:
+		return "phone"
 	default:
 		return ""
 	}
@@ -2797,6 +2892,22 @@ func (h *HiddenTeamChain) Tail() *HiddenTeamChainLink {
 	return &ret
 }
 
+func (h *HiddenTeamChain) TailTriple() *LinkTriple {
+	last := h.Last
+	if last == Seqno(0) {
+		return nil
+	}
+	link, ok := h.Outer[last]
+	if !ok {
+		return nil
+	}
+	return &LinkTriple{
+		Seqno:   last,
+		LinkID:  link,
+		SeqType: SeqType_TEAM_PRIVATE_HIDDEN,
+	}
+}
+
 func (s Signer) UserVersion() UserVersion {
 	return UserVersion{
 		Uid:         s.U,
@@ -2819,61 +2930,102 @@ func (p PerTeamSeedCheckPostImage) Eq(p2 PerTeamSeedCheckPostImage) bool {
 	return (p.Version == p2.Version) && hmac.Equal(p.Value[:], p2.Value[:])
 }
 
-func (r HiddenTeamChainRatchet) Flat() []LinkTripleAndTime {
+func (r HiddenTeamChainRatchetSet) Flat() []LinkTripleAndTime {
+	if r.Ratchets == nil {
+		return nil
+	}
 	var ret []LinkTripleAndTime
-	add := func(p *LinkTripleAndTime) {
-		if p != nil {
-			ret = append(ret, *p)
-		}
+	for _, v := range r.Ratchets {
+		ret = append(ret, v)
 	}
-	add(r.Main)
-	add(r.Blinded)
-	add(r.Self)
 	return ret
 }
 
-func (r HiddenTeamChainRatchet) Max() Seqno {
+func (r HiddenTeamChainRatchetSet) IsEmpty() bool {
+	return r.Ratchets == nil || len(r.Ratchets) == 0
+}
+
+func (r HiddenTeamChainRatchetSet) Max() Seqno {
 	var ret Seqno
-	visit := func(p *LinkTripleAndTime) {
-		if p != nil && p.Triple.Seqno > ret {
-			ret = p.Triple.Seqno
+	if r.Ratchets == nil {
+		return ret
+	}
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > ret {
+			ret = v.Triple.Seqno
 		}
 	}
-	visit(r.Main)
-	visit(r.Blinded)
-	visit(r.Self)
 	return ret
 }
 
-func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
-	visit := func(p *LinkTripleAndTime) {
-		if p != nil && (ret == nil || p.Triple.Seqno > ret.Seqno) {
-			ret = &p.Triple
+func (r HiddenTeamChainRatchetSet) MaxTriple() *LinkTriple {
+	if r.Ratchets == nil {
+		return nil
+	}
+	var out LinkTriple
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > out.Seqno {
+			out = v.Triple
 		}
 	}
-	visit(r.Main)
-	visit(r.Blinded)
-	visit(r.Self)
-	return ret
+	return &out
 }
 
-func (r *HiddenTeamChainRatchet) Merge(r2 HiddenTeamChainRatchet) (updated bool) {
-	visit := func(l1 **LinkTripleAndTime, l2 *LinkTripleAndTime) {
-		if l2 != nil && l2.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {
-			*l1 = l2
+func (r *HiddenTeamChain) MaxTriple() *LinkTriple {
+	tail := r.TailTriple()
+	rat := r.RatchetSet.MaxTriple()
+	if rat == nil && tail == nil {
+		return nil
+	}
+	if rat == nil {
+		return tail
+	}
+	if tail == nil {
+		return rat
+	}
+	if tail.Seqno > rat.Seqno {
+		return tail
+	}
+	return rat
+}
+
+func (r *HiddenTeamChainRatchetSet) init() {
+	if r.Ratchets == nil {
+		r.Ratchets = make(map[RatchetType]LinkTripleAndTime)
+	}
+}
+
+func (r *HiddenTeamChainRatchetSet) Merge(r2 HiddenTeamChainRatchetSet) (updated bool) {
+	r.init()
+	if r2.Ratchets == nil {
+		return false
+	}
+	for k, v := range r2.Ratchets {
+		if r.Add(k, v) {
 			updated = true
 		}
 	}
-	visit(&r.Main, r2.Main)
-	visit(&r.Blinded, r2.Blinded)
-	visit(&r.Self, r2.Self)
 	return updated
+}
+
+func (r *HiddenTeamChainRatchetSet) Add(t RatchetType, v LinkTripleAndTime) (changed bool) {
+	r.init()
+	found, ok := r.Ratchets[t]
+	if (v.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN) && (!ok || v.Triple.Seqno > found.Triple.Seqno) {
+		r.Ratchets[t] = v
+		changed = true
+	}
+	return changed
 }
 
 func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 	l1 := r.Triple
 	l2 := r2.Triple
 	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
+}
+
+func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
+	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
 }
 
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
@@ -2915,6 +3067,22 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		}
 	}
 
+	for k, v := range newData.MerkleRoots {
+		existing, ok := d.MerkleRoots[k]
+		if ok && !existing.Eq(v) {
+			return false, fmt.Errorf("bad merge since at seqno %d, merkle root clash: %+v != %+v", k, existing, v)
+		}
+		if ok {
+			continue
+		}
+		d.MerkleRoots[k] = v
+		updated = true
+	}
+
+	if d.RatchetSet.Merge(newData.RatchetSet) {
+		updated = true
+	}
+
 	return updated, nil
 }
 
@@ -2930,6 +3098,7 @@ func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
 		Outer:             make(map[Seqno]LinkID),
 		Inner:             make(map[Seqno]HiddenTeamChainLink),
+		MerkleRoots:       make(map[Seqno]MerkleRootV2),
 	}
 }
 
@@ -3047,6 +3216,15 @@ func (h *TeamData) KeySummary() string {
 	return fmt.Sprintf("{ptksu:%v, rkms:%v, sigchain:%s}", p, r, h.Chain.KeySummary())
 }
 
+func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
+	points := s.UserLog[user]
+	if len(points) == 0 {
+		return TeamRole_NONE
+	}
+	role := points[len(points)-1].Role
+	return role
+}
+
 func (s TeamSigChainState) KeySummary() string {
 	var v []PerTeamKeyGeneration
 	for k := range s.PerTeamKeys {
@@ -3056,9 +3234,117 @@ func (s TeamSigChainState) KeySummary() string {
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
-	if h == nil || h.LatestSeqnoHint == Seqno(0) {
+	if h == nil {
 		return false
 	}
-	_, fresh := h.Outer[h.LatestSeqnoHint]
+	max := h.RatchetSet.Max()
+	if max < h.LatestSeqnoHint {
+		max = h.LatestSeqnoHint
+	}
+	if max == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[max]
 	return !fresh
+}
+
+func (k TeamEphemeralKey) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Material() Bytes32 {
+	typ, err := k.KeyType()
+	if err != nil {
+		return [32]byte{}
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Seed
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Seed
+	default:
+		return [32]byte{}
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyType) IsTeambot() bool {
+	return k == TeamEphemeralKeyType_TEAMBOT
+}
+
+func (k TeamEphemeralKeyType) IsTeam() bool {
+	return k == TeamEphemeralKeyType_TEAM
+}
+
+// IsLimited returns if the network is considered limited based on the type.
+func (s MobileNetworkState) IsLimited() bool {
+	switch s {
+	case MobileNetworkState_WIFI, MobileNetworkState_NOTAVAILABLE:
+		return false
+	default:
+		return true
+	}
+}
+
+func (k TeambotKey) Generation() int {
+	return int(k.Metadata.Generation)
+}
+
+func (k TeambotKey) Material() Bytes32 {
+	return k.Seed
 }

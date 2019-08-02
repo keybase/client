@@ -7,12 +7,14 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  airdrop: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
+  fastAccountSwitch: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
+  lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,

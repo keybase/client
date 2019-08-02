@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
 
 const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     hotkeys,

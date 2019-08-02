@@ -6,12 +6,14 @@ import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
 import {actionHasError} from '../util/container'
+import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
 type Actions =
   | SettingsGen.Actions
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
+  | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
 
 function reducer(state: Types.State = initialState, action: Actions): Types.State {
@@ -20,7 +22,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return initialState
     case SettingsGen.setAllowDeleteAccount:
       return state.merge({allowDeleteAccount: action.payload.allow})
-    case SettingsGen.notificationsToggle:
+    case SettingsGen.notificationsToggle: {
       if (!state.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
         return state
@@ -66,6 +68,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           groups: state.notifications.groups.merge(I.Map(changed)) as any,
         })
       )
+    }
     case SettingsGen.notificationsSaved:
       return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
     case SettingsGen.notificationsRefreshed:
@@ -93,10 +96,20 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         ['email', 'emails'],
         I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
       )
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+      return state
+        .updateIn(['email', 'emails'], emails =>
+          emails.update(action.payload.params.emailAddress, email =>
+            email.merge({
+              isVerified: true,
+            })
+          )
+        )
+        .update('email', emailState => emailState.merge({addedEmail: null}))
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
       return state.setIn(
-        ['phone', 'phones'],
-        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
+        ['phoneNumbers', 'phones'],
+        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)]))
       )
     case SettingsGen.loadedRememberPassword:
     case SettingsGen.onChangeRememberPassword:
@@ -110,7 +123,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadedProxyData:
       return state.merge({proxyData: action.payload.proxyData})
     case SettingsGen.certificatePinningToggled:
-      return state.merge({didToggleCertificatePinning: action.payload.toggled})
+      return state.merge({didToggleCertificatePinning: action.payload.toggled || false})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})
@@ -154,28 +167,23 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
-        pn.merge(
-          action.payload.error
-            ? {
-                error: action.payload.error,
-                pendingVerification: '',
-                pendingVerificationAllowSearch: null,
-                verificationState: null,
-              }
-            : {
-                error: '',
-                pendingVerification: action.payload.phoneNumber,
-                pendingVerificationAllowSearch: action.payload.allowSearch,
-                verificationState: null,
-              }
-        )
+        pn.merge({
+          error: action.payload.error || '',
+          pendingVerification: action.payload.phoneNumber,
+          verificationState: null,
+        })
       )
-    case SettingsGen.clearPhoneNumberVerification:
+    case SettingsGen.resendVerificationForPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
+      )
+    case SettingsGen.clearPhoneNumberErrors:
+      return state.update('phoneNumbers', pn => pn.merge({error: ''}))
+    case SettingsGen.clearPhoneNumberAdd:
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: '',
           pendingVerification: '',
-          pendingVerificationAllowSearch: null,
           verificationState: null,
         })
       )
@@ -187,6 +195,49 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('phoneNumbers', pn =>
         pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
       )
+    case SettingsGen.loadedContactImportEnabled:
+      return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
+    case SettingsGen.loadedContactPermissions:
+      return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.setContactImportedCount:
+      return state.update('contacts', contacts => contacts.set('importedCount', action.payload.count))
+    case SettingsGen.importContactsLater:
+      return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
+    case SettingsGen.loadedUserCountryCode:
+      return state.update('contacts', contacts => contacts.set('userCountryCode', action.payload.code))
+    case SettingsGen.addEmail: {
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.update('email', emailState =>
+        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
+      )
+    }
+    case SettingsGen.addedEmail: {
+      if (action.payload.email !== state.email.addingEmail) {
+        logger.warn("addedEmail: doesn't match")
+        return state
+      }
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.error ? null : action.payload.email,
+          addingEmail: action.payload.error ? emailState.addingEmail : null,
+          error: action.payload.error || null,
+        })
+      )
+    }
+    case SettingsGen.sentVerificationEmail: {
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.email,
+        })
+      )
+    }
+    case SettingsGen.clearAddingEmail: {
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
+    }
+    case SettingsGen.clearAddedEmail: {
+      return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -214,6 +265,10 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.verifyPhoneNumber:
     case SettingsGen.loadProxyData:
     case SettingsGen.saveProxyData:
+    case SettingsGen.loadContactImportEnabled:
+    case SettingsGen.editContactImportEnabled:
+    case SettingsGen.requestContactPermissions:
+    case SettingsGen.toggleRuntimeStats:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

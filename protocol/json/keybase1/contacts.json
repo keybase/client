@@ -86,6 +86,10 @@
         },
         {
           "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
           "name": "displayName"
         },
         {
@@ -112,6 +116,46 @@
         {
           "name": "userRegionCode",
           "type": "RegionCode"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "saveContactList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "contacts",
+          "type": {
+            "type": "array",
+            "items": "Contact"
+          }
+        }
+      ],
+      "response": null
+    },
+    "lookupSavedContactsList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "getContactsForUserRecommendations": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": {

@@ -21,15 +21,22 @@ type Props = {
 const Banner = (props: Props) =>
   props.bannerType === Types.MainBannerType.None ? null : props.bannerType ===
     Types.MainBannerType.Offline ? (
-    <Kb.Banner text="You are offline." color="blue" />
+    <Kb.Banner color="blue">
+      <Kb.BannerParagraph bannerColor="blue" content="You are offline." />
+    </Kb.Banner>
   ) : (
-    <Kb.Banner
-      text={`Your ${
-        isMobile ? 'phone' : 'computer'
-      } is out of space and some folders could not be properly synced. Make some space and`}
-      color="red"
-      actions={[{onClick: props.onRetry, title: 'retry the sync.'}]}
-    />
+    <Kb.Banner color="red">
+      <Kb.BannerParagraph
+        bannerColor="red"
+        content={[
+          'Your ',
+          isMobile ? 'phone' : 'computer',
+          ' is out of space and some folders could not be properly synced. Make some space and ',
+          {onClick: props.onRetry, text: 'retry the sync'},
+          '.',
+        ]}
+      />
+    </Kb.Banner>
   )
 
 export default Banner

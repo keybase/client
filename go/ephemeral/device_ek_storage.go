@@ -213,7 +213,7 @@ func (s *DeviceEKStorage) Put(mctx libkb.MetaContext, generation keybase1.EkGene
 
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return newEKCorruptedErr(mctx, DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return newEKCorruptedErr(mctx, DeviceEKKind, generation, deviceEK.Metadata.Generation)
 	}
 
 	key, err := s.key(mctx, generation)
@@ -278,8 +278,7 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 	}
 
 	if err = s.storage.Get(mctx, key, &deviceEK); err != nil {
-		switch err.(type) {
-		case libkb.UnboxError:
+		if _, ok := err.(libkb.UnboxError); ok {
 			s.ekLogf(mctx, "DeviceEKStorage#get: corrupted generation: %v -> %v: %v", key, generation, err)
 			if ierr := s.storage.Erase(mctx, key); ierr != nil {
 				s.ekLogf(mctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
@@ -289,7 +288,7 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 	}
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return deviceEK, newEKCorruptedErr(mctx, DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return deviceEK, newEKCorruptedErr(mctx, DeviceEKKind, generation, deviceEK.Metadata.Generation)
 	}
 	return deviceEK, nil
 }

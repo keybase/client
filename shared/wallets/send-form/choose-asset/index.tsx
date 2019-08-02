@@ -168,7 +168,12 @@ class ChooseAsset extends React.Component<Props, State> {
     return (
       <Kb.MaybePopup onClose={this.props.onBack}>
         <Kb.Box2 direction="vertical" style={styles.container}>
-          <Header isRequest={this.props.isRequest} onBack={this.props.onBack} whiteBackground={true} />
+          <Header
+            isRequest={this.props.isRequest}
+            onBack={this.props.onBack}
+            whiteBackground={true}
+            showCancelInsteadOfBackOnMobile={false}
+          />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.SectionList
               sections={sections}
@@ -233,7 +238,7 @@ type OtherChoiceProps = {
 const OtherChoice = (props: OtherChoiceProps) => (
   <Kb.ClickableBox
     hoverColor={!props.disabledExplanation ? Styles.globalColors.blueLighter2 : null}
-    onClick={!props.disabledExplanation ? props.onClick : null}
+    onClick={!props.disabledExplanation ? props.onClick : undefined}
   >
     <Kb.Box2
       direction="horizontal"

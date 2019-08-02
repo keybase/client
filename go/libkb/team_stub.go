@@ -107,7 +107,7 @@ type nullTeamAuditor struct{}
 
 var _ TeamAuditor = nullTeamAuditor{}
 
-func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
+func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, justCreated bool) (err error) {
 	return fmt.Errorf("null team auditor")
 }
 
@@ -153,6 +153,9 @@ func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (*ke
 func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt {
 	return *attemptNullBoxAuditor()
 }
+func (n nullTeamBoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx MetaContext, teamID keybase1.TeamID) {
+}
+
 func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }
 
 type nullHiddenTeamChainManager struct{}
@@ -163,7 +166,7 @@ func (n nullHiddenTeamChainManager) Tail(mctx MetaContext, id keybase1.TeamID) (
 	return nil, nil
 }
 
-func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error {
+func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error {
 	return nil
 }
 func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChain, *keybase1.LinkTriple) error {

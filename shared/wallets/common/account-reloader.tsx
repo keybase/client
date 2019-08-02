@@ -32,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
   onReload: () => dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
   onBack: ownProps.onBack,
   onReload: dispatchProps.onReload,

@@ -72,14 +72,6 @@ func (f *JSONConfigFile) GetTopLevelBool(s string) (res, isSet bool) {
 	return
 }
 
-func (f *JSONConfigFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
-	err := f.jw.SetValueAtPath(p, w)
-	if err == nil {
-		err = f.Save()
-	}
-	return err
-}
-
 func (f *JSONConfigFile) GetUserConfig() (*UserConfig, error) {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
@@ -383,11 +375,6 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	return f.Save()
 }
 
-func (f *JSONConfigFile) DeleteAtPath(p string) {
-	f.jw.DeleteValueAtPath(p)
-	f.Save()
-}
-
 func (f *JSONConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
 	f.Save()
@@ -407,6 +394,9 @@ func (f *JSONConfigFile) GetConfigFilename() string {
 }
 func (f *JSONConfigFile) GetUpdaterConfigFilename() string {
 	return f.GetTopLevelString("updater_config_file")
+}
+func (f *JSONConfigFile) GetGUIConfigFilename() string {
+	return f.GetTopLevelString("gui_config_file")
 }
 func (f *JSONConfigFile) GetDeviceCloneStateFilename() string {
 	return f.GetTopLevelString("device_clone_state_file")
@@ -916,4 +906,8 @@ func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s
+}
+
+func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
+	return f.GetBoolAtPath("runtime_stats_enabled")
 }

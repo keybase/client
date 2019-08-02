@@ -10,6 +10,13 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
+func EncodeCanonical(src interface{}) (dst []byte, err error) {
+	ch := kbcrypto.CodecHandle()
+	ch.Canonical = true
+	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
+	return dst, err
+}
+
 func Decode(dst interface{}, src []byte) (err error) {
 	ch := kbcrypto.CodecHandle()
 	return codec.NewDecoderBytes(src, ch).Decode(dst)

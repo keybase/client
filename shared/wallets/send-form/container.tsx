@@ -1,24 +1,27 @@
 import SendRequestForm from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {connect} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{isAdvanced: boolean}>
 
-const mapStateToProps = state => ({
-  isRequest: state.wallets.building.isRequest,
-})
-
-const mapDispatchToProps = dispatch => ({
-  onClose: () => dispatch(WalletsGen.createAbandonPayment()),
-})
-
-const mergeProps = ({isRequest}, {onClose}) => ({
-  isRequest,
-  onClose,
-})
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export default Container.connect(
+  state => ({isRequest: state.wallets.building.isRequest}),
+  (dispatch, ownProps: OwnProps) => {
+    const isAdvanced = Container.getRouteProps(ownProps, 'isAdvanced', false)
+    return {
+      onBack: isAdvanced
+        ? () => dispatch(RouteTreeGen.createNavigateUp())
+        : Container.isMobile
+        ? () => dispatch(WalletsGen.createAbandonPayment())
+        : null,
+      onClose: () => dispatch(WalletsGen.createAbandonPayment()),
+    }
+  },
+  ({isRequest}, {onBack, onClose}, ownProps) => ({
+    isAdvanced: Container.getRouteProps(ownProps, 'isAdvanced', false),
+    isRequest,
+    onBack,
+    onClose,
+  })
 )(SendRequestForm)

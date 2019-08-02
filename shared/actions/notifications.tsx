@@ -25,13 +25,16 @@ const setupNotifications = () =>
       kbfsdesktop: !isMobile,
       kbfslegacy: false,
       kbfsrequest: false,
+      kbfssubscription: true,
       keyfamily: false,
       paperkeys: false,
       pgp: true,
       reachability: true,
+      runtimestats: true,
       service: true,
       session: true,
       team: true,
+      teambot: false,
       tracking: true,
       users: true,
       wallet: true,
@@ -53,12 +56,12 @@ const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePa
   ]
 }
 
-const receivedRootAuditError = (state, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
+const receivedRootAuditError = (_, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
   })
 
-const receivedBoxAuditError = (state, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
+const receivedBoxAuditError = (_, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(
       `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${

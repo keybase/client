@@ -60,6 +60,20 @@ protocol chatUi {
     boolean offline;
   }
 
+    enum UIParticipantType {
+    NONE_0,
+    USER_1, // Keybase or SBS
+    PHONENO_2,
+    EMAIL_3
+  }
+
+  record UIParticipant {
+    UIParticipantType type;
+    string assertion;
+    union { null, string } fullName;
+    union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
+  }
+
   record InboxUIItem {
     string convID;
     TopicType topicType;
@@ -72,8 +86,7 @@ protocol chatUi {
     string headline;
     string headlineDecorated;
     keybase1.TLFVisibility visibility;
-    array<string> participants;
-    map<string, string> fullNames;
+    array<UIParticipant> participants;
     array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -96,7 +109,9 @@ protocol chatUi {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
+    // Command support
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record InboxUIItemError {
@@ -142,6 +157,10 @@ protocol chatUi {
     boolean showCancel;                           // true if cancel is an option for this payment
     string fromUsername;
     string toUsername;
+    // for path payments
+    string sourceAmount;
+    stellar1.Asset sourceAsset;
+    string issuerDescription;
   }
 
   record UIRequestInfo {
@@ -428,7 +447,24 @@ protocol chatUi {
 
   // Location support
   @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID);
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
+  // Slash command feedback
+  enum UICommandStatusDisplayTyp {
+    STATUS_0,
+    WARNING_1,
+    ERROR_2
+  }
+  enum UICommandStatusActionTyp {
+    APPSETTINGS_0
+  }
+  void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
+  enum UIBotCommandsUpdateStatus {
+    UPTODATE_0,
+    UPDATING_1,
+    FAILED_2,
+    BLANK_3
+  }
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
 }

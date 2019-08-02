@@ -223,11 +223,7 @@ func (oc *openContext) isCreation() bool {
 	return false
 }
 func (oc *openContext) isExistingError() bool {
-	switch oc.CreateDisposition {
-	case dokan.FileCreate:
-		return true
-	}
-	return false
+	return oc.CreateDisposition == dokan.FileCreate
 }
 
 // isTruncate checks the flags whether a file truncation is wanted.
@@ -262,10 +258,6 @@ func (oc *openContext) returnFileNoCleanup(f dokan.File) (
 		return nil, 0, err
 	}
 	return f, dokan.ExistingFile, nil
-}
-
-func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
 }
 
 func newSyntheticOpenContext() *openContext {
@@ -555,7 +547,8 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		ctx, libkb.VLog1, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)",
 		srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
-		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
+		ctx, srcParent, srcParent.ChildName(srcName), ddst.node,
+		ddst.node.ChildName(dstName)); err != nil {
 		f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename FAILED %v", err)
 		return err
 	}

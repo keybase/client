@@ -265,7 +265,7 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 	b.localizer.Disconnected()
 }
 
-func (b *baseInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
+func (b *baseInboxSource) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
 	return i
 }
 
@@ -612,23 +612,38 @@ var emptyBadgeCounts = map[keybase1.DeviceType]int{
 	keybase1.DeviceType_MOBILE:  0,
 }
 
-func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
-	if i.UnreadMessages == 0 {
-		return i
-	}
-	rc, err := s.createInbox().GetConversation(ctx, s.uid, chat1.ConversationID(i.ConvID.Bytes()))
-	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get conv: %s", err)
-		return i
-	}
-	if rc.IsLocallyRead() {
-		return keybase1.BadgeConversationInfo{
-			ConvID:         i.ConvID,
-			BadgeCounts:    emptyBadgeCounts,
-			UnreadMessages: 0,
+func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
+	var convIDs []chat1.ConversationID
+	for _, info := range infos {
+		if info.UnreadMessages > 0 {
+			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
 		}
 	}
-	return i
+	_, convs, _, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
+		ConvIDs: convIDs,
+	}, nil)
+	if err != nil {
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %s", err)
+		return infos
+	}
+	convMap := make(map[string]bool)
+	for _, conv := range convs {
+		if conv.IsLocallyRead() {
+			convMap[conv.GetConvID().String()] = true
+		}
+	}
+	for _, info := range infos {
+		if convMap[info.ConvID.String()] {
+			res = append(res, keybase1.BadgeConversationInfo{
+				ConvID:         info.ConvID,
+				BadgeCounts:    emptyBadgeCounts,
+				UnreadMessages: 0,
+			})
+		} else {
+			res = append(res, info)
+		}
+	}
+	return res
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
@@ -709,7 +724,14 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, err
 	}
 
-	bgEnqueued := 0
+	var bgEnqueued int
+	// Limit the number of jobs we enqueue when on a limited data connection in
+	// mobile.
+	maxBgEnqueued := 10
+	if s.G().MobileNetState.State().IsLimited() {
+		maxBgEnqueued = 3
+	}
+
 	for _, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
@@ -720,12 +742,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			continue
 		}
 		// Queue all these convs up to be loaded by the background loader. Only
-		// load first 100 non KBFS convs, ACTIVE convs so we don't get the conv
-		// loader too backed up.
+		// load first maxBgEnqueued non KBFS convs, ACTIVE convs so we don't
+		// get the conv loader too backed up.
 		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
 			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
 				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
-			bgEnqueued < 50 {
+			bgEnqueued < maxBgEnqueued {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, nil)
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {

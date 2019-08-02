@@ -669,6 +669,10 @@
         {
           "name": "forceRepoll",
           "type": "boolean"
+        },
+        {
+          "name": "noShortTimeout",
+          "type": "boolean"
         }
       ],
       "response": "boolean"

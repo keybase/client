@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -88,11 +87,14 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
+	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	close(c.populateCacheCh)
-	c.diskLRU.Flush(m.Ctx(), m.G())
+	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
+		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
+	}
 }
 
 func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
@@ -108,19 +110,16 @@ func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) 
 }
 
 func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
-	size, err := c.diskLRU.Size(m.Ctx(), m.G())
-	if err != nil {
-		c.debug(m, "unable to get diskLRU size: %v", err)
-	}
-	c.debug(m, "monitorAppState: starting up, lru current size: %d,  max size: %d",
-		size, c.diskLRU.MaxSize())
+	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-m.G().MobileAppState.NextUpdate(&state)
 		switch state {
 		case keybase1.MobileAppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
-			c.diskLRU.Flush(m.Ctx(), m.G())
+			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
+				c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
+			}
 		}
 	}
 }
@@ -144,7 +143,9 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
-					c.diskLRU.Remove(m.Ctx(), m.G(), key)
+					if err := c.diskLRU.Remove(m.Ctx(), m.G(), key); err != nil {
+						c.debug(m, "specLoad: unable to remove from LRU %v", err)
+					}
 					// Not a true hit if we don't have it on the disk as well
 					found = false
 				} else {
@@ -239,7 +240,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
-		resp, err := http.Get(arg.url.String())
+		resp, err := libkb.ProxyHTTPGet(m.G().Env, arg.url.String())
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
@@ -377,23 +378,23 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 }
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("FullCachingSource.LoadUsers", func() error { return err })()
+	defer m.TraceTimed("FullCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("FullCachingSource.LoadTeams", func() error { return err })()
+	defer m.TraceTimed("FullCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
 func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer m.Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
 	return c.clearName(m, name, formats)
 }
 
 func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
+		if err := c.diskLRU.CleanOutOfSync(m, c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}

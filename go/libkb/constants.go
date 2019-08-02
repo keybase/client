@@ -63,6 +63,7 @@ const (
 	ConfigFile           = "config.json"
 	SessionFile          = "session.json"
 	UpdaterConfigFile    = "updater.json"
+	GUIConfigFile        = "gui_config.json"
 	DeviceCloneStateFile = "device_clone.json"
 	DBFile               = "keybase.leveldb"
 	ChatDBFile           = "keybase.chat.leveldb"
@@ -235,6 +236,7 @@ const (
 	SCRateLimit                                 = int(keybase1.StatusCode_SCRateLimit)
 	SCBadSignupUsernameTaken                    = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                         = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCBadSignupTeamName                         = int(keybase1.StatusCode_SCBadSignupTeamName)
 	SCFeatureFlag                               = int(keybase1.StatusCode_SCFeatureFlag)
 	SCMissingResult                             = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                               = int(keybase1.StatusCode_SCKeyNotFound)
@@ -313,6 +315,7 @@ const (
 	SCTeamReadError                             = int(keybase1.StatusCode_SCTeamReadError)
 	SCTeamWritePermDenied                       = int(keybase1.StatusCode_SCTeamWritePermDenied)
 	SCNoOp                                      = int(keybase1.StatusCode_SCNoOp)
+	SCTeamBadGeneration                         = int(keybase1.StatusCode_SCTeamBadGeneration)
 	SCTeamNotFound                              = int(keybase1.StatusCode_SCTeamNotFound)
 	SCTeamTarDuplicate                          = int(keybase1.StatusCode_SCTeamTarDuplicate)
 	SCTeamTarNotFound                           = int(keybase1.StatusCode_SCTeamTarNotFound)
@@ -347,7 +350,13 @@ const (
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
 	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
+	SCPhoneNumberUnknown                        = int(keybase1.StatusCode_SCPhoneNumberUnknown)
+	SCPhoneNumberAlreadyVerified                = int(keybase1.StatusCode_SCPhoneNumberAlreadyVerified)
+	SCPhoneNumberVerificationCodeExpired        = int(keybase1.StatusCode_SCPhoneNumberVerificationCodeExpired)
+	SCPhoneNumberWrongVerificationCode          = int(keybase1.StatusCode_SCPhoneNumberWrongVerificationCode)
+	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
+	SCTeambotKeyGenerationExists                = int(keybase1.StatusCode_SCTeambotKeyGenerationExists)
 )
 
 const (
@@ -385,6 +394,7 @@ const (
 	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
 	LinkTypeKBFSSettings     LinkType = "team.kbfs"
 	LinkTypeSettings         LinkType = "team.settings"
+	LinkTypeTeamBotSettings  LinkType = "team.bot_settings"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
@@ -592,6 +602,11 @@ const (
 	EncryptionReasonTeamsFTLLocalStorage    EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
 	EncryptionReasonTeamsHiddenLocalStorage EncryptionReason = "Keybase-Teams-Hidden-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage  EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
+	EncryptionReasonTeambotEphemeralKey     EncryptionReason = "Keybase-Teambot-Ephemeral-Key-1"
+	EncryptionReasonTeambotKey              EncryptionReason = "Keybase-Teambot-Key-1"
+	EncryptionReasonContactsLocalStorage    EncryptionReason = "Keybase-Contacts-Local-Storage-1"
+	EncryptionReasonTeambotKeyLocalStorage  EncryptionReason = "Keybase-Teambot-Key-Local-Storage-1"
+	EncryptionReasonKBFSFavorites           EncryptionReason = "kbfs.favorites" // legacy const for kbfs favorites
 )
 
 type DeriveReason string
@@ -605,10 +620,12 @@ const (
 	DeriveReasonPUKStellarNoteSelf   DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
 	DeriveReasonPUKStellarAcctBundle DeriveReason = "Derived-User-NaCl-SecretBox-StellarAcctBundle-1"
 
-	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
-	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
-	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
-	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
+	DeriveReasonDeviceEKEncryption   DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
+	DeriveReasonUserEKEncryption     DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
+	DeriveReasonTeamEKEncryption     DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
+	DeriveReasonTeamEKExplodingChat  DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
+	DeriveReasonTeambotEKEncryption  DeriveReason = "Derived-Ephemeral-Teambot-NaCl-DH-1"
+	DeriveReasonTeambotKeyEncryption DeriveReason = "Derived-Teambot-Key-NaCl-DH-1"
 
 	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
 
@@ -697,9 +714,12 @@ const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInt
 
 const MaxTeamMembersForPairwiseMAC = 100
 
+const TeamBackoffBeforeAuditOnNeedRotate = time.Minute
+
 const (
-	MaxStellarPaymentNoteLength      = 500
-	MaxStellarPaymentBoxedNoteLength = 2000
+	MaxStellarPaymentNoteLength       = 500
+	MaxStellarPaymentBoxedNoteLength  = 2000
+	MaxStellarPaymentPublicNoteLength = 28
 )
 
 const ClientTriplesecVersion = 3

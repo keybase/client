@@ -3,7 +3,7 @@ import path from 'path'
 // TODO: is there something better to do that ignore this?
 // @ts-ignore
 import emojiData from 'emoji-datasource'
-import {escapeRegExp} from 'lodash'
+import {escapeRegExp} from 'lodash-es'
 import tlds from 'tlds'
 
 const commonTlds = [
@@ -39,7 +39,7 @@ const commonTlds = [
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
-  let r = []
+  let r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
   }
@@ -49,7 +49,7 @@ function UTF162JSON(text) {
 function genEmojiData() {
   const emojiIndexByChar = {}
   const emojiIndexByName = {}
-  const emojiLiterals = []
+  const emojiLiterals: Array<string> = []
   function addEmojiLiteral(unified, name, skinTone?) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')

@@ -43,6 +43,10 @@
         "'teamMention'" // from team mention
       ]
     },
+    // Got an error while creating a conversation.
+    "conversationErrored": {
+      "message": "string"
+    },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
     // Chatting from external places in the app should usually call this
@@ -68,8 +72,10 @@
         "'memberView'",
         "'newChannel'",
         "'transaction'",
+        "'sentPayment'",
         "'requestedPayment'",
-        "'teamMention'"
+        "'teamMention'",
+        "'appLink'"
       ]
     },
     "createConversation": {
@@ -550,6 +556,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString | null"
     },
+    "setPrependText": {
+      "_description": "Set prepend text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString | null"
+    },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -699,7 +710,16 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "updateUserReacjis": {
-      "userReacjis": "RPCTypes.UserReacjis | null"
+      "userReacjis": "RPCTypes.UserReacjis"
+    },
+    "setCommandStatusInfo": {
+      "_description": "Set command status info",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "info": "Types.CommandStatusInfo"
+    },
+    "clearCommandStatusInfo": {
+      "_description": "Clear command status info",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

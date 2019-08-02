@@ -6,6 +6,7 @@ import {TypedState} from './reducer'
 export const makeState = I.Record<Types._State>({
   proofSuggestions: I.List(),
   usernameToDetails: I.Map(),
+  usernameToNonUserDetails: I.Map(),
 })
 
 export const makeDetails = I.Record<Types._Details>({
@@ -17,7 +18,7 @@ export const makeDetails = I.Record<Types._Details>({
   following: null,
   followingCount: null,
   fullname: null,
-  guiID: null,
+  guiID: '',
   location: null,
   reason: '',
   registeredForAirdrop: false,
@@ -25,6 +26,20 @@ export const makeDetails = I.Record<Types._Details>({
   state: 'error',
   teamShowcase: I.List(),
   username: '',
+})
+
+export const makeNonUserDetails = I.Record<Types._NonUserDetails>({
+  assertionKey: '',
+  assertionValue: '',
+  bio: null,
+  description: '',
+  formattedName: null,
+  fullName: null,
+  location: null,
+  pictureUrl: null,
+  siteIcon: [],
+  siteIconFull: [],
+  siteURL: '',
 })
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
@@ -203,14 +218,18 @@ export const sortAssertionKeys = (a: string, b: string) => {
 }
 
 export const noDetails = makeDetails({})
+export const noNonUserDetails = makeNonUserDetails({})
 export const noAssertion = makeAssertion({})
 export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
+export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
 
 export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
 export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
 export const getDetails = (state: TypedState, username: string) =>
   state.tracker2.usernameToDetails.get(username, noDetails)
+export const getNonUserDetails = (state: TypedState, username: string) =>
+  state.tracker2.usernameToNonUserDetails.get(username, noNonUserDetails)
 
 export const guiIDToUsername = (state: Types.State, guiID: string) => {
   const d = state.usernameToDetails.find(d => d.guiID === guiID)

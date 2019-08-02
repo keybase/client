@@ -67,13 +67,18 @@ export function fontSize(type: IconType): {fontSize: number} | null {
     throw new Error('Invalid icon type: ' + type)
   }
 
-  const fontSize: number | null = meta.gridSize
+  const fontSize: number | null = meta.gridSize || null
 
   if (fontSize) {
     return {fontSize}
   } else {
     return null
   }
+}
+
+export function isValidIconType(inputType: IconType): boolean {
+  let iconType = typeToIconMapper(inputType)
+  return !!iconType && !!iconMeta[iconType]
 }
 
 export function typeToFontSize(sizeType: SizeType) {
@@ -95,27 +100,27 @@ export function typeToFontSize(sizeType: SizeType) {
 
 const idealSizeMultMap = {
   '128': {'1': 256, '2': 256, '3': 960},
-  '16': {'1': 256, '2': 256, '3': 192},
-  '32': {'1': 256, '2': 256, '3': 192},
-  '48': {'1': 192, '2': 192, '3': 960},
-  '64': {'1': 256, '2': 256, '3': 192},
+  '16': {'1': 192, '2': 192, '3': 192},
+  '32': {'1': 192, '2': 192, '3': 192},
+  '48': {'1': 192, '2': 192, '3': 192},
+  '64': {'1': 192, '2': 256, '3': 192},
   '96': {'1': 192, '2': 192, '3': 960},
 }
 
 const _getMultsMapCache = {}
 export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): Object {
-  let sizes: any = Object.keys(imgMap)
+  const ssizes = Object.keys(imgMap)
 
-  if (!sizes.length) {
+  if (!ssizes.length) {
     return {}
   }
 
-  const sizeKey = targetSize + ']' + sizes.join(':')
+  const sizeKey = targetSize + ']' + ssizes.join(':')
   if (_getMultsMapCache[sizeKey]) {
     return _getMultsMapCache[sizeKey] || {}
   }
 
-  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
+  const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
 
   const multsMap: any = {
     '1': null,

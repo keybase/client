@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as FsGen from '../../../actions/fs-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
@@ -10,20 +9,11 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _sendAttachmentToChat: state.fs.sendAttachmentToChat,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, _: OwnProps) => ({
   onSelect: (convID: ChatTypes.ConversationIDKey) =>
     dispatch(FsGen.createSetSendAttachmentToChatConvID({convID})),
   onSetFilter: (filter: string) => dispatch(FsGen.createSetSendAttachmentToChatFilter({filter})),
 })
-
-type InjectedProps = {
-  filter?: string
-  onSelect: (convID: ChatTypes.ConversationIDKey) => void
-  onSetFilter?: (filter: string) => void
-  selected: ChatTypes.ConversationIDKey
-}
-
-type WithInjectedProps<OriginalProps> = OriginalProps & InjectedProps
 
 export default function(component: any) {
   return Container.namedConnect(

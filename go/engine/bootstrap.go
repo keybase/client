@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"context"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -86,38 +85,6 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 	e.status.Username = e.G().ActiveDevice.Username(m).String()
 	m.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
-	// get user summaries
-	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
-	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
-		m.Debug("connected, loading self user upak for cache")
-		arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.status.Uid)
-		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
-			m.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
-		}
-
-		m.Debug("connected, running full tracker2 syncer")
-		if err := libkb.RunSyncer(m, ts, e.status.Uid, false /* loggedIn */, false /* forceReload */); err != nil {
-			m.Warning("error running Tracker2Syncer: %s", err)
-			return nil
-		}
-	} else {
-		m.Debug("not connected, running cached tracker2 syncer")
-		if err := libkb.RunSyncerCached(m, ts, e.status.Uid); err != nil {
-			m.Warning("error running Tracker2Syncer (cached): %s", err)
-			return nil
-		}
-	}
-	e.usums = ts.Result()
-
-	// filter usums into followers, following
-	for _, u := range e.usums.Users {
-		if u.IsFollower {
-			e.status.Followers = append(e.status.Followers, u.Username)
-		}
-		if u.IsFollowee {
-			e.status.Following = append(e.status.Following, u.Username)
-		}
-	}
 	if chatHelper := e.G().ChatHelper; chatHelper != nil {
 		e.status.UserReacjis = chatHelper.UserReacjis(m.Ctx(), e.status.Uid.ToBytes())
 	}

@@ -14,6 +14,8 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 import JumpToRecent from './jump-to-recent'
+import SpecialTopMessage from '../../messages/special-top-message'
+import * as Constants from '../../../../constants/chat2'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -25,7 +27,7 @@ const makeMoreOrdinals = (
     const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
     const start = Math.max(0, oldStart - num)
     const end = oldStart
-    const newOrdinals = []
+    const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
@@ -34,7 +36,7 @@ const makeMoreOrdinals = (
     const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) + 1 : firstOrdinal
     const start = oldEnd
     const end = oldEnd + num
-    const newOrdinals = []
+    const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
@@ -135,17 +137,17 @@ const provider = Sb.createPropProviderWithCommon({
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
   Channel: p => ({name: p.name}),
-  ExplodingMeta: (p: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
+  ExplodingMeta: (_: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
     // no exploding messages here
     exploded: false,
 
     explodesAt: 0,
     messageKey: '',
-    onClick: null,
+    onClick: undefined,
     pending: false,
   }),
   Mention: p => ({username: p.username}),
-  BottomMessage: p => ({
+  BottomMessage: () => ({
     showResetParticipants: null,
     showSuperseded: null,
     measure: null,
@@ -158,8 +160,8 @@ const provider = Sb.createPropProviderWithCommon({
     showTeamOffer: false,
     measure: p.measure,
   }),
-  MessagePopupText: p => ({
-    attachTo: null,
+  MessagePopupText: () => ({
+    attachTo: undefined,
     author: 'a',
     deviceName: 'a',
     deviceRevokedAt: 0,
@@ -227,9 +229,9 @@ type State = {
 }
 
 class ThreadWrapper extends React.Component<Props, State> {
-  _injectMessagesIntervalID: NodeJS.Timer
-  _loadMoreTimeoutID: NodeJS.Timer
-  _loadConvoTimeoutID: NodeJS.Timer
+  _injectMessagesIntervalID?: NodeJS.Timer
+  _loadMoreTimeoutID?: NodeJS.Timer
+  _loadConvoTimeoutID?: NodeJS.Timer
   constructor(props) {
     super(props)
     this.state = {
@@ -259,7 +261,7 @@ class ThreadWrapper extends React.Component<Props, State> {
   _toggleInjectMessages = () => {
     if (this._injectMessagesIntervalID) {
       clearInterval(this._injectMessagesIntervalID)
-      this._injectMessagesIntervalID = null
+      this._injectMessagesIntervalID = undefined
     } else {
       this._injectMessagesIntervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
@@ -268,7 +270,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         }))
       }, 5000)
     }
-    this.setState({messageInjectionEnabled: this._injectMessagesIntervalID !== null})
+    this.setState({messageInjectionEnabled: !!this._injectMessagesIntervalID})
   }
 
   _toggleLoadMore = () => {
@@ -333,6 +335,19 @@ class ThreadWrapper extends React.Component<Props, State> {
   }
 }
 
+const providerTopMessage = Sb.createPropProviderWithCommon({
+  TopMessage: () => ({
+    conversationIDKey: Constants.pendingErrorConversationIDKey,
+    createConversationError: 'I AM ERROR',
+    hasOlderResetConversation: false,
+    loadMoreType: 'noMoreToLoad',
+    measure: null,
+    pendingState: 'error',
+    showRetentionNotice: false,
+    showTeamOffer: false,
+  }),
+})
+
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(provider)
@@ -348,6 +363,10 @@ const load = () => {
       </Text>
     ))
     .add('Jump to Recent', () => <JumpToRecent onClick={Sb.action('onClick')} />)
+
+  Sb.storiesOf('Chat/Conversation/Thread', module)
+    .addDecorator(providerTopMessage)
+    .add('Error top bar', () => <SpecialTopMessage />)
 }
 
 export default load

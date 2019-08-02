@@ -13,8 +13,8 @@ type Props = {
   lastEditUser: string
   lastEditUserFollowing: boolean
   name: string
-  you: string | null
-  teamname: string | null
+  you?: string
+  teamname?: string
   url: string
   isNew: boolean
   onBrowseGitRepo: () => void
@@ -41,7 +41,7 @@ class Row extends React.Component<Props> {
           style={{
             ...(this.props.expanded
               ? {
-                  backgroundColor: Styles.globalColors.blueGrey,
+                  backgroundColor: Styles.globalColors.blueLighter3,
                   height: 6,
                 }
               : {}),
@@ -217,7 +217,7 @@ class Row extends React.Component<Props> {
           style={{
             ...(this.props.expanded
               ? {
-                  backgroundColor: Styles.globalColors.blueGrey,
+                  backgroundColor: Styles.globalColors.blueLighter3,
                   height: 6,
                 }
               : {}),

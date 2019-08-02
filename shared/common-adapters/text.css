@@ -364,7 +364,7 @@
 .text_BodySmallError {
   font-size: 13px;
   line-height: 17px;
-  color: #d72236;
+  color: #eb253b;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -376,7 +376,7 @@
 .text_BodySmallSuccess {
   font-size: 13px;
   line-height: 17px;
-  color: #289a72;
+  color: #189e7a;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -388,7 +388,7 @@
 .text_BodySmallWallet {
   font-size: 13px;
   line-height: 17px;
-  color: #704eba;
+  color: #6d3fd1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -437,6 +437,16 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.text_BodyTinyExtrabold {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 800;
+}
+
 .text_BodyTinySemibold {
   font-size: 12px;
   line-height: 16px;
@@ -448,6 +458,17 @@
 }
 .darkMode .text_BodyTinySemibold {
   color: rgba(255, 255, 255, 0.85);
+}
+
+.text_BodyTinySemiboldItalic {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 600;
+  font-style: italic;
 }
 
 .text_BodySmallSemibold {

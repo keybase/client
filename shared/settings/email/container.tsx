@@ -35,5 +35,5 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(UpdateEmail)

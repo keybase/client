@@ -19,7 +19,6 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -50,17 +49,6 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	syncFS(ctx, t, fs, "/private/jdoe")
 	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
-}
-
-func newTempRemotePath() (keybase1.Path, error) {
-	var bs = make([]byte, 8)
-	err := kbfscrypto.RandRead(bs)
-	if err != nil {
-		return keybase1.Path{}, err
-	}
-
-	raw := fmt.Sprintf(`/private/jdoe/%X`, bs)
-	return keybase1.NewPathWithKbfs(raw), nil
 }
 
 func deleteTempLocalPath(path keybase1.Path) {
@@ -1343,7 +1331,8 @@ func TestGetRevisions(t *testing.T) {
 	clock.Add(gcJump)
 	fb, _, err := sfs.getFolderBranchFromPath(ctx, path)
 	require.NoError(t, err)
-	libkbfs.ForceQuotaReclamationForTesting(config, fb)
+	err = libkbfs.ForceQuotaReclamationForTesting(config, fb)
+	require.NoError(t, err)
 	err = config.KBFSOps().SyncFromServer(ctx, fb, nil)
 	require.NoError(t, err)
 	syncFS(ctx, t, sfs, "/private/jdoe")
@@ -1369,7 +1358,8 @@ func TestOverallStatusFile(t *testing.T) {
 	path := keybase1.NewPathWithKbfs("/" + libfs.StatusFileName)
 	buf := readRemoteFile(ctx, t, sfs, path)
 	var status libkbfs.KBFSStatus
-	json.Unmarshal(buf, &status)
+	err := json.Unmarshal(buf, &status)
+	require.NoError(t, err)
 	require.Equal(t, "jdoe", status.CurrentUser)
 }
 
@@ -1447,7 +1437,8 @@ func TestFavoriteConflicts(t *testing.T) {
 	var pathConflict keybase1.Path
 	var pathLocalView keybase1.Path
 	for _, f := range favs.FavoriteFolders {
-		if tlf.ContainsLocalConflictExtensionPrefix(f.Name) {
+		switch {
+		case tlf.ContainsLocalConflictExtensionPrefix(f.Name):
 			require.NotNil(t, f.ConflictState)
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
@@ -1456,7 +1447,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			mrlv := f.ConflictState.Manualresolvinglocalview()
 			require.Equal(t, pathPub.String(), mrlv.NormalView.String())
 			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
-		} else if f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC {
+		case f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC:
 			require.NotNil(t, f.ConflictState)
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
@@ -1467,7 +1458,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.False(t, sv.StuckInConflict)
 			require.Len(t, sv.LocalViews, 1)
 			pathLocalView = sv.LocalViews[0]
-		} else {
+		default:
 			require.Nil(t, f.ConflictState)
 		}
 	}
@@ -1503,6 +1494,7 @@ func TestSyncConfigFavorites(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_favs")
+	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
@@ -1555,4 +1547,55 @@ func TestSyncConfigFavorites(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, numSyncing)
+}
+
+func TestRemoveFavorite(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "alice")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Write a file in the shared directory")
+	pathPriv := keybase1.NewPathWithKbfs(`/private/alice,jdoe`)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/alice,jdoe")
+
+	t.Log("Make sure it's in the favorites list")
+	favs, err := sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 3)
+	find := func() bool {
+		for _, f := range favs.FavoriteFolders {
+			t.Logf("NAME=%s", f.Name)
+			if f.FolderType == keybase1.FolderType_PRIVATE &&
+				f.Name == "alice,jdoe" {
+				return true
+			}
+		}
+		return false
+	}
+	found := find()
+	require.True(t, found)
+
+	t.Log("Remove the favorite")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID: opid,
+		Path: pathPriv,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, pathPriv, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Check that it's gone")
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	found = find()
+	require.False(t, found)
 }

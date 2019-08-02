@@ -54,6 +54,10 @@
         {
           "type": "boolean",
           "name": "canSubmitTx"
+        },
+        {
+          "type": "boolean",
+          "name": "canAddTrustline"
         }
       ]
     },
@@ -119,6 +123,22 @@
         {
           "type": "string",
           "name": "infoUrlText"
+        },
+        {
+          "type": "boolean",
+          "name": "showDepositButton"
+        },
+        {
+          "type": "string",
+          "name": "depositButtonText"
+        },
+        {
+          "type": "boolean",
+          "name": "showWithdrawButton"
+        },
+        {
+          "type": "string",
+          "name": "withdrawButtonText"
         }
       ]
     },
@@ -270,6 +290,10 @@
           "name": "toType"
         },
         {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
           "type": "AccountID",
           "name": "fromAccountID"
         },
@@ -325,6 +349,10 @@
           "name": "sourceAsset"
         },
         {
+          "type": "string",
+          "name": "sourceConvRate"
+        },
+        {
           "type": "boolean",
           "name": "isAdvanced"
         },
@@ -361,6 +389,13 @@
             "string"
           ],
           "name": "inflationSource"
+        },
+        {
+          "type": [
+            null,
+            "PaymentTrustlineLocal"
+          ],
+          "name": "trustline"
         }
       ]
     },
@@ -398,6 +433,27 @@
         {
           "type": "string",
           "name": "feeChargedDescription"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentTrustlineLocal",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "boolean",
+          "name": "remove"
         }
       ]
     },
@@ -527,6 +583,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AdvancedBanner",
+      "symbols": [
+        "NO_BANNER_0",
+        "SENDER_BANNER_1",
+        "RECEIVER_BANNER_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SendBannerLocal",
       "fields": [
@@ -541,6 +606,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "AdvancedBanner",
+          "name": "offerAdvancedSendForm"
         }
       ]
     },
@@ -555,6 +624,10 @@
         {
           "type": "boolean",
           "name": "pending"
+        },
+        {
+          "type": "string",
+          "name": "jumpToChat"
         }
       ]
     },
@@ -723,6 +796,20 @@
     },
     {
       "type": "record",
+      "name": "AirdropDetails",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPromoted"
+        },
+        {
+          "type": "string",
+          "name": "details"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AirdropState",
       "fields": [],
       "typedef": "string"
@@ -764,6 +851,23 @@
     },
     {
       "type": "record",
+      "name": "RecipientTrustlinesLocal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Balance"
+          },
+          "name": "trustlines"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "recipientType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentPathLocal",
       "fields": [
         {
@@ -779,12 +883,40 @@
           "name": "destinationDisplay"
         },
         {
+          "type": "string",
+          "name": "exchangeRate"
+        },
+        {
+          "type": "string",
+          "name": "amountError"
+        },
+        {
           "type": "AccountID",
           "name": "destinationAccount"
         },
         {
           "type": "PaymentPath",
           "name": "fullPath"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetActionResultLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "externalUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "messageFromAnchor"
         }
       ]
     },
@@ -1249,6 +1381,18 @@
         {
           "type": "string",
           "name": "memoType"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendNative"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendFiat"
         }
       ]
     },
@@ -1309,6 +1453,24 @@
             "TransactionID"
           ],
           "name": "submitTxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StaticConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "paymentNoteMaxLength"
+        },
+        {
+          "type": "int",
+          "name": "requestNoteMaxLength"
+        },
+        {
+          "type": "int",
+          "name": "publicMemoMaxLength"
         }
       ]
     }
@@ -1504,7 +1666,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "WalletAccountLocal"
     },
     "setWalletAccountAsDefaultLocal": {
       "request": [
@@ -1517,7 +1679,10 @@
           "type": "AccountID"
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
     },
     "deleteWalletAccountLocal": {
       "request": [
@@ -1581,7 +1746,7 @@
           "type": "OutsideCurrencyCode"
         }
       ],
-      "response": null
+      "response": "CurrencyLocal"
     },
     "getDisplayCurrencyLocal": {
       "request": [
@@ -2043,7 +2208,7 @@
           "type": "int"
         }
       ],
-      "response": "string"
+      "response": "AirdropDetails"
     },
     "airdropStatusLocal": {
       "request": [
@@ -2167,6 +2332,19 @@
         "items": "Balance"
       }
     },
+    "getTrustlinesForRecipientLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        }
+      ],
+      "response": "RecipientTrustlinesLocal"
+    },
     "findPaymentPathLocal": {
       "request": [
         {
@@ -2191,6 +2369,32 @@
         }
       ],
       "response": "PaymentPathLocal"
+    },
+    "assetDepositLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        }
+      ],
+      "response": "AssetActionResultLocal"
+    },
+    "assetWithdrawLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        }
+      ],
+      "response": "AssetActionResultLocal"
     },
     "balancesLocal": {
       "request": [
@@ -2566,6 +2770,10 @@
         }
       ],
       "response": "SignXdrResult"
+    },
+    "getStaticConfigLocal": {
+      "request": [],
+      "response": "StaticConfig"
     }
   },
   "namespace": "stellar.1"

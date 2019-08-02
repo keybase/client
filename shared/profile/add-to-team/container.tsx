@@ -11,57 +11,7 @@ import {HeaderOnMobile} from '../../common-adapters'
 import {sendNotificationFooter} from '../../teams/role-picker'
 import {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<
-  {
-    username: string
-  },
-  {}
->
-
-const mapStateToProps = (state, ownProps) => {
-  return {
-    _teamNameToRole: state.teams.teamNameToRole,
-    _them: Container.getRouteProps(ownProps, 'username'),
-    addUserToTeamsResults: state.teams.addUserToTeamsResults,
-    addUserToTeamsState: state.teams.addUserToTeamsState,
-    teamProfileAddList: state.teams.get('teamProfileAddList'),
-    teamnames: Constants.getSortedTeamnames(state),
-    waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
-    dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-  },
-  clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
-  loadTeamList: () =>
-    dispatch(TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username')})),
-  onBack: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps) => {
-  const {teamProfileAddList, _them} = stateProps
-  const title = `Add ${_them} to...`
-
-  return {
-    _teamNameToRole: stateProps._teamNameToRole,
-    addUserToTeamsResults: stateProps.addUserToTeamsResults,
-    addUserToTeamsState: stateProps.addUserToTeamsState,
-    clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
-    loadTeamList: dispatchProps.loadTeamList,
-    onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
-      dispatchProps._onAddToTeams(role, teams, stateProps._them),
-    onBack: dispatchProps.onBack,
-    teamProfileAddList: teamProfileAddList.toArray(),
-    them: _them,
-    title,
-    waiting: stateProps.waiting,
-  }
-}
+type OwnProps = Container.RouteProps<{username: string}>
 
 const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRole) => {
   return selected
@@ -72,6 +22,7 @@ const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRol
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
       }
+      return ''
     })
     .find(v => !!v)
 })
@@ -130,7 +81,7 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
     return (
       <AddToTeam
         {...rest}
-        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : undefined}
+        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
         onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
         onConfirmRolePicker={() => {
           this.setState({rolePickerOpen: false})
@@ -156,6 +107,47 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
   }
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  HeaderOnMobile(AddToTeamStateWrapper)
-)
+export default Container.connect(
+  (state, ownProps: OwnProps) => ({
+    _teamNameToRole: state.teams.teamNameToRole,
+    _them: Container.getRouteProps(ownProps, 'username', ''),
+    addUserToTeamsResults: state.teams.addUserToTeamsResults,
+    addUserToTeamsState: state.teams.addUserToTeamsState,
+    teamProfileAddList: state.teams.get('teamProfileAddList'),
+    teamnames: Constants.getSortedTeamnames(state),
+    waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
+  }),
+  (dispatch, ownProps: OwnProps) => ({
+    _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
+      dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
+    },
+    clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
+    loadTeamList: () =>
+      dispatch(
+        TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username', '')})
+      ),
+    onBack: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
+    },
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const {teamProfileAddList, _them} = stateProps
+    const title = `Add ${_them} to...`
+
+    return {
+      _teamNameToRole: stateProps._teamNameToRole,
+      addUserToTeamsResults: stateProps.addUserToTeamsResults,
+      addUserToTeamsState: stateProps.addUserToTeamsState,
+      clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
+      loadTeamList: dispatchProps.loadTeamList,
+      onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
+        dispatchProps._onAddToTeams(role, teams, stateProps._them),
+      onBack: dispatchProps.onBack,
+      teamProfileAddList: teamProfileAddList.toArray(),
+      them: _them,
+      title,
+      waiting: stateProps.waiting,
+    }
+  }
+)(HeaderOnMobile(AddToTeamStateWrapper))

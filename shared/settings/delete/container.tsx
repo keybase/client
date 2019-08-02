@@ -1,15 +1,11 @@
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import Delete from './index'
-import {connect} from '../../util/container'
+import Delete from '.'
+import * as Container from '../../util/container'
 
 type OwnProps = {}
-const mapStateToProps = () => ({})
-const mapDispatchToProps = dispatch => ({
-  onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
-})
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+export default Container.connect(
+  () => ({}),
+  dispatch => ({onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))}),
+    (_, d, __: OwnProps) => d
 )(Delete)

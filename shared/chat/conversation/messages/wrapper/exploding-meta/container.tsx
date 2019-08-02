@@ -15,11 +15,11 @@ const emptyProps = {
 
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  onClick: () => void | null
+  onClick?: () => void
   ordinal: Types.Ordinal
   style?: StylesCrossPlatform
 }
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
     return emptyProps
@@ -29,23 +29,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     explodesAt: message.explodingTime,
     exploding: message.exploding,
     messageKey: Constants.getMessageKey(message),
-    pending: ['pending', 'failed'].includes(message.submitState),
+    pending: !!message.submitState && ['pending', 'failed'].includes(message.submitState),
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  exploded: stateProps.exploded,
-  explodesAt: stateProps.explodesAt,
-  exploding: stateProps.exploding,
-  messageKey: stateProps.messageKey,
-  onClick: ownProps.onClick,
-  pending: stateProps.pending,
-  style: ownProps.style,
-})
-
-type WrapperProps = {
-  exploding: boolean
-} & ViewProps
+type WrapperProps = {exploding: boolean} & ViewProps
 
 const Wrapper = (props: WrapperProps) =>
   !props.exploding ? null : (
@@ -59,5 +47,18 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-const Connected = Container.namedConnect(mapStateToProps, () => ({}), mergeProps, 'ExplodingMeta')(Wrapper)
+const Connected = Container.namedConnect(
+  mapStateToProps,
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => ({
+    exploded: stateProps.exploded,
+    explodesAt: stateProps.explodesAt,
+    exploding: stateProps.exploding,
+    messageKey: stateProps.messageKey,
+    onClick: ownProps.onClick,
+    pending: stateProps.pending,
+    style: ownProps.style,
+  }),
+  'ExplodingMeta'
+)(Wrapper)
 export default Connected

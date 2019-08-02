@@ -95,6 +95,7 @@ const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
       return GitGen.createLoadGit()
     }
   }
+    return undefined
 }
 
 function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
@@ -103,7 +104,7 @@ function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
   if (!id) {
     yield Saga.put(GitGen.createLoadGit())
     yield Saga.take(GitGen.loaded)
-    const nextState = yield* Saga.selectState()
+      const nextState: TypedState = yield* Saga.selectState()
     id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
   }
 

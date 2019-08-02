@@ -10,6 +10,8 @@ export const closeTracker = 'tracker2:closeTracker'
 export const getProofSuggestions = 'tracker2:getProofSuggestions'
 export const ignore = 'tracker2:ignore'
 export const load = 'tracker2:load'
+export const loadNonUserProfile = 'tracker2:loadNonUserProfile'
+export const loadedNonUserProfile = 'tracker2:loadedNonUserProfile'
 export const proofSuggestionsUpdated = 'tracker2:proofSuggestionsUpdated'
 export const showUser = 'tracker2:showUser'
 export const updateAssertion = 'tracker2:updateAssertion'
@@ -22,6 +24,7 @@ type _ChangeFollowPayload = {readonly guiID: string; readonly follow: boolean}
 type _CloseTrackerPayload = {readonly guiID: string}
 type _GetProofSuggestionsPayload = void
 type _IgnorePayload = {readonly guiID: string}
+type _LoadNonUserProfilePayload = {readonly assertion: string}
 type _LoadPayload = {
   readonly assertion: string
   readonly forceDisplay?: boolean
@@ -30,6 +33,19 @@ type _LoadPayload = {
   readonly ignoreCache?: boolean
   readonly reason: string
   readonly inTracker: boolean
+}
+type _LoadedNonUserProfilePayload = {
+  readonly assertion: string
+  readonly assertionKey: string
+  readonly assertionValue: string
+  readonly formattedName?: string
+  readonly bio?: string
+  readonly description: string
+  readonly fullName?: string
+  readonly location?: string
+  readonly pictureUrl?: string
+  readonly siteIcon: Array<Types.SiteIcon>
+  readonly siteIconFull: Array<Types.SiteIcon>
 }
 type _ProofSuggestionsUpdatedPayload = {readonly suggestions: ReadonlyArray<Types.Assertion>}
 type _ShowUserPayload = {readonly asTracker: boolean; readonly username: string; readonly skipNav?: boolean}
@@ -77,6 +93,13 @@ export const createGetProofSuggestions = (
 ): GetProofSuggestionsPayload => ({payload, type: getProofSuggestions})
 export const createIgnore = (payload: _IgnorePayload): IgnorePayload => ({payload, type: ignore})
 export const createLoad = (payload: _LoadPayload): LoadPayload => ({payload, type: load})
+export const createLoadNonUserProfile = (payload: _LoadNonUserProfilePayload): LoadNonUserProfilePayload => ({
+  payload,
+  type: loadNonUserProfile,
+})
+export const createLoadedNonUserProfile = (
+  payload: _LoadedNonUserProfilePayload
+): LoadedNonUserProfilePayload => ({payload, type: loadedNonUserProfile})
 export const createProofSuggestionsUpdated = (
   payload: _ProofSuggestionsUpdatedPayload
 ): ProofSuggestionsUpdatedPayload => ({payload, type: proofSuggestionsUpdated})
@@ -105,7 +128,15 @@ export type GetProofSuggestionsPayload = {
   readonly type: typeof getProofSuggestions
 }
 export type IgnorePayload = {readonly payload: _IgnorePayload; readonly type: typeof ignore}
+export type LoadNonUserProfilePayload = {
+  readonly payload: _LoadNonUserProfilePayload
+  readonly type: typeof loadNonUserProfile
+}
 export type LoadPayload = {readonly payload: _LoadPayload; readonly type: typeof load}
+export type LoadedNonUserProfilePayload = {
+  readonly payload: _LoadedNonUserProfilePayload
+  readonly type: typeof loadedNonUserProfile
+}
 export type ProofSuggestionsUpdatedPayload = {
   readonly payload: _ProofSuggestionsUpdatedPayload
   readonly type: typeof proofSuggestionsUpdated
@@ -132,11 +163,13 @@ export type Actions =
   | CloseTrackerPayload
   | GetProofSuggestionsPayload
   | IgnorePayload
+  | LoadNonUserProfilePayload
   | LoadPayload
+  | LoadedNonUserProfilePayload
   | ProofSuggestionsUpdatedPayload
   | ShowUserPayload
   | UpdateAssertionPayload
   | UpdateFollowersPayload
   | UpdateResultPayload
   | UpdatedDetailsPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

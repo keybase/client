@@ -1,22 +1,26 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import * as Flow from '../../util/flow'
+import * as Constants from '../../constants/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampError, TimestampPending} from '../transaction'
+import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
+import PaymentPath, {Asset} from './payment-path'
 
 export type NotLoadingProps = {
   amountUser: string
   amountXLM: string
   approxWorth: string
+  assetCode: string
   counterparty: string
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: string | null
   counterpartyType: Types.CounterpartyType
   feeChargedDescription: string
+  fromAirdrop: boolean
   // issuer, for non-xlm assets
   issuerDescription: string
   issuerAccountID: Types.AccountID | null
@@ -33,12 +37,16 @@ export type NotLoadingProps = {
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   operations?: Array<string>
+  pathIntermediate: Asset[]
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceConvRate: string
+  sourceIssuer: string
+  sourceIssuerAccountID: string
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -49,6 +57,7 @@ export type NotLoadingProps = {
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
+  trustline?: RPCTypes.PaymentTrustlineLocal
   isAdvanced: boolean
   summaryAdvanced?: string
 }
@@ -64,6 +73,12 @@ export type Props =
 type PartyAccountProps = {
   accountID: Types.AccountID | null
   accountName: string
+}
+
+interface ConvertedCurrencyLabelProps {
+  amount: string | number
+  assetCode: string
+  issuerDescription: string
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -176,13 +191,13 @@ const YourAccount = (props: YourAccountProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return Styles.globalColors.green
+      return Styles.globalColors.greenDark
     case 'pending':
     case 'claimable':
       return Styles.globalColors.purple
     case 'error':
     case 'canceled':
-      return Styles.globalColors.red
+      return Styles.globalColors.redDark
     default:
       return Styles.globalColors.black
   }
@@ -196,6 +211,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
       switch (yourRole) {
         case 'senderOnly':
           return 'Sent'
+        case 'airdrop':
         case 'receiverOnly':
           return 'Received'
         case 'senderAndReceiver':
@@ -243,6 +259,8 @@ const propsToParties = (props: NotLoadingProps) => {
   ) : null
 
   switch (props.yourRole) {
+    case 'airdrop':
+      return {receiver: you, sender: counterparty}
     case 'senderOnly':
       return {receiver: counterparty, sender: you}
     case 'receiverOnly':
@@ -281,8 +299,42 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
+  <Kb.Box2 direction="vertical" noShrink={true}>
+    <Kb.Text type="BodyBigExtrabold">
+      {props.amount} {props.assetCode || 'XLM'}
+    </Kb.Text>
+    <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
+  </Kb.Box2>
+)
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+
+  const hasNontrivialPath =
+    !!props.sourceAmount &&
+    props.assetCode !== props.sourceAsset &&
+    props.issuerAccountID !== props.sourceIssuerAccountID &&
+    props.issuerDescription !== props.sourceIssuer
+
+  // If we don't have a sourceAsset, the source is native Lumens
+  const sourceIssuer =
+    props.sourceAsset === ''
+      ? 'Stellar Lumens'
+      : props.sourceIssuer ||
+        (props.sourceIssuerAccountID === Types.noAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(props.sourceIssuerAccountID))
+  const {issuerAccountID} = props
+  const destinationIssuer =
+    props.assetCode === ''
+      ? 'Stellar Lumens'
+      : props.issuerDescription ||
+        // TODO is this ok?
+        (issuerAccountID === Types.noAccountID || !issuerAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(issuerAccountID))
+
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -293,9 +345,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          fromAirdrop={props.fromAirdrop}
           detailView={true}
           memo={props.memo}
-          onCancelPayment={null}
+          onCancelPayment={undefined}
           onCancelPaymentWaitingKey=""
           onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
@@ -310,10 +363,50 @@ const TransactionDetails = (props: NotLoadingProps) => {
           issuerDescription={props.issuerDescription}
           isAdvanced={props.isAdvanced}
           summaryAdvanced={props.summaryAdvanced}
+          trustline={props.trustline}
         />
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        {hasNontrivialPath && (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
+            <PaymentPath
+              sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
+              sourceIssuer={sourceIssuer}
+              pathIntermediate={props.pathIntermediate}
+              destinationIssuer={destinationIssuer}
+              destinationAmount={props.amountXLM}
+            />
+          </Kb.Box2>
+        )}
+
+        {hasNontrivialPath && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+              <ConvertedCurrencyLabel
+                amount={1}
+                assetCode={props.sourceAsset}
+                issuerDescription={sourceIssuer}
+              />
+              <Kb.Box2
+                direction="horizontal"
+                alignSelf="flex-start"
+                centerChildren={true}
+                style={styles.equals}
+              >
+                <Kb.Text type="BodyBig">=</Kb.Text>
+              </Kb.Box2>
+              <ConvertedCurrencyLabel
+                amount={props.sourceConvRate}
+                assetCode={props.assetCode}
+                issuerDescription={destinationIssuer}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
+
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
@@ -340,7 +433,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           </Kb.Box2>
         )}
 
-        {props.operations && props.operations.length && (
+        {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
             {props.operations.map((op, i) => (
@@ -516,6 +609,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
+  equals: Styles.platformStyles({isMobile: {flex: 1}}),
   flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
   operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
@@ -557,7 +651,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tooltipText: Styles.platformStyles({
     isElectron: {
-      wordBreak: 'break-work',
+      wordBreak: 'break-word',
     },
   }),
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),

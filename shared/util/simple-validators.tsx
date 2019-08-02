@@ -32,11 +32,14 @@ function isValidCommon(thing: string | null): string {
 
 // Returns an error string if not valid
 function isValidUsername(username: string | null): string {
+  if (!username) {
+    return ''
+  }
   const commonError = isValidCommon(username)
   if (commonError) {
     return commonError
   }
-  if (username && hasPeriod(username)) {
+  if (hasPeriod(username)) {
     return "Usernames can't contain periods."
   }
   if (username.startsWith('_')) {

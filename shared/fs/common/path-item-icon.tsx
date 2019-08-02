@@ -13,6 +13,7 @@ export type Size = RealSize | 12
 export type Props = {
   badge?: Types.PathItemBadge | null
   path: Types.Path
+  showTlfTypeIcon?: boolean
   size: Size
   style?: Styles.StylesCrossPlatform
   type: Types.PathType
@@ -39,7 +40,7 @@ const getIconSizeString = (size: Size): RealSizeString => {
   }
 }
 
-const UnknownIcon = (props: Props) => <Kb.Icon type="icon-folder-16" />
+const UnknownIcon = (_: Props) => <Kb.Icon type="icon-folder-16" />
 
 const icons = {
   file: {
@@ -105,10 +106,18 @@ const IconOnly = (props: Props) => {
       if (parsedPath.tlfType === Types.TlfType.Public) {
         return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />
       } else {
-        return <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+        return props.showTlfTypeIcon ? (
+          <Kb.Icon type={icons.tlfList.private[getIconSizeString(props.size)]} />
+        ) : (
+          <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+        )
       }
     case Types.PathKind.TeamTlf:
-      return <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+      return props.showTlfTypeIcon ? (
+        <Kb.Icon type={icons.tlfList.team[getIconSizeString(props.size)]} />
+      ) : (
+        <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+      )
     case Types.PathKind.InGroupTlf:
       if (parsedPath.tlfType === Types.TlfType.Public && props.type === Types.PathType.Folder) {
         return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />

@@ -172,7 +172,8 @@ func TestDiskLRUClean(t *testing.T) {
 	v := file.Name()
 	_, err = l.Put(ctx, tc.G, k, v)
 	require.NoError(t, err)
-	err = l.Clean(ctx, tc.G, cacheDir)
+	mctx := libkb.NewMetaContextForTest(tc)
+	err = l.CleanOutOfSync(mctx, cacheDir)
 	require.NoError(t, err)
 	exists, err := libkb.FileExists(file.Name())
 	require.NoError(t, err)
@@ -181,7 +182,7 @@ func TestDiskLRUClean(t *testing.T) {
 	// File is cleaned now that the lru no longer has that key.
 	err = l.Remove(ctx, tc.G, k)
 	require.NoError(t, err)
-	err = l.Clean(ctx, tc.G, cacheDir)
+	err = l.CleanOutOfSync(mctx, cacheDir)
 	require.NoError(t, err)
 	exists, err = libkb.FileExists(file.Name())
 	require.NoError(t, err)

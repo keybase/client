@@ -27,7 +27,7 @@ var (
 var MerkleAuditSettings = BackgroundTaskSettings{
 	Start:        5 * time.Minute,
 	StartStagger: 1 * time.Hour,
-	Interval:     6 * time.Hour,
+	Interval:     24 * time.Hour,
 	Limit:        1 * time.Minute,
 }
 
@@ -94,11 +94,19 @@ func (e *MerkleAudit) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
-func (e *MerkleAudit) Run(m libkb.MetaContext) (err error) {
-	if m.G().GetEnv().GetDisableMerkleAuditor() {
-		m.G().Log.CDebugf(m.Ctx(), "merkle audit disabled, aborting run")
+func (e *MerkleAudit) Run(mctx libkb.MetaContext) (err error) {
+	if mctx.G().GetEnv().GetDisableMerkleAuditor() {
+		mctx.Debug("merkle audit disabled, aborting run")
+		return nil
 	}
-	return RunEngine2(m, e.task)
+	if mctx.G().IsMobileAppType() {
+		state := mctx.G().MobileNetState.State()
+		if state.IsLimited() {
+			mctx.Debug("merkle audit skipping without wifi, network state: %v", state)
+			return nil
+		}
+	}
+	return RunEngine2(mctx, e.task)
 }
 
 func (e *MerkleAudit) Shutdown() {

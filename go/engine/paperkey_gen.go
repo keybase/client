@@ -36,8 +36,9 @@ type PaperKeyGen struct {
 	arg *PaperKeyGenArg
 
 	// keys of the generated paper key
-	sigKey libkb.GenericKey
-	encKey libkb.NaclDHKeyPair
+	sigKey   libkb.GenericKey
+	encKey   libkb.NaclDHKeyPair
+	deviceID keybase1.DeviceID
 
 	libkb.Contextified
 }
@@ -79,6 +80,10 @@ func (e *PaperKeyGen) SigKey() libkb.GenericKey {
 
 func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
+}
+
+func (e *PaperKeyGen) DeviceID() keybase1.DeviceID {
+	return e.deviceID
 }
 
 func (e *PaperKeyGen) DeviceWithKeys() *libkb.DeviceWithKeys {
@@ -240,6 +245,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+	e.deviceID = backupDev.ID
 
 	// create lks halves for this device.  Note that they aren't used for
 	// local, encrypted storage of the paper keys, but just for recovery

@@ -7,6 +7,7 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
+import * as TeamBuildingConstants from '../constants/team-building'
 import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
@@ -62,7 +63,7 @@ export const makeMemberInfo = I.Record<Types._MemberInfo>({
 export const rpcDetailsToMemberInfos = (
   allRoleMembers: RPCTypes.TeamMembersDetails
 ): I.Map<string, Types.MemberInfo> => {
-  const infos = []
+  const infos: Array<[string, Types.MemberInfo]> = []
   const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
   const typeToKey: Types.TypeMap = {
     admin: 'admins',
@@ -147,6 +148,7 @@ export const makeState = I.Record<Types._State>({
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamAccessRequestsPending: I.Set(),
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamInviteError: '',
   teamJoinError: '',
@@ -227,6 +229,12 @@ const baseRetentionPolicies = [
   policyFiveMinutes,
   policyThirtySeconds,
 ]
+
+const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce((map, p) => {
+  map[p.seconds] = p.title
+  return map
+}, {})
+
 const retentionPolicies = {
   policyFiveMinutes,
   policyInherit,
@@ -306,7 +314,7 @@ const getChannelInfoFromConvID = (
   state: TypedState,
   teamname: Types.Teamname,
   conversationIDKey: ChatTypes.ConversationIDKey
-): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey)
+): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey) || null
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
@@ -403,12 +411,12 @@ const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.teamNameToID.get(teamname, '')
 
 const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
-  state.teams.teamNameToID.findKey(value => value === teamID)
+  state.teams.teamNameToID.findKey(value => value === teamID) || null
 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
   return path.reduce((names, curr) => {
     if (curr.routeName === 'team' && (curr.params ? curr.params.teamname : undefined)) {
@@ -513,7 +521,7 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 const serviceRetentionPolicyToRetentionPolicy = (
-  policy: RPCChatTypes.RetentionPolicy | null
+  policy?: RPCChatTypes.RetentionPolicy | null
 ): RetentionPolicy => {
   // !policy implies a default policy of retainment
   let retentionPolicy: RetentionPolicy = makeRetentionPolicy({type: 'retain'})
@@ -528,10 +536,9 @@ const serviceRetentionPolicyToRetentionPolicy = (
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
         const {expire} = policy
-        const maybePolicy = baseRetentionPolicies.find(p => p.seconds === expire.age)
         retentionPolicy = makeRetentionPolicy({
           seconds: expire.age,
-          title: maybePolicy ? maybePolicy.title : `${expire.age} seconds`,
+          title: baseRetentionPoliciesTitleMap[expire.age] || `${expire.age} seconds`,
           type: 'expire',
         })
         break
@@ -541,10 +548,9 @@ const serviceRetentionPolicyToRetentionPolicy = (
           throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
         }
         const {ephemeral} = policy
-        const maybePolicy = baseRetentionPolicies.find(p => p.seconds === ephemeral.age)
         retentionPolicy = makeRetentionPolicy({
           seconds: ephemeral.age,
-          title: maybePolicy ? maybePolicy.title : `${ephemeral.age} seconds`,
+          title: baseRetentionPoliciesTitleMap[ephemeral.age] || `${ephemeral.age} seconds`,
           type: 'explode',
         })
         break
@@ -557,7 +563,7 @@ const serviceRetentionPolicyToRetentionPolicy = (
 }
 
 const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCChatTypes.RetentionPolicy => {
-  let res: RPCChatTypes.RetentionPolicy | null
+  let res: RPCChatTypes.RetentionPolicy | null = null
   switch (policy.type) {
     case 'retain':
       res = {retain: {}, typ: RPCChatTypes.RetentionPolicyType.retain}

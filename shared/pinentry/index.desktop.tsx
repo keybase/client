@@ -82,6 +82,7 @@ class Pinentry extends React.Component<Props, State> {
           ...globalStyles.flexBoxColumn,
           backgroundColor: globalColors.white,
           paddingBottom: globalMargins.medium,
+          paddingTop: globalMargins.medium,
         }}
       >
         <Header icon={true} title="" onClose={this.props.onCancel} />

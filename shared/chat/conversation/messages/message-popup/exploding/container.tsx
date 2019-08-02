@@ -11,9 +11,10 @@ import {isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
+import {MenuItems} from '../../../../../common-adapters'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageAttachment | Types.MessageText
   onHidden: () => void
   position: Position
@@ -108,7 +109,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const items = []
+  const items: MenuItems = []
   if (stateProps._canExplodeNow) {
     items.push({
       danger: true,
@@ -139,6 +140,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
       )
     }
+    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
   } else {
     if (stateProps._canEdit) {
       items.push({onClick: dispatchProps._onEdit, title: 'Edit'})

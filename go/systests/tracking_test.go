@@ -97,6 +97,10 @@ func (h *trackingNotifyHandler) TrackingChanged(_ context.Context, arg keybase1.
 	return nil
 }
 
+func (h *trackingNotifyHandler) TrackingInfo(context.Context, keybase1.TrackingInfoArg) error {
+	return nil
+}
+
 func TestTrackingNotifications(t *testing.T) {
 	tc := setupTest(t, "signup")
 	defer tc.Cleanup()
