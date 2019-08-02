@@ -118,20 +118,18 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 }
 
 type okDepositResponse struct {
-	How        string  `json:"how"`
-	ETA        int     `json:"int"`
-	MinAmount  float64 `json:"min_amount"`
-	MaxAmount  float64 `json:"max_amount"`
-	FeeFixed   float64 `json:"fee_fixed"`
-	FeePercent float64 `json:"fee_percent"`
-	ExtraInfo  struct {
-		Message string `json:"message"`
-	} `json:"extra_info"`
+	How        string      `json:"how"`
+	ETA        int         `json:"int"`
+	MinAmount  float64     `json:"min_amount"`
+	MaxAmount  float64     `json:"max_amount"`
+	FeeFixed   float64     `json:"fee_fixed"`
+	FeePercent float64     `json:"fee_percent"`
+	ExtraInfo  interface{} `json:"extra_info"`
 }
 
 // this will never happen, but:
 func (r *okDepositResponse) String() string {
-	return fmt.Sprintf("Deposit request approved by anchor.  %s: %s", r.How, r.ExtraInfo.Message)
+	return fmt.Sprintf("Deposit request approved by anchor.  %s: %v", r.How, r.ExtraInfo)
 }
 
 type okWithdrawResponse struct {
@@ -196,6 +194,10 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 		}
 		mctx.Debug("unhandled anchor response for %s: %+v", u, resp)
 		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response")
+	case http.StatusUnauthorized:
+		// the standard authorization returns a http.StatusForbidden
+		// this status code comes back from thewwallet.com
+		return stellar1.AssetActionResultLocal{}, errors.New("Anchor requires unknown authorization to proceed")
 	default:
 		mctx.Debug("unhandled anchor response code for %s: %d", u, code)
 		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response code")
