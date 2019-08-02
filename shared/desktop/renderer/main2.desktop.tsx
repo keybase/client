@@ -18,7 +18,7 @@ import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {isDarwin} from '../../constants/platform'
-import {setIsDarkMode} from '../../styles/dark-mode'
+import {setIsDarkMode, isDarkMode} from '../../styles/dark-mode'
 
 // Top level HMR accept
 if (module.hot) {
@@ -118,13 +118,14 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
-  const isDarkMode = isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+  const darkMode = isDarkMode()
+
   ReactDOM.render(
     <Root store={store}>
-      <div style={{display: 'flex', flex: 1}} className={isDarkMode ? 'darkMode' : undefined}>
+      <div style={{display: 'flex', flex: 1}} className={darkMode ? 'darkMode' : undefined}>
         <RemoteProxies />
         <FontLoader />
-        <Component isDarkMode={isDarkMode} />
+        <Component isDarkMode={darkMode} />
       </div>
     </Root>,
     root

@@ -90,49 +90,7 @@ export const colors = {
   yellowLight: '#FFFDCC',
 } as const
 
-// TEMP to just invert teh colors to start with
-if (__DEV__) {
-  console.log(
-    'aaa',
-    Object.keys(colors)
-      .map(name => {
-        const val = colors[name]
-        if (!val) return [name, val]
-
-        const padZero = p => {
-          const r = p.toString(16).toUpperCase()
-          return r.length === 1 ? '0' + r : r
-        }
-        let r, g, b, a
-        if (val[0] === '#') {
-          r = parseInt(val[1] + val[2], 16)
-          g = parseInt(val[3] + val[4], 16)
-          b = parseInt(val[5] + val[6], 16)
-          return [name, '#' + padZero(0xff - r) + padZero(0xff - g) + padZero(0xff - b)]
-        } else if (val.startsWith('rgba')) {
-          const s = val.indexOf('(') + 1
-          const parts = val.substr(s).split(',')
-          r = 255 - parseInt(parts[0], 10)
-          g = 255 - parseInt(parts[1], 10)
-          b = 255 - parseInt(parts[2], 10)
-          a = parts[3].replace(')', '')
-          return [name, `rgba(${r}, ${g}, ${b}, ${a})`]
-        } else {
-          const s = val.indexOf('(') + 1
-          const parts = val.substr(s).split(',')
-          r = 255 - parseInt(parts[0], 10)
-          g = 255 - parseInt(parts[1], 10)
-          b = 255 - parseInt(parts[2].replace(')', ''), 10)
-          return [name, `rgb(${r}, ${g}, ${b})`]
-        }
-      })
-      .reduce((s, arr) => {
-        return s + `  ${arr[0]}: '${arr[1]}',\n`
-      }, '')
-  )
-}
-
-export const darkColors: {[P in keyof typeof colors]: string} = {
+export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black: 'rgba(255, 255, 255,  0.85)',
   black_05: 'rgba(255, 255, 255,  0.05)',
   black_05_on_white: 'rgb(13, 13, 13)',

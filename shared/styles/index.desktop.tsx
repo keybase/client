@@ -1,6 +1,4 @@
 import globalColors from './colors'
-import * as SafeElectron from '../util/safe-electron.desktop'
-import {isDarwin} from '../constants/platform'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as Shared from './shared'
@@ -179,4 +177,4 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+export {isDarkMode} from './dark-mode'
