@@ -1,12 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {StyleOverride} from '../../common-adapters/markdown'
 import {isMobile} from '../../constants/platform'
 
 type Props = {
   memo: string
   hideDivider?: boolean
   style?: Styles.StylesCrossPlatform
+  styleOverride?: StyleOverride
 }
 
 const MarkdownMemo = (props: Props) =>
@@ -20,7 +22,7 @@ const MarkdownMemo = (props: Props) =>
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Markdown
         style={styles.memo}
-        styleOverride={isMobile ? styleOverride : undefined}
+        styleOverride={Styles.collapseStyles([isMobile ? styleOverride : undefined, props.styleOverride])}
         allowFontScaling={true}
       >
         {props.memo}

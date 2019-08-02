@@ -521,6 +521,7 @@ export const Transaction = (props: Props) => {
                 memo={props.memo}
                 hideDivider={props.fromAirdrop}
                 style={styles.marginTopXTiny}
+                styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
               />
             )}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
@@ -595,5 +596,14 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
   },
 })
+
+const styleMarkdownMemo = {
+  paragraph: {
+    color: globalColors.purpleDark,
+  },
+  strong: {
+    color: globalColors.purpleDark,
+  },
+}
 
 export default Transaction
