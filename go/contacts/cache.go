@@ -271,7 +271,7 @@ func (c *ContactCacheStore) RemoveContactsCachePhoneEntry(mctx libkb.
 	}
 	// TODO: this type conversion shouldn't have to be here,
 	//  since this cache should take `PhoneNumber`s.
-	delete(conCache.Lookups, makePhoneLookupKey(keybase1.RawPhoneNumber(pn)))
+	delete(conCache.Lookups, MakePhoneLookupKey(keybase1.RawPhoneNumber(pn)))
 	err = c.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
 	if err != nil {
 		mctx.Warning("Unable to update cache: %s", err)

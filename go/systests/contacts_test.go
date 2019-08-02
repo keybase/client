@@ -244,3 +244,187 @@ tableLoop:
 		}
 	}
 }
+
+func TestLookupSelfAfterRemove(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+
+	contactsCli := keybase1.ContactsClient{Cli: ann.teamsClient.Cli}
+	phoneCli := keybase1.PhoneNumbersClient{Cli: ann.teamsClient.Cli}
+	emailCli := keybase1.EmailsClient{Cli: ann.teamsClient.Cli}
+
+	phoneNum := keybase1.PhoneNumber("+" + kbtest.GenerateTestPhoneNumber())
+	{
+		// Add and verify a phone number
+		err := phoneCli.AddPhoneNumber(context.Background(), keybase1.AddPhoneNumberArg{
+			PhoneNumber: phoneNum,
+			Visibility:  keybase1.IdentityVisibility_PUBLIC,
+		})
+		require.NoError(t, err)
+
+		code, err := kbtest.GetPhoneVerificationCode(ann.MetaContext(), phoneNum)
+		require.NoError(t, err)
+
+		err = phoneCli.VerifyPhoneNumber(context.Background(), keybase1.VerifyPhoneNumberArg{
+			PhoneNumber: phoneNum,
+			Code:        code,
+		})
+		require.NoError(t, err)
+	}
+
+	emailAddr := keybase1.EmailAddress(randomUser("newemail").email)
+	{
+		// Add and verify an email address
+		emailCli.AddEmail(context.Background(), keybase1.AddEmailArg{
+			Email:      emailAddr,
+			Visibility: keybase1.IdentityVisibility_PUBLIC,
+		})
+
+		err := kbtest.VerifyEmailAuto(ann.MetaContext(), emailAddr)
+		require.NoError(t, err)
+	}
+
+	rawPhone := keybase1.RawPhoneNumber(phoneNum)
+	miscEmailAddr := keybase1.EmailAddress(randomUser("newemail").email)
+	miscPhoneNum := keybase1.RawPhoneNumber("+" + kbtest.GenerateTestPhoneNumber())
+
+	rawContacts := []keybase1.Contact{
+		keybase1.Contact{Name: "Ann Test",
+			Components: []keybase1.ContactComponent{
+				keybase1.ContactComponent{Label: "phone", PhoneNumber: &rawPhone},
+				keybase1.ContactComponent{Label: "email", Email: &emailAddr},
+			},
+		},
+		keybase1.Contact{Name: "Ann Test 2",
+			Components: []keybase1.ContactComponent{
+				keybase1.ContactComponent{Email: &emailAddr},
+			},
+		},
+		keybase1.Contact{Name: "Test Ann",
+			Components: []keybase1.ContactComponent{
+				keybase1.ContactComponent{PhoneNumber: &rawPhone},
+			},
+		},
+		keybase1.Contact{Name: "Someone else",
+			Components: []keybase1.ContactComponent{
+				keybase1.ContactComponent{PhoneNumber: &miscPhoneNum},
+			},
+		},
+		keybase1.Contact{Name: "Someone else",
+			Components: []keybase1.ContactComponent{
+				keybase1.ContactComponent{Email: &miscEmailAddr},
+			},
+		},
+	}
+
+	{
+		err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+			Contacts: rawContacts,
+		})
+		require.NoError(t, err)
+
+		list, err := contactsCli.LookupSavedContactsList(context.Background(), 0)
+		require.NoError(t, err)
+
+		var foundMiscEmail, foundMiscPhone, foundOurEmail, foundOurPhone int
+		for _, v := range list {
+			if v.Component.Email != nil {
+				switch {
+				case *v.Component.Email == miscEmailAddr:
+					foundMiscEmail++
+					require.False(t, v.Resolved)
+				case *v.Component.Email == emailAddr:
+					foundOurEmail++
+					require.True(t, v.Resolved)
+					require.Equal(t, ann.username, v.Username)
+					require.Equal(t, ann.uid, v.Uid)
+				default:
+					require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+				}
+			} else if v.Component.PhoneNumber != nil {
+				switch {
+				case *v.Component.PhoneNumber == miscPhoneNum:
+					foundMiscPhone++
+					require.False(t, v.Resolved)
+				case *v.Component.PhoneNumber == rawPhone:
+					foundOurPhone++
+					require.True(t, v.Resolved)
+					require.Equal(t, ann.username, v.Username)
+					require.Equal(t, ann.uid, v.Uid)
+				default:
+					require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+				}
+			}
+		}
+
+		require.Equal(t, 1, foundMiscEmail)
+		require.Equal(t, 1, foundMiscPhone)
+		require.Equal(t, 2, foundOurPhone)
+		require.Equal(t, 2, foundOurEmail)
+	}
+
+	{
+		// Delete both phone and email
+		err := emailCli.DeleteEmail(context.Background(), keybase1.DeleteEmailArg{
+			Email: emailAddr,
+		})
+		require.NoError(t, err)
+		err = phoneCli.DeletePhoneNumber(context.Background(), keybase1.DeletePhoneNumberArg{
+			PhoneNumber: phoneNum,
+		})
+		require.NoError(t, err)
+	}
+
+	{
+		// Fetch our contacts again, deleting should automatically affect our
+		// synced contacts.
+
+		for i := 0; i < 2; i++ {
+			// 1. Inspect saved contacts list,
+			// 2. sync contacts again,
+			// 3. inspect again to see if stale cache did not overwrite our
+			//    unresolved entries back to resolved.
+			list, err := contactsCli.LookupSavedContactsList(context.Background(), 0)
+			require.NoError(t, err)
+
+			var foundMiscEmail, foundMiscPhone, foundOurEmail, foundOurPhone int
+			for _, v := range list {
+				if v.Component.Email != nil {
+					switch {
+					case *v.Component.Email == miscEmailAddr:
+						foundMiscEmail++
+					case *v.Component.Email == emailAddr:
+						foundOurEmail++
+					default:
+						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+					}
+					require.False(t, v.Resolved)
+				} else if v.Component.PhoneNumber != nil {
+					switch {
+					case *v.Component.PhoneNumber == miscPhoneNum:
+						foundMiscPhone++
+					case *v.Component.PhoneNumber == rawPhone:
+						foundOurPhone++
+					default:
+						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
+					}
+					require.False(t, v.Resolved)
+				}
+			}
+
+			require.Equal(t, 1, foundMiscEmail)
+			require.Equal(t, 1, foundMiscPhone)
+			require.Equal(t, 2, foundOurPhone)
+			require.Equal(t, 2, foundOurEmail)
+
+			if i == 0 {
+				err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+					Contacts: rawContacts,
+				})
+				require.NoError(t, err)
+			}
+		}
+	}
+}
