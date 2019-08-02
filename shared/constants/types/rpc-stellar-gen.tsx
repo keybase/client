@@ -382,7 +382,7 @@ export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: St
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
-export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly transferServer: String; readonly authEndpoint: String}
+export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly withdrawType: String; readonly transferServer: String; readonly authEndpoint: String}
 export type AssetActionResultLocal = {readonly externalUrl?: String | null; readonly messageFromAnchor?: String | null}
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
@@ -480,7 +480,7 @@ export type TransactionID = String
 export type Trustline = {readonly assetCode: AssetCode; readonly issuer: AccountID}
 export type TxDisplaySummary = {readonly source: AccountID; readonly fee: Int; readonly memo: String; readonly memoType: String; readonly operations?: Array<String> | null}
 export type UIPaymentReviewed = {readonly bid: BuildPaymentID; readonly reviewID: Int; readonly seqno: Int; readonly banners?: Array<SendBannerLocal> | null; readonly nextButton: String}
-export type ValidateStellarURIResultLocal = {readonly operation: String; readonly originDomain: String; readonly message: String; readonly callbackURL: String; readonly xdr: String; readonly summary: TxDisplaySummary; readonly recipient: String; readonly amount: String; readonly assetCode: String; readonly assetIssuer: String; readonly memo: String; readonly memoType: String; readonly displayAmountFiat: String; readonly availableToSendNative: String; readonly availableToSendFiat: String}
+export type ValidateStellarURIResultLocal = {readonly operation: String; readonly originDomain: String; readonly message: String; readonly callbackURL: String; readonly xdr: String; readonly summary: TxDisplaySummary; readonly recipient: String; readonly amount: String; readonly assetCode: String; readonly assetIssuer: String; readonly memo: String; readonly memoType: String; readonly displayAmountFiat: String; readonly availableToSendNative: String; readonly availableToSendFiat: String; readonly signed: Boolean}
 export type WalletAccountLocal = {readonly accountID: AccountID; readonly isDefault: Boolean; readonly name: String; readonly balanceDescription: String; readonly seqno: String; readonly currencyLocal: CurrencyLocal; readonly accountMode: AccountMode; readonly accountModeEditable: Boolean; readonly deviceReadOnly: Boolean; readonly isFunded: Boolean; readonly canSubmitTx: Boolean; readonly canAddTrustline: Boolean}
 
 export type IncomingCallMapType = {

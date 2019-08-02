@@ -62,9 +62,14 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 		return stellar1.AssetActionResultLocal{}, err
 	}
 
-	// TODO: `type` is supposedly optional, but actually required...so figure it out.
 	v := url.Values{}
 	v.Set("asset_code", a.asset.Code)
+	if a.asset.WithdrawType != "" {
+		// this is supposed to be optional, but a lot of anchors require it
+		// if they all change to optional, we can not return this from stellard
+		// and it won't get set
+		v.Set("type", a.asset.WithdrawType)
+	}
 	u.RawQuery = v.Encode()
 
 	var okResponse okWithdrawResponse

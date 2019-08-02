@@ -760,6 +760,9 @@ protocol local {
     string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
     string availableToSendNative;
     string availableToSendFiat;
+
+    // Whether or not the URI was signed (used for displaying a warning banner in app)
+    boolean signed;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

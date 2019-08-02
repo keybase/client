@@ -50,7 +50,7 @@ const EmailPhone = (props: Props) => (
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
       {flags.sbsContacts && (
-        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
+        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone number" small={true} />
       )}
     </Kb.ButtonBar>
   </SettingsSection>
