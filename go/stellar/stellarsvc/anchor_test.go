@@ -10,6 +10,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
 )
 
 type anchorTest struct {
@@ -218,6 +220,14 @@ func TestAnchorInteractor(t *testing.T) {
 		accountID, _ := randomStellarKeypair()
 		ai := newAnchorInteractor(accountID, test.Asset)
 		ai.httpGetClient = test.MockTransferGet
+
+		// our test tx auth challenges are on the public network:
+		if test.Asset.AuthEndpoint != "" {
+			stellarnet.SetNetwork(build.PublicNetwork)
+		} else {
+			stellarnet.SetNetwork(build.TestNetwork)
+		}
+
 		if test.Asset.ShowDepositButton {
 			res, err := ai.Deposit(tc.MetaContext())
 			if err != nil {

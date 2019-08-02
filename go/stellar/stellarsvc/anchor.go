@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/xdr"
 	"golang.org/x/net/publicsuffix"
 )
@@ -287,6 +288,10 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	// TODO:
 	// sourceAccount is supposed to be the same as SIGNING_KEY in stellar.toml.
 	// we don't get that value currently...
+
+	if err := stellarnet.VerifyEnvelope(unpacked); err != nil {
+		return err
+	}
 
 	return nil
 }
