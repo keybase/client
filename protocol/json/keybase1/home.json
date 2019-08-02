@@ -55,6 +55,29 @@
       ]
     },
     {
+      "type": "variant",
+      "name": "HomeScreenItemDataExt",
+      "switch": {
+        "type": "HomeScreenItemType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TODO",
+            "def": false
+          },
+          "body": "HomeScreenTodoExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "AppLinkType",
       "symbols": [
@@ -183,6 +206,39 @@
       "doc": "Most of TODO items do not carry additional data, but some do. e.g. TODO\n    item to tell user to verify their email address will carry that email\n    address.\n\n    This data does not come from the server."
     },
     {
+      "type": "variant",
+      "name": "HomeScreenTodoExt",
+      "switch": {
+        "type": "HomeScreenTodoType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VERIFY_ALL_EMAIL",
+            "def": false
+          },
+          "body": "VerifyAllEmailTodoExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "VerifyAllEmailTodoExt",
+      "fields": [
+        {
+          "type": "UnixTime",
+          "name": "lastVerifyEmailDate"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "HomeScreenPeopleNotificationType",
       "symbols": [
@@ -260,6 +316,10 @@
         {
           "type": "HomeScreenItemData",
           "name": "data"
+        },
+        {
+          "type": "HomeScreenItemDataExt",
+          "name": "dataExt"
         }
       ]
     },

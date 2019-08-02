@@ -276,7 +276,13 @@ const VerifyAllEmailConnector = connect(
       ...(ownProps.metadata
         ? [
             {
-              label: 'Verify',
+              label:
+                ownProps.metadata &&
+                ownProps.metadata.type === 'email' &&
+                ownProps.metadata.lastVerifyEmailDate &&
+                new Date().getTime() / 1000 - ownProps.metadata.lastVerifyEmailDate < 30 * 60
+                  ? `Resend the verification email`
+                  : 'Verify',
               onClick: () => {
                 const meta = ownProps.metadata
                 meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)

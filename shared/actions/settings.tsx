@@ -11,6 +11,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
+import * as PeopleGen from '../actions/people-gen'
+import * as PeopleConstants from '../constants/people'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -416,9 +418,13 @@ const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLog
     return RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
   }
   if (action.payload.verify) {
-    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() =>
-      SettingsGen.createSentVerificationEmail({email: action.payload.email})
-    )
+    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() => [
+      SettingsGen.createSentVerificationEmail({email: action.payload.email}),
+      PeopleGen.createGetPeopleData({
+        markViewed: false,
+        numFollowSuggestionsWanted: PeopleConstants.defaultNumFollowSuggestions,
+      }),
+    ])
   }
   if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({

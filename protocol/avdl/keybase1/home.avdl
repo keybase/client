@@ -18,6 +18,11 @@ protocol home {
     default: void; // Note, if badged, we should urge an upgrade here.
   }
 
+  variant HomeScreenItemDataExt switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodoExt;
+    default: void;
+  }
+
   enum AppLinkType {
     NONE_0,
     PEOPLE_1,
@@ -89,6 +94,15 @@ protocol home {
     default: void;
   }
 
+  variant HomeScreenTodoExt switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_EMAIL: VerifyAllEmailTodoExt;
+    default: void;
+  }
+
+  record VerifyAllEmailTodoExt {
+    UnixTime lastVerifyEmailDate;
+  }
+
   enum HomeScreenPeopleNotificationType {
     FOLLOWED_1,
     FOLLOWED_MULTI_2
@@ -113,6 +127,7 @@ protocol home {
   record HomeScreenItem {
     boolean badged;
     HomeScreenItemData data;
+    HomeScreenItemDataExt dataExt;
   }
 
   record Pics {

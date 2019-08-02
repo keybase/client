@@ -156,6 +156,58 @@ func (o HomeScreenItemData) DeepCopy() HomeScreenItemData {
 	}
 }
 
+type HomeScreenItemDataExt struct {
+	T__    HomeScreenItemType `codec:"t" json:"t"`
+	Todo__ *HomeScreenTodoExt `codec:"todo,omitempty" json:"todo,omitempty"`
+}
+
+func (o *HomeScreenItemDataExt) T() (ret HomeScreenItemType, err error) {
+	switch o.T__ {
+	case HomeScreenItemType_TODO:
+		if o.Todo__ == nil {
+			err = errors.New("unexpected nil value for Todo__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o HomeScreenItemDataExt) Todo() (res HomeScreenTodoExt) {
+	if o.T__ != HomeScreenItemType_TODO {
+		panic("wrong case accessed")
+	}
+	if o.Todo__ == nil {
+		return
+	}
+	return *o.Todo__
+}
+
+func NewHomeScreenItemDataExtWithTodo(v HomeScreenTodoExt) HomeScreenItemDataExt {
+	return HomeScreenItemDataExt{
+		T__:    HomeScreenItemType_TODO,
+		Todo__: &v,
+	}
+}
+
+func NewHomeScreenItemDataExtDefault(t HomeScreenItemType) HomeScreenItemDataExt {
+	return HomeScreenItemDataExt{
+		T__: t,
+	}
+}
+
+func (o HomeScreenItemDataExt) DeepCopy() HomeScreenItemDataExt {
+	return HomeScreenItemDataExt{
+		T__: o.T__.DeepCopy(),
+		Todo__: (func(x *HomeScreenTodoExt) *HomeScreenTodoExt {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Todo__),
+	}
+}
+
 type AppLinkType int
 
 const (
@@ -433,6 +485,68 @@ func (o HomeScreenTodo) DeepCopy() HomeScreenTodo {
 	}
 }
 
+type HomeScreenTodoExt struct {
+	T__              HomeScreenTodoType     `codec:"t" json:"t"`
+	VerifyAllEmail__ *VerifyAllEmailTodoExt `codec:"verifyAllEmail,omitempty" json:"verifyAllEmail,omitempty"`
+}
+
+func (o *HomeScreenTodoExt) T() (ret HomeScreenTodoType, err error) {
+	switch o.T__ {
+	case HomeScreenTodoType_VERIFY_ALL_EMAIL:
+		if o.VerifyAllEmail__ == nil {
+			err = errors.New("unexpected nil value for VerifyAllEmail__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o HomeScreenTodoExt) VerifyAllEmail() (res VerifyAllEmailTodoExt) {
+	if o.T__ != HomeScreenTodoType_VERIFY_ALL_EMAIL {
+		panic("wrong case accessed")
+	}
+	if o.VerifyAllEmail__ == nil {
+		return
+	}
+	return *o.VerifyAllEmail__
+}
+
+func NewHomeScreenTodoExtWithVerifyAllEmail(v VerifyAllEmailTodoExt) HomeScreenTodoExt {
+	return HomeScreenTodoExt{
+		T__:              HomeScreenTodoType_VERIFY_ALL_EMAIL,
+		VerifyAllEmail__: &v,
+	}
+}
+
+func NewHomeScreenTodoExtDefault(t HomeScreenTodoType) HomeScreenTodoExt {
+	return HomeScreenTodoExt{
+		T__: t,
+	}
+}
+
+func (o HomeScreenTodoExt) DeepCopy() HomeScreenTodoExt {
+	return HomeScreenTodoExt{
+		T__: o.T__.DeepCopy(),
+		VerifyAllEmail__: (func(x *VerifyAllEmailTodoExt) *VerifyAllEmailTodoExt {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.VerifyAllEmail__),
+	}
+}
+
+type VerifyAllEmailTodoExt struct {
+	LastVerifyEmailDate UnixTime `codec:"lastVerifyEmailDate" json:"lastVerifyEmailDate"`
+}
+
+func (o VerifyAllEmailTodoExt) DeepCopy() VerifyAllEmailTodoExt {
+	return VerifyAllEmailTodoExt{
+		LastVerifyEmailDate: o.LastVerifyEmailDate.DeepCopy(),
+	}
+}
+
 type HomeScreenPeopleNotificationType int
 
 const (
@@ -572,14 +686,16 @@ func (o HomeScreenPeopleNotification) DeepCopy() HomeScreenPeopleNotification {
 }
 
 type HomeScreenItem struct {
-	Badged bool               `codec:"badged" json:"badged"`
-	Data   HomeScreenItemData `codec:"data" json:"data"`
+	Badged  bool                  `codec:"badged" json:"badged"`
+	Data    HomeScreenItemData    `codec:"data" json:"data"`
+	DataExt HomeScreenItemDataExt `codec:"dataExt" json:"dataExt"`
 }
 
 func (o HomeScreenItem) DeepCopy() HomeScreenItem {
 	return HomeScreenItem{
-		Badged: o.Badged,
-		Data:   o.Data.DeepCopy(),
+		Badged:  o.Badged,
+		Data:    o.Data.DeepCopy(),
+		DataExt: o.DataExt.DeepCopy(),
 	}
 }
 
