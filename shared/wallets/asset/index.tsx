@@ -112,6 +112,7 @@ export default class Asset extends React.Component<Props, State> {
                         label={this.props.depositButtonText}
                         onClick={this.props.onDeposit}
                         small={true}
+                        type="Wallet"
                       />
                     </>
                   )}
@@ -123,6 +124,7 @@ export default class Asset extends React.Component<Props, State> {
                         label={this.props.withdrawButtonText}
                         onClick={this.props.onWithdraw}
                         small={true}
+                        type="Wallet"
                       />
                     </>
                   )}
@@ -132,6 +134,7 @@ export default class Asset extends React.Component<Props, State> {
                       label={this.props.infoUrlText}
                       onClick={this.props.openInfoURL}
                       small={true}
+                      type="Wallet"
                     />
                   )}
                 </Kb.ButtonBar>
