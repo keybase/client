@@ -742,11 +742,12 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
 
 		// Test key validity
-		found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
-		require.NoError(t, err, "ValidSenderKey")
-		require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
-		require.False(t, validAtCtime, "revoked key should be invalid (v:%v r:%v)", validAtCtime, revoked)
-		require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
+		revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+		require.Error(t, err, "ValidSenderKey")
+		require.IsType(t, PermanentUnboxingError{}, err)
+		require.Equal(t, "key invalid for sender at message ctime",
+			err.(PermanentUnboxingError).Inner().(libkb.NoKeyError).Msg)
+		require.NotNil(t, revoked)
 	})
 }
 
@@ -805,11 +806,9 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		require.NotNil(t, unboxed.SenderDeviceRevokedAt, "message should be noticed as signed by revoked key")
 
 		// Test key validity
-		found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+		revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 		require.NoError(t, err, "ValidSenderKey")
-		require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
-		require.True(t, validAtCtime, "revoked key should be valid at time (v:%v r:%v)", validAtCtime, revoked)
-		require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
+		require.NotNil(t, revoked)
 	})
 }
 
@@ -1381,11 +1380,11 @@ func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
 		require.Equal(t, canned.SenderDeviceID(t), did)
 		return canned.senderUsername, canned.senderDeviceName, canned.senderDeviceType
 	}
-	boxer.testingValidSenderKey = func(ctx context.Context, uid gregor1.UID, verifyKey []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr types.UnboxingError) {
+	boxer.testingValidSenderKey = func(ctx context.Context, uid gregor1.UID, verifyKey []byte, ctime gregor1.Time) (revoked *gregor1.Time, unboxingErr types.UnboxingError) {
 		require.Equal(t, canned.SenderUID(t), uid)
 		require.Equal(t, canned.VerifyKey(t), verifyKey)
 		// ignore ctime, always report the key as still valid
-		return true, true, nil, nil
+		return nil, nil
 	}
 }
 

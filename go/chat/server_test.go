@@ -3064,7 +3064,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		msgIDs := []chat1.MessageID{editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
@@ -3122,7 +3122,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
 		msgIDs = []chat1.MessageID{deleteMsgID, editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 		cb = make(chan struct{})
 		go func() {
@@ -3385,7 +3385,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg3)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg3})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
@@ -3474,7 +3474,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID2, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute

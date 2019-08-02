@@ -198,6 +198,7 @@ func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
 	status chat1.UIChatThreadStatus, delay time.Duration) (cancelStatusFn func() bool) {
 	resCh := make(chan bool, 1)
 	ctx, cancelFn := context.WithCancel(ctx)
+	t.Debug(ctx, "setUIStatus: delaying: %v", delay)
 	go func(ctx context.Context) {
 		displayed := false
 		select {
@@ -378,13 +379,17 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		t.Debug(ctx, "LoadNonblock: cached response send time: %v", time.Since(start))
 	}(localCtx)
 
+	startTime := t.clock.Now()
+	baseDelay := 3 * time.Second
+	getDelay := func() time.Duration {
+		return baseDelay - (t.clock.Now().Sub(startTime))
+	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		// Run the full Pull operation, and redo pagination
 		ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
-		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(),
-			500*time.Millisecond)
+		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(), getDelay())
 		var remoteThread chat1.ThreadView
 		if t.remoteThreadDelay != nil {
 			t.clock.Sleep(*t.remoteThreadDelay)
@@ -432,7 +437,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		fullErr = func() error {
 			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
-				500*time.Millisecond)
+				getDelay())
 			for _, skip := range skips {
 				messages := skip.Msgs
 				if len(messages) == 0 {
