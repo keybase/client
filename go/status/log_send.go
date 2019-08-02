@@ -96,14 +96,15 @@ func redactPotentialPaperKeys(s string) string {
 			start = -1
 			continue
 		}
-		if start == -1 {
+		switch {
+		case start == -1:
 			start = idx
-		} else if idx-start+1 == serialPaperKeyWordThreshold {
+		case idx-start+1 == serialPaperKeyWordThreshold:
 			for jdx := start; jdx <= idx; jdx++ {
 				allWords[checkWordLocations[jdx]] = redactedReplacer
 			}
 			didRedact = true
-		} else if idx-start+1 > serialPaperKeyWordThreshold {
+		case idx-start+1 > serialPaperKeyWordThreshold:
 			allWords[checkWordLocations[idx]] = redactedReplacer
 		}
 	}
@@ -145,15 +146,24 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	mpart := multipart.NewWriter(&body)
 
 	if l.Feedback != "" {
-		mpart.WriteField("feedback", l.Feedback)
+		err := mpart.WriteField("feedback", l.Feedback)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if len(l.InstallID) > 0 {
-		mpart.WriteField("install_id", string(l.InstallID))
+		err := mpart.WriteField("install_id", string(l.InstallID))
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if !l.UID.IsNil() {
-		mpart.WriteField("uid", l.UID.String())
+		err := mpart.WriteField("uid", l.UID.String())
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", l.StatusJSON); err != nil {
