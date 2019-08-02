@@ -1,36 +1,35 @@
 /* eslint-env jest */
-import {SearchResult, SearchRecSection} from '../index'
-import * as TeamBuilding from '../index'
+import TeamBuilding, {SearchResult, SearchRecSection} from '../index'
 import {userResultHeight} from '../user-result'
 import {SectionDivider} from '../../common-adapters/index'
 
 describe('team building list', () => {
   it('calculates list offsets properly', () => {
     const testSearchResult: SearchResult = {
-      userId: '',
-      username: '',
-      prettyName: '',
       displayLabel: '',
-      services: {},
+      followingState: 'NotFollowing',
       inTeam: false,
       isPreExistingTeamMember: false,
-      followingState: 'NotFollowing',
+      prettyName: '',
+      services: {},
+      userId: '',
+      username: '',
     }
     const sections: Array<SearchRecSection> = [
       {
+        data: [testSearchResult, testSearchResult, testSearchResult],
         label: 'test 1',
         shortcut: false,
-        data: [testSearchResult, testSearchResult, testSearchResult],
       },
       {
+        data: [testSearchResult, testSearchResult],
         label: 'test 2',
         shortcut: false,
-        data: [testSearchResult, testSearchResult],
       },
       {
+        data: [testSearchResult, testSearchResult, testSearchResult],
         label: 'test 3',
         shortcut: false,
-        data: [testSearchResult, testSearchResult, testSearchResult],
       },
     ]
 
@@ -55,7 +54,7 @@ describe('team building list', () => {
 
     const _getRecLayout = (sections: Array<SearchRecSection>, indexInList: number) =>
       // @ts-ignore we don't care, this is just a test of pure function that doesn't even access props
-      new TeamBuilding.default({})._getRecLayout(sections, indexInList)
+      new TeamBuilding({})._getRecLayout(sections, indexInList)
 
     expect(_getRecLayout(sections, 0)).toEqual({index: 0, length: sectionLength, offset: 0})
     expect(_getRecLayout(sections, 1)).toEqual({index: 1, length: rowLength, offset: sectionLength})
