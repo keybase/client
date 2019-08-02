@@ -31,6 +31,12 @@ export const Email = () => {
       dispatch(RouteTreeGen.createClearModals())
     }
   }, [addEmailInProgress, addedEmail, dispatch])
+  // clean on edit
+  React.useEffect(() => {
+    if (email !== addEmailInProgress && emailError) {
+      dispatch(SettingsGen.createClearAddingEmail())
+    }
+  }, [addEmailInProgress, dispatch, email, emailError])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onContinue = React.useCallback(() => {
