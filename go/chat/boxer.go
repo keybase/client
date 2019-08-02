@@ -1982,7 +1982,6 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 			}
 		}
 	}()
-	b.Debug(ctx, "Boxer: ValidSenderKey happengin!")
 	if b.testingValidSenderKey != nil {
 		b.assertInTest()
 		return b.testingValidSenderKey(ctx, sender, key, ctime)
