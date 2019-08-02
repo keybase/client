@@ -3071,6 +3071,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3392,6 +3393,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3481,6 +3483,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},

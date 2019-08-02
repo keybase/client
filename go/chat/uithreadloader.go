@@ -25,6 +25,7 @@ type UIThreadLoader struct {
 
 	clock          clockwork.Clock
 	convPageStatus map[string]chat1.Pagination
+	validatedDelay time.Duration
 
 	// testing
 	cachedThreadDelay *time.Duration
@@ -37,6 +38,7 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
 		convPageStatus: make(map[string]chat1.Pagination),
 		clock:          clockwork.NewRealClock(),
+		validatedDelay: 100 * time.Millisecond,
 	}
 }
 
@@ -484,7 +486,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	// Clean up context and set final loading status
 	if getDisplayedStatus() {
 		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
-		t.clock.Sleep(100 * time.Millisecond)
+		t.clock.Sleep(t.validatedDelay)
 		if fullErr == nil {
 			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
