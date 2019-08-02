@@ -2195,6 +2195,13 @@ func (fbo *folderBranchOps) identifyOnce(
 	switch {
 	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
 		len(ei.GetTlfBreakAndClose().Breaks) > 0:
+		// In the (currently unused) condition that we get here when
+		// `ei.Behavior.AlwaysRunIdentify()` is true, avoid setting
+		// multiple timers.
+		if fbo.identifyDoneWithWarning {
+			break
+		}
+
 		// In this case, the caller has explicitly requested that we
 		// treat proof failures as warnings, instead of errors.  For
 		// example, the GUI does this and shows a warning banner but
