@@ -54,7 +54,7 @@ func (r *Srv) debug(ctx context.Context, msg string, args ...interface{}) {
 
 func (r *Srv) initHTTPSrv() {
 	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
-	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewRandomPortRangeListenerSource(startPort, 18000))
 }
 
 func (r *Srv) startHTTPSrv() {
