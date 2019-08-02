@@ -28,8 +28,9 @@ type UIThreadLoader struct {
 	validatedDelay time.Duration
 
 	// testing
-	cachedThreadDelay *time.Duration
-	remoteThreadDelay *time.Duration
+	cachedThreadDelay  *time.Duration
+	remoteThreadDelay  *time.Duration
+	resolveThreadDelay *time.Duration
 }
 
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
@@ -204,7 +205,7 @@ func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
 	go func(ctx context.Context) {
 		displayed := false
 		select {
-		case <-time.After(delay):
+		case <-t.clock.After(delay):
 			select {
 			case <-ctx.Done():
 				t.Debug(ctx, "setUIStatus: context canceled")
@@ -440,6 +441,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				getDelay())
+			if t.resolveThreadDelay != nil {
+				t.clock.Sleep(*t.resolveThreadDelay)
+			}
 			for _, skip := range skips {
 				messages := skip.Msgs
 				if len(messages) == 0 {

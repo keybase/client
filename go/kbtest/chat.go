@@ -1006,6 +1006,7 @@ type NonblockSearchResult struct {
 type ChatUI struct {
 	InboxCb               chan NonblockInboxResult
 	ThreadCb              chan NonblockThreadResult
+	ThreadStatusCb        chan chat1.UIChatThreadStatus
 	SearchHitCb           chan chat1.ChatSearchHitArg
 	SearchDoneCb          chan chat1.ChatSearchDoneArg
 	InboxSearchHitCb      chan chat1.ChatSearchInboxHitArg
@@ -1026,6 +1027,7 @@ func NewChatUI() *ChatUI {
 	return &ChatUI{
 		InboxCb:               make(chan NonblockInboxResult, 50),
 		ThreadCb:              make(chan NonblockThreadResult, 50),
+		ThreadStatusCb:        make(chan chat1.UIChatThreadStatus, 50),
 		SearchHitCb:           make(chan chat1.ChatSearchHitArg, 50),
 		SearchDoneCb:          make(chan chat1.ChatSearchDoneArg, 50),
 		InboxSearchHitCb:      make(chan chat1.ChatSearchInboxHitArg, 50),
@@ -1117,6 +1119,7 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg string) error {
 }
 
 func (c *ChatUI) ChatThreadStatus(ctx context.Context, status chat1.UIChatThreadStatus) error {
+	c.ThreadStatusCb <- status
 	return nil
 }
 

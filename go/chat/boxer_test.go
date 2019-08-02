@@ -748,6 +748,15 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		require.Equal(t, "key invalid for sender at message ctime",
 			err.(PermanentUnboxingError).Inner().(libkb.NoKeyError).Msg)
 		require.NotNil(t, revoked)
+
+		// test out quick mode and resolve
+		ctx := globals.CtxModifyUnboxMode(context.TODO(), types.UnboxModeQuick)
+		unboxed, ierr := boxer.unbox(ctx, boxed, convInfo, key, nil)
+		require.NoError(t, ierr)
+		require.NotNil(t, unboxed)
+		resolved, err := boxer.ResolveSkippedUnboxed(ctx, chat1.NewMessageUnboxedWithValid(*unboxed))
+		require.NoError(t, err)
+		require.True(t, resolved.IsError())
 	})
 }
 
@@ -809,6 +818,16 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 		require.NoError(t, err, "ValidSenderKey")
 		require.NotNil(t, revoked)
+
+		// test quick mode and resolver
+		ctx := globals.CtxModifyUnboxMode(context.TODO(), types.UnboxModeQuick)
+		unboxed, ierr = boxer.unbox(ctx, boxed, convInfo, key, nil)
+		require.NoError(t, ierr)
+		require.Nil(t, unboxed.SenderDeviceRevokedAt)
+		resolved, err := boxer.ResolveSkippedUnboxed(ctx, chat1.NewMessageUnboxedWithValid(*unboxed))
+		require.NoError(t, err)
+		require.True(t, resolved.IsValid())
+		require.NotNil(t, resolved.Valid().SenderDeviceRevokedAt)
 	})
 }
 

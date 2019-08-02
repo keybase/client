@@ -681,7 +681,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		BodyHash:              bodyHash,
 		HeaderHash:            headerHash,
 		HeaderSignature:       headerSignature,
-		VerificationKey:       nil,
+		VerificationKey:       &validity.validationKey,
 		SenderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 		AtMentions:            atMentions,
 		AtMentionUsernames:    atMentionUsernames,
@@ -1893,6 +1893,7 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libk
 
 type verifyMessageRes struct {
 	senderDeviceRevokedAt *gregor1.Time
+	validationKey         []byte
 }
 
 // verifyMessage checks that a message is valid.
@@ -1929,9 +1930,15 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	// check key validity
 	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
 	// See ValidSenderKey for details.
-	revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
-	if ierr != nil {
-		return verifyMessageRes{}, ierr
+	var revoked *gregor1.Time
+	validationKey := header.HeaderSignature.K
+	switch globals.CtxUnboxMode(ctx) {
+	case types.UnboxModeFull:
+		var ierr types.UnboxingError
+		revoked, ierr = b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+		if ierr != nil {
+			return verifyMessageRes{}, ierr
+		}
 	}
 
 	// check signature
@@ -1947,6 +1954,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 
 	return verifyMessageRes{
 		senderDeviceRevokedAt: revoked,
+		validationKey:         validationKey,
 	}, nil
 }
 
