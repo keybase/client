@@ -58,7 +58,7 @@ class LoginRender extends React.Component<Props> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {this.props.bannerError && <Kb.Banner text={this.props.error} color="red" />}
+          {this.props.bannerError && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
           <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"
