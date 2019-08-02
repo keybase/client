@@ -187,23 +187,6 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace, includeContacts}
           serviceMap: {keybase: x.username},
         })
       )
-      for (let i = 0; i < 200; i++) {
-        const rndstr = () =>
-          Math.random()
-            .toString(36)
-            .substring(7)
-        const phonenum = Math.random()
-          .toString()
-          .substring(7)
-        const con = {
-          contact: true,
-          id: phonenum + '@phone',
-          prettyName: String.fromCharCode(65 + (i % 20)) + rndstr() + ' ' + rndstr(),
-          label: '+' + phonenum,
-          serviceMap: {},
-        }
-        contacts.push(con)
-      }
       let suggestions = suggestionRes
         .filter(({username}) => !contactUsernames.has(username))
         .map(
