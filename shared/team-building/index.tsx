@@ -227,9 +227,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore due to no RN types
         ref.scrollToLocation({
+          animated: false,
           itemIndex: 0,
           sectionIndex,
-          animated: false,
         })
       }
     }
@@ -255,6 +255,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       }
       numSections++
       const indexInSection = indexInList - currSectionHeaderIdx - 1
+      if (indexInSection === s.data.length) {
+        // it's the section footer (we don't have footers so 0px).
+        numData += indexInSection
+        length = 0
+        break
+      }
       if (indexInSection < s.data.length) {
         // we are in this data
         numData += indexInSection
@@ -262,7 +268,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       }
       // we're not in this section
       numData += s.data.length
-      currSectionHeaderIdx += s.data.length + 1
+      currSectionHeaderIdx += s.data.length + 2 // +2 because footer
     }
     const offset = numSections * sectionLength + numData * rowLength
     return {index: indexInList, length, offset}

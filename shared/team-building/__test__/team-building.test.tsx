@@ -39,18 +39,22 @@ describe('team building list', () => {
     //  1  row 0
     //  2  row 1
     //  3  row 2
-    //  4  [ test 2 ]
-    //  5  row 0
-    //  6  row 1
-    //  7  [ test 3 ]
-    //  8  row 0
-    //  9  row 1
-    // 10  row 2
+    //  4  (footer)
+    //  5  [ test 2 ]
+    //  6  row 0
+    //  7  row 1
+    //  8  (footer)
+    //  9  [ test 3 ]
+    // 10  row 0
+    // 11  row 1
+    // 12  row 2
+    // 13  (footer)
 
     const sectionLength = SectionDivider.height
     const rowLength = userResultHeight
 
-    const _getRecLayout = (sections : Array<SearchRecSection>, indexInList : number) => 
+    const _getRecLayout = (sections: Array<SearchRecSection>, indexInList: number) =>
+      // @ts-ignore we don't care, this is just a test of pure function that doesn't even access props
       new TeamBuilding.default({})._getRecLayout(sections, indexInList)
 
     expect(_getRecLayout(sections, 0)).toEqual({index: 0, length: sectionLength, offset: 0})
@@ -67,38 +71,53 @@ describe('team building list', () => {
     })
     expect(_getRecLayout(sections, 4)).toEqual({
       index: 4,
-      length: sectionLength,
+      length: 0,
       offset: sectionLength + 3 * rowLength,
     })
     expect(_getRecLayout(sections, 5)).toEqual({
       index: 5,
-      length: rowLength,
-      offset: 2 * sectionLength + 3 * rowLength,
+      length: sectionLength,
+      offset: sectionLength + 3 * rowLength,
     })
     expect(_getRecLayout(sections, 6)).toEqual({
       index: 6,
       length: rowLength,
-      offset: 2 * sectionLength + 4 * rowLength,
+      offset: 2 * sectionLength + 3 * rowLength,
     })
     expect(_getRecLayout(sections, 7)).toEqual({
       index: 7,
-      length: sectionLength,
-      offset: 2 * sectionLength + 5 * rowLength,
+      length: rowLength,
+      offset: 2 * sectionLength + 4 * rowLength,
     })
     expect(_getRecLayout(sections, 8)).toEqual({
       index: 8,
-      length: rowLength,
-      offset: 3 * sectionLength + 5 * rowLength,
+      length: 0,
+      offset: 2 * sectionLength + 5 * rowLength,
     })
     expect(_getRecLayout(sections, 9)).toEqual({
       index: 9,
-      length: rowLength,
-      offset: 3 * sectionLength + 6 * rowLength,
+      length: sectionLength,
+      offset: 2 * sectionLength + 5 * rowLength,
     })
     expect(_getRecLayout(sections, 10)).toEqual({
       index: 10,
       length: rowLength,
+      offset: 3 * sectionLength + 5 * rowLength,
+    })
+    expect(_getRecLayout(sections, 11)).toEqual({
+      index: 11,
+      length: rowLength,
+      offset: 3 * sectionLength + 6 * rowLength,
+    })
+    expect(_getRecLayout(sections, 12)).toEqual({
+      index: 12,
+      length: rowLength,
       offset: 3 * sectionLength + 7 * rowLength,
+    })
+    expect(_getRecLayout(sections, 13)).toEqual({
+      index: 13,
+      length: 0,
+      offset: 3 * sectionLength + 8 * rowLength,
     })
   })
 })
