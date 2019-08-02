@@ -13516,10 +13516,10 @@ react-native-tab-view@^2.2.0:
     unimodules-sensors-interface "~2.0.0"
     unimodules-task-manager-interface "~2.0.0"
 
-react-native-video@4.4.1:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-4.4.1.tgz#12c6a8bfbabfa7641338a52db3d857ac3073a4fd"
-  integrity sha512-gTZKRqa4NkEBx6t6iAzTFlgxDY23IZW/8YClR0hMzhOD0/9I/AzOBBaOXDyFeKj4EQF+uZ/LUS3r+oDnz1ks5w==
+react-native-video@4.4.3:
+  version "4.4.3"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-4.4.3.tgz#4fb5d05cad9420fa5c4c0d359381995543e03273"
+  integrity sha512-j3r99dygZ8SrO1ImEZ8LzUrO/GhlbfBNZrCP41x4YpDOKymQbqtt4UuBxJggKwu3rWe2TZCHOvytwVD3RMqbNg==
   dependencies:
     keymirror "^0.1.1"
     prop-types "^15.5.10"
