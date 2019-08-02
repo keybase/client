@@ -26,7 +26,6 @@ import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 import flags from '../../util/feature-flags'
-import {_setSystemIsDarkMode, _setDarkModePreference} from '../../styles/dark-mode'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -65,28 +64,6 @@ const onTrackingInfo = (
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
-
-const loadDarkMode = async () => {
-  try {
-    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
-    const preference = v.s || undefined
-
-    switch (preference) {
-      case undefined:
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'system':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysDark':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysLight':
-        return ConfigGen.createSetDarkModePreference({preference})
-      default:
-        return false
-    }
-  } catch (_) {
-    return false
-  }
-}
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
@@ -563,14 +540,35 @@ function* criticalOutOfDateCheck() {
   }
 }
 
-const setDarkModePreference = (_: Container.TypedState, action: ConfigGen.SetDarkModePreferencePayload) => {
-  _setDarkModePreference(action.payload.preference)
-  // TODO rpc
+const loadDarkPrefs = async () => {
+  try {
+    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+    const preference = v.s || undefined
+
+    switch (preference) {
+      case undefined:
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'system':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysDark':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysLight':
+        return ConfigGen.createSetDarkModePreference({preference})
+      default:
+        return false
+    }
+  } catch (_) {
+    return false
+  }
 }
 
-const setSystemDarkMode = (_: Container.TypedState, action: ConfigGen.SetSystemDarkModePayload) => {
-  _setSystemIsDarkMode(action.payload.dark)
-  // TODO rpc
+const saveDarkPrefs = async (state: Container.TypedState) => {
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.darkMode',
+      value: {isNull: false, s: state.config.darkModePreference},
+    })
+  } catch (_) {}
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
@@ -586,7 +584,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     maybeDoneWithDaemonHandshake
   )
   // darkmode
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadDarkMode)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
     ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
@@ -672,12 +670,11 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
-  yield* Saga.chainAction<ConfigGen.SetSystemDarkModePayload>(ConfigGen.setSystemDarkMode, setSystemDarkMode)
+
   yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
     ConfigGen.setDarkModePreference,
-    setDarkModePreference
+    saveDarkPrefs
   )
-
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(avatarSaga)

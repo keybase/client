@@ -128,6 +128,7 @@ export const makeState = I.Record<Types._State>({
   startupSharePath: '',
   startupTab: null,
   startupWasFromPush: false,
+    systemDarkMode: false,
   uid: '',
   userActive: true,
   username: '',

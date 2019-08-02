@@ -65,6 +65,7 @@ export type _State = {
   startupLink: string
   startupTab: Tab | null
   startupSharePath: LocalPath | null
+  systemDarkMode: boolean
   uid: string
   userActive: boolean
   username: string
