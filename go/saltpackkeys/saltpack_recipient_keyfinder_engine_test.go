@@ -301,7 +301,8 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	require.NoError(t, err)
 	kbtest.Logout(tc)
 
-	u2.Login(tc.G)
+	err = u2.Login(tc.G)
+	require.NoError(t, err)
 
 	// This should create an implicit team, as u3 has no PUK
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -708,7 +709,8 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
 
-	u3.Login(tc.G)
+	err = u3.Login(tc.G)
+	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{
 		Proofs: make(map[string]string),
@@ -729,7 +731,8 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	kbtest.Logout(tc)
 
 	// u2 is part of the team, keyfinding should succeed.
-	u2.Login(tc.G)
+	err = u2.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
 	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -897,7 +900,8 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 	// Now we delete user u2, and we check that u1 is still able to find keys for the team (which do not include keys for u2).
 	kbtest.DeleteAccount(tc, u2)
 
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -969,7 +973,8 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 	// Now, retry with a valid user logged in, which should succeed
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -1016,7 +1021,8 @@ func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
 	// First, try to get keys for a non existing user assertion with NoSelfEncrypt, which should fail
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	b, err := libkb.RandBytes(4)
 	require.NoError(tc.T, err)
