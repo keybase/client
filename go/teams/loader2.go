@@ -1024,6 +1024,7 @@ func consumeRatchets(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage
 	if link.isStubbed() {
 		return nil
 	}
+	mctx.Debug("consumeRatchets %+v", link.inner.Ratchets())
 	err = hiddenPackage.AddRatchets(mctx, link.inner.Ratchets(), link.inner.Ctime, keybase1.RatchetType_MAIN)
 	return err
 }
