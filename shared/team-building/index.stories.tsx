@@ -47,6 +47,7 @@ const load = () => {
     .add('Team Building', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -145,6 +146,7 @@ const load = () => {
     .add('Team Building - No search string', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -242,6 +244,7 @@ const load = () => {
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
+        includeContacts={true}
         {...contactProps}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
@@ -288,6 +291,7 @@ const load = () => {
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -317,6 +321,7 @@ const load = () => {
     .add('Team Building - One line of users', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -396,6 +401,7 @@ const load = () => {
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -475,6 +481,7 @@ const load = () => {
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
         {...contactProps}
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -566,6 +573,7 @@ const load = () => {
     ))
     .add('TeamBox', () => (
       <TeamBox
+        allowPhoneEmail={false}
         searchString=""
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
