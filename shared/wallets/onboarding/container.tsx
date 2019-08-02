@@ -10,6 +10,7 @@ type OwnProps = {}
 const mapStateToProps = state => {
   const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
   return {
+    _details: state.wallets.airdropDetails.disclaimer,
     acceptDisclaimerError: error && error.message ? error.message : '',
     acceptingDisclaimerDelay: state.wallets.acceptingDisclaimerDelay,
   }
@@ -20,6 +21,7 @@ const mapDispatchToProps = dispatch => ({
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
     dispatch(WalletsGen.createCheckDisclaimer({nextScreen})),
   onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
+  onLoadDetails: () => dispatch(WalletsGen.createUpdateAirdropDetails()),
 })
 
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
@@ -28,6 +30,15 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
   onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
   onClose: dispatchProps.onClose,
+  onLoadDetails: dispatchProps.onLoadDetails,
+  sections: stateProps._details.sections.toArray().map(s => ({
+    icon: s.icon,
+    lines: s.lines.toArray().map(l => ({
+      bullet: l.bullet,
+      text: l.text,
+    })),
+    section: s.section,
+  })),
 })
 
 export default connect(

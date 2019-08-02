@@ -8,6 +8,7 @@ type OnboardingProps = {
   acceptingDisclaimerDelay: boolean
   onAcceptDisclaimer: () => void
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void
+  onLoadDetails: () => void
   onClose: () => void
 }
 
@@ -19,6 +20,9 @@ class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
   state = {nextScreen: '' as const}
   _setNextScreen = (nextScreen: Types.NextScreenAfterAcceptance) => {
     this.setState({nextScreen})
+  }
+  componentDidMount() {
+    this.props.onLoadDetails()
   }
   render() {
     if (!this.state.nextScreen) {

@@ -1125,7 +1125,7 @@ const updateAirdropDetails = (
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
       const details: Constants.StellarDetailsJSONType = JSON.parse(response.details)
-      const disclaimer: Constants.StellarDetailsJSONType = JSON.parse(response.disclaimer)
+      const disclaimer: Constants.StellarDetailsJSONType = JSON.parse('{"header":{"title":"Keybase supports Stellar wallets.","body":"You can now send or request Stellar Lumens to any Keybase user on *Earth*. Transactions settle in seconds, and cost a fraction of a penny."},"sections":[{"section":"Almost done."},{"section":"It\'s important you read this.","lines":[{"text":"Foo.","bullet":false}]}]}')
       return WalletsGen.createUpdatedAirdropDetails({
         details: Constants.makeStellarDetailsFromJSON(details),
         disclaimer: Constants.makeStellarDetailsFromJSON(disclaimer),
