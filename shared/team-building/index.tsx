@@ -257,7 +257,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       const indexInSection = indexInList - currSectionHeaderIdx - 1
       if (indexInSection === s.data.length) {
         // it's the section footer (we don't have footers so 0px).
-        numData += indexInSection
+        numData += s.data.length
         length = 0
         break
       }
