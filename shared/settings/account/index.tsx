@@ -10,8 +10,7 @@ import flags from '../../util/feature-flags'
 export type Props = {
   addedEmail: string | null
   contactKeys: I.List<string>
-  hasPassword: boolean
-  supersededPhoneNumber?: string
+  hasPassword: Boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
@@ -19,6 +18,9 @@ export type Props = {
   onDeleteAccount: () => void
   onSetPassword: () => void
   onReload: () => void
+  supersededPhoneNumber?: string
+  tooManyEmails: boolean
+  tooManyPhones: boolean
   waiting: boolean
 } & HeaderHocProps
 
@@ -48,9 +50,21 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-      <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
+      <Kb.Button
+        mode="Secondary"
+        onClick={props.onAddEmail}
+        label="Add email"
+        small={true}
+        disabled={props.tooManyEmails}
+      />
       {flags.sbsContacts && (
-        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
+        <Kb.Button
+          mode="Secondary"
+          onClick={props.onAddPhone}
+          label="Add phone"
+          small={true}
+          disabled={props.tooManyPhones}
+        />
       )}
     </Kb.ButtonBar>
   </SettingsSection>

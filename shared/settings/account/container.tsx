@@ -61,6 +61,8 @@ export default connect(
       dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
     supersededPhoneNumber: stateProps.supersededPhoneNumber,
     title: 'Your account',
+    tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 3, // If you change this, also change in keybase/config/email.iced
+    tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 5, // If you change this, also change in keybase/config/phone_numbers.iced
     waiting: stateProps.waiting,
   })
 )(AccountSettings)
