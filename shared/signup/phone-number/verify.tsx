@@ -132,7 +132,7 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.blue,
     position: 'relative',
   },
-  headerText: {color: Styles.globalColors.blueDark},
+  headerText: {color: Styles.globalColors.black_50},
   iconVerticalAlign: Styles.platformStyles({
     isElectron: {
       position: 'relative',

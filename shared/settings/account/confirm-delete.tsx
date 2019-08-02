@@ -16,9 +16,9 @@ type Props = {
 
 const getIcon = (props: Props) => {
   if (props.type === 'email') {
-    return Styles.isMobile ? 'icon-email-remove-64' : 'icon-email-remove-48'
+    return Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
   }
-  return Styles.isMobile ? 'icon-phone-number-remove-64' : 'icon-phone-number-remove-48'
+  return Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
 }
 const getPrompt = (props: Props) => {
   return props.type === 'email'
