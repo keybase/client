@@ -70,7 +70,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? `Don't let friends find you by this ${props.type}.`
+        ? `Don't let friends find you by this ${props.type ? 'email' : 'number'}.`
         : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${props.type}.`,
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
@@ -120,8 +120,17 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       </Kb.Box2>
       {!!menuItems.length && (
         <>
-          <Kb.ClickableBox className="hover_container" onClick={props.toggleShowingMenu} style={styles.gearIconContainer}>
-            <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" ref={props.setAttachmentRef} style={styles.gearIcon} />
+          <Kb.ClickableBox
+            className="hover_container"
+            onClick={props.toggleShowingMenu}
+            style={styles.gearIconContainer}
+          >
+            <Kb.Icon
+              className="hover_contained_color_black"
+              type="iconfont-gear"
+              ref={props.setAttachmentRef}
+              style={styles.gearIcon}
+            />
             {gearIconBadge}
           </Kb.ClickableBox>
           <Kb.FloatingMenu

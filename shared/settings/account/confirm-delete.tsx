@@ -20,13 +20,19 @@ const getIcon = (props: Props) => {
   }
   return Styles.isMobile ? 'icon-phone-number-remove-64' : 'icon-phone-number-remove-48'
 }
-const getPrompt = (props: Props) => {
-  return props.type === 'email'
-    ? `Delete email
-${props.address}`
-    : `Delete number
-${PhoneUtil.e164ToDisplay(props.address)}`
-}
+const getPrompt = (props: Props) =>
+  props.type === 'email' ? (
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="HeaderBig">Delete email</Kb.Text>
+      <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="HeaderBig">Delete number</Kb.Text>
+      <Kb.Text type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text>
+    </Kb.Box2>
+  )
+
 const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
     icon={getIcon(props)}
