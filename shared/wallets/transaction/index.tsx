@@ -454,8 +454,6 @@ export const Transaction = (props: Props) => {
   let showMemo: boolean
   switch (props.counterpartyType) {
     case 'airdrop':
-      showMemo = false
-      break
     case 'keybaseUser':
       showMemo = true
       break
@@ -518,7 +516,13 @@ export const Transaction = (props: Props) => {
               summaryAdvanced={props.summaryAdvanced}
               trustline={props.trustline}
             />
-            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {showMemo && (
+              <MarkdownMemo
+                memo={props.memo}
+                hideDivider={props.fromAirdrop}
+                style={styles.marginTopXTiny}
+              />
+            )}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
                 <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>

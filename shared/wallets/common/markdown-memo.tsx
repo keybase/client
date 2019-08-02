@@ -5,6 +5,7 @@ import {isMobile} from '../../constants/platform'
 
 type Props = {
   memo: string
+  hideDivider?: boolean
   style?: Styles.StylesCrossPlatform
 }
 
@@ -16,7 +17,7 @@ const MarkdownMemo = (props: Props) =>
       fullWidth={true}
       style={Styles.collapseStyles([props.style, styles.container])}
     >
-      <Kb.Divider vertical={true} style={styles.quoteMarker} />
+      {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Markdown
         style={styles.memo}
         styleOverride={isMobile ? styleOverride : undefined}
