@@ -69,11 +69,13 @@ type TestCaseLoad struct {
 	OmitPrevs     keybase1.PerTeamKeyGeneration `json:"omit_prevs"`     // Do not return prevs that contain the secret for <= this number
 	ForceLastBox  bool                          `json:"force_last_box"` // Send the last known box no matter what
 	OmitBox       bool                          `json:"omit_box"`       // Send no box
+	HiddenUpto    keybase1.Seqno                `json:"hidden_upto"`    // Load up to this seqno inclusive (for hidden chains)
 
 	// Expected result
 	Error            bool   `json:"error"`
 	ErrorSubstr      string `json:"error_substr"`
 	ErrorType        string `json:"error_type"`
+	ErrorTypeFull    string `json:"error_type_full"`
 	ErrorAfterGetKey bool   `json:"error_after_get_key"`
 	NStubbed         *int   `json:"n_stubbed"`
 	ThenGetKey       int    `json:"then_get_key"`
@@ -227,6 +229,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 							if len(loadSpec.ErrorType) > 0 {
 								require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
 							}
+							if len(loadSpec.ErrorTypeFull) > 0 {
+								require.Equal(t, loadSpec.ErrorTypeFull, reflect.TypeOf(err).String(), "unexpected error type [%T]", err)
+							}
 						}
 					} else {
 						require.False(t, loadSpec.ErrorAfterGetKey, "test does not make sense: ErrorAfterGetKey but no ThenGetKey")
@@ -240,6 +245,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				}
 				if len(loadSpec.ErrorType) > 0 {
 					require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
+				}
+				if len(loadSpec.ErrorTypeFull) > 0 {
+					require.Equal(t, loadSpec.ErrorTypeFull, reflect.TypeOf(err).String(), "unexpected error type [%T]", err)
 				}
 			}
 
