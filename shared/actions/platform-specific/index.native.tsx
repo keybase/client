@@ -47,6 +47,22 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
+const requestLocationPermission = (): Promise<void> => {
+  if (isAndroid) {
+    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
+      buttonNegative: 'Cancel',
+      buttonPositive: 'OK',
+      message: 'Keybase needs access to your location in order to post it.',
+      title: 'Keybase Location Permission',
+    }).then(permissionStatus =>
+      permissionStatus !== 'granted'
+        ? Promise.reject(new Error('Unable to acquire location permissions'))
+        : Promise.resolve()
+    )
+  }
+  return Promise.resolve()
+}
+
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
@@ -599,4 +615,5 @@ export {
   saveAttachmentToCameraRoll,
   getContentTypeFromURL,
   platformConfigSaga,
+  requestLocationPermission,
 }
