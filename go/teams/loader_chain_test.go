@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 	storage "github.com/keybase/client/go/teams/storage"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -33,6 +34,7 @@ type TestCase struct {
 			TeamBox   TeamBox               `json:"box"`
 			Prev      *prevKeySealedEncoded `json:"prev"`
 		} `json:"team_key_boxes"`
+		RatchetBlindingKeySet *hidden.RatchetBlindingKeySet `json:"ratchet_blinding_keys"`
 	} `json:"teams"`
 	Users map[string] /*user label*/ struct {
 		UID               keybase1.UID   `json:"uid"`

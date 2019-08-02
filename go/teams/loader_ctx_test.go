@@ -191,15 +191,16 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 	}
 
 	return &rawTeam{
-		ID:             teamID,
-		Name:           name,
-		Status:         libkb.AppStatus{Code: libkb.SCOk},
-		Chain:          links,
-		Box:            box,
-		Prevs:          prevs,
-		ReaderKeyMasks: readerKeyMasks,
-		SubteamReader:  l.state.loadSpec.SubteamReader,
-		HiddenChain:    hiddenChain,
+		ID:                    teamID,
+		Name:                  name,
+		Status:                libkb.AppStatus{Code: libkb.SCOk},
+		Chain:                 links,
+		Box:                   box,
+		Prevs:                 prevs,
+		ReaderKeyMasks:        readerKeyMasks,
+		SubteamReader:         l.state.loadSpec.SubteamReader,
+		HiddenChain:           hiddenChain,
+		RatchetBlindingKeySet: teamSpec.RatchetBlindingKeySet,
 	}, nil
 }
 
