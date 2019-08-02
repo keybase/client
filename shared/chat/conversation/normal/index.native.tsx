@@ -4,8 +4,7 @@ import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import {Props} from './index.types'
 import ThreadLoadStatus from '../load-status/container'
 
@@ -61,7 +60,7 @@ class Conversation extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = styleSheetCreate({
   innerContainer: {
     flex: 1,
     position: 'relative',
