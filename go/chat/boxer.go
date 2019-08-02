@@ -1971,6 +1971,10 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	var found, deleted bool
 	var revokedAt *keybase1.KeybaseTime
 	validAtCtime := true
+	if b.testingValidSenderKey != nil {
+		b.assertInTest()
+		return b.testingValidSenderKey(ctx, sender, key, ctime)
+	}
 	defer func() {
 		if unboxErr == nil {
 			if !found {
@@ -1982,10 +1986,6 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 			}
 		}
 	}()
-	if b.testingValidSenderKey != nil {
-		b.assertInTest()
-		return b.testingValidSenderKey(ctx, sender, key, ctime)
-	}
 
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
