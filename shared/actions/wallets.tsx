@@ -1513,7 +1513,13 @@ const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
     return openURL(res.externalUrl)
   }
   if (res.messageFromAnchor) {
-    return WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor})
+    return [
+      WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+      }),
+    ]
   }
   console.warn('SEP6 result without Url or Message', res)
   return null
