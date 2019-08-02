@@ -104,10 +104,11 @@ export const areaCodeIsCanadian = (input: string): boolean => {
 
 export const validateNumber = (rawNumber: string, region?: string | null) => {
   try {
-    const number = phoneUtil.parse(rawNumber, region || '')
-    const valid = phoneUtil.isValidNumber(number)
+    const phoneNumber = phoneUtil.parse(rawNumber, region || '')
+    const valid = phoneUtil.isValidNumber(phoneNumber)
     return {
-      e164: phoneUtil.format(number, PNF.E164),
+      e164: phoneUtil.format(phoneNumber, PNF.E164),
+      phoneNumber,
       valid,
     }
   } catch (e) {
@@ -116,19 +117,29 @@ export const validateNumber = (rawNumber: string, region?: string | null) => {
 }
 
 export const formatPhoneNumber = (rawNumber: string) => {
-  const number = phoneUtil.parse(rawNumber, '')
-  return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+  const phoneNumber = phoneUtil.parse(rawNumber, '')
+  return `+${phoneNumber.getCountryCode()} ${phoneUtil.format(phoneNumber, PNF.NATIONAL)}`
+}
+
+export const formatAnyPhoneNumbers = (rawText: string) => {
+  const found = rawText.match(/(\+)?(\d)+/)
+  const rawNumber = found ? found[0] : ''
+  const validatedNumber = validateNumber(rawNumber)
+  const phoneNumber = validatedNumber.phoneNumber
+  if (!validatedNumber.valid || !phoneNumber) return rawText
+  const replacement = `+${phoneNumber.getCountryCode()} ${phoneUtil.format(phoneNumber, PNF.NATIONAL)}`
+  return rawText.replace(rawNumber, replacement)
 }
 
 // Return phone number in international format, e.g. +1 800 555 0123
 // or e.164 if parsing fails
 export const e164ToDisplay = (e164: string): string => {
   try {
-    const number = phoneUtil.parse(e164)
-    if (number.getCountryCode() === 1) {
-      return '+1 ' + phoneUtil.format(number, PNF.NATIONAL)
+    const phoneNumber = phoneUtil.parse(e164)
+    if (phoneNumber.getCountryCode() === 1) {
+      return '+1 ' + phoneUtil.format(phoneNumber, PNF.NATIONAL)
     }
-    return phoneUtil.format(number, PNF.INTERNATIONAL)
+    return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
   } catch (e) {
     return e164
   }
@@ -138,8 +149,8 @@ export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
 
 export const formatPhoneNumberInternational = (rawNumber: string): string | undefined => {
   try {
-    const number = phoneUtil.parse(rawNumber)
-    return phoneUtil.format(number, PNF.INTERNATIONAL)
+    const phoneNumber = phoneUtil.parse(rawNumber)
+    return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
   } catch {
     return undefined
   }
