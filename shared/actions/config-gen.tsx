@@ -40,12 +40,14 @@ export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
+export const setDarkModePreference = 'config:setDarkModePreference'
 export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
+export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -111,6 +113,9 @@ type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
+type _SetDarkModePreferencePayload = {
+  readonly preference: 'system' | 'alwaysDark' | 'alwaysLight' | undefined
+}
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
@@ -124,6 +129,7 @@ type _SetStartupDetailsPayload = {
   readonly startupFollowUser: string
   readonly startupSharePath: FsTypes.LocalPath | null
 }
+type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -290,6 +296,9 @@ export const createSetAccounts = (payload: _SetAccountsPayload): SetAccountsPayl
   payload,
   type: setAccounts,
 })
+export const createSetDarkModePreference = (
+  payload: _SetDarkModePreferencePayload
+): SetDarkModePreferencePayload => ({payload, type: setDarkModePreference})
 export const createSetDefaultUsername = (payload: _SetDefaultUsernamePayload): SetDefaultUsernamePayload => ({
   payload,
   type: setDefaultUsername,
@@ -313,6 +322,10 @@ export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload): SetOpenAt
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload): SetStartupDetailsPayload => ({
   payload,
   type: setStartupDetails,
+})
+export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): SetSystemDarkModePayload => ({
+  payload,
+  type: setSystemDarkMode,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload => ({
@@ -406,6 +419,10 @@ export type RestartHandshakePayload = {
   readonly type: typeof restartHandshake
 }
 export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
+export type SetDarkModePreferencePayload = {
+  readonly payload: _SetDarkModePreferencePayload
+  readonly type: typeof setDarkModePreference
+}
 export type SetDefaultUsernamePayload = {
   readonly payload: _SetDefaultUsernamePayload
   readonly type: typeof setDefaultUsername
@@ -426,6 +443,10 @@ export type SetOpenAtLoginPayload = {
 export type SetStartupDetailsPayload = {
   readonly payload: _SetStartupDetailsPayload
   readonly type: typeof setStartupDetails
+}
+export type SetSystemDarkModePayload = {
+  readonly payload: _SetSystemDarkModePayload
+  readonly type: typeof setSystemDarkMode
 }
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
@@ -476,12 +497,14 @@ export type Actions =
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
+  | SetDarkModePreferencePayload
   | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
+  | SetSystemDarkModePayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload

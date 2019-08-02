@@ -3,10 +3,9 @@ import * as React from 'react'
 import Router from './router'
 import {connect} from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
+import * as Constants from '../constants/config'
 
-type OwnProps = {
-  isDarkMode: boolean
-}
+type OwnProps = {}
 
 type Props = {
   updateNavigator: (nav: unknown) => void
@@ -28,7 +27,7 @@ class RouterSwitcheroo extends React.PureComponent<Props> {
 }
 
 export default connect(
-  () => ({}),
+  state => ({isDarkMode: Constants.isDarkMode(state.config)}),
   dispatch => ({
     persistRoute: path => dispatch(ConfigGen.createPersistRoute({path})),
     updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),

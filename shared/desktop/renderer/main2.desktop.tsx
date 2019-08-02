@@ -18,7 +18,8 @@ import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {isDarwin} from '../../constants/platform'
-import {setIsDarkMode, isDarkMode} from '../../styles/dark-mode'
+import {useSelector} from '../../util/container'
+import {isDarkMode} from '../../constants/config'
 
 // Top level HMR accept
 if (module.hot) {
@@ -112,21 +113,28 @@ const FontLoader = () => (
 
 let store
 
+const DarkContainer = ({children}) => {
+  const className = useSelector(state => isDarkMode(state.config)) ? 'darkMode' : undefined
+  return (
+    <div style={{display: 'flex', flex: 1}} className={className}>
+      {children}
+    </div>
+  )
+}
+
 const render = (Component = Main) => {
   const root = document.getElementById('root')
   if (!root) {
     throw new Error('No root element?')
   }
 
-  const darkMode = isDarkMode()
-
   ReactDOM.render(
     <Root store={store}>
-      <div style={{display: 'flex', flex: 1}} className={darkMode ? 'darkMode' : undefined}>
-        <RemoteProxies />
-        <FontLoader />
-        <Component isDarkMode={darkMode} />
-      </div>
+      <RemoteProxies />
+      <FontLoader />
+      <DarkContainer>
+        <Component />
+      </DarkContainer>
     </Root>,
     root
   )
@@ -154,8 +162,11 @@ const setupDarkMode = () => {
     SafeElectron.getSystemPreferences().subscribeNotification(
       'AppleInterfaceThemeChangedNotification',
       () => {
-        setIsDarkMode(isDarwin && SafeElectron.getSystemPreferences().isDarkMode())
-        render()
+        store.dispatch(
+          ConfigGen.createSetSystemDarkMode({
+            dark: isDarwin && SafeElectron.getSystemPreferences().isDarkMode(),
+          })
+        )
       }
     )
   }

@@ -26,6 +26,7 @@ import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 import flags from '../../util/feature-flags'
+import {_setSystemIsDarkMode, _setDarkModePreference} from '../../styles/dark-mode'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -64,6 +65,28 @@ const onTrackingInfo = (
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
+
+const loadDarkMode = async () => {
+  try {
+    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+    const preference = v.s || undefined
+
+    switch (preference) {
+      case undefined:
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'system':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysDark':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysLight':
+        return ConfigGen.createSetDarkModePreference({preference})
+      default:
+        return false
+    }
+  } catch (_) {
+    return false
+  }
+}
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
@@ -540,6 +563,16 @@ function* criticalOutOfDateCheck() {
   }
 }
 
+const setDarkModePreference = (_: Container.TypedState, action: ConfigGen.SetDarkModePreferencePayload) => {
+  _setDarkModePreference(action.payload.preference)
+  // TODO rpc
+}
+
+const setSystemDarkMode = (_: Container.TypedState, action: ConfigGen.SetSystemDarkModePayload) => {
+  _setSystemIsDarkMode(action.payload.dark)
+  // TODO rpc
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -552,6 +585,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeWait,
     maybeDoneWithDaemonHandshake
   )
+  // darkmode
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadDarkMode)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
     ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
@@ -637,6 +672,11 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
+  yield* Saga.chainAction<ConfigGen.SetSystemDarkModePayload>(ConfigGen.setSystemDarkMode, setSystemDarkMode)
+  yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
+    ConfigGen.setDarkModePreference,
+    setDarkModePreference
+  )
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

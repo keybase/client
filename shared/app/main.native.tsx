@@ -18,7 +18,7 @@ class Main extends React.Component<Props> {
     // TODO likely collapse index.native/main.native/nav.native etc
     return (
       <>
-        <RouterSwitcheroo isDarkMode={false} />
+        <RouterSwitcheroo />
         <GatewayDest
           name="popup-root"
           component={ViewForGatewayDest}

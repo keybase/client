@@ -1,4 +1,4 @@
-import globalColors from './colors'
+import {colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as Shared from './shared'
@@ -55,7 +55,8 @@ const font = {
 const util = {
   ...Shared.util({flexCommon: {display: 'flex'}}),
   loadingTextStyle: {
-    backgroundColor: globalColors.greyLight,
+    // this won't really work with dark mode
+    backgroundColor: colors.greyLight,
     height: 16,
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,
@@ -69,7 +70,7 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
-  boxShadow: {boxShadow: `0 2px 5px 0 ${globalColors.black_20}`},
+  boxShadow: {boxShadow: `0 2px 5px 0 ${colors.black_20}`},
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
@@ -119,16 +120,22 @@ export const initDesktopStyles = () => {
   }
   const style = document.createElement('style')
   style.type = 'text/css'
-  const css = Object.keys(globalColors).reduce((s, name) => {
-    const color = globalColors[name]
+  const css = Object.keys(colors).reduce((s, name) => {
+    const color = colors[name]
+    const darkColor = darkColors[name]
     if (color) {
       return (
         s +
         `.color_${name} {color: ${color};}\n` +
+        `.darkMode .color_${name} {color: ${darkColor};}\n` +
         `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.darkMode .hover_color_${name}:hover {color: ${darkColor};}\n` +
         `.hover_container:hover .hover_contained_color_${name} {color: ${color};}\n` +
+        `.darkMode .hover_container:hover .hover_contained_color_${name} {color: ${darkColor};}\n` +
         `.background_color_${name} {background-color: ${color};}\n` +
-        `.hover_background_color_${name}:hover {background-color: ${color};}\n`
+        `.darkMode .background_color_${name} {background-color: ${darkColor};}\n` +
+        `.hover_background_color_${name}:hover {background-color: ${color};}\n` +
+        `.darkMode .hover_background_color_${name}:hover {background-color: ${darkColor};}\n`
       )
     } else {
       return s

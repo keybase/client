@@ -5,6 +5,7 @@ import {Tab} from '../tabs'
 import {RPCError} from '../../util/errors'
 import {LocalPath} from '../../constants/types/fs'
 import * as NetInfo from '@react-native-community/netinfo'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 export type _OutOfDate = {
   critical: boolean
@@ -37,6 +38,7 @@ export type _State = {
   daemonHandshakeWaiters: I.Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
+  darkModePreference: DarkModePreference
   debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
   deviceName: string | null

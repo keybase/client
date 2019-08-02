@@ -22,6 +22,7 @@ import {compose} from 'recompose'
 import Advanced from './index'
 import {connect, lifecycle, TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
@@ -29,6 +30,7 @@ const mapStateToProps = (state: TypedState) => {
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
     allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
+    darkModePreference: state.config.darkModePreference,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
@@ -59,6 +61,8 @@ const mapDispatchToProps = dispatch => ({
   onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false})),
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
+  onSetDarkModePreference: (preference: DarkModePreference) =>
+    dispatch(ConfigGen.createSetDarkModePreference({preference})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
@@ -69,7 +73,7 @@ export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-      (s, d, o: OwnProps) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
   lifecycle({
     componentDidMount() {
