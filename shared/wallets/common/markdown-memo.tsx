@@ -4,6 +4,24 @@ import * as Styles from '../../styles'
 import {StyleOverride} from '../../common-adapters/markdown'
 import {isMobile} from '../../constants/platform'
 
+const styleOverride = Styles.styleSheetCreate({
+  del: {
+    color: Styles.globalColors.black,
+  },
+  em: {
+    color: Styles.globalColors.black,
+  },
+  link: {
+    color: Styles.globalColors.black,
+  },
+  paragraph: {
+    color: Styles.globalColors.black,
+  },
+  strong: {
+    color: Styles.globalColors.black,
+  },
+})
+
 type Props = {
   memo: string
   hideDivider?: boolean
@@ -50,24 +68,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
-})
-
-const styleOverride = Styles.styleSheetCreate({
-  del: {
-    color: Styles.globalColors.black,
-  },
-  em: {
-    color: Styles.globalColors.black,
-  },
-  link: {
-    color: Styles.globalColors.black,
-  },
-  paragraph: {
-    color: Styles.globalColors.black,
-  },
-  strong: {
-    color: Styles.globalColors.black,
-  },
 })
 
 export default MarkdownMemo
