@@ -227,7 +227,7 @@ func (r RotateKey) verifyReverseSig() (err error) {
 }
 
 func hash(b []byte) LinkID {
-	return LinkID(sha256.Sum256(b[:]))
+	return LinkID(sha256.Sum256(b))
 }
 
 func (l LinkID) eq(m LinkID) bool {
@@ -385,8 +385,8 @@ func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
 }
 
 func genRandomBytes(i int) ([]byte, error) {
-	ret := make([]byte, i, i)
-	n, err := rand.Read(ret[:])
+	ret := make([]byte, i)
+	n, err := rand.Read(ret)
 	if err != nil {
 		return nil, err
 	}
