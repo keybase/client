@@ -89,7 +89,7 @@ export default class Asset extends React.Component<Props, State> {
           </Kb.Box2>
         </Kb.ClickableBox>
         {this.state.expanded && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedRowContainer}>
             {this.props.isNative && (
               <BalanceSummary
                 availableToSend={this.props.availableToSend}
@@ -178,8 +178,8 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
               multiline={true}
             >
               <Kb.Icon
-                fontSize={Styles.isMobile ? 18 : 12}
                 onClick={Styles.isMobile ? props.openStellarURL : null}
+                sizeType="Small"
                 style={styles.questionMark}
                 type="iconfont-question-mark"
               />
@@ -232,7 +232,8 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 1,
     },
     isElectron: {
-      flexBasis: '355px',
+      alignSelf: 'flex-end',
+      width: 355,
     },
   }),
   caret: Styles.platformStyles({
