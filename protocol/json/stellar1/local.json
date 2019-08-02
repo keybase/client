@@ -1393,6 +1393,10 @@
         {
           "type": "string",
           "name": "availableToSendFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
         }
       ]
     },
