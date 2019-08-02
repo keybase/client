@@ -229,6 +229,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         ref.scrollToLocation({
           itemIndex: 0,
           sectionIndex,
+          animated: false,
         })
       }
     }
@@ -238,9 +239,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     sections: Array<SearchRecSection>,
     indexInList: number
   ): {index: number; length: number; offset: number} => {
+    const sectionLength = Kb.SectionDivider.height
+    const rowLength = userResultHeight
+
     let numSections = 0
     let numData = 0
-    let length = userResultHeight
+    let length = rowLength
     let currSectionHeaderIdx = 0
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i]
@@ -250,7 +254,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         break
       }
       numSections++
-      const indexInSection = indexInList - currSectionHeaderIdx
+      const indexInSection = indexInList - currSectionHeaderIdx - 1
       if (indexInSection < s.data.length) {
         // we are in this data
         numData += indexInSection
@@ -260,7 +264,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       numData += s.data.length
       currSectionHeaderIdx += s.data.length + 1
     }
-    const offset = numSections * 40 + numData * 64
+    const offset = numSections * sectionLength + numData * rowLength
     return {index: indexInList, length, offset}
   }
 
