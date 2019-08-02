@@ -341,6 +341,7 @@ export type StellarDetailsResponse = I.RecordOf<_StellarDetailsResponse>
 
 export type _StellarDetails = {
   details: StellarDetailsResponse
+  disclaimer: StellarDetailsResponse
   isPromoted: boolean
 }
 

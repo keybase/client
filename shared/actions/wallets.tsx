@@ -1124,9 +1124,11 @@ const updateAirdropDetails = (
   state.config.loggedIn &&
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
-      const json: Constants.StellarDetailsJSONType = JSON.parse(response.details)
+      const details: Constants.StellarDetailsJSONType = JSON.parse(response.details)
+      const disclaimer: Constants.StellarDetailsJSONType = JSON.parse(response.disclaimer)
       return WalletsGen.createUpdatedAirdropDetails({
-        details: Constants.makeStellarDetailsFromJSON(json),
+        details: Constants.makeStellarDetailsFromJSON(details),
+        disclaimer: Constants.makeStellarDetailsFromJSON(disclaimer),
         isPromoted: response.isPromoted,
       })
     })

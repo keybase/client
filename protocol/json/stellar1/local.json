@@ -805,6 +805,10 @@
         {
           "type": "string",
           "name": "details"
+        },
+        {
+          "type": "string",
+          "name": "disclaimer"
         }
       ]
     },

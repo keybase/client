@@ -98,6 +98,7 @@ export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
 
 export const makeStellarDetails = I.Record<Types._StellarDetails>({
   details: makeStellarDetailsResponse(),
+  disclaimer: makeStellarDetailsResponse(),
   isPromoted: false,
 })
 

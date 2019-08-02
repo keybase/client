@@ -504,11 +504,12 @@ protocol local {
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // airdropDetailsLocal returns a json blob of details about the current
-  // airdrop.  If the current airdrop has expired, it will return an
-  // expired error.
+  // airdrop and a json blob of content of the wallet disclaimer.  If the
+  // current airdrop has expired, it will return an expired error.
   record AirdropDetails {
     boolean isPromoted;
     string details;
+    string disclaimer;
   }
   AirdropDetails airdropDetailsLocal(int sessionID);
 

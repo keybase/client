@@ -1009,11 +1009,11 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp s
 		return stellar1.AirdropDetails{}, err
 	}
 
-	isPromoted, details, err := remote.AirdropDetails(mctx)
+	isPromoted, details, disclaimer, err := remote.AirdropDetails(mctx)
 	if err != nil {
 		return stellar1.AirdropDetails{}, err
 	}
-	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details}, nil
+	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details, Disclaimer: disclaimer}, nil
 
 }
 
