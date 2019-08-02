@@ -34,7 +34,7 @@ export default Container.connect(
     _groups: state.settings.notifications.groups,
     allowEdit: state.settings.notifications.allowEdit,
     mobileHasPermissions: state.push.hasPermissions,
-    showEmailSection: !state.settings.email.emails,
+    showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
     sound: state.config.notifySound,
     waitingForResponse: state.settings.waitingForResponse,
   }),

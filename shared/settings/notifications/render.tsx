@@ -4,24 +4,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
 import {Props} from './index'
 
-const SubscriptionCheckbox = (props: {
-  allowEdit: boolean
-  description: string
-  groupName: string
-  name: string
-  onToggle: (groupName: string, name: string) => void
-  subscribed: boolean
-}) => (
-  <Kb.Checkbox
-    style={styles.checkbox}
-    key={props.name}
-    disabled={!props.allowEdit}
-    onCheck={() => props.onToggle(props.groupName, props.name)}
-    checked={props.subscribed}
-    label={props.description}
-  />
-)
-
 const Group = (props: {
   allowEdit: boolean
   groupName: string
@@ -36,29 +18,24 @@ const Group = (props: {
   <Kb.Box2 direction="vertical">
     <Kb.Text type="Header">{props.title}</Kb.Text>
     {props.label && (
-      <Kb.Text
-        type="BodySmall"
-        style={{marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny}}
-      >
+      <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
       </Kb.Text>
     )}
-    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginBottom: Styles.globalMargins.tiny}}>
+    <Kb.Box2 direction="vertical" gap="xtiny" gapStart={true} gapEnd={true} alignSelf="flex-start">
       {props.settings &&
         props.settings.map(s => (
-          <SubscriptionCheckbox
-            allowEdit={props.allowEdit}
-            description={s.description}
-            groupName={props.groupName}
+          <Kb.Checkbox
             key={props.groupName + s.name}
-            name={s.name}
-            onToggle={props.onToggle}
-            subscribed={s.subscribed}
+            disabled={!props.allowEdit}
+            onCheck={() => props.onToggle(props.groupName, s.name)}
+            checked={s.subscribed}
+            label={s.description}
           />
         ))}
-    </Kb.Box>
+    </Kb.Box2>
     {props.unsub && (
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Styles.globalMargins.xtiny}}
@@ -67,7 +44,7 @@ const Group = (props: {
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe me from all ${props.unsub} notifications`}
         />
-      </Kb.Box>
+      </Kb.Box2>
     )}
     <Kb.Divider style={styles.divider} />
   </Kb.Box2>
@@ -100,13 +77,11 @@ const PhoneSection = (props: Props) => (
 )
 const Notifications = (props: Props) =>
   !props.groups || !props.groups.email || !props.groups.email.settings ? (
-    <Kb.Box
-      style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}
-    >
+    <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
-    </Kb.Box>
+    </Kb.Box2>
   ) : (
-    <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1, padding: Styles.globalMargins.small}}>
+    <Kb.Box style={styles.main}>
       {props.showEmailSection ? (
         <EmailSection {...props} />
       ) : (
@@ -174,4 +149,10 @@ const styles = Styles.styleSheetCreate({
     marginLeft: -Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
+  label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
+  loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
+  main: Styles.platformStyles({
+    common: {flex: 1, padding: Styles.globalMargins.small},
+    isElectron: Styles.desktopStyles.scrollable,
+  }),
 })
