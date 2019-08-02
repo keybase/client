@@ -100,7 +100,8 @@ func (s *SavedContactsStore) ClearPhoneNumber(mctx libkb.MetaContext,
 		mctx.Warning("Failed to get cached contact list: %x", err)
 	}
 	for i, con := range contactList {
-		if *con.Component.PhoneNumber == keybase1.RawPhoneNumber(phoneNumber) {
+		if con.Component.PhoneNumber != nil &&
+			*con.Component.PhoneNumber == keybase1.RawPhoneNumber(phoneNumber) {
 			con.Resolved = false
 			contactList[i] = con
 		}
