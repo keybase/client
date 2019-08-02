@@ -77,36 +77,6 @@ export default class Asset extends React.Component<Props, State> {
               </Kb.Text>
 
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.equivContainer}>
-                {!!this.props.depositButtonText && (
-                  <>
-                    <Kb.Text
-                      type="BodySmallSecondaryLink"
-                      lineClamp={1}
-                      onClick={this.props.onDeposit ? this._onDeposit : undefined}
-                    >
-                      {this.props.depositButtonText}
-                    </Kb.Text>
-                    <Kb.Text style={styles.equivDivider} type="BodySmall">
-                      |
-                    </Kb.Text>
-                  </>
-                )}
-
-                {!!this.props.withdrawButtonText && (
-                  <>
-                    <Kb.Text
-                      type="BodySmallSecondaryLink"
-                      lineClamp={1}
-                      onClick={this.props.onWithdraw ? this._onWithdraw : undefined}
-                    >
-                      {this.props.withdrawButtonText}
-                    </Kb.Text>
-                    <Kb.Text style={styles.equivDivider} type="BodySmall">
-                      |
-                    </Kb.Text>
-                  </>
-                )}
-
                 <Kb.Text
                   type="BodySmallSecondaryLink"
                   lineClamp={1}
@@ -129,7 +99,44 @@ export default class Asset extends React.Component<Props, State> {
                 openStellarURL={this.props.openStellarURL}
               />
             )}
-            {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              {!!this.props.issuerAccountID && (
+                <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />
+              )}
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.ButtonBar direction="row" align="flex-start" small={true}>
+                  {!!this.props.depositButtonText && (
+                    <>
+                      <Kb.Button
+                        mode="Secondary"
+                        label={this.props.depositButtonText}
+                        onClick={this.props.onDeposit}
+                        small={true}
+                      />
+                    </>
+                  )}
+
+                  {!!this.props.withdrawButtonText && (
+                    <>
+                      <Kb.Button
+                        mode="Secondary"
+                        label={this.props.withdrawButtonText}
+                        onClick={this.props.onWithdraw}
+                        small={true}
+                      />
+                    </>
+                  )}
+                  {!!this.props.infoUrlText && (
+                    <Kb.Button
+                      mode="Secondary"
+                      label={this.props.infoUrlText}
+                      onClick={this.props.openInfoURL}
+                      small={true}
+                    />
+                  )}
+                </Kb.ButtonBar>
+              </Kb.Box2>
+            </Kb.Box2>
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -204,8 +211,8 @@ type IssuerAccountIDProps = {
 
 const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Text type="Body">Issuer:</Kb.Text>
-    <Kb.Text type="Body" selectable={true} lineClamp={3}>
+    <Kb.Text type="BodySmall">Issuer:</Kb.Text>
+    <Kb.Text type="BodySmall" selectable={true} lineClamp={3}>
       {props.issuerAccountID}
     </Kb.Text>
   </Kb.Box2>
