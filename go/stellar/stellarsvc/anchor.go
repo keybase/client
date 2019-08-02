@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/stellar/go/xdr"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -86,9 +87,12 @@ func (a *anchorInteractor) checkAsset(mctx libkb.MetaContext) error {
 		return errors.New("asset has no transfer server")
 	}
 
-	// we don't support transfer servers that require authentication via sep10 at this point
 	if a.asset.AuthEndpoint != "" {
-		return errors.New("asset anchor requires authentication, which Keybase does not support at this time")
+		// asset requires sep10 authentication token
+		if err := a.getAuthToken(mctx); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
@@ -237,4 +241,52 @@ func (a *anchorInteractor) domainMatches(url string) bool {
 		return false
 	}
 	return urlTLD == assetTLD
+}
+
+func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
+	u, err := url.ParseRequestURI(a.asset.AuthEndpoint)
+	if err != nil {
+		return err
+	}
+	if !a.domainMatches(u.Host) {
+		return errors.New("auth endpoint domain does not match asset")
+	}
+
+	v := url.Values{}
+	v.Set("account", a.accountID.String())
+	u.RawQuery = v.Encode()
+
+	code, body, err := a.httpGetClient(mctx, u.String())
+	if err != nil {
+		return err
+	}
+	if code != http.StatusOK {
+		return errors.New("auth endpoint GET error")
+	}
+	var res map[string]string
+	if err := json.Unmarshal(body, &res); err != nil {
+		return err
+	}
+	tx, ok := res["transaction"]
+	if !ok {
+		return errors.New("auth endpoint response did not contain a tx challenge")
+	}
+	var unpacked xdr.TransactionEnvelope
+	err = xdr.SafeUnmarshalBase64(tx, &unpacked)
+	if err != nil {
+		return err
+	}
+	mctx.Debug("tx challenge: %+v", unpacked)
+
+	if unpacked.Tx.SeqNum != 0 {
+		return errors.New("invalid tx challenge: seqno not zero")
+	}
+	sourceAccount := stellar1.AccountID(unpacked.Tx.SourceAccount.Address())
+	mctx.Debug("source account: %s", sourceAccount)
+
+	// TODO:
+	// sourceAccount is supposed to be the same as SIGNING_KEY in stellar.toml.
+	// we don't get that value currently...
+
+	return nil
 }
