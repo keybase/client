@@ -1007,7 +1007,7 @@ const acceptDisclaimer = (_: TypedState) =>
     }
   )
 
-const checkDisclaimer = (_: TypedState, __: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
+const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     .then(accepted => {
       const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
@@ -1018,16 +1018,27 @@ const checkDisclaimer = (_: TypedState, __: WalletsGen.CheckDisclaimerPayload, l
         if (isMobile) {
           actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
         }
+        if (action.payload.nextScreen === 'airdrop') {
+          actions.push(
+            RouteTreeGen.createNavigateAppend({
+              path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
+            })
+          )
+        }
+        if (action.payload.nextScreen === 'linkExisting') {
+          actions.push(
+            RouteTreeGen.createNavigateAppend({
+              path: [
+                ...Constants.rootWalletPath,
+                ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting']),
+              ],
+            })
+          )
+        }
       }
       return actions
     })
     .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
-
-const maybeNavToLinkExisting = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
-  action.payload.nextScreen === 'linkExisting' &&
-  RouteTreeGen.createNavigateAppend({
-    path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
-  })
 
 const rejectDisclaimer = (_: TypedState, __: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
@@ -1844,11 +1855,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.checkDisclaimer,
     checkDisclaimer,
     'checkDisclaimer'
-  )
-  yield* Saga.chainAction<WalletsGen.CheckDisclaimerPayload>(
-    WalletsGen.checkDisclaimer,
-    maybeNavToLinkExisting,
-    'maybeNavToLinkExisting'
   )
   yield* Saga.chainAction<WalletsGen.RejectDisclaimerPayload>(
     WalletsGen.rejectDisclaimer,

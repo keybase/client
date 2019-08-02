@@ -12,7 +12,7 @@ type OnboardingProps = {
 }
 
 type OnboardingState = {
-  nextScreen: '' | 'openWallet' | 'linkExisting'
+  nextScreen: '' | 'openWallet' | 'linkExisting' | 'airdrop'
 }
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {

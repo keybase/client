@@ -135,7 +135,7 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = void
+type _AcceptDisclaimerPayload = {readonly reason: string}
 type _AcceptSEP7PathPayload = {readonly inputURI: string}
 type _AcceptSEP7PayPayload = {readonly amount: string; readonly inputURI: string}
 type _AcceptSEP7TxPayload = {readonly inputURI: string}

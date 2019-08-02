@@ -10,7 +10,8 @@
       "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "acceptDisclaimer": {
-      "_description": "Accept the Stellar account disclaimer"
+      "_description": "Accept the Stellar account disclaimer",
+      "reason": "string"
     },
     "acceptSEP7Path": {
       "_description": "Accept the prepared SEP7 path payment",

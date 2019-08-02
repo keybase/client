@@ -47,6 +47,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onLearnMore: () => {
+    // this might not work in mobile either
     dispatch(RouteTreeGen.createSwitchTab({tab: WalletsConstants.rootWalletTab}))
     dispatch(RouteTreeGen.createNavigateAppend({path: [...WalletsConstants.walletPath, 'airdrop']}))
   },
