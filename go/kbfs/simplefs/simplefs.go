@@ -448,11 +448,12 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Size = int(fi.Size()) // TODO: FIX protocol
 
 	t := data.File
-	if fi.IsDir() {
+	switch {
+	case fi.IsDir():
 		t = data.Dir
-	} else if fi.Mode()&0100 != 0 {
+	case fi.Mode()&0100 != 0:
 		t = data.Exec
-	} else if fi.Mode()&os.ModeSymlink != 0 {
+	case fi.Mode()&os.ModeSymlink != 0:
 		t = data.Sym
 	}
 	de.DirentType = deTy2Ty(t)
@@ -1190,13 +1191,14 @@ type copyNode struct {
 }
 
 func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
-	if p.Local__ != nil {
+	switch {
+	case p.Local__ != nil:
 		var s = stdpath.Join(*p.Local__, leaf)
 		p.Local__ = &s
-	} else if p.Kbfs__ != nil {
+	case p.Kbfs__ != nil:
 		var s = stdpath.Join(*p.Kbfs__, leaf)
 		p.Kbfs__ = &s
-	} else if p.KbfsArchived__ != nil {
+	case p.KbfsArchived__ != nil:
 		var s = stdpath.Join(p.KbfsArchived__.Path, leaf)
 		p = p.DeepCopy()
 		p.KbfsArchived__.Path = s
@@ -1832,9 +1834,10 @@ func (k *SimpleFS) doGetRevisions(
 		// PreviousRevisions list from that version of the file.
 		for len(revPaths) < 4 && nextSlot < len(prs) {
 			var rev kbfsmd.Revision
-			if prs[nextSlot].Count == expectedCount {
+			switch {
+			case prs[nextSlot].Count == expectedCount:
 				rev = prs[nextSlot].Revision
-			} else if lastRevision > kbfsmd.RevisionInitial {
+			case lastRevision > kbfsmd.RevisionInitial:
 				k.log.CDebugf(ctx, "Inspecting revision %d to find previous",
 					lastRevision-1)
 				pathToPrev := keybase1.NewPathWithKbfsArchived(
@@ -1866,7 +1869,7 @@ func (k *SimpleFS) doGetRevisions(
 				prs = prevPRs
 				nextSlot = 0      // will be incremented below
 				expectedCount = 1 // will be incremented below
-			} else {
+			default:
 				break
 			}
 

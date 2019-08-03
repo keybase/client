@@ -918,12 +918,13 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 		ctx, "GetForHandle: %s %s", handle.GetCanonicalPath(), mStatus)
 	defer func() {
 		// Temporary debugging for KBFS-1921.  TODO: remove.
-		if err != nil {
+		switch {
+		case err != nil:
 			md.log.CDebugf(ctx, "GetForHandle done with err=%+v", err)
-		} else if rmd != (ImmutableRootMetadata{}) {
+		case rmd != (ImmutableRootMetadata{}):
 			md.log.CDebugf(ctx, "GetForHandle done, id=%s, revision=%d, "+
 				"mStatus=%s", id, rmd.Revision(), rmd.MergedStatus())
-		} else {
+		default:
 			md.log.CDebugf(
 				ctx, "GetForHandle done, id=%s, no %s MD revisions yet", id,
 				mStatus)
@@ -1190,7 +1191,6 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 		rmdsChan <- rmds
 	}
 	close(rmdsChan)
-	rmdses = nil
 	err := eg.Wait()
 	if err != nil {
 		return nil, err
@@ -1485,13 +1485,14 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadat
 	if wkb != nil && rkb != nil {
 		return kbfsmd.NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 	}
-	if wkb != nil {
+	switch {
+	case wkb != nil:
 		// Don't need the writer bundle.
 		_, rkb, err = mdserv.GetKeyBundles(ctx, tlf, kbfsmd.TLFWriterKeyBundleID{}, rkbID)
-	} else if rkb != nil {
+	case rkb != nil:
 		// Don't need the reader bundle.
 		wkb, _, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, kbfsmd.TLFReaderKeyBundleID{})
-	} else {
+	default:
 		// Need them both.
 		wkb, rkb, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, rkbID)
 	}

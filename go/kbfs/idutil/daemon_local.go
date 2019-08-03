@@ -93,11 +93,12 @@ func (dl *DaemonLocal) assertionToIDLocked(ctx context.Context,
 
 	for _, url := range urls {
 		var currID keybase1.UserOrTeamID
-		if url.IsUID() {
+		switch {
+		case url.IsUID():
 			currID = url.ToUID().AsUserOrTeam()
-		} else if url.IsTeamID() {
+		case url.IsTeamID():
 			currID = url.ToTeamID().AsUserOrTeam()
-		} else {
+		default:
 			key, val := url.ToKeyValuePair()
 			a := fmt.Sprintf("%s@%s", val, key)
 			if url.IsKeybase() && key != "team" {

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -155,18 +156,21 @@ func getVersionedPathForDiskCache(
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
 	version := currentDiskCacheVersion
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Do nothing, meaning that we will create the version file below.
 		log.CDebugf(
-			nil, "Creating new version file for the disk %s cache.", cacheName)
-	} else if err != nil {
+			context.TODO(), "Creating new version file for the disk %s cache.",
+			cacheName)
+	case err != nil:
 		log.CDebugf(
-			nil, "An error occurred while reading the disk %s cache "+
+			context.TODO(),
+			"An error occurred while reading the disk %s cache "+
 				"version file. Using %d as the version and creating a new "+
 				"file to record it.", cacheName, version)
 		// TODO: when we increase the version of the disk cache, we'll have
 		// to make sure we wipe all previous versions of the disk cache.
-	} else {
+	default:
 		// We expect a successfully opened version file to parse a single
 		// unsigned integer representing the version. Anything else is a
 		// corrupted version file. However, this we can solve by deleting
@@ -177,29 +181,34 @@ func getVersionedPathForDiskCache(
 		if err == nil && version == currentDiskCacheVersion {
 			// Success case, no need to write the version file again.
 			log.CDebugf(
-				nil, "Loaded the disk %s cache version file successfully."+
+				context.TODO(),
+				"Loaded the disk %s cache version file successfully."+
 					" Version: %d", cacheName, version)
 			return versionPathFromVersion(dirPath, version), nil
 		}
-		if err != nil {
+		switch {
+		case err != nil:
 			log.CDebugf(
-				nil, "An error occurred while parsing the disk %s cache "+
+				context.TODO(),
+				"An error occurred while parsing the disk %s cache "+
 					"version file. Using %d as the version.",
 				cacheName, currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version < currentDiskCacheVersion {
+		case version < currentDiskCacheVersion:
 			log.CDebugf(
-				nil, "The disk %s cache version file contained an old "+
+				context.TODO(),
+				"The disk %s cache version file contained an old "+
 					"version: %d. Updating to the new version: %d.",
 				cacheName, version, currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version > currentDiskCacheVersion {
+		case version > currentDiskCacheVersion:
 			log.CDebugf(
-				nil, "The disk %s cache version file contained a newer "+
+				context.TODO(),
+				"The disk %s cache version file contained a newer "+
 					"version (%d) than this client knows how to read. "+
 					"Switching to this client's newest known version: %d.",
 				cacheName, version, currentDiskCacheVersion)

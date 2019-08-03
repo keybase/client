@@ -315,6 +315,7 @@ const (
 	SCTeamReadError                             = int(keybase1.StatusCode_SCTeamReadError)
 	SCTeamWritePermDenied                       = int(keybase1.StatusCode_SCTeamWritePermDenied)
 	SCNoOp                                      = int(keybase1.StatusCode_SCNoOp)
+	SCTeamBadGeneration                         = int(keybase1.StatusCode_SCTeamBadGeneration)
 	SCTeamNotFound                              = int(keybase1.StatusCode_SCTeamNotFound)
 	SCTeamTarDuplicate                          = int(keybase1.StatusCode_SCTeamTarDuplicate)
 	SCTeamTarNotFound                           = int(keybase1.StatusCode_SCTeamTarNotFound)
@@ -393,6 +394,7 @@ const (
 	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
 	LinkTypeKBFSSettings     LinkType = "team.kbfs"
 	LinkTypeSettings         LinkType = "team.settings"
+	LinkTypeTeamBotSettings  LinkType = "team.bot_settings"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

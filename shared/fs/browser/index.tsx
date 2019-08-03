@@ -51,19 +51,17 @@ const Browser = (props: Props) =>
   props.path === Constants.defaultPath ? (
     <Root />
   ) : (
-    <Kb.BoxGrow>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kbfs.Errs />
-        {props.resetBannerType === Types.ResetBannerNoOthersType.Self ? (
-          <SelfReset {...props} />
-        ) : props.offline ? (
-          <OfflineFolder path={props.path} />
-        ) : (
-          <WithContent {...props} />
-        )}
-        <Footer />
-      </Kb.Box2>
-    </Kb.BoxGrow>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kbfs.Errs />
+      {props.resetBannerType === Types.ResetBannerNoOthersType.Self ? (
+        <SelfReset {...props} />
+      ) : props.offline ? (
+        <OfflineFolder path={props.path} />
+      ) : (
+        <WithContent {...props} />
+      )}
+      <Footer />
+    </Kb.Box2>
   )
 
 const styles = Styles.styleSheetCreate({

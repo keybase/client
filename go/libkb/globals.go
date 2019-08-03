@@ -167,9 +167,8 @@ type GlobalContext struct {
 }
 
 type GlobalTestOptions struct {
-	NoBug3964Repair                 bool
-	NoAutorotateOnBoxAuditRetry     bool
-	DisableUserSearchSocialServices bool
+	NoBug3964Repair             bool
+	NoAutorotateOnBoxAuditRetry bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
@@ -482,7 +481,7 @@ func (g *GlobalContext) ConfigureGUIConfig() error {
 			// old GUI config values from the main config file best-effort.
 			serviceConfig := g.Env.GetConfig()
 			if migrateErr := migrateGUIConfig(serviceConfig, guiConfig); migrateErr != nil {
-				g.Log.Warning("Failed to migrate config to new GUI config file: %s", migrateErr)
+				g.Log.Debug("Failed to migrate config to new GUI config file: %s", migrateErr)
 			}
 
 		}

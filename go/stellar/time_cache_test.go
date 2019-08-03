@@ -64,7 +64,7 @@ func TestTimeCacheWrongTypeStructs(t *testing.T) {
 	tc := libkb.SetupTest(t, "loaderclean", 1)
 	defer tc.Cleanup()
 
-	type T1 struct{ x int }
+	type T1 struct{}
 	type T2 struct{ y string }
 
 	var a T1

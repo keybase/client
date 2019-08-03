@@ -97,17 +97,17 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize Int64Offset,
 		var nextOff Int64Offset
 		size = int(maxBlockSize)
 		makeFinalHole := false
-		if nextHole < len(holes) &&
-			off+maxBlockSize >= holes[nextHole].start {
+		switch {
+		case nextHole < len(holes) && off+maxBlockSize >= holes[nextHole].start:
 			size = int(holes[nextHole].start - off)
 			nextOff = holes[nextHole].end
 			nextHole++
 			makeFinalHole = nextHole >= len(holes) &&
 				nextOff >= fullDataLen
-		} else if off+maxBlockSize > fullDataLen {
+		case off+maxBlockSize > fullDataLen:
 			size = int(fullDataLen - off)
 			nextOff = fullDataLen
-		} else {
+		default:
 			nextOff = off + maxBlockSize
 		}
 		dirty := off < endWrite && startWrite < off+Int64Offset(size)
@@ -344,17 +344,17 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 		endOff := off + maxBlockSize
 		var nextOff Int64Offset
 		makeFinalHole := false
-		if nextHole < len(holes) &&
-			endOff > holes[nextHole].start {
+		switch {
+		case nextHole < len(holes) && endOff > holes[nextHole].start:
 			endOff = holes[nextHole].start
 			nextOff = holes[nextHole].end
 			nextHole++
 			makeFinalHole = nextHole >= len(holes) &&
 				nextOff >= existingDataLen
-		} else if endOff > existingDataLen {
+		case endOff > existingDataLen:
 			endOff = existingDataLen
 			nextOff = existingDataLen
-		} else {
+		default:
 			nextOff = endOff
 		}
 

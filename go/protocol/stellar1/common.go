@@ -68,30 +68,40 @@ func (o AssetCode) DeepCopy() AssetCode {
 }
 
 type Asset struct {
-	Type           string `codec:"type" json:"type"`
-	Code           string `codec:"code" json:"code"`
-	Issuer         string `codec:"issuer" json:"issuer"`
-	VerifiedDomain string `codec:"verifiedDomain" json:"verifiedDomain"`
-	IssuerName     string `codec:"issuerName" json:"issuerName"`
-	Desc           string `codec:"desc" json:"desc"`
-	InfoUrl        string `codec:"infoUrl" json:"infoUrl"`
-	InfoUrlText    string `codec:"infoUrlText" json:"infoUrlText"`
-	TransferServer string `codec:"transferServer" json:"transferServer"`
-	AuthEndpoint   string `codec:"authEndpoint" json:"authEndpoint"`
+	Type               string `codec:"type" json:"type"`
+	Code               string `codec:"code" json:"code"`
+	Issuer             string `codec:"issuer" json:"issuer"`
+	VerifiedDomain     string `codec:"verifiedDomain" json:"verifiedDomain"`
+	IssuerName         string `codec:"issuerName" json:"issuerName"`
+	Desc               string `codec:"desc" json:"desc"`
+	InfoUrl            string `codec:"infoUrl" json:"infoUrl"`
+	InfoUrlText        string `codec:"infoUrlText" json:"infoUrlText"`
+	ShowDepositButton  bool   `codec:"showDepositButton" json:"showDepositButton"`
+	DepositButtonText  string `codec:"depositButtonText" json:"depositButtonText"`
+	ShowWithdrawButton bool   `codec:"showWithdrawButton" json:"showWithdrawButton"`
+	WithdrawButtonText string `codec:"withdrawButtonText" json:"withdrawButtonText"`
+	WithdrawType       string `codec:"withdrawType" json:"withdrawType"`
+	TransferServer     string `codec:"transferServer" json:"transferServer"`
+	AuthEndpoint       string `codec:"authEndpoint" json:"authEndpoint"`
 }
 
 func (o Asset) DeepCopy() Asset {
 	return Asset{
-		Type:           o.Type,
-		Code:           o.Code,
-		Issuer:         o.Issuer,
-		VerifiedDomain: o.VerifiedDomain,
-		IssuerName:     o.IssuerName,
-		Desc:           o.Desc,
-		InfoUrl:        o.InfoUrl,
-		InfoUrlText:    o.InfoUrlText,
-		TransferServer: o.TransferServer,
-		AuthEndpoint:   o.AuthEndpoint,
+		Type:               o.Type,
+		Code:               o.Code,
+		Issuer:             o.Issuer,
+		VerifiedDomain:     o.VerifiedDomain,
+		IssuerName:         o.IssuerName,
+		Desc:               o.Desc,
+		InfoUrl:            o.InfoUrl,
+		InfoUrlText:        o.InfoUrlText,
+		ShowDepositButton:  o.ShowDepositButton,
+		DepositButtonText:  o.DepositButtonText,
+		ShowWithdrawButton: o.ShowWithdrawButton,
+		WithdrawButtonText: o.WithdrawButtonText,
+		WithdrawType:       o.WithdrawType,
+		TransferServer:     o.TransferServer,
+		AuthEndpoint:       o.AuthEndpoint,
 	}
 }
 

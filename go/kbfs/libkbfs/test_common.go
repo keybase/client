@@ -350,14 +350,14 @@ func ConfigAsUser(config *ConfigLocal,
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2
 func NewEmptyTLFWriterKeyBundle() kbfsmd.TLFWriterKeyBundleV2 {
 	return kbfsmd.TLFWriterKeyBundleV2{
-		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 
 // NewEmptyTLFReaderKeyBundle creates a new empty kbfsmd.TLFReaderKeyBundleV2
 func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
 	return kbfsmd.TLFReaderKeyBundleV2{
-		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 

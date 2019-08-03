@@ -12,6 +12,7 @@ const ff: FeatureFlags = {
   fastAccountSwitch: true,
   foldersInProfileTab: true,
   kbfsOfflineMode: true,
+  lagRadar: false,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,

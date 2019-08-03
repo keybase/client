@@ -1253,7 +1253,6 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	require.NoError(t, err)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	// Squash revs 10 and 11.  No blocks should actually be flushed
 	// yet.
@@ -1284,7 +1283,6 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	require.NoError(t, err)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	// Let it squash (avoiding a branch this time since there's only one MD).
 	err = tlfJournal.flush(ctx)
@@ -1399,7 +1397,6 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
 	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
-	prevRoot = irmd.mdID
 
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
@@ -1474,12 +1471,10 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	tlfJournal.delegateBlockServer = &bserver
 
 	// Revision 1
-	var bids []kbfsblock.ID
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
 	for i := 0; i < rev1BlockEnd; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
-		bids = append(bids, bid)
 		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
 		require.NoError(t, err)
 	}

@@ -5,30 +5,41 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
 type KeybaseLinkErrorBodyProps = {
-  errorText: string
+  message: string
+  isError: boolean
 }
 
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
+  const bannerColor = props.isError ? 'red' : 'green'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Banner color="red">
-        <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
+      <Kb.Banner color={bannerColor}>
+        <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
       </Kb.Banner>
     </Kb.Box2>
   )
 }
 
-type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep7'}>
+type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep6' | 'sep7'}>
 
 const KeybaseLinkError = (props: OwnProps) => {
   const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
   const Body = Kb.HeaderOrPopup(KeybaseLinkErrorBody)
-  const error = Container.useSelector(s =>
-    errorSource === 'app' ? s.deeplinks.keybaseLinkError : s.wallets.sep7ConfirmError
-  )
+  const message = Container.useSelector(s => {
+    switch (errorSource) {
+      case 'app':
+        return s.deeplinks.keybaseLinkError
+      case 'sep7':
+        return s.wallets.sep7ConfirmError
+      case 'sep6':
+        return s.wallets.sep6Message
+    }
+  })
+  const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
+  const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
-  return <Body onCancel={onClose} customCancelText="Close" errorText={error} />
+  return <Body onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
 }
 
 const styles = Styles.styleSheetCreate({

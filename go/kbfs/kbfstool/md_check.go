@@ -122,18 +122,19 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 		currRev := irmd.Revision()
 		mdData := irmd.Data()
 		rootPtr := mdData.Dir.BlockPointer
-		if !rootPtr.Ref().IsValid() {
+		switch {
+		case !rootPtr.Ref().IsValid():
 			// This happens in the wild, but only for
 			// folders used for journal-related testing
 			// early on.
 			fmt.Printf("Skipping checking root for rev %d (is invalid)\n",
 				currRev)
-		} else if gcUnrefs[rootPtr.Ref()] {
+		case gcUnrefs[rootPtr.Ref()]:
 			if verbose {
 				fmt.Printf("Skipping checking root for rev %d (GCed)\n",
 					currRev)
 			}
-		} else {
+		default:
 			fmt.Printf("Checking root for rev %d (%s)...\n",
 				currRev, rootPtr.Ref())
 			var dirBlock data.DirBlock

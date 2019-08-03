@@ -203,7 +203,10 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 			return ZeroPtr, nil, nil, nil, nil, err
 		}
 
-		newParentBlocks = append(parentBlocks,
+		newParentBlocks = make(
+			[]ParentBlockAndChildIndex, len(parentBlocks), len(parentBlocks)+1)
+		copy(newParentBlocks, parentBlocks)
+		newParentBlocks = append(newParentBlocks,
 			ParentBlockAndChildIndex{pblock, index})
 		// If this is a leaf block, we're done.
 		if !block.IsIndirect() {

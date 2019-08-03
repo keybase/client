@@ -52,12 +52,12 @@ func DefaultV1() *V1 {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				AnonymousPermissions: "read,list",
 			},
 		},
 	}
-	v1.EnsureInit()
+	_ = v1.EnsureInit() // TODO: check error?
 	return v1
 }
 

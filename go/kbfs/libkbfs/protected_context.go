@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type defaultContextReplacer struct{}
+type defaultContextReplacer struct{} // nolint
 
 func (defaultContextReplacer) maybeReplaceContext(context.Context) {}
 
@@ -24,7 +24,7 @@ type protectedContext struct {
 
 	// defaultContextReplacer is embeded here as a helper that includes a no-op
 	// maybeReplaceContext, so that we can "override" the method in tests.
-	defaultContextReplacer
+	defaultContextReplacer // nolint
 }
 
 func newProtectedContext(

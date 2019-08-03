@@ -66,12 +66,7 @@ const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps
 
 const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
-  onClaimLumens: () =>
-    dispatch(
-      Container.isMobile
-        ? RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
-        : RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
-    ),
+  onClaimLumens: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
     dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })

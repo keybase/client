@@ -522,7 +522,7 @@ func (bra BlockRequestAction) Combine(
 	// If the actions don't agree on stop-if-full, we should remove it
 	// from the combined result.
 	if bra.StopIfFull() != other.StopIfFull() {
-		combined = combined &^ blockRequestStopIfFull
+		combined &^= blockRequestStopIfFull
 	}
 	return combined
 }
@@ -716,6 +716,9 @@ func (p *parsedPath) getRootNode(ctx context.Context, config Config) (Node, erro
 	}
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, config.KBPKI(), config.MDOps(), config, p.tlfName, p.tlfType)
+	if err != nil {
+		return nil, err
+	}
 	// Get the root node first to initialize the TLF.
 	node, _, err := config.KBFSOps().GetRootNode(
 		ctx, tlfHandle, data.MasterBranch)

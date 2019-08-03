@@ -181,6 +181,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   operation: '',
   originDomain: '',
   recipient: '',
+  signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
 })
@@ -254,6 +255,8 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep6Error: false,
+  sep6Message: '',
   sep7ConfirmError: '',
   sep7ConfirmInfo: null,
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
@@ -315,6 +318,7 @@ export const makeAssets = I.Record<Types._Assets>({
   balanceAvailableToSend: '',
   balanceTotal: '',
   canAddTrustline: false,
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -322,6 +326,9 @@ export const makeAssets = I.Record<Types._Assets>({
   issuerVerifiedDomain: '',
   name: '',
   reserves: I.List(),
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
 })
@@ -332,6 +339,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    depositButtonText: w.depositButtonText,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -339,6 +347,9 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     reserves: I.List((w.reserves || []).map(makeReserve)),
+    showDepositButton: w.showDepositButton,
+    showWithdrawButton: w.showWithdrawButton,
+    withdrawButtonText: w.withdrawButtonText,
     worth: w.worth,
   })
 
@@ -695,8 +706,14 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
 export const getAirdropSelected = () => {
-  const path = Router2Constants.getVisibleScreen().routeName
-  return path === 'airdrop' || path === 'airdropQualify'
+  const path = Router2Constants.getFullRoute()
+  const topPath = path[path.length - 1].routeName
+  const nextPathDown = path[path.length - 2].routeName
+  return (
+    topPath === 'airdrop' ||
+    topPath === 'airdropQualify' ||
+    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop')
+  )
 }
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount

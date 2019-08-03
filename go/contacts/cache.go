@@ -146,6 +146,11 @@ func (c *CachedContactsProvider) getCache(mctx libkb.MetaContext) lookupResultCa
 	return conCache
 }
 
+func (c *CachedContactsProvider) CleanCache(mctx libkb.MetaContext) error {
+	cacheKey := c.Store.dbKey(mctx.CurrentUID())
+	return c.Store.encryptedDB.Delete(mctx.Ctx(), cacheKey)
+}
+
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupResults, err error) {
 
@@ -178,7 +183,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	newCacheEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
 
 	for _, email := range emails {
-		key := makeEmailLookupKey(email)
+		key := MakeEmailLookupKey(email)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.
@@ -191,7 +196,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	}
 
 	for _, number := range numbers {
-		key := makePhoneLookupKey(number)
+		key := MakePhoneLookupKey(number)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.

@@ -131,8 +131,7 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 	// cache unboxing/missing box errors so we don't continually try to fetch
 	// something nonexistent.
 	defer func() {
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			s.Lock()
 			defer s.Unlock()
 			if perr := s.putLocked(mctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
@@ -242,8 +241,7 @@ func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybas
 	deviceEK, err := deviceEKStorage.Get(mctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
 		mctx.Debug("unable to get from deviceEKStorage %v", err)
-		switch err.(type) {
-		case libkb.UnboxError:
+		if _, ok := err.(libkb.UnboxError); ok {
 			return userEK, newEKUnboxErr(mctx, UserEKKind, userEKGeneration, DeviceEKKind,
 				userEKBoxed.DeviceEkGeneration, contentCtime)
 		}

@@ -46,6 +46,11 @@ protocol local {
     string desc;
     string infoUrl;                 // 'https://...' or empty
     string infoUrlText;             // the text to use in the infoUrl link
+
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -555,6 +560,13 @@ protocol local {
 
   PaymentPathLocal findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
 
+  record AssetActionResultLocal {
+    union { null, string } externalUrl;
+    union { null, string } messageFromAnchor;
+  }
+  AssetActionResultLocal assetDepositLocal(AccountID accountID, Asset asset);
+  AssetActionResultLocal assetWithdrawLocal(AccountID accountID, Asset asset);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -748,6 +760,9 @@ protocol local {
     string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
     string availableToSendNative;
     string availableToSendFiat;
+
+    // Whether or not the URI was signed (used for displaying a warning banner in app)
+    boolean signed;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

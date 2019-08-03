@@ -345,7 +345,7 @@ func MakeIDFromTeam(t Type, tid keybase1.TeamID, epoch byte) (ID, error) {
 		panic(fmt.Sprintf("Unknown TLF type %d", t))
 	}
 	var id ID
-	err := id.UnmarshalBinary(idBytes[:])
+	err := id.UnmarshalBinary(idBytes)
 	if err != nil {
 		return NullID, err
 	}

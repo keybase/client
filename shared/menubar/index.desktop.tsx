@@ -207,7 +207,7 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
           <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
           {!!count && (
-            <Kb.Badge badgeNumber={count || 0} badgeStyle={{left: 14, position: 'absolute', top: -2}} />
+            <Kb.Badge badgeNumber={count || 0} badgeStyle={styles.badge} />
           )}
         </Kb.Box>
         <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
@@ -312,7 +312,7 @@ class MenubarRender extends React.Component<Props, State> {
             {!!badgeCountInMenu && (
               <Kb.Badge
                 badgeNumber={badgeCountInMenu}
-                badgeStyle={{left: 14, position: 'absolute', top: -2}}
+                badgeStyle={styles.badge}
               />
             )}
           </Kb.Box>
@@ -384,7 +384,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         style={styles.navIcons}
         type={iconType}
       />
-      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
+      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
     </Kb.Box>
   )
 }
@@ -406,6 +406,11 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: -6,
     width: 0,
+  },
+  badge: {
+    position: 'absolute',
+    right: -2,
+    top: -4,
   },
   footer: {width: 360},
   hamburgerIcon: {

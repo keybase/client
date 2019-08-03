@@ -17,10 +17,14 @@ type BannerParagraphProps = {
   bannerColor: Color
   content: string | Array<Segment>
   inline?: boolean
+  selectable?: boolean
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
-  <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}>
+  <Text
+    type="BodySmallSemibold"
+    style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
+  >
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
         s && arr.push(s)
@@ -34,6 +38,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
           <React.Fragment key={index.toString()}>
             {segment.text.startsWith(' ') && <>&nbsp;</>}
             <Text
+              selectable={props.selectable}
               type="BodySmallSemibold"
               style={Styles.collapseStyles([
                 colorToTextColorStyles[props.bannerColor],
@@ -63,6 +68,7 @@ type BannerProps = {
   narrow?: boolean
   onClose?: () => void
   style?: Styles.StylesCrossPlatform | null
+  textContainerStyle?: Styles.StylesCrossPlatform | null
 }
 
 export const Banner = (props: BannerProps) => (
@@ -79,11 +85,14 @@ export const Banner = (props: BannerProps) => (
     <Box2
       key="textBox"
       direction="vertical"
-      style={props.narrow
-        ? styles.narrowTextContainer
-        : props.inline
+      style={Styles.collapseStyles([
+        props.narrow
+          ? styles.narrowTextContainer
+          : props.inline
           ? styles.inlineTextContainer
-          : styles.textContainer}
+          : styles.textContainer,
+        props.textContainerStyle,
+      ])}
       centerChildren={true}
     >
       {typeof props.children === 'string' ? (

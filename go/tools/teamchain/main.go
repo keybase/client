@@ -48,7 +48,9 @@ func main2() (err error) {
 
 	g := libkb.NewGlobalContext().Init()
 	g.Log = logger.New("sc")
-	g.ConfigureCaches()
+	if err := g.ConfigureCaches(); err != nil {
+		return err
+	}
 	mctx := libkb.NewMetaContextBackground(g)
 	var reader keybase1.UserVersion
 	var state *teams.TeamSigChainState

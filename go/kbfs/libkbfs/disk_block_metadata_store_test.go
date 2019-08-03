@@ -70,7 +70,7 @@ func TestDiskXattr(t *testing.T) {
 	blockID := kbfsblock.FakeID(23)
 
 	t.Log("Test getting non-existent xattr")
-	v, err := xattrStore.GetXattr(
+	_, err := xattrStore.GetXattr(
 		ctx, blockID, XattrAppleQuarantine)
 	require.Equal(t, ldberrors.ErrNotFound, errors.Cause(err))
 
@@ -82,8 +82,7 @@ func TestDiskXattr(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Test getting xattr")
-	v, err = xattrStore.GetXattr(ctx, blockID, XattrAppleQuarantine)
+	v, err := xattrStore.GetXattr(ctx, blockID, XattrAppleQuarantine)
 	require.NoError(t, err)
 	require.Equal(t, value, v)
-
 }

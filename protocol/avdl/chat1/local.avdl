@@ -57,6 +57,7 @@ protocol local {
     string body;
     array<TextPayment> payments;
     union { null, MessageID } replyTo;
+    union { null, gregor1.UID } replyToUID;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, LiveLocation } liveLocation;

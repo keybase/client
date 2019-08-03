@@ -653,6 +653,9 @@ protocol teams {
     boolean open;
     TeamRole openTeamJoinAs;
 
+    // restricted-bot configurations
+    map<UserVersion, TeamBotSettings> bots;
+
     // The list of TLF ID that have been associated with this team in time ascending order.
     array<TLFID> tlfIDs;
 
@@ -1073,6 +1076,14 @@ protocol teams {
   record TeamSettings {
     boolean open;
     TeamRole joinAs;
+  }
+
+  record TeamBotSettings {
+    boolean cmds;
+    boolean mentions;
+    array<string> triggers;
+    // chat1.ConversationID
+    array<string> convs;
   }
 
   record TeamRequestAccessResult {

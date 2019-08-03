@@ -10,10 +10,11 @@ import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './s
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
+import {memoize} from '../util/memoize'
 
 export const numSectionLabel = '0-9'
 
-type SearchResult = {
+export type SearchResult = {
   userId: string
   username: string
   prettyName: string
@@ -24,10 +25,14 @@ type SearchResult = {
   followingState: FollowingState
 }
 
+export type ImportContactsEntry = {
+  isImportButton: true
+}
+
 export type SearchRecSection = {
   label: string
   shortcut: boolean
-  data: Array<SearchResult>
+  data: Array<SearchResult | ImportContactsEntry>
 }
 
 export type RolePickerProps = {
@@ -52,6 +57,7 @@ type ContactProps = {
 
 export type Props = ContactProps & {
   fetchUserRecs: () => void
+  includeContacts: boolean
   highlightedIndex: number | null
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -139,6 +145,33 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   )
 }
 
+const ContactsImportButton = (props: ContactProps) => {
+  // If we've imported contacts already, then there's nothing for us to do.
+  if (
+    props.contactsImported === null ||
+    props.contactsImported ||
+    props.contactsPermissionStatus === 'never_ask_again'
+  )
+    return null
+
+  return (
+    <Kb.ClickableBox onClick={props.onImportContacts}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.importContactsContainer}
+      >
+        <Kb.Icon type="iconfont-phone-contact" fontSize={24} />
+        <Kb.Text type="BodyBig" lineClamp={1}>
+          Import your phone contacts
+        </Kb.Text>
+        <Kb.Icon type="iconfont-arrow-right" fontSize={24} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
+
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
@@ -195,6 +228,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore due to no RN types
         ref.scrollToLocation({
+          animated: false,
           itemIndex: 0,
           sectionIndex,
         })
@@ -206,9 +240,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     sections: Array<SearchRecSection>,
     indexInList: number
   ): {index: number; length: number; offset: number} => {
+    const sectionDividerHeight = Kb.SectionDivider.height
+    const dataRowHeight = userResultHeight
+
     let numSections = 0
     let numData = 0
-    let length = userResultHeight
+    let length = dataRowHeight
     let currSectionHeaderIdx = 0
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i]
@@ -218,7 +255,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         break
       }
       numSections++
-      const indexInSection = indexInList - currSectionHeaderIdx
+      const indexInSection = indexInList - currSectionHeaderIdx - 1
+      if (indexInSection === s.data.length) {
+        // it's the section footer (we don't render footers so 0px).
+        numData += s.data.length
+        length = 0
+        break
+      }
       if (indexInSection < s.data.length) {
         // we are in this data
         numData += indexInSection
@@ -226,11 +269,30 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       }
       // we're not in this section
       numData += s.data.length
-      currSectionHeaderIdx += s.data.length + 1
+      currSectionHeaderIdx += s.data.length + 2 // +2 because footer
     }
-    const offset = numSections * 40 + numData * 64
+    const offset = numSections * sectionDividerHeight + numData * dataRowHeight
     return {index: indexInList, length, offset}
   }
+
+  _listIndexToSectionAndLocalIndex = memoize(
+    (
+      highlightedIndex: number | null,
+      sections: SearchRecSection[] | null
+    ): {index: number; section: SearchRecSection} | null => {
+      if (highlightedIndex !== null && sections !== null) {
+        let index = highlightedIndex
+        for (const section of sections) {
+          if (index >= section.data.length) {
+            index -= section.data.length
+          } else {
+            return {index, section}
+          }
+        }
+      }
+      return null
+    }
+  )
 
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
@@ -272,7 +334,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (this.props.showRecs && this.props.recommendations) {
-      // TODO: Scroll on desktop when keyboard nav goes off screen (Y2K-364)
+      const highlightDetails = this._listIndexToSectionAndLocalIndex(
+        this.props.highlightedIndex,
+        this.props.recommendations
+      )
       return (
         <Kb.Box2
           direction="vertical"
@@ -281,23 +346,33 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
+            selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result}) => (
-              <UserResult
-                resultForService={this.props.selectedService}
-                username={result.username}
-                prettyName={result.prettyName}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                followingState={result.followingState}
-                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
-              />
-            )}
+            renderItem={({index, item: result, section}) =>
+              result.isImportButton ? (
+                <ContactsImportButton {...this.props} />
+              ) : (
+                <UserResult
+                  resultForService={this.props.selectedService}
+                  username={result.username}
+                  prettyName={result.prettyName}
+                  displayLabel={result.displayLabel}
+                  services={result.services}
+                  inTeam={result.inTeam}
+                  isPreExistingTeamMember={result.isPreExistingTeamMember}
+                  followingState={result.followingState}
+                  highlight={
+                    !Styles.isMobile &&
+                    !!highlightDetails &&
+                    highlightDetails.section === section &&
+                    highlightDetails.index === index
+                  }
+                  onAdd={() => this.props.onAdd(result.userId)}
+                  onRemove={() => this.props.onRemove(result.userId)}
+                />
+              )
+            }
             renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
           />
           {Styles.isMobile && this._alphabetIndex()}
@@ -338,6 +413,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         {Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <TeamBox
+              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
               onChangeText={props.onChangeText}
               onDownArrowKeyDown={props.onDownArrowKeyDown}
               onUpArrowKeyDown={props.onUpArrowKeyDown}
@@ -352,6 +428,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Box2>
         ) : (
           <TeamBox
+            allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}
             onUpArrowKeyDown={props.onUpArrowKeyDown}
@@ -462,6 +539,10 @@ const styles = Styles.styleSheetCreate({
   gapAlphaIndices: {
     ...Styles.padding(2, 6, 2, 2),
     flexShrink: 1,
+  },
+  importContactsContainer: {
+    justifyContent: 'space-between',
+    padding: Styles.globalMargins.xsmall,
   },
   list: Styles.platformStyles({
     common: {

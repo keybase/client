@@ -23,6 +23,8 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
       ref={swipeable}
       renderRightActions={_renderRightActions}
       onSwipeableRightWillOpen={onRightOpen}
+      friction={2}
+      rightThreshold={100}
       failOffsetX={0}
     >
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>

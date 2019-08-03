@@ -10,6 +10,7 @@ import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
 
 type Props = {
+  allowPhoneEmail: boolean
   onChangeText: (newText: string) => void
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
@@ -61,7 +62,13 @@ const TeamInput = (props: Props) => (
     onDownArrowKeyDown={props.onDownArrowKeyDown}
     onUpArrowKeyDown={props.onUpArrowKeyDown}
     onBackspace={props.onBackspace}
-    placeholder={props.teamSoFar.length ? 'Add another username or enter to chat' : 'Enter a username'}
+    placeholder={
+      props.teamSoFar.length
+        ? 'Add another username or enter to chat'
+        : props.allowPhoneEmail
+        ? 'Enter a username, phone, or email'
+        : 'Enter a username'
+    }
     searchString={props.searchString}
   />
 )

@@ -190,47 +190,48 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-// AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
+// AttachContactNames retrieves display names for SBS phones/emails that are in
+// the phonebook. ConversationLocalParticipant structures are modified in place
+// in `participants` passed in argument.
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) {
+	syncedContacts := mctx.G().SyncedContactList
+	if syncedContacts == nil {
+		mctx.Debug("AttachContactNames: SyncedContactList is nil")
+		return
+	}
 	var contacts []keybase1.ProcessedContact
 	var err error
 	contactsFetched := false
-	for _, participant := range participants {
+	for i, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
 			if !contactsFetched {
-				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
+				contacts, err = syncedContacts.RetrieveContacts(mctx)
 				if err != nil {
-					mctx.Debug("Error fetching contacts: %s", err)
-					return participants
+					mctx.Debug("AttachContactNames: error fetching contacts: %s", err)
+					return
 				}
+				contactsFetched = true
 			}
-			// todo separate phone / email from assertion
-			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
-			if err == nil {
-				phoneOrEmail := assertion.GetValue()
-				isPhone := assertion.GetKey() == "phone"
-				contactName := findContactName(contacts, phoneOrEmail, isPhone)
-				participant.ContactName = contactName
-			} else {
-				mctx.Debug("Error parsing assertion: %s", err)
-			}
+			participant.ContactName = findContactName(contacts, participant.Username)
+			participants[i] = participant
 		}
-		withContacts = append(withContacts, participant)
 	}
-	return withContacts
 }
 
-func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
+func findContactName(contacts []keybase1.ProcessedContact, assertion string) *string {
+	var result *string
 	for _, contact := range contacts {
-		cPhoneOrEmail := contact.Component.ValueString()
-		if isPhone {
-			cPhoneOrEmail = keybase1.PhoneNumberToAssertionValue(cPhoneOrEmail)
-		}
-		if cPhoneOrEmail == phoneOrEmail {
-			return &contact.ContactName
+		if contact.Assertion == assertion {
+			if result != nil {
+				// Found multiple contacts for one phone or email value, return
+				// nil rather than potentially chosing wrong name.
+				return nil
+			}
+			contactName := contact.ContactName
+			result = &contactName
 		}
 	}
-	return nil
+	return result
 }
 
 func isPhoneOrEmail(username string) bool {
@@ -678,29 +679,13 @@ func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
-	if msg.ReplyTo != nil {
-		if replyMention := GetReplyAtMention(ctx, g, uid, convID, *msg.ReplyTo, debug); replyMention != nil {
-			atRes = append(atRes, *replyMention)
-		}
+	if msg.ReplyToUID != nil {
+		atRes = append(atRes, chat1.KnownUserMention{
+			Text: "",
+			Uid:  *msg.ReplyToUID,
+		})
 	}
 	return atRes, maybeRes, chanRes
-}
-
-func GetReplyAtMention(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, l *DebugLabeler) *chat1.KnownUserMention {
-	reply, err := g.ChatHelper.GetMessage(ctx, uid, convID, msgID, false, nil)
-	if err != nil {
-		l.Debug(ctx, "GetReplyAtMention: failed to get message: %s", err)
-		return nil
-	}
-	if !reply.IsValid() {
-		l.Debug(ctx, "GetReplyAtMention: invalid reply message: %s", err)
-		return nil
-	}
-	return &chat1.KnownUserMention{
-		Text: "",
-		Uid:  reply.Valid().ClientHeader.Sender,
-	}
 }
 
 func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,

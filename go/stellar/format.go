@@ -144,11 +144,12 @@ func FormatAssetIssuerString(asset stellar1.Asset) string {
 	}
 	iaid := asset.IssuerString()
 	iaidLen := len(iaid)
-	if iaidLen > 16 {
+	switch {
+	case iaidLen > 16:
 		return iaid[:8] + "..." + iaid[iaidLen-8:]
-	} else if iaidLen > 0 {
+	case iaidLen > 0:
 		return iaid
-	} else {
+	default:
 		return "Unknown issuer"
 	}
 }

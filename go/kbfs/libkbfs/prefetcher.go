@@ -268,8 +268,9 @@ func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
 	defer p.overallSyncStatusLock.Unlock()
 	if p.overallSyncStatus.SubtreeBytesTotal < uint64(req.encodedSize) {
 		// Both log and panic so that we get the PFID in the log.
-		p.log.CErrorf(nil, "panic: decOverallSyncTotalBytes overstepped "+
-			"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
+		p.log.CErrorf(
+			context.TODO(), "panic: decOverallSyncTotalBytes overstepped "+
+				"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
 			p.overallSyncStatus.SubtreeBytesFetched,
 			p.overallSyncStatus.SubtreeBytesTotal)
 		panic("decOverallSyncTotalBytes overstepped its bounds")
@@ -293,8 +294,9 @@ func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
 	if p.overallSyncStatus.SubtreeBytesFetched >
 		p.overallSyncStatus.SubtreeBytesTotal {
 		// Both log and panic so that we get the PFID in the log.
-		p.log.CErrorf(nil, "panic: incOverallSyncFetchedBytes overstepped "+
-			"its bounds (fetched=%d, total=%d)",
+		p.log.CErrorf(
+			context.TODO(), "panic: incOverallSyncFetchedBytes overstepped "+
+				"its bounds (fetched=%d, total=%d)",
 			p.overallSyncStatus.SubtreeBytesFetched,
 			p.overallSyncStatus.SubtreeBytesTotal)
 		panic("incOverallSyncFetchedBytes overstepped its bounds")
@@ -1148,12 +1150,13 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 
 	if isPrefetchWaiting {
-		if pre.subtreeRetrigger {
+		switch {
+		case pre.subtreeRetrigger:
 			p.vlog.CLogf(
 				ctx, libkb.VLog2,
 				"retriggering prefetch subtree for block ID %s", req.ptr.ID)
 			pre.subtreeRetrigger = false
-		} else if pre.subtreeTriggered {
+		case pre.subtreeTriggered:
 			p.vlog.CLogf(
 				ctx, libkb.VLog2, "prefetch subtree already triggered "+
 					"for block ID %s", req.ptr.ID)
@@ -1175,7 +1178,7 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 				// prefetch action.
 				return
 			}
-		} else {
+		default:
 			// This block was in the tree and thus was counted, but now
 			// it has been successfully fetched. We need to percolate
 			// that information up the tree.
@@ -1386,7 +1389,9 @@ func (p *blockPrefetcher) run(
 			p.applyToPtrParentsRecursive(p.cancelPrefetch, ptr, pre)
 		case reqInt := <-p.prefetchCancelTlfCh.Out():
 			req := reqInt.(cancelTlfPrefetch)
-			p.log.CDebugf(nil, "Canceling all prefetches for TLF %s", req.tlfID)
+			p.log.CDebugf(
+				context.TODO(), "Canceling all prefetches for TLF %s",
+				req.tlfID)
 			// Cancel all prefetches for this TLF.
 			for id, pre := range p.prefetches {
 				if pre.req.kmd.TlfID() != req.tlfID {
@@ -1488,16 +1493,20 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	req := &prefetchRequest{
 		ptr, block.GetEncodedSize(), block.NewEmptier(), kmd, priority,
 		lifetime, prefetchStatus, action, nil, nil, false}
-	if prefetchStatus == FinishedPrefetch {
+	switch {
+	case prefetchStatus == FinishedPrefetch:
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
-	} else if !action.Prefetch(block) {
+	case !action.Prefetch(block):
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
-		p.retriever.PutInCaches(
+		err := p.retriever.PutInCaches(
 			ctx, ptr, kmd.TlfID(), block, lifetime, prefetchStatus,
 			action.CacheType())
-	} else {
+		if err != nil {
+			p.log.CDebugf(ctx, "Couldn't put block %s in caches: %+v", ptr, err)
+		}
+	default:
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.

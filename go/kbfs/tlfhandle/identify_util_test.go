@@ -179,15 +179,15 @@ func TestIdentifyImplicitTeams(t *testing.T) {
 	privID := keybase1.MakeTestTeamID(1, false)
 	suffixID := keybase1.MakeTestTeamID(2, false)
 	ti.implicitTeams = map[string]idutil.ImplicitTeamInfo{
-		"public:alice,bob": idutil.ImplicitTeamInfo{
+		"public:alice,bob": {
 			Name: "alice,bob",
 			TID:  pubID,
 		},
-		"private:alice,bob": idutil.ImplicitTeamInfo{
+		"private:alice,bob": {
 			Name: "alice,bob",
 			TID:  privID,
 		},
-		"private:alice,bob (conflicted copy 2016-03-14 #3)": idutil.ImplicitTeamInfo{
+		"private:alice,bob (conflicted copy 2016-03-14 #3)": {
 			Name: "alice,bob (conflicted copy 2016-03-14 #3)",
 			TID:  suffixID,
 		},

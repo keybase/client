@@ -248,8 +248,7 @@ func (k *TeamEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEp
 	userEK, err := userEKBoxStorage.Get(mctx, teamEKBoxed.UserEkGeneration, contentCtime)
 	if err != nil {
 		mctx.Debug("unable to get from userEKStorage %v", err)
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			return ek, newEKUnboxErr(mctx, TeamEKKind, teamEKGeneration, UserEKKind,
 				teamEKBoxed.UserEkGeneration, contentCtime)
 		}

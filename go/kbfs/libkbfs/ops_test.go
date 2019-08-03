@@ -640,7 +640,7 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 			op := syncOps[len(syncOps)-1]
 			// Generate either a random truncate or random write
 			off := uint64(rand.Int()) % fileSize
-			length := uint64(0)
+			var length uint64
 			if rand.Int()%5 > 0 {
 				// A write, not a truncate
 				maxLen := fileSize - off

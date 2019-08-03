@@ -150,6 +150,18 @@
         "type": "array",
         "items": "ProcessedContact"
       }
+    },
+    "getContactsForUserRecommendations": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
     }
   },
   "namespace": "keybase.1"

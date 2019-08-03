@@ -198,6 +198,7 @@ type MessageText struct {
 	Body         string             `codec:"body" json:"body"`
 	Payments     []TextPayment      `codec:"payments" json:"payments"`
 	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	ReplyToUID   *gregor1.UID       `codec:"replyToUID,omitempty" json:"replyToUID,omitempty"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
@@ -224,6 +225,13 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		ReplyToUID: (func(x *gregor1.UID) *gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyToUID),
 		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil

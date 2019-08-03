@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {isEqual} from 'lodash-es'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
@@ -70,30 +71,60 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
 const LeftBlock = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
-  return builtPaymentAdvanced.sourceDisplay ? (
-    <Kb.Box2 direction="vertical" alignItems="flex-start">
-      <Kb.Text type="HeaderBigExtrabold" style={builtPaymentAdvanced.amountError ? styles.error : undefined}>
-        ~{builtPaymentAdvanced.sourceDisplay}
-      </Kb.Text>
-      <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
-      {!!buildingAdvanced.recipientAsset && (
-        <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
-      )}
-      {!!builtPaymentAdvanced.amountError && (
-        <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
-          {builtPaymentAdvanced.amountError}
+  const hasTrivialPath =
+    !!buildingAdvanced.recipientAmount &&
+    isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset) &&
+    (buildingAdvanced.senderAsset === 'native' ||
+      buildingAdvanced.senderAsset.issuerAccountID !== Types.noAccountID)
+
+  if (hasTrivialPath) {
+    return (
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftBlockContainer}>
+        <Kb.Text type="HeaderBigExtrabold">{buildingAdvanced.recipientAmount}</Kb.Text>
+        {!!buildingAdvanced.recipientAmount &&
+          (buildingAdvanced.recipientAsset === 'native' ? (
+            <Kb.Text type="BodyTiny">Stellar Lumens</Kb.Text>
+          ) : (
+            <React.Fragment>
+              <Kb.Text type="BodyTiny">{buildingAdvanced.recipientAsset.issuerName}</Kb.Text>
+              <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail">
+                {buildingAdvanced.recipientAsset.code}/{buildingAdvanced.recipientAsset.issuerAccountID}
+              </Kb.Text>
+            </React.Fragment>
+          ))}
+      </Kb.Box2>
+    )
+  } else if (builtPaymentAdvanced.sourceDisplay) {
+    return (
+      <Kb.Box2 direction="vertical" alignItems="flex-start">
+        <Kb.Text
+          type="HeaderBigExtrabold"
+          style={builtPaymentAdvanced.amountError ? styles.error : undefined}
+        >
+          ~{builtPaymentAdvanced.sourceDisplay}
         </Kb.Text>
-      )}
-    </Kb.Box2>
-  ) : (
-    <CalculateAdvancedButton isIcon={true} />
-  )
+        <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
+        {!!buildingAdvanced.recipientAsset && (
+          <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
+        )}
+        {!!builtPaymentAdvanced.amountError && (
+          <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
+            {builtPaymentAdvanced.amountError}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+  }
+
+  return <CalculateAdvancedButton isIcon={true} />
 }
 
 export const AssetInputSenderAdvanced = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const senderAccount = accountMap.get(buildingAdvanced.senderAccountID)
+  const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
+  const sendText = ` will send${hasTrivialPath ? '' : ' approximately'}:`
   return (
     <Kb.Box2
       direction="vertical"
@@ -108,12 +139,12 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
             <Kb.Text type="BodyTinySemibold">
               {Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
             </Kb.Text>
-          )}{' '}
-          will send approximately:
+          )}
+          {sendText}
         </Kb.Text>
       ) : (
         <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
-          You will send approximately:
+          You{sendText}
         </Kb.Text>
       )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
@@ -281,6 +312,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const {isSender} = props
   const goToPickAsset = useGoToPickAssetCallback(_buildingAdvanced, isSender)
   const asset = isSender ? _buildingAdvanced.senderAsset : _buildingAdvanced.recipientAsset
+  const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
       <Kb.Box style={styles.pickAssetButtonOverlayInner}>
@@ -292,8 +324,8 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           style={styles.pickAssetButton}
         >
           <Kb.ClickableBox
-            onClick={goToPickAsset || undefined}
-            style={!goToPickAsset ? styles.disabled : undefined}
+            onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
+            style={!goToPickAsset || isLoading ? styles.disabled : undefined}
           >
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
               <Kb.Text
@@ -415,6 +447,9 @@ const styles = Styles.styleSheetCreate({
   },
   intermediateTopCircleContainer: {
     top: -Styles.globalMargins.medium,
+  },
+  leftBlockContainer: {
+    maxWidth: '40%',
   },
   noShrink: {
     flexShrink: 0,
