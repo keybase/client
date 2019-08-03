@@ -57,6 +57,7 @@ type ContactProps = {
 
 export type Props = ContactProps & {
   fetchUserRecs: () => void
+  includeContacts: boolean
   highlightedIndex: number | null
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -402,6 +403,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         {Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <TeamBox
+              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
               onChangeText={props.onChangeText}
               onDownArrowKeyDown={props.onDownArrowKeyDown}
               onUpArrowKeyDown={props.onUpArrowKeyDown}
@@ -416,6 +418,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Box2>
         ) : (
           <TeamBox
+            allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}
             onUpArrowKeyDown={props.onUpArrowKeyDown}

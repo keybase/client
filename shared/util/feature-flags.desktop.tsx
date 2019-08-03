@@ -11,7 +11,7 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
@@ -29,7 +29,6 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
-  airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
   fastAccountSwitch: true,

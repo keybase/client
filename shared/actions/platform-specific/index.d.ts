@@ -13,6 +13,7 @@ export declare function showShareActionSheetFromFile(fileURL: string): Promise<v
 type NextURI = string
 export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
+export declare function requestLocationPermission(): Promise<void>
 
 export declare function displayNewMessageNotification(
   text: string,

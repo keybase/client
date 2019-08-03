@@ -29,7 +29,11 @@ import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
-import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
+import {
+  requestLocationPermission,
+  saveAttachmentToCameraRoll,
+  showShareActionSheetFromFile,
+} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
@@ -3077,13 +3081,19 @@ const onChatMaybeMentionUpdate = (
   })
 }
 
-const onChatWatchPosition = (
+const onChatWatchPosition = async (
   _: TypedState,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
   logger: Saga.SagaLogger
 ) => {
   const response = action.payload.response
   if (isMobile) {
+    try {
+      await requestLocationPermission()
+    } catch (e) {
+      logger.info('failed to get location perms: ' + e)
+      return []
+    }
     const watchID = navigator.geolocation.watchPosition(
       pos =>
         RPCChatTypes.localLocationUpdateRpcPromise({

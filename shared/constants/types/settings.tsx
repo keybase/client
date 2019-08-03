@@ -139,7 +139,7 @@ export type _State = {
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
   proxyData: RPCTypes.ProxyData | null
-  didToggleCertificatePinning: boolean
+  didToggleCertificatePinning: boolean | null
 }
 export type State = I.RecordOf<_State>
 
