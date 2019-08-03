@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
 import {Props as ButtonProps} from '../../common-adapters/button'
+import * as SettingsConstants from '../../constants/settings'
 
 export type TaskButton = {
   label: string
@@ -17,12 +18,29 @@ export type Props = {
   badged: boolean
   icon: Kb.IconType
   instructions: string
+  onReload?: () => void
   subText?: string
   showSearchBar?: boolean
   buttons: Array<TaskButton>
 }
 
 export const Task = (props: Props) => (
+  <>
+    {props.onReload ? (
+      <Kb.Reloadable
+        onReload={props.onReload}
+        reloadOnMount={true}
+        waitingKeys={[SettingsConstants.loadSettingsWaitingKey]}
+      >
+        <SubTask {...props} />
+      </Kb.Reloadable>
+    ) : (
+      <SubTask {...props} />
+    )}
+  </>
+)
+
+const SubTask = (props: Props) => (
   <PeopleItem format="multi" badged={props.badged} icon={<Kb.Icon type={props.icon} />}>
     <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
     {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}

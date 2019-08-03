@@ -267,6 +267,9 @@ const VerifyAllEmailConnector = connect(
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
+    onReload: () => {
+      dispatch(SettingsGen.createLoadSettings())
+    },
   }),
   (s, d, o: TodoOwnProps) => ({
     ...o,
@@ -290,6 +293,7 @@ const VerifyAllEmailConnector = connect(
         onClick: d.onManage,
       },
     ] as Array<TaskButton>,
+    onReload: d.onReload,
   })
 )(Task)
 
