@@ -44,7 +44,7 @@ func TestCacheProvider(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestCacheProvider", 1)
 	defer tc.Cleanup()
 
-	mockProvider := makeProvider(t)
+	mockProvider := MakeMockProvider(t)
 	cacheProvider := &CachedContactsProvider{
 		Provider: mockProvider,
 		Store:    NewContactCacheStore(tc.G),
@@ -58,7 +58,7 @@ func TestCacheProvider(t *testing.T) {
 func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anotherMockContactsProvider,
 	cacheProvider *CachedContactsProvider) {
 
-	mockProvider := makeProvider(t)
+	mockProvider := MakeMockProvider(t)
 	provider = &anotherMockContactsProvider{
 		provider: mockProvider,
 		t:        t,
@@ -90,23 +90,23 @@ func TestLookupCache(t *testing.T) {
 		keybase1.Contact{
 			Name: "Joe",
 			Components: []keybase1.ContactComponent{
-				makePhoneComponent("Home", "+1111222"),
-				makePhoneComponent("Work", "+199123"),
-				makeEmailComponent("E-mail", "bob@keyba.se"),
-				makeEmailComponent("E-mail 2", "b@keyba.se"),
+				MakePhoneComponent("Home", "+1111222"),
+				MakePhoneComponent("Work", "+199123"),
+				MakeEmailComponent("E-mail", "bob@keyba.se"),
+				MakeEmailComponent("E-mail 2", "b@keyba.se"),
 			},
 		},
 	}
 
-	mockProvider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
-	mockProvider.emails["bob@keyba.se"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
-	mockProvider.phoneNumbers["+199123"] = mockLookupUser{UID: keybase1.UID("02ffffffffffffffffffffffffffff00"), Username: "other_bob"}
+	mockProvider.PhoneNumbers["+1111222"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.Emails["bob@keyba.se"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.PhoneNumbers["+199123"] = MockLookupUser{UID: keybase1.UID("02ffffffffffffffffffffffffffff00"), Username: "other_bob"}
 
 	res1, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 
-	// One result in list, there is one contact with a component that resolves to a Keybase user.
-	require.Len(t, res1, 1)
+	// All components were processed.
+	require.Len(t, res1, 4)
 	// 4 calls to the provider, all components were queried
 	require.Equal(t, 4, provider.queryCount)
 
@@ -124,11 +124,14 @@ func TestLookupCache(t *testing.T) {
 	provider.disabled = false
 	provider.queryCount = 0
 
-	contactList[0].Components = append(contactList[0].Components, makeEmailComponent("E-mail", "tester2@keyba.se"))
+	contactList[0].Components = append(contactList[0].Components, MakeEmailComponent("E-mail", "tester2@keyba.se"))
 
 	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Equal(t, res1, res2) // list is the same because new component did not resolve
+	require.Len(t, res2, 5)
+	require.Equal(t, res1, res2[0:4])                               // first 4 elements are the same
+	require.Equal(t, "[tester2@keyba.se]@email", res2[4].Assertion) // new processed contact for new email
+	require.False(t, res2[4].Resolved)
 
 	require.Equal(t, 1, provider.queryCount) // only queried the new email
 
@@ -136,9 +139,9 @@ func TestLookupCache(t *testing.T) {
 	provider.disabled = true
 	provider.queryCount = 0
 
-	res2, err = ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
+	res3, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
-	require.Equal(t, res1, res2)
+	require.Equal(t, res2, res3)
 	require.Equal(t, 0, provider.queryCount) // new email got cached as well
 }
 
@@ -156,18 +159,15 @@ func TestLookupCacheExpiration(t *testing.T) {
 	mockProvider := provider.provider
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
-			Name: "Joe",
-			Components: []keybase1.ContactComponent{
-				makePhoneComponent("Home", "+1111222"),
-				makePhoneComponent("Work", "+199123"),
-				makeEmailComponent("E-mail", "bob@keyba.se"),
-				makeEmailComponent("E-mail 2", "b@keyba.se"),
-			},
-		},
+		MakeContact("Joe",
+			MakePhoneComponent("Home", "+1111222"),
+			MakePhoneComponent("Work", "+199123"),
+			MakeEmailComponent("E-mail", "bob@keyba.se"),
+			MakeEmailComponent("E-mail 2", "b@keyba.se"),
+		),
 	}
 
-	mockProvider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
+	mockProvider.PhoneNumbers["+1111222"] = MockLookupUser{UID: keybase1.UID("01ffffffffffffffffffffffffffff00"), Username: "bob"}
 
 	res1, err := ResolveContacts(libkb.NewMetaContextForTest(tc), cacheProvider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -224,12 +224,9 @@ func TestLookupCacheExpiration(t *testing.T) {
 
 		mctx := libkb.NewMetaContextForTest(tc)
 		contactList := []keybase1.Contact{
-			keybase1.Contact{
-				Name: "Robert",
-				Components: []keybase1.ContactComponent{
-					makePhoneComponent("Phone", "+48111222333"),
-				},
-			},
+			MakeContact("Robert",
+				MakePhoneComponent("Phone", "+48111222333"),
+			),
 		}
 
 		res, err := ResolveContacts(mctx, cacheProvider, contactList, keybase1.RegionCode(""))
@@ -243,7 +240,7 @@ func TestLookupCacheExpiration(t *testing.T) {
 		// last lookup should be cached.
 		cacheObj := cacheProvider.getCache(mctx)
 		require.Len(t, cacheObj.Lookups, 1)
-		_, ok := cacheObj.Lookups[makePhoneLookupKey("+48111222333")]
+		_, ok := cacheObj.Lookups[MakePhoneLookupKey("+48111222333")]
 		require.True(t, ok)
 	}
 

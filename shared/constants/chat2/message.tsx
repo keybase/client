@@ -48,7 +48,7 @@ export const getRequestMessageInfo = (
 
 export const getPaymentMessageInfo = (
   state: TypedState,
-  message: Types.MessageSendPayment
+  message: Types.MessageSendPayment | Types.MessageText
 ): MessageTypes.ChatPaymentInfo | null => {
   const maybePaymentInfo = state.chat2.accountsInfoMap.getIn([message.conversationIDKey, message.id], null)
   if (!maybePaymentInfo) {
@@ -204,6 +204,7 @@ export const makeMessageText = I.Record<MessageTypes._MessageText>({
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
+  paymentInfo: null,
   reactions: I.Map(),
   replyTo: null,
   submitState: null,

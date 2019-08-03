@@ -64,7 +64,6 @@ import (
 type mdServerTlfStorage struct {
 	tlfID          tlf.ID
 	codec          kbfscodec.Codec
-	crypto         cryptoPure
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
 	mdVer          kbfsmd.MetadataVer
@@ -168,11 +167,12 @@ func (s *mdServerTlfStorage) putMDLocked(
 	}
 
 	_, err = s.getMDReadLocked(id)
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Continue on.
-	} else if err != nil {
+	case err != nil:
 		return kbfsmd.ID{}, err
-	} else {
+	default:
 		// Entry exists, so nothing else to do.
 		return id, nil
 	}

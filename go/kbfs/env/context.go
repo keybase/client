@@ -192,7 +192,7 @@ func (c *KBFSContext) getSandboxSocketFile() string {
 func (c *KBFSContext) getKBFSSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
-		func() string { return c.getSandboxSocketFile() },
+		c.getSandboxSocketFile,
 		// TODO: maybe add command-line option here
 		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
 		func() string { return filepath.Join(e.GetRuntimeDir(), kbfsSocketFile) },

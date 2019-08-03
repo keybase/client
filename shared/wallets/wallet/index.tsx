@@ -35,14 +35,14 @@ export const AssetSectionTitle = (props: {onSetupTrustline: () => void; thisDevi
     Your assets
     {!props.thisDeviceIsLockedOut && (
       <Kb.Text type="BodySmallSemibold">
-        &nbsp; (
+        &nbsp;(
         <Kb.Text
           className="hover-underline"
           onClick={props.onSetupTrustline}
           style={styles.clickable}
           type="BodySmallSemibold"
         >
-          manage
+          Manage
         </Kb.Text>
         )
       </Kb.Text>

@@ -1256,16 +1256,16 @@ func TestMemberAddRace(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		t.Logf("round %v", i)
-		doRotate := i%3 == 1
+		doRotate := i%2 == 1
 
 		t.Logf("parallel start")
 
-		errCh1 := mod(0, 2, true)
-		errCh2 := mod(1, 3, true)
 		var errCh3 <-chan error
 		if doRotate {
 			errCh3 = rotate(0)
 		}
+		errCh1 := mod(0, 2, true)
+		errCh2 := mod(1, 3, true)
 		assertNoErr(errCh1, "round %v", i)
 		assertNoErr(errCh2, "round %v", i)
 		if doRotate {

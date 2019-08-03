@@ -19,6 +19,7 @@ import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
+import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {actionHasError, TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
@@ -141,14 +142,19 @@ const createNewAccount = (
 const emptyAsset: RPCStellarTypes.Asset = {
   authEndpoint: '',
   code: '',
+  depositButtonText: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: '',
   issuerName: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
   transferServer: '',
   type: 'native',
   verifiedDomain: '',
+  withdrawButtonText: '',
+  withdrawType: '',
 }
 
 const emptyAssetWithoutType: RPCStellarTypes.Asset = {
@@ -1217,14 +1223,19 @@ const assetDescriptionOrNativeToRpcAsset = (
 ): RPCStellarTypes.Asset => ({
   authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
+  depositButtonText: '',
   desc: '',
   infoUrl: '',
   infoUrlText: '',
   issuer: asset === 'native' ? '' : asset.issuerAccountID,
   issuerName: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
   transferServer: '',
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
+  withdrawButtonText: '',
+  withdrawType: '',
 })
 
 const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
@@ -1496,6 +1507,57 @@ const sendPaymentAdvanced = (state: TypedState) =>
       lastSentXLM: false,
     })
   )
+
+const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
+  if (res.externalUrl) {
+    return openURL(res.externalUrl)
+  }
+  if (res.messageFromAnchor) {
+    return [
+      WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+      }),
+    ]
+  }
+  console.warn('SEP6 result without Url or Message', res)
+  return null
+}
+
+const handleSEP6Error = (err: RPCError) => [
+  WalletsGen.createSetSEP6Message({error: true, message: err.desc}),
+  RouteTreeGen.createClearModals(),
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+  }),
+]
+
+const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
+  RPCStellarTypes.localAssetDepositLocalRpcPromise({
+    accountID: action.payload.accountID,
+    asset: assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: action.payload.code,
+        issuerAccountID: action.payload.issuerAccountID,
+      })
+    ),
+  })
+    .then(res => handleSEP6Result(res))
+    .catch(err => handleSEP6Error(err))
+
+const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
+  RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
+    accountID: action.payload.accountID,
+    asset: assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: action.payload.code,
+        issuerAccountID: action.payload.issuerAccountID,
+      })
+    ),
+  })
+    .then(res => handleSEP6Result(res))
+    .catch(err => handleSEP6Error(err))
 
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload) {
   if (state.wallets.staticConfig) {
@@ -1983,6 +2045,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshake,
     loadStaticConfig,
     'loadStaticConfig'
+  )
+  yield* Saga.chainAction<WalletsGen.AssetDepositPayload>(
+    WalletsGen.assetDeposit,
+    assetDeposit,
+    'assetDeposit'
+  )
+  yield* Saga.chainAction<WalletsGen.AssetWithdrawPayload>(
+    WalletsGen.assetWithdraw,
+    assetWithdraw,
+    'assetWithdraw'
   )
 }
 

@@ -82,7 +82,9 @@ func main() {
 
 	g := libkb.NewGlobalContext().Init()
 	g.Log = logger.New("sc")
-	g.ConfigureCaches()
+	if err := g.ConfigureCaches(); err != nil {
+		errout(err.Error())
+	}
 
 	iterations := 1
 	if *cpuprofile != "" {
@@ -90,7 +92,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		pprof.StartCPUProfile(f)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			errout(err.Error())
+		}
 		defer pprof.StopCPUProfile()
 
 		iterations = 10

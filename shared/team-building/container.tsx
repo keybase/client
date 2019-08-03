@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding, {RolePickerProps, SearchRecSection, numSectionLabel} from '.'
+import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -19,6 +19,7 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -59,18 +60,21 @@ const deriveSearchResults = memoize(
     preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&
-    searchResults.map(info => ({
-      contact: !!info.contact,
-      displayLabel: info.label || '',
-      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-      inTeam: teamSoFar.some(u => u.id === info.id),
-      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-      key: [info.id, info.prettyName, info.label].join('&'),
-      prettyName: info.prettyName,
-      services: info.serviceMap,
-      userId: info.id,
-      username: info.id.split('@')[0],
-    }))
+    searchResults.map(info => {
+      const label = info.label || ''
+      return {
+        contact: !!info.contact,
+        displayLabel: formatAnyPhoneNumbers(label),
+        followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+        inTeam: teamSoFar.some(u => u.id === info.id),
+        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+        key: [info.id, info.prettyName, info.label].join('&'),
+        prettyName: formatAnyPhoneNumbers(info.prettyName),
+        services: info.serviceMap,
+        userId: info.id,
+        username: info.id.split('@')[0],
+      }
+    })
 )
 
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
@@ -159,26 +163,32 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const debouncedSearch = debounce(
-  (
-    dispatch: Container.TypedDispatch,
-    namespace: AllowedNamespace,
-    query: string,
-    service: ServiceIdWithContact,
-    limit?: number
-  ) =>
-    requestIdleCallback(() =>
-      dispatch(
-        TeamBuildingGen.createSearch({
-          limit,
-          namespace,
-          query,
-          service,
-        })
-      )
-    ),
-  1000
-)
+const makeDebouncedSearch = (time: number) =>
+  debounce(
+    (
+      dispatch: Container.TypedDispatch,
+      namespace: AllowedNamespace,
+      query: string,
+      service: ServiceIdWithContact,
+      includeContacts: boolean,
+      limit?: number
+    ) =>
+      requestIdleCallback(() =>
+        dispatch(
+          TeamBuildingGen.createSearch({
+            includeContacts,
+            limit,
+            namespace,
+            query,
+            service,
+          })
+        )
+      ),
+    time
+  )
+
+const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
+const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase / contact searches
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
@@ -187,9 +197,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _search: (query: string, service: ServiceIdWithContact, limit?: number) =>
-    debouncedSearch(dispatch, namespace, query, service, limit),
-  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
+  _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
+    const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
+    return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
+  },
+  fetchUserRecs: () =>
+    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
@@ -310,26 +323,40 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 // 1-26 - a-z sections
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
-  (results: Unpacked<typeof deriveSearchResults>): Array<SearchRecSection> | null => {
+  (
+    results: Unpacked<typeof deriveSearchResults>,
+    showingContactsButton: boolean
+  ): Array<SearchRecSection> | null => {
     if (!results) return null
 
     const sections: Array<SearchRecSection> = [
+      ...(showingContactsButton
+        ? [
+            {
+              data: [{isImportButton: true as const}],
+              label: '',
+              shortcut: false,
+            },
+          ]
+        : []),
       {
         data: [],
         label: 'Recommendations',
         shortcut: false,
       },
     ]
+    const recSectionIdx = sections.length - 1
+    const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
       if (!rec.contact) {
-        sections[0].data.push(rec)
+        sections[recSectionIdx].data.push(rec)
         return
       }
       if (rec.prettyName || rec.displayLabel) {
         const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
-          const sectionIdx = letterToAlphaIndex(letter) + 1
+          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
           if (!sections[sectionIdx]) {
             sections[sectionIdx] = {
               data: [],
@@ -339,20 +366,34 @@ const sortAndSplitRecommendations = memoize(
           }
           sections[sectionIdx].data.push(rec)
         } else {
-          if (!sections[27]) {
-            sections[27] = {
+          if (!sections[numSectionIdx]) {
+            sections[numSectionIdx] = {
               data: [],
               label: numSectionLabel,
               shortcut: true,
             }
           }
-          sections[27].data.push(rec)
+          sections[numSectionIdx].data.push(rec)
         }
       }
     })
     return sections.filter(Boolean)
   }
 )
+
+// Flatten list of recommendation sections. After recommendations are organized
+// in sections, we also need a flat list of all recommendations to be able to
+// know how many we have in total (including "fake" "import contacts" row), and
+// which one is currently highlighted, to support keyboard events.
+//
+// Resulting list may have nulls in place of fake rows.
+const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>) => {
+  const result: Array<SearchResult | null> = []
+  for (const section of recommendations) {
+    result.push(...section.data.map(rec => ('isImportButton' in rec ? null : rec)))
+  }
+  return result
+})
 
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
@@ -368,6 +409,11 @@ const mergeProps = (
     recommendations,
     waitingForCreate,
   } = stateProps
+
+  const showingContactsButton =
+    Container.isMobile &&
+    stateProps.contactsPermissionStatus !== 'never_ask_again' &&
+    !stateProps.contactsImported
 
   // Contacts props
   const contactProps = {
@@ -386,7 +432,10 @@ const mergeProps = (
   }
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
-  const userResultsToShow = showRecs ? recommendations : searchResults
+  const recommendationsSections = showRecs
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    : null
+  const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
@@ -471,6 +520,7 @@ const mergeProps = (
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
+    includeContacts: ownProps.namespace === 'chat2',
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
@@ -489,7 +539,7 @@ const mergeProps = (
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
-    recommendations: sortAndSplitRecommendations(recommendations),
+    recommendations: recommendationsSections,
     rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,

@@ -3,6 +3,7 @@ import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
+import * as SettingsGen from '../settings-gen'
 import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
@@ -394,7 +395,9 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
-        if (username) {
+        if (username === 'phone-app') {
+          return [SettingsGen.createLoadSettings(), RouteTreeGen.createSwitchLoggedIn({loggedIn: true})]
+        } else if (username && username !== 'app') {
           return [
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
@@ -415,6 +418,24 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     // Show a login screen
     return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
   }
+}
+
+let maybeLoadAppLinkOnce = false
+const maybeLoadAppLink = (state: Container.TypedState) => {
+  const phones = state.settings.phoneNumbers.phones
+  if (!phones || phones.size > 0) {
+    return
+  }
+
+  if (maybeLoadAppLinkOnce || !state.config.startupLink || !state.config.startupLink.endsWith('/phone-app')) {
+    return
+  }
+  maybeLoadAppLinkOnce = true
+
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
+    RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
+  ]
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>
@@ -614,6 +635,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
   )
+
+  yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

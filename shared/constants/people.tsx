@@ -4,6 +4,7 @@ import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
 import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
 import {isMobile} from '../constants/platform'
+import {e164ToDisplay} from '../util/phone-numbers'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -110,11 +111,13 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
-      return `Allow friends to find you using *${todo.legacyEmailVisibility}*`
+      return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
     case T.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
-    case T.verifyAllPhoneNumber:
-      return `Your number *${todo.verifyAllPhoneNumber}* is unverified.`
+    case T.verifyAllPhoneNumber: {
+      const p = todo.verifyAllPhoneNumber
+      return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
+    }
     default: {
       // @ts-ignore this variant compilation seems wrong. ts todo.t can only be
       // of 3 types but that's not what we do in avdl.

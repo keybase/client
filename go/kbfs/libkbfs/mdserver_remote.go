@@ -70,9 +70,6 @@ type MDServerRemote struct {
 	// the server.
 	observers map[tlf.ID]chan<- error
 
-	tickerCancel context.CancelFunc
-	tickerMu     sync.Mutex // protects the ticker cancel function
-
 	rekeyCancel context.CancelFunc
 	rekeyTimer  *time.Timer
 

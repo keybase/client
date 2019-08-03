@@ -284,7 +284,7 @@ func (e ServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
 	s.Name = "CONDITION_FAILED"
 	s.Desc = e.Err.Error()
 	s.Fields = []keybase1.StringKVPair{
-		keybase1.StringKVPair{
+		{
 			Key:   "ShouldThrottle",
 			Value: strconv.FormatBool(e.ShouldThrottle),
 		},

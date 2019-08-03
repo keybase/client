@@ -71,7 +71,10 @@ func debounce(do func(), limit rate.Limit) debouncedNotify {
 	limiter := rate.NewLimiter(limit, 1)
 	go func() {
 		for {
-			limiter.Wait(ctx)
+			err := limiter.Wait(ctx)
+			if err != nil {
+				return
+			}
 			select {
 			case <-ch:
 				go do()
@@ -162,14 +165,15 @@ func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (se
 
 func (sm *subscriptionManager) registerForChangesLocked(fb data.FolderBranch) {
 	if sm.subscriptionCountByFolderBranch[fb] == 0 {
-		sm.config.Notifier().RegisterForChanges([]data.FolderBranch{fb}, sm)
+		_ = sm.config.Notifier().RegisterForChanges(
+			[]data.FolderBranch{fb}, sm)
 	}
 	sm.subscriptionCountByFolderBranch[fb]++
 }
 
 func (sm *subscriptionManager) unregisterForChangesLocked(fb data.FolderBranch) {
 	if sm.subscriptionCountByFolderBranch[fb] == 1 {
-		sm.config.Notifier().UnregisterFromChanges(
+		_ = sm.config.Notifier().UnregisterFromChanges(
 			[]data.FolderBranch{fb}, sm)
 		delete(sm.subscriptionCountByFolderBranch, fb)
 		return

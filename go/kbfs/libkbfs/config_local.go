@@ -259,7 +259,8 @@ func NewConfigLocal(mode InitMode,
 	}
 	config.SetCodec(kbfscodec.NewMsgpack())
 	if diskCacheMode == DiskCacheModeLocal {
-		config.loadSyncedTlfsLocked()
+		// Any error is logged in the function itself.
+		_ = config.loadSyncedTlfsLocked()
 	}
 	config.SetClock(data.WallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
@@ -905,7 +906,9 @@ func (c *ConfigLocal) ResetCaches() {
 	if err == nil {
 		if err := c.journalizeBcaches(jManager); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil, "Error journalizing dirty block cache: %+v", err)
+				log.CWarningf(
+					context.TODO(),
+					"Error journalizing dirty block cache: %+v", err)
 			}
 		}
 	}
@@ -914,7 +917,8 @@ func (c *ConfigLocal) ResetCaches() {
 		// access to this config.
 		if err := oldDirtyBcache.Shutdown(); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil,
+				log.CWarningf(
+					context.TODO(),
 					"Error shutting down old dirty block cache: %+v", err)
 			}
 		}
@@ -1085,7 +1089,6 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 		// Continue with shutdown regardless of err.
-		err = nil
 	}
 	err = c.BlockOps().Shutdown(ctx)
 	if err != nil {
@@ -1224,7 +1227,10 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
-	os.MkdirAll(configRoot, 0700)
+	err := os.MkdirAll(configRoot, 0700)
+	if err != nil {
+		return err
+	}
 
 	diskLimiter, err := newBackpressureDiskLimiter(log, params)
 	if err != nil {
@@ -1461,7 +1467,7 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	defer func() {
-		c.MakeLogger("").CDebugf(nil, "Loaded synced TLFs: %+v", err)
+		c.MakeLogger("").CDebugf(context.TODO(), "Loaded synced TLFs: %+v", err)
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
@@ -1709,7 +1715,7 @@ func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 func (c *ConfigLocal) RootNodeWrappers() []func(Node) Node {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.rootNodeWrappers[:]
+	return c.rootNodeWrappers
 }
 
 // AddRootNodeWrapper implements the Config interface for ConfigLocal.
@@ -1746,7 +1752,8 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 	defer c.lock.Unlock()
 	c.diskCacheMode = m
 	if c.diskCacheMode == DiskCacheModeLocal {
-		c.loadSyncedTlfsLocked()
+		// Any error is logged in the function itself.
+		_ = c.loadSyncedTlfsLocked()
 	}
 }
 

@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -295,8 +295,8 @@ func AddFlagsWithDefaults(
 		defaultParams.BGFlushPeriod,
 		"The amount of time to wait before syncing data in a TLF, if the "+
 			"batch size doesn't fill up.")
-	flags.IntVar((*int)(&params.BGFlushDirOpBatchSize), "sync-batch-size",
-		int(defaultParams.BGFlushDirOpBatchSize),
+	flags.IntVar(&params.BGFlushDirOpBatchSize, "sync-batch-size",
+		defaultParams.BGFlushDirOpBatchSize,
 		"The number of unflushed directory operations in a TLF that will "+
 			"trigger an immediate data sync.")
 
@@ -312,11 +312,11 @@ func AddFlagsWithDefaults(
 			InitMinimalString, InitSingleOpString, InitConstrainedString,
 			InitMemoryLimitedString))
 
-	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
+	flags.Float64Var(&params.DiskBlockCacheFraction,
 		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for caching ")
 
-	flags.Float64Var((*float64)(&params.SyncBlockCacheFraction),
+	flags.Float64Var(&params.SyncBlockCacheFraction,
 		"sync-block-cache-fraction", defaultParams.SyncBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for offline storage")
 
@@ -552,7 +552,7 @@ func InitWithLogPrefix(
 			// https://golang.org/pkg/os/signal/#hdr-Default_behavior_of_signals_in_Go_programs
 			switch sig {
 			case syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT:
-				pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
 			}
 
 			if onInterruptFn != nil {
@@ -698,9 +698,8 @@ func doInit(
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
-	config.SetMetadataVersion(kbfsmd.MetadataVer(params.MetadataVersion))
-	config.SetBlockCryptVersion(
-		kbfscrypto.EncryptionVer(params.BlockCryptVersion))
+	config.SetMetadataVersion(params.MetadataVersion)
+	config.SetBlockCryptVersion(params.BlockCryptVersion)
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 

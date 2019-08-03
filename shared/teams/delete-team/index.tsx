@@ -64,7 +64,7 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ConfirmModal
-        confirmText={`Delete ${this.props.teamname}`}
+        confirmText="Delete team"
         content={
           <Checkboxes
             box1={this.state.box1}

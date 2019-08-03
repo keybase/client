@@ -8,7 +8,7 @@ import {BrokenTrackerBanner, InviteBanner} from '.'
 import openSMS from '../../../util/sms'
 import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
 
-const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/app`
+const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey

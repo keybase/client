@@ -334,7 +334,7 @@ func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 		panic("IndirectPtr called on a direct directory block")
 	}
 	iptr := db.IPtrs[i]
-	off := StringOffset(iptr.Off)
+	off := iptr.Off
 	return iptr.BlockInfo, &off
 }
 

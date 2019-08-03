@@ -557,7 +557,7 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
-		fuse.Dirent{
+		{
 			Type: fuse.DT_Dir,
 			Name: TeamName,
 		},

@@ -2774,6 +2774,24 @@ func (d HiddenTeamChain) IsPublic() bool {
 	return d.Public
 }
 
+func (d HiddenTeamChain) Summary() string {
+	type pair struct {
+		g       PerTeamKeyGeneration
+		q       Seqno
+		stubbed bool
+	}
+	var arr []pair
+	for g, q := range d.ReaderPerTeamKeys {
+		var full bool
+		if d.Inner != nil {
+			_, full = d.Inner[q]
+		}
+		arr = append(arr, pair{g: g, q: q, stubbed: !full})
+	}
+	sort.Slice(arr, func(i, j int) bool { return arr[i].g < arr[j].g })
+	return fmt.Sprintf("{Team:%s, Last:%d, ReaderPerTeamKeys: %+v}", d.Id, d.Last, arr)
+}
+
 func (f FullName) String() string {
 	return string(f)
 }

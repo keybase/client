@@ -97,26 +97,26 @@ func TestTlfHistorySimple(t *testing.T) {
 
 	// Alice, then Bob.
 	th := NewTlfHistory()
-	rev, err := th.AddNotifications(aliceName, []string{string(aliceMessage)})
+	rev, err := th.AddNotifications(aliceName, []string{aliceMessage})
 	require.NoError(t, err)
 	require.Equal(t, aliceWrite.Revision, rev)
-	rev, err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	rev, err = th.AddNotifications(bobName, []string{bobMessage})
 	require.NoError(t, err)
 	require.Equal(t, bobWrite.Revision, rev)
 	checkTlfHistory(t, th, expected, aliceName)
 
 	// Bob, then Alice.
 	th = NewTlfHistory()
-	rev, err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	rev, err = th.AddNotifications(bobName, []string{bobMessage})
 	require.NoError(t, err)
 	require.Equal(t, bobWrite.Revision, rev)
-	rev, err = th.AddNotifications(aliceName, []string{string(aliceMessage)})
+	rev, err = th.AddNotifications(aliceName, []string{aliceMessage})
 	require.NoError(t, err)
 	require.Equal(t, aliceWrite.Revision, rev)
 	checkTlfHistory(t, th, expected, aliceName)
 
 	// Add a duplicate notification.
-	_, err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	_, err = th.AddNotifications(bobName, []string{bobMessage})
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected, aliceName)
 }
@@ -347,10 +347,10 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 	bobMessage2 := nn.encode(t)
 
 	th := NewTlfHistory()
-	rev, err := th.AddNotifications(aliceName, []string{string(aliceMessage1)})
+	rev, err := th.AddNotifications(aliceName, []string{aliceMessage1})
 	require.NoError(t, err)
 	require.Equal(t, aliceWrite1.Revision, rev)
-	rev, err = th.AddNotifications(bobName, []string{string(bobMessage2)})
+	rev, err = th.AddNotifications(bobName, []string{bobMessage2})
 	require.NoError(t, err)
 	require.Equal(t, bobWrite2.Revision, rev)
 

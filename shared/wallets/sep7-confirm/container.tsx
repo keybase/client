@@ -42,6 +42,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       originDomain: '',
       path: stateProps.sep7ConfirmPath,
       recipient: null,
+      signed: null,
       summary: {
         fee: '',
         memo: '',
@@ -63,6 +64,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     message,
     originDomain,
     recipient,
+    signed,
     summary,
   } = stateProps.sep7ConfirmInfo
   const path = stateProps.sep7ConfirmPath
@@ -92,6 +94,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     originDomain,
     path,
     recipient,
+    signed,
     summary,
     waitingKey: stateProps.waitingKey,
   }

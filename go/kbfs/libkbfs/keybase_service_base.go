@@ -50,8 +50,7 @@ type KeybaseServiceBase struct {
 
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
-	userCache               map[keybase1.UID]idutil.UserInfo
-	userCacheUnverifiedKeys map[keybase1.UID][]keybase1.PublicKey
+	userCache map[keybase1.UID]idutil.UserInfo
 
 	teamCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
@@ -80,12 +79,11 @@ func (k *keybaseServiceMerkleGetter) VerifyMerkleRoot(
 // NewKeybaseServiceBase makes a new KeybaseService.
 func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *KeybaseServiceBase {
 	k := KeybaseServiceBase{
-		config:                  config,
-		context:                 kbCtx,
-		log:                     log,
-		userCache:               make(map[keybase1.UID]idutil.UserInfo),
-		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
-		teamCache:               make(map[keybase1.TeamID]idutil.TeamInfo),
+		config:    config,
+		context:   kbCtx,
+		log:       log,
+		userCache: make(map[keybase1.UID]idutil.UserInfo),
+		teamCache: make(map[keybase1.TeamID]idutil.TeamInfo),
 	}
 	if config != nil {
 		k.merkleRoot = NewEventuallyConsistentMerkleRoot(
@@ -205,14 +203,15 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 
 	for _, key := range keys {
 		var info idutil.RevokedKeyInfo
-		if key.Base.Revocation != nil {
+		switch {
+		case key.Base.Revocation != nil:
 			info.Time = key.Base.Revocation.Time
 			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
 			// If we don't have a prev seqno, then we already have the
 			// best merkle data we're going to get.
 			info.SetFilledInMerkle(info.MerkleRoot.Seqno <= 0)
 			info.SetSigChainLocation(key.Base.Revocation.SigChainLocation)
-		} else if reset != nil {
+		case reset != nil:
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
 			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
@@ -220,7 +219,7 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 			// best merkle data we're going to get.
 			info.SetFilledInMerkle(info.MerkleRoot.Seqno <= 0)
 			info.SetResetInfo(reset.ResetSeqno, true)
-		} else {
+		default:
 			// Not revoked.
 			continue
 		}
@@ -272,28 +271,6 @@ func (k *KeybaseServiceBase) setCachedUserInfo(
 	}
 }
 
-func (k *KeybaseServiceBase) getCachedUnverifiedKeys(uid keybase1.UID) (
-	[]keybase1.PublicKey, bool) {
-	k.userCacheLock.RLock()
-	defer k.userCacheLock.RUnlock()
-	if unverifiedKeys, ok := k.userCacheUnverifiedKeys[uid]; ok {
-		return unverifiedKeys, true
-	}
-	return nil, false
-}
-
-func (k *KeybaseServiceBase) setCachedUnverifiedKeys(uid keybase1.UID, pk []keybase1.PublicKey) {
-	k.userCacheLock.Lock()
-	defer k.userCacheLock.Unlock()
-	k.userCacheUnverifiedKeys[uid] = pk
-}
-
-func (k *KeybaseServiceBase) clearCachedUnverifiedKeys(uid keybase1.UID) {
-	k.userCacheLock.Lock()
-	defer k.userCacheLock.Unlock()
-	delete(k.userCacheUnverifiedKeys, uid)
-}
-
 func (k *KeybaseServiceBase) getCachedTeamInfo(
 	tid keybase1.TeamID) idutil.TeamInfo {
 	k.teamCacheLock.RLock()
@@ -322,7 +299,6 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 		k.userCacheLock.Lock()
 		defer k.userCacheLock.Unlock()
 		k.userCache = make(map[keybase1.UID]idutil.UserInfo)
-		k.userCacheUnverifiedKeys = make(map[keybase1.UID][]keybase1.PublicKey)
 	}()
 	k.teamCacheLock.Lock()
 	defer k.teamCacheLock.Unlock()
@@ -366,7 +342,6 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 	uid keybase1.UID) error {
 	k.log.CDebugf(ctx, "Key family for user %s changed", uid)
 	k.setCachedUserInfo(uid, idutil.UserInfo{})
-	k.clearCachedUnverifiedKeys(uid)
 
 	if k.getCachedCurrentSession().UID == uid {
 		mdServer := k.config.MDServer()
@@ -667,7 +642,7 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 						Prev: info.MerkleRoot,
 					})
 			}
-			if m, ok := err.(libkb.MerkleClientError); ok && m.IsOldTree() {
+			if m, ok := err.(libkb.MerkleClientError); ok && m.IsOldTree() { // nolint
 				k.log.CDebugf(ctx, "Merkle root is too old for checking "+
 					"the revoked key: %+v", err)
 				info.MerkleRoot.Seqno = 0
@@ -847,7 +822,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
 		arg.Refreshers.NeedApplicationsAtGenerationsWithKBFS =
 			map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(desiredKeyGen): []keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(desiredKeyGen): {
 					keybase1.TeamApplication_KBFS,
 				},
 			}
@@ -1197,22 +1172,34 @@ func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
 }
 
 // OnPathChange implements the SubscriptionNotifier interface.
-func (k *KeybaseServiceBase) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
-	k.kbfsClient.FSSubscriptionNotifyPathEvent(context.Background(), keybase1.FSSubscriptionNotifyPathEventArg{
-		SubscriptionID: string(subscriptionID),
-		Path:           path,
-		Topic:          topic,
-	})
+func (k *KeybaseServiceBase) OnPathChange(
+	subscriptionID SubscriptionID, path string,
+	topic keybase1.PathSubscriptionTopic) {
+	err := k.kbfsClient.FSSubscriptionNotifyPathEvent(
+		context.Background(), keybase1.FSSubscriptionNotifyPathEventArg{
+			SubscriptionID: string(subscriptionID),
+			Path:           path,
+			Topic:          topic,
+		})
+	if err != nil {
+		k.log.CDebugf(
+			context.TODO(), "Couldn't send path change notification: %+v", err)
+	}
 }
 
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnNonPathChange(
 	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
-	k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
+	err := k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
 		keybase1.FSSubscriptionNotifyEventArg{
 			SubscriptionID: string(subscriptionID),
 			Topic:          topic,
 		})
+	if err != nil {
+		k.log.CDebugf(
+			context.TODO(),
+			"Couldn't send non-path change notification: %+v", err)
+	}
 }
 
 // FlushUserFromLocalCache implements the KeybaseService interface for

@@ -87,6 +87,7 @@ const ManageContacts = (_: Props) => {
 
 const styles = Styles.styleSheetCreate({
   buttonBar: {
+    marginTop: Styles.globalMargins.tiny,
     minHeight: undefined,
     width: undefined,
   },

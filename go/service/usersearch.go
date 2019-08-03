@@ -20,11 +20,17 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+type UserSearchProvider interface {
+	MakeSearchRequest(libkb.MetaContext, keybase1.UserSearchArg) ([]keybase1.APIUserSearchResult, error)
+}
+
 type UserSearchHandler struct {
 	libkb.Contextified
 	*BaseHandler
 
 	contactsProvider *contacts.CachedContactsProvider
+	// Tests can overwrite searchProvider with mock types.
+	searchProvider UserSearchProvider
 }
 
 func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, provider *contacts.CachedContactsProvider) *UserSearchHandler {
@@ -32,6 +38,7 @@ func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, provider *
 		Contextified:     libkb.NewContextified(g),
 		BaseHandler:      NewBaseHandler(g, xp),
 		contactsProvider: provider,
+		searchProvider:   &KeybaseAPISearchProvider{},
 	}
 	return handler
 }
@@ -43,7 +50,9 @@ type rawSearchResults struct {
 	List []keybase1.APIUserSearchResult `json:"list"`
 }
 
-func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+type KeybaseAPISearchProvider struct{}
+
+func (*KeybaseAPISearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	service := arg.Service
 	if service == "keybase" {
 		service = ""
@@ -63,16 +72,6 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	if err != nil {
 		return nil, err
 	}
-	// Downcase usernames
-	for i, row := range response.List {
-		if row.Keybase != nil {
-			response.List[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
-			response.List[i].RawScore = row.Keybase.RawScore
-		}
-		if row.Service != nil {
-			response.List[i].Service.Username = strings.ToLower(row.Service.Username)
-		}
-	}
 	return response.List, nil
 }
 
@@ -90,7 +89,7 @@ func queryToRegexp(q string) (*regexp.Regexp, error) {
 			nonEmptyParts = append(nonEmptyParts, p)
 		}
 	}
-	rxx, err := regexp.Compile(".*" + strings.Join(nonEmptyParts, ".*") + ".*")
+	rxx, err := regexp.Compile(strings.Join(nonEmptyParts, ".*"))
 	if err != nil {
 		return nil, err
 	}
@@ -148,27 +147,30 @@ var fieldsAndScores = []struct {
 }
 
 func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (found bool, score float64, plumbMatchedVal string) {
+	var currentScore float64
+	var multiplier float64
 	for _, v := range fieldsAndScores {
 		str := v.getter(&contact)
 		if str == "" {
 			continue
 		}
-		found, score := query.scoreString(str)
-		if found {
+		matchFound, matchScore := query.scoreString(str)
+		if matchFound && matchScore > currentScore {
 			plumbMatchedVal = ""
 			if v.plumb {
 				plumbMatchedVal = str
 			}
-			return true, score * v.multiplier, plumbMatchedVal
+			found = true
+			currentScore = matchScore
+			multiplier = v.multiplier
 		}
 
 	}
-	return false, 0, ""
+	return found, currentScore * multiplier, plumbMatchedVal
 }
 
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
-	store := mctx.G().SyncedContactList
-	contactsRes, err := store.RetrieveContacts(mctx)
+	contactsRes, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
 	if err != nil {
 		return res, err
 	}
@@ -178,22 +180,82 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		return res, nil
 	}
 
-	for _, c := range contactsRes {
-		found, score, matchedVal := matchAndScoreContact(query, c)
+	// Deduplicate on name and label - never return multiple identical rows
+	// even if separate components yielded them.
+	type displayNameAndLabel struct {
+		name, label string
+	}
+	searchResults := make(map[displayNameAndLabel]keybase1.APIUserSearchResult)
+
+	// Set of contact indices that we've matched to and are resolved. When
+	// search matches to a contact component, we want to only present the
+	// resolved one and skip unresolved.
+	seenResolvedContacts := make(map[int]struct{})
+
+	for _, contactIter := range contactsRes {
+		found, score, matchedVal := matchAndScoreContact(query, contactIter)
 		if found {
-			contact := c
-			if contact.Resolved && matchedVal != "" {
-				// If contact is resolved, make sure to plumb matched query to
-				// display label. This is not needed for unresolved contacts,
-				// which can only match on ContactName or Component Value, and
-				// both of them always appear as name and label.
-				contact.DisplayLabel = matchedVal
+			// Copy contact because we are storing pointer to contact.
+			contact := contactIter
+			if contact.Resolved {
+				if matchedVal != "" {
+					// If contact is resolved, make sure to plumb matched query to
+					// display label. This is not needed for unresolved contacts,
+					// which can only match on ContactName or Component Value, and
+					// both of them always appear as name and label.
+					contact.DisplayLabel = matchedVal
+				}
+
+				// If we got a resolved match, add bonus to the score so it
+				// stands out from similar matches.
+				score *= 1.5
+
+				// Mark contact index so we skip it when populating return list.
+				seenResolvedContacts[contact.ContactIndex] = struct{}{}
+			} else {
+				if _, seen := seenResolvedContacts[contact.ContactIndex]; seen {
+					// Other component of this contact has resolved to a user, skip
+					// all non-resolved components.
+					continue
+				}
 			}
-			res = append(res, keybase1.APIUserSearchResult{
-				Contact:  &contact,
-				RawScore: score,
-			})
+
+			key := displayNameAndLabel{contact.DisplayName, contact.DisplayLabel}
+			replace := true
+			if current, found := searchResults[key]; found {
+				replace = (contact.Resolved && !current.Contact.Resolved) || (score > current.RawScore)
+			}
+
+			if replace {
+				searchResults[key] = keybase1.APIUserSearchResult{
+					Contact:  &contact,
+					RawScore: score,
+				}
+			}
 		}
+	}
+
+	for _, entry := range searchResults {
+		if !entry.Contact.Resolved {
+			if _, seen := seenResolvedContacts[entry.Contact.ContactIndex]; seen {
+				// Other component of this contact has resolved to a user, skip
+				// all non-resolved components.
+				continue
+			}
+		}
+
+		res = append(res, entry)
+	}
+
+	// Return best matches first.
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].RawScore > res[j].RawScore
+	})
+
+	// Trim to maxResults to reduce complexity on the call site.
+	maxRes := arg.MaxResults
+	if maxRes > 0 && len(res) > maxRes {
+		res = res[:maxRes]
 	}
 
 	return res, nil
@@ -301,6 +363,26 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 	return res, nil
 }
 
+func (h *UserSearchHandler) makeSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+	res, err = h.searchProvider.MakeSearchRequest(mctx, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Downcase usernames, pluck raw score into outer struct.
+	for i, row := range res {
+		if row.Keybase != nil {
+			res[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
+			res[i].RawScore = row.Keybase.RawScore
+		}
+		if row.Service != nil {
+			res[i].Service.Username = strings.ToLower(row.Service.Username)
+		}
+	}
+
+	return res, nil
+}
+
 func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH")
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
@@ -310,16 +392,14 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		return nil, nil
 	}
 
-	if !h.G().TestOptions.DisableUserSearchSocialServices {
-		if arg.Service != "keybase" && arg.Service != "" {
-			// If this is a social search, we just return API results.
-			return doSearchRequest(mctx, arg)
-		}
+	if arg.Service != "keybase" && arg.Service != "" {
+		// If this is a social search, we just return API results.
+		return h.makeSearchRequest(mctx, arg)
+	}
 
-		res, err = doSearchRequest(mctx, arg)
-		if err != nil {
-			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
-		}
+	res, err = h.makeSearchRequest(mctx, arg)
+	if err != nil {
+		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 	}
 
 	if arg.IncludeContacts {
@@ -327,40 +407,38 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		if err != nil {
 			mctx.Warning("Failed to do contacts search: %s", err)
 		} else {
-			// Sort first - we are going to be deduplicating on usernames,
-			// entries with higher score have precedence.
-			sort.Slice(contactsRes, func(i, j int) bool {
-				return contactsRes[i].RawScore > contactsRes[j].RawScore
-			})
-
-			res = append(res, contactsRes...)
-
-			// Filter `res` list using `outputRes`.
+			// Filter contacts - If we have a username match coming from the
+			// service, prefer it instead of contact result for the same user
+			// but with SBS assertion in it.
 			usernameSet := make(map[string]struct{}) // set of usernames
-			outputRes := make([]keybase1.APIUserSearchResult, 0, len(res))
-			for i, v := range res {
-				var username string
-				if v.Keybase != nil {
-					username = v.Keybase.Username
-				} else if v.Contact != nil && v.Contact.Resolved {
-					username = v.Contact.Username
+			for _, result := range res {
+				if result.Keybase != nil {
+					// All current results should be Keybase but be safe in
+					// case code in this function changes.
+					usernameSet[result.Keybase.Username] = struct{}{}
 				}
-				if username != "" {
-					// Only deduplicate resolved contacts or keybase users.
+			}
+
+			for _, contact := range contactsRes {
+				if contact.Contact.Resolved {
+					// Do not add this contact result if there already is a
+					// keybase result with username that the contact resolved
+					// to.
+					username := contact.Contact.Username
 					if _, found := usernameSet[username]; found {
 						continue
 					}
 					usernameSet[username] = struct{}{}
 				}
-				v.Score = 1.0 / float64(1+i)
-				outputRes = append(outputRes, v)
+				res = append(res, contact)
 			}
-			res = outputRes
 
-			// Trim the whole result to MaxResult.
-			maxRes := arg.MaxResults
-			if maxRes > 0 && len(res) > maxRes {
-				res = res[:maxRes]
+			sort.Slice(res, func(i, j int) bool {
+				return res[i].RawScore > res[j].RawScore
+			})
+
+			for i := range res {
+				res[i].Score = 1.0 / float64(1+i)
 			}
 		}
 	}
@@ -387,6 +465,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		}
 	}
 
+	// Trim the whole result to MaxResult.
 	maxRes := arg.MaxResults
 	if maxRes > 0 && len(res) > maxRes {
 		res = res[:maxRes]
@@ -422,7 +501,7 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 
 	if url.IsSocial() {
 		res.Description = fmt.Sprintf("%s user", strings.Title(service))
-		apiRes, err := doSearchRequest(mctx, keybase1.UserSearchArg{
+		apiRes, err := h.makeSearchRequest(mctx, keybase1.UserSearchArg{
 			Query:                  username,
 			Service:                service,
 			IncludeServicesSummary: false,

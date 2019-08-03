@@ -187,7 +187,7 @@ func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *ke
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
-	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
 
 	var data *keybase1.HiddenTeamChain
 	data, err = l.updatePrecheck(mctx, update)
@@ -427,8 +427,10 @@ func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyG
 // Commit the update from the server to main HiddenTeamChain storage.
 func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	if l.newData == nil {
+		mctx.Debug("LoaderPackage#Commit: nil newData")
 		return nil
 	}
+	mctx.Debug("LoaderPackage#Commit: %s", l.newData.Summary())
 	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData, l.expectedPrev)
 	return err
 }

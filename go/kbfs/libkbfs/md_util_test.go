@@ -38,8 +38,6 @@ func (testBlockCache) Put(ptr data.BlockPointer, tlf tlf.ID, block data.Block,
 type blockChangesNoInfo struct {
 	// An ordered list of operations completed in this update
 	Ops opsList `codec:"o,omitempty"`
-	// Estimate the number of bytes that this set of changes will take to encode
-	sizeEstimate uint64
 }
 
 func TestReembedBlockChanges(t *testing.T) {

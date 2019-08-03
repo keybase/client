@@ -390,21 +390,23 @@ func humanizeBytes(n int64, d int64) string {
 	const gbf = float64(gb)
 	// Special case the counting of bytes, when there's no denominator.
 	if d == 1 {
-		if n < kb {
+		switch {
+		case n < kb:
 			return fmt.Sprintf("%d bytes", n)
-		} else if n < mb {
+		case n < mb:
 			return fmt.Sprintf("%.2f KB", float64(n)/kbf)
-		} else if n < gb {
+		case n < gb:
 			return fmt.Sprintf("%.2f MB", float64(n)/mbf)
 		}
 		return fmt.Sprintf("%.2f GB", float64(n)/gbf)
 	}
 
-	if d < kb {
+	switch {
+	case d < kb:
 		return fmt.Sprintf("%d/%d bytes", n, d)
-	} else if d < mb {
+	case d < mb:
 		return fmt.Sprintf("%.2f/%.2f KB", float64(n)/kbf, float64(d)/kbf)
-	} else if d < gb {
+	case d < gb:
 		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/mbf, float64(d)/mbf)
 	}
 	return fmt.Sprintf("%.2f/%.2f GB", float64(n)/gbf, float64(d)/gbf)
@@ -1898,7 +1900,8 @@ func (r *runner) processCommand(
 
 			cmdParts := strings.Fields(cmd)
 			if len(cmdParts) == 0 {
-				if len(fetchBatch) > 0 {
+				switch {
+				case len(fetchBatch) > 0:
 					if r.cloning {
 						r.log.CDebugf(ctx, "Processing clone")
 						err = r.handleClone(ctx)
@@ -1914,7 +1917,7 @@ func (r *runner) processCommand(
 					}
 					fetchBatch = nil
 					continue
-				} else if len(pushBatch) > 0 {
+				case len(pushBatch) > 0:
 					r.log.CDebugf(ctx, "Processing push batch")
 					_, err = r.handlePushBatch(ctx, pushBatch)
 					if err != nil {
@@ -1922,7 +1925,7 @@ func (r *runner) processCommand(
 					}
 					pushBatch = nil
 					continue
-				} else {
+				default:
 					r.log.CDebugf(ctx, "Done processing commands")
 					return nil
 				}

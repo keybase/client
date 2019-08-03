@@ -182,8 +182,9 @@ const styles = Styles.styleSheetCreate({
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
   fullname: {maxWidth: 180},
-  header: {height: 80, marginBottom: 20},
+  header: {flexShrink: 0, height: 80, marginBottom: 20},
   headerBox: {
+    paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
   iconBox: {

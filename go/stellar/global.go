@@ -304,6 +304,7 @@ func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
 	var err error
 	defer mctx.TraceTimed("Stellar.handlePaymentStatus", func() error { return err })()
+
 	var msg stellar1.PaymentStatusMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		mctx.Debug("error unmarshaling obm PaymentStatusMsg: %s", err)

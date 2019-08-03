@@ -117,7 +117,7 @@ class Text extends Component<Props> {
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy}
         style={style}
-        {...lineClamp(this.props.lineClamp || null, this.props.ellipsizeMode || null)}
+        {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}

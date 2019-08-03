@@ -331,7 +331,7 @@ type rootMetadataV2Future struct {
 
 func (brmf *rootMetadataV2Future) toCurrent() RootMetadata {
 	rm := brmf.rootMetadataWrapper.RootMetadataV2
-	rm.WriterMetadataV2 = WriterMetadataV2(brmf.writerMetadataV2Future.toCurrent())
+	rm.WriterMetadataV2 = brmf.writerMetadataV2Future.toCurrent()
 	rm.RKeys = brmf.RKeys.toCurrent()
 	return &rm
 }

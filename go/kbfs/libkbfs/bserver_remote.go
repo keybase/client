@@ -137,12 +137,6 @@ func (b *blockServerRemoteClientHandler) shutdown() {
 	b.pinger.cancelTicker()
 }
 
-func (b *blockServerRemoteClientHandler) getConn() *rpc.Connection {
-	b.connMu.RLock()
-	defer b.connMu.RUnlock()
-	return b.conn
-}
-
 func (b *blockServerRemoteClientHandler) getClient() keybase1.BlockInterface {
 	b.connMu.RLock()
 	defer b.connMu.RUnlock()
@@ -412,10 +406,12 @@ func (b *BlockServerRemote) Get(
 				id, tlfID, context, len(buf))
 			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
-				// This used to be called in a goroutine to prevent blocking
-				// the `Get`. But we need this cached synchronously so prefetch
-				// operations can work correctly.
-				dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+				// This used to be called in a goroutine to prevent
+				// blocking the `Get`. But we need this cached
+				// synchronously so prefetch operations can work
+				// correctly.  No need to log an error since `dbc`
+				// will already log it.
+				_ = dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 			}
 		}
 	}()
@@ -464,7 +460,10 @@ func (b *BlockServerRemote) Put(
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		err := dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		if err != nil {
+			return err
+		}
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
@@ -495,7 +494,10 @@ func (b *BlockServerRemote) PutAgain(
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		err := dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		if err != nil {
+			return err
+		}
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)

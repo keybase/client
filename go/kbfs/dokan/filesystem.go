@@ -93,14 +93,14 @@ type MountFlag uint32
 
 // Flags for mounting the filesystem. See Dokan documentation for these.
 const (
-	CDebug         = MountFlag(kbfsLibdokanDebug)
-	CStderr        = MountFlag(kbfsLibdokanStderr)
-	Removable      = MountFlag(kbfsLibdokanRemovable)
-	MountManager   = MountFlag(kbfsLibdokanMountManager)
-	CurrentSession = MountFlag(kbfsLibdokanCurrentSession)
+	CDebug         = kbfsLibdokanDebug
+	CStderr        = kbfsLibdokanStderr
+	Removable      = kbfsLibdokanRemovable
+	MountManager   = kbfsLibdokanMountManager
+	CurrentSession = kbfsLibdokanCurrentSession
 	// UseFindFilesWithPattern enables FindFiles calls to be with a search
 	// pattern string. Otherwise the string will be empty in all calls.
-	UseFindFilesWithPattern = MountFlag(kbfsLibdokanUseFindFilesWithPattern)
+	UseFindFilesWithPattern = kbfsLibdokanUseFindFilesWithPattern
 )
 
 // CreateData contains all the info needed to create a file.

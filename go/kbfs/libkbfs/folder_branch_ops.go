@@ -66,7 +66,6 @@ type branchType int
 const (
 	standard branchType = iota // an online, read-write branch
 	archive                    // an online, read-only branch
-	offline                    // an offline, read-write branch
 	conflict                   // a cleared, local conflict branch
 )
 
@@ -526,7 +525,8 @@ func (fbo *folderBranchOps) markForReIdentifyIfNeeded(now time.Time, maxValid ti
 	fbo.identifyLock.Lock()
 	defer fbo.identifyLock.Unlock()
 	if fbo.identifyDone && (now.Before(fbo.identifyTime) || fbo.identifyTime.Add(maxValid).Before(now)) {
-		fbo.log.CDebugf(nil, "Expiring identify from %v", fbo.identifyTime)
+		fbo.log.CDebugf(
+			context.TODO(), "Expiring identify from %v", fbo.identifyTime)
 		fbo.identifyDone = false
 	}
 }
@@ -537,11 +537,12 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	if fbo.config.CheckStateOnShutdown() {
 		lState := makeFBOLockState()
 
-		if fbo.blocks.GetState(lState) == dirtyState {
+		switch {
+		case fbo.blocks.GetState(lState) == dirtyState:
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
-		} else if fbo.isUnmerged(lState) {
+		case fbo.isUnmerged(lState):
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
-		} else {
+		default:
 			// Make sure we're up to date first
 			if err := fbo.SyncFromServer(ctx,
 				fbo.folderBranch, nil); err != nil {
@@ -1750,10 +1751,6 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		}
 
 		prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), rootPtr)
-		if err != nil {
-			fbo.log.CDebugf(ctx, "Error getting prefetched block: %+v", err)
-			return
-		}
 		if prefetchStatus != FinishedPrefetch {
 			fbo.vlog.CLogf(
 				ctx, libkb.VLog1,
@@ -1933,7 +1930,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 				default:
 					return err
 				}
-			} else {
+			} else if md.putToServer {
 				// If this isn't the first head, then this is either
 				// an update from the server, or an update just
 				// written by the client.  But since journaling is on,
@@ -1941,10 +1938,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 				// the update is properly flushed to the server.  So
 				// ignore updates that haven't yet been put to the
 				// server.
-				if md.putToServer {
-					fbo.setLatestMergedRevisionLocked(
-						ctx, lState, md.Revision(), false)
-				}
+				fbo.setLatestMergedRevisionLocked(
+					ctx, lState, md.Revision(), false)
 			}
 		} else {
 			// This is a merged revision, and journaling is disabled,
@@ -2188,13 +2183,14 @@ func (fbo *folderBranchOps) identifyOnce(
 		return err
 	}
 
-	if ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
-		len(ei.GetTlfBreakAndClose().Breaks) > 0 {
+	switch {
+	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
+		len(ei.GetTlfBreakAndClose().Breaks) > 0:
 		fbo.log.CDebugf(ctx,
 			"Identify finished with no error but broken proof warnings")
-	} else if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	case ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP:
 		fbo.log.CDebugf(ctx, "Identify skipped")
-	} else {
+	default:
 		fbo.log.CDebugf(ctx, "Identify finished successfully")
 		fbo.identifyDone = true
 		fbo.identifyTime = fbo.config.Clock().Now()
@@ -2760,7 +2756,7 @@ func (fbo *folderBranchOps) initMDLocked(
 			md.TlfID(), fbo.head.mdID)
 	}
 
-	fbo.setNewInitialHeadLocked(ctx, lState, irmd)
+	err = fbo.setNewInitialHeadLocked(ctx, lState, irmd)
 	if err != nil {
 		return err
 	}
@@ -4435,7 +4431,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 		}
 		oldCleanupFn := cleanupFn
 		cleanupFn = func() {
-			fbo.blocks.ClearCacheInfo(lState, fbo.nodeCache.PathFromNode(node))
+			_ = fbo.blocks.ClearCacheInfo(
+				lState, fbo.nodeCache.PathFromNode(node))
 			oldCleanupFn()
 		}
 	}
@@ -4989,13 +4986,14 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 	// However, since removals don't reduce levels of indirection at
 	// the moment, we're forced to do this for now.
 	entries, err := fbo.blocks.GetEntries(ctx, lState, md.ReadOnly(), childPath)
-	if isRecoverableBlockErrorForRemoval(err) {
+	switch {
+	case isRecoverableBlockErrorForRemoval(err):
 		msg := fmt.Sprintf("Recoverable block error encountered for removeDirLocked(%v); continuing", childPath)
 		fbo.log.CWarningf(ctx, "%s", msg)
 		fbo.log.CDebugf(ctx, "%s (err=%v)", msg, err)
-	} else if err != nil {
+	case err != nil:
 		return err
-	} else if len(entries) > 0 {
+	case len(entries) > 0:
 		return DirNotEmptyError{dirName}
 	}
 
@@ -5242,7 +5240,7 @@ func (fbo *folderBranchOps) Read(
 		if _, isSet := os.LookupEnv("KBFS_DISABLE_GIT_SPECIAL_CASE"); !isSet {
 			for _, n := range filePath.Path {
 				if n.Name.Plaintext() == ".git" {
-					libcontext.EnableDelayedCancellationWithGracePeriod(
+					_ = libcontext.EnableDelayedCancellationWithGracePeriod(
 						ctx, fbo.config.DelayedCancellationGracePeriod())
 					break
 				}
@@ -5385,11 +5383,12 @@ func (fbo *folderBranchOps) setExLocked(
 		return nil
 	}
 
-	if ex && (de.Type == data.File) {
+	switch {
+	case ex && (de.Type == data.File):
 		de.Type = data.Exec
-	} else if !ex && (de.Type == data.Exec) {
+	case !ex && (de.Type == data.Exec):
 		de.Type = data.File
-	} else {
+	default:
 		// Treating this as a no-op, without updating the ctime, is a
 		// POSIX violation, but it's an important optimization to keep
 		// permissions-preserving rsyncs fast.
@@ -5413,7 +5412,7 @@ func (fbo *folderBranchOps) setExLocked(
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Skipping setex for a removed file %v",
 			filePath.TailPointer())
-		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+		_ = fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
 			ctx, lState, md.ReadOnly(), sao, filePath, de)
 		return nil
 	}
@@ -5494,7 +5493,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Skipping setmtime for a removed file %v",
 			filePath.TailPointer())
-		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+		_ = fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
 			ctx, lState, md.ReadOnly(), sao, filePath, de)
 		return nil
 	}
@@ -5825,8 +5824,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 						if err != nil {
 							return
 						}
-						fbo.status.rmDirtyNode(newNode)
-						fbo.config.DirtyBlockCache().Delete(
+						_ = fbo.status.rmDirtyNode(newNode)
+						_ = fbo.config.DirtyBlockCache().Delete(
 							fbo.id(), newPointer, fbo.branch())
 					})
 			}
@@ -5953,8 +5952,11 @@ func (fbo *folderBranchOps) syncAllLocked(
 		// Update the combined local block cache with this file's
 		// dirty entry.
 		if dirtyDe != nil {
-			fbo.blocks.mergeDirtyEntryWithDBM(
+			err := fbo.blocks.mergeDirtyEntryWithDBM(
 				ctx, lState, file, md, dbm, *dirtyDe)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -7455,16 +7457,22 @@ func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
 	return CtxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
 }
 
-func (fbo *folderBranchOps) newCtxWithFBOID() (context.Context, context.CancelFunc) {
+func (fbo *folderBranchOps) newCtxWithFBOIDWithCtx(ctx context.Context) (
+	context.Context, context.CancelFunc) {
 	// No need to call NewContextReplayable since ctxWithFBOID calls
 	// ctxWithRandomIDReplayable, which attaches replayably.
-	ctx := fbo.ctxWithFBOID(context.Background())
+	ctx = fbo.ctxWithFBOID(ctx)
 	ctx, cancelFunc := context.WithCancel(ctx)
 	ctx, err := libcontext.NewContextWithCancellationDelayer(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return ctx, cancelFunc
+}
+
+func (fbo *folderBranchOps) newCtxWithFBOID() (
+	context.Context, context.CancelFunc) {
+	return fbo.newCtxWithFBOIDWithCtx(context.Background())
 }
 
 // Run the passed function with a context that's canceled on shutdown.
@@ -7921,7 +7929,7 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 		}
 		prevDirtyFileMap = currDirtyFileMap
 
-		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+		_ = fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
 			ctx = libcontext.NewContextReplayable(ctx,
@@ -8237,8 +8245,9 @@ func (fbo *folderBranchOps) onMDFlush(
 // TeamNameChanged implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) TeamNameChanged(
 	ctx context.Context, tid keybase1.TeamID) {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	ctx, cancelFunc := fbo.newCtxWithFBOIDWithCtx(ctx)
 	defer cancelFunc()
+
 	fbo.vlog.CLogf(ctx, libkb.VLog1, "Starting name change for team %s", tid)
 
 	// First check if this is an implicit team.
@@ -8303,10 +8312,6 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	fbo.head = MakeImmutableRootMetadata(
 		newHead, fbo.head.lastWriterVerifyingKey, fbo.head.mdID,
 		fbo.head.localTimestamp, fbo.head.putToServer)
-	if err != nil {
-		fbo.log.CWarningf(ctx, "Error setting head: %+v", err)
-		return
-	}
 
 	fbo.config.MDCache().ChangeHandleForID(oldHandle, newHandle)
 	fbo.observers.tlfHandleChange(ctx, newHandle)
@@ -8315,7 +8320,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 // TeamAbandoned implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) TeamAbandoned(
 	ctx context.Context, tid keybase1.TeamID) {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	ctx, cancelFunc := fbo.newCtxWithFBOIDWithCtx(ctx)
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Abandoning team %s", tid)
 	fbo.locallyFinalizeTLF(ctx)
@@ -9051,7 +9056,8 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	oldPartial := oldConfig.Mode == keybase1.FolderSyncMode_PARTIAL
 	newPartial := newConfig.Mode == keybase1.FolderSyncMode_PARTIAL
-	if oldPartial && !newPartial {
+	switch {
+	case oldPartial && !newPartial:
 		if fbo.markAndSweepTrigger == nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
@@ -9060,7 +9066,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		fbo.log.CDebugf(ctx, "Exiting partial mode, stopping mark-and-sweep")
 		close(fbo.markAndSweepTrigger)
 		fbo.markAndSweepTrigger = nil
-	} else if !oldPartial && newPartial {
+	case !oldPartial && newPartial:
 		if fbo.markAndSweepTrigger != nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
@@ -9072,7 +9078,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 		fbo.log.CDebugf(ctx, "Entering partial mode, starting mark-and-sweep")
 		// `kickOffPartialSync` call above will start the mark and sweep.
-	} else if oldPartial && newPartial {
+	case oldPartial && newPartial:
 		if fbo.markAndSweepTrigger == nil {
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
@@ -9204,14 +9210,16 @@ func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus
 	}
 
 	fbo.vlog.CLogf(
-		nil, libkb.VLog1, "Asking for an edit re-init after reconnection")
+		context.TODO(), libkb.VLog1,
+		"Asking for an edit re-init after reconnection")
 	fbo.editActivity.Add(1)
 	select {
 	case fbo.editChannels <- editChannelActivity{nil, "", ""}:
 	case <-monitoringCh:
 		fbo.editActivity.Done()
-		fbo.log.CDebugf(nil, "Edit monitoring stopped while trying to "+
-			"ask for a re-init")
+		fbo.log.CDebugf(
+			context.TODO(),
+			"Edit monitoring stopped while trying to ask for a re-init")
 	}
 }
 

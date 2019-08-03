@@ -605,19 +605,20 @@ func initRoot() fileOp {
 		}
 		var root Node
 		var err error
-		if c.tlfRevision != kbfsmd.RevisionUninitialized {
+		switch {
+		case c.tlfRevision != kbfsmd.RevisionUninitialized:
 			root, err = c.engine.GetRootDirAtRevision(
 				c.user, c.tlfName, c.tlfType, c.tlfRevision,
 				c.expectedCanonicalTlfName)
-		} else if c.tlfTime != "" {
+		case c.tlfTime != "":
 			root, err = c.engine.GetRootDirAtTimeString(
 				c.user, c.tlfName, c.tlfType, c.tlfTime,
 				c.expectedCanonicalTlfName)
-		} else if c.tlfRelTime != "" {
+		case c.tlfRelTime != "":
 			root, err = c.engine.GetRootDirAtRelTimeString(
 				c.user, c.tlfName, c.tlfType, c.tlfRelTime,
 				c.expectedCanonicalTlfName)
-		} else {
+		default:
 			root, err = c.engine.GetRootDir(
 				c.user, c.tlfName, c.tlfType, c.expectedCanonicalTlfName)
 		}
@@ -1131,8 +1132,7 @@ func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
 			continue
 		}
 
-		p, err := tlf.CanonicalToPreferredName(
-			kbname.NormalizedUsername(c.username), tlf.CanonicalName(f))
+		p, err := tlf.CanonicalToPreferredName(c.username, tlf.CanonicalName(f))
 		if err != nil {
 			return err
 		}
@@ -1275,13 +1275,12 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 			default:
 				panic("unreachable")
 			}
-		} else { // intermediate element in path
-			if err != nil && create != noCreate {
-				c.tb.Log("getNode: CreateDir")
-				node, err = c.engine.CreateDir(c.user, parent, name)
-				wasCreated = true
-			} // otherwise let it error!
-		}
+		} else if err != nil && create != noCreate {
+			// intermediate element in path
+			c.tb.Log("getNode: CreateDir")
+			node, err = c.engine.CreateDir(c.user, parent, name)
+			wasCreated = true
+		} // otherwise let it error!
 
 		if err != nil {
 			return nil, false, err

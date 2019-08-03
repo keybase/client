@@ -801,7 +801,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	// This will end up calling journalMDOps.GetIDForHandle, which
 	// initializes the journal if possible.  In this case for a
 	// public, unwritable folder, it shouldn't.
-	h, err := tlfhandle.ParseHandle(
+	_, err = tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user2", tlf.Public)
 	require.NoError(t, err)
 
@@ -811,7 +811,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	// Neither should a private, reader folder.
-	h, err = tlfhandle.ParseHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user2#test_user1",
 		tlf.Private)
 	require.NoError(t, err)
@@ -829,7 +829,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 		t, config, id, h.FirstResolvedWriter().AsUserOrBust())
 	AddTeamReaderForTestOrBust(
 		t, config, id, h.ResolvedReaders()[0].AsUserOrBust())
-	h, err = tlfhandle.ParseHandle(
+	_, err = tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(teamName),
 		tlf.SingleTeam)
 	require.NoError(t, err)
@@ -840,7 +840,7 @@ func TestJournalManagerReaderTLFs(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	// But accessing our own should make one.
-	h, err = tlfhandle.ParseHandle(
+	_, err = tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user1", tlf.Public)
 	require.NoError(t, err)
 

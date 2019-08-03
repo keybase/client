@@ -117,6 +117,7 @@ export type _MessageText = {
   // eslint-disable-next-line no-use-before-define
   replyTo: Message | null
   text: HiddenString
+  paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
   timestamp: number
   unfurls: UnfurlMap
   type: 'text'

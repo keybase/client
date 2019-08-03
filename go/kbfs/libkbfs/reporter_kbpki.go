@@ -32,7 +32,6 @@ const (
 	errorParamLimitBytes          = "limitBytes"
 	errorParamUsageFiles          = "usageFiles"
 	errorParamLimitFiles          = "limitFiles"
-	errorParamRenameOldFilename   = "oldFilename"
 	errorParamFoldersCreated      = "foldersCreated"
 	errorParamFolderLimit         = "folderLimit"
 	errorParamApplicationExecPath = "applicationExecPath"
@@ -437,57 +436,10 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       code,
 		NotificationType: keybase1.FSNotificationType_REKEYING,
 	}
-}
-
-func baseFileEditNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseNotification(file, true)
-	n.WriterUid = writer
-	n.LocalTime = keybase1.ToTime(localTime)
-	return n
-}
-
-// fileCreateNotification creates FSNotifications from paths for file
-// create events.
-func fileCreateNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
-	return n
-}
-
-// fileModifyNotification creates FSNotifications from paths for file
-// modification events.
-func fileModifyNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
-	return n
-}
-
-// fileDeleteNotification creates FSNotifications from paths for file
-// delete events.
-func fileDeleteNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
-	return n
-}
-
-// fileRenameNotification creates FSNotifications from paths for file
-// rename events.
-func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(newFile, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
-	n.Params = map[string]string{
-		errorParamRenameOldFilename: oldFile.CanonicalPathPlaintext(),
-	}
-	return n
 }
 
 // connectionNotification creates FSNotifications based on whether
@@ -559,7 +511,7 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
 		Params:           params,
@@ -573,7 +525,7 @@ func syncConfigChangeNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,

@@ -228,6 +228,21 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-airdrop-shining-80.png'),
   },
+  'icon-fancy-airdrop-star-faded-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-80': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-80.png'),
+  },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
     isFont: false,
@@ -2133,13 +2148,13 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card': {
-    charCode: 0xe96d,
+  'iconfont-contact-book': {
+    charCode: 0xe96e,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card-2': {
-    charCode: 0xe96e,
+  'iconfont-contact-card': {
+    charCode: 0xe96d,
     gridSize: 16,
     isFont: true,
   },

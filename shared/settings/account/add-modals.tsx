@@ -31,6 +31,12 @@ export const Email = () => {
       dispatch(RouteTreeGen.createClearModals())
     }
   }, [addEmailInProgress, addedEmail, dispatch])
+  // clean on edit
+  React.useEffect(() => {
+    if (email !== addEmailInProgress && emailError) {
+      dispatch(SettingsGen.createClearAddingEmail())
+    }
+  }, [addEmailInProgress, dispatch, email, emailError])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onContinue = React.useCallback(() => {
@@ -81,7 +87,7 @@ export const Email = () => {
           onChangeAllowSearch={onChangeAllowSearch}
           onContinue={onContinue}
           icon={
-            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} style={styles.icon} />
+            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-96' : 'icon-email-add-64'} style={styles.icon} />
           }
         />
       </Kb.Box2>
@@ -165,7 +171,7 @@ export const Phone = () => {
           onChangeAllowSearch={onChangeAllowSearch}
           icon={
             <Kb.Icon
-              type={Styles.isMobile ? 'icon-phone-number-add-64' : 'icon-phone-number-add-48'}
+              type={Styles.isMobile ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
               style={styles.icon}
             />
           }
@@ -222,9 +228,12 @@ export const VerifyPhone = () => {
       onClose={onClose}
       header={{
         hideBorder: true,
+        leftButton: Styles.isMobile ? (
+          <Kb.BackButton onClick={onClose} iconColor={Styles.globalColors.white} />
+        ) : null,
         style: styles.blueBackground,
         title: (
-          <Kb.Text type="BodySmall" negative={true}>
+          <Kb.Text type="BodySmall" negative={true} center={true}>
             {displayPhone || 'Unknown number'}
           </Kb.Text>
         ),
@@ -302,12 +311,12 @@ const styles = Styles.styleSheetCreate({
   },
   icon: Styles.platformStyles({
     isElectron: {
-      height: 48,
-      width: 48,
-    },
-    isMobile: {
       height: 64,
       width: 64,
+    },
+    isMobile: {
+      height: 96,
+      width: 96,
     },
   }),
   verifyContainer: {

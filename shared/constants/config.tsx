@@ -65,9 +65,9 @@ export const urlToUsername = (url: {
   }
 
   const pathname = url.pathname
-  // Adapted username regexp (see libkb/checkers.go) with a leading / and an
-  // optional trailing /.
-  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
+  // Adapted username regexp (see libkb/checkers.go) with a leading /, an
+  // optional trailing / and a dash for custom links.
+  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
   if (!match) {
     return null
   }

@@ -53,7 +53,7 @@ func (l MerkleLeaf) Encrypt(codec kbfscodec.Codec,
 	pubKeyData := pubKey.Data()
 	privKeyData := ePrivKey.Data()
 	encryptedData := box.Seal(
-		nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
+		nil, leafBytes, nonce, &pubKeyData, &privKeyData)
 	return EncryptedMerkleLeaf{
 		Version:       kbfscrypto.EncryptionSecretbox,
 		EncryptedData: encryptedData,
