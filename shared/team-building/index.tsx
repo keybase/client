@@ -239,12 +239,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     sections: Array<SearchRecSection>,
     indexInList: number
   ): {index: number; length: number; offset: number} => {
-    const sectionLength = Kb.SectionDivider.height
-    const rowLength = userResultHeight
+    const sectionDividerHeight = Kb.SectionDivider.height
+    const dataRowHeight = userResultHeight
 
     let numSections = 0
     let numData = 0
-    let length = rowLength
+    let length = dataRowHeight
     let currSectionHeaderIdx = 0
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i]
@@ -256,7 +256,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       numSections++
       const indexInSection = indexInList - currSectionHeaderIdx - 1
       if (indexInSection === s.data.length) {
-        // it's the section footer (we don't have footers so 0px).
+        // it's the section footer (we don't render footers so 0px).
         numData += s.data.length
         length = 0
         break
@@ -270,7 +270,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       numData += s.data.length
       currSectionHeaderIdx += s.data.length + 2 // +2 because footer
     }
-    const offset = numSections * sectionLength + numData * rowLength
+    const offset = numSections * sectionDividerHeight + numData * dataRowHeight
     return {index: indexInList, length, offset}
   }
 

@@ -33,7 +33,10 @@ describe('team building list', () => {
       },
     ]
 
-    // our example list is as follows:
+    // Our example list is as follows:
+    // Team building list does not render section footers, but they still occupy
+    // an index that getItemLayout has to be aware of.
+    //
     //  0  [ test 1 ]
     //  1  row 0
     //  2  row 1
@@ -49,74 +52,82 @@ describe('team building list', () => {
     // 12  row 2
     // 13  (footer)
 
-    const sectionLength = SectionDivider.height
-    const rowLength = userResultHeight
+    const sectionDividerHeight = SectionDivider.height
+    const dataRowHeight = userResultHeight
 
     const _getRecLayout = (sections: Array<SearchRecSection>, indexInList: number) =>
-      // @ts-ignore we don't care, this is just a test of pure function that doesn't even access props
+      // @ts-ignore we don't care about invalid props, this is for testing pure method that doesn't rely on props
       new TeamBuilding({})._getRecLayout(sections, indexInList)
 
-    expect(_getRecLayout(sections, 0)).toEqual({index: 0, length: sectionLength, offset: 0})
-    expect(_getRecLayout(sections, 1)).toEqual({index: 1, length: rowLength, offset: sectionLength})
+    // Index 0 is first header - offset 0, length = sectionDividerHeight
+    expect(_getRecLayout(sections, 0)).toEqual({index: 0, length: sectionDividerHeight, offset: 0})
+    expect(_getRecLayout(sections, 1)).toEqual({
+      index: 1,
+      length: dataRowHeight,
+      offset: sectionDividerHeight,
+    })
     expect(_getRecLayout(sections, 2)).toEqual({
       index: 2,
-      length: rowLength,
-      offset: sectionLength + rowLength,
+      length: dataRowHeight,
+      offset: sectionDividerHeight + dataRowHeight,
     })
     expect(_getRecLayout(sections, 3)).toEqual({
       index: 3,
-      length: rowLength,
-      offset: sectionLength + 2 * rowLength,
+      length: dataRowHeight,
+      offset: sectionDividerHeight + 2 * dataRowHeight,
     })
+    // Index 4 is a footer - length = 0.
     expect(_getRecLayout(sections, 4)).toEqual({
       index: 4,
       length: 0,
-      offset: sectionLength + 3 * rowLength,
+      offset: sectionDividerHeight + 3 * dataRowHeight,
     })
+    // Index 5 is next section header - offset is the same as above, because of 0-length footer.
     expect(_getRecLayout(sections, 5)).toEqual({
       index: 5,
-      length: sectionLength,
-      offset: sectionLength + 3 * rowLength,
+      length: sectionDividerHeight,
+      offset: sectionDividerHeight + 3 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 6)).toEqual({
       index: 6,
-      length: rowLength,
-      offset: 2 * sectionLength + 3 * rowLength,
+      length: dataRowHeight,
+      offset: 2 * sectionDividerHeight + 3 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 7)).toEqual({
       index: 7,
-      length: rowLength,
-      offset: 2 * sectionLength + 4 * rowLength,
+      length: dataRowHeight,
+      offset: 2 * sectionDividerHeight + 4 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 8)).toEqual({
       index: 8,
       length: 0,
-      offset: 2 * sectionLength + 5 * rowLength,
+      offset: 2 * sectionDividerHeight + 5 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 9)).toEqual({
       index: 9,
-      length: sectionLength,
-      offset: 2 * sectionLength + 5 * rowLength,
+      length: sectionDividerHeight,
+      offset: 2 * sectionDividerHeight + 5 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 10)).toEqual({
       index: 10,
-      length: rowLength,
-      offset: 3 * sectionLength + 5 * rowLength,
+      length: dataRowHeight,
+      offset: 3 * sectionDividerHeight + 5 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 11)).toEqual({
       index: 11,
-      length: rowLength,
-      offset: 3 * sectionLength + 6 * rowLength,
+      length: dataRowHeight,
+      offset: 3 * sectionDividerHeight + 6 * dataRowHeight,
     })
     expect(_getRecLayout(sections, 12)).toEqual({
       index: 12,
-      length: rowLength,
-      offset: 3 * sectionLength + 7 * rowLength,
+      length: dataRowHeight,
+      offset: 3 * sectionDividerHeight + 7 * dataRowHeight,
     })
+    // There is a 0-length footer after last section as well.
     expect(_getRecLayout(sections, 13)).toEqual({
       index: 13,
       length: 0,
-      offset: 3 * sectionLength + 8 * rowLength,
+      offset: 3 * sectionDividerHeight + 8 * dataRowHeight,
     })
   })
 })
