@@ -62,6 +62,14 @@ func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error)
 	return resp.PhoneNumbers, nil
 }
 
+func clearPhoneNumbersFromContactCache(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) {
+	// Now remove this number from contact lookup cache and from synced
+	// contacts.
+	cache := contacts.NewContactCacheStore(mctx.G())
+	cache.RemoveContactsCacheEntries(mctx, &phoneNumber, nil /* email */)
+	mctx.G().SyncedContactList.UnresolveContactsWithComponent(mctx, &phoneNumber, nil /* email */)
+}
+
 func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
@@ -76,11 +84,7 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 	if err != nil {
 		return err
 	}
-	// Now remove this number from contact lookup cache and from synced
-	// contacts.
-	cache := contacts.NewContactCacheStore(mctx.G())
-	cache.RemoveContactsCacheEntries(mctx, &phoneNumber /* phoneNumber */, nil /* email */)
-	mctx.G().SyncedContactList.ClearPhoneNumber(mctx, phoneNumber)
+	clearPhoneNumbersFromContactCache(mctx, phoneNumber)
 	return nil
 }
 
@@ -96,7 +100,13 @@ func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return nil
+	}
+	if visibility == keybase1.IdentityVisibility_PRIVATE {
+		clearPhoneNumbersFromContactCache(mctx, phoneNumber)
+	}
+	return nil
 }
 
 func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {
@@ -111,5 +121,8 @@ func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.Ide
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return nil
+	}
+	return nil
 }

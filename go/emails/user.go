@@ -24,6 +24,12 @@ func AddEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, visibility ke
 	return err
 }
 
+func clearEmailsFromContactCache(mctx libkb.MetaContext, email keybase1.EmailAddress) {
+	cache := contacts.NewContactCacheStore(mctx.G())
+	cache.RemoveContactsCacheEntries(mctx, nil /* phoneNumber */, &email)
+	mctx.G().SyncedContactList.UnresolveContactsWithComponent(mctx, nil /* phoneNumber */, &email)
+}
+
 func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 	payload := make(libkb.JSONPayload)
 	payload["email"] = email
@@ -41,9 +47,7 @@ func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 
 	// Now remove this email from contact lookup cache and from synced
 	// contacts.
-	cache := contacts.NewContactCacheStore(mctx.G())
-	cache.RemoveContactsCacheEntries(mctx, nil /* phoneNumber */, &email /* email */)
-	//mctx.G().SyncedContactList.ClearPhoneNumber(mctx, phoneNumber)
+	clearEmailsFromContactCache(mctx, email)
 	return nil
 }
 
@@ -87,7 +91,13 @@ func SetVisibilityEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, vis
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return err
+	}
+	if visibility == keybase1.IdentityVisibility_PRIVATE {
+		clearEmailsFromContactCache(mctx, email)
+	}
+	return nil
 }
 
 func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {
@@ -102,7 +112,10 @@ func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityV
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
