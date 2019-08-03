@@ -245,8 +245,8 @@ type FetchRetrier interface {
 	Offlinable
 	Resumable
 
-	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
-	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
+	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription)
+	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription)
 	Force(ctx context.Context)
 	Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
 		public bool)
