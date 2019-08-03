@@ -353,7 +353,7 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, getSeed func(keybase1.PerTea
 		return err
 	}
 	if readerKey.Check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
-		return NewLoaderError("can only handle seed check version 1; got %s", readerKey.Check.Version)
+		return NewLoaderError("can only handle seed check version 1; got %d", readerKey.Check.Version)
 	}
 	if check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
 		return NewLoaderError("can only handle seed check version 1; got computed check %s", check.Version)
