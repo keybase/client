@@ -102,7 +102,16 @@ func (s *SavedContactsStore) ClearPhoneNumber(mctx libkb.MetaContext,
 	for i, con := range contactList {
 		if con.Component.PhoneNumber != nil &&
 			*con.Component.PhoneNumber == keybase1.RawPhoneNumber(phoneNumber) {
+			// Unresolve contact.
 			con.Resolved = false
+			con.Username = ""
+			con.Uid = ""
+			con.Following = false
+			con.FullName = ""
+			// TODO: DisplayName/DisplayLabel logic infects yet another file /
+			// module. But it will sort itself out once we get rid of both.
+			con.DisplayName = con.ContactName
+			con.DisplayLabel = con.Component.FormatDisplayLabel(false /* addLabel */)
 			contactList[i] = con
 		}
 	}

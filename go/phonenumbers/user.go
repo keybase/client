@@ -73,14 +73,13 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 	}
 
 	_, err := mctx.G().API.Delete(mctx, arg)
-
 	if err != nil {
 		return err
 	}
 	// Now remove this number from contact lookup cache and from synced
 	// contacts.
 	cache := contacts.NewContactCacheStore(mctx.G())
-	cache.RemoveContactsCachePhoneEntry(mctx, phoneNumber)
+	cache.RemoveContactsCacheEntries(mctx, &phoneNumber /* phoneNumber */, nil /* email */)
 	mctx.G().SyncedContactList.ClearPhoneNumber(mctx, phoneNumber)
 	return nil
 }

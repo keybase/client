@@ -257,18 +257,25 @@ func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []ke
 }
 
 // RemoveContactsCachePhoneEntry removes cached lookup for phone number.
-func (s *ContactCacheStore) RemoveContactsCachePhoneEntry(mctx libkb.MetaContext,
-	pn keybase1.PhoneNumber) {
+func (s *ContactCacheStore) RemoveContactsCacheEntries(mctx libkb.MetaContext,
+	phone *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
 	cacheObj, created := s.getCache(mctx)
 	if created {
 		// There was no cache.
 		return
 	}
-	// TODO: this type conversion shouldn't have to be here,
-	//  since this cache should take `PhoneNumber`s.
-	delete(cacheObj.Lookups, MakePhoneLookupKey(keybase1.RawPhoneNumber(pn)))
+	if phone != nil {
+		// TODO: this type conversion shouldn't have to be here,
+		//  since this cache should take `PhoneNumber`s.
+		delete(cacheObj.Lookups, MakePhoneLookupKey(keybase1.RawPhoneNumber(*phone)))
+		mctx.Debug("ContactCacheStore: Removing phone number %q from lookup cache", *phone)
+	}
+	if email != nil {
+		delete(cacheObj.Lookups, MakeEmailLookupKey(*email))
+		mctx.Debug("ContactCacheStore: Removing email %q from lookup cache", *email)
+	}
 	err := s.putCache(mctx, cacheObj)
 	if err != nil {
-		mctx.Warning("Unable to update cache: %s", err)
+		mctx.Warning("ContactCacheStore: Unable to update cache: %s", err)
 	}
 }

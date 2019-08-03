@@ -6,6 +6,8 @@ package systests
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -391,6 +393,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 
 			var foundMiscEmail, foundMiscPhone, foundOurEmail, foundOurPhone int
 			for _, v := range list {
+				t.Logf("Checking component %s, should be UNRESOLVED", spew.Sdump(v))
 				if v.Component.Email != nil {
 					switch {
 					case *v.Component.Email == miscEmailAddr:
@@ -400,7 +403,6 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					default:
 						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
 					}
-					require.False(t, v.Resolved)
 				} else if v.Component.PhoneNumber != nil {
 					switch {
 					case *v.Component.PhoneNumber == miscPhoneNum:
@@ -410,8 +412,11 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					default:
 						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
 					}
-					require.False(t, v.Resolved)
 				}
+				require.False(t, v.Resolved)
+				require.True(t, v.Uid.IsNil())
+				require.Empty(t, v.Username)
+				require.Empty(t, v.FullName)
 			}
 
 			require.Equal(t, 1, foundMiscEmail)

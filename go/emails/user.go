@@ -4,6 +4,7 @@
 package emails
 
 import (
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -34,7 +35,16 @@ func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Now remove this email from contact lookup cache and from synced
+	// contacts.
+	cache := contacts.NewContactCacheStore(mctx.G())
+	cache.RemoveContactsCacheEntries(mctx, nil /* phoneNumber */, &email /* email */)
+	//mctx.G().SyncedContactList.ClearPhoneNumber(mctx, phoneNumber)
+	return nil
 }
 
 func SetPrimaryEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
