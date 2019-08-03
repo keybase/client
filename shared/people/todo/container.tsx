@@ -271,30 +271,30 @@ const VerifyAllEmailConnector = connect(
       dispatch(SettingsGen.createLoadSettings())
     },
   }),
-  (s, d, o: TodoOwnProps) => ({
-    ...o,
-    buttons: [
-      ...(o.metadata
-        ? [
-            {
-              label: 'Verify',
-              onClick: () => {
-                const meta = o.metadata
-                meta && meta.type === 'email' && d._onConfirm(meta.email)
+  (s, d, o: TodoOwnProps) => {
+    const meta = o.metadata
+    return {
+      ...o,
+      buttons: [
+        ...(meta && meta.type === 'email'
+          ? [
+              {
+                label: 'Verify',
+                onClick: () => d._onConfirm(meta.email),
+                type: 'Success',
+                waiting: s._addedEmail && s._addedEmail === meta.email,
               },
-              type: 'Success',
-              waiting: s._addedEmail && s._addedEmail === o.metadata.email,
-            },
-          ]
-        : []),
-      {
-        label: 'Manage email',
-        mode: 'Secondary',
-        onClick: d.onManage,
-      },
-    ] as Array<TaskButton>,
-    onReload: d.onReload,
-  })
+            ]
+          : []),
+        {
+          label: 'Manage email',
+          mode: 'Secondary',
+          onClick: d.onManage,
+        },
+      ] as Array<TaskButton>,
+      onReload: d.onReload,
+    }
+  }
 )(Task)
 
 const VerifyAllPhoneNumberConnector = connect(
