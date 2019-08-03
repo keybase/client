@@ -258,11 +258,9 @@ const TeamShowcaseConnector = connect(
 )(Task)
 
 const VerifyAllEmailConnector = connect(
-  mapStateToProps,
+  state => ({...mapStateToProps(state), _addedEmail: state.settings.email.addedEmail}),
   dispatch => ({
     _onConfirm: email => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
     },
     onManage: () => {
@@ -270,25 +268,26 @@ const VerifyAllEmailConnector = connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
   }),
-  (_, dispatchProps, ownProps: TodoOwnProps) => ({
-    ...ownProps,
+  (s, d, o: TodoOwnProps) => ({
+    ...o,
     buttons: [
-      ...(ownProps.metadata
+      ...(o.metadata
         ? [
             {
               label: 'Verify',
               onClick: () => {
-                const meta = ownProps.metadata
-                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+                const meta = o.metadata
+                meta && meta.type === 'email' && d._onConfirm(meta.email)
               },
               type: 'Success',
+              waiting: s._addedEmail && s._addedEmail === o.metadata.email,
             },
           ]
         : []),
       {
         label: 'Manage email',
         mode: 'Secondary',
-        onClick: dispatchProps.onManage,
+        onClick: d.onManage,
       },
     ] as Array<TaskButton>,
   })
@@ -306,16 +305,16 @@ const VerifyAllPhoneNumberConnector = connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
   }),
-  (_, dispatchProps, ownProps: TodoOwnProps) => ({
-    ...ownProps,
+  (_, d, o: TodoOwnProps) => ({
+    ...o,
     buttons: [
-      ...(ownProps.metadata
+      ...(o.metadata
         ? [
             {
               label: 'Verify',
               onClick: () => {
-                const meta = ownProps.metadata
-                meta && meta.type === 'phone' && dispatchProps._onConfirm(meta.phone)
+                const meta = o.metadata
+                meta && meta.type === 'phone' && d._onConfirm(meta.phone)
               },
               type: 'Success',
             },
@@ -324,7 +323,7 @@ const VerifyAllPhoneNumberConnector = connect(
       {
         label: 'Manage numbers',
         mode: 'Secondary',
-        onClick: dispatchProps.onManage,
+        onClick: d.onManage,
       },
     ] as Array<TaskButton>,
   })
