@@ -37,7 +37,7 @@ const commands = {
 
 const fixTypes = () => {
   // couldn't figure out an effective way to patch this file up, so just blowing it away
-  const files = ['@types/react-native/index.d.ts', '@types/react-native/globals.d.ts']
+  const files = ['@types/react-native/index.d.ts']
 
   files.forEach(file => {
     const p = path.resolve(__dirname, '..', '..', 'node_modules', file)

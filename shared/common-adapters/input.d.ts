@@ -47,6 +47,7 @@ export type Props = {
   maxLength?: number
   rowsMin?: number
   hideLabel?: boolean
+  ref?: React.Ref<Input>
   small?: boolean
   smallLabel?: string
   smallLabelStyle?: StylesCrossPlatform

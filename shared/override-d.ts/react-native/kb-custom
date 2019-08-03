@@ -36,8 +36,10 @@
 // CREDITS: This work is based on an original work made by Bernd Paradies: https://github.com/bparadie
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <reference path="legacy-properties.d.ts" />
+/// <reference path="BatchedBridge.d.ts" />
+/// <reference path="Devtools.d.ts" />
 
-export type ViewProperties = any // needed by camera which we don't care about
 export class VirtualizedList<ItemT> extends React.Component<VirtualizedListProps<ItemT>> {}
 
 import * as PropTypes from 'prop-types'
