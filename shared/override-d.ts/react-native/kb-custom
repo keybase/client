@@ -1,4 +1,8 @@
-// KB custom. This is copied over node_modules/@types/react-native
+// KB changes
+// comment out navigator
+// comment out globals.d.ts
+// add VirtualizedList
+//
 // Type definitions for react-native 0.60
 // Project: https://github.com/facebook/react-native
 // Definitions by: Eloy Durán <https://github.com/alloy>
@@ -36,14 +40,15 @@
 // CREDITS: This work is based on an original work made by Bernd Paradies: https://github.com/bparadie
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// <reference path="legacy-properties.d.ts" />
 /// <reference path="BatchedBridge.d.ts" />
 /// <reference path="Devtools.d.ts" />
 
-export class VirtualizedList<ItemT> extends React.Component<VirtualizedListProps<ItemT>> {}
-
 import * as PropTypes from 'prop-types'
 import * as React from 'react'
+
+export class VirtualizedList<ItemT> extends React.Component<VirtualizedListProps<ItemT>> {}
 
 type Constructor<T> = new (...args: any[]) => T
 
