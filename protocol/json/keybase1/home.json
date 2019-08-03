@@ -421,6 +421,10 @@
         {
           "name": "numFollowSuggestionsWanted",
           "type": "int"
+        },
+        {
+          "name": "bustCache",
+          "type": "boolean"
         }
       ],
       "response": "HomeScreen",

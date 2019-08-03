@@ -88,7 +88,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   clearJustSignedUpEmail: () => dispatch(createClearJustSignedUpEmail()),
   getData: (markViewed = true) =>
-    dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
+    dispatch(PeopleGen.createGetPeopleData({bustCache: false, markViewed, numFollowSuggestionsWanted: 10})),
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))

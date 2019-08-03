@@ -100,7 +100,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	return nil
 }
 
-func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
+func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int, bustCache bool) (ret keybase1.HomeScreen, err error) {
 	defer h.G().CTraceTimed(ctx, "Home#Get", func() error { return err })()
 
 	// 10 people by default
@@ -111,20 +111,23 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	h.Lock()
 	defer h.Unlock()
 
-	useCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
+	var useCache bool
+	shouldUseCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
 	if useCache {
 		useCache = h.homeCache.isValid(ctx, h.G())
 	}
-
-	if useCache && markViewed {
-		h.bustHomeCacheIfBadgedFollowers(ctx)
-		useCache = h.homeCache != nil
-		// If we blew up our cache, get out of here and refetch, proceed with
-		// marking the view.
-		if useCache {
-			h.G().Log.CDebugf(ctx, "| cache is good; going to server to mark view")
-			if err := h.markViewedAPICall(ctx); err != nil {
-				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", err.Error())
+	if !bustCache {
+		useCache = shouldUseCache
+		if useCache && markViewed {
+			h.bustHomeCacheIfBadgedFollowers(ctx)
+			useCache = h.homeCache != nil
+			// If we blew up our cache, get out of here and refetch, proceed with
+			// marking the view.
+			if useCache {
+				h.G().Log.CDebugf(ctx, "| cache is good; going to server to mark view")
+				if err := h.markViewedAPICall(ctx); err != nil {
+					h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", err.Error())
+				}
 			}
 		}
 	}

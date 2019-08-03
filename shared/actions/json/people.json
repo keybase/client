@@ -3,7 +3,8 @@
   "actions": {
     "getPeopleData": {
       "markViewed": "boolean",
-      "numFollowSuggestionsWanted": "number"
+      "numFollowSuggestionsWanted": "number",
+      "bustCache": "boolean",
     },
     "peopleDataProcessed": {
       "oldItems": "I.List<Types.PeopleScreenItem>",

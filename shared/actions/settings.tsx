@@ -421,6 +421,7 @@ const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLog
     return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() => [
       SettingsGen.createSentVerificationEmail({email: action.payload.email}),
       PeopleGen.createGetPeopleData({
+        bustCache: true,
         markViewed: false,
         numFollowSuggestionsWanted: PeopleConstants.defaultNumFollowSuggestions,
       }),

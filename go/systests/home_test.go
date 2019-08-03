@@ -16,7 +16,7 @@ func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScre
 	g := u.tc.G
 	cli, err := client.GetHomeClient(g)
 	require.NoError(t, err)
-	home, err := cli.HomeGetScreen(context.TODO(), keybase1.HomeGetScreenArg{MarkViewed: markViewed, NumFollowSuggestionsWanted: 10})
+	home, err := cli.HomeGetScreen(context.TODO(), keybase1.HomeGetScreenArg{MarkViewed: markViewed, NumFollowSuggestionsWanted: 10, BustCache: false})
 	require.NoError(t, err)
 	return home
 }

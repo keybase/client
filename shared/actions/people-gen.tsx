@@ -14,7 +14,11 @@ export const skipTodo = 'people:skipTodo'
 
 // Payload Types
 type _DismissAnnouncementPayload = {readonly id: RPCTypes.HomeScreenAnnouncementID}
-type _GetPeopleDataPayload = {readonly markViewed: boolean; readonly numFollowSuggestionsWanted: number}
+type _GetPeopleDataPayload = {
+  readonly markViewed: boolean
+  readonly numFollowSuggestionsWanted: number
+  readonly bustCache: boolean
+}
 type _MarkViewedPayload = void
 type _PeopleDataProcessedPayload = {
   readonly oldItems: I.List<Types.PeopleScreenItem>

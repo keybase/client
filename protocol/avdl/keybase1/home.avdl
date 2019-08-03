@@ -166,7 +166,7 @@ protocol home {
     the default number will be returned (10).  Otherwise, the caller should
     specify.
    */
-  HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
+  HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted, boolean bustCache);
 
   void homeSkipTodoType(HomeScreenTodoType t);
   void homeDismissAnnouncement(HomeScreenAnnouncementID i);

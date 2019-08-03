@@ -780,6 +780,7 @@ func (o HomeScreen) DeepCopy() HomeScreen {
 type HomeGetScreenArg struct {
 	MarkViewed                 bool `codec:"markViewed" json:"markViewed"`
 	NumFollowSuggestionsWanted int  `codec:"numFollowSuggestionsWanted" json:"numFollowSuggestionsWanted"`
+	BustCache                  bool `codec:"bustCache" json:"bustCache"`
 }
 
 type HomeSkipTodoTypeArg struct {

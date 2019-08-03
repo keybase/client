@@ -28,7 +28,7 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
     numFollowSuggestionsWanted = action.payload.numFollowSuggestionsWanted
   }
   return RPCTypes.homeHomeGetScreenRpcPromise(
-    {markViewed, numFollowSuggestionsWanted},
+    {bustCache: action.payload.bustCache, markViewed, numFollowSuggestionsWanted},
     Constants.getPeopleDataWaitingKey
   )
     .then((data: RPCTypes.HomeScreen) => {
@@ -129,6 +129,7 @@ const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
   }).then(() =>
     // TODO get rid of this load and have core send us a homeUIRefresh
     PeopleGen.createGetPeopleData({
+      bustCache: false,
       markViewed: false,
       numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
     })
@@ -138,6 +139,7 @@ let _wasOnPeopleTab = false
 const homeUIRefresh = () =>
   _wasOnPeopleTab &&
   PeopleGen.createGetPeopleData({
+    bustCache: false,
     markViewed: false,
     numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
   })
