@@ -320,7 +320,10 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err != nil {
 		return status, err
 	}
-	status.HttpSrvInfo.Address = addr
+	status.HttpSrvInfo = keybase1.HttpSrvInfo{
+		Address: addr,
+		Token:   h.svc.httpSrv.Token(),
+	}
 	return status, nil
 }
 

@@ -1,8 +1,12 @@
 package avatars
 
 import (
+	"bytes"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,7 +31,7 @@ func NewSrv(g *libkb.GlobalContext, httpSrv *libkb.HTTPSrv, source Source) *Srv 
 		httpSrv:      httpSrv,
 		source:       source,
 	}
-	s.httpSrv.HandleFunc("av", s.serve)
+	s.httpSrv.HandleFunc("av", libkb.HTTPSrvTokenModeDefault, s.serve)
 	return s
 }
 
@@ -60,6 +64,14 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	}
 }
 
+func (s *Srv) loadPlaceholder(format keybase1.AvatarFormat, placeholderMap map[keybase1.AvatarFormat]string) ([]byte, error) {
+	encoded, ok := placeholderMap[format]
+	if !ok {
+		return nil, errors.New("no placeholder for format")
+	}
+	return base64.StdEncoding.DecodeString(encoded)
+}
+
 func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	typ := req.URL.Query().Get("typ")
 	name := req.URL.Query().Get("name")
@@ -67,11 +79,14 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	mctx := libkb.NewMetaContextBackground(s.G())
 
 	var loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	var placeholderMap map[keybase1.AvatarFormat]string
 	switch typ {
 	case "user":
 		loadFn = s.source.LoadUsers
+		placeholderMap = userPlaceholders
 	case "team":
 		loadFn = s.source.LoadTeams
+		placeholderMap = teamPlaceholders
 	default:
 		s.makeError(w, http.StatusBadRequest, "unknown avatar type: %s", typ)
 		return
@@ -85,15 +100,20 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusInternalServerError, "avatar not loaded")
 		return
 	}
+	var reader io.ReadCloser
 	url, ok := nameRes[format]
 	if !ok || len(url.String()) == 0 {
-		s.makeError(w, http.StatusNotFound, "format not loaded")
-		return
-	}
-	reader, err := s.loadFromURL(url.String())
-	if err != nil {
-		s.makeError(w, http.StatusInternalServerError, "failed to get URL reader: %s", err)
-		return
+		placeholder, err := s.loadPlaceholder(format, placeholderMap)
+		if err != nil {
+			s.makeError(w, http.StatusInternalServerError, "failed to load placeholder: %s", err)
+			return
+		}
+		reader = ioutil.NopCloser(bytes.NewReader(placeholder))
+	} else {
+		if reader, err = s.loadFromURL(url.String()); err != nil {
+			s.makeError(w, http.StatusInternalServerError, "failed to get URL reader: %s", err)
+			return
+		}
 	}
 	defer reader.Close()
 	if _, err := io.Copy(w, reader); err != nil {

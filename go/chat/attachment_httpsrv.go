@@ -74,7 +74,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *libkb.HTTPSrv, fetcher ty
 		fetcher:            fetcher,
 		httpSrv:            httpSrv,
 	}
-	r.httpSrv.HandleFunc(r.endpoint, r.serve)
+	r.httpSrv.HandleFunc(r.endpoint, libkb.HTTPSrvTokenModeUnchecked, r.serve)
 	r.fetcher.OnStart(libkb.NewMetaContextTODO(g.ExternalG()))
 	return r
 }

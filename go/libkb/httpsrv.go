@@ -9,17 +9,30 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type HTTPSrvTokenMode int
+
+const (
+	HTTPSrvTokenModeDefault   = iota
+	HTTPSrvTokenModeUnchecked // use with caution!
+)
+
+type srvEndpoint struct {
+	tokenMode HTTPSrvTokenMode
+	serve     func(w http.ResponseWriter, req *http.Request)
+}
+
 type HTTPSrv struct {
 	Contextified
 
 	httpSrv   *kbhttp.Srv
-	endpoints map[string]func(w http.ResponseWriter, req *http.Request)
+	endpoints map[string]srvEndpoint
+	token     string
 }
 
 func NewHTTPSrv(g *GlobalContext) *HTTPSrv {
 	h := &HTTPSrv{
 		Contextified: NewContextified(g),
-		endpoints:    make(map[string]func(w http.ResponseWriter, req *http.Request)),
+		endpoints:    make(map[string]srvEndpoint),
 	}
 	h.initHTTPSrv()
 	h.startHTTPSrv()
@@ -38,6 +51,7 @@ func (r *HTTPSrv) debug(ctx context.Context, msg string, args ...interface{}) {
 func (r *HTTPSrv) initHTTPSrv() {
 	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
 	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+	r.token, _ = RandHexString("", 32)
 }
 
 func (r *HTTPSrv) startHTTPSrv() {
@@ -64,8 +78,8 @@ func (r *HTTPSrv) startHTTPSrv() {
 		r.debug(ctx, "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
 		return
 	}
-	for endpoint, serve := range r.endpoints {
-		r.httpSrv.HandleFunc("/"+endpoint, serve)
+	for endpoint, serveDesc := range r.endpoints {
+		r.HandleFunc("/"+endpoint, serveDesc.tokenMode, serveDesc.serve)
 	}
 }
 
@@ -84,9 +98,24 @@ func (r *HTTPSrv) monitorAppState() {
 	}
 }
 
-func (r *HTTPSrv) HandleFunc(endpoint string, serve func(w http.ResponseWriter, req *http.Request)) {
-	r.httpSrv.HandleFunc("/"+endpoint, serve)
-	r.endpoints[endpoint] = serve
+func (r *HTTPSrv) HandleFunc(endpoint string, tokenMode HTTPSrvTokenMode,
+	serve func(w http.ResponseWriter, req *http.Request)) {
+	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
+		switch tokenMode {
+		case HTTPSrvTokenModeDefault:
+			if req.URL.Query().Get("token") != r.token {
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+		case HTTPSrvTokenModeUnchecked:
+			// serve needs to authenticate on its own
+		}
+		serve(w, req)
+	})
+	r.endpoints[endpoint] = srvEndpoint{
+		tokenMode: tokenMode,
+		serve:     serve,
+	}
 }
 
 func (r *HTTPSrv) Active() bool {
@@ -95,4 +124,8 @@ func (r *HTTPSrv) Active() bool {
 
 func (r *HTTPSrv) Addr() (string, error) {
 	return r.httpSrv.Addr()
+}
+
+func (r *HTTPSrv) Token() string {
+	return r.token
 }
