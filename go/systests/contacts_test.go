@@ -293,28 +293,33 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 	miscPhoneNum := keybase1.RawPhoneNumber("+" + kbtest.GenerateTestPhoneNumber())
 
 	rawContacts := []keybase1.Contact{
-		keybase1.Contact{Name: "Ann Test",
+		{
+			Name: "Ann Test",
 			Components: []keybase1.ContactComponent{
 				keybase1.ContactComponent{Label: "phone", PhoneNumber: &rawPhone},
 				keybase1.ContactComponent{Label: "email", Email: &emailAddr},
 			},
 		},
-		keybase1.Contact{Name: "Ann Test 2",
+		{
+			Name: "Ann Test 2",
 			Components: []keybase1.ContactComponent{
 				keybase1.ContactComponent{Email: &emailAddr},
 			},
 		},
-		keybase1.Contact{Name: "Test Ann",
+		{
+			Name: "Test Ann",
 			Components: []keybase1.ContactComponent{
 				keybase1.ContactComponent{PhoneNumber: &rawPhone},
 			},
 		},
-		keybase1.Contact{Name: "Someone else",
+		{
+			Name: "Someone else",
 			Components: []keybase1.ContactComponent{
 				keybase1.ContactComponent{PhoneNumber: &miscPhoneNum},
 			},
 		},
-		keybase1.Contact{Name: "Someone else",
+		{
+			Name: "Someone else",
 			Components: []keybase1.ContactComponent{
 				keybase1.ContactComponent{Email: &miscEmailAddr},
 			},
