@@ -800,14 +800,14 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	if err = iui.Start(m, e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
 		return err
 	}
+	m.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
+	if err = iui.ReportLastTrack(m, libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
+		return err
+	}
 	for _, k := range e.identifyKeys {
 		if err = iui.DisplayKey(m, k); err != nil {
 			return err
 		}
-	}
-	m.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
-	if err = iui.ReportLastTrack(m, libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
-		return err
 	}
 	m.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
 	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(m), e.them.Export()); err != nil {

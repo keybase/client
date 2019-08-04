@@ -148,6 +148,15 @@ func (i *UIAdapter) priority(key string) int {
 	return p
 }
 
+func (i *UIAdapter) getColorForValid() keybase1.Identify3RowColor {
+	// This depends on i.iFollowThem being populated beforehand by
+	// ReportLastTrack.
+	if i.iFollowThem {
+		return keybase1.Identify3RowColor_GREEN
+	}
+	return keybase1.Identify3RowColor_BLUE
+}
+
 // return true if we need an upgrade
 func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
@@ -156,10 +165,9 @@ func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
-
 	// The proof worked, and either we tracked it as working, or we didn't track it at all.
 	case (lcr.ProofResult.State == keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE)):
-		arg.Color = keybase1.Identify3RowColor_GREEN
+		arg.Color = i.getColorForValid()
 		arg.State = keybase1.Identify3RowState_VALID
 
 	// The proof worked, and it's new to us.
@@ -359,7 +367,7 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 	switch {
 	case key.TrackDiff == nil || key.TrackDiff.Type == keybase1.TrackDiffType_NONE:
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Color = keybase1.Identify3RowColor_GREEN
+		arg.Color = i.getColorForValid()
 	case key.TrackDiff != nil && (key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED || key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST):
 		arg.State = keybase1.Identify3RowState_REVOKED
 		arg.Color = keybase1.Identify3RowColor_RED
@@ -483,7 +491,7 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 		Value:        crypto.Address,
 		Priority:     i.priority(key),
 		State:        keybase1.Identify3RowState_VALID,
-		Color:        keybase1.Identify3RowColor_GREEN,
+		Color:        i.getColorForValid(),
 		SigID:        crypto.SigID,
 		Ctime:        0,
 		SiteURL:      i.makeSigchainViewURL(mctx, crypto.SigID),
@@ -499,7 +507,7 @@ func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.Ste
 		Value:        str.FederationAddress,
 		Priority:     i.priority("stellar"),
 		State:        keybase1.Identify3RowState_VALID,
-		Color:        keybase1.Identify3RowColor_GREEN,
+		Color:        i.getColorForValid(),
 		SigID:        str.SigID,
 		Ctime:        0,
 		SiteURL:      i.makeSigchainViewURL(mctx, str.SigID),

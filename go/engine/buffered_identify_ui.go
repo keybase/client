@@ -92,15 +92,15 @@ func (b *bufferedIdentifyUI) flush(m libkb.MetaContext, trackingBroke bool) (err
 		}
 	}
 
-	for _, k := range b.keys {
-		err = b.raw.DisplayKey(m, k)
+	if b.lastTrack != nil {
+		err = b.raw.ReportLastTrack(m, *b.lastTrack)
 		if err != nil {
 			return err
 		}
 	}
 
-	if b.lastTrack != nil {
-		err = b.raw.ReportLastTrack(m, *b.lastTrack)
+	for _, k := range b.keys {
+		err = b.raw.DisplayKey(m, k)
 		if err != nil {
 			return err
 		}
