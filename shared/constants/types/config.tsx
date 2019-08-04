@@ -23,12 +23,16 @@ export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
+export type HTTPSrvInfo = {
+  address: string
+  token: string
+}
+
 export type _State = {
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
-  avatars: I.Map<string, I.Map<number, string>>
   configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState
@@ -44,6 +48,7 @@ export type _State = {
   followers: I.Set<string>
   following: I.Set<string>
   globalError: null | Error | RPCError
+  httpSrv: HTTPSrvInfo
   justDeletedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: I.Map<string, number>

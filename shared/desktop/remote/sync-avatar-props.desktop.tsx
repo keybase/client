@@ -27,41 +27,22 @@ type Props = {
 }
 
 export const serialize = {
-  avatars: (v: any, o: any) => {
-    if (!v) return undefined
-    const toSend = v.filter((sizes, name) => {
-      return !o || sizes !== o.get(name)
-    })
-    return toSend.isEmpty() ? undefined : toSend.toJS()
-  },
   followers: (v: any) => v.toArray(),
   following: (v: any) => v.toArray(),
 }
 
 const initialState = {
   config: {
-    avatars: I.Map(),
     followers: I.Set(),
     following: I.Set(),
   },
 }
 export const deserialize = (state: any = initialState, props: any) => {
   if (!props) return state
-
-  const pa = props.avatars || {}
-  const arrs = Object.keys(pa).reduce<Array<[string, I.Map<string, string | undefined>]>>((arr, name) => {
-    const sizes = Object.keys(pa[name]).reduce<Array<[string, string | undefined]>>((arr, size) => {
-      arr.push([size, pa[name][size]])
-      return arr
-    }, [])
-    arr.push([name, I.Map(sizes)])
-    return arr
-  }, [])
   return {
     ...state,
     config: {
       ...state.config,
-      avatars: (state.config.avatars || I.Map()).merge(I.Map(arrs)),
       ...(props.followers ? {followers: I.Set(props.followers)} : {}),
       ...(props.following ? {following: I.Set(props.following)} : {}),
     },
@@ -105,20 +86,18 @@ function SyncAvatarProps(ComposedComponent: any) {
 
   const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) =>
     immutableCached(
-      getRemoteAvatars(state.config.avatars, ownProps.usernames),
       getRemoteFollowers(state.config.followers, ownProps.usernames),
       getRemoteFollowing(state.config.following, ownProps.usernames)
     )
 
-  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
   const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
   const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
 
   // use an immutable equals to not rerender if its the same
   const immutableCached = memoize(
-    (avatars, followers, following) => ({avatars, followers, following}),
-    ([newAvatars, newFollowers, newFollowing], [oldAvatars, oldFollowers, oldFollowing]) =>
-      newAvatars.equals(oldAvatars) && newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
+    (followers, following) => ({followers, following}),
+    ([newFollowers, newFollowing], [oldFollowers, oldFollowing]) =>
+      newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
   )
 
   const Connected = Container.connect(

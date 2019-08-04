@@ -56,7 +56,7 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	case "file":
 		return os.Open(parsed.Path)
 	default:
-		return nil, fmt.Errorf("unknown URL scheme: %s", parsed.Scheme)
+		return nil, fmt.Errorf("unknown URL scheme: %s raw: %s", parsed.Scheme, raw)
 	}
 }
 
@@ -86,8 +86,8 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	url, ok := nameRes[format]
-	if !ok {
-		s.makeError(w, http.StatusInternalServerError, "format not loaded")
+	if !ok || len(url.String()) == 0 {
+		s.makeError(w, http.StatusNotFound, "format not loaded")
 		return
 	}
 	reader, err := s.loadFromURL(url.String())

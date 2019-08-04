@@ -708,6 +708,10 @@
         {
           "type": "UserReacjis",
           "name": "userReacjis"
+        },
+        {
+          "type": "HttpSrvInfo",
+          "name": "httpSrvInfo"
         }
       ]
     },
