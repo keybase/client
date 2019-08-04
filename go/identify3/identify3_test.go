@@ -151,19 +151,34 @@ func TestCryptocurrency(t *testing.T) {
 	addr := "1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz"
 	addBTCAddr(tc, alice, addr)
 	require.NoError(t, err)
-	_, err = kbtest.CreateAndSignupFakeUser("bob", tc.G)
+	bob, err := kbtest.CreateAndSignupFakeUser("bob", tc.G)
 	require.NoError(t, err)
+
+	assertTrackResult := func(res id3results, green bool) {
+		require.False(t, res.userWasReset)
+
+		// We get one row of results, just the cryptocurrency row.
+		require.Equal(t, 1, len(res.rows))
+		require.Equal(t, "btc", res.rows[0].Key)
+		require.Equal(t, addr, res.rows[0].Value)
+		if green {
+			require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
+		} else {
+			require.Equal(t, keybase1.Identify3RowColor_BLUE, res.rows[0].Color)
+		}
+		require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
+	}
 
 	mctx := libkb.NewMetaContextForTest(tc)
 	res := runID3(t, mctx, alice.Username, true)
-	require.False(t, res.userWasReset)
+	// Row color should be blue because we are not tracking.
+	assertTrackResult(res, false /* green */)
 
-	// We get one row of results, just the cryptocurrency row.
-	require.Equal(t, 1, len(res.rows))
-	require.Equal(t, "btc", res.rows[0].Key)
-	require.Equal(t, addr, res.rows[0].Value)
-	require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
-	require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
+	_, err = kbtest.RunTrack(tc, bob, alice.Username)
+	require.NoError(t, err)
+
+	res = runID3(t, mctx, alice.Username, true)
+	assertTrackResult(res, true /* green */)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {
