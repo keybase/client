@@ -55,6 +55,7 @@ type TestCase struct {
 		Loads []TestCaseLoad `json:"loads"`
 	} `json:"sessions"`
 
+	Skip bool `json:"skip"`
 	Todo bool `json:"todo"`
 }
 
@@ -139,6 +140,11 @@ func runUnitFromFilename(t *testing.T, filename string) *Team {
 func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 	t.Logf("starting unit: %v", unit.FileName)
 	defer t.Logf("exit unit: %v", unit.FileName)
+
+	if unit.Skip {
+		t.Logf("Marked 'skip' so skipping")
+		return nil
+	}
 
 	// Print the link payloads
 	for teamLabel, team := range unit.Teams {
