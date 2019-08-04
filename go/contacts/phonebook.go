@@ -95,14 +95,22 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 
 func (s *SavedContactsStore) UnresolveContactsWithComponent(mctx libkb.MetaContext,
 	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	// TODO: Use a phoneNumber | email variant instead of two pointers.
 	contactList, err := s.RetrieveContacts(mctx)
 	if err != nil {
 		mctx.Warning("Failed to get cached contact list: %x", err)
 		return
 	}
 	for i, con := range contactList {
-		if (phoneNumber != nil && con.Component.PhoneNumber != nil && *con.Component.PhoneNumber == keybase1.RawPhoneNumber(*phoneNumber)) ||
-			(email != nil && con.Component.Email != nil && *con.Component.Email == *email) {
+		var unresolve bool
+		switch {
+		case phoneNumber != nil && con.Component.PhoneNumber != nil:
+			unresolve = *con.Component.PhoneNumber == keybase1.RawPhoneNumber(*phoneNumber)
+		case email != nil && con.Component.Email != nil:
+			unresolve = *con.Component.Email == *email
+		}
+
+		if unresolve {
 			// Unresolve contact.
 			con.Resolved = false
 			con.Username = ""

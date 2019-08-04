@@ -259,6 +259,7 @@ func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []ke
 // RemoveContactsCachePhoneEntry removes cached lookup for phone number.
 func (s *ContactCacheStore) RemoveContactsCacheEntries(mctx libkb.MetaContext,
 	phone *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	// TODO: Use a phoneNumber | email variant instead of two pointers.
 	cacheObj, created := s.getCache(mctx)
 	if created {
 		// There was no cache.
