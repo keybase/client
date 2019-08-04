@@ -101,13 +101,18 @@ func TestUnits(t *testing.T) {
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
 	var runLog []string
+	var skipLog []string
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
 			if len(selectUnit) > 0 && f.Name() != selectUnit && f.Name() != selectUnit+".json" {
 				continue
 			}
-			runUnitFile(t, filepath.Join(jsonDir, f.Name()))
-			runLog = append(runLog, f.Name())
+			_, didRun := runUnitFile(t, filepath.Join(jsonDir, f.Name()))
+			if didRun {
+				runLog = append(runLog, f.Name())
+			} else {
+				skipLog = append(skipLog, f.Name())
+			}
 		}
 	}
 	require.NotZero(t, runLog, "found no test units")
@@ -115,12 +120,22 @@ func TestUnits(t *testing.T) {
 	for _, name := range runLog {
 		t.Logf("  ✓ %v", name)
 	}
+	if len(skipLog) > 0 {
+		s := ""
+		if len(skipLog) != 1 {
+			s = "s"
+		}
+		t.Logf("skipped %d unit%s", len(skipLog), s)
+		for _, name := range skipLog {
+			t.Logf("  ⏭️ %s", name)
+		}
+	}
 	if len(selectUnit) > 0 {
 		t.Fatalf("test passed but only ran selected unit: %v", runLog)
 	}
 }
 
-func runUnitFile(t *testing.T, jsonPath string) *Team {
+func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
 	data, err := ioutil.ReadFile(jsonPath)
@@ -132,18 +147,18 @@ func runUnitFile(t *testing.T, jsonPath string) *Team {
 	return runUnit(t, unit)
 }
 
-func runUnitFromFilename(t *testing.T, filename string) *Team {
+func runUnitFromFilename(t *testing.T, filename string) (*Team, bool) {
 	jsonDir := getTeamchainJSONDir(t)
 	return runUnitFile(t, filepath.Join(jsonDir, filename))
 }
 
-func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
+func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team, didRun bool) {
 	t.Logf("starting unit: %v", unit.FileName)
 	defer t.Logf("exit unit: %v", unit.FileName)
 
 	if unit.Skip {
 		t.Logf("Marked 'skip' so skipping")
-		return nil
+		return nil, false
 	}
 
 	// Print the link payloads
@@ -264,5 +279,5 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 	}
 
 	require.False(t, unit.Todo, "test marked as TODO")
-	return lastLoadRet
+	return lastLoadRet, true
 }
