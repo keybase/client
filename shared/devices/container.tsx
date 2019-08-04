@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const sortDevices = (a, b) => {
+const sortDevices = (a: Types.Device, b: Types.Device) => {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
@@ -47,6 +47,15 @@ const splitAndSortDevices = (
   )
 
 class ReloadableDevices extends React.PureComponent<Props & {clearBadges: () => void}> {
+  static navigationOptions = Container.isMobile
+    ? undefined
+    : {
+        header: undefined,
+        headerRightActions: HeaderRightActions,
+        headerTitle: HeaderTitle,
+        title: 'Devices',
+      }
+
   componentWillUnmount() {
     this.props.clearBadges()
   }
@@ -105,15 +114,5 @@ const NamedConnected = Container.namedConnect(
 
 const SafeSub = Container.safeSubmitPerMount(['onBack'])
 const Connected = NamedConnected(SafeSub(ReloadableDevices))
-
-if (!Container.isMobile) {
-  // @ts-ignore fix this
-  Connected.navigationOptions = {
-    header: undefined,
-    headerRightActions: HeaderRightActions,
-    headerTitle: HeaderTitle,
-    title: 'Devices',
-  }
-}
 
 export default Connected
