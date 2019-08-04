@@ -349,7 +349,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(mctx)
 	teambot.ServiceInit(mctx)
-	avatars.ServiceInit(d.G(), d.avatarLoader)
+	avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
 	contacts.ServiceInit(d.G())
 	return nil
 }
