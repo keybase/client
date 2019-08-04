@@ -121,8 +121,5 @@ func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.Ide
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	if err != nil {
-		return nil
-	}
-	return nil
+	return err
 }

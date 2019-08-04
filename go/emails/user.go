@@ -112,10 +112,7 @@ func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityV
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
