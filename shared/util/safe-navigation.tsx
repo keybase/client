@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
-import {withNavigation} from '@react-navigation/core'
+import {NavigationInjectedProps, withNavigation} from 'react-navigation'
 
 type Path = Array<string | {props?: any; selected?: string}>
 
@@ -15,8 +15,8 @@ function withSafeNavigation<P extends {}>(
 ): React.ComponentType<P> {
   type WithSafeNavigationProps = {
     forwardedRef: React.Ref<React.ComponentType<P>>
-    navigation: any
-  } & P
+  } & NavigationInjectedProps &
+    P
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
@@ -43,6 +43,7 @@ function withSafeNavigation<P extends {}>(
     <WithSafeNavigation {...props} forwardedRef={ref} />
   ))
   WithForwardRef.displayName = `ForwardRef(WithSafeNavigation)`
+  // @ts-ignore not exactly sure
   return withNavigation(WithForwardRef)
 }
 

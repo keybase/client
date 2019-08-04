@@ -4,10 +4,13 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 import {connect} from '../util/container'
-import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {createBottomTabNavigator} from 'react-navigation-tabs'
-import Stack from 'react-navigation-stack'
+import {
+  createStackNavigator,
+  createBottomTabNavigator,
+  StackActions,
+  createSwitchNavigator,
+  createAppContainer,
+} from 'react-navigation'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -26,7 +29,7 @@ useScreens()
 
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
-const defaultNavigationOptions = {
+const defaultNavigationOptions: any = {
   backBehavior: 'none',
   header: null,
   headerLeft: hp =>
@@ -41,11 +44,11 @@ const defaultNavigationOptions = {
   headerStyle: {
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
-  headerTitle: hp => (
+  headerTitle: (hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
     </Kb.Text>
-  ),
+  )) as any, //types are wrong , this can be a component
 }
 // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
@@ -103,7 +106,7 @@ const TabBarIconContainer = props => (
 
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
-    map[tab] = Stack.createStackNavigator(Shim.shim(routes), {
+    map[tab] = createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -123,7 +126,7 @@ const TabNavigator = createBottomTabNavigator(
     defaultNavigationOptions: ({navigation}) => ({
       tabBarButtonComponent: TabBarIconContainer,
       tabBarIcon: ({focused}) => (
-        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
+        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
       ),
     }),
     order: tabs,
@@ -155,7 +158,7 @@ const tabStyles = Styles.styleSheetCreate({
   },
 })
 
-const LoggedInStackNavigator = Stack.createStackNavigator(
+const LoggedInStackNavigator = createStackNavigator(
   {
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
@@ -166,7 +169,7 @@ const LoggedInStackNavigator = Stack.createStackNavigator(
   }
 )
 
-const LoggedOutStackNavigator = Stack.createStackNavigator(
+const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: {
@@ -240,7 +243,7 @@ class RNApp extends React.PureComponent<Props> {
         return false
       }
     }
-    nav.dispatch(StackActions.pop())
+    nav.dispatch(StackActions.pop({}))
     return true
   }
 

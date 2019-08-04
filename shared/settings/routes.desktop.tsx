@@ -1,7 +1,14 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {
+  ScreenProps,
+  NavigationDescriptor,
+  NavigationInjectedProps,
+  createNavigator,
+  StackRouter,
+  SceneView,
+} from 'react-navigation'
 import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
 import AdvancedTab from './advanced/container'
@@ -41,7 +48,13 @@ const settingsSubRoutes = {
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
 
-class SettingsSubNav extends React.PureComponent<any> {
+class SettingsSubNav extends React.PureComponent<
+  {
+    descriptors: {[key: string]: NavigationDescriptor}
+    navigationConfig: any
+    screenProps?: ScreenProps
+  } & NavigationInjectedProps
+> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -53,6 +66,7 @@ class SettingsSubNav extends React.PureComponent<any> {
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <Settings routeSelected={descriptor.state.routeName}>
+          // @ts-ignore types think there are no props
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
