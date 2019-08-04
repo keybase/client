@@ -80,6 +80,7 @@ type Service struct {
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
 	runtimeStats    *runtimestats.Runner
+	httpSrv         *libkb.HTTPSrv
 }
 
 type Shutdowner interface {
@@ -107,6 +108,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
+		httpSrv:          libkb.NewHTTPSrv(g),
 	}
 }
 
@@ -488,7 +490,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, d.httpSrv,
+		chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
 	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
