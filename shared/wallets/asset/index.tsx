@@ -75,16 +75,11 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
               </Kb.Text>
-
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.equivContainer}>
-                <Kb.Text
-                  type="BodySmallSecondaryLink"
-                  lineClamp={1}
-                  onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
-                >
-                  {this.props.infoUrlText || this.props.equivBalance}
-                </Kb.Text>
-              </Kb.Box2>
+              {!!this.props.equivBalance && (
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.equivContainer}>
+                  <Kb.Text type="BodySmallSecondaryLink">{this.props.equivBalance}</Kb.Text>
+                </Kb.Box2>
+              )}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox>
