@@ -53,7 +53,7 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		resp, err := http.Get(raw)
+		resp, err := libkb.ProxyHTTPGet(s.G().GetEnv(), raw)
 		if err != nil {
 			return nil, err
 		}
