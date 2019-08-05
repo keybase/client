@@ -137,7 +137,9 @@ const ConnectedAvatar = Container.connect(
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
-    let url = urlsToImgSet(urlMap, ownProps.size)
+    let url = stateProps._httpSrvAddress
+      ? urlsToImgSet(urlMap, ownProps.size)
+      : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
       borderColor: ownProps.borderColor,
