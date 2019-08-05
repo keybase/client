@@ -128,7 +128,12 @@ class Wallet extends React.Component<Props> {
     )
 
   _onEndReached = () => {
-    this.props.onLoadMore()
+    // React native's SectionList seems to call the onEndReached method twice each time it hits the end of the list
+    // so only dispatch the action if we aren't already waiting for more data
+    if (!this.props.loadingMore) {
+      console.log('onLoadMore()')
+      this.props.onLoadMore()
+    }
   }
 
   render() {
