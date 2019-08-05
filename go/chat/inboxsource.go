@@ -204,10 +204,8 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 		}, nil)
 	if err != nil {
 		b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
-	} else {
-		if len(ib.Convs) > 0 {
-			tlfname = ib.Convs[0].Info.TLFNameExpanded()
-		}
+	} else if len(ib.Convs) > 0 {
+		tlfname = ib.Convs[0].Info.TLFNameExpanded()
 	}
 	args := libkb.NewHTTPArgs()
 	args.Add("tlfname", libkb.S{Val: tlfname})
@@ -544,7 +542,7 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 		close(s.stopCh)
 		s.started = false
 		go func() {
-			s.eg.Wait()
+			_ = s.eg.Wait()
 			close(ch)
 		}()
 	} else {
@@ -603,9 +601,15 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 	for {
 		select {
 		case <-s.readFlushCh:
-			s.markAsReadDeliver(ctx)
+			err := s.markAsReadDeliver(ctx)
+			if err != nil {
+				return err
+			}
 		case <-s.G().Clock().After(s.readFlushDelay):
-			s.markAsReadDeliver(ctx)
+			err := s.markAsReadDeliver(ctx)
+			if err != nil {
+				return err
+			}
 		case <-stopCh:
 			return nil
 		}
@@ -672,7 +676,10 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	if err := s.createInbox().MarkLocalRead(ctx, uid, convID, msgID); err != nil {
 		s.Debug(ctx, "MarkAsRead: failed to mark local read: %s", err)
 	} else {
-		s.badger.Send(ctx)
+		err := s.badger.Send(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if err := s.readOutbox.PushRead(ctx, convID, msgID); err != nil {
 		return err
@@ -699,6 +706,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 			switch appState {
 			case keybase1.MobileAppState_BACKGROUND:
 				doFlush()
+			default:
+				// Nothing to do for other app states.
 			}
 		case <-stopCh:
 			doFlush()
@@ -749,7 +758,10 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
-			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+			err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+			if err != nil {
+				return types.Inbox{}, err
+			}
 		}
 		if query != nil && query.SkipBgLoads {
 			continue
@@ -842,11 +854,9 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 				ConvsUnverified: convs,
 				Pagination:      pagination,
 			}
-		} else {
-			if dataSource == types.InboxSourceDataSourceLocalOnly {
-				s.Debug(ctx, "ReadUnverified: missed local storage, and in local only mode: %s", cerr)
-				return res, cerr
-			}
+		} else if dataSource == types.InboxSourceDataSourceLocalOnly {
+			s.Debug(ctx, "ReadUnverified: missed local storage, and in local only mode: %s", cerr)
+			return res, cerr
 		}
 	default:
 		cerr = storage.MissError{}
@@ -1052,7 +1062,10 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 			if ferr != context.Canceled && !isStorageAbort &&
 				IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
-				s.createInbox().Clear(ctx, uid)
+				err := s.createInbox().Clear(ctx, uid)
+				if err != nil {
+					s.Debug(ctx, "handleInboxError: error clearing inbox: %+v", err)
+				}
 			} else {
 				s.Debug(ctx, "handleInboxError: skipping inbox clear because of offline error: %s", ferr)
 			}
@@ -1256,7 +1269,10 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 		if r.Uid.Eq(uid) {
 			// Blow away conversation cache for any conversations we get removed from
 			s.Debug(ctx, "MembershipUpdate: clear conv cache for removed conv: %s", r.ConvID)
-			s.G().ConvSource.Clear(ctx, r.ConvID, uid)
+			err := s.G().ConvSource.Clear(ctx, r.ConvID, uid)
+			if err != nil {
+				s.Debug(ctx, "MembershipUpdate: error clearing conv source: %+v", err)
+			}
 			res.UserRemovedConvs = append(res.UserRemovedConvs, r)
 		} else {
 			res.OthersRemovedConvs = append(res.OthersRemovedConvs, r)

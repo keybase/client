@@ -81,8 +81,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 }
 
 func (r *AttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error {
-	r.fetcher.OnDbNuke(mctx)
-	return nil
+	return r.fetcher.OnDbNuke(mctx)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -214,11 +213,9 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.Respons
 			return
 		}
 		http.ServeContent(w, req, ua.asset.Filename, time.Time{}, rs)
-	} else {
-		if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-			return
-		}
+	} else if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+		return
 	}
 }
 
@@ -268,7 +265,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 	}
 	ui, err := r.G().UIRouter.GetChatUI()
 	if err == nil && ui != nil {
-		ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		err := ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		if err != nil {
+			r.Debug(ctx, "serveGiphyGallerySelect: failed to toggle giphy: %s", err)
+		}
 	} else {
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
@@ -487,11 +487,9 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 			return
 		}
 		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
-	} else {
-		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-			return
-		}
+	} else if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+		return
 	}
 }
 
@@ -667,7 +665,10 @@ func (c *CachingAttachmentFetcher) cacheKey(asset chat1.Asset) string {
 }
 
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
-	os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
@@ -723,7 +724,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 			found = false
 		}
 		if found {
@@ -818,7 +819,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 		}
 		if found {
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 		}
 	}
 

@@ -22,10 +22,6 @@ func makeBodyHashIndexKey(bodyHash chat1.Hash) libkb.DbKey {
 	}
 }
 
-func makeBodyHashIndexValue(convID chat1.ConversationID, msgID chat1.MessageID) []byte {
-	return []byte(fmt.Sprintf("%s:%d", hex.EncodeToString(convID), msgID))
-}
-
 // CheckAndRecordBodyHash checks the current message's body hash against all the body hashes we've
 // seen, to prevent replays. If the header hash is new, add it to the set.
 func CheckAndRecordBodyHash(ctx context.Context, g *globals.Context, bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error {

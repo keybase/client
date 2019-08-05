@@ -40,7 +40,10 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
 	if !s.Match(ctx, text) {
 		if s.displayed {
-			s.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+			err := s.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+			if err != nil {
+				s.Debug(ctx, "Preview: error on markdown: %+v", err)
+			}
 			s.displayed = false
 		}
 		return
@@ -52,10 +55,13 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	} else {
 		usage = fmt.Sprintf(flipDesktopUsage, "```", "```", cur)
 	}
-	s.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
+	err := s.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
 		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, usage)),
 		Title: &flipTitle,
 	})
+	if err != nil {
+		s.Debug(ctx, "Preview: markdown error: %+v", err)
+	}
 	s.displayed = true
 }
 
