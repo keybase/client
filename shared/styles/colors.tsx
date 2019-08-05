@@ -181,10 +181,6 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
 const wrapped = {
   get: function(_, prop) {
     const c = isDarkMode() ? darkColors[prop] : colors[prop]
-    // if (__DEV__ && (c === undefined || c === 'undefined')) {
-    // // eslint-ignore-next-line
-    // debugger
-    // }
     return c
   },
 }
