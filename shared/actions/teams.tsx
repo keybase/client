@@ -272,7 +272,7 @@ const addReAddErrorHandler = (username, e) => {
       return Tracker2Gen.createShowUser({asTracker: true, username})
     }
   }
-    return undefined
+  return undefined
 }
 
 const addToTeam = (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
@@ -1089,19 +1089,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
 }
 
 const teamAvatarUpdated = (_: TypedState, action: EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload) => {
-  const {name, typ} = action.payload.params
-  switch (typ) {
-    case RPCTypes.AvatarUpdateType.none:
-      // don't know what it is, so try both
-      return [
-        ConfigGen.createLoadTeamAvatars({teamnames: [name]}),
-        ConfigGen.createLoadAvatars({usernames: [name]}),
-      ]
-    case RPCTypes.AvatarUpdateType.user:
-      return [ConfigGen.createLoadAvatars({usernames: [name]})]
-    case RPCTypes.AvatarUpdateType.team:
-      return [ConfigGen.createLoadTeamAvatars({teamnames: [name]})]
-  }
+  return [ConfigGen.createAvatarRefreshIncrement({name: action.payload.params.name})]
 }
 
 const teamChangedByName = (

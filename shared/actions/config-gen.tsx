@@ -10,6 +10,7 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
+export const avatarRefreshIncrement = 'config:avatarRefreshIncrement'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -52,6 +53,7 @@ export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
+type _AvatarRefreshIncrementPayload = {readonly name: string}
 type _BootstrapStatusLoadedPayload = {
   readonly deviceID: string
   readonly deviceName: string
@@ -223,6 +225,9 @@ export const createDaemonHandshakeWait = (
 export const createLogoutHandshakeWait = (
   payload: _LogoutHandshakeWaitPayload
 ): LogoutHandshakeWaitPayload => ({payload, type: logoutHandshakeWait})
+export const createAvatarRefreshIncrement = (
+  payload: _AvatarRefreshIncrementPayload
+): AvatarRefreshIncrementPayload => ({payload, type: avatarRefreshIncrement})
 export const createBootstrapStatusLoaded = (
   payload: _BootstrapStatusLoadedPayload
 ): BootstrapStatusLoadedPayload => ({payload, type: bootstrapStatusLoaded})
@@ -313,6 +318,10 @@ export const createUpdateMenubarWindowID = (
 export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
 
 // Action Payloads
+export type AvatarRefreshIncrementPayload = {
+  readonly payload: _AvatarRefreshIncrementPayload
+  readonly type: typeof avatarRefreshIncrement
+}
 export type BootstrapStatusLoadedPayload = {
   readonly payload: _BootstrapStatusLoadedPayload
   readonly type: typeof bootstrapStatusLoaded
@@ -429,6 +438,7 @@ export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly ty
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AvatarRefreshIncrementPayload
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload

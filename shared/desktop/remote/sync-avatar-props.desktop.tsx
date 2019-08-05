@@ -1,6 +1,5 @@
 // This HOC wraps a RemoteWindow so it can send avatar related props
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
-import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'

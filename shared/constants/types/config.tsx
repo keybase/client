@@ -28,6 +28,7 @@ export type _State = {
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
+  avatarRefreshCounter: I.Map<string, number>
   configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState

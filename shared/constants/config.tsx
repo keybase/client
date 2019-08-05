@@ -92,6 +92,7 @@ export const makeState = I.Record<Types._State>({
   appFocusedCount: 0,
   appOutOfDateMessage: '',
   appOutOfDateStatus: 'checking',
+  avatarRefreshCounter: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,
   daemonHandshakeFailedReason: '',

@@ -91,6 +91,7 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
+    _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '', 0),
     _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,
@@ -133,7 +134,7 @@ const ConnectedAvatar = Container.connect(
     const urlMap = avatarSizes.reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
-      }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}`
+      }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
     let url = urlsToImgSet(urlMap, ownProps.size)

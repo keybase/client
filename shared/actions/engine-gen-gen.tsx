@@ -144,7 +144,7 @@ export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
-export const keybase1NotifyServiceHttpSrvInfo = 'engine-gen:keybase1NotifyServiceHttpSrvInfo'
+export const keybase1NotifyServiceHttpSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHttpSrvInfoUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1220,13 +1220,15 @@ type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
     ) => void
   }
 }
-type _Keybase1NotifyServiceHttpSrvInfoPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.httpSrvInfo']['inParam'] & {
+type _Keybase1NotifyServiceHttpSrvInfoUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.httpSrvInfoUpdate']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.httpSrvInfo']['outParam']) => void
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyService.httpSrvInfoUpdate']['outParam']
+    ) => void
   }
 }
 type _Keybase1NotifyServiceShutdownPayload = {
@@ -2215,9 +2217,9 @@ export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
   payload,
   type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
-export const createKeybase1NotifyServiceHttpSrvInfo = (
-  payload: _Keybase1NotifyServiceHttpSrvInfoPayload
-): Keybase1NotifyServiceHttpSrvInfoPayload => ({payload, type: keybase1NotifyServiceHttpSrvInfo})
+export const createKeybase1NotifyServiceHttpSrvInfoUpdate = (
+  payload: _Keybase1NotifyServiceHttpSrvInfoUpdatePayload
+): Keybase1NotifyServiceHttpSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHttpSrvInfoUpdate})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -2942,9 +2944,9 @@ export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
   readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
-export type Keybase1NotifyServiceHttpSrvInfoPayload = {
-  readonly payload: _Keybase1NotifyServiceHttpSrvInfoPayload
-  readonly type: typeof keybase1NotifyServiceHttpSrvInfo
+export type Keybase1NotifyServiceHttpSrvInfoUpdatePayload = {
+  readonly payload: _Keybase1NotifyServiceHttpSrvInfoUpdatePayload
+  readonly type: typeof keybase1NotifyServiceHttpSrvInfoUpdate
 }
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
@@ -3335,7 +3337,7 @@ export type Actions =
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
-  | Keybase1NotifyServiceHttpSrvInfoPayload
+  | Keybase1NotifyServiceHttpSrvInfoUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

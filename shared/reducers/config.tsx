@@ -274,6 +274,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         httpSrvAddress: action.payload.address,
         httpSrvToken: action.payload.token,
       })
+    case ConfigGen.avatarRefreshIncrement:
+      return state.updateIn(['avatarRefreshCounter', action.payload.name], (c = 0) => c + 1)
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
     // Saga only actions
