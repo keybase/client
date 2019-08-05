@@ -68,7 +68,7 @@ func clearPhoneNumbersFromContactCache(mctx libkb.MetaContext, phoneNumber keyba
 	cache := contacts.NewContactCacheStore(mctx.G())
 	cache.RemoveContactsCacheEntries(mctx, &phoneNumber, nil /* email */)
 	if sync := mctx.G().SyncedContactList; sync != nil {
-		mctx.G().SyncedContactList.UnresolveContactsWithComponent(mctx, &phoneNumber, nil /* email */)
+		sync.UnresolveContactsWithComponent(mctx, &phoneNumber, nil /* email */)
 	}
 }
 
