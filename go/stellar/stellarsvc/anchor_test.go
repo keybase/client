@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	neturl "net/url"
 	"strings"
 	"testing"
@@ -201,8 +202,8 @@ var validAnchorTests = []anchorTest{
 func TestAnchorInteractor(t *testing.T) {
 	tc := SetupTest(t, "AnchorInteractor", 1)
 	for i, test := range errAnchorTests {
-		accountID, _ := randomStellarKeypair()
-		ai := newAnchorInteractor(accountID, test.Asset)
+		accountID, seed := randomStellarKeypair()
+		ai := newAnchorInteractor(accountID, &seed, test.Asset)
 		ai.httpGetClient = test.MockTransferGet
 		_, err := ai.Deposit(tc.MetaContext())
 		if err == nil {
@@ -217,8 +218,8 @@ func TestAnchorInteractor(t *testing.T) {
 	}
 
 	for i, test := range validAnchorTests {
-		accountID, _ := randomStellarKeypair()
-		ai := newAnchorInteractor(accountID, test.Asset)
+		accountID, seed := randomStellarKeypair()
+		ai := newAnchorInteractor(accountID, &seed, test.Asset)
 		ai.httpGetClient = test.MockTransferGet
 
 		// our test tx auth challenges are on the public network:
@@ -356,6 +357,15 @@ func mockAuthGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 		return http.StatusForbidden, []byte(authWithdrawBody), nil
 	case "https://transfer.keybase.io/auth":
 		return http.StatusOK, []byte(authChallenge), nil
+	default:
+		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
+	}
+}
+
+func mockAuthPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
+	switch url {
+	case "blah":
+		return 0, nil, fmt.Errorf("clah")
 	default:
 		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
 	}

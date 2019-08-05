@@ -1,6 +1,8 @@
 package stellarsvc
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,25 +16,37 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 	"golang.org/x/net/publicsuffix"
 )
 
 // anchorInteractor is used to interact with the sep6 transfer server for an asset.
 type anchorInteractor struct {
-	accountID     stellar1.AccountID
-	asset         stellar1.Asset
-	httpGetClient func(mctx libkb.MetaContext, url string) (code int, body []byte, err error)
+	accountID      stellar1.AccountID
+	secretKey      *stellar1.SecretKey
+	asset          stellar1.Asset
+	httpGetClient  func(mctx libkb.MetaContext, url string) (code int, body []byte, err error)
+	httpPostClient func(mctx libkb.MetaContext, url string, data url.Values) (code int, body []byte, err error)
 }
 
 // newAnchorInteractor creates an anchorInteractor for an account to interact
 // with an asset.
-func newAnchorInteractor(accountID stellar1.AccountID, asset stellar1.Asset) *anchorInteractor {
-	return &anchorInteractor{
-		accountID:     accountID,
-		asset:         asset,
-		httpGetClient: httpGet,
+func newAnchorInteractor(accountID stellar1.AccountID, secretKey *stellar1.SecretKey, asset stellar1.Asset) *anchorInteractor {
+	ai := &anchorInteractor{
+		accountID:      accountID,
+		asset:          asset,
+		httpGetClient:  httpGet,
+		httpPostClient: httpPost,
 	}
+
+	if ai.asset.AuthEndpoint != "" {
+		// we will need secretKey to sign authentication challenges.
+		ai.secretKey = secretKey
+	}
+
+	return ai
 }
 
 // Deposit runs the deposit action for accountID on the transfer server for asset.
@@ -232,6 +246,30 @@ func httpGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 	return res.StatusCode, body, nil
 }
 
+// httpPost is the live version of httpPostClient that is used
+// by default.
+func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
+	client := http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req.WithContext(mctx.Ctx()))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return res.StatusCode, body, nil
+}
+
 func (a *anchorInteractor) domainMatches(url string) bool {
 	urlTLD, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(url))
 	if err != nil {
@@ -277,21 +315,63 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	mctx.Debug("tx challenge: %+v", unpacked)
 
 	if unpacked.Tx.SeqNum != 0 {
 		return errors.New("invalid tx challenge: seqno not zero")
 	}
-	sourceAccount := stellar1.AccountID(unpacked.Tx.SourceAccount.Address())
-	mctx.Debug("source account: %s", sourceAccount)
 
 	// TODO:
+	// sourceAccount := stellar1.AccountID(unpacked.Tx.SourceAccount.Address())
 	// sourceAccount is supposed to be the same as SIGNING_KEY in stellar.toml.
 	// we don't get that value currently...
 
 	if err := stellarnet.VerifyEnvelope(unpacked); err != nil {
 		return err
 	}
+
+	if len(unpacked.Tx.Operations) != 1 {
+		return errors.New("invalid tx challenge: invalid number of operations")
+	}
+
+	op := unpacked.Tx.Operations[0]
+	if op.Body.Type != xdr.OperationTypeManageData {
+		return errors.New("invalid tx challenge: invalid operation type")
+	}
+
+	// ok, we've checked all we can check...go ahead and sign this tx.
+	if a.secretKey == nil {
+		return errors.New("no secret key, cannot sign the tx challenge")
+	}
+	hash, err := network.HashTransaction(&unpacked.Tx, stellarnet.NetworkPassphrase())
+	if err != nil {
+		return err
+	}
+
+	kp, err := keypair.Parse(a.secretKey.SecureNoLogString())
+	if err != nil {
+		return err
+	}
+	sig, err := kp.SignDecorated(hash[:])
+	if err != nil {
+		return err
+	}
+	unpacked.Signatures = append(unpacked.Signatures, sig)
+
+	var buf bytes.Buffer
+	_, err = xdr.Marshal(&buf, unpacked)
+	if err != nil {
+		return fmt.Errorf("marshaling envelope with signature returened an error: %s", err)
+	}
+	signed := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	data := url.Values{}
+	data.Set("transaction", signed)
+	code, body, err = a.httpPostClient(mctx, a.asset.AuthEndpoint, data)
+	if err != nil {
+		return err
+	}
+	_ = code
+	_ = body
 
 	return nil
 }
