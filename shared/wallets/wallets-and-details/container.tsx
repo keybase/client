@@ -11,7 +11,11 @@ type Props = {
 }
 
 const WalletsOrOnboarding = (props: Props) =>
-  props.acceptedDisclaimer ? <WalletsAndDetails>{props.children}</WalletsAndDetails> : <Onboarding />
+  props.acceptedDisclaimer ? (
+    <WalletsAndDetails>{props.children}</WalletsAndDetails>
+  ) : (
+    <Onboarding nextScreen={'openWallet' as const} />
+  )
 
 export default connect(
   state => ({acceptedDisclaimer: state.wallets.acceptedDisclaimer}),
