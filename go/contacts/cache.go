@@ -151,7 +151,7 @@ func (s *ContactCacheStore) putCache(mctx libkb.MetaContext, cacheObj lookupResu
 	return s.encryptedDB.Put(mctx.Ctx(), cacheKey, cacheObj)
 }
 
-func (s *ContactCacheStore) clearCache(mctx libkb.MetaContext) error {
+func (s *ContactCacheStore) ClearCache(mctx libkb.MetaContext) error {
 	cacheKey := s.dbKey(mctx.CurrentUID())
 	return s.encryptedDB.Delete(mctx.Ctx(), cacheKey)
 }
