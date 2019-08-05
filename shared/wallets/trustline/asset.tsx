@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 export type Props = {
   code: string
   cannotAccept: boolean
+  depositButtonText: string
   expanded: boolean
   firstItem: boolean
   infoUrlText: string
@@ -12,12 +13,15 @@ export type Props = {
   issuerVerifiedDomain: string
   thisDeviceIsLockedOut: boolean
   trusted: boolean // TODO add limit when we support it in GUI
+  withdrawButtonText: string
 
   onAccept: () => void
   onCollapse: () => void
   onExpand: () => void
   onRemove: () => void
+  onDeposit?: () => void
   onOpenInfoUrl?: () => void
+  onWithdraw?: () => void
 
   waitingKeyAdd: string
   waitingKeyDelete: string
@@ -53,22 +57,42 @@ const bodyExpanded = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.bodyExpanded} fullHeight={true}>
     {getCode(props)}
     {getIssuerVerifiedDomain(props)}
-    <Kb.Text type="BodySmall" style={styles.marginTopXtiny}>
-      Issuer:
-    </Kb.Text>
     <Kb.Text type="BodySmall" lineClamp={2} ellipsizeMode="middle">
       {props.issuerAccountID}
     </Kb.Text>
-    <Kb.Box style={{...Styles.globalStyles.flexBoxRow, flex: 1}} />
-    <Kb.Button
-      mode="Secondary"
-      type="Default"
-      small={true}
-      disabled={!props.onOpenInfoUrl}
-      label={props.infoUrlText}
-      style={Styles.collapseStyles([styles.marginTopXtiny, styles.viewDetails])}
-      onClick={stopPropagation(props.onOpenInfoUrl)}
-    />
+    <Kb.ButtonBar direction="row" align="flex-start" small={true}>
+      {!!props.depositButtonText && (
+        <>
+          <Kb.Button
+            mode="Secondary"
+            label={props.depositButtonText}
+            onClick={props.onDeposit}
+            small={true}
+            type="Wallet"
+          />
+        </>
+      )}
+
+      {!!props.withdrawButtonText && (
+        <>
+          <Kb.Button
+            mode="Secondary"
+            label={props.withdrawButtonText}
+            onClick={props.onWithdraw}
+            small={true}
+            type="Wallet"
+          />
+        </>
+      )}
+      <Kb.Button
+        mode="Secondary"
+        type="Wallet"
+        small={true}
+        disabled={!props.onOpenInfoUrl}
+        label={props.infoUrlText}
+        onClick={stopPropagation(props.onOpenInfoUrl)}
+      />
+    </Kb.ButtonBar>
   </Kb.Box2>
 )
 
@@ -155,16 +179,7 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.small,
     },
   }),
-  marginTopXtiny: {marginTop: Styles.globalMargins.xtiny},
   textUnknown: {color: Styles.globalColors.redDark},
-  viewDetails: Styles.platformStyles({
-    isElectron: {
-      width: 107,
-    },
-    isMobile: {
-      width: 120,
-    },
-  }),
 })
 
 export default Asset

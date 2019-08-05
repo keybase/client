@@ -53,6 +53,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 const mergeProps = (s, d, o: OwnProps) => ({
   cannotAccept: o.cannotAccept,
   code: s.asset.code,
+  depositButtonText: s.asset.depositButtonText,
   expanded: s.expandedAssets.includes(o.assetID),
   firstItem: o.firstItem,
   infoUrlText: s.asset.infoUrlText,
@@ -60,9 +61,11 @@ const mergeProps = (s, d, o: OwnProps) => ({
   issuerVerifiedDomain: s.asset.issuerVerifiedDomain,
   onAccept: d.onAccept,
   onCollapse: d.onCollapse,
+  onDeposit: s.asset.onDeposit ? () => openUrl(s.asset.onDeposit) : undefined,
   onExpand: d.onExpand,
   onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
   onRemove: d.onRemove,
+  onWithdraw: s.asset.onWithdraw ? () => openUrl(s.asset.onWithdraw) : undefined,
   thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
   trusted: !!s.acceptedAssets.get(o.assetID, 0),
   waitingAdd: s.waitingAdd,
@@ -70,6 +73,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
   waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
   waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
   waitingRefresh: s.waitingRefresh,
+  withdrawButtonText: s.asset.withdrawButtonText,
 })
 
 export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Asset')(Asset)
