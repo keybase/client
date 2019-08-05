@@ -545,9 +545,14 @@ func LoadUserEmails(m MetaContext) (emails []keybase1.Email, err error) {
 		if err != nil {
 			return nil, err
 		}
-		lastVerifyEmailDate, err := emailPayload.AtKey("last_verify_email_date").GetInt64()
-		if err != nil {
-			return nil, err
+
+		var lastVerifyEmailDate int64
+		lastVerifyEmailDateNode := emailPayload.AtKey("last_verify_email_date")
+		if lastVerifyEmailDateNode.IsOk() {
+			lastVerifyEmailDate, err = emailPayload.AtKey("last_verify_email_date").GetInt64()
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		emails = append(emails, keybase1.Email{
