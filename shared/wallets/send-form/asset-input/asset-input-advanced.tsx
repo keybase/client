@@ -369,6 +369,9 @@ const styles = Styles.styleSheetCreate({
     height: 20,
     width: 20,
   },
+  assetIDContainer: {
+    maxWidth: '40%',
+  },
   assetPathContainer: {
     backgroundColor: Styles.globalColors.blueGrey,
     padding: Styles.globalMargins.small,
@@ -457,9 +460,6 @@ const styles = Styles.styleSheetCreate({
   },
   intermediateTopCircleContainer: {
     top: -Styles.globalMargins.medium,
-  },
-  assetIDContainer: {
-    maxWidth: '40%',
   },
   noShrink: {
     flexShrink: 0,
