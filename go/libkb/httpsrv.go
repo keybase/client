@@ -79,11 +79,13 @@ func (r *HTTPSrv) startHTTPSrv() {
 		return
 	}
 	for endpoint, serveDesc := range r.endpoints {
-		r.HandleFunc("/"+endpoint, serveDesc.tokenMode, serveDesc.serve)
+		r.HandleFunc(endpoint, serveDesc.tokenMode, serveDesc.serve)
 	}
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
 		r.debug(ctx, "startHTTPSrv: failed to get address after start?: %s", err)
+	} else {
+		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
 	r.G().NotifyRouter.HandleHttpSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
