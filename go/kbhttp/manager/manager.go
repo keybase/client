@@ -1,37 +1,38 @@
-package libkb
+package manager
 
 import (
 	"fmt"
 	"net/http"
 
 	"github.com/keybase/client/go/kbhttp"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
-type HTTPSrvTokenMode int
+type SrvTokenMode int
 
 const (
-	HTTPSrvTokenModeDefault   = iota
-	HTTPSrvTokenModeUnchecked // use with caution!
+	SrvTokenModeDefault   = iota
+	SrvTokenModeUnchecked // use with caution!
 )
 
 type srvEndpoint struct {
-	tokenMode HTTPSrvTokenMode
+	tokenMode SrvTokenMode
 	serve     func(w http.ResponseWriter, req *http.Request)
 }
 
-type HTTPSrv struct {
-	Contextified
+type Srv struct {
+	libkb.Contextified
 
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
 	token     string
 }
 
-func NewHTTPSrv(g *GlobalContext) *HTTPSrv {
-	h := &HTTPSrv{
-		Contextified: NewContextified(g),
+func NewSrv(g *libkb.GlobalContext) *Srv {
+	h := &Srv{
+		Contextified: libkb.NewContextified(g),
 		endpoints:    make(map[string]srvEndpoint),
 	}
 	h.initHTTPSrv()
@@ -44,17 +45,17 @@ func NewHTTPSrv(g *GlobalContext) *HTTPSrv {
 	return h
 }
 
-func (r *HTTPSrv) debug(ctx context.Context, msg string, args ...interface{}) {
-	r.G().Log.CDebugf(ctx, "HTTPSrv: %s", fmt.Sprintf(msg, args...))
+func (r *Srv) debug(ctx context.Context, msg string, args ...interface{}) {
+	r.G().Log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
 }
 
-func (r *HTTPSrv) initHTTPSrv() {
+func (r *Srv) initHTTPSrv() {
 	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
 	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
-	r.token, _ = RandHexString("", 32)
+	r.token, _ = libkb.RandHexString("", 32)
 }
 
-func (r *HTTPSrv) startHTTPSrv() {
+func (r *Srv) startHTTPSrv() {
 	ctx := context.Background()
 	maxTries := 2
 	success := false
@@ -93,7 +94,7 @@ func (r *HTTPSrv) startHTTPSrv() {
 	})
 }
 
-func (r *HTTPSrv) monitorAppState() {
+func (r *Srv) monitorAppState() {
 	ctx := context.Background()
 	r.debug(ctx, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
@@ -108,16 +109,16 @@ func (r *HTTPSrv) monitorAppState() {
 	}
 }
 
-func (r *HTTPSrv) HandleFunc(endpoint string, tokenMode HTTPSrvTokenMode,
+func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	serve func(w http.ResponseWriter, req *http.Request)) {
 	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
 		switch tokenMode {
-		case HTTPSrvTokenModeDefault:
+		case SrvTokenModeDefault:
 			if req.URL.Query().Get("token") != r.token {
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
-		case HTTPSrvTokenModeUnchecked:
+		case SrvTokenModeUnchecked:
 			// serve needs to authenticate on its own
 		}
 		serve(w, req)
@@ -128,14 +129,14 @@ func (r *HTTPSrv) HandleFunc(endpoint string, tokenMode HTTPSrvTokenMode,
 	}
 }
 
-func (r *HTTPSrv) Active() bool {
+func (r *Srv) Active() bool {
 	return r.httpSrv.Active()
 }
 
-func (r *HTTPSrv) Addr() (string, error) {
+func (r *Srv) Addr() (string, error) {
 	return r.httpSrv.Addr()
 }
 
-func (r *HTTPSrv) Token() string {
+func (r *Srv) Token() string {
 	return r.token
 }

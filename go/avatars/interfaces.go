@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -39,7 +40,7 @@ func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) (s Source) {
 	return s
 }
 
-func ServiceInit(g *libkb.GlobalContext, httpSrv *libkb.HTTPSrv, source Source) {
+func ServiceInit(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) {
 	m := libkb.NewMetaContextBackground(g)
 	source.StartBackgroundTasks(m)
 	NewSrv(g, httpSrv, source) // start the http srv up

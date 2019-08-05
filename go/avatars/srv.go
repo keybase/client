@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
@@ -20,18 +21,18 @@ import (
 type Srv struct {
 	libkb.Contextified
 
-	httpSrv *libkb.HTTPSrv
+	httpSrv *manager.Srv
 	source  Source
 	log     logger.Logger
 }
 
-func NewSrv(g *libkb.GlobalContext, httpSrv *libkb.HTTPSrv, source Source) *Srv {
+func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
 	s := &Srv{
 		Contextified: libkb.NewContextified(g),
 		httpSrv:      httpSrv,
 		source:       source,
 	}
-	s.httpSrv.HandleFunc("av", libkb.HTTPSrvTokenModeDefault, s.serve)
+	s.httpSrv.HandleFunc("av", manager.SrvTokenModeDefault, s.serve)
 	return s
 }
 

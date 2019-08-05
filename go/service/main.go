@@ -38,6 +38,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
@@ -80,7 +81,7 @@ type Service struct {
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
 	runtimeStats    *runtimestats.Runner
-	httpSrv         *libkb.HTTPSrv
+	httpSrv         *manager.Srv
 }
 
 type Shutdowner interface {
@@ -108,7 +109,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
-		httpSrv:          libkb.NewHTTPSrv(g),
+		httpSrv:          manager.NewSrv(g),
 	}
 }
 

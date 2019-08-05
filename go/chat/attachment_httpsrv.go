@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/giphy"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -48,12 +49,12 @@ type AttachmentHTTPSrv struct {
 	urlMap             *lru.Cache
 	fetcher            types.AttachmentFetcher
 	ri                 func() chat1.RemoteInterface
-	httpSrv            *libkb.HTTPSrv
+	httpSrv            *manager.Srv
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 
-func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *libkb.HTTPSrv, fetcher types.AttachmentFetcher,
+func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher types.AttachmentFetcher,
 	ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
 	l, err := lru.New(2000)
 	if err != nil {
@@ -74,7 +75,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *libkb.HTTPSrv, fetcher ty
 		fetcher:            fetcher,
 		httpSrv:            httpSrv,
 	}
-	r.httpSrv.HandleFunc(r.endpoint, libkb.HTTPSrvTokenModeUnchecked, r.serve)
+	r.httpSrv.HandleFunc(r.endpoint, manager.SrvTokenModeUnchecked, r.serve)
 	r.fetcher.OnStart(libkb.NewMetaContextTODO(g.ExternalG()))
 	return r
 }
