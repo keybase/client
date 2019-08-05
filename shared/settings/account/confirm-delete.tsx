@@ -22,12 +22,12 @@ const getIcon = (props: Props) => {
 }
 const getPrompt = (props: Props) =>
   props.type === 'email' ? (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="HeaderBig">Delete email</Kb.Text>
       <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="HeaderBig">Delete number</Kb.Text>
       <Kb.Text type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text>
     </Kb.Box2>
