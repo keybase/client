@@ -181,6 +181,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   operation: '',
   originDomain: '',
   recipient: '',
+  signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
 })
@@ -705,8 +706,14 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
 export const getAirdropSelected = () => {
-  const path = Router2Constants.getVisibleScreen().routeName
-  return path === 'airdrop' || path === 'airdropQualify'
+  const path = Router2Constants.getFullRoute()
+  const topPath = path[path.length - 1].routeName
+  const nextPathDown = path[path.length - 2].routeName
+  return (
+    topPath === 'airdrop' ||
+    topPath === 'airdropQualify' ||
+    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop')
+  )
 }
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount

@@ -1284,6 +1284,7 @@ type SubscriptionTopic int
 const (
 	SubscriptionTopic_FAVORITES      SubscriptionTopic = 0
 	SubscriptionTopic_JOURNAL_STATUS SubscriptionTopic = 1
+	SubscriptionTopic_ONLINE_STATUS  SubscriptionTopic = 2
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1291,11 +1292,13 @@ func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
 var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"FAVORITES":      0,
 	"JOURNAL_STATUS": 1,
+	"ONLINE_STATUS":  2,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	0: "FAVORITES",
 	1: "JOURNAL_STATUS",
+	2: "ONLINE_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {

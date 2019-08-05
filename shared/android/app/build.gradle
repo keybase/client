@@ -131,8 +131,6 @@ android {
         versionCode timestamp()
     // KB:
         versionName VERSION_NAME
-    // KB: for react native camera
-        missingDimensionStrategy 'react-native-camera', 'general'
     // KB: our binary is too big
         multiDexEnabled true
     }
@@ -228,7 +226,6 @@ dependencies {
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
     implementation project(':react-native-push-notification')
-    implementation project(':react-native-camera')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-contacts')
     implementation project(':react-native-fast-image')

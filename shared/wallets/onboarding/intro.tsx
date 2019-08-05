@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/wallets'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
 type IntroProps = {
   onClose: () => void
-  setNextScreen: (nextScreen: Types.NextScreenAfterAcceptance) => void
+  onSeenIntro: () => void
 }
 
 const Intro = (props: IntroProps) => {
@@ -16,7 +15,7 @@ const Intro = (props: IntroProps) => {
       fullWidth={true}
       key={0}
       type="Dim"
-      onClick={() => props.setNextScreen('openWallet')}
+      onClick={props.onSeenIntro}
       label="Open your wallet"
       labelStyle={styles.labelStyle}
     />,

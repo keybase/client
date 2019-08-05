@@ -116,7 +116,7 @@ const load = () => {
         fromAirdrop={true}
         isAdvanced={false}
         issuerDescription=""
-        memo=""
+        memo="1 XLM (Stellar Lumens) divided across 2 Keybase users."
         onCancelPayment={undefined}
         onCancelPaymentWaitingKey=""
         onSelectTransaction={Sb.action('onSelectTransaction')}

@@ -7,7 +7,7 @@ package libhttpserver
 import (
 	"context"
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
 	"io"
 	"net/http"
 	"path"
@@ -43,7 +43,7 @@ type Server struct {
 	server     *kbhttp.Srv
 }
 
-const tokenByteSize = 16
+const tokenByteSize = 32
 
 // NewToken returns a new random token that a HTTP client can use to load
 // content from the server.
@@ -52,7 +52,7 @@ func (s *Server) NewToken() (token string, err error) {
 	if _, err = rand.Read(buf); err != nil {
 		return "", err
 	}
-	token = hex.EncodeToString(buf)
+	token = base64.URLEncoding.EncodeToString(buf)
 	s.tokens.Add(token, nil)
 	return token, nil
 }

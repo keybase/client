@@ -62,7 +62,7 @@ const bodyExpanded = (props: Props) => (
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, flex: 1}} />
     <Kb.Button
       mode="Secondary"
-      type="Default"
+      type="Wallet"
       small={true}
       disabled={!props.onOpenInfoUrl}
       label={props.infoUrlText}

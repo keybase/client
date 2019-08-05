@@ -98,12 +98,18 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
       return state
-        .updateIn(['email', 'emails'], emails =>
-          emails.update(action.payload.params.emailAddress, email =>
-            email.merge({
-              isVerified: true,
-            })
-          )
+        .updateIn(
+          ['email', 'emails'],
+          emails =>
+            emails
+              ? emails.update(action.payload.params.emailAddress, email =>
+                  email
+                    ? email.merge({
+                        isVerified: true,
+                      })
+                    : undefined
+                )
+              : undefined // unclear what we want to do here
         )
         .update('email', emailState => emailState.merge({addedEmail: null}))
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
@@ -123,7 +129,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadedProxyData:
       return state.merge({proxyData: action.payload.proxyData})
     case SettingsGen.certificatePinningToggled:
-      return state.merge({didToggleCertificatePinning: action.payload.toggled || false})
+      return state.merge({didToggleCertificatePinning: action.payload.toggled})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})

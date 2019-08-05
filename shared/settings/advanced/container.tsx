@@ -7,9 +7,7 @@ import {
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
   createOnChangeRememberPassword,
-  createLoadProxyData,
   createLoadRememberPassword,
-  createSaveProxyData,
   createCertificatePinningToggled,
   createToggleRuntimeStats,
 } from '../../actions/settings-gen'
@@ -19,9 +17,8 @@ import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
-import Advanced from './index'
+import Advanced from '.'
 import {connect, lifecycle, TypedState} from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import {DarkModePreference} from '../../styles/dark-mode'
 
 type OwnProps = {}
@@ -35,7 +32,6 @@ const mapStateToProps = (state: TypedState) => {
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
-    proxyData: state.settings.proxyData,
     rememberPassword: state.settings.password.rememberPassword,
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
@@ -47,9 +43,7 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
-  _loadProxyData: () => dispatch(createLoadProxyData()),
   _loadRememberPassword: () => dispatch(createLoadRememberPassword()),
-  _resetCertPinningToggle: () => dispatch(createCertificatePinningToggled({toggled: null})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
   onChangeRememberPassword: (checked: boolean) =>
@@ -66,7 +60,6 @@ const mapDispatchToProps = dispatch => ({
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
 
 export default compose(
@@ -79,11 +72,7 @@ export default compose(
     componentDidMount() {
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
-      this.props._loadProxyData()
       this.props._loadRememberPassword()
-    },
-    componentWillUnmount() {
-      this.props._resetCertPinningToggle()
     },
   } as any),
   HeaderHoc
