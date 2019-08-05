@@ -21,8 +21,6 @@ import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.dylanvann.fastimage.FastImageViewPackage;
 
-import org.reactnative.camera.RNCameraPackage;
-
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import com.swmansion.reanimated.ReanimatedPackage;
@@ -106,7 +104,6 @@ public class MainApplication extends Application implements ReactApplication {
                         }
                     },
                     new ReactNativePushNotificationPackage(),
-                    new RNCameraPackage(),
                     new RNFetchBlobPackage(),
                     new ReactNativeContacts(),
                     new FastImageViewPackage(),

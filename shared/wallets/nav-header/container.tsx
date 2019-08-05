@@ -7,6 +7,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
   airdropSelected: Constants.getAirdropSelected(),
+  isInAirdrop: state.wallets.airdropState === 'accepted',
   noDisclaimer: !state.wallets.acceptedDisclaimer,
   username: state.config.username,
 })
@@ -16,6 +17,7 @@ const mergePropsHeaderTitle = s => ({
   accountName: s._account.name,
   airdropSelected: s.airdropSelected,
   isDefault: s._account.isDefault,
+  isInAirdrop: s.isInAirdrop,
   loading: s._account.accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
   username: s.username,
