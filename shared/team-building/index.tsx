@@ -346,7 +346,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
-            keyboardDismissMode={Styles.isIOS ? 'interactive' : 'on-drag'}
+            keyboardDismissMode="on-drag"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
