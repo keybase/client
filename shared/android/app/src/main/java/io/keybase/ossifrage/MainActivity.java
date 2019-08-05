@@ -95,6 +95,8 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
+
+        KeybasePushNotificationListenerService.createNotificationChannel(this);
     }
 
     @Override

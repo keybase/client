@@ -16,7 +16,7 @@ import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {isIOS} from '../../constants/platform'
+import {isIOS, isAndroid} from '../../constants/platform'
 import {TypedState} from '../../util/container'
 
 let lastCount = -1
@@ -356,6 +356,13 @@ const getStartupDetailsFromInitialPush = (): Promise<
     }
 > =>
   new Promise(resolve => {
+    if (isAndroid) {
+      // For android, we won't rely on the initial notification.
+      // We'll do all routing based of the intent
+      resolve(null)
+      return
+    }
+
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
       if (!notification) {

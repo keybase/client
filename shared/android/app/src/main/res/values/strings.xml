@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Keybase</string>
     <string name="send_to">Send To</string>
+    <string name="channel_name">Keybase Chat</string>
+    <string name="channel_description">Notifications from chat</string>
+    <string name="general_channel_name">General Notifications</string>
+    <string name="general_channel_description">Other important Keybase notifications</string>
 </resources>

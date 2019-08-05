@@ -1,19 +1,34 @@
 package io.keybase.ossifrage;
 
-import android.content.Intent;
 import android.app.PendingIntent;
 import android.content.Context;
-import keybase.PushNotifier;
-
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat.MessagingStyle;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.Person;
+import android.util.Log;
 
-import com.dieam.reactnativepushnotification.modules.RNPushNotificationHelper;
+import keybase.PushNotifier;
 
 public class KBPushNotifier implements PushNotifier {
     private final Context context;
     private Bundle bundle;
+
+    private SmallMsgRingBuffer convMsgCache;
+    private int timestamp;
+
+    private NotificationCompat.Style buildStyle(Person person) {
+        MessagingStyle style = new MessagingStyle(person);
+        if (convMsgCache != null) {
+            for (MessagingStyle.Message msg: convMsgCache.summary()) {
+                style.addMessage(msg);
+            }
+        }
+
+        return style;
+    }
 
     public KBPushNotifier(Context ctx) {
         this.context = ctx;
@@ -21,6 +36,10 @@ public class KBPushNotifier implements PushNotifier {
 
     public void setBundle(Bundle bundle) {
         this.bundle = bundle;
+    }
+
+    public void setMsgCache(SmallMsgRingBuffer convMsgCache) {
+        this.convMsgCache = convMsgCache;
     }
 
     public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
@@ -33,6 +52,18 @@ public class KBPushNotifier implements PushNotifier {
         bundle.putString("type", typ);
         bundle.putString("convID", convID);
 
+        // TODO check if this is a chat notification
+
+        String from = "Keybase";
+        String rest = msg;
+        try {
+            String[] message = msg.split(":", 2);
+            from = message[0];
+            rest = message[1];
+        } catch (Exception e) {
+            Log.e("KBPushNotifier", "Coudn't figure out from");
+        }
+
         Intent open_activity_intent = new Intent(context, MainActivity.class);
         open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         open_activity_intent.setPackage(context.getPackageName());
@@ -41,16 +72,28 @@ public class KBPushNotifier implements PushNotifier {
         PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
             PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder mBuilder =
-            new NotificationCompat.Builder(this.context, RNPushNotificationHelper.NOTIFICATION_CHANNEL_ID )
+          new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notif)
-            .setContentTitle("Keybase")
-            .setContentText(msg)
+            .setContentTitle(from)
+            .setContentText(rest)
             .setContentIntent(pending_intent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setGroup(convID)
-            .setGroupSummary(true)
             .setAutoCancel(true);
+
+            Person fromPerson = new Person.Builder().setName(from).build();
+
+            if (this.convMsgCache != null ) {
+                convMsgCache.add(new MessagingStyle.Message(rest, timestamp, fromPerson));
+            }
+
+            NotificationCompat.Style style = buildStyle(fromPerson);
+            mBuilder.setStyle(style);
+
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
-        notificationManager.notify(ident, 0, mBuilder.build());
+        notificationManager.notify(convID, 0, mBuilder.build());
+    }
+
+    public void setTs(int i) {
+      this.timestamp = i;
     }
 }
+
