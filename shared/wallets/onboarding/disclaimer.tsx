@@ -147,9 +147,9 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
           {this.props.sections.map(b =>
             b.lines.map(l => (
-              <Kb.Text key={l.text} type="Body" style={styles.bodyText}>
-                {l.text}
-              </Kb.Text>
+              <Kb.Markdown key={l.text} style={l.bullet ? Styles.collapseStyles([styles.bodyText, styles.bodyBullet]) : styles.bodyText}>
+                {(l.bullet ? "• " : "").concat(l.text)}
+              </Kb.Markdown>
             ))
           )}
         </Kb.ScrollView>

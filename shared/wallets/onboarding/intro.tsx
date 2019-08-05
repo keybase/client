@@ -22,7 +22,6 @@ const Intro = (props: IntroProps) => {
       labelStyle={styles.labelStyle}
     />,
   ]
-  console.warn('introprops', props)
   return (
     <WalletPopup
       bottomButtons={buttons}
@@ -36,9 +35,7 @@ const Intro = (props: IntroProps) => {
           {props.headerTitle}
         </Kb.Text>
 
-        <Kb.Markdown center={true} type="Body" style={styles.bodyText}>
-          {props.headerBody}
-        </Kb.Markdown>
+        <Kb.Markdown style={styles.bodyText}>{props.headerBody}</Kb.Markdown>
 
         <Kb.Icon
           color={Styles.globalColors.black}
