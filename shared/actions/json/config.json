@@ -127,9 +127,6 @@
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"
-    },
-    "avatarRefreshIncrement": {
-      "name": "string"
     }
   }
 }

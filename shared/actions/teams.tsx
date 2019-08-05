@@ -1088,10 +1088,6 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
   yield Saga.all(errs)
 }
 
-const teamAvatarUpdated = (_: TypedState, action: EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload) => {
-  return [ConfigGen.createAvatarRefreshIncrement({name: action.payload.params.name})]
-}
-
 const teamChangedByName = (
   _: TypedState,
   action: EngineGen.Keybase1NotifyTeamTeamChangedByNamePayload,
@@ -1568,11 +1564,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'receivedBadgeState'
   )
   yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState, 'gregorPushState')
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload>(
-    EngineGen.keybase1NotifyTeamAvatarUpdated,
-    teamAvatarUpdated,
-    'teamAvatarUpdated'
-  )
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTeamTeamChangedByNamePayload>(
     EngineGen.keybase1NotifyTeamTeamChangedByName,
     teamChangedByName,

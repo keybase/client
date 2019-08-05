@@ -19,6 +19,7 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -274,8 +275,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         httpSrvAddress: action.payload.address,
         httpSrvToken: action.payload.token,
       })
-    case ConfigGen.avatarRefreshIncrement:
-      return state.updateIn(['avatarRefreshCounter', action.payload.name], (c = 0) => c + 1)
+    case EngineGen.keybase1NotifyTeamAvatarUpdated:
+      return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
     // Saga only actions
