@@ -20,7 +20,7 @@ export type Props = {
   iconColor?: Styles.Color
   onCancel?: () => void
   onConfirm?: () => void
-  prompt: string
+  prompt: React.ReactNode
   waitingKey?: string
 }
 

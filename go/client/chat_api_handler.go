@@ -45,17 +45,6 @@ const (
 	methodListCommands      = "listcommands"
 )
 
-type RateLimit struct {
-	Tank     string `json:"tank"`
-	Capacity int    `json:"capacity"`
-	Reset    int    `json:"reset"`
-	Gas      int    `json:"gas"`
-}
-
-type RateLimits struct {
-	RateLimits []RateLimit `json:"ratelimits,omitempty"`
-}
-
 // ChatAPIHandler can handle all of the chat json api methods.
 type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error
@@ -91,13 +80,7 @@ type ChatAPI struct {
 }
 
 // ChatChannel represents a channel through which chat happens.
-type ChatChannel struct {
-	Name        string `json:"name"`
-	Public      bool   `json:"public"`
-	MembersType string `json:"members_type"`
-	TopicType   string `json:"topic_type,omitempty"`
-	TopicName   string `json:"topic_name,omitempty"`
-}
+type ChatChannel chat1.ChatChannel
 
 func (c ChatChannel) IsNil() bool {
 	return c == ChatChannel{}

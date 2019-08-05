@@ -32,6 +32,7 @@ export const finishManualConflictResolution = 'fs:finishManualConflictResolution
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
+export const getOnlineStatus = 'fs:getOnlineStatus'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -149,6 +150,7 @@ type _FolderListLoadedPayload = {
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
+type _GetOnlineStatusPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _InitSendLinkToChatPayload = {readonly path: Types.Path}
@@ -320,6 +322,10 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   type: folderListLoaded,
 })
 export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
+export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
+  payload,
+  type: getOnlineStatus,
+})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
 ): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
@@ -625,6 +631,10 @@ export type FolderListLoadedPayload = {
   readonly type: typeof folderListLoaded
 }
 export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
+export type GetOnlineStatusPayload = {
+  readonly payload: _GetOnlineStatusPayload
+  readonly type: typeof getOnlineStatus
+}
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
   readonly type: typeof hideSystemFileManagerIntegrationBanner
@@ -902,6 +912,7 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
+  | GetOnlineStatusPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload

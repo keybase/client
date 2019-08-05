@@ -1752,6 +1752,12 @@ func (fs *KBFSOpsStandard) AddRootNodeWrapper(f func(Node) Node) {
 	}
 }
 
+// StatusOfServices implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) StatusOfServices() (map[string]error, chan StatusUpdate) {
+	return fs.currentStatus.CurrentStatus()
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 
