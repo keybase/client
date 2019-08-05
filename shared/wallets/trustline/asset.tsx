@@ -60,7 +60,6 @@ const bodyExpanded = (props: Props) => (
     <Kb.Text type="BodySmall" lineClamp={2} ellipsizeMode="middle">
       {props.issuerAccountID}
     </Kb.Text>
-<<<<<<< HEAD
     <Kb.ButtonBar direction="row" align="flex-start" small={true}>
       {!!props.depositButtonText && (
         <>
