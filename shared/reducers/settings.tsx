@@ -103,9 +103,11 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           emails =>
             emails
               ? emails.update(action.payload.params.emailAddress, email =>
-                  email.merge({
-                    isVerified: true,
-                  })
+                  email
+                    ? email.merge({
+                        isVerified: true,
+                      })
+                    : undefined
                 )
               : undefined // unclear what we want to do here
         )
