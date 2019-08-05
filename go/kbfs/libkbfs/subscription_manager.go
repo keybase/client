@@ -192,6 +192,11 @@ func (sm *subscriptionManager) subscribePath(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	if fb == (data.FolderBranch{}) {
+		// ignore non-existent TLF.
+		// TODO: deal with this case HOTPOTP-501
+		return nil
+	}
 	nitp := getCleanInTlfPath(parsedPath)
 
 	ref := pathSubscriptionRef{
