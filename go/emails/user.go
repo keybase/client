@@ -27,7 +27,9 @@ func AddEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, visibility ke
 func clearEmailsFromContactCache(mctx libkb.MetaContext, email keybase1.EmailAddress) {
 	cache := contacts.NewContactCacheStore(mctx.G())
 	cache.RemoveContactsCacheEntries(mctx, nil /* phoneNumber */, &email)
-	mctx.G().SyncedContactList.UnresolveContactsWithComponent(mctx, nil /* phoneNumber */, &email)
+	if sync := mctx.G().SyncedContactList; sync != nil {
+		sync.UnresolveContactsWithComponent(mctx, nil /* phoneNumber */, &email)
+	}
 }
 
 func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
