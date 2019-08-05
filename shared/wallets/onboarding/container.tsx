@@ -43,7 +43,7 @@ const ConnectedOnboarding = connect(
 // routed case and <Onboarding /> case.
 type RoutedOnboardingProps = Container.RouteProps<OwnProps>
 export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
-  <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet' as const)} />
+  <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
 )
 
 export default ConnectedOnboarding

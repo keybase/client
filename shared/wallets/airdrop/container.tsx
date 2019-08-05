@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 
 export type Props = AirdropProps & {acceptedDisclaimer: boolean}
 const AirdropOrOnboarding = (props: Props) =>
-  props.acceptedDisclaimer ? <Airdrop {...props} /> : <Onboarding nextScreen={'airdrop' as const} />
+  props.acceptedDisclaimer ? <Airdrop {...props} /> : <Onboarding nextScreen="airdrop" />
 
 const ConnectedAirdrop = Container.connect(
   mapStateToProps,

@@ -14,7 +14,7 @@ const WalletsOrOnboarding = (props: Props) =>
   props.acceptedDisclaimer ? (
     <WalletsAndDetails>{props.children}</WalletsAndDetails>
   ) : (
-    <Onboarding nextScreen={'openWallet' as const} />
+    <Onboarding nextScreen="openWallet" />
   )
 
 export default connect(

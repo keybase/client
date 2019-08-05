@@ -47,7 +47,7 @@ const WalletOrOnboarding = (props: Props) =>
   !Container.isMobile || props.acceptedDisclaimer ? (
     <Wallet {...props} />
   ) : (
-    <Onboarding nextScreen={'openWallet' as const} />
+    <Onboarding nextScreen="openWallet" />
   )
 
 export default Container.connect(
