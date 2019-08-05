@@ -27,6 +27,7 @@ type anchorInteractor struct {
 	accountID      stellar1.AccountID
 	secretKey      *stellar1.SecretKey
 	asset          stellar1.Asset
+	authToken      string
 	httpGetClient  func(mctx libkb.MetaContext, url string) (code int, body []byte, err error)
 	httpPostClient func(mctx libkb.MetaContext, url string, data url.Values) (code int, body []byte, err error)
 }
@@ -62,6 +63,9 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	v := url.Values{}
 	v.Set("account", a.accountID.String())
 	v.Set("asset_code", a.asset.Code)
+	if a.authToken != "" {
+		v.Set("jwt", a.authToken)
+	}
 	u.RawQuery = v.Encode()
 
 	var okResponse okDepositResponse
@@ -85,6 +89,9 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 		// if they all change to optional, we can not return this from stellard
 		// and it won't get set
 		v.Set("type", a.asset.WithdrawType)
+	}
+	if a.authToken != "" {
+		v.Set("jwt", a.authToken)
 	}
 	u.RawQuery = v.Encode()
 
@@ -370,8 +377,24 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	_ = code
-	_ = body
+	if code != http.StatusOK {
+		return errors.New("challenge post didn't reutrn OK/200")
+	}
+
+	var tokres map[string]string
+	if err := json.Unmarshal(body, &tokres); err != nil {
+		return err
+	}
+	token, ok := tokres["token"]
+	if ok {
+		a.authToken = token
+	} else {
+		msg, ok := tokres["error"]
+		if ok {
+			return fmt.Errorf("challenge post returned an error: %s", msg)
+		}
+		return errors.New("invalid response from challenge post")
+	}
 
 	return nil
 }

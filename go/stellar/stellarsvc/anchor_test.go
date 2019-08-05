@@ -225,6 +225,7 @@ func TestAnchorInteractor(t *testing.T) {
 		// our test tx auth challenges are on the public network:
 		if test.Asset.AuthEndpoint != "" {
 			stellarnet.SetNetwork(build.PublicNetwork)
+			ai.httpPostClient = mockAuthPost
 		} else {
 			stellarnet.SetNetwork(build.TestNetwork)
 		}
@@ -364,8 +365,8 @@ func mockAuthGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
 
 func mockAuthPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
 	switch url {
-	case "blah":
-		return 0, nil, fmt.Errorf("clah")
+	case "https://transfer.keybase.io/auth":
+		return 200, []byte(authBody), nil
 	default:
 		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
 	}
@@ -377,3 +378,6 @@ const naobtcBody = `{"how": "19qPSWH6Cytp2zsn4Cntbzz2EMp1fadkRs", "eta": 1800, "
 const authDepositBody = `{"type":"interactive_customer_info_needed","url":"https://keybase.io/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566","identifier":"b700518e7430513abdbdab96e7ead566","dimensions":{"width":800,"height":600}}`
 const authWithdrawBody = `{ "type": "interactive_customer_info_needed", "url" : "https://keybase.io/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI", "id": "82fhs729f63dh0v4" }`
 const authChallenge = `{"transaction":"AAAAAANjzBWOC6YJo49wLshbTPMAmHnZ1I5AESV73e605u3DAAAnEAAAAAAAAAAAAAAAAQAAAABdRIV+AAAAAF1EhqoAAAAAAAAAAQAAAAEAAAAAc35v3HkfCY0CYiA898rk/9hkUeNCTCneeOKQHyo1HJcAAAAKAAAAEFN0ZWxsYXJwb3J0IGF1dGgAAAABAAAAQMCsw7hA+QQnW9t2MfAU92Sqa7eD1udjvaS5BSO9AJFXuELyBmzw+l+GhIry01cM6nz5HKleHf+wDn2jXYYlFKQAAAAAAAAAAbTm7cMAAABAnoRu4cp4cl9UEYqyRIfAIiLhoSU7h77vU9yV2S1RSNZfhc/YaXlMnlLkb9CAeLho1nVMOQnGNzQ55gWJzXXQDQ=="}`
+const authBody = `{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJHQTZVSVhYUEVXWUZJTE5VSVdBQzM3WTRRUEVaTVFWREpIREtWV0ZaSjJLQ1dVQklVNUlYWk5EQSIsImp0aSI6IjE0NGQzNjdiY2IwZTcyY2FiZmRiZGU2MGVhZTBhZDczM2NjNjVkMmE2NTg3MDgzZGFiM2Q2MTZmODg1MTkwMjQiLCJpc3MiOiJodHRwczovL2ZsYXBweS1iaXJkLWRhcHAuZmlyZWJhc2VhcHAuY29tLyIsImlhdCI6MTUzNDI1Nzk5NCwiZXhwIjoxNTM0MzQ0Mzk0fQ.8nbB83Z6vGBgC1X9r3N6oQCFTBzDiITAfCJasRft0z0"
+}`
