@@ -71,7 +71,7 @@ const markdownOverride = {
     isMobile: {fontSize: 14, lineHeight: 18},
   }),
   strong: Styles.platformStyles({
-    common: {...Styles.globalStyles.fontExtrabold},
+    common: Styles.globalStyles.fontExtrabold,
     isElectron: {fontSize: 13, lineHeight: '17px'},
     isMobile: {fontSize: 14, lineHeight: 18},
   }),
