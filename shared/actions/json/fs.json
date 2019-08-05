@@ -17,6 +17,7 @@
       "subscriptionID": "string"
     },
     "onJournalNotification": {},
+    "getOnlineStatus": {},
     "folderListLoad": {
       "path": "Types.Path"
     },

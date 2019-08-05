@@ -551,7 +551,8 @@ protocol SimpleFS {
 
   enum SubscriptionTopic {
     FAVORITES_0,
-    JOURNAL_STATUS_1
+    JOURNAL_STATUS_1,
+    ONLINE_STATUS_2
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,
