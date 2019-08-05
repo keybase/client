@@ -13,14 +13,7 @@ type OnboardingProps = {
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void
   onLoadDetails: () => void
   onClose: () => void
-  sections: ReadonlyArray<{
-    lines: ReadonlyArray<{
-      bullet: boolean
-      text: string
-    }>
-    section: string
-    icon: string | null
-  }>
+  sections: Types.StellarDetailsSections
 }
 
 type OnboardingState = {
