@@ -6,8 +6,8 @@ import * as Container from '../../util/container'
 import Onboarding from '../onboarding/container'
 
 const mapStateToProps = (state: Container.TypedState) => ({
-  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   _details: state.wallets.airdropDetails.details,
+  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   loading: state.wallets.airdropState === 'loading',
   signedUp: state.wallets.airdropState === 'accepted',
 })

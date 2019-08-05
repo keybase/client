@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
@@ -26,7 +25,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
 })
 
-const ConnectedOnboarding = connect(
+const ConnectedOnboarding = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({

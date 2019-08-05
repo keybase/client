@@ -1024,8 +1024,7 @@ const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayloa
                 path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
               })
             )
-          }
-          else {
+          } else {
             actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
           }
         }
