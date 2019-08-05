@@ -100,7 +100,10 @@ func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.R
 		}
 	}
 	var buf bytes.Buffer
-	png.Encode(&buf, combined)
+	err = png.Encode(&buf, combined)
+	if err != nil {
+		return res, length, err
+	}
 	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }
 

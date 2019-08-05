@@ -58,13 +58,16 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
+	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
 				s.Debug(ctx, "Error purging ephemeral attachments %v", err)
 			}
 		}))
+	if err != nil {
+		s.Debug(ctx, "Error queuing conv job: %+v", err)
+	}
 }
 
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
@@ -984,7 +987,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			s.Debug(ctx, "notifyEphemeralPurge: unable to IncrementLocalConvVersion, err", err)
 		}
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-			chat1.ConversationStaleUpdate{
+			{
 				ConvID:     convID,
 				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
@@ -1003,7 +1006,10 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return nil
 	}
 
-	s.lockTab.Acquire(ctx, uid, convID)
+	_, err = s.lockTab.Acquire(ctx, uid, convID)
+	if err != nil {
+		return err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
 	if err != nil {
@@ -1068,7 +1074,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
+	qErr := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			if len(tv.Messages) == 0 {
 				return
@@ -1078,6 +1084,9 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
+	if qErr != nil {
+		s.Debug(ctx, "ClearFromDelete: failed error queuing conv job: %+v", err)
+	}
 	return true
 }
 

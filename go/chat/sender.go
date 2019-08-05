@@ -411,12 +411,10 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{reactionMsgID},
 		})
-	} else {
 		// bookkeep the reaction used so we can keep track of the user's
 		// popular reactions in the UI
-		if err := storage.NewReacjiStore(s.G()).PutReacji(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
-			s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
-		}
+	} else if err := storage.NewReacjiStore(s.G()).PutReacji(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
+		s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
 	}
 
 	return msg.ClientHeader, msg.MessageBody, nil
@@ -558,8 +556,9 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 			return conv.Info.Participants, nil
 		}
 		return ib.Convs[0].Info.Participants, nil
+	default:
+		return conv.Info.Participants, nil
 	}
-	return conv.Info.Participants, nil
 }
 func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
 	conv *chat1.ConversationLocal) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
@@ -589,10 +588,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 	maybeToTeam := func(maybeMentions []chat1.MaybeMention) (res []chat1.KnownTeamMention) {
 		for _, maybe := range maybeMentions {
 			if s.G().TeamMentionLoader.IsTeamMention(ctx, uid, maybe, nil) {
-				res = append(res, chat1.KnownTeamMention{
-					Name:    maybe.Name,
-					Channel: maybe.Channel,
-				})
+				res = append(res, chat1.KnownTeamMention(maybe))
 			}
 		}
 		return res
@@ -686,7 +682,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
-		convID := (*conv).GetConvID()
+		convID := conv.GetConvID()
 		msg.ClientHeader.Conv = conv.Info.Triple
 		s.Debug(ctx, "Prepare: performing convID based checks")
 
@@ -1014,7 +1010,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// Log some useful information about the message we are sending
 		obidstr := "(none)"
 		if boxed.ClientHeader.OutboxID != nil {
-			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+			obidstr = boxed.ClientHeader.OutboxID.String()
 		}
 		s.Debug(ctx, "Send: sending message: convID: %s outboxID: %s", convID, obidstr)
 
@@ -1029,14 +1025,17 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
-			switch err.(type) {
+			switch e := err.(type) {
 			case libkb.ChatStalePreviousStateError:
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				if !clearedCache {
 					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					s.G().InboxSource.Clear(ctx, sender)
+					err := s.G().InboxSource.Clear(ctx, sender)
+					if err != nil {
+						s.Debug(ctx, "Send: error clearing: %+v", err)
+					}
 					clearedCache = true
 				}
 				continue
@@ -1050,9 +1049,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
-				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
-				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
+				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", e.UIDs)
+				err := utils.ForceReloadUPAKsForUIDs(ctx, s.G(), e.UIDs)
+				if err != nil {
+					s.Debug(ctx, "Send: error forcing reloads: %+v", err)
+				}
 				continue
 			default:
 				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
@@ -1081,11 +1082,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	unboxedMsg, err := s.boxer.UnboxMessage(ctx, *boxed, conv, &prepareRes.EncryptionInfo)
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
-	} else {
-		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
-			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
-			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
-		}
+	} else if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+		[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
+		s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
 		*boxed, nil); err != nil {
@@ -1632,13 +1631,9 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 }
 
 func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
-	switch err {
-	case ErrDuplicateConnection:
-		// This just happens when threads are racing to reconnect to Gregor, don't count it as
-		// an error to send.
-		return false
-	}
-	return true
+	// This just happens when threads are racing to reconnect to
+	// Gregor, don't count it as an error to send.
+	return err != ErrDuplicateConnection
 }
 
 func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord) bool {
@@ -1746,12 +1741,10 @@ func (s *Deliverer) deliverLoop() {
 				if s.shouldBreakLoop(bctx, obr) {
 					break
 				}
-			} else {
 				// BlockingSender actually does this too, so this will likely fail, but to maintain
 				// the types.Sender abstraction we will do it here too and likely fail.
-				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
-					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
-				}
+			} else if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+				s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
 			}
 		}
 	}

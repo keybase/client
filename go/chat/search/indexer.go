@@ -634,7 +634,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	if err != nil {
 		return res, err
 	}
-	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
+	res.DurationMsec = gregor1.ToDurationMsec(time.Since(startT))
 	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {

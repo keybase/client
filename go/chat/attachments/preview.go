@@ -239,7 +239,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	newWidth, newHeight := origWidth, origHeight
 	// Preserve aspect ratio
 	if origWidth > previewImageWidth {
-		newHeight = uint(origHeight * previewImageWidth / origWidth)
+		newHeight = origHeight * previewImageWidth / origWidth
 		if newHeight < 1 {
 			newHeight = 1
 		}
@@ -247,7 +247,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	}
 
 	if newHeight > previewImageHeight {
-		newWidth = uint(newWidth * previewImageHeight / newHeight)
+		newWidth = newWidth * previewImageHeight / newHeight
 		if newWidth < 1 {
 			newWidth = 1
 		}
