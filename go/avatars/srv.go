@@ -95,6 +95,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	res, err := loadFn(mctx, []string{name}, []keybase1.AvatarFormat{format})
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "failed to load: %s", err)
+		return
 	}
 	nameRes := res.Picmap[name]
 	if nameRes == nil {
