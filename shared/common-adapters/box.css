@@ -119,6 +119,9 @@
 .box2_alignSelf_flex-end {
   align-self: flex-end;
 }
+.box2_alignSelf_stretch {
+  align-self: stretch;
+}
 .box2_no_shrink {
   flex-shrink: 0;
 }
