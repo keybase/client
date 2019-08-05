@@ -58,9 +58,6 @@ class UpdatePassword extends Component<Props, State> {
     if (password && passwordConfirm && password !== passwordConfirm) {
       return 'Passwords must match.'
     }
-    if (this.props.hasPGPKeyOnServer === null) {
-      return 'There was a problem downloading your PGP key status.'
-    }
     return ''
   }
 
@@ -85,9 +82,12 @@ class UpdatePassword extends Component<Props, State> {
               <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordError} />
             </Kb.Banner>
           ),
-          !!this.state.errorSaving && (
+          this.props.hasPGPKeyOnServer === null && (
             <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={this.state.errorSaving} />
+              <Kb.BannerParagraph
+                bannerColor="red"
+                content="There was a problem downloading your PGP key status."
+              />
             </Kb.Banner>
           ),
           !!this.props.newPasswordConfirmError && (
@@ -154,8 +154,11 @@ class UpdatePassword extends Component<Props, State> {
               }}
             />
           </Kb.RoundedBox>
-          <Kb.Text style={styles.passwordFormat} type="BodySmall">
-            Password must be at least 8 characters.
+          <Kb.Text
+            style={styles.passwordFormat}
+            type={this.state.errorSaving ? 'BodySmallError' : 'BodySmall'}
+          >
+            {this.state.errorSaving || 'Password must be at least 8 characters.'}
           </Kb.Text>
           <Kb.Checkbox
             boxBackgroundColor={Styles.globalColors.white}
