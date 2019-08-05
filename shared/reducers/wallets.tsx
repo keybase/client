@@ -426,7 +426,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         ),
       })
     case WalletsGen.walletDisclaimerReceived:
-      return state.merge({acceptedDisclaimer: action.payload.accepted})
+      return state.merge({acceptedDisclaimer: false}) //action.payload.accepted})
     case WalletsGen.acceptDisclaimer:
       return state.merge({
         acceptingDisclaimerDelay: true,

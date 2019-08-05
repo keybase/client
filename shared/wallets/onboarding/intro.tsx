@@ -4,6 +4,8 @@ import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
 type IntroProps = {
+  headerBody: string
+  headerTitle: string
   onClose: () => void
   onSeenIntro: () => void
 }
@@ -20,6 +22,7 @@ const Intro = (props: IntroProps) => {
       labelStyle={styles.labelStyle}
     />,
   ]
+  console.warn('introprops', props)
   return (
     <WalletPopup
       bottomButtons={buttons}
@@ -30,25 +33,12 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
-          Keybase supports Stellar wallets
+          {props.headerTitle}
         </Kb.Text>
 
-        <Kb.Text center={true} type="Body" style={styles.bodyText}>
-          You can now send or request Stellar Lumens to any Keybase user on{' '}
-          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
-            Earth
-          </Kb.Text>
-          . Transactions settle in seconds, and cost a fraction of a penny.
-        </Kb.Text>
-
-        <Kb.Text center={true} type="Body" style={styles.bodyText}>
-          When sending and receiving Lumens, we automatically do the conversion in your favorite currency. We
-          went ahead and set it to{' '}
-          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
-            USD
-          </Kb.Text>
-          .
-        </Kb.Text>
+        <Kb.Markdown center={true} type="Body" style={styles.bodyText}>
+          {props.headerBody}
+        </Kb.Markdown>
 
         <Kb.Icon
           color={Styles.globalColors.black}
