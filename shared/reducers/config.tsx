@@ -271,10 +271,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.updateHTTPSrvInfo:
       return state.merge({
-        httpSrv: {
-          address: action.payload.address,
-          token: action.payload.token,
-        },
+        httpSrvAddress: action.payload.address,
+        httpSrvToken: action.payload.token,
       })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)

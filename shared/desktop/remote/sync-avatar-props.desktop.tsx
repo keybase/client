@@ -16,9 +16,10 @@ type OwnProps = {
 }
 
 type Props = {
-  avatars: Object
   followers: I.Set<string>
   following: I.Set<string>
+  httpSrvAddress: string
+  httpSrvToken: string
   remoteWindow: SafeElectron.BrowserWindowType | null
   setUsernames: (arg0: I.Set<string>) => void
   usernames: I.Set<string>
@@ -29,12 +30,16 @@ type Props = {
 export const serialize = {
   followers: (v: any) => v.toArray(),
   following: (v: any) => v.toArray(),
+  httpSrvAddress: (v: any) => v,
+  httpSrvToken: (v: any) => v,
 }
 
 const initialState = {
   config: {
     followers: I.Set(),
     following: I.Set(),
+    httpSrvAddress: '',
+    httpSrvToken: '',
   },
 }
 export const deserialize = (state: any = initialState, props: any) => {
@@ -45,50 +50,28 @@ export const deserialize = (state: any = initialState, props: any) => {
       ...state.config,
       ...(props.followers ? {followers: I.Set(props.followers)} : {}),
       ...(props.following ? {following: I.Set(props.following)} : {}),
+      httpSrvAddress: props.httpSrvAddress || state.config.httpSrvAddress,
+      httpSrvToken: props.httpSrvToken || state.config.httpSrvToken,
     },
   }
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
   class RemoteAvatarConnected extends React.PureComponent<Props> {
-    _onRemoteActionFired = (
-      _: any,
-      action: {
-        type: string
-        payload: any
-      },
-      windowComponent: string,
-      windowParam: string
-    ) => {
-      if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
-        if (action.type === ConfigGen.loadAvatars) {
-          const {usernames} = action.payload
-          this.props.setUsernames(this.props.usernames.concat(usernames))
-        } else if (action.type === ConfigGen.loadTeamAvatars) {
-          const {teamnames} = action.payload
-          this.props.setUsernames(this.props.usernames.concat(teamnames))
-        }
-      }
-    }
-
-    componentDidMount() {
-      SafeElectron.getIpcRenderer().on('dispatchAction', this._onRemoteActionFired)
-    }
-    componentWillUnmount() {
-      SafeElectron.getIpcRenderer().removeListener('dispatchAction', this._onRemoteActionFired)
-    }
-
     render() {
       const {setUsernames, usernames, ...rest} = this.props
       return <ComposedComponent {...rest} />
     }
   }
 
-  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) =>
-    immutableCached(
+  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+    ...immutableCached(
       getRemoteFollowers(state.config.followers, ownProps.usernames),
       getRemoteFollowing(state.config.following, ownProps.usernames)
-    )
+    ),
+    httpSrvAddress: state.config.httpSrvAddress,
+    httpSrvToken: state.config.httpSrvToken,
+  })
 
   const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
   const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))

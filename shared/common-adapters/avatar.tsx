@@ -42,7 +42,6 @@ type Props = {
   followIconType?: IconType
   followIconStyle: IconStyle
   isTeam: boolean
-  load: () => void
   loadingColor?: string
   name: string
   onClick?: (e?: React.SyntheticEvent) => void
@@ -94,7 +93,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
-    _httpSrv: state.config.httpSrv,
+    _httpSrvAddress: state.config.httpSrvAddress,
+    _httpSrvToken: state.config.httpSrvToken,
   }
 }
 
@@ -131,16 +131,12 @@ const ConnectedAvatar = Container.connect(
 
     const name = isTeam ? ownProps.teamname : ownProps.username
     const urlMap = avatarSizes.reduce((m, size: number) => {
-      m[size] = `http://${stateProps._httpSrv.address}/av?typ=${
+      m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
-      }&name=${name}&format=square_${size}&token=${stateProps._httpSrv.token}`
+      }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}`
       return m
     }, {})
     let url = urlsToImgSet(urlMap, ownProps.size)
-    let load: (() => void) | undefined
-    if (!url) {
-      url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-    }
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
       borderColor: ownProps.borderColor,
@@ -150,7 +146,6 @@ const ConnectedAvatar = Container.connect(
       followIconStyle: iconInfo.iconStyle,
       followIconType: iconInfo.iconType,
       isTeam,
-      load,
       loadingColor: ownProps.loadingColor,
       name: name || '',
       onClick,
@@ -185,9 +180,7 @@ const mockOwnToViewProps = (
     onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
   ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-
   const name = isTeam ? ownProps.teamname : ownProps.username
-
   const iconInfo = followIconHelper(
     ownProps.size,
     !!(ownProps.showFollowingStatus && followsYou),

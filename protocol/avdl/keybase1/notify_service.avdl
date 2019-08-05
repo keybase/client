@@ -6,7 +6,7 @@ protocol NotifyService {
     string address;
     string token;
   }
-  void httpSrvInfo(HttpSrvInfo info) oneway;
+  void httpSrvInfoUpdate(HttpSrvInfo info) oneway;
 
   // sent when the service shuts down.
   void shutdown(int code);

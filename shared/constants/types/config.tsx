@@ -23,11 +23,6 @@ export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
-export type HTTPSrvInfo = {
-  address: string
-  token: string
-}
-
 export type _State = {
   appFocused: boolean
   appFocusedCount: number
@@ -48,7 +43,8 @@ export type _State = {
   followers: I.Set<string>
   following: I.Set<string>
   globalError: null | Error | RPCError
-  httpSrv: HTTPSrvInfo
+  httpSrvAddress: string
+  httpSrvToken: string
   justDeletedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: I.Map<string, number>

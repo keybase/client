@@ -23,7 +23,7 @@
     }
   ],
   "messages": {
-    "httpSrvInfo": {
+    "httpSrvInfoUpdate": {
       "request": [
         {
           "name": "info",
