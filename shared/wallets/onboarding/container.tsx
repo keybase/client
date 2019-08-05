@@ -12,7 +12,6 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => {
   const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
-  console.warn('in mstp', state.wallets.airdropDetails.disclaimer)
   return {
     _disclaimer: state.wallets.airdropDetails.disclaimer,
     acceptDisclaimerError: error && error.message ? error.message : '',
@@ -31,28 +30,25 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 const ConnectedOnboarding = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    console.warn('in mp')
-    return {
-      acceptDisclaimerError: stateProps.acceptDisclaimerError,
-      acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
-      headerBody: stateProps._disclaimer.header.body,
-      headerTitle: stateProps._disclaimer.header.title,
-      nextScreen: ownProps.nextScreen,
-      onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
-      onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
-      onClose: dispatchProps.onClose,
-      onLoadDetails: dispatchProps.onLoadDetails,
-      sections: stateProps._disclaimer.sections.toArray().map(s => ({
-        icon: s.icon,
-        lines: s.lines.toArray().map(l => ({
-          bullet: l.bullet,
-          text: l.text,
-        })),
-        section: s.section,
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    acceptDisclaimerError: stateProps.acceptDisclaimerError,
+    acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
+    headerBody: stateProps._disclaimer.header.body,
+    headerTitle: stateProps._disclaimer.header.title,
+    nextScreen: ownProps.nextScreen,
+    onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
+    onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
+    onClose: dispatchProps.onClose,
+    onLoadDetails: dispatchProps.onLoadDetails,
+    sections: stateProps._disclaimer.sections.toArray().map(s => ({
+      icon: s.icon,
+      lines: s.lines.toArray().map(l => ({
+        bullet: l.bullet,
+        text: l.text,
       })),
-    }
-  }
+      section: s.section,
+    })),
+  })
 )(Onboarding)
 
 // A wrapper to harmonize the type of OwnProps between the

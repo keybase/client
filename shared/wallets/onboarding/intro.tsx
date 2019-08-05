@@ -32,10 +32,13 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
-          {props.headerTitle}
+          {props.headerTitle || 'Keybase supports Stellar wallets.'}
         </Kb.Text>
 
-        <Kb.Markdown style={styles.bodyText}>{props.headerBody}</Kb.Markdown>
+        <Kb.Markdown style={styles.bodyText}>
+          {props.headerBody ||
+            'You can now send or request Stellar Lumens to any Keybase user on *Earth*. Transactions settle in seconds, and cost a fraction of a penny.\n\nWhen sending and receiving Lumens, we automatically do the conversion in your favorite currency. We went ahead and set it to *USD*'}
+        </Kb.Markdown>
 
         <Kb.Icon
           color={Styles.globalColors.black}
