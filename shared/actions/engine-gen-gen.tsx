@@ -38,6 +38,7 @@ export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
+export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
 export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -473,6 +474,13 @@ type _Chat1ChatUiChatThreadFullPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatThreadStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatWatchPositionPayload = {
@@ -1859,6 +1867,9 @@ export const createChat1ChatUiChatThreadCached = (
 export const createChat1ChatUiChatThreadFull = (
   payload: _Chat1ChatUiChatThreadFullPayload
 ): Chat1ChatUiChatThreadFullPayload => ({payload, type: chat1ChatUiChatThreadFull})
+export const createChat1ChatUiChatThreadStatus = (
+  payload: _Chat1ChatUiChatThreadStatusPayload
+): Chat1ChatUiChatThreadStatusPayload => ({payload, type: chat1ChatUiChatThreadStatus})
 export const createChat1ChatUiChatWatchPosition = (
   payload: _Chat1ChatUiChatWatchPositionPayload
 ): Chat1ChatUiChatWatchPositionPayload => ({payload, type: chat1ChatUiChatWatchPosition})
@@ -2570,6 +2581,10 @@ export type Chat1ChatUiChatThreadFullPayload = {
   readonly payload: _Chat1ChatUiChatThreadFullPayload
   readonly type: typeof chat1ChatUiChatThreadFull
 }
+export type Chat1ChatUiChatThreadStatusPayload = {
+  readonly payload: _Chat1ChatUiChatThreadStatusPayload
+  readonly type: typeof chat1ChatUiChatThreadStatus
+}
 export type Chat1ChatUiChatWatchPositionPayload = {
   readonly payload: _Chat1ChatUiChatWatchPositionPayload
   readonly type: typeof chat1ChatUiChatWatchPosition
@@ -3242,6 +3257,7 @@ export type Actions =
   | Chat1ChatUiChatStellarShowConfirmPayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
+  | Chat1ChatUiChatThreadStatusPayload
   | Chat1ChatUiChatWatchPositionPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload

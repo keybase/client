@@ -31,6 +31,9 @@
         "chat1ChatUiChatThreadFull": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void}"
         },
+        "chat1ChatUiChatThreadStatus": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void}"
+        },
         "chat1ChatUiChatSearchHit": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void}"
         },

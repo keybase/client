@@ -2144,6 +2144,7 @@ export enum StatusCode {
 export enum SubscriptionTopic {
   favorites = 0,
   journalStatus = 1,
+  onlineStatus = 2,
 }
 
 export enum TLFIdentifyBehavior {
