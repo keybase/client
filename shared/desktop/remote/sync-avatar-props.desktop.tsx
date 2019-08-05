@@ -35,6 +35,7 @@ export const serialize = {
 
 const initialState = {
   config: {
+    avatarRefreshCounter: I.Map(),
     followers: I.Set(),
     following: I.Set(),
     httpSrvAddress: '',
@@ -49,6 +50,7 @@ export const deserialize = (state: any = initialState, props: any) => {
       ...state.config,
       ...(props.followers ? {followers: I.Set(props.followers)} : {}),
       ...(props.following ? {following: I.Set(props.following)} : {}),
+      avatarRefreshCounter: initialState.config.avatarRefreshCounter,
       httpSrvAddress: props.httpSrvAddress || state.config.httpSrvAddress,
       httpSrvToken: props.httpSrvToken || state.config.httpSrvToken,
     },
