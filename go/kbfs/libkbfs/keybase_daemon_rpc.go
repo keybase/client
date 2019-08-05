@@ -451,6 +451,10 @@ func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 	return nil
 }
 
+func (s *notifyServiceHandler) HttpSrvInfoUpdate(_ context.Context, info keybase1.HttpSrvInfo) error {
+	return nil
+}
+
 // newNotifyServiceHandler makes a new NotifyServiceHandler
 func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifyServiceInterface {
 	s := &notifyServiceHandler{config: config, log: log}
