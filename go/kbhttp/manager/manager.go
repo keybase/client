@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
@@ -28,6 +29,7 @@ type Srv struct {
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
 	token     string
+	startMu   sync.Mutex
 }
 
 func NewSrv(g *libkb.GlobalContext) *Srv {
@@ -56,6 +58,8 @@ func (r *Srv) initHTTPSrv() {
 }
 
 func (r *Srv) startHTTPSrv() {
+	r.startMu.Lock()
+	defer r.startMu.Unlock()
 	ctx := context.Background()
 	maxTries := 2
 	success := false
@@ -134,9 +138,13 @@ func (r *Srv) Active() bool {
 }
 
 func (r *Srv) Addr() (string, error) {
+	r.startMu.Lock()
+	defer r.startMu.Unlock()
 	return r.httpSrv.Addr()
 }
 
 func (r *Srv) Token() string {
+	r.startMu.Lock()
+	defer r.startMu.Unlock()
 	return r.token
 }
