@@ -1152,7 +1152,7 @@ func TestV1Message1(t *testing.T) {
 	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
 	require.NotNil(t, unboxed.HeaderSignature)
 	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
-	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.NotNil(t, unboxed.VerificationKey)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt)
 }
 
@@ -1207,7 +1207,7 @@ func TestV1Message2(t *testing.T) {
 	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
 	require.NotNil(t, unboxed.HeaderSignature)
 	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
-	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.NotNil(t, unboxed.VerificationKey)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt)
 }
 
@@ -1265,7 +1265,7 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
 	require.NotNil(t, unboxed.HeaderSignature)
 	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
-	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.NotNil(t, unboxed.VerificationKey)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt)
 }
 
@@ -1327,7 +1327,7 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
 	require.NotNil(t, unboxed.HeaderSignature)
 	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
-	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.NotNil(t, unboxed.VerificationKey)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt)
 }
 
@@ -1389,7 +1389,7 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
 	require.NotNil(t, unboxed.HeaderSignature)
 	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
-	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.NotNil(t, unboxed.VerificationKey)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt)
 }
 
