@@ -1,14 +1,16 @@
 import * as Kb from '../common-adapters'
+import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as React from 'react'
 import TabBar from './tab-bar/container.desktop'
 import {
+  NavigationViewProps,
   createNavigator,
   StackRouter,
   SwitchRouter,
   NavigationActions,
   getNavigation,
-  NavigationProvider,
+  NavigationContext,
   SceneView,
   createSwitchNavigator,
 } from 'react-navigation'
@@ -33,9 +35,10 @@ import OutOfDate from '../app/out-of-date'
  * Floating is rendered to a portal on top
  */
 
+const noScreenProps = {}
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
-class AppView extends React.PureComponent<any> {
+class AppView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -52,8 +55,7 @@ class AppView extends React.PureComponent<any> {
       <SceneView
         navigation={childNav}
         component={descriptor.getComponent()}
-        screenProps={this.props.screenProps}
-        options={descriptor.options}
+        screenProps={this.props.screenProps || noScreenProps}
       />
     )
     // if the header is transparent this needs to be on the same layer
@@ -89,7 +91,7 @@ class AppView extends React.PureComponent<any> {
   }
 }
 
-class ModalView extends React.PureComponent<any> {
+class ModalView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -109,7 +111,7 @@ class ModalView extends React.PureComponent<any> {
           key="AppLayer"
           navigation={appNav}
           component={appDescriptor.getComponent()}
-          screenProps={this.props.screenProps}
+          screenProps={this.props.screenProps || noScreenProps}
         />
         {index > 0 && (
           <Kb.Box2 direction="vertical" style={styles.modalContainer}>
@@ -117,7 +119,7 @@ class ModalView extends React.PureComponent<any> {
               key="ModalLayer"
               navigation={childNav}
               component={descriptor.getComponent()}
-              screenProps={this.props.screenProps}
+              screenProps={this.props.screenProps || noScreenProps}
             />
           </Kb.Box2>
         )}
@@ -128,7 +130,7 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
-class TabView extends React.PureComponent<any> {
+class TabView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -140,13 +142,12 @@ class TabView extends React.PureComponent<any> {
       <SceneView
         navigation={childNav}
         component={descriptor.getComponent()}
-        screenProps={this.props.screenProps}
-        options={descriptor.options}
+        screenProps={this.props.screenProps || noScreenProps}
       />
     )
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar navigation={navigation} selectedTab={selectedTab} />
+        <TabBar navigation={navigation} selectedTab={selectedTab as Tabs.AppTab} />
         {sceneView}
       </Kb.Box2>
     )
@@ -169,7 +170,7 @@ const TabNavigator = createNavigator(
       )
       return map
     }, {}),
-    {resetOnBlur: false}
+    {backBehavior: 'none', resetOnBlur: false}
   ),
   {}
 )
@@ -315,9 +316,9 @@ const createElectronApp = Component => {
       }
       navigation = this.navigation
       return (
-        <NavigationProvider value={navigation}>
+        <NavigationContext.Provider value={navigation}>
           <Component {...this.props} navigation={navigation} />
-        </NavigationProvider>
+        </NavigationContext.Provider>
       )
     }
 

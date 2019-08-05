@@ -1,4 +1,4 @@
-import {NavigationEvents as _NavigationEvents} from 'react-navigation'
+import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
 import {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
