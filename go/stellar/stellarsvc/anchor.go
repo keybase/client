@@ -28,7 +28,7 @@ type anchorInteractor struct {
 	secretKey      *stellar1.SecretKey
 	asset          stellar1.Asset
 	authToken      string
-	httpGetClient  func(mctx libkb.MetaContext, url string) (code int, body []byte, err error)
+	httpGetClient  func(mctx libkb.MetaContext, url, authToken string) (code int, body []byte, err error)
 	httpPostClient func(mctx libkb.MetaContext, url string, data url.Values) (code int, body []byte, err error)
 }
 
@@ -63,9 +63,6 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	v := url.Values{}
 	v.Set("account", a.accountID.String())
 	v.Set("asset_code", a.asset.Code)
-	if a.authToken != "" {
-		v.Set("jwt", a.authToken)
-	}
 	u.RawQuery = v.Encode()
 
 	var okResponse okDepositResponse
@@ -89,9 +86,6 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 		// if they all change to optional, we can not return this from stellard
 		// and it won't get set
 		v.Set("type", a.asset.WithdrawType)
-	}
-	if a.authToken != "" {
-		v.Set("jwt", a.authToken)
 	}
 	u.RawQuery = v.Encode()
 
@@ -184,7 +178,7 @@ type forbiddenResponse struct {
 // get performs the http GET requests and parses the result.
 func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fmt.Stringer) (stellar1.AssetActionResultLocal, error) {
 	mctx.Debug("performing http GET to %s", u)
-	code, body, err := a.httpGetClient(mctx, u.String())
+	code, body, err := a.httpGetClient(mctx, u.String(), a.authToken)
 	if err != nil {
 		mctx.Debug("GET failed: %s", err)
 		return stellar1.AssetActionResultLocal{}, err
@@ -232,11 +226,15 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 
 // httpGet is the live version of httpGetClient that is used
 // by default.
-func httpGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	client := http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return 0, nil, err
+	}
+
+	if authToken != "" {
+		req.Header.Add("Authorization", "Bearer "+authToken)
 	}
 
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
@@ -302,7 +300,7 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	v.Set("account", a.accountID.String())
 	u.RawQuery = v.Encode()
 
-	code, body, err := a.httpGetClient(mctx, u.String())
+	code, body, err := a.httpGetClient(mctx, u.String(), a.authToken)
 	if err != nil {
 		return err
 	}

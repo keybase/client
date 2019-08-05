@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	neturl "net/url"
 	"strings"
 	"testing"
 
@@ -22,7 +21,7 @@ type anchorTest struct {
 	WithdrawExternalURL string
 	DepositMessage      string
 	WithdrawMessage     string
-	MockTransferGet     func(mctx libkb.MetaContext, url string) (int, []byte, error)
+	MockTransferGet     func(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 }
 
 var errAnchorTests = []anchorTest{
@@ -286,7 +285,7 @@ func TestAnchorInteractor(t *testing.T) {
 
 // mockKeybaseTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockKeybaseTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://transfer.keybase.io/transfer/deposit":
@@ -300,7 +299,7 @@ func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, er
 
 // mockAnchorUSDTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://api.anchorusd.com/transfer/deposit":
@@ -314,7 +313,7 @@ func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, 
 
 // mockNaoBTCTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockNaoBTCTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockNaoBTCTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://www.naobtc.com/deposit":
@@ -326,7 +325,7 @@ func mockNaoBTCTransferGet(mctx libkb.MetaContext, url string) (int, []byte, err
 	}
 }
 
-func mockWWTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockWWTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://thewwallet.com/ExtApi/deposit":
@@ -338,21 +337,16 @@ func mockWWTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) 
 
 // mockKAuthGet is an httpGetClient func that returns a stored result
 // for WEB_AUTH_ENDPOINT and TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockAuthGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
-	parsed, err := neturl.Parse(url)
-	if err != nil {
-		return 0, nil, err
-	}
-	q := parsed.Query()
+func mockAuthGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://transfer.keybase.io/transfer/deposit":
-		if q.Get("jwt") == "" {
+		if authToken == "" {
 			return 0, nil, errors.New("missing token")
 		}
 		return http.StatusForbidden, []byte(authDepositBody), nil
 	case "https://transfer.keybase.io/transfer/withdraw":
-		if q.Get("jwt") == "" {
+		if authToken == "" {
 			return 0, nil, errors.New("missing token")
 		}
 		return http.StatusForbidden, []byte(authWithdrawBody), nil
