@@ -61,6 +61,7 @@ export const makeState = I.Record<Types._State>({
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
+  threadLoadStatus: I.Map(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,

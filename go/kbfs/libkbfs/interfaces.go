@@ -583,6 +583,10 @@ type KBFSOps interface {
 	// existing TLF.  Any Nodes that have already been returned by
 	// `KBFSOps` won't use these wrappers.
 	AddRootNodeWrapper(func(Node) Node)
+
+	// StatusOfServices returns the current status of various connected
+	// services.
+	StatusOfServices() (map[string]error, chan StatusUpdate)
 }
 
 type gitMetadataPutter interface {

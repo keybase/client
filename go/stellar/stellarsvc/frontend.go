@@ -1320,6 +1320,16 @@ func (s *Server) prepareAnchorInteractor(mctx libkb.MetaContext, accountID stell
 		return nil, errors.New("caller doesn't have trustline to asset")
 	}
 
+	var seed *stellar1.SecretKey
+	if fullAsset.AuthEndpoint != "" {
+		// get the secret key for account id
+		_, bundle, err := stellar.LookupSender(mctx, accountID)
+		if err != nil {
+			return nil, err
+		}
+		seed = &bundle.Signers[0]
+	}
+
 	// all good from the user's perspective, proceed...
-	return newAnchorInteractor(accountID, fullAsset), nil
+	return newAnchorInteractor(accountID, seed, fullAsset), nil
 }

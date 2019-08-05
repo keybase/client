@@ -82,7 +82,7 @@ class AvatarUpload extends React.Component<Props> {
         style={styles.standardScreen}
         title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
       >
-        {!!this.props.error && <Kb.Banner text={this.props.error} color="red" />}
+        {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={

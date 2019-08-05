@@ -583,7 +583,7 @@ type batchPayment struct {
 
 // batchOptions are the options for the batch payment method.
 type batchOptions struct {
-	BatchID  string         `json:"batchID"`
+	BatchID  string         `json:"batch-id"`
 	Timeout  int            `json:"timeout"`
 	Payments []batchPayment `json:"payments"`
 }
