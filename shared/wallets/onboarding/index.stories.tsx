@@ -18,7 +18,7 @@ const load = () => {
         {story()}
       </Box>
     ))
-    .add('Intro', () => <Intro onClose={action('onClose')} setNextScreen={action('setNextScreen')} />)
+    .add('Intro', () => <Intro onClose={action('onClose')} onSeenIntro={action('onSeenIntro')} />)
     .add('Disclaimer', () => (
       <Disclaimer {...actions} acceptDisclaimerError="" acceptingDisclaimerDelay={false} />
     ))

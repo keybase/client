@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
 
-type Props = {
+export type Props = {
   loading: boolean
   onBack: () => void
   onLoad: () => void
