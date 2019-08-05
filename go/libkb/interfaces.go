@@ -1094,4 +1094,5 @@ type StandaloneChatConnector interface {
 type SyncedContactListProvider interface {
 	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
 	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
+	UnresolveContactsWithComponent(MetaContext, *keybase1.PhoneNumber, *keybase1.EmailAddress)
 }
