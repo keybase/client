@@ -12,11 +12,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type supersedesTransform interface {
-	Run(ctx context.Context,
-		conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
-}
-
 type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
 	*chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 
@@ -32,7 +27,7 @@ type basicSupersedesTransform struct {
 	opts         basicSupersedesTransformOpts
 }
 
-var _ supersedesTransform = (*basicSupersedesTransform)(nil)
+var _ types.SupersedesTransform = (*basicSupersedesTransform)(nil)
 
 func newBasicSupersedesTransform(g *globals.Context, opts basicSupersedesTransformOpts) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
