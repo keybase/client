@@ -13,7 +13,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const gitMap = Constants.getIdToGit(state)
     const id = Container.getRouteProps(ownProps, 'id', '')
-    const git = (gitMap && id && gitMap.get(id)) || Constants.makeGitInfo()
+    const git = gitMap.get(id) || Constants.makeGitInfo()
 
     return {
       error: Constants.getError(state),

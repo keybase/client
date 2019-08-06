@@ -1,12 +1,10 @@
-import * as I from 'immutable'
 import * as Types from './types/git'
 import * as RPCTypes from './types/rpc-gen'
 import moment from 'moment'
 import {TypedState} from './reducer'
 
-export const makeGitInfo = I.Record<Types._GitInfo>({
+const emptyInfo = {
   canDelete: false,
-  channelName: null,
   chatDisabled: false,
   devicename: '',
   id: '',
@@ -14,27 +12,22 @@ export const makeGitInfo = I.Record<Types._GitInfo>({
   lastEditUser: '',
   name: '',
   repoID: '',
-  teamname: null,
   url: '',
-})
+}
+export const makeGitInfo = (i?: Partial<Types.GitInfo>): Types.GitInfo =>
+  i ? Object.assign({...emptyInfo}, i) : emptyInfo
 
-export const makeState = I.Record<Types._State>({
-  error: null,
-  idToInfo: I.Map(),
-  isNew: I.Set(),
-})
-
-const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | null => {
+const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefined => {
   if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
     const r: RPCTypes.GitRepoInfo = result.ok
     if (r.folder.folderType === RPCTypes.FolderType.public) {
       // Skip public repos
-      return null
+      return undefined
     }
-    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : null
-    return makeGitInfo({
+    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : undefined
+    return {
       canDelete: r.canDelete,
-      channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || null,
+      channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || undefined,
       chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
@@ -44,9 +37,9 @@ const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | null =
       repoID: r.repoID,
       teamname,
       url: r.repoUrl,
-    })
+    }
   }
-  return null
+  return undefined
 }
 
 const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
@@ -57,12 +50,7 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-export const parseRepos = (
-  results: Array<RPCTypes.GitRepoResult>
-): {
-  repos: {[K in string]: Types.GitInfo}
-  errors: Array<Error>
-} => {
+export const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   let errors: Array<Error> = []
   let repos = {}
   results.forEach(result => {
@@ -81,12 +69,15 @@ export const parseRepos = (
   }
 }
 
-export const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string): string | null => {
-  const repo = state.git.idToInfo.find(val => val.repoID === repoID && val.teamname === teamname)
-  if (!repo) {
-    return null
+export const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string) => {
+  let repo: undefined | Types.GitInfo
+  for (let [, info] of state.git.idToInfo) {
+    if (info.repoID === repoID && info.teamname === teamname) {
+      repo = info
+      break
+    }
   }
-  return repo.id
+  return repo ? repo.id : undefined
 }
 
 export const getIdToGit = (state: TypedState) => state.git.idToInfo

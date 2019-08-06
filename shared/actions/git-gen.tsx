@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
 
 import * as Types from '../constants/types/git'
 
@@ -22,25 +21,22 @@ export const setError = 'git:setError'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
 // Payload Types
-type _BadgeAppForGitPayload = {readonly ids: Array<string>}
+type _BadgeAppForGitPayload = {readonly ids: Set<string>}
 type _ClearBadgesPayload = void
 type _CreatePersonalRepoPayload = {readonly name: string}
 type _CreateTeamRepoPayload = {readonly name: string; readonly teamname: string; readonly notifyTeam: boolean}
 type _DeletePersonalRepoPayload = {readonly name: string}
 type _DeleteTeamRepoPayload = {readonly name: string; readonly teamname: string; readonly notifyTeam: boolean}
 type _LoadGitPayload = void
-type _LoadedPayload = {readonly repos: {'[key: string]': Types.GitInfo}; readonly errors: Array<Error>}
-type _NavToGitPayload = {
-  readonly switchTab: boolean
-  readonly routeState: {expandedSet: I.Set<string>} | null
-}
+type _LoadedPayload = {readonly repos: Map<string, Types.GitInfo>}
+type _NavToGitPayload = {readonly switchTab: boolean; readonly routeState: {expandedSet: Set<string>} | null}
 type _NavigateToTeamRepoPayload = {readonly repoID: string; readonly teamname: string}
 type _RepoCreatedPayload = void
 type _RepoDeletedPayload = void
-type _SetErrorPayload = {readonly error: Error | null}
+type _SetErrorPayload = {readonly error?: Error}
 type _SetTeamRepoSettingsPayload = {
   readonly chatDisabled: boolean
-  readonly channelName: string | null
+  readonly channelName?: string
   readonly teamname: string
   readonly repoID: string
 }
@@ -88,7 +84,10 @@ export const createRepoDeleted = (payload: _RepoDeletedPayload): RepoDeletedPayl
   payload,
   type: repoDeleted,
 })
-export const createSetError = (payload: _SetErrorPayload): SetErrorPayload => ({payload, type: setError})
+export const createSetError = (payload: _SetErrorPayload = Object.freeze({})): SetErrorPayload => ({
+  payload,
+  type: setError,
+})
 export const createSetTeamRepoSettings = (
   payload: _SetTeamRepoSettingsPayload
 ): SetTeamRepoSettingsPayload => ({payload, type: setTeamRepoSettings})

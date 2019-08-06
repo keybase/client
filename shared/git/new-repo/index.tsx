@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  error: Error | null
+  error?: Error
   isTeam: boolean
   onClose: () => void
   onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => void
