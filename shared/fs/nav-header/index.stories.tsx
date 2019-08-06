@@ -41,12 +41,9 @@ const TestWrapper = ({path}: {path: Types.Path}) =>
       allowBack={true}
       loggedIn={true}
       onPop={Sb.action('onPop')}
-      options={
-        // @ts-ignore
-        FilesContainer.navigationOptions({
-          navigation: {getParam: key => (key === 'path' ? path : null)},
-        })
-      }
+      options={FilesContainer.navigationOptions({
+        navigation: {getParam: key => (key === 'path' ? path : null)},
+      } as any)}
     />
   )
 
