@@ -292,7 +292,7 @@ func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 	var out Generic
 
 	if (s.Inner == "") != (in.sig == nil) {
-		return nil, newParseError("need a sig and an inner, or neither, but not one without the other (sig: %v, inner: %v)", (s.Inner != ""), (in.sig != nil))
+		return nil, newParseError("need a sig and an inner, or neither, but not one without the other (sig: %v, inner: %v)", (in.sig != nil), (s.Inner != ""))
 	}
 
 	if s.Inner == "" {

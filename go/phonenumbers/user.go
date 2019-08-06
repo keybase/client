@@ -4,6 +4,7 @@
 package phonenumbers
 
 import (
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -61,6 +62,16 @@ func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error)
 	return resp.PhoneNumbers, nil
 }
 
+func clearPhoneNumbersFromContactCache(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) {
+	// Now remove this number from contact lookup cache and from synced
+	// contacts.
+	cache := contacts.NewContactCacheStore(mctx.G())
+	cache.RemoveContactsCacheEntries(mctx, &phoneNumber, nil /* email */)
+	if sync := mctx.G().SyncedContactList; sync != nil {
+		sync.UnresolveContactsWithComponent(mctx, &phoneNumber, nil /* email */)
+	}
+}
+
 func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
@@ -72,7 +83,11 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 	}
 
 	_, err := mctx.G().API.Delete(mctx, arg)
-	return err
+	if err != nil {
+		return err
+	}
+	clearPhoneNumbersFromContactCache(mctx, phoneNumber)
+	return nil
 }
 
 func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
@@ -87,7 +102,13 @@ func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return nil
+	}
+	if visibility == keybase1.IdentityVisibility_PRIVATE {
+		clearPhoneNumbersFromContactCache(mctx, phoneNumber)
+	}
+	return nil
 }
 
 func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {

@@ -92,3 +92,40 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 	}
 	return cache.Contacts, nil
 }
+
+func (s *SavedContactsStore) UnresolveContactsWithComponent(mctx libkb.MetaContext,
+	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	// TODO: Use a phoneNumber | email variant instead of two pointers.
+	contactList, err := s.RetrieveContacts(mctx)
+	if err != nil {
+		mctx.Warning("Failed to get cached contact list: %x", err)
+		return
+	}
+	for i, con := range contactList {
+		var unresolve bool
+		switch {
+		case phoneNumber != nil && con.Component.PhoneNumber != nil:
+			unresolve = *con.Component.PhoneNumber == keybase1.RawPhoneNumber(*phoneNumber)
+		case email != nil && con.Component.Email != nil:
+			unresolve = *con.Component.Email == *email
+		}
+
+		if unresolve {
+			// Unresolve contact.
+			con.Resolved = false
+			con.Username = ""
+			con.Uid = ""
+			con.Following = false
+			con.FullName = ""
+			// TODO: DisplayName/DisplayLabel logic infects yet another file /
+			// module. But it will sort itself out once we get rid of both.
+			con.DisplayName = con.ContactName
+			con.DisplayLabel = con.Component.FormatDisplayLabel(false /* addLabel */)
+			contactList[i] = con
+		}
+	}
+	err = s.SaveProcessedContacts(mctx, contactList)
+	if err != nil {
+		mctx.Warning("Failed to put cached contact list: %x", err)
+	}
+}
