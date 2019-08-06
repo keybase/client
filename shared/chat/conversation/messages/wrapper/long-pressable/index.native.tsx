@@ -19,12 +19,14 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
     swipeable.current && swipeable.current.close()
   }
   return (
+    // @ts-ignore failOffsetX exists in GestureHandler but not swipable
     <Kb.Swipeable
       ref={swipeable}
       renderRightActions={_renderRightActions}
       onSwipeableRightWillOpen={onRightOpen}
       friction={2}
       rightThreshold={100}
+      failOffsetX={0}
     >
       <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
         <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
