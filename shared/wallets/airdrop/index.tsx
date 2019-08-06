@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Styles from '../../styles'
-import * as Types from '../../constantst/types/wallets'
+import * as Types from '../../constants/types/wallets'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
 

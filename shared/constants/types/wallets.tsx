@@ -345,6 +345,15 @@ export type _StellarDetails = {
   isPromoted: boolean
 }
 
+export type StellarDetailsSections = ReadonlyArray<{
+  lines: ReadonlyArray<{
+    bullet: boolean
+    text: string
+  }>
+  section: string
+  icon: string | null
+}>
+
 export type AirdropDetails = I.RecordOf<_StellarDetails>
 
 export type AssetID = string
