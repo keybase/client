@@ -1,7 +1,7 @@
 import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
-import {debounce, trim, throttle} from 'lodash-es'
+import {debounce, trim} from 'lodash-es'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
@@ -252,12 +252,13 @@ const deriveOnEnterKeyDown = memoizeShallow(
   }
 )
 
-const deriveOnSearchForMore = ({search, searchResults, searchString, selectedService}) =>
-  throttle(() => {
+const deriveOnSearchForMore = memoizeShallow(
+  ({search, searchResults, searchString, selectedService}) => () => {
     if (searchResults && searchResults.length >= 10) {
       search(searchString, selectedService, searchResults.length + 20)
     }
-  }, 500)
+  }
+)
 
 const deriveOnAdd = memoize(
   (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
