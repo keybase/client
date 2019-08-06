@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/contacts"
@@ -491,8 +492,12 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, d.httpSrv,
-		chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
+	if g.Standalone {
+		g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	} else {
+		g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, d.httpSrv,
+			chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
+	}
 	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
