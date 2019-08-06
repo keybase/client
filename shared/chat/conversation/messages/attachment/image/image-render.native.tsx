@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import logger from '../../../../../logger'
 import {Props} from './image-render.types'
-import Video from 'react-native-video'
+import {Video as ExpoVideo} from 'expo-av'
 
 type State = {
   paused: boolean
@@ -15,8 +15,10 @@ export class ImageRender extends React.Component<Props, State> {
     paused: false,
     showVideo: false,
   }
+  private videoRef: any = React.createRef()
 
   onVideoClick = () => {
+    this.videoRef.current && this.videoRef.current.playAsync()
     this.setState({showVideo: true})
   }
 
@@ -38,16 +40,17 @@ export class ImageRender extends React.Component<Props, State> {
       return (
         <Kb.Box2 direction="vertical" style={[styles.container, this.props.style, {height, width}]}>
           {this.state.showVideo ? (
-            <Video
+            <ExpoVideo
               source={source}
-              controls={!this.state.paused}
-              paused={this.state.paused}
+              useNativeControls={!this.state.paused}
               onLoad={() => this._allLoads()}
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
+              resizeMode={ExpoVideo.RESIZE_MODE_COVER}
               style={Styles.collapseStyles([styles.video, {height, width}])}
-              resizeMode="cover"
+              shouldPlay={true}
+              ref={this.videoRef}
             />
           ) : (
             <Kb.NativeFastImage

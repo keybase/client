@@ -475,8 +475,11 @@ export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewTyp
     if (supportedImgMimeTypes.has(mimeType)) {
       return Types.FileViewType.Image
     }
-    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-      return Types.FileViewType.Av
+    if (mimeType.startsWith('audio/')) {
+      return Types.FileViewType.Audio
+    }
+    if (mimeType.startsWith('video/')) {
+      return Types.FileViewType.Video
     }
     if (mimeType === 'application/pdf') {
       return Types.FileViewType.Pdf

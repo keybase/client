@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
-import Video from './video'
+import {Video} from './av'
 import Box, {Box2} from './box'
 import * as Styles from '../styles'
 

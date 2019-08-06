@@ -3,7 +3,7 @@ import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup/'
 import {Props} from './index.types'
-import RNVideo from 'react-native-video'
+import {Video as ExpoVideo} from 'expo-av'
 import logger from '../../../logger'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
@@ -93,14 +93,14 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               centerChildren={true}
               style={{position: 'relative'}}
             >
-              <RNVideo
+              <ExpoVideo
                 source={{uri: `${this.props.path}&contentforce=true`}}
                 onError={e => {
                   logger.error(`Error loading vid: ${JSON.stringify(e)}`)
                 }}
                 onLoad={this._setLoaded}
-                paused={true}
-                controls={true}
+                shouldPlay={false}
+                useNativeControls={true}
                 style={{
                   height: this.props.previewHeight,
                   width: this.props.previewWidth,
