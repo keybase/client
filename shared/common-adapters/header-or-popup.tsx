@@ -46,4 +46,3 @@ const headerStyle = {
 }
 
 export default HeaderOrPopup
-// temp,
