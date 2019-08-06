@@ -27,14 +27,18 @@ export type SearchKey = I.List<SearchString | ServiceIdWithContact>
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 type Query = string
 
-export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, Array<User>>>
-export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
+export type SearchResultsForQuery = {
+  users: Array<User>
+  hasMore: boolean
+}
+
+export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, SearchResultsForQuery>>
 
 // TODO remove teamBuilding prefix
 export type _TeamBuildingSubState = {
   teamBuildingTeamSoFar: I.Set<User>
+  teamBuildingSearchHasMore: boolean
   teamBuildingSearchResults: SearchResults
-  teamBuildingServiceResultCount: ServiceResultCount
   teamBuildingFinishedTeam: I.Set<User>
   teamBuildingFinishedSelectedRole: TeamRoleType
   teamBuildingFinishedSendNotification: boolean
@@ -47,28 +51,3 @@ export type _TeamBuildingSubState = {
 }
 
 export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>
-
-export type RawSearchResult = {
-  score: number
-  keybase: {
-    username: string
-    uid: string
-    picture_url: string
-    full_name: string
-    is_followee: boolean
-  } | null
-  service: {
-    service_name: ServiceIdWithContact
-    username: string
-    picture_url: string
-    bio: string
-    location: string
-    full_name: string
-  } | null
-  services_summary: {
-    [K in ServiceIdWithContact]: {
-      service_name: ServiceIdWithContact
-      username: string
-    }
-  }
-}

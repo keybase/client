@@ -24,7 +24,8 @@
       "namespace": "Types.AllowedNamespace",
       "users": "Array<Types.User>",
       "query": "string",
-      "service": "Types.ServiceIdWithContact"
+      "service": "Types.ServiceIdWithContact",
+      "hasMore": "boolean"
     },
     "selectRole": {
       "namespace": "'teams'",

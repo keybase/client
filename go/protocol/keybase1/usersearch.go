@@ -326,6 +326,28 @@ func (o ImpTofuQuery) DeepCopy() ImpTofuQuery {
 	}
 }
 
+type UserSearchResult struct {
+	Results []APIUserSearchResult `codec:"results" json:"results"`
+	HasMore bool                  `codec:"hasMore" json:"hasMore"`
+}
+
+func (o UserSearchResult) DeepCopy() UserSearchResult {
+	return UserSearchResult{
+		Results: (func(x []APIUserSearchResult) []APIUserSearchResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]APIUserSearchResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		HasMore: o.HasMore,
+	}
+}
+
 type GetNonUserDetailsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Assertion string `codec:"assertion" json:"assertion"`
@@ -342,7 +364,7 @@ type UserSearchArg struct {
 
 type UserSearchInterface interface {
 	GetNonUserDetails(context.Context, GetNonUserDetailsArg) (NonUserDetails, error)
-	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
+	UserSearch(context.Context, UserSearchArg) (UserSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
@@ -392,7 +414,7 @@ func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUse
 	return
 }
 
-func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
+func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res UserSearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
 	return
 }

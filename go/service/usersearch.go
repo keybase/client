@@ -383,27 +383,49 @@ func (h *UserSearchHandler) makeSearchRequest(mctx libkb.MetaContext, arg keybas
 	return res, nil
 }
 
-func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res keybase1.UserSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH")
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
 		func() error { return err })()
 
+	defer func() {
+		fmt.Printf("UserSearch(%q,%q,%d) -> %d, hasMore=%t\n", arg.Service, arg.Query, arg.MaxResults, len(res.Results), res.HasMore)
+	}()
+
 	if arg.Query == "" {
-		return nil, nil
+		return res, nil
 	}
 
-	if arg.Service != "keybase" && arg.Service != "" {
-		// If this is a social search, we just return API results.
-		return h.makeSearchRequest(mctx, arg)
-	}
+	// Make copy of arg. We are going to ask for more results than caller asks
+	// for, to be able to tell if API server has more and if further calls
+	// should be made by the caller.
+	arg2 := arg
+	arg2.MaxResults++
 
-	res, err = h.makeSearchRequest(mctx, arg)
+	// if arg.Service != "keybase" && arg.Service != "" {
+	// 	// If this is a social search, we just return API results.
+	// 	list, err := h.makeSearchRequest(mctx, arg2)
+	// 	if err != nil {
+	// 		return res, err
+	// 	}
+
+	// 	maxRes := arg.MaxResults
+	// 	if maxRes > 0 && len(list) > maxRes {
+	// 		res.HasMore = true
+	// 		list = list[:maxRes]
+	// 	}
+
+	// 	res.Results = list
+	// 	return res, nil
+	// }
+
+	list, err := h.makeSearchRequest(mctx, arg2)
 	if err != nil {
 		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
 	}
 
 	if arg.IncludeContacts {
-		contactsRes, err := contactSearch(mctx, arg)
+		contactsRes, err := contactSearch(mctx, arg2)
 		if err != nil {
 			mctx.Warning("Failed to do contacts search: %s", err)
 		} else {
@@ -411,7 +433,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			// service, prefer it instead of contact result for the same user
 			// but with SBS assertion in it.
 			usernameSet := make(map[string]struct{}) // set of usernames
-			for _, result := range res {
+			for _, result := range list {
 				if result.Keybase != nil {
 					// All current results should be Keybase but be safe in
 					// case code in this function changes.
@@ -430,23 +452,23 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 					}
 					usernameSet[username] = struct{}{}
 				}
-				res = append(res, contact)
+				list = append(list, contact)
 			}
 
-			sort.Slice(res, func(i, j int) bool {
+			sort.Slice(list, func(i, j int) bool {
 				// Float comparasion - we expect exact floats here when multiple
 				// results match in same way and yield identical score thorugh
 				// same scoring operations.
-				if res[i].RawScore == res[j].RawScore {
-					idI := res[i].GetStringIDForCompare()
-					idJ := res[j].GetStringIDForCompare()
+				if list[i].RawScore == list[j].RawScore {
+					idI := list[i].GetStringIDForCompare()
+					idJ := list[j].GetStringIDForCompare()
 					return idI > idJ
 				}
-				return res[i].RawScore > res[j].RawScore
+				return list[i].RawScore > list[j].RawScore
 			})
 
-			for i := range res {
-				res[i].Score = 1.0 / float64(1+i)
+			for i := range list {
+				list[i].Score = 1.0 / float64(1+i)
 			}
 		}
 	}
@@ -459,7 +481,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			// Check if we have found assertion of this result already in our
 			// contacts.
 			var found bool
-			for _, v := range res {
+			for _, v := range list {
 				if v.Contact != nil && v.Contact.Assertion == imptofuRes.Imptofu.Assertion {
 					found = true
 					break
@@ -468,17 +490,19 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 
 			if !found {
 				// Prepend *imptofuRes
-				res = append([]keybase1.APIUserSearchResult{*imptofuRes}, res...)
+				list = append([]keybase1.APIUserSearchResult{*imptofuRes}, list...)
 			}
 		}
 	}
 
+	fmt.Printf("list is len(%d) and our max res is %d\n", len(list), arg.MaxResults)
 	// Trim the whole result to MaxResult.
 	maxRes := arg.MaxResults
-	if maxRes > 0 && len(res) > maxRes {
-		res = res[:maxRes]
+	if maxRes > 0 && len(list) > maxRes {
+		res.HasMore = true
+		list = list[:maxRes]
 	}
-
+	res.Results = list
 	return res, nil
 }
 

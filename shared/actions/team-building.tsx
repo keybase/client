@@ -13,6 +13,11 @@ const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 
+type apiSearchResult = {
+  users: Array<TeamBuildingTypes.User>
+  hasMore: boolean
+}
+
 const apiSearch = (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
@@ -20,7 +25,7 @@ const apiSearch = (
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
-): Promise<Array<TeamBuildingTypes.User>> =>
+): Promise<apiSearchResult> =>
   RPCTypes.userSearchUserSearchRpcPromise({
     impTofuQuery,
     includeContacts: flags.sbsContacts && service === 'keybase' && includeContacts,
@@ -29,16 +34,17 @@ const apiSearch = (
     query,
     service,
   })
-    .then(results =>
-      (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
+    .then(searchResult => ({
+      hasMore: searchResult.hasMore,
+      users: (searchResult.results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
         const u = Constants.parseRawResultToUser(r, service)
         u && arr.push(u)
         return arr
-      }, [])
-    )
+      }, []),
+    }))
     .catch(err => {
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
-      return []
+      return {hasMore: false, users: []}
     })
 
 function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
@@ -97,12 +103,13 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
           true,
           null,
           false
-        ).then(users =>
+        ).then(res =>
           TeamBuildingGen.createSearchResultsLoaded({
+            hasMore: res.hasMore,
             namespace,
             query: teamBuildingSearchQuery,
             service,
-            users,
+            users: res.users,
           })
         )
         yield Saga.put(action)
@@ -157,12 +164,13 @@ const search = (state: TypedState, {payload: {namespace, includeContacts}}: Sear
     true,
     impTofuQuery,
     includeContacts
-  ).then(users =>
+  ).then(res =>
     TeamBuildingGen.createSearchResultsLoaded({
+      hasMore: res.hasMore,
       namespace,
       query,
       service: teamBuildingSelectedService,
-      users,
+      users: res.users,
     })
   )
 }

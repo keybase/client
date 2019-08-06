@@ -79,7 +79,11 @@ protocol userSearch {
         case EMAIL: EmailAddress;
     }
 
-    array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
-        boolean includeServicesSummary, boolean includeContacts,
+    record UserSearchResult {
+        array<APIUserSearchResult> results;
+        boolean hasMore;
+    }
+    UserSearchResult userSearch(string query, string service, int maxResults,
+        boolean includeServicesSummary, boolean includeContacts, 
         union { null, ImpTofuQuery } impTofuQuery);
 }

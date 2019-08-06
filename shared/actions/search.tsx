@@ -130,7 +130,7 @@ function callSearch(
   searchTerm: string,
   service: string = '',
   limit: number = 20
-): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
+): Promise<RPCTypes.UserSearchResult> {
   return RPCTypes.userSearchUserSearchRpcPromise({
     includeContacts: false,
     includeServicesSummary: false,
@@ -170,11 +170,11 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
+    const userSearchRes: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
       term,
       _serviceToApiServiceName(service)
     )
-    const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
+    const rows = (userSearchRes.results || []).map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 

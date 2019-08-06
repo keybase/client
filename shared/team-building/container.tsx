@@ -14,7 +14,13 @@ import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
+import {
+  ServiceIdWithContact,
+  User,
+  SearchResults,
+  SearchResultsForQuery,
+  AllowedNamespace,
+} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
@@ -113,7 +119,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
-  const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
+  const userResults: SearchResultsForQuery = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
   ])
@@ -133,9 +139,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     numContactsImported: state.settings.contacts.importedCount,
   }
 
+  const users = userResults ? userResults.users : []
+
   return {
     ...contactProps,
     disabledRoles,
+    hasMore: userResults ? userResults.hasMore : false,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -144,7 +153,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       preExistingTeamMembers
     ),
     searchResults: deriveSearchResults(
-      userResults,
+      users,
       teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following,
@@ -158,7 +167,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
+    userFromUserId: deriveUserFromUserIdFn(users, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
 }
@@ -407,6 +416,7 @@ const mergeProps = (
     showServiceResultCount,
     recommendations,
     waitingForCreate,
+    hasMore,
   } = stateProps
 
   const showingContactsButton =
@@ -443,12 +453,14 @@ const mergeProps = (
     ownProps.resetHighlightIndex
   )
 
-  const onSearchForMore = deriveOnSearchForMore({
-    search: dispatchProps._search,
-    searchResults,
-    searchString: ownProps.searchString,
-    selectedService: ownProps.selectedService,
-  })
+  const onSearchForMore = hasMore
+    ? deriveOnSearchForMore({
+        search: dispatchProps._search,
+        searchResults,
+        searchString: ownProps.searchString,
+        selectedService: ownProps.selectedService,
+      })
+    : () => {}
 
   const onAdd = deriveOnAdd(
     userFromUserId,

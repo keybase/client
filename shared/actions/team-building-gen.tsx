@@ -43,6 +43,7 @@ type _SearchResultsLoadedPayload = {
   readonly users: Array<Types.User>
   readonly query: string
   readonly service: Types.ServiceIdWithContact
+  readonly hasMore: boolean
 }
 type _SelectRolePayload = {readonly namespace: 'teams'; readonly role: TeamRoleType}
 

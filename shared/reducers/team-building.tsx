@@ -32,9 +32,9 @@ export default function(
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
     }
     case TeamBuildingGen.searchResultsLoaded: {
-      const {query, service, users} = action.payload
+      const {query, service, users, hasMore} = action.payload
       // @ts-ignore tricky when we traverse into map types
-      return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
+      return state.mergeIn(['teamBuildingSearchResults', query], {[service]: {hasMore, users}})
     }
     case TeamBuildingGen.finishedTeamBuilding: {
       const initialState = Constants.makeSubState()

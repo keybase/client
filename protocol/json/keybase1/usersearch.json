@@ -273,6 +273,23 @@
           "body": "EmailAddress"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UserSearchResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "APIUserSearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "boolean",
+          "name": "hasMore"
+        }
+      ]
     }
   ],
   "messages": {
@@ -319,10 +336,7 @@
           ]
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "APIUserSearchResult"
-      }
+      "response": "UserSearchResult"
     }
   },
   "namespace": "keybase.1"
