@@ -87,7 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  _keyExtractor = (item) => {
+  _keyExtractor = item => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
@@ -232,7 +232,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
+    const HeadComponent = <ChatInboxHeader />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
