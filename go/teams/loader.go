@@ -1487,7 +1487,7 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx libkb.M
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
-	if state == nil {
+	if state == nil || state.MainChain() == nil {
 		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
 	}
 	for ptkGen, apps := range needApplicationsAtGenerations {

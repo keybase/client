@@ -45,8 +45,8 @@ const (
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
 // the outer link v2s that we have previously used.
 type OuterLink struct {
-	_struct             bool                `codec:",toarray"`
-	Version             SigVersion          `codec:"version"` // should be 3
+	_struct             bool                `codec:",toarray"` //nolint
+	Version             SigVersion          `codec:"version"`  // should be 3
 	Seqno               Seqno               `codec:"seqno"`
 	Prev                *LinkID             `codec:"prev"`
 	InnerLinkID         LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink

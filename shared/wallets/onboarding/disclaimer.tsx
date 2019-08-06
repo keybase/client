@@ -155,6 +155,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
                   style={
                     l.bullet ? Styles.collapseStyles([styles.bodyText, styles.bodyBullet]) : styles.bodyText
                   }
+                  styleOverride={l.bullet ? bulletOverride : bodyOverride}
                 >
                   {(l.bullet ? '• ' : '').concat(l.text)}
                 </Kb.Markdown>
@@ -262,6 +263,24 @@ const StaticDisclaimer = () => (
     </Kb.Text>
   </>
 )
+
+const bodyOverride = {
+  paragraph: {
+    color: Styles.globalColors.white,
+    fontSize: Styles.isMobile ? 16 : 13,
+    marginBottom: Styles.globalMargins.xsmall,
+    textAlign: 'left' as const,
+  },
+  strong: Styles.globalStyles.fontExtrabold,
+}
+
+const bulletOverride = {
+  paragraph: {
+    ...bodyOverride.paragraph,
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  strong: bodyOverride.strong,
+}
 
 const styles = Styles.styleSheetCreate({
   bodyBullet: {

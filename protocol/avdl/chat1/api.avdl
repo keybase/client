@@ -210,7 +210,7 @@ protocol api {
   record SendRes {
     @jsonkey("message")
     string message;
-    @jsonkey("message_id")
+    @jsonkey("id")
     union { null, MessageID } messageID;
     @jsonkey("outbox_id")
     union { null, OutboxID } outboxID;
