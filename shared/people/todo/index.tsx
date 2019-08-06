@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
 import {Props as ButtonProps} from '../../common-adapters/button'
-import * as SettingsConstants from '../../constants/settings'
 
 export type TaskButton = {
   label: string
