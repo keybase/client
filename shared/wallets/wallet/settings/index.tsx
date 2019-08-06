@@ -77,16 +77,20 @@ const PartnerRow = (props: PartnerRowProps) => (
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
     this.props.refresh()
-    !this.props.thisDeviceIsLockedOut && this.props.onLoadSecretKey && this.props.onLoadSecretKey()
   }
   componentWillUnmount() {
-    !this.props.thisDeviceIsLockedOut && this.props.onSecretKeySeen && this.props.onSecretKeySeen()
+    this.clearKey()
+  }
+
+  private clearKey = () => {
+    this.props.onSecretKeySeen && this.props.onSecretKeySeen()
   }
 
   render() {
     const props = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        {Styles.isMobile && <Kb.NavigationEvents onWillBlur={this.clearKey} />}
         <Kb.HeaderHocHeader
           customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
           onBack={props.onBack}
@@ -132,19 +136,11 @@ class AccountSettings extends React.Component<SettingsProps> {
                       containerStyle={styles.copyTextContainer}
                       multiline={true}
                       withReveal={true}
-                      text={this.props.secretKey}
+                      onReveal={() => this.props.onLoadSecretKey && this.props.onLoadSecretKey()}
+                      hideOnCopy={true}
+                      onCopy={this.clearKey}
+                      text={this.props.secretKey || 'fetching and decrypting secret key...'}
                     />
-                    {!this.props.secretKey && (
-                      <Kb.Box2
-                        direction="horizontal"
-                        gap="tiny"
-                        fullWidth={true}
-                        style={styles.progressContainer}
-                      >
-                        <Kb.ProgressIndicator style={styles.progressIndicator} type="Small" />
-                        <Kb.Text type="BodySmall">fetching and decrypting secret key...</Kb.Text>
-                      </Kb.Box2>
-                    )}
                   </Kb.Box2>
                 </>
               ) : (
