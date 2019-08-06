@@ -55,6 +55,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
+	time.Sleep(time.Second)
 	clock.Advance(10 * time.Second)
 	select {
 	case err := <-cb:
