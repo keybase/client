@@ -35,7 +35,7 @@ const Intro = (props: IntroProps) => {
           {props.headerTitle || 'Keybase supports Stellar wallets.'}
         </Kb.Text>
 
-        <Kb.Markdown style={styles.bodyText}>
+        <Kb.Markdown styleOverride={bodyOverride} style={styles.bodyText}>
           {props.headerBody ||
             'You can now send or request Stellar Lumens to any Keybase user on *Earth*. Transactions settle in seconds, and cost a fraction of a penny.\n\nWhen sending and receiving Lumens, we automatically do the conversion in your favorite currency. We went ahead and set it to *USD*.'}
         </Kb.Markdown>
@@ -48,6 +48,15 @@ const Intro = (props: IntroProps) => {
       </Kb.Box2>
     </WalletPopup>
   )
+}
+
+const bodyOverride = {
+  paragraph: {
+    color: Styles.globalColors.white,
+    fontSize: Styles.isMobile ? 16 : 13,
+    textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
+  },
+  strong: Styles.globalStyles.fontExtrabold,
 }
 
 const styles = Styles.styleSheetCreate({
