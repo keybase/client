@@ -9,14 +9,14 @@ const starman =
 
 const load = () => {
   Sb.storiesOf('Common/Video', module)
-    .add('Starman', () => <Video url={starman} />)
+    .add('Starman', () => <Video url={starman} loop={true} controls={true} autoPlay={true} muted={true} />)
     .add('Starman Two', () => (
       <Box2 direction="vertical" gap="small" fullHeight={true} fullWidth={true} style={styles.bigBox}>
         <Box style={styles.smallBox}>
-          <Video url={starman} />
+          <Video url={starman} loop={true} controls={true} autoPlay={true} muted={true} />
         </Box>
         <Box style={styles.smallBox}>
-          <Video url={starman} />
+          <Video url={starman} loop={true} controls={true} autoPlay={true} muted={true} />
         </Box>
       </Box2>
     ))
