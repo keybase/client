@@ -11,6 +11,7 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
+import {throttle} from 'lodash-es'
 
 export const numSectionLabel = '0-9'
 
@@ -387,7 +388,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
         keyProperty={'key'}
-        onEndReached={this.props.onSearchForMore}
+        onEndReached={this._onEndReached}
+        onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
           <UserResult
             resultForService={this.props.selectedService}
@@ -406,6 +408,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       />
     )
   }
+
+  _onEndReached = throttle(() => {
+    this.props.onSearchForMore()
+  }, 500)
 
   render = () => {
     const props = this.props
