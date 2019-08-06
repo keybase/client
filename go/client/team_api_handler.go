@@ -96,20 +96,10 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 	}
 }
 
-type memberEmail struct {
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-type memberUsername struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
-}
-
 type addMembersOptions struct {
-	Team      string           `json:"team"`
-	Emails    []memberEmail    `json:"emails"`
-	Usernames []memberUsername `json:"usernames"`
+	Team      string                    `json:"team"`
+	Emails    []keybase1.MemberEmail    `json:"emails"`
+	Usernames []keybase1.MemberUsername `json:"usernames"`
 }
 
 func (a *addMembersOptions) Check() error {
