@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 )
 
 type Srv struct {
@@ -23,7 +22,6 @@ type Srv struct {
 
 	httpSrv *manager.Srv
 	source  Source
-	log     logger.Logger
 }
 
 func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
