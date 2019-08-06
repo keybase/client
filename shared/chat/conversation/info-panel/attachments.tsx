@@ -108,7 +108,7 @@ const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
 }
 
 const createLoadMoreSection = (
-  onLoadMore: () => void,
+  onLoadMore: undefined | (() => void),
   onRetry: () => void,
   status: Types.AttachmentViewStatus
 ): Section => {
@@ -248,7 +248,7 @@ export class MediaView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -335,7 +335,7 @@ export class DocView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -408,7 +408,7 @@ export class LinkView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
