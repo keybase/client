@@ -33,9 +33,9 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/simplefs"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/simplefs"
 )
 
 var extensionRi chat1.RemoteClient
@@ -255,7 +255,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbfsParams.Mode = libkbfs.InitMemoryLimitedString
 	kbfsConfig, _ = libkbfs.Init(
 		context.Background(), extensionKbfsCtx, kbfsParams, sharingServiceCn{},
-		func() {}, kbCtx.Log)
+		func() error { return nil }, kbCtx.Log)
 	return nil
 }
 

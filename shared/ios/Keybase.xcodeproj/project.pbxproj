@@ -37,6 +37,7 @@
 		37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88622A5C7FB008CA4ED /* kb.ttf */; };
 		37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */; };
 		37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D89222A5C83B008CA4ED /* keybasemessage.wav */; };
+		8F0D3FB522FA45F4006BA12F /* FilesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F0D3FB422FA45F4006BA12F /* FilesViewController.m */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
@@ -144,6 +145,8 @@
 		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
+		8F0D3FB322FA45F4006BA12F /* FilesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FilesViewController.h; sourceTree = "<group>"; };
+		8F0D3FB422FA45F4006BA12F /* FilesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FilesViewController.m; sourceTree = "<group>"; };
 		97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
 		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
@@ -221,6 +224,8 @@
 		279FB59D2139AB6A005E4864 /* KeybaseShare */ = {
 			isa = PBXGroup;
 			children = (
+				8F0D3FB322FA45F4006BA12F /* FilesViewController.h */,
+				8F0D3FB422FA45F4006BA12F /* FilesViewController.m */,
 				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
 				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
@@ -640,6 +645,7 @@
 				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
 				279FB66A21402D68005E4864 /* Fs.m in Sources */,
 				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
+				8F0D3FB522FA45F4006BA12F /* FilesViewController.m in Sources */,
 				279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
