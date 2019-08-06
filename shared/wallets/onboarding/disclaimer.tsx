@@ -136,10 +136,10 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         buttonBarStyle={styles.buttonBar}
       >
         <Kb.Box2 direction="vertical" style={styles.header}>
-          <Kb.Text type="Header" style={styles.headerText}>
+          <Kb.Text center={true} type="Header" style={styles.headerText}>
             Almost done.
           </Kb.Text>
-          <Kb.Text type="Header" style={styles.headerText}>
+          <Kb.Text center={true} type="Header" style={styles.headerText}>
             It's important you read this.
           </Kb.Text>
         </Kb.Box2>
@@ -269,6 +269,7 @@ const bodyOverride = {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
     marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.tiny,
     textAlign: 'left' as const,
   },
   strong: Styles.globalStyles.fontExtrabold,
@@ -277,6 +278,8 @@ const bodyOverride = {
 const bulletOverride = {
   paragraph: {
     ...bodyOverride.paragraph,
+    marginTop: undefined,
+    marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.tiny,
   },
   strong: bodyOverride.strong,
@@ -284,12 +287,10 @@ const bulletOverride = {
 
 const styles = Styles.styleSheetCreate({
   bodyBullet: {
-    marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.tiny,
   },
   bodyText: {
     color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.xsmall,
     textAlign: 'left',
   },
   buttonBar: Styles.platformStyles({
