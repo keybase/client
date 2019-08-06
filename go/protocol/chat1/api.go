@@ -505,7 +505,7 @@ func (o ChatList) DeepCopy() ChatList {
 
 type SendRes struct {
 	Message          string                        `codec:"message" json:"message"`
-	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"message_id,omitempty"`
+	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"id,omitempty"`
 	OutboxID         *OutboxID                     `codec:"outboxID,omitempty" json:"outbox_id,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identify_failures"`
 	RateLimits       []RateLimitRes                `codec:"rateLimits" json:"ratelimits"`
