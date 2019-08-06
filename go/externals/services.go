@@ -91,7 +91,7 @@ func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) 
 			services = append(services, s)
 		}
 	}
-	sort.Slice(services[:], func(i, j int) bool {
+	sort.Slice(services, func(i, j int) bool {
 		return services[i].priority < services[j].priority
 	})
 	var serviceNames []string

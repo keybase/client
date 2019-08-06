@@ -42,6 +42,9 @@ type OwnProps = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
   multiline?: boolean
+  onCopy?: () => void
+  hideOnCopy?: boolean
+  onReveal?: () => void
   withReveal?: boolean
   text: string
 }
@@ -67,9 +70,14 @@ class _CopyText extends React.Component<Props, State> {
     this._toastRef && this._toastRef.copy()
     this._textRef && this._textRef.highlightText()
     this.props.copyToClipboard(this.props.text)
+    this.props.onCopy && this.props.onCopy()
+    if (this.props.hideOnCopy) {
+      this.setState({revealed: false})
+    }
   }
 
   reveal = () => {
+    this.props.onReveal && this.props.onReveal()
     this.setState({revealed: true})
   }
 
@@ -101,18 +109,20 @@ class _CopyText extends React.Component<Props, State> {
             Reveal
           </Text>
         )}
-        <Button
-          type={this.props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={this.copy}
-          labelContainerStyle={styles.buttonLabelContainer}
-        >
-          <Icon
-            type="iconfont-clipboard"
-            color={Styles.globalColors.white}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
-        </Button>
+        {this._isRevealed() && (
+          <Button
+            type={this.props.buttonType || 'Default'}
+            style={styles.button}
+            onClick={this.copy}
+            labelContainerStyle={styles.buttonLabelContainer}
+          >
+            <Icon
+              type="iconfont-clipboard"
+              color={Styles.globalColors.white}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
+          </Button>
+        )}
       </Box2>
     )
   }

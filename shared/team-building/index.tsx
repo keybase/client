@@ -11,6 +11,7 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
+import {throttle} from 'lodash-es'
 
 export const numSectionLabel = '0-9'
 
@@ -346,6 +347,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
@@ -385,8 +388,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
+        keyboardShouldPersistTaps="handled"
         keyProperty={'key'}
-        onEndReached={this.props.onSearchForMore}
+        onEndReached={this._onEndReached}
+        onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
           <UserResult
             resultForService={this.props.selectedService}
@@ -405,6 +410,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       />
     )
   }
+
+  _onEndReached = throttle(() => {
+    this.props.onSearchForMore()
+  }, 500)
 
   render = () => {
     const props = this.props

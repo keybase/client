@@ -58,11 +58,11 @@ const mapStateToProps = (state: Container.TypedState) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  const secretKey = Constants.getSecretKey(state, accountID).stringValue()
+  const thisDeviceIsLockedOut = account.deviceReadOnly
+  const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
-  const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
   const externalPartners = Constants.getExternalPartners(state)
   return {
@@ -136,10 +136,14 @@ export default Container.compose(
         dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
       onDelete: () => dispatchProps._onDelete(stateProps.accountID),
       onEditName: () => dispatchProps._onEditName(stateProps.accountID),
-      onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
+      onLoadSecretKey: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onLoadSecretKey(stateProps.accountID)
+        : undefined,
       onMobileOnlyModeChange: (enabled: boolean) =>
         dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
-      onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
+      onSecretKeySeen: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onSecretKeySeen(stateProps.accountID)
+        : undefined,
       onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
       onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
       refresh: () => dispatchProps._refresh(stateProps.accountID),

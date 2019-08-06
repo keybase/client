@@ -22,6 +22,23 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+// ErrAnchor is returned by some error paths and includes
+// a code to make it easier to figure out which error
+// it refers to.
+type ErrAnchor struct {
+	Code    int
+	Message string
+}
+
+// Error returns an error message string.
+func (e ErrAnchor) Error() string {
+	return e.Message
+}
+
+const (
+	ErrAnchorCodeBadStatus = 100
+)
+
 // anchorInteractor is used to interact with the sep6 transfer server for an asset.
 type anchorInteractor struct {
 	accountID      stellar1.AccountID
@@ -81,6 +98,7 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 
 	v := url.Values{}
 	v.Set("asset_code", a.asset.Code)
+	v.Set("account", a.accountID.String())
 	if a.asset.WithdrawType != "" {
 		// this is supposed to be optional, but a lot of anchors require it
 		// if they all change to optional, we can not return this from stellard
@@ -214,13 +232,14 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 		}
 		mctx.Debug("unhandled anchor response for %s: %+v", u, resp)
 		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response")
-	case http.StatusUnauthorized:
-		// the standard authorization returns a http.StatusForbidden
-		// this status code comes back from thewwallet.com
-		return stellar1.AssetActionResultLocal{}, errors.New("Anchor requires unknown authorization to proceed")
 	default:
 		mctx.Debug("unhandled anchor response code for %s: %d", u, code)
-		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response code")
+		mctx.Debug("unhandled anchor response body for %s: %s", u, string(body))
+		return stellar1.AssetActionResultLocal{},
+			ErrAnchor{
+				Code:    ErrAnchorCodeBadStatus,
+				Message: fmt.Sprintf("Unknown asset anchor HTTP response code %d", code),
+			}
 	}
 }
 

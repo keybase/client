@@ -589,7 +589,7 @@
             "MessageID"
           ],
           "name": "messageID",
-          "jsonkey": "message_id"
+          "jsonkey": "id"
         },
         {
           "type": [

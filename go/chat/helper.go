@@ -319,7 +319,7 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
