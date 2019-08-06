@@ -1,7 +1,7 @@
 import {isMobile} from '../constants/platform'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {NavigationViewProps, createNavigator, StackRouter, SceneView} from 'react-navigation'
+import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import AirdropQualify from './airdrop/qualify/container'
 import CreateNewAccount from './create-account/container'
@@ -53,7 +53,6 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <WalletsAndDetails>
-          // @ts-ignore types think there are no props
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}

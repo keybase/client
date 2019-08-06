@@ -13,7 +13,7 @@ import {
   NavigationContext,
   SceneView,
   createSwitchNavigator,
-} from 'react-navigation'
+} from '@react-navigation/core'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
 import {getActiveIndex, getActiveKey} from './util'
 import * as Shared from './router.shared'

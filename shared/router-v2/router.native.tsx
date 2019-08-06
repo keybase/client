@@ -4,13 +4,10 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 import {connect} from '../util/container'
-import {
-  createStackNavigator,
-  createBottomTabNavigator,
-  StackActions,
-  createSwitchNavigator,
-  createAppContainer,
-} from 'react-navigation'
+import {createAppContainer} from '@react-navigation/native'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {createBottomTabNavigator} from 'react-navigation-tabs'
+import {createStackNavigator} from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -44,11 +41,11 @@ const defaultNavigationOptions: any = {
   headerStyle: {
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
-  headerTitle: (hp => (
+  headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
     </Kb.Text>
-  )) as any, // types are wrong , this can be a component
+  ),
 }
 // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
