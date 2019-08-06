@@ -234,7 +234,7 @@ type _LinkedExistingAccountPayloadError = {
   readonly secretKey: HiddenString
   readonly error: string
 }
-type _LoadAccountsPayload = {readonly reason: 'initial-load' | 'open-send-req-form'}
+type _LoadAccountsPayload = {readonly reason: 'initial-load' | 'open-send-req-form' | 'chat-send-button-load'}
 type _LoadAssetsPayload = {readonly accountID: Types.AccountID}
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = {

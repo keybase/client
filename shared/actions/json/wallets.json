@@ -131,7 +131,7 @@
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
-      "reason": "'initial-load' | 'open-send-req-form'"
+      "reason": "'initial-load' | 'open-send-req-form' | 'chat-send-button-load'"
     },
     "loadExternalPartners": {
       "_description": "Refresh our list of external tools and partner links"
