@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/wallets'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
 
@@ -14,14 +15,7 @@ export type Props = {
   signedUp: boolean
   headerBody: string
   headerTitle: string
-  sections: ReadonlyArray<{
-    lines: ReadonlyArray<{
-      bullet: boolean
-      text: string
-    }>
-    section: string
-    icon: string | null
-  }>
+  sections: Types.StellarDetailsSections
   title: string
 }
 

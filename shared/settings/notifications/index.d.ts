@@ -10,10 +10,12 @@ export type Props = {
     }
   }
   onBack?: () => void
+  onClickYourAccount: () => void
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll: (group: string) => void
   mobileHasPermissions: boolean
   waitingForResponse: boolean
+  showEmailSection: boolean
   sound?: boolean
   onToggleSound?: (sound: boolean) => void
 }

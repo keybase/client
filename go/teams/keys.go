@@ -433,7 +433,8 @@ func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *ke
 	g := func(seed keybase1.PerTeamKeySeed, prev keybase1.PerTeamSeedCheckValue) keybase1.PerTeamSeedCheckValue {
 		digest := hmac.New(sha512.New, seed[:])
 		digest.Write([]byte(prev))
-		return keybase1.PerTeamSeedCheckValue(digest.Sum(nil)[:32])
+		sum := digest.Sum(nil)[:32]
+		return keybase1.PerTeamSeedCheckValue(sum)
 	}
 
 	return &keybase1.PerTeamSeedCheck{

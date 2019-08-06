@@ -1023,14 +1023,14 @@ const subscribePath = (_: TypedState, action: FsGen.SubscribePathPayload) =>
     kbfsPath: Types.pathToString(action.payload.path),
     subscriptionID: action.payload.subscriptionID,
     topic: action.payload.topic,
-  })
+  }).catch(makeUnretriableErrorHandler(action))
 
 const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) =>
   RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
     deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
     subscriptionID: action.payload.subscriptionID,
     topic: action.payload.topic,
-  })
+  }).catch(makeUnretriableErrorHandler(action))
 
 const unsubscribe = (_: TypedState, action: FsGen.UnsubscribePayload) =>
   RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
