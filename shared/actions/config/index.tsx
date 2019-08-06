@@ -111,9 +111,11 @@ function* loadDaemonBootstrapStatus(
     // request follower info in the background
     yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
     // set HTTP srv info
-    yield Saga.put(
-      ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
-    )
+    if (s.httpSrvInfo) {
+      yield Saga.put(
+        ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
+      )
+    }
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {

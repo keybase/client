@@ -710,7 +710,10 @@
           "name": "userReacjis"
         },
         {
-          "type": "HttpSrvInfo",
+          "type": [
+            null,
+            "HttpSrvInfo"
+          ],
           "name": "httpSrvInfo"
         }
       ]

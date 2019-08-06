@@ -318,11 +318,12 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	status := eng.Status()
 	addr, err := h.svc.httpSrv.Addr()
 	if err != nil {
-		return status, err
-	}
-	status.HttpSrvInfo = keybase1.HttpSrvInfo{
-		Address: addr,
-		Token:   h.svc.httpSrv.Token(),
+		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
+	} else {
+		status.HttpSrvInfo = &keybase1.HttpSrvInfo{
+			Address: addr,
+			Token:   h.svc.httpSrv.Token(),
+		}
 	}
 	return status, nil
 }
