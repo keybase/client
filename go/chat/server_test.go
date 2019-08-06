@@ -2761,6 +2761,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		p := utils.PresentPagination(&chat1.Pagination{
 			Num: 1,
@@ -2939,6 +2940,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		go func() {
 			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
