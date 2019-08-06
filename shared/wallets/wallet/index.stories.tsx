@@ -39,7 +39,10 @@ const props = {
   onLoadMore: Sb.action('onLoadMore'),
   onMarkAsRead: Sb.action('onMarkRead'),
   refresh: Sb.action('refresh'),
-  sections: [{data: [], title: 'Your assets'}, {data: ['noPayments'], title: 'History'}],
+  sections: [
+    {data: [], title: 'Your assets', kind: 'assets'},
+    {data: ['noPayments'], title: 'History', kind: 'payments'},
+  ],
 }
 
 const load = () => {

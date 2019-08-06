@@ -19,7 +19,7 @@ export type Props = {
   onBack: () => void
   onLoadMore: () => void
   onMarkAsRead: () => void
-  sections: Array<{data: any; title: string | React.ReactNode; stripeHeader?: boolean}>
+  sections: Array<{data: any; title: string | React.ReactNode; kind: string; stripeHeader?: boolean}>
 }
 
 const HistoryPlaceholder = () => (
@@ -74,9 +74,7 @@ class Wallet extends React.Component<Props> {
           gapStart={true}
         >
           <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
-          <Kb.Text type="BodySmall">
-            {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}
-          </Kb.Text>
+          <Kb.Text type="BodySmall">Loading {section.kind}...</Kb.Text>
         </Kb.Box2>
       )
     } else if (item === 'noPayments') {
