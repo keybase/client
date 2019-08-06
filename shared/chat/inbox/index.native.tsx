@@ -24,7 +24,6 @@ const NoChats = (props: {onNewChat: () => void}) => (
       justifyContent: 'center',
     }}
   >
-    <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
     <Kb.Text type="BodySmall" negative={true} style={{color: Styles.globalColors.black_50}}>
       All conversations are
     </Kb.Text>
@@ -35,8 +34,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
       onClick={props.onNewChat}
       type="Success"
       mode="Primary"
-      label="Start new chat"
-      small={true}
+      label="Start a new chat"
       style={{marginTop: Styles.globalMargins.small}}
     />
   </Kb.Box>
