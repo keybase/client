@@ -92,7 +92,7 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
-	r.G().NotifyRouter.HandleHttpSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
+	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
 	})

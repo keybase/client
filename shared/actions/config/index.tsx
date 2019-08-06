@@ -66,7 +66,7 @@ const onTrackingInfo = (
 
 const onHTTPSrvInfoUpdated = (
   _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyServiceHttpSrvInfoUpdatePayload
+  action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
 ) =>
   ConfigGen.createUpdateHTTPSrvInfo({
     address: action.payload.params.info.address,
@@ -647,8 +647,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
   )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceHttpSrvInfoUpdatePayload>(
-    EngineGen.keybase1NotifyServiceHttpSrvInfoUpdate,
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload>(
+    EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate,
     onHTTPSrvInfoUpdated
   )
 

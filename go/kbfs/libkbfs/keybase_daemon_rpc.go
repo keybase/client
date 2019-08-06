@@ -451,7 +451,7 @@ func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 	return nil
 }
 
-func (s *notifyServiceHandler) HttpSrvInfoUpdate(_ context.Context, info keybase1.HttpSrvInfo) error {
+func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, info keybase1.HttpSrvInfo) error {
 	return nil
 }
 

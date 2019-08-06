@@ -106,7 +106,7 @@ type NotifyListener interface {
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
 	RuntimeStatsUpdate(*keybase1.RuntimeStats)
-	HttpSrvInfoUpdate(keybase1.HttpSrvInfo)
+	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
 }
 
 type NoopNotifyListener struct{}
@@ -227,7 +227,7 @@ func (n *NoopNotifyListener) PasswordChanged()                          {}
 func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
 func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
 func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
-func (n *NoopNotifyListener) HttpSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
+func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 
 type NotifyListenerID string
 
@@ -2485,7 +2485,7 @@ func (n *NotifyRouter) HandleRuntimeStatsUpdate(ctx context.Context, stats *keyb
 	})
 }
 
-func (n *NotifyRouter) HandleHttpSrvInfoUpdate(ctx context.Context, info keybase1.HttpSrvInfo) {
+func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase1.HttpSrvInfo) {
 	if n == nil {
 		return
 	}
@@ -2494,12 +2494,12 @@ func (n *NotifyRouter) HandleHttpSrvInfoUpdate(ctx context.Context, info keybase
 			go func() {
 				(keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HttpSrvInfoUpdate(ctx, info)
+				}).HTTPSrvInfoUpdate(ctx, info)
 			}()
 		}
 		return true
 	})
 	n.runListeners(func(listener NotifyListener) {
-		listener.HttpSrvInfoUpdate(info)
+		listener.HTTPSrvInfoUpdate(info)
 	})
 }

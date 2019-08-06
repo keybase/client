@@ -23,7 +23,7 @@
     }
   ],
   "messages": {
-    "httpSrvInfoUpdate": {
+    "HTTPSrvInfoUpdate": {
       "request": [
         {
           "name": "info",
@@ -31,7 +31,8 @@
         }
       ],
       "response": null,
-      "oneway": true
+      "oneway": true,
+      "lint": "ignore"
     },
     "shutdown": {
       "request": [
