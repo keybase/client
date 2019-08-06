@@ -49,7 +49,7 @@ const EnterPhoneNumber = (props: Props) => {
       <EnterPhoneNumberBody
         // the push prompt might be overlaying us
         // TODO Y2K-57 move phone number earlier and check that email won't have this problem
-        autoFocus={false}
+        autoFocus={!Styles.isMobile}
         onChangeNumber={onChangePhoneNumber}
         onChangeValidity={onChangeValidity}
         onContinue={onContinue}
