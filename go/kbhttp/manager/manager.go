@@ -54,13 +54,13 @@ func (r *Srv) debug(ctx context.Context, msg string, args ...interface{}) {
 func (r *Srv) initHTTPSrv() {
 	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
 	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
-	r.token, _ = libkb.RandHexString("", 32)
 }
 
 func (r *Srv) startHTTPSrv() {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
 	ctx := context.Background()
+	r.token, _ = libkb.RandHexString("", 32)
 	maxTries := 2
 	success := false
 	for i := 0; i < maxTries; i++ {
