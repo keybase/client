@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen, errorBanner} from '../common'
-import {InfoIcon} from '../common'
+import {SignupScreen, errorBanner, InfoIcon} from '../common'
 
 type Props = {
   error: string

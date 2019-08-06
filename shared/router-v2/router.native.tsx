@@ -7,7 +7,7 @@ import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createStackNavigator} from 'react-navigation-stack'
+import Stack from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -20,6 +20,8 @@ import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
 import {Props} from './router'
+
+const {createStackNavigator} = Stack
 
 // turn on screens
 useScreens()
