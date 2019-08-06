@@ -14,7 +14,6 @@ const actions = {
 const disclaimerSections = [
   {
     icon: '',
-    section: "Almost done.\\nIt's important you read this.",
     lines: [
       {bullet: false, text: 'We believe Keybase can help make cryptocurrency usable for 2 reasons:'},
       {
@@ -64,6 +63,7 @@ const disclaimerSections = [
       },
       {bullet: false, text: '   6. FINALLY HAVE FUN WHILE YOU CAN. Something is coming.'},
     ],
+    section: "Almost done.\\nIt's important you read this.",
   },
 ]
 const load = () => {

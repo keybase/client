@@ -145,7 +145,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         </Kb.Box2>
 
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
-          {this.props.sections.length == 0 ? (
+          {this.props.sections.length === 0 ? (
             <StaticDisclaimer />
           ) : (
             this.props.sections.map(b =>
