@@ -348,6 +348,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           <Kb.SectionList
             ref={this.sectionListRef}
             keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
@@ -387,6 +388,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
+        keyboardShouldPersistTaps="handled"
         keyProperty={'key'}
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0.1}
