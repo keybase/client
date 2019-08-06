@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"crypto/hmac"
 	"fmt"
 	"net/http"
 	"sync"
@@ -118,7 +119,7 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
 		switch tokenMode {
 		case SrvTokenModeDefault:
-			if req.URL.Query().Get("token") != r.token {
+			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
