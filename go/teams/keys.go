@@ -19,7 +19,12 @@ import (
 // Get a PTK seed and verify against the sigchain that is the correct key.
 func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, team Teamer, gen keybase1.PerTeamKeyGeneration) (ret keybase1.PerTeamKeySeedItem, err error) {
 
-	ret, ok := team.MainChain().PerTeamKeySeedsUnverified[gen]
+	if team.MainChain() == nil {
+		return ret, libkb.NotFoundError{Msg: fmt.Sprintf("no team secret found at generation %v, since inner team was nil", gen)}
+	}
+
+	var ok bool
+	ret, ok = team.MainChain().PerTeamKeySeedsUnverified[gen]
 	if !ok {
 		return ret, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", gen)}
