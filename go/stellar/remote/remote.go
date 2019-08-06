@@ -993,10 +993,11 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 type airdropDetails struct {
 	libkb.AppStatusEmbed
 	Details    json.RawMessage `json:"details"`
+	Disclaimer json.RawMessage `json:"disclaimer"`
 	IsPromoted bool            `json:"is_promoted"`
 }
 
-func AirdropDetails(mctx libkb.MetaContext) (bool, string, error) {
+func AirdropDetails(mctx libkb.MetaContext) (bool, string, string, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/airdrop/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -1004,10 +1005,10 @@ func AirdropDetails(mctx libkb.MetaContext) (bool, string, error) {
 
 	var res airdropDetails
 	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
-		return false, "", err
+		return false, "", "", err
 	}
 
-	return res.IsPromoted, string(res.Details), nil
+	return res.IsPromoted, string(res.Details), string(res.Disclaimer), nil
 }
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {

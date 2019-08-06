@@ -711,12 +711,14 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 type AirdropDetails struct {
 	IsPromoted bool   `codec:"isPromoted" json:"isPromoted"`
 	Details    string `codec:"details" json:"details"`
+	Disclaimer string `codec:"disclaimer" json:"disclaimer"`
 }
 
 func (o AirdropDetails) DeepCopy() AirdropDetails {
 	return AirdropDetails{
 		IsPromoted: o.IsPromoted,
 		Details:    o.Details,
+		Disclaimer: o.Disclaimer,
 	}
 }
 
