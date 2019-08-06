@@ -40,8 +40,8 @@ const props = {
   onMarkAsRead: Sb.action('onMarkRead'),
   refresh: Sb.action('refresh'),
   sections: [
-    {data: [], title: 'Your assets', kind: 'assets'},
-    {data: ['noPayments'], title: 'History', kind: 'payments'},
+    {data: [], kind: 'assets', title: 'Your assets'},
+    {data: ['noPayments'], kind: 'payments', title: 'History'},
   ],
 }
 
