@@ -25,6 +25,7 @@ const Accepted = p =>
         'fade-anim-enter': true,
         'fade-anim-enter-active': p.state === 'accepted',
       })}
+      contentContainerStyle={styles.scrollViewContent}
     >
       <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.grow} />
