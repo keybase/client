@@ -50,6 +50,10 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 			ret.LastPerTeamKeys[ptk.PTKType] = q
 		}
 		if ptk.PTKType == keybase1.PTKType_READER {
+			_, found := ret.ReaderPerTeamKeys[ptk.Generation]
+			if found {
+				return newRepeatPTKGenerationError(ptk.Generation, "clashes another hidden link")
+			}
 			ret.ReaderPerTeamKeys[ptk.Generation] = q
 		}
 	}

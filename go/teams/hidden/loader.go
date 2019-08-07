@@ -184,6 +184,34 @@ func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *ke
 	return nil
 }
 
+// CheckPTKsForDuplicates checks that the new per-team-keys don't duplicate keys we've gotten along the
+// visible chain, via the given getter.
+func (l *LoaderPackage) CheckPTKsForDuplicates(mctx libkb.MetaContext, getter func(g keybase1.PerTeamKeyGeneration) bool) error {
+	if l.newData == nil {
+		return nil
+	}
+	for k, _ := range l.newData.ReaderPerTeamKeys {
+		if getter(k) {
+			return newRepeatPTKGenerationError(k, "clashes a previously-loaded visible rotation")
+		}
+	}
+	return nil
+}
+
+func (l *LoaderPackage) CheckNoPTK(mctx libkb.MetaContext, g keybase1.PerTeamKeyGeneration) (err error) {
+	var found bool
+	if l.newData != nil {
+		_, found = l.newData.ReaderPerTeamKeys[g]
+	}
+	if l.data != nil && !found {
+		_, found = l.data.ReaderPerTeamKeys[g]
+	}
+	if found {
+		return newRepeatPTKGenerationError(g, "clashes a previously-loaded hidden rotation")
+	}
+	return nil
+}
+
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
