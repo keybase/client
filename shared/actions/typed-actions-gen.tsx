@@ -193,6 +193,7 @@ export type TypedActionsMap = {
   'chat2:updateUserReacjis': chat2.UpdateUserReacjisPayload
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
+  'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -209,9 +210,6 @@ export type TypedActionsMap = {
   'config:changedActive': config.ChangedActivePayload
   'config:mobileAppState': config.MobileAppStatePayload
   'config:showMain': config.ShowMainPayload
-  'config:loadAvatars': config.LoadAvatarsPayload
-  'config:loadedAvatars': config.LoadedAvatarsPayload
-  'config:loadTeamAvatars': config.LoadTeamAvatarsPayload
   'config:bootstrapStatusLoaded': config.BootstrapStatusLoadedPayload
   'config:followerInfoUpdated': config.FollowerInfoUpdatedPayload
   'config:daemonError': config.DaemonErrorPayload
@@ -235,6 +233,7 @@ export type TypedActionsMap = {
   'config:openAppStore': config.OpenAppStorePayload
   'config:updateCriticalCheckStatus': config.UpdateCriticalCheckStatusPayload
   'config:osNetworkStatusChanged': config.OsNetworkStatusChangedPayload
+  'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -261,6 +260,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatInboxFailed': enginegen.Chat1ChatUiChatInboxFailedPayload
   'engine-gen:chat1ChatUiChatThreadCached': enginegen.Chat1ChatUiChatThreadCachedPayload
   'engine-gen:chat1ChatUiChatThreadFull': enginegen.Chat1ChatUiChatThreadFullPayload
+  'engine-gen:chat1ChatUiChatThreadStatus': enginegen.Chat1ChatUiChatThreadStatusPayload
   'engine-gen:chat1ChatUiChatSearchHit': enginegen.Chat1ChatUiChatSearchHitPayload
   'engine-gen:chat1ChatUiChatSearchDone': enginegen.Chat1ChatUiChatSearchDonePayload
   'engine-gen:chat1ChatUiChatSearchInboxStart': enginegen.Chat1ChatUiChatSearchInboxStartPayload
@@ -376,6 +376,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile': enginegen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged': enginegen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate': enginegen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate': enginegen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   'engine-gen:keybase1NotifyServiceShutdown': enginegen.Keybase1NotifyServiceShutdownPayload
   'engine-gen:keybase1NotifySessionLoggedOut': enginegen.Keybase1NotifySessionLoggedOutPayload
   'engine-gen:keybase1NotifySessionLoggedIn': enginegen.Keybase1NotifySessionLoggedInPayload
@@ -449,6 +450,7 @@ export type TypedActionsMap = {
   'fs:subscribeNonPath': fs.SubscribeNonPathPayload
   'fs:unsubscribe': fs.UnsubscribePayload
   'fs:onJournalNotification': fs.OnJournalNotificationPayload
+  'fs:getOnlineStatus': fs.GetOnlineStatusPayload
   'fs:folderListLoad': fs.FolderListLoadPayload
   'fs:folderListLoaded': fs.FolderListLoadedPayload
   'fs:favoritesLoad': fs.FavoritesLoadPayload
@@ -866,6 +868,8 @@ export type TypedActionsMap = {
   'wallets:resetAcceptingDisclaimer': wallets.ResetAcceptingDisclaimerPayload
   'wallets:accountsReceived': wallets.AccountsReceivedPayload
   'wallets:accountUpdateReceived': wallets.AccountUpdateReceivedPayload
+  'wallets:assetDeposit': wallets.AssetDepositPayload
+  'wallets:assetWithdraw': wallets.AssetWithdrawPayload
   'wallets:assetsReceived': wallets.AssetsReceivedPayload
   'wallets:badgesUpdated': wallets.BadgesUpdatedPayload
   'wallets:buildingPaymentIDReceived': wallets.BuildingPaymentIDReceivedPayload
@@ -981,4 +985,5 @@ export type TypedActionsMap = {
   'wallets:clearTrustlineSearchResults': wallets.ClearTrustlineSearchResultsPayload
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
+  'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
 }
