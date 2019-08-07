@@ -93,9 +93,7 @@ const revoke = async (state: Container.TypedState, action: DevicesGen.RevokePayl
 
 const navigateAfterRevoked = (_: Container.TypedState, action: DevicesGen.RevokedPayload) =>
   action.payload.wasCurrentDevice
-    ? RouteTreeGen.createNavigateAppend({
-        path: action.payload.wasCurrentDevice ? [Tabs.loginTab] : [...Constants.devicesTabLocation],
-      })
+    ? RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]})
     : RouteTreeGen.createNavUpToScreen({
         routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
       })

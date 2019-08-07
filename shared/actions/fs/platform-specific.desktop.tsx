@@ -234,21 +234,19 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (_, action: FsGen.DriverEnablePayload): Saga.ChainActionReturn =>
-  new Promise(resolve => {
-    RPCTypes.installInstallFuseRpcPromise().then(result => {
-      if (fuseInstallResultIsKextPermissionError(result)) {
-        resolve([
-          FsGen.createDriverKextPermissionError(),
-          ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
-        ])
-      } else {
-        RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-          .then(() => waitForMount(0))
-          .then(() => resolve(FsGen.createRefreshDriverStatus()))
-      }
-    })
-  })
+const driverEnableFuse = async (_, action: FsGen.DriverEnablePayload) => {
+  const result = await RPCTypes.installInstallFuseRpcPromise()
+  if (fuseInstallResultIsKextPermissionError(result)) {
+    return [
+      FsGen.createDriverKextPermissionError(),
+      ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
+    ]
+  } else {
+    await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
+    await waitForMount(0)
+    return FsGen.createRefreshDriverStatus()
+  }
+}
 
 const uninstallKBFSConfirm = () =>
   new Promise(resolve =>
