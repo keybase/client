@@ -8,6 +8,9 @@
   position: relative;
   width: 100%;
 }
+.WrapperMessage-systemMessage {
+  padding-left: 16px;
+}
 .WrapperMessage-noOverflow {
   overflow: hidden;
 }
@@ -30,8 +33,6 @@
   background-color: #f7f9fc;
   /* Using a second box shadow instead of a border to prevent changing the height of the box. */
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
-}
-.WrapperMessage-decorated {
 }
 .WrapperMessage-decorated.active {
   background-color: #f7f9fc;

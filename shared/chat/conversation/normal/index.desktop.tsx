@@ -7,6 +7,7 @@ import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import {Props} from './index.types'
 import '../conversation.css'
+import ThreadLoadStatus from '../load-status/container'
 
 type State = {
   showDropOverlay: boolean
@@ -48,14 +49,17 @@ class Conversation extends React.PureComponent<Props, State> {
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
         <Kb.DragAndDrop onAttach={this.props.onAttach}>
           {this.props.threadLoadedOffline && <Offline />}
-          {this.props.showLoader && <Kb.LoadingLine />}
-          <ListArea
-            onFocusInput={this.props.onFocusInput}
-            scrollListDownCounter={this.props.scrollListDownCounter}
-            scrollListToBottomCounter={this.props.scrollListToBottomCounter}
-            scrollListUpCounter={this.props.scrollListUpCounter}
-            conversationIDKey={this.props.conversationIDKey}
-          />
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+            <ListArea
+              onFocusInput={this.props.onFocusInput}
+              scrollListDownCounter={this.props.scrollListDownCounter}
+              scrollListToBottomCounter={this.props.scrollListToBottomCounter}
+              scrollListUpCounter={this.props.scrollListUpCounter}
+              conversationIDKey={this.props.conversationIDKey}
+            />
+            <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+            {this.props.showLoader && <Kb.LoadingLine />}
+          </Kb.Box2>
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}
@@ -74,6 +78,10 @@ class Conversation extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+    position: 'relative',
+  },
+  innerContainer: {
     flex: 1,
     position: 'relative',
   },

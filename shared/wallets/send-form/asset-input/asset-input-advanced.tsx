@@ -79,19 +79,29 @@ const LeftBlock = (_: EmptyProps) => {
 
   if (hasTrivialPath) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftBlockContainer}>
-        <Kb.Text type="HeaderBigExtrabold">{buildingAdvanced.recipientAmount}</Kb.Text>
+      <Kb.Box2 direction="vertical" alignItems="flex-start">
+        <Kb.Text
+          type="HeaderBigExtrabold"
+          style={builtPaymentAdvanced.amountError ? styles.error : undefined}
+        >
+          {buildingAdvanced.recipientAmount}
+        </Kb.Text>
         {!!buildingAdvanced.recipientAmount &&
           (buildingAdvanced.recipientAsset === 'native' ? (
             <Kb.Text type="BodyTiny">Stellar Lumens</Kb.Text>
           ) : (
             <React.Fragment>
               <Kb.Text type="BodyTiny">{buildingAdvanced.recipientAsset.issuerName}</Kb.Text>
-              <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail">
+              <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail" style={styles.assetIDContainer}>
                 {buildingAdvanced.recipientAsset.code}/{buildingAdvanced.recipientAsset.issuerAccountID}
               </Kb.Text>
             </React.Fragment>
           ))}
+        {!!builtPaymentAdvanced.amountError && (
+          <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
+            {builtPaymentAdvanced.amountError}
+          </Kb.Text>
+        )}
       </Kb.Box2>
     )
   } else if (builtPaymentAdvanced.sourceDisplay) {
@@ -359,6 +369,9 @@ const styles = Styles.styleSheetCreate({
     height: 20,
     width: 20,
   },
+  assetIDContainer: {
+    maxWidth: '40%',
+  },
   assetPathContainer: {
     backgroundColor: Styles.globalColors.blueGrey,
     padding: Styles.globalMargins.small,
@@ -447,9 +460,6 @@ const styles = Styles.styleSheetCreate({
   },
   intermediateTopCircleContainer: {
     top: -Styles.globalMargins.medium,
-  },
-  leftBlockContainer: {
-    maxWidth: '40%',
   },
   noShrink: {
     flexShrink: 0,

@@ -7,10 +7,10 @@ import OpenHOC from '../../common/open-hoc'
 import Tlf from './tlf'
 import flags from '../../../util/feature-flags'
 
-type OwnProps = {
+export type OwnProps = {
   destinationPickerIndex?: number
+  mixedMode?: boolean
   name: string
-  showTlfTypeIcon?: boolean
   tlfType: Types.TlfType
 }
 
@@ -19,7 +19,7 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _username: state.config.username,
 })
 
-const mergeProps = (stateProps, _, {tlfType, name, showTlfTypeIcon, destinationPickerIndex}: OwnProps) => {
+const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerIndex}: OwnProps) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
@@ -31,9 +31,9 @@ const mergeProps = (stateProps, _, {tlfType, name, showTlfTypeIcon, destinationP
       flags.kbfsOfflineMode &&
       stateProps._tlf.syncConfig &&
       stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+    mixedMode,
     name,
     path,
-    showTlfTypeIcon,
     // Only include the user if they're the only one
     usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
   }

@@ -213,6 +213,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 }
 
 type Props = {
+  autoFocus?: boolean
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
@@ -422,7 +423,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
           >
             <Kb.PlainInput
-              autoFocus={true}
+              autoFocus={this.props.autoFocus}
               style={Styles.collapseStyles([styles.plainInput])}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}

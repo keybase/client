@@ -57,9 +57,6 @@
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "loadAvatars": {"usernames": "Array<string>"},
-    "loadedAvatars": {"avatars": "I.Map<string, I.Map<number, string>>"},
-    "loadTeamAvatars": {"teamnames": "Array<string>"},
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
@@ -126,6 +123,10 @@
       "online": "boolean",
       "type": "ConnectionType",
       "isInit?": "boolean"
+    },
+    "updateHTTPSrvInfo": {
+      "address": "string",
+      "token": "string"
     }
   }
 }

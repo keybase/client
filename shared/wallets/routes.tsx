@@ -17,7 +17,7 @@ import Receive from './receive-modal/container'
 import Sep7Confirm from './sep7-confirm/container'
 import KeybaseLinkError from '../deeplinks/error'
 import Trustline from './trustline/container'
-import WalletOnboarding from './onboarding/container'
+import {RoutedOnboarding} from './onboarding/container'
 import WhatIsStellarModal from './what-is-stellar-modal'
 import Airdrop from './airdrop/container'
 import Settings from './wallet/settings/container'
@@ -119,7 +119,9 @@ export const newModalRoutes = {
     getScreen: (): typeof InflationDestination => require('./wallet/settings/popups').InflationDestination,
   },
   trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default},
-  walletOnboarding: {getScreen: (): typeof WalletOnboarding => require('./onboarding/container').default},
+  walletOnboarding: {
+    getScreen: (): typeof RoutedOnboarding => require('./onboarding/container').RoutedOnboarding,
+  },
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },

@@ -164,6 +164,7 @@ export type _State = {
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   userReacjis: UserReacjis
   createConversationError: string | null
+  threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
 }
 
 export type State = I.RecordOf<_State>

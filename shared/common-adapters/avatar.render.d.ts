@@ -12,7 +12,6 @@ export type Props = {
   followIconType?: IconType
   followIconStyle: IconStyle
   isTeam: boolean
-  load?: () => void
   name: string
   loadingColor?: string
   onClick?: () => void

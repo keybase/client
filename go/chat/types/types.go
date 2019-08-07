@@ -149,6 +149,23 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
+type UnboxMode int
+
+const (
+	UnboxModeFull UnboxMode = iota
+	UnboxModeQuick
+)
+
+func (m UnboxMode) ShouldCache() bool {
+	switch m {
+	case UnboxModeFull:
+		return true
+	case UnboxModeQuick:
+		return false
+	}
+	return true
+}
+
 type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation

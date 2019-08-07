@@ -1009,11 +1009,11 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp s
 		return stellar1.AirdropDetails{}, err
 	}
 
-	isPromoted, details, err := remote.AirdropDetails(mctx)
+	isPromoted, details, disclaimer, err := remote.AirdropDetails(mctx)
 	if err != nil {
 		return stellar1.AirdropDetails{}, err
 	}
-	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details}, nil
+	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details, Disclaimer: disclaimer}, nil
 
 }
 
@@ -1320,6 +1320,16 @@ func (s *Server) prepareAnchorInteractor(mctx libkb.MetaContext, accountID stell
 		return nil, errors.New("caller doesn't have trustline to asset")
 	}
 
+	var seed *stellar1.SecretKey
+	if fullAsset.AuthEndpoint != "" {
+		// get the secret key for account id
+		_, bundle, err := stellar.LookupSender(mctx, accountID)
+		if err != nil {
+			return nil, err
+		}
+		seed = &bundle.Signers[0]
+	}
+
 	// all good from the user's perspective, proceed...
-	return newAnchorInteractor(accountID, fullAsset), nil
+	return newAnchorInteractor(accountID, seed, fullAsset), nil
 }

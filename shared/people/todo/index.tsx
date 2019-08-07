@@ -10,6 +10,7 @@ export type TaskButton = {
   onClick: () => void
   type?: ButtonProps['type']
   mode?: ButtonProps['mode']
+  waiting?: ButtonProps['waiting']
 }
 
 export type Props = {

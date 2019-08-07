@@ -2,12 +2,16 @@ package stellarsvc
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
 )
 
 type anchorTest struct {
@@ -17,7 +21,7 @@ type anchorTest struct {
 	WithdrawExternalURL string
 	DepositMessage      string
 	WithdrawMessage     string
-	MockTransferGet     func(mctx libkb.MetaContext, url string) (int, []byte, error)
+	MockTransferGet     func(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 }
 
 var errAnchorTests = []anchorTest{
@@ -41,14 +45,14 @@ var errAnchorTests = []anchorTest{
 		MockTransferGet: mockKeybaseTransferGet,
 	},
 	{
-		Name: "requires auth",
+		Name: "requires auth but with different domain",
 		Asset: stellar1.Asset{
 			Type:           "credit_alphanum4",
 			Code:           "EUR",
 			Issuer:         "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
 			VerifiedDomain: "keybase.io",
 			TransferServer: "https://transfer.keybase.io/transfer",
-			AuthEndpoint:   "https://transfer.keybase.io/auth",
+			AuthEndpoint:   "https://transfer.keycase.io/auth",
 		},
 		MockTransferGet: mockKeybaseTransferGet,
 	},
@@ -176,13 +180,29 @@ var validAnchorTests = []anchorTest{
 		DepositMessage:  "Deposit request approved by anchor.  19qPSWH6Cytp2zsn4Cntbzz2EMp1fadkRs: 3 confirmations needed. this is long term available address",
 		MockTransferGet: mockNaoBTCTransferGet,
 	},
+	{
+		Name: "requires auth",
+		Asset: stellar1.Asset{
+			Type:               "credit_alphanum4",
+			Code:               "EUR",
+			Issuer:             "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
+			VerifiedDomain:     "keybase.io",
+			TransferServer:     "https://transfer.keybase.io/transfer",
+			AuthEndpoint:       "https://transfer.keybase.io/auth",
+			ShowDepositButton:  true,
+			ShowWithdrawButton: true,
+		},
+		MockTransferGet:     mockAuthGet,
+		DepositExternalURL:  "https://keybase.io/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566",
+		WithdrawExternalURL: "https://keybase.io/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
+	},
 }
 
 func TestAnchorInteractor(t *testing.T) {
 	tc := SetupTest(t, "AnchorInteractor", 1)
 	for i, test := range errAnchorTests {
-		accountID, _ := randomStellarKeypair()
-		ai := newAnchorInteractor(accountID, test.Asset)
+		accountID, seed := randomStellarKeypair()
+		ai := newAnchorInteractor(accountID, &seed, test.Asset)
 		ai.httpGetClient = test.MockTransferGet
 		_, err := ai.Deposit(tc.MetaContext())
 		if err == nil {
@@ -197,9 +217,18 @@ func TestAnchorInteractor(t *testing.T) {
 	}
 
 	for i, test := range validAnchorTests {
-		accountID, _ := randomStellarKeypair()
-		ai := newAnchorInteractor(accountID, test.Asset)
+		accountID, seed := randomStellarKeypair()
+		ai := newAnchorInteractor(accountID, &seed, test.Asset)
 		ai.httpGetClient = test.MockTransferGet
+
+		// our test tx auth challenges are on the public network:
+		if test.Asset.AuthEndpoint != "" {
+			stellarnet.SetNetwork(build.PublicNetwork)
+			ai.httpPostClient = mockAuthPost
+		} else {
+			stellarnet.SetNetwork(build.TestNetwork)
+		}
+
 		if test.Asset.ShowDepositButton {
 			res, err := ai.Deposit(tc.MetaContext())
 			if err != nil {
@@ -256,7 +285,7 @@ func TestAnchorInteractor(t *testing.T) {
 
 // mockKeybaseTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockKeybaseTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://transfer.keybase.io/transfer/deposit":
@@ -266,12 +295,11 @@ func mockKeybaseTransferGet(mctx libkb.MetaContext, url string) (int, []byte, er
 	default:
 		return 0, nil, errors.New("unknown mocked url")
 	}
-
 }
 
 // mockAnchorUSDTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://api.anchorusd.com/transfer/deposit":
@@ -281,12 +309,11 @@ func mockAnchorUSDTransferGet(mctx libkb.MetaContext, url string) (int, []byte, 
 	default:
 		return 0, nil, errors.New("unknown mocked url")
 	}
-
 }
 
 // mockNaoBTCTransferGet is an httpGetClient func that returns a stored result
 // for TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
-func mockNaoBTCTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockNaoBTCTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://www.naobtc.com/deposit":
@@ -296,10 +323,9 @@ func mockNaoBTCTransferGet(mctx libkb.MetaContext, url string) (int, []byte, err
 	default:
 		return 0, nil, errors.New("unknown mocked url")
 	}
-
 }
 
-func mockWWTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) {
+func mockWWTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
 	switch parts[0] {
 	case "https://thewwallet.com/ExtApi/deposit":
@@ -309,6 +335,43 @@ func mockWWTransferGet(mctx libkb.MetaContext, url string) (int, []byte, error) 
 	}
 }
 
+// mockKAuthGet is an httpGetClient func that returns a stored result
+// for WEB_AUTH_ENDPOINT and TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
+func mockAuthGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
+	parts := strings.Split(url, "?")
+	switch parts[0] {
+	case "https://transfer.keybase.io/transfer/deposit":
+		if authToken == "" {
+			return 0, nil, errors.New("missing token")
+		}
+		return http.StatusForbidden, []byte(authDepositBody), nil
+	case "https://transfer.keybase.io/transfer/withdraw":
+		if authToken == "" {
+			return 0, nil, errors.New("missing token")
+		}
+		return http.StatusForbidden, []byte(authWithdrawBody), nil
+	case "https://transfer.keybase.io/auth":
+		return http.StatusOK, []byte(authChallenge), nil
+	default:
+		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
+	}
+}
+
+func mockAuthPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
+	switch url {
+	case "https://transfer.keybase.io/auth":
+		return 200, []byte(authBody), nil
+	default:
+		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
+	}
+}
+
 const depositBody = `{"type":"interactive_customer_info_needed","url":"https://portal.anchorusd.com/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566","identifier":"b700518e7430513abdbdab96e7ead566","dimensions":{"width":800,"height":600}}`
 const withdrawBody = `{ "type": "interactive_customer_info_needed", "url" : "https://portal.anchorusd.com/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI", "id": "82fhs729f63dh0v4" }`
 const naobtcBody = `{"how": "19qPSWH6Cytp2zsn4Cntbzz2EMp1fadkRs", "eta": 1800, "extra_info": "3 confirmations needed. this is long term available address", "extra_info_cn": "充值需要三次网络确认。此地址长期有效"}`
+const authDepositBody = `{"type":"interactive_customer_info_needed","url":"https://keybase.io/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566","identifier":"b700518e7430513abdbdab96e7ead566","dimensions":{"width":800,"height":600}}`
+const authWithdrawBody = `{ "type": "interactive_customer_info_needed", "url" : "https://keybase.io/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI", "id": "82fhs729f63dh0v4" }`
+const authChallenge = `{"transaction":"AAAAAANjzBWOC6YJo49wLshbTPMAmHnZ1I5AESV73e605u3DAAAnEAAAAAAAAAAAAAAAAQAAAABdRIV+AAAAAF1EhqoAAAAAAAAAAQAAAAEAAAAAc35v3HkfCY0CYiA898rk/9hkUeNCTCneeOKQHyo1HJcAAAAKAAAAEFN0ZWxsYXJwb3J0IGF1dGgAAAABAAAAQMCsw7hA+QQnW9t2MfAU92Sqa7eD1udjvaS5BSO9AJFXuELyBmzw+l+GhIry01cM6nz5HKleHf+wDn2jXYYlFKQAAAAAAAAAAbTm7cMAAABAnoRu4cp4cl9UEYqyRIfAIiLhoSU7h77vU9yV2S1RSNZfhc/YaXlMnlLkb9CAeLho1nVMOQnGNzQ55gWJzXXQDQ=="}`
+const authBody = `{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJHQTZVSVhYUEVXWUZJTE5VSVdBQzM3WTRRUEVaTVFWREpIREtWV0ZaSjJLQ1dVQklVNUlYWk5EQSIsImp0aSI6IjE0NGQzNjdiY2IwZTcyY2FiZmRiZGU2MGVhZTBhZDczM2NjNjVkMmE2NTg3MDgzZGFiM2Q2MTZmODg1MTkwMjQiLCJpc3MiOiJodHRwczovL2ZsYXBweS1iaXJkLWRhcHAuZmlyZWJhc2VhcHAuY29tLyIsImlhdCI6MTUzNDI1Nzk5NCwiZXhwIjoxNTM0MzQ0Mzk0fQ.8nbB83Z6vGBgC1X9r3N6oQCFTBzDiITAfCJasRft0z0"
+}`

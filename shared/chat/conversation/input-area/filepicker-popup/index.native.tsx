@@ -31,6 +31,7 @@ class FilePickerPopup extends React.Component<Props> {
 
     const androidItems = [
       {onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take Photo'},
+      {onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
       {onClick: () => this.props.onSelect('photo', 'library'), title: 'Photo from Library'},
       {onClick: () => this.props.onSelect('video', 'library'), title: 'Video from Library'},
     ]

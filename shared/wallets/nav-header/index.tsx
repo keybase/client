@@ -9,6 +9,7 @@ type HeaderTitleProps = {
   accountID: Types.AccountID
   accountName: string
   airdropSelected: boolean
+  isInAirdrop: boolean
   isDefault: boolean
   loading: boolean
   noDisclaimer: boolean
@@ -27,7 +28,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
         ) : props.airdropSelected ? (
           <Kb.Box2 direction="horizontal">
             <Kb.Text selectable={false} type="Header">
-              Airdrop
+              {props.isInAirdrop ? 'Airdrop' : 'Join the airdrop'}
             </Kb.Text>
           </Kb.Box2>
         ) : (

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/typed-connect'
 import PieSlice from '../../fs/common/pie-slice'
 
@@ -28,7 +29,7 @@ const SyncingFolders = (props: Props) =>
 
 const mapStateToProps = state => ({
   _syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
-  online: state.fs.kbfsDaemonStatus.online,
+  online: state.fs.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
 })
 
 const mapDispatchToProps = () => ({})

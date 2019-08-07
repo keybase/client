@@ -15,7 +15,8 @@ export type Props<Item> = {
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only,
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
-  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null // mobile only
+  onEndReachedThreshold?: number // mobile only
 }
 
 export default class List<Item> extends React.Component<Props<Item>> {}

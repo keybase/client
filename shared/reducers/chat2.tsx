@@ -460,6 +460,7 @@ const rootReducer = (
           }
         }
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
+        s.deleteIn(['threadLoadStatus', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
         if (Constants.isValidConversationIDKey(conversationIDKey)) {
@@ -504,6 +505,8 @@ const rootReducer = (
         ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
+    case Chat2Gen.setThreadLoadStatus:
+      return state.setIn(['threadLoadStatus', action.payload.conversationIDKey], action.payload.status)
     case Chat2Gen.setCommandStatusInfo:
       return state.setIn(['commandStatusMap', action.payload.conversationIDKey], action.payload.info)
     case Chat2Gen.clearCommandStatusInfo:
