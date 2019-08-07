@@ -5,7 +5,6 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 type URLType = string
@@ -17,7 +16,6 @@ type DisallowedStyles = {
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
-  clickToProfile?: 'tracker' | 'profile' // If set, go to profile on mobile and tracker/profile on desktop,,,
   editable?: boolean
   isTeam?: boolean
   loadingColor?: string
@@ -34,7 +32,6 @@ export type OwnProps = {
 }
 
 type Props = {
-  askForUserData?: () => void
   borderColor?: string
   children?: React.ReactNode
   editable?: boolean
@@ -101,26 +98,21 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
   return {
-    _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
-      Styles.isMobile || desktopDest === 'profile'
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
+    _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }
 }
 
-const avatarSizes = [960, 256, 192]
 const ConnectedAvatar = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {username} = ownProps
     const isTeam = ownProps.isTeam || !!ownProps.teamname
 
     let onClick = dispatchProps.onClick
-    if (!onClick && ownProps.clickToProfile && ownProps.username) {
-      const u = ownProps.username
-      const desktopDest = ownProps.clickToProfile
-      onClick = () => dispatchProps._goToProfile(u, desktopDest)
+    if (!onClick && username) {
+      onClick = () => dispatchProps._goToProfile(username)
     }
 
     const style: Styles.StylesCrossPlatform = Styles.isMobile
@@ -130,8 +122,8 @@ const ConnectedAvatar = Container.connect(
           onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
         ])
 
-    const name = isTeam ? ownProps.teamname : ownProps.username
-    const urlMap = avatarSizes.reduce((m, size: number) => {
+    const name = isTeam ? ownProps.teamname : username
+    const urlMap = [960, 256, 192].reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
@@ -169,12 +161,13 @@ const mockOwnToViewProps = (
   followers: string[],
   action: (arg0: string) => (...args: any[]) => void
 ): Props => {
-  const following = ownProps.username && follows.includes(ownProps.username)
-  const followsYou = ownProps.username && followers.includes(ownProps.username)
+  const {username} = ownProps
+  const following = username && follows.includes(username)
+  const followsYou = username && followers.includes(username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = ownProps.onClick
-  if (!onClick && ownProps.clickToProfile && ownProps.username) {
+  if (!onClick && username) {
     onClick = action('onClickToProfile')
   }
 
@@ -183,7 +176,7 @@ const mockOwnToViewProps = (
     onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
   ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-  const name = isTeam ? ownProps.teamname : ownProps.username
+  const name = isTeam ? ownProps.teamname : username
   const iconInfo = followIconHelper(
     ownProps.size,
     !!(ownProps.showFollowingStatus && followsYou),
