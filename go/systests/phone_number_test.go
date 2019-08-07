@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -290,4 +291,47 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: teamID}, seqnoAfterResolve)
+}
+
+func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
+	mctx := libkb.NewMetaContextTODO(g)
+	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE))
+
+	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
+	require.NoError(t, err)
+
+	require.NoError(t, phonenumbers.VerifyPhoneNumber(mctx, phoneNumber, code))
+
+	t.Logf("Added and verified phone number: %s", phoneNumber.String())
+}
+
+func TestSBSAfterPhoneChangesOwner(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	joe := tt.addUser("joe")
+
+	phone := kbtest.GenerateTestPhoneNumber()
+	impteamName := fmt.Sprintf("%s@phone,%s", phone, ann.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	phoneNumber := keybase1.PhoneNumber("+" + phone)
+	addAndVerifyPhone(t, bob.tc.G, phoneNumber)
+	phonenumbers.SetVisibilityPhoneNumber(bob.MetaContext(), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	addAndVerifyPhone(t, joe.tc.G, phoneNumber)
+	phonenumbers.SetVisibilityPhoneNumber(joe.MetaContext(), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+
+	teamID2, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	require.NotEqual(t, teamID, teamID2)
 }
