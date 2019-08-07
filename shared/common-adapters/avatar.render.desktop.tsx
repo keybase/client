@@ -3,60 +3,66 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {Props} from './avatar.render'
 
-class AvatarRender extends React.PureComponent<Props> {
-  render() {
-    const avatarSizeClasName = `avatar-${this.props.isTeam ? 'team' : 'user'}-size-${this.props.size}`
-    return (
-      <div
-        className={Styles.classNames('avatar', avatarSizeClasName)}
-        onClick={this.props.onClick}
-        style={(this.props.style as unknown) as React.CSSProperties}
-      >
-        {!this.props.skipBackground && (
-          <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
-        )}
-        {!!this.props.url && (
-          <div
-            className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
-            style={{
-              backgroundImage: this.props.url,
-              opacity:
-                this.props.opacity === undefined || this.props.opacity === 1 ? undefined : this.props.opacity,
-            }}
-          />
-        )}
-        {(!!this.props.borderColor || this.props.isTeam) && (
-          <div
-            style={{
-              boxShadow: `0px 0px 0px ${this.props.isTeam ? 1 : 2}px ${this.props.borderColor ||
-                Styles.globalColors.black_10} ${this.props.isTeam ? 'inset' : ''}`,
-            }}
-            className={Styles.classNames(
-              {
-                'avatar-border': !this.props.isTeam,
-                'avatar-border-team': this.props.isTeam,
-              },
-              avatarSizeClasName
-            )}
-          />
-        )}
-        {this.props.followIconType && (
-          <Icon type={this.props.followIconType} style={this.props.followIconStyle} />
-        )}
-        {this.props.editable && (
-          <Icon
-            type="iconfont-edit"
-            style={{
-              bottom: this.props.isTeam ? -2 : 0,
-              position: 'absolute',
-              right: this.props.isTeam ? -18 : 0,
-            }}
-          />
-        )}
-        {this.props.children}
-      </div>
-    )
-  }
+const Avatar = (props: Props) => {
+  const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
+  return (
+    <div
+      className={Styles.classNames('avatar', avatarSizeClasName)}
+      onClick={props.onClick}
+      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable])}
+    >
+      {!props.skipBackground && (
+        <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
+      )}
+      {!!props.url && (
+        <div
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={{
+            backgroundImage: props.url,
+            opacity: props.opacity === undefined || props.opacity === 1 ? undefined : props.opacity,
+          }}
+        />
+      )}
+      {(!!props.borderColor || props.isTeam) && (
+        <div
+          style={Styles.collapseStyles([
+            props.isTeam ? styles.borderTeam : styles.border,
+            props.borderColor && {
+              boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${props.borderColor ||
+                Styles.globalColors.black_10} ${props.isTeam ? 'inset' : ''}`,
+            },
+          ])}
+          className={Styles.classNames(
+            {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
+            avatarSizeClasName
+          )}
+        />
+      )}
+      {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
+      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
+      {props.children}
+    </div>
+  )
 }
 
-export default AvatarRender
+const styles = Styles.styleSheetCreate({
+  border: Styles.platformStyles({
+    isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
+  }),
+  borderTeam: Styles.platformStyles({
+    isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
+  }),
+  clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
+  edit: {
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  editTeam: {
+    bottom: -2,
+    position: 'absolute',
+    right: -18,
+  },
+})
+
+export default Avatar
