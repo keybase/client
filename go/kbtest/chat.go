@@ -137,10 +137,7 @@ func (m ByUsername) Len() int      { return len(m) }
 func (m ByUsername) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
 func (m ByUsername) Less(i, j int) bool {
 	res := strings.Compare(m[i].Username, m[j].Username)
-	if res < 0 {
-		return true
-	}
-	return false
+	return res < 0
 }
 
 func (w *ChatMockWorld) GetUsers() (res []*FakeUser) {
@@ -149,14 +146,6 @@ func (w *ChatMockWorld) GetUsers() (res []*FakeUser) {
 	}
 	sort.Sort(ByUsername(res))
 	return res
-}
-
-func mustDecodeHex(h string) (b []byte) {
-	var err error
-	if b, err = hex.DecodeString(h); err != nil {
-		panic(err)
-	}
-	return b
 }
 
 func mustGetRandBytesWithControlledFirstByte(n int, controlled byte) (b []byte) {

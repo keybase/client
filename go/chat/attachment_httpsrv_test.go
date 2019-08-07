@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/keybase/client/go/externalstest"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +11,9 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
@@ -116,7 +118,8 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
-		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
+		manager.NewSrv(tc.Context().ExternalG()), fetcher,
+		func() chat1.RemoteInterface { return mockSigningRemote{} })
 
 	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
@@ -220,6 +223,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		manager.NewSrv(tc.Context().ExternalG()),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
 		func() chat1.RemoteInterface { return ri }, 1)

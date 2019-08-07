@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/bots"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	"golang.org/x/net/context"
 
@@ -2760,6 +2761,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		p := utils.PresentPagination(&chat1.Pagination{
 			Num: 1,
@@ -2938,6 +2940,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		go func() {
 			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
@@ -3914,7 +3917,9 @@ func TestChatSrvMakePreview(t *testing.T) {
 	}
 	ri := ctc.as(t, user).ri
 	tc := ctc.world.Tcs[user.Username]
-	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), types.DummyAttachmentFetcher{},
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		manager.NewSrv(tc.Context().ExternalG()),
+		types.DummyAttachmentFetcher{},
 		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
 	require.NoError(t, err)

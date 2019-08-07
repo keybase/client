@@ -43,7 +43,7 @@ const matchesMarker = (
 
 type AddSuggestorsProps = {
   dataSources: {[K in string]: (filter: string) => Array<any>}
-  keyExtractors?: {[K in string]: (item: any) => string | number}
+  keyExtractors?: {[K in string]: (item: any) => string}
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
@@ -297,7 +297,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _itemRenderer = (index: number, value: string): React.ReactNode =>
+    _itemRenderer = (index: number, value: string): React.ReactElement | null =>
       !this.state.active ? null : (
         <Kb.ClickableBox
           key={

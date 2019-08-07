@@ -1,28 +1,10 @@
 import * as React from 'react'
 import {Box, Text, Button, StandardScreen} from '../../../common-adapters/mobile.native'
-import {globalColors, globalStyles, globalMargins} from '../../../styles'
+import {globalStyles, globalMargins} from '../../../styles'
 import {Props} from './you-rekey.types'
 
 const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
-  const bannerEl = (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        backgroundColor: globalColors.red,
-        justifyContent: 'center',
-      }}
-    >
-      <Text
-        center={true}
-        negative={true}
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
-        type="BodySemibold"
-      >
-        This conversation needs to be rekeyed.
-      </Text>
-    </Box>
-  )
-  const notification = {message: bannerEl, type: 'error'}
+  const notification = {message: 'This conversation needs to be rekeyed.', type: 'error' as const}
 
   return (
     <StandardScreen onBack={onBack} theme="dark" notification={notification}>

@@ -67,7 +67,11 @@ class GlobalError extends React.Component<Props, State> {
 
   _renderItem = (index: number, item: string) => {
     return (
-      <Kb.Text key={String(index)} type="BodySmall" style={{color: 'white', fontSize: 8, lineHeight: 8}}>
+      <Kb.Text
+        key={String(index)}
+        type="BodySmall"
+        style={{color: Styles.globalColors.white, fontSize: 8, lineHeight: 8}}
+      >
         {item}
         {'\n'}
       </Kb.Text>

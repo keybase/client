@@ -77,10 +77,8 @@ func TestNamedRegsStore(t *testing.T) {
 			if useRes && (res != unit.expected) {
 				fail("got '%v'; expected '%v'", res, unit.expected)
 			}
-		} else {
-			if unit.shouldwork {
-				fail("should have worked; got %v", err)
-			}
+		} else if unit.shouldwork {
+			fail("should have worked; got %v", err)
 		}
 	}
 }
@@ -89,8 +87,7 @@ func TestNamedRegsStoreCopy(t *testing.T) {
 	// Copying a store aliases its state.
 	// This should not be depended on but it's good to know.
 	regs1 := *newNamedRegsStore()
-	var regs2 namedRegsStore
-	regs2 = regs1
+	regs2 := regs1
 
 	err := regs1.Set("foo", "1")
 	if err != nil {

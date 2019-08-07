@@ -30,16 +30,15 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
 
-    let headerComponent: React.ReactNode | null = null
-    if (showSearchSuggestions) {
-      headerComponent = (
-        <Kb.Box style={{padding: globalMargins.tiny}}>
-          <Kb.Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
-            Recommendations
-          </Kb.Text>
-        </Kb.Box>
-      )
-    }
+    const headerComponent = showSearchSuggestions ? (
+      <Kb.Box style={{padding: globalMargins.tiny}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
+          Recommendations
+        </Kb.Text>
+      </Kb.Box>
+    ) : (
+      undefined
+    )
 
     return (
       <Kb.Box style={{width: '100%', ...style}}>

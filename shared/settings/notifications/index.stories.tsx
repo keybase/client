@@ -42,10 +42,12 @@ const props = {
     },
   },
   mobileHasPermissions: true,
+  onClickYourAccount: action('yourAccount'),
   onRefresh: action('onRefresh'),
   onSave: action('onSave'),
   onToggle: action('onToggle'),
   onToggleUnsubscribeAll: action('onToggleUnsubscribeAll'),
+  showEmailSection: true,
   waitingForResponse: false,
 }
 

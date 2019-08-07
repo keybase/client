@@ -13,7 +13,7 @@ const commonProps: Props = {
   onBlur: Sb.action('onBlur'),
   onChangeText: Sb.action('onChangeText'),
   onClick: Sb.action('onClick'),
-  onEnterKeyDown: e => onEnterKeyDown(e.key),
+  onEnterKeyDown: () => onEnterKeyDown(),
   onFocus: Sb.action('onFocus'),
   onKeyDown: e => onKeyDown(e.key),
   onKeyUp: e => onKeyUp(e.key),
@@ -46,9 +46,9 @@ class TestInput extends React.Component<TestInputProps> {
     }
   }
 
-  _replaceFoo = e => {
+  _replaceFoo = () => {
     this._replaceText('foo')
-    onEnterKeyDown(e)
+    onEnterKeyDown()
   }
 
   render = () => {
