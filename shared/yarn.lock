@@ -7126,13 +7126,12 @@ expo-asset@~5.0.0:
     path-browserify "^1.0.0"
     url-parse "^1.4.4"
 
-expo-av@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-6.0.0.tgz#95a5a095583bec3ac0a35ba1e9b67e72ac4a6485"
-  integrity sha512-4GI6PUitp3rf9EzPHCuQ2JxrDGo20djen5JISldG0XMNq0y/y+TgEuWyJPYa0/HwKAlwtHoPzYLuhfvjSTIiDg==
+expo-av@^5.0.1:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-5.0.2.tgz#8f308fc14d7be8b3bc79d6f8dc6c270da07f94d4"
+  integrity sha512-InvEYDinIv5enZR1HM6oIKFrvFoIsXuxAKcbZmgtqeuRzeJpOLJgzEJ5XlqPDfCM9/RX2Fhv4b2mSQsL20T4IQ==
   dependencies:
     lodash "^4.17.11"
-    nullthrows "^1.1.0"
 
 expo-barcode-scanner@5.0.1:
   version "5.0.1"
