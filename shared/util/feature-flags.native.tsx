@@ -20,6 +20,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  resetPipeline: false,
   sbsContacts: true,
   stellarExternalPartners: true,
 }

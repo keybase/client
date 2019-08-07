@@ -2613,6 +2613,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-skull': {
+    charCode: 0xe98c,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-spade': {
     charCode: 0xe979,
     gridSize: 16,
@@ -2690,11 +2695,6 @@ const iconMeta_ = {
   },
   'iconfont-tweet': {
     charCode: 0xe965,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-unhide': {
-    charCode: 0xe98c,
     gridSize: 16,
     isFont: true,
   },

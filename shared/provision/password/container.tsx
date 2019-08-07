@@ -65,6 +65,7 @@ class _Password extends React.Component<Props, State> {
 
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
+  username: state.provision.username,
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 

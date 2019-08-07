@@ -12,6 +12,7 @@ export type FeatureFlags = {
   outOfDateBanner: boolean
   plansEnabled: boolean
   proofProviders: boolean
+  resetPipeline: boolean
   sbsContacts: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
