@@ -10,7 +10,7 @@ import flags from '../../util/feature-flags'
 export type Props = {
   addedEmail: string | null
   contactKeys: I.List<string>
-  hasPassword: Boolean
+  hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
@@ -29,7 +29,24 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-
+const AddButton = (props: {disabled: boolean; kind: 'phone' | 'email'; onClick: () => void}) => {
+  const btn = (
+    <Kb.Button
+      mode="Secondary"
+      onClick={props.onClick}
+      label={`Add ${props.kind}`}
+      small={true}
+      disabled={props.disabled}
+    />
+  )
+  return props.disabled ? (
+    <Kb.WithTooltip text={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}>
+      {btn}
+    </Kb.WithTooltip>
+  ) : (
+    btn
+  )
+}
 const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -50,21 +67,9 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-      <Kb.Button
-        mode="Secondary"
-        onClick={props.onAddEmail}
-        label="Add email"
-        small={true}
-        disabled={props.tooManyEmails}
-      />
+      <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
       {flags.sbsContacts && (
-        <Kb.Button
-          mode="Secondary"
-          onClick={props.onAddPhone}
-          label="Add phone"
-          small={true}
-          disabled={props.tooManyPhones}
-        />
+        <AddButton onClick={props.onAddPhone} kind="phone" disabled={props.tooManyPhones} />
       )}
     </Kb.ButtonBar>
   </SettingsSection>
