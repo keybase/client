@@ -457,6 +457,11 @@ func (c *contactStoreMock) RetrieveContacts(libkb.MetaContext) ([]keybase1.Proce
 	return c.contacts, nil
 }
 
+func (c *contactStoreMock) UnresolveContactsWithComponent(mctx libkb.MetaContext,
+	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	panic("unexpected call to UnresolveContactsWithComponent in mock")
+}
+
 func TestAttachContactNames(t *testing.T) {
 	tc := externalstest.SetupTest(t, "chat-utils", 0)
 	defer tc.Cleanup()

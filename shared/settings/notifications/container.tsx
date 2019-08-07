@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
-import {refreshNotificationsWaitingKey} from '../../constants/settings'
 import * as Container from '../../util/container'
 import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import * as Constants from '../../constants/settings'
 
 type OwnProps = {}
 
@@ -19,7 +19,7 @@ const ReloadableNotifications = (props: Props & ExtraProps) => {
   return (
     <Reloadable
       onBack={Container.isMobile ? props.onBack : undefined}
-      waitingKeys={refreshNotificationsWaitingKey}
+      waitingKeys={Constants.refreshNotificationsWaitingKey}
       onReload={onRefresh}
       reloadOnMount={true}
       title={title}
@@ -34,11 +34,13 @@ export default Container.connect(
     _groups: state.settings.notifications.groups,
     allowEdit: state.settings.notifications.allowEdit,
     mobileHasPermissions: state.push.hasPermissions,
+    showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
     sound: state.config.notifySound,
     waitingForResponse: state.settings.waitingForResponse,
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]})),
     onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
@@ -50,6 +52,7 @@ export default Container.connect(
     allowEdit: stateProps.allowEdit,
     groups: (stateProps._groups.toObject() as unknown) as Props['groups'],
     mobileHasPermissions: stateProps.mobileHasPermissions,
+    showEmailSection: stateProps.showEmailSection,
     sound: stateProps.sound,
     title: 'Notifications',
     waitingForResponse: stateProps.waitingForResponse,

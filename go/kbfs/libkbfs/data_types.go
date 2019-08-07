@@ -733,5 +733,8 @@ func (p *parsedPath) getFolderBranch(ctx context.Context, config Config) (data.F
 	if err != nil {
 		return data.FolderBranch{}, err
 	}
+	if node == nil {
+		return data.FolderBranch{}, nil
+	}
 	return node.GetFolderBranch(), nil
 }

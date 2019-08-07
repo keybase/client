@@ -51,6 +51,7 @@ class List<Item> extends PureComponent<Props<Item>> {
             keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
             ListHeaderComponent={this.props.ListHeaderComponent}
             onEndReached={this.props.onEndReached}
+            onEndReachedThreshold={this.props.onEndReachedThreshold}
             windowSize={this.props.windowSize || 10}
             debug={false /* set to true to debug the list */}
           />

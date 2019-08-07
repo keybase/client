@@ -19,6 +19,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
     swipeable.current && swipeable.current.close()
   }
   return (
+    // @ts-ignore failOffsetX exists in GestureHandler but not swipable
     <Kb.Swipeable
       ref={swipeable}
       renderRightActions={_renderRightActions}

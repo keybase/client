@@ -31,6 +31,9 @@
         "chat1ChatUiChatThreadFull": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void}"
         },
+        "chat1ChatUiChatThreadStatus": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void}"
+        },
         "chat1ChatUiChatSearchHit": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void}"
         },
@@ -375,6 +378,9 @@
         },
         "keybase1NotifyRuntimeStatsRuntimeStatsUpdate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}"
+        },
+        "keybase1NotifyServiceHTTPSrvInfoUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']) => void}"
         },
         "keybase1NotifyServiceShutdown": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}"

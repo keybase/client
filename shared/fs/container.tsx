@@ -6,7 +6,7 @@ import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
-import {useFsPathMetadata, useFsTlfs} from './common'
+import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
@@ -43,8 +43,9 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     isConnected && waitForKbfsDaemon()
   }, [isConnected, waitForKbfsDaemon])
 
-  useFsPathMetadata(props.path)
-  useFsTlfs()
+  Kbfs.useFsPathMetadata(props.path)
+  Kbfs.useFsTlfs()
+  Kbfs.useFsOnlineStatus()
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
     return <SimpleScreens.Loading />

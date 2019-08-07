@@ -43,9 +43,6 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.FolderHandl
 	if folder.FolderType == keybase1.FolderType_PUBLIC {
 		return res, fmt.Errorf("public team git repos not supported")
 	}
-	if err != nil {
-		return res, err
-	}
 	team, err := teams.Load(ctx, t.G(), keybase1.LoadTeamArg{
 		Name:        folder.Name,
 		Public:      folder.FolderType == keybase1.FolderType_PUBLIC,
