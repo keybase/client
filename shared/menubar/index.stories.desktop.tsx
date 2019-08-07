@@ -32,7 +32,10 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
-  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({rpcStatus: Types.KbfsDaemonRpcStatus.Connected}),
+  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({
+    onlineStatus: Types.KbfsDaemonOnlineStatus.Online,
+    rpcStatus: Types.KbfsDaemonRpcStatus.Connected,
+  }),
   kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,

@@ -8,6 +8,7 @@ export type UploadCountdownHOCProps = {
   endEstimate?: number
   files: number
   fileName: string | null
+  isOnline: boolean
   totalSyncingBytes: number
   debugToggleShow?: () => void
 }
@@ -95,7 +96,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
 
     _updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {
-      const isUploading = !!props.files || !!props.totalSyncingBytes
+      const isUploading = props.isOnline && (!!props.files || !!props.totalSyncingBytes)
       const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
       const {mode, glueTTL} = prevState
       switch (mode) {
@@ -144,6 +145,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
 
     componentDidUpdate(prevProps: Props) {
       if (
+        this.props.isOnline === prevProps.isOnline &&
         this.props.files === prevProps.files &&
         this.props.totalSyncingBytes === prevProps.totalSyncingBytes &&
         this.props.endEstimate === prevProps.endEstimate
