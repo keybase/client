@@ -706,6 +706,10 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
 }
 
 export const airdropWaitingKey = 'wallets:airdrop'
+export const assetDepositWaitingKey = (issuerAccountID: Types.AccountID) =>
+  `wallets:assetDeposit:${Types.accountIDToString(issuerAccountID)}`
+export const assetWithdrawWaitingKey = (issuerAccountID: Types.AccountID) =>
+  `wallets:assetWithdraw:${Types.accountIDToString(issuerAccountID)}`
 export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 export const createNewAccountWaitingKey = 'wallets:createNewAccount'

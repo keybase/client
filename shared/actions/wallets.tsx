@@ -1502,28 +1502,34 @@ const handleSEP6Error = (err: RPCError) => [
 ]
 
 const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
-  RPCStellarTypes.localAssetDepositLocalRpcPromise({
-    accountID: action.payload.accountID,
-    asset: assetDescriptionOrNativeToRpcAsset(
-      Constants.makeAssetDescription({
-        code: action.payload.code,
-        issuerAccountID: action.payload.issuerAccountID,
-      })
-    ),
-  })
+  RPCStellarTypes.localAssetDepositLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      asset: assetDescriptionOrNativeToRpcAsset(
+        Constants.makeAssetDescription({
+          code: action.payload.code,
+          issuerAccountID: action.payload.issuerAccountID,
+        })
+      ),
+    },
+    Constants.assetDepositWaitingKey(action.payload.issuerAccountID)
+  )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))
 
 const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
-  RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
-    accountID: action.payload.accountID,
-    asset: assetDescriptionOrNativeToRpcAsset(
-      Constants.makeAssetDescription({
-        code: action.payload.code,
-        issuerAccountID: action.payload.issuerAccountID,
-      })
-    ),
-  })
+  RPCStellarTypes.localAssetWithdrawLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      asset: assetDescriptionOrNativeToRpcAsset(
+        Constants.makeAssetDescription({
+          code: action.payload.code,
+          issuerAccountID: action.payload.issuerAccountID,
+        })
+      ),
+    },
+    Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID)
+  )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))
 
