@@ -28,8 +28,9 @@ export const isMac = false
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
 export const mobileOsVersion = Platform.Version
-export const isAndroidNewerThanM = isAndroid && parseInt(mobileOsVersion) > 22
-export const isAndroidNewerThanN = isAndroid && parseInt(mobileOsVersion, 10) >= 26
+const mobileOsVersionNumber = typeof mobileOsVersion === 'string' ? parseInt(mobileOsVersion) : -1
+export const isAndroidNewerThanM = isAndroid && mobileOsVersionNumber > 22
+export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
 
 export const isIPhoneX = iPhoneXHelper.isIphoneX()

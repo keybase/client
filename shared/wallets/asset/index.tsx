@@ -37,17 +37,17 @@ export default class Asset extends React.Component<Props, State> {
     }))
   }
 
-  _openInfoURL = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _openInfoURL = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation()
     this.props.openInfoURL && this.props.openInfoURL()
   }
 
-  _onDeposit = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _onDeposit = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation()
     this.props.onDeposit && this.props.onDeposit()
   }
 
-  _onWithdraw = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _onWithdraw = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation()
     this.props.onWithdraw && this.props.onWithdraw()
   }

@@ -35,7 +35,7 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
   }
   state = {localWaiting: false}
 
-  _onClick = (event: React.SyntheticEvent) => {
+  _onClick = (event: React.BaseSyntheticEvent) => {
     if (!this.props.waitingKey) {
       this.setState({localWaiting: true})
     }

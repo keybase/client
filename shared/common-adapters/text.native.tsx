@@ -25,6 +25,7 @@ const styleMap = Object.keys(metaData).reduce<{[key: string]: Styles.StylesCross
   }
 )
 
+// @ts-ignore TODO fix styles
 const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf

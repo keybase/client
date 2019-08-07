@@ -13,12 +13,13 @@ const _renderRightActions = () => {
 // See '.js.flow' for explanation
 const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => void}) => {
   const {children, ...rest} = props
-  const swipeable = React.useRef<Kb.Swipeable>()
+  const swipeable = React.useRef<Kb.Swipeable>(null)
   const onRightOpen = () => {
     props.onSwipeLeft()
     swipeable.current && swipeable.current.close()
   }
   return (
+    // @ts-ignore failOffsetX exists in GestureHandler but not swipable
     <Kb.Swipeable
       ref={swipeable}
       renderRightActions={_renderRightActions}
