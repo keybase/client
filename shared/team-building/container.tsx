@@ -359,6 +359,8 @@ const sortAndSplitRecommendations = memoize(
           .toLowerCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
+          // And special-case ł because it's a speciał snowfłake.
+          .replace(/ł/g, 'l')
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
           const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
