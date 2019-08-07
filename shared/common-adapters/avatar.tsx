@@ -24,7 +24,6 @@ export type OwnProps = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
   teamname?: string
   username?: string
@@ -46,7 +45,6 @@ type Props = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
   teamname?: string
   url: URLType
@@ -129,7 +127,6 @@ const ConnectedAvatar = Container.connect(
       opacity: ownProps.opacity,
       size: ownProps.size,
       skipBackground: ownProps.skipBackground,
-      skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
       style: ownProps.style,
       url,
     }
