@@ -551,3 +551,122 @@ func TestCreateAndResolveEmailImpTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2)
 }
+
+func TestNewSBSAfterResolvedOnce(t *testing.T) {
+	// 1. alice makes alice,bob@rooter implicit team
+	// 2. bob proves rooter
+	// 3. alice resolves implicit team to alice,bob
+	// 4. bob removes rooter proof
+	// 5. alice tries to make alice,bob@rooter again
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	// Create ann,bob@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it resolves
+	teamID1, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it loads.
+	teamObj1 := ann.loadTeamByID(teamID1, true /* admin */)
+	_ = teamObj1
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID1,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure "ann,bob" resolves to the existing team.
+	impteamNameResolved := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamNameResolved, false /* public */)
+	require.NoError(t, err)
+
+	require.Equal(t, teamID1, teamID2)
+
+	// Bob revokes rooter proof
+	bob.revokeSocialProof("rooter")
+
+	// Now we want to make an implicit team for ann,bob@rooter again and wait
+	// for a new owner.
+	_, err = ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+	//                   ^-- Fails here with:
+	//  implicit team name mismatch: ann_a6c9a0ef0e,bob_113b8e972b != ann_a6c9a0ef0e,bob_113b8e972b@rooter
+
+	// Make sure it resolves
+	teamID3, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	require.NotEqual(t, teamID1, teamID3)
+}
+
+func TestSBSAfterRevokedAndProved(t *testing.T) {
+	// 1. alice makes alice,bob@rooter implicit team
+	// 2. alice goes offline
+	// 3. bob proves rooter
+	// 4. bob removes the proof
+	// 5. bob proves rooter (again)
+	// 6. alice goes online
+	// 7. alice should get SBS notif and let bob in
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	// Create ann,bob@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it resolves
+	teamID1, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it loads.
+	teamObj1 := ann.loadTeamByID(teamID1, true /* admin */)
+	_ = teamObj1
+
+	// Ann logs out, bob messing with proofs will happen while ann is offline,
+	// so no SBS resolving can take place.
+	ann.logout()
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Bob revokes rooter proof
+	bob.revokeSocialProof("rooter")
+
+	// Bob proves rooter again, what gives!?
+	bob.proveRooter()
+
+	// Ann logs back. We are expecting SBS notification to let Bob in.
+	ann.login()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID1,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure "ann,bob" resolves to the existing team.
+	impteamNameResolved := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamNameResolved, false /* public */)
+	require.NoError(t, err)
+
+	require.Equal(t, teamID1, teamID2)
+}

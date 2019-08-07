@@ -742,6 +742,22 @@ func (u *userPlusDevice) proveGubbleSocial() {
 	proveGubbleUniverse(u.tc, "gubble.social", "gubble_social", u.username, u.newSecretUI())
 }
 
+func (u *userPlusDevice) revokeSocialProof(service string) {
+	serviceType := u.tc.G.GetProofServices().GetServiceType(context.Background(), service)
+	arg := libkb.NewLoadUserByNameArg(u.tc.G, u.username).WithPublicKeyOptional()
+	user, err := libkb.LoadUser(arg)
+	require.NoError(u.tc.T, err)
+	proof := user.IDTable().GetActiveProofsFor(serviceType)
+	sigID := proof[0].GetSigID()
+
+	eng := engine.NewRevokeSigsEngine(u.tc.G, []string{sigID.String()})
+	err = engine.RunEngine2(u.MetaContext().WithUIs(libkb.UIs{
+		LogUI:    u.tc.G.Log,
+		SecretUI: &libkb.TestSecretUI{Passphrase: "dummy-passphrase"},
+	}), eng)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) track(username string) {
 	trackCmd := client.NewCmdTrackRunner(u.tc.G)
 	trackCmd.SetUser(username)
