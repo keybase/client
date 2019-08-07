@@ -615,6 +615,9 @@ protocol local {
     // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+
+    // drafts
+    union { null, string } draft;
   }
 
   record NonblockFetchRes {

@@ -1927,6 +1927,13 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         }
       ]
     },

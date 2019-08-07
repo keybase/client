@@ -1425,6 +1425,9 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 	if err != nil {
 		return err
 	}
+	if err := storage.NewDrafts(h.G(), uid).Put(ctx, arg.ConversationID, arg.Text); err != nil {
+		h.Debug(ctx, "UpdateUnsentText: failed to save draft: %s", err)
+	}
 
 	// Attempt to prefetch any unfurls in the background that are in the message text
 	go h.G().Unfurler.Prefetch(globals.BackgroundChatCtx(ctx, h.G()), uid, arg.ConversationID, arg.Text)

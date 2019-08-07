@@ -180,6 +180,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": [
+            null,
             "UnverifiedInboxUIItemMetadata"
           ],
           "name": "localMetadata"
@@ -316,6 +323,13 @@
         {
           "type": "string",
           "name": "headlineDecorated"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",

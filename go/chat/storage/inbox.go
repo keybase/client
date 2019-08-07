@@ -717,11 +717,26 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	return false
 }
 
+func (i *Inbox) attachDrafts(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation) {
+	drafts, err := NewDrafts(i.G(), uid).Get(ctx)
+	if err != nil {
+		i.Debug(ctx, "attachDrafts: failed to get drafts: %s", err)
+		return
+	}
+	for index, conv := range convs {
+		if draft, ok := drafts[conv.GetConvID().String()]; ok {
+			convs[index].LocalDraft = new(string)
+			*convs[index].LocalDraft = draft.Text
+		}
+	}
+}
+
 func (i *Inbox) ReadAll(ctx context.Context, uid gregor1.UID, useInMemory bool) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "ReadAll")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer i.attachDrafts(ctx, uid, res)
 
 	ibox, err := i.readDiskInbox(ctx, uid, useInMemory)
 	if err != nil {
@@ -753,6 +768,7 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", uid))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer i.attachDrafts(ctx, uid, res)
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {

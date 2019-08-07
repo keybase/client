@@ -7,8 +7,8 @@ import (
 )
 
 type locksRepo struct {
-	Inbox, Outbox, ReadOutbox, Version, ConvFailures sync.Mutex
-	StorageLockTab                                   *libkb.LockTable
+	Inbox, Outbox, ReadOutbox, Version, ConvFailures, Drafts sync.Mutex
+	StorageLockTab                                           *libkb.LockTable
 }
 
 var locks *locksRepo
