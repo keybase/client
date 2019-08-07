@@ -127,13 +127,14 @@ func (s *ContactCacheStore) getCache(mctx libkb.MetaContext) (obj lookupResultCa
 	var createCache bool
 	cacheKey := s.dbKey(mctx.CurrentUID())
 	found, err := s.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if err != nil {
+	switch {
+	case err != nil:
 		mctx.Warning("Unable to pull contact lookup cache: %s", err)
 		createCache = true
-	} else if !found {
+	case !found:
 		mctx.Debug("No contact lookup cache found, creating new cache object")
 		createCache = true
-	} else if conCache.Version.Major != cacheCurrentMajorVersion {
+	case conCache.Version.Major != cacheCurrentMajorVersion:
 		mctx.Debug("Found contact cache object but major version is %d (need %d)", conCache.Version.Major, cacheCurrentMajorVersion)
 		createCache = true
 	}

@@ -29,9 +29,29 @@ const commands = {
       // storybook uses react-docgen which really cr*ps itself with flow
       // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
       makeShims()
+      fixTypes()
     },
     help: '',
   },
+}
+
+const fixTypes = () => {
+  // couldn't figure out an effective way to patch this file up, so just blowing it away
+  const files = ['@types/react-native/index.d.ts']
+
+  files.forEach(file => {
+    const p = path.resolve(__dirname, '..', '..', 'node_modules', file)
+    try {
+      fs.unlinkSync(p)
+    } catch (_) {}
+  })
+
+  try {
+    fs.copyFileSync(
+      path.resolve(__dirname, '..', '..', 'override-d.ts', 'react-native', 'kb-custom'),
+      path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
+    )
+  } catch (_) {}
 }
 
 function makeShims() {

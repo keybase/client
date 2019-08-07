@@ -970,7 +970,7 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend
+  navigateAppend: typeof RouteTreeGen.createNavigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,

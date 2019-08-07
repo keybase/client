@@ -64,7 +64,7 @@ const border = ({borderColor, borderRadius}) => (
 class AvatarRender extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {loaded: !!this.props.load}
+    this.state = {loaded: true}
   }
 
   _mounted = false
@@ -76,9 +76,6 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.load && this.props.name !== prevProps.name) {
-      this.props.load()
-    }
     if (this.props.url !== prevProps.url) {
       this.setState({loaded: false})
     }
@@ -86,7 +83,6 @@ class AvatarRender extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     this._mounted = true
-    this.props.load && this.props.load()
   }
 
   componentWillUnmount() {

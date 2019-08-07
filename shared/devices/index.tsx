@@ -5,19 +5,9 @@ import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
 export type Item =
-  | {
-      key: string
-      id: Types.DeviceID
-      type: 'device'
-    }
-  | {
-      key: string
-      type: 'revokedHeader'
-    }
-  | {
-      key: string
-      type: 'revokedNote'
-    }
+  | {key: string; id: Types.DeviceID; type: 'device'}
+  | {key: string; type: 'revokedHeader'}
+  | {key: string; type: 'revokedNote'}
 
 type State = {
   revokedExpanded: boolean
@@ -50,15 +40,15 @@ class Devices extends React.PureComponent<Props, State> {
     }
   }
 
-  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+  private toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
 
-  _renderRow = (index, item) => {
+  private renderItem = (index: number, item: Item) => {
     if (item.type === 'revokedHeader') {
       return (
         <RevokedHeader
           key="revokedHeader"
           expanded={this.state.revokedExpanded}
-          onToggleExpanded={this._toggleExpanded}
+          onToggleExpanded={this.toggleExpanded}
         />
       )
     } else if (item.type === 'revokedNote') {
@@ -73,11 +63,11 @@ class Devices extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const items = [
+    const items: Array<Item> = [
       ...this.props.items,
-      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
+      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
       ...(this.state.revokedExpanded
-        ? [{key: 'revokedNote', type: 'revokedNote'}, ...this.props.revokedItems]
+        ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...this.props.revokedItems]
         : []),
     ]
 
@@ -88,7 +78,7 @@ class Devices extends React.PureComponent<Props, State> {
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List bounces={false} items={items} renderItem={this._renderRow} />
+        <Kb.List bounces={false} items={items} renderItem={this.renderItem} />
       </Kb.Box2>
     )
   }

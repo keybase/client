@@ -64,7 +64,7 @@ export const parseRepos = (
   errors: Array<Error>
 } => {
   let errors: Array<Error> = []
-  let repos = {}
+  let repos: {[key: string]: Types.GitInfo} = {}
   results.forEach(result => {
     if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
       const parsedRepo = parseRepoResult(result)

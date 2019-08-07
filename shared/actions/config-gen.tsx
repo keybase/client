@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {ConnectionType} from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
@@ -24,9 +24,6 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
-export const loadAvatars = 'config:loadAvatars'
-export const loadTeamAvatars = 'config:loadTeamAvatars'
-export const loadedAvatars = 'config:loadedAvatars'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
@@ -51,6 +48,7 @@ export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
+export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -89,9 +87,6 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
 type _InstallerRanPayload = void
-type _LoadAvatarsPayload = {readonly usernames: Array<string>}
-type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
-type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutHandshakePayload = {readonly version: number}
@@ -136,6 +131,7 @@ type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
 }
+type _UpdateHTTPSrvInfoPayload = {readonly address: string; readonly token: string}
 type _UpdateInfoPayload = {
   readonly isOutOfDate: boolean
   readonly critical: boolean
@@ -264,18 +260,6 @@ export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayl
   payload,
   type: globalError,
 })
-export const createLoadAvatars = (payload: _LoadAvatarsPayload): LoadAvatarsPayload => ({
-  payload,
-  type: loadAvatars,
-})
-export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload): LoadTeamAvatarsPayload => ({
-  payload,
-  type: loadTeamAvatars,
-})
-export const createLoadedAvatars = (payload: _LoadedAvatarsPayload): LoadedAvatarsPayload => ({
-  payload,
-  type: loadedAvatars,
-})
 export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
@@ -328,6 +312,10 @@ export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): Set
   type: setSystemDarkMode,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
+export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
+  payload,
+  type: updateHTTPSrvInfo,
+})
 export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload => ({
   payload,
   type: updateInfo,
@@ -379,15 +367,6 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: typeof loadAvatars}
-export type LoadTeamAvatarsPayload = {
-  readonly payload: _LoadTeamAvatarsPayload
-  readonly type: typeof loadTeamAvatars
-}
-export type LoadedAvatarsPayload = {
-  readonly payload: _LoadedAvatarsPayload
-  readonly type: typeof loadedAvatars
-}
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
 export type LogoutHandshakePayload = {
@@ -457,6 +436,10 @@ export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
   readonly type: typeof updateCriticalCheckStatus
 }
+export type UpdateHTTPSrvInfoPayload = {
+  readonly payload: _UpdateHTTPSrvInfoPayload
+  readonly type: typeof updateHTTPSrvInfo
+}
 export type UpdateInfoPayload = {readonly payload: _UpdateInfoPayload; readonly type: typeof updateInfo}
 export type UpdateMenubarWindowIDPayload = {
   readonly payload: _UpdateMenubarWindowIDPayload
@@ -481,9 +464,6 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
-  | LoadAvatarsPayload
-  | LoadTeamAvatarsPayload
-  | LoadedAvatarsPayload
   | LoggedInPayload
   | LoggedOutPayload
   | LogoutHandshakePayload
@@ -508,6 +488,7 @@ export type Actions =
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload
+  | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload

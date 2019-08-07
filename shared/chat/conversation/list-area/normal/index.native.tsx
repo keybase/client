@@ -17,7 +17,7 @@ const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : () => {}
 const targetHitArea = 1
 
 class ConversationList extends React.PureComponent<Props> {
-  _listRef = React.createRef<NativeVirtualizedList>()
+  _listRef = React.createRef<NativeVirtualizedList<Types.Ordinal | 'specialTop' | 'specialBottom'>>()
   _scrollCenterTarget?: number
 
   _renderItem = ({item}) => {
@@ -202,7 +202,7 @@ class ConversationList extends React.PureComponent<Props> {
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
-            forwardedRef={this._listRef}
+            ref={this._listRef}
             onScrollToIndexFailed={this._onScrollToIndexFailed}
             removeClippedSubviews={Styles.isAndroid}
           />

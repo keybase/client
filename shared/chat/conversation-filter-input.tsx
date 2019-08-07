@@ -37,7 +37,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     }
   }
 
-  _onEnterKeyDown = (e: React.KeyboardEvent) => {
+  _onEnterKeyDown = (e: React.BaseSyntheticEvent) => {
     if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
