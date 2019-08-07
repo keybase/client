@@ -145,7 +145,7 @@ func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
 
 func IsLocalizerCancelableCtx(ctx context.Context) bool {
 	val := ctx.Value(localizerCancelableKey)
-	if _, ok := val.(bool); ok {
+	if bval, ok := val.(bool); ok && bval {
 		return true
 	}
 	return false
@@ -153,6 +153,13 @@ func IsLocalizerCancelableCtx(ctx context.Context) bool {
 
 func CtxAddLocalizerCancelable(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localizerCancelableKey, true)
+}
+
+func CtxRemoveLocalizerCancelable(ctx context.Context) context.Context {
+	if IsLocalizerCancelableCtx(ctx) {
+		return context.WithValue(ctx, localizerCancelableKey, false)
+	}
+	return ctx
 }
 
 func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
