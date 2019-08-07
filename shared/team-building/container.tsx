@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
+import unidecode from 'unidecode'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
@@ -355,12 +356,7 @@ const sortAndSplitRecommendations = memoize(
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
-        const letter = (rec.prettyName || rec.displayLabel)[0]
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/, '')
-          // And special-case ł because it's a speciał snowfłake.
-          .replace('ł', 'l')
+        const letter = unidecode(rec.prettyName || rec.displayLabel)[0].toLowerCase()
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
           const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
