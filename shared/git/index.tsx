@@ -59,6 +59,7 @@ class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
         )}
         <Kb.SectionList
           keyExtractor={item => (typeof item === 'string' ? item : item.title)}
+          extraData={this.props.expandedSet}
           renderItem={this.renderItem}
           renderSectionHeader={this.renderSectionHeader}
           sections={[

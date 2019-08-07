@@ -236,7 +236,6 @@ describe('Team Repos', () => {
     const {dispatch} = init
     dispatch(
       GitGen.createSetTeamRepoSettings({
-        channelName: null,
         chatDisabled: true,
         repoID: '1a53ac017631bfbd59adfeb453c84c2c',
         teamname: 'test_shop_932',

@@ -63,23 +63,24 @@ const deletePersonalRepo = async (_: TypedState, action: GitGen.DeletePersonalRe
   }
 }
 
-const deleteTeamRepo = await (_: TypedState, action: GitGen.DeleteTeamRepoPayload) => {
-    try {
-  await RPCTypes.gitDeleteTeamRepoRpcPromise(
-    {
-      notifyTeam: action.payload.notifyTeam,
-      repoName: action.payload.name,
-      teamName: { parts: action.payload.teamname.split('.'), },
-    },
-    Constants.loadingWaitingKey
-  )
+const deleteTeamRepo = async (_: TypedState, action: GitGen.DeleteTeamRepoPayload) => {
+  try {
+    await RPCTypes.gitDeleteTeamRepoRpcPromise(
+      {
+        notifyTeam: action.payload.notifyTeam,
+        repoName: action.payload.name,
+        teamName: {parts: action.payload.teamname.split('.')},
+      },
+      Constants.loadingWaitingKey
+    )
     return GitGen.createRepoDeleted()
-    }
-    catch(error){return  GitGen.createSetError({error})}
+  } catch (error) {
+    return GitGen.createSetError({error})
+  }
 }
 
-const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
-  RPCTypes.gitSetTeamRepoSettingsRpcPromise({
+const setTeamRepoSettings = async (_: TypedState, action: GitGen.SetTeamRepoSettingsPayload) => {
+  await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
@@ -88,14 +89,19 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
       name: action.payload.teamname,
     },
     repoID: action.payload.repoID,
-  }).then(() => GitGen.createLoadGit())
+  })
+  return GitGen.createLoadGit()
+}
 
-const clearNavBadges = () =>
-  RPCTypes.gregorDismissCategoryRpcPromise({
-    category: 'new_git_repo',
-  }).catch(logError)
+const clearNavBadges = async () => {
+  try {
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
+  } catch (e) {
+    return logError(e)
+  }
+}
 
-const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
+const handleIncomingGregor = (_: TypedState, action: GregorGen.PushOOBMPayload) => {
   const gitMessages = action.payload.messages.filter(i => i.system === 'git')
   const msgs = gitMessages.map(msg => JSON.parse(msg.body.toString()))
   for (let body of msgs) {
@@ -104,10 +110,10 @@ const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
       return GitGen.createLoadGit()
     }
   }
-  return undefined
+  return false
 }
 
-function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
+function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRepoPayload) {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
   if (!id) {
@@ -118,39 +124,33 @@ function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
   }
 
   if (id) {
-    yield Saga.put(GitGen.createNavToGit({routeState: {expandedSet: I.Set([id])}, switchTab: true}))
+    yield Saga.put(GitGen.createNavToGit({routeState: {expandedSet: new Set([id])}, switchTab: true}))
   }
 }
 
-const receivedBadgeState = (_, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []})
+const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   // Create / Delete
-  yield* Saga.chainAction<GitGen.CreatePersonalRepoPayload>(GitGen.createPersonalRepo, createPersonalRepo)
-  yield* Saga.chainAction<GitGen.CreateTeamRepoPayload>(GitGen.createTeamRepo, createTeamRepo)
-  yield* Saga.chainAction<GitGen.DeletePersonalRepoPayload>(GitGen.deletePersonalRepo, deletePersonalRepo)
-  yield* Saga.chainAction<GitGen.DeleteTeamRepoPayload>(GitGen.deleteTeamRepo, deleteTeamRepo)
-  yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload | GitGen.LoadGitPayload>(
-    [GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit],
-    load
-  )
+  yield* Saga.chainAction2(GitGen.createPersonalRepo, createPersonalRepo)
+  yield* Saga.chainAction2(GitGen.createTeamRepo, createTeamRepo)
+  yield* Saga.chainAction2(GitGen.deletePersonalRepo, deletePersonalRepo)
+  yield* Saga.chainAction2(GitGen.deleteTeamRepo, deleteTeamRepo)
+  yield* Saga.chainAction2([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
 
   // Team Repos
-  yield* Saga.chainAction<GitGen.SetTeamRepoSettingsPayload>(GitGen.setTeamRepoSettings, setTeamRepoSettings)
+  yield* Saga.chainAction2(GitGen.setTeamRepoSettings, setTeamRepoSettings)
   yield* Saga.chainGenerator<GitGen.NavigateToTeamRepoPayload>(GitGen.navigateToTeamRepo, navigateToTeamRepo)
 
   // Badges
-  yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
-    NotificationsGen.receivedBadgeState,
-    receivedBadgeState
-  )
+  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   // clear on load
-  yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
+  yield* Saga.chainAction2(GitGen.loadGit, clearNavBadges)
 
   // Gregor
-  yield* Saga.chainAction<GregorGen.PushOOBMPayload>(GregorGen.pushOOBM, handleIncomingGregor)
+  yield* Saga.chainAction2(GregorGen.pushOOBM, handleIncomingGregor)
 }
 
 export default gitSaga

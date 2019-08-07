@@ -44,7 +44,7 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleE
 
   const toggleExpand = (id: string) => {
     moduleExpandedSet.has(id) ? moduleExpandedSet.delete(id) : moduleExpandedSet.add(id)
-    setExpandedSet(moduleExpandedSet)
+    setExpandedSet(new Set(moduleExpandedSet))
   }
 
   const {_loadGit, ...rest} = p
