@@ -21,8 +21,7 @@ const (
 const CurrentEncodingType = EncodingTypeBlindedSHA512_256v1
 
 func GetTreeConfig(encodingType EncodingType) (merkletree.Config, error) {
-	switch encodingType {
-	case EncodingTypeBlindedSHA512_256v1:
+	if encodingType == EncodingTypeBlindedSHA512_256v1 {
 		return merkletree.NewConfig(SHA512_256Hasher{}, 32, 64, EncodedLeaf{}), nil
 	}
 	return merkletree.Config{}, errors.Errorf("unknown encoding type %q", encodingType)
@@ -44,7 +43,7 @@ const (
 
 type LeafBytes []byte
 type LeafContainer struct {
-	_struct   bool      `codec:",toarray"`
+	_struct   bool      `codec:",toarray"` //nolint
 	LeafType  LeafType  // specifies structure of leafBytes
 	LeafBytes LeafBytes // msgpack deserialization implements Leaf
 }
@@ -69,14 +68,14 @@ type Leaf interface {
 
 type SigID []byte
 type Teamv1HiddenTail struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	SigID   SigID
 	LinkID  sig3.LinkID
 	Seqno   keybase1.Seqno
 }
 
 type Teamv1Leaf struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	// do not encode teamID; it's redundant in the tree
 	TeamID sig3.TeamID `codec:"-"`
 	Tails  map[keybase1.SeqType]Teamv1HiddenTail
@@ -117,7 +116,7 @@ type Skips map[TreeSeqno]HashMeta
 type RootHash []byte
 
 type RootMetadata struct {
-	_struct      bool         `codec:",toarray"`
+	_struct      bool         `codec:",toarray"` //nolint
 	EncodingType EncodingType `codec:"e"`
 	Seqno        TreeSeqno    `codec:"s"`
 	Skips        Skips        `codec:"t"` // includes prev

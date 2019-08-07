@@ -2625,16 +2625,8 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
-	ctx = k.makeContext(ctx)
-	// This is kind of expensive, but we are only calling this from GUI right
-	// after KBFS daemon is connected. After that we rely on notifications. We
-	// can change this to directly get from currentStatus in KBFSOps if that
-	// changes.
-	status, _, err := k.config.KBFSOps().Status(ctx)
-	if err != nil {
-		return false, err
-	}
-	return status.FailingServices[libkbfs.MDServiceName] == nil, nil
+	serviceErrors, _ := k.config.KBFSOps().StatusOfServices()
+	return serviceErrors[libkbfs.MDServiceName] == nil, nil
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.

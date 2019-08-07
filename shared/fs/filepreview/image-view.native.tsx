@@ -22,11 +22,15 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
   componentDidMount() {
     this._mounted = true
-    Kb.NativeImage.getSize(this.props.url, (width, height) => {
-      if (this._mounted) {
-        this.setState({height, width})
-      }
-    })
+    Kb.NativeImage.getSize(
+      this.props.url,
+      (width, height) => {
+        if (this._mounted) {
+          this.setState({height, width})
+        }
+      },
+      () => {}
+    )
   }
 
   _setLoaded = () => this.setState({loaded: true})

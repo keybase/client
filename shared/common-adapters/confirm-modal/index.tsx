@@ -20,7 +20,7 @@ export type Props = {
   iconColor?: Styles.Color
   onCancel?: () => void
   onConfirm?: () => void
-  prompt: string
+  prompt: React.ReactNode
   waitingKey?: string
 }
 
@@ -100,9 +100,13 @@ class ConfirmModal extends React.PureComponent<Props> {
               {this.props.header}
             </Box2>
           )}
-          <Text center={true} style={styles.text} type="HeaderBig">
-            {this.props.prompt}
-          </Text>
+          {typeof this.props.prompt === 'string' ? (
+            <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
+              {this.props.prompt}
+            </Text>
+          ) : (
+            this.props.prompt
+          )}
           <Text center={true} style={styles.text} type="Body">
             {this.props.description}
           </Text>

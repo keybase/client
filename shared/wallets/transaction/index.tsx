@@ -75,7 +75,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
     case 'airdrop':
       return (
-        <Text style={{color: globalColors.white}} type={props.textTypeSemibold}>
+        <Text style={{color: globalColors.purpleDark}} type={props.textTypeSemibold}>
           Stellar airdrop
         </Text>
       )
@@ -296,7 +296,7 @@ type AmountProps = {
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'airdrop':
-      return globalColors.white
+      return globalColors.purpleDark
     case 'senderOnly':
       return globalColors.black
     case 'receiverOnly':
@@ -416,6 +416,15 @@ const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const styleMarkdownMemo = {
+  paragraph: {
+    color: globalColors.purpleDark,
+  },
+  strong: {
+    color: globalColors.purpleDark,
+  },
+}
+
 export type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {
@@ -454,8 +463,6 @@ export const Transaction = (props: Props) => {
   let showMemo: boolean
   switch (props.counterpartyType) {
     case 'airdrop':
-      showMemo = false
-      break
     case 'keybaseUser':
       showMemo = true
       break
@@ -473,11 +480,8 @@ export const Transaction = (props: Props) => {
   }
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.fromAirdrop
-    ? globalColors.purpleLight
-    : (props.unread || pending) && !props.detailView
-    ? globalColors.blueLighter2
-    : globalColors.white
+  const backgroundColor =
+    (props.unread || pending) && !props.detailView ? globalColors.blueLighter2 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -495,7 +499,6 @@ export const Transaction = (props: Props) => {
             <TimestampLine
               detailView={props.detailView || false}
               error={props.status === 'error' ? props.statusDetail : ''}
-              reverseColor={props.fromAirdrop}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
@@ -522,7 +525,14 @@ export const Transaction = (props: Props) => {
               summaryAdvanced={props.summaryAdvanced}
               trustline={props.trustline}
             />
-            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {showMemo && (
+              <MarkdownMemo
+                memo={props.memo}
+                hideDivider={props.fromAirdrop}
+                style={styles.marginTopXTiny}
+                styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
+              />
+            )}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
                 <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>

@@ -38,6 +38,7 @@ export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
+export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
 export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -144,6 +145,7 @@ export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
+export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -472,6 +474,13 @@ type _Chat1ChatUiChatThreadFullPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatThreadStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatWatchPositionPayload = {
@@ -1219,6 +1228,17 @@ type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
     ) => void
   }
 }
+type _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyServiceShutdownPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
@@ -1847,6 +1867,9 @@ export const createChat1ChatUiChatThreadCached = (
 export const createChat1ChatUiChatThreadFull = (
   payload: _Chat1ChatUiChatThreadFullPayload
 ): Chat1ChatUiChatThreadFullPayload => ({payload, type: chat1ChatUiChatThreadFull})
+export const createChat1ChatUiChatThreadStatus = (
+  payload: _Chat1ChatUiChatThreadStatusPayload
+): Chat1ChatUiChatThreadStatusPayload => ({payload, type: chat1ChatUiChatThreadStatus})
 export const createChat1ChatUiChatWatchPosition = (
   payload: _Chat1ChatUiChatWatchPositionPayload
 ): Chat1ChatUiChatWatchPositionPayload => ({payload, type: chat1ChatUiChatWatchPosition})
@@ -2205,6 +2228,9 @@ export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
   payload,
   type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
+export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
+  payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -2554,6 +2580,10 @@ export type Chat1ChatUiChatThreadCachedPayload = {
 export type Chat1ChatUiChatThreadFullPayload = {
   readonly payload: _Chat1ChatUiChatThreadFullPayload
   readonly type: typeof chat1ChatUiChatThreadFull
+}
+export type Chat1ChatUiChatThreadStatusPayload = {
+  readonly payload: _Chat1ChatUiChatThreadStatusPayload
+  readonly type: typeof chat1ChatUiChatThreadStatus
 }
 export type Chat1ChatUiChatWatchPositionPayload = {
   readonly payload: _Chat1ChatUiChatWatchPositionPayload
@@ -2929,6 +2959,10 @@ export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
   readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
+export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
+  readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
+}
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
   readonly type: typeof keybase1NotifyServiceShutdown
@@ -3223,6 +3257,7 @@ export type Actions =
   | Chat1ChatUiChatStellarShowConfirmPayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
+  | Chat1ChatUiChatThreadStatusPayload
   | Chat1ChatUiChatWatchPositionPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
@@ -3318,6 +3353,7 @@ export type Actions =
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

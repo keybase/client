@@ -22,8 +22,8 @@ func (s *TeambotEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 
 func deriveTeambotEKFromTeamEK(mctx libkb.MetaContext, teamEK keybase1.TeamEk, botUID keybase1.UID) TeambotEKSeed {
 	hasher := hmac.New(sha256.New, teamEK.Seed[:])
-	hasher.Write(botUID.ToBytes())
-	hasher.Write([]byte(libkb.EncryptionReasonTeambotEphemeralKey))
+	_, _ = hasher.Write(botUID.ToBytes())
+	_, _ = hasher.Write([]byte(libkb.EncryptionReasonTeambotEphemeralKey))
 	return TeambotEKSeed(libkb.MakeByte32(hasher.Sum(nil)))
 }
 
@@ -258,8 +258,7 @@ func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.Tea
 	userEK, err := userEKBoxStorage.Get(mctx, teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 	if err != nil {
 		mctx.Debug("unable to get from userEKStorage %v", err)
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			return ek, newEKUnboxErr(mctx, TeambotEKKind, teambotEKGeneration, UserEKKind,
 				teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 		}

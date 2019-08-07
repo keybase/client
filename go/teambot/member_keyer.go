@@ -135,9 +135,9 @@ func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID
 
 func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applicationKey keybase1.TeamApplicationKey, botUID keybase1.UID) keybase1.Bytes32 {
 	hasher := hmac.New(sha256.New, applicationKey.Key[:])
-	hasher.Write(botUID.ToBytes())
-	hasher.Write([]byte{byte(applicationKey.Application)})
-	hasher.Write([]byte(libkb.EncryptionReasonTeambotKey))
+	_, _ = hasher.Write(botUID.ToBytes())
+	_, _ = hasher.Write([]byte{byte(applicationKey.Application)})
+	_, _ = hasher.Write([]byte(libkb.EncryptionReasonTeambotKey))
 	return libkb.MakeByte32(hasher.Sum(nil))
 }
 

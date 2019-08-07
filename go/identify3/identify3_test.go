@@ -180,13 +180,13 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.False(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
@@ -194,18 +194,18 @@ func TestFollowUnfollowTracy(t *testing.T) {
 		},
 	})
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "unreachable"}},
+			Metas: []keybase1.Identify3RowMeta{{Color: keybase1.Identify3RowColor_ORANGE, Label: "unreachable"}},
 		},
 	})
 
@@ -216,13 +216,13 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.True(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
@@ -230,18 +230,18 @@ func TestFollowUnfollowTracy(t *testing.T) {
 		},
 	})
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_GREEN,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
+			Metas: []keybase1.Identify3RowMeta{{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
 		},
 	})
 }
@@ -287,10 +287,12 @@ func TestFollowResetFollow(t *testing.T) {
 
 	kbtest.Logout(tc)
 	kbtest.ResetAccount(tc, alice)
-	alice.Login(tc.G)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.Logout(tc)
 
-	bob.Login(tc.G)
+	err = bob.Login(tc.G)
+	require.NoError(t, err)
 	res = runID3(t, mctx, alice.Username, true)
 	require.True(t, res.userWasReset)
 	res = runID3(t, mctx, alice.Username, true)

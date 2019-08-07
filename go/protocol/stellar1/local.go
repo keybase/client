@@ -711,12 +711,14 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 type AirdropDetails struct {
 	IsPromoted bool   `codec:"isPromoted" json:"isPromoted"`
 	Details    string `codec:"details" json:"details"`
+	Disclaimer string `codec:"disclaimer" json:"disclaimer"`
 }
 
 func (o AirdropDetails) DeepCopy() AirdropDetails {
 	return AirdropDetails{
 		IsPromoted: o.IsPromoted,
 		Details:    o.Details,
+		Disclaimer: o.Disclaimer,
 	}
 }
 
@@ -1184,6 +1186,7 @@ type ValidateStellarURIResultLocal struct {
 	DisplayAmountFiat     string           `codec:"displayAmountFiat" json:"displayAmountFiat"`
 	AvailableToSendNative string           `codec:"availableToSendNative" json:"availableToSendNative"`
 	AvailableToSendFiat   string           `codec:"availableToSendFiat" json:"availableToSendFiat"`
+	Signed                bool             `codec:"signed" json:"signed"`
 }
 
 func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal {
@@ -1203,6 +1206,7 @@ func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal 
 		DisplayAmountFiat:     o.DisplayAmountFiat,
 		AvailableToSendNative: o.AvailableToSendNative,
 		AvailableToSendFiat:   o.AvailableToSendFiat,
+		Signed:                o.Signed,
 	}
 }
 

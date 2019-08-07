@@ -6,7 +6,7 @@ import {StylesCrossPlatform} from '../../styles/css'
 export type Props = {
   children: React.ReactNode
   imageHeight: number
-  imageName: string // on desktop this is the filename under 'shared/images/icons'. on native this is the image loaded via require(..),
+  imageName: string | number // on desktop this is the filename under 'shared/images/icons'. on native this is the image loaded via require(..),
   imageWidth: number
   skipBackground?: boolean // don't add any styles or background image,
   style?: StylesCrossPlatform

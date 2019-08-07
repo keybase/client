@@ -11,17 +11,19 @@ import {validateNumber} from '../util/phone-numbers'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
+type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 
 const apiSearch = (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean,
-  impTofuQuery: RPCTypes.ImpTofuQuery | null
+  impTofuQuery: RPCTypes.ImpTofuQuery | null,
+  includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> =>
   RPCTypes.userSearchUserSearchRpcPromise({
     impTofuQuery,
-    includeContacts: flags.sbsContacts && service === 'keybase',
+    includeContacts: flags.sbsContacts && service === 'keybase' && includeContacts,
     includeServicesSummary,
     maxResults,
     query,
@@ -93,7 +95,8 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
           service,
           teamBuildingSearchLimit,
           true,
-          null
+          null,
+          false
         ).then(users =>
           TeamBuildingGen.createSearchResultsLoaded({
             namespace,
@@ -130,7 +133,7 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
   return null
 }
 
-const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
+const search = (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
     namespace
   ].teamBuilding
@@ -147,28 +150,33 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
     impTofuQuery = makeImpTofuQuery(query, userRegion)
   }
 
-  return apiSearch(query, teamBuildingSelectedService, teamBuildingSearchLimit, true, impTofuQuery).then(
-    users =>
-      TeamBuildingGen.createSearchResultsLoaded({
-        namespace,
-        query,
-        service: teamBuildingSelectedService,
-        users,
-      })
+  return apiSearch(
+    query,
+    teamBuildingSelectedService,
+    teamBuildingSearchLimit,
+    true,
+    impTofuQuery,
+    includeContacts
+  ).then(users =>
+    TeamBuildingGen.createSearchResultsLoaded({
+      namespace,
+      query,
+      service: teamBuildingSelectedService,
+      users,
+    })
   )
 }
 
-const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
+const fetchUserRecs = (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) =>
   Promise.all([
     RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
-    flags.sbsContacts
+    flags.sbsContacts && includeContacts
       ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
       : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
     .then(([_suggestionRes, _contactRes]) => {
       const suggestionRes = _suggestionRes || []
       const contactRes = _contactRes || []
-      const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
           contact: true,
@@ -178,16 +186,14 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
           serviceMap: {keybase: x.username},
         })
       )
-      let suggestions = suggestionRes
-        .filter(({username}) => !contactUsernames.has(username))
-        .map(
-          ({username, fullname}): TeamBuildingTypes.User => ({
-            id: username,
-            prettyName: fullname,
-            serviceMap: {keybase: username},
-          })
-        )
-      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
+      let suggestions = suggestionRes.map(
+        ({username, fullname}): TeamBuildingTypes.User => ({
+          id: username,
+          prettyName: fullname,
+          serviceMap: {keybase: username},
+        })
+      )
+      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts
       if (expectingContacts) {
         suggestions = suggestions.slice(0, 10)
       }

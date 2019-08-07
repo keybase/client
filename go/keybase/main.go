@@ -176,10 +176,10 @@ func osPreconfigure(g *libkb.GlobalContext) {
 
 			// Set the user's mountdirdefault to the current one if it's
 			// currently empty.
-			configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
+			_ = configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
 
 			if shouldResetMountdir {
-				configWriter.SetStringAtPath("mountdir", mountdirDefault)
+				_ = configWriter.SetStringAtPath("mountdir", mountdirDefault)
 			}
 		}
 	default:
@@ -198,7 +198,7 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 		g.Log.Errorf("Error parsing command line arguments: %s\n\n", err)
 		if _, isHelp := cmd.(*libcmdline.CmdSpecificHelp); isHelp {
 			// Parse returned the help command for this command, so run it:
-			cmd.Run()
+			_ = cmd.Run()
 		}
 		return errParseArgs
 	}
@@ -338,13 +338,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
 		// If this command warrants an autofork, do it now.
-		if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
-			newProc, err = client.AutoForkServer(g, cl)
-			if err != nil {
-				return err
-			}
+		newProc, err = client.AutoForkServer(g, cl)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -432,7 +430,8 @@ func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
 
 func HandleSignals(g *libkb.GlobalContext) {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
+	// Note: os.Kill can't be trapped.
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	for {
 		s := <-c
 		if s != nil {
@@ -456,7 +455,7 @@ func HandleSignals(g *libkb.GlobalContext) {
 			}
 
 			g.Log.Debug("calling shutdown")
-			g.Shutdown()
+			_ = g.Shutdown()
 			g.Log.Error("interrupted")
 			keybaseExit(3)
 		}

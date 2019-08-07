@@ -14,11 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type getCodeResponse struct {
-	libkb.AppStatusEmbed
-	VerificationCode string `json:"verification_code"`
-}
-
 func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
 	buf := make([]byte, 5)
 	_, err := rand.Read(buf)

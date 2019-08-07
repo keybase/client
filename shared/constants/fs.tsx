@@ -304,7 +304,7 @@ export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManage
 })
 
 export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
-  online: false,
+  onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
 })
 
@@ -663,7 +663,7 @@ export const isOfflineUnsynced = (
   path: Types.Path
 ) =>
   flags.kbfsOfflineMode &&
-  !daemonStatus.online &&
+  daemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
   Types.getPathLevel(path) > 2 &&
   pathItem.prefetchStatus !== prefetchComplete
 
@@ -935,9 +935,9 @@ export const getSyncStatusInMergeProps = (
   const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
-    return kbfsDaemonStatus.online
-      ? Types.SyncStatusStatic.Uploading
-      : Types.SyncStatusStatic.AwaitingToUpload
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.SyncStatusStatic.AwaitingToUpload
+      : Types.SyncStatusStatic.Uploading
   }
   if (!isPathEnabledForSync(tlfSyncConfig, path)) {
     return Types.SyncStatusStatic.OnlineOnly
@@ -952,7 +952,7 @@ export const getSyncStatusInMergeProps = (
     case Types.PrefetchState.Complete:
       return Types.SyncStatusStatic.Synced
     case Types.PrefetchState.InProgress: {
-      if (!kbfsDaemonStatus.online) {
+      if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
         return Types.SyncStatusStatic.AwaitingToSync
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
@@ -970,7 +970,7 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend
+  navigateAppend: typeof RouteTreeGen.createNavigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
@@ -995,7 +995,7 @@ export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedA
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendLinkToChat'}],
-    }),
+    })
   ),
 ]
 
@@ -1004,7 +1004,7 @@ export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],
-    }),
+    })
   ),
 ]
 
@@ -1012,12 +1012,12 @@ export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   overallSyncStatus: Types.OverallSyncStatus
 ): Types.MainBannerType =>
-  kbfsDaemonStatus.online
-    ? overallSyncStatus.diskSpaceStatus === 'error'
-      ? Types.MainBannerType.OutOfSpace
+  kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+    ? flags.kbfsOfflineMode
+      ? Types.MainBannerType.Offline
       : Types.MainBannerType.None
-    : flags.kbfsOfflineMode
-    ? Types.MainBannerType.Offline
+    : overallSyncStatus.diskSpaceStatus === 'error'
+    ? Types.MainBannerType.OutOfSpace
     : Types.MainBannerType.None
 
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>

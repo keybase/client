@@ -25,6 +25,7 @@ protocol common {
     string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
     boolean showWithdrawButton; // if true, show a withdraw button
     string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
+    string withdrawType; // bank_account, crypto, cash, etc. that the anchor supports
     string transferServer; // sep6 transfer server
     string authEndpoint; // sep6 auth endpoint
   }

@@ -2510,6 +2510,7 @@ type LoadTeamArg struct {
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
 	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
+	SkipNeedHiddenRotateCheck bool           `codec:"skipNeedHiddenRotateCheck" json:"skipNeedHiddenRotateCheck"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2525,6 +2526,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
 		SkipAudit:                 o.SkipAudit,
+		SkipNeedHiddenRotateCheck: o.SkipNeedHiddenRotateCheck,
 	}
 }
 

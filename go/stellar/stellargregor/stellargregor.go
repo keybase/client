@@ -90,7 +90,9 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	}
 
 	if msgBody.AccountID != "" {
-		h.walletState.Refresh(mctx, stellar1.AccountID(msgBody.AccountID), "accountChange gregor")
+		if err := h.walletState.Refresh(mctx, stellar1.AccountID(msgBody.AccountID), "accountChange gregor"); err != nil {
+			mctx.Debug("failed to Refresh wallet state: %s", err)
+		}
 		account, err := stellar.WalletAccount(mctx, h.walletState, stellar1.AccountID(msgBody.AccountID))
 		if err == nil {
 			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account)
@@ -98,7 +100,9 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 			mctx.Debug("failed to HandleWalletAccountDetailsUpdate: %s", err)
 		}
 	} else {
-		h.walletState.RefreshAll(mctx, "accountChange gregor")
+		if err := h.walletState.RefreshAll(mctx, "accountChange gregor"); err != nil {
+			mctx.Debug("failed to RefreshAll wallet state: %s", err)
+		}
 		accounts, err := stellar.AllWalletAccounts(mctx, h.walletState)
 		if err == nil {
 			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts)

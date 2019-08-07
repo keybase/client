@@ -3,7 +3,7 @@ import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // When accepting the Stellar disclaimer, next path after acceptance
-export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
+export type NextScreenAfterAcceptance = 'airdrop' | 'openWallet'
 
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
@@ -59,6 +59,7 @@ export type _Assets = {
   balanceAvailableToSend: string
   balanceTotal: string
   canAddTrustline: boolean
+  depositButtonText: string
   infoUrl: string
   infoUrlText: string
   issuerAccountID: string
@@ -66,6 +67,9 @@ export type _Assets = {
   issuerVerifiedDomain: string
   name: string
   reserves: I.List<Reserve>
+  showDepositButton: boolean
+  showWithdrawButton: boolean
+  withdrawButtonText: string
   worth: string
   worthCurrency: string
 }
@@ -310,37 +314,47 @@ export type _AirdropQualification = {
 }
 export type AirdropQualification = I.RecordOf<_AirdropQualification>
 
-export type _AirdropDetailsLine = {
+export type _StellarDetailsLine = {
   bullet: boolean
   text: string
 }
-type AirdropDetailsLine = I.RecordOf<_AirdropDetailsLine>
+type StellarDetailsLine = I.RecordOf<_StellarDetailsLine>
 
-export type _AirdropDetailsSection = {
-  lines: I.List<AirdropDetailsLine>
+export type _StellarDetailsSection = {
+  lines: I.List<StellarDetailsLine>
   section: string
   icon: string
 }
-type AirdropDetailsSection = I.RecordOf<_AirdropDetailsSection>
+type StellarDetailsSection = I.RecordOf<_StellarDetailsSection>
 
-export type _AirdropDetailsHeader = {
+export type _StellarDetailsHeader = {
   body: string
   title: string
 }
-type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
+type StellarDetailsHeader = I.RecordOf<_StellarDetailsHeader>
 
-export type _AirdropDetailsResponse = {
-  header: AirdropDetailsHeader
-  sections: I.List<AirdropDetailsSection>
+export type _StellarDetailsResponse = {
+  header: StellarDetailsHeader
+  sections: I.List<StellarDetailsSection>
 }
-export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
+export type StellarDetailsResponse = I.RecordOf<_StellarDetailsResponse>
 
-export type _AirdropDetails = {
-  details: AirdropDetailsResponse
+export type _StellarDetails = {
+  details: StellarDetailsResponse
+  disclaimer: StellarDetailsResponse
   isPromoted: boolean
 }
 
-export type AirdropDetails = I.RecordOf<_AirdropDetails>
+export type StellarDetailsSections = ReadonlyArray<{
+  lines: ReadonlyArray<{
+    bullet: boolean
+    text: string
+  }>
+  section: string
+  icon: string | null
+}>
+
+export type AirdropDetails = I.RecordOf<_StellarDetails>
 
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
@@ -404,6 +418,8 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep6Error: boolean
+  sep6Message: string
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmPath: BuiltPaymentAdvanced

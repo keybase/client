@@ -22,7 +22,7 @@ func keybaseProcessList() string {
 	ret := ""
 	osinfo, err := getOSInfo()
 	if err == nil {
-		ret += string(osinfo) + "\n\n"
+		ret += osinfo + "\n\n"
 	} else {
 		ret += fmt.Sprintf("could not get OS info for platform %s: %s\n\n", runtime.GOOS, err)
 	}

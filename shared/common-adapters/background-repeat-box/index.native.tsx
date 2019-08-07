@@ -8,7 +8,7 @@ const BackgroundRepeatBox = (props: Props) => {
   let backgroundImage: React.ReactNode = null
   if (!props.skipBackground) {
     backgroundImage = (
-      <NativeImage source={props.imageName} resizeMode="repeat" style={styles.backgroundImage} />
+      <NativeImage source={props.imageName as number} resizeMode="repeat" style={styles.backgroundImage} />
     )
   }
   return (

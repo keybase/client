@@ -23,13 +23,12 @@ type testUser struct {
 type testState struct {
 	sync.Mutex
 
-	users     map[keybase1.UID](*testUser)
-	changes   []keybase1.UID
-	now       time.Time
-	evictCh   chan keybase1.UID
-	pokeCh    chan struct{}
-	startOnce sync.Once
-	numGets   int
+	users   map[keybase1.UID](*testUser)
+	changes []keybase1.UID
+	now     time.Time
+	evictCh chan keybase1.UID
+	pokeCh  chan struct{}
+	numGets int
 }
 
 var seq uint32
@@ -47,7 +46,7 @@ func genKID() keybase1.KID {
 func genUsername() string {
 	w, _ := libkb.SecWordList(1)
 	var buf [4]byte
-	rand.Read(buf[:])
+	_, _ = rand.Read(buf[:])
 	return fmt.Sprintf("%s%x", w[0], buf)
 }
 
@@ -195,11 +194,14 @@ func TestSimple(t *testing.T) {
 	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
 	if err == nil {
 		t.Fatal("Expected an error")
-	} else if bke, ok := err.(BadKeyError); !ok {
+	}
+	bke, ok := err.(BadKeyError)
+	switch {
+	case !ok:
 		t.Fatal("Expected a bad key error")
-	} else if bke.uid != u0.uid {
+	case bke.uid != u0.uid:
 		t.Fatalf("Expected a bad key error on %s (not %s)", u0.uid, bke.uid)
-	} else if bke.kid != key0 {
+	case bke.kid != key0:
 		t.Fatalf("Expected a bad key error on key %s (not %s)", key0, bke.kid)
 	}
 

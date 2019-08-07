@@ -57,7 +57,7 @@ const styles = styleSheetCreate({
   line: {
     backgroundColor: globalColors.blue,
     height: 1,
-    position: 'relative',
+    position: 'absolute',
     width: '100%',
   },
 })

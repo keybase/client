@@ -7,6 +7,7 @@ export type Props = {
   availableToSend: string // non-empty only if native currency
   balance: string
   code: string // The same as `name` except for XLM
+  depositButtonText?: string // SEP6 link
   equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string // non-empty only if native currency
   expanded?: boolean // for testing
@@ -15,9 +16,12 @@ export type Props = {
   issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string // issuing public key
   name: string // Asset code or 'Lumens'
-  reserves: Array<Types.Reserve> // non-empty only if native currency
+  onDeposit?: () => void
+  onWithdraw?: () => void
   openInfoURL?: () => void
   openStellarURL: () => void
+  reserves: Array<Types.Reserve> // non-empty only if native currency
+  withdrawButtonText?: string // SEP6 link
 }
 
 type State = {
@@ -33,11 +37,20 @@ export default class Asset extends React.Component<Props, State> {
     }))
   }
 
-  _openInfoURL = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _openInfoURL = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation()
     this.props.openInfoURL && this.props.openInfoURL()
   }
 
+  _onDeposit = (e: React.BaseSyntheticEvent) => {
+    e.stopPropagation()
+    this.props.onDeposit && this.props.onDeposit()
+  }
+
+  _onWithdraw = (e: React.BaseSyntheticEvent) => {
+    e.stopPropagation()
+    this.props.onWithdraw && this.props.onWithdraw()
+  }
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -62,18 +75,16 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
               </Kb.Text>
-              <Kb.Text
-                type="BodySmallSecondaryLink"
-                lineClamp={1}
-                onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
-              >
-                {this.props.infoUrlText || this.props.equivBalance}
-              </Kb.Text>
+              {!!this.props.equivBalance && (
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.equivContainer}>
+                  <Kb.Text type="BodySmallSecondaryLink">{this.props.equivBalance}</Kb.Text>
+                </Kb.Box2>
+              )}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox>
         {this.state.expanded && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedRowContainer}>
             {this.props.isNative && (
               <BalanceSummary
                 availableToSend={this.props.availableToSend}
@@ -83,7 +94,47 @@ export default class Asset extends React.Component<Props, State> {
                 openStellarURL={this.props.openStellarURL}
               />
             )}
-            {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              {!!this.props.issuerAccountID && (
+                <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />
+              )}
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.ButtonBar direction="row" align="flex-start" small={true}>
+                  {!!this.props.depositButtonText && (
+                    <>
+                      <Kb.Button
+                        mode="Secondary"
+                        label={this.props.depositButtonText}
+                        onClick={this.props.onDeposit}
+                        small={true}
+                        type="Wallet"
+                      />
+                    </>
+                  )}
+
+                  {!!this.props.withdrawButtonText && (
+                    <>
+                      <Kb.Button
+                        mode="Secondary"
+                        label={this.props.withdrawButtonText}
+                        onClick={this.props.onWithdraw}
+                        small={true}
+                        type="Wallet"
+                      />
+                    </>
+                  )}
+                  {!!this.props.infoUrlText && (
+                    <Kb.Button
+                      mode="Secondary"
+                      label={this.props.infoUrlText}
+                      onClick={this.props.openInfoURL}
+                      small={true}
+                      type="Wallet"
+                    />
+                  )}
+                </Kb.ButtonBar>
+              </Kb.Box2>
+            </Kb.Box2>
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -122,8 +173,8 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
               multiline={true}
             >
               <Kb.Icon
-                fontSize={Styles.isMobile ? 18 : 12}
                 onClick={Styles.isMobile ? props.openStellarURL : null}
+                sizeType="Small"
                 style={styles.questionMark}
                 type="iconfont-question-mark"
               />
@@ -158,8 +209,8 @@ type IssuerAccountIDProps = {
 
 const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Text type="Body">Issuer:</Kb.Text>
-    <Kb.Text type="Body" selectable={true} lineClamp={3}>
+    <Kb.Text type="BodySmall">Issuer:</Kb.Text>
+    <Kb.Text type="BodySmall" selectable={true} lineClamp={3}>
       {props.issuerAccountID}
     </Kb.Text>
   </Kb.Box2>
@@ -176,7 +227,8 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 1,
     },
     isElectron: {
-      flexBasis: '355px',
+      alignSelf: 'flex-end',
+      width: 355,
     },
   }),
   caret: Styles.platformStyles({
@@ -188,6 +240,13 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   dividerTop: {marginBottom: Styles.globalMargins.tiny},
+  equivContainer: {
+    justifyContent: 'flex-end',
+  },
+  equivDivider: {
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.xtiny,
+  },
   expandedRowContainer: {
     justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.tiny,

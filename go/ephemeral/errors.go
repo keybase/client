@@ -61,7 +61,7 @@ func (e EphemeralKeyError) Error() string {
 func (e EphemeralKeyError) AllowTransient() bool {
 	return (e.EKKind == TeambotEKKind &&
 		e.ErrKind == EphemeralKeyErrorKind_MISSINGBOX &&
-		time.Now().Sub(e.Ctime.Time()) < time.Hour*24)
+		time.Since(e.Ctime.Time()) < time.Hour*24)
 }
 
 func (e EphemeralKeyError) IsPermanent() bool {
@@ -123,7 +123,7 @@ func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, err
 		return nil, err
 	}
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: keybase1.TeamID(teamID),
+		ID: teamID,
 	})
 	if err != nil {
 		return nil, err
@@ -212,10 +212,9 @@ func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
 }
 
 func errFromAppStatus(e error) error {
-	if e == nil {
-		return nil
-	}
 	switch e := e.(type) {
+	case nil:
+		return nil
 	case libkb.AppStatusError:
 		switch e.Code {
 		case libkb.SCEphemeralDeviceAfterEK,

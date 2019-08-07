@@ -237,7 +237,9 @@ func (p *Loader) Shutdown() error {
 
 func (p *Loader) runPayments() {
 	for id := range p.pqueue {
-		p.loadPayment(id)
+		if err := p.loadPayment(libkb.NewMetaContextTODO(p.G()), id); err != nil {
+			p.G().GetLog().CDebugf(context.TODO(), "Unable to load payment: %v", err)
+		}
 		p.cleanPayments(maxPayments)
 	}
 }
@@ -254,10 +256,10 @@ func (p *Loader) LoadPaymentSync(ctx context.Context, paymentID stellar1.Payment
 	defer mctx.TraceTimed(fmt.Sprintf("LoadPaymentSync(%s)", paymentID), func() error { return nil })()
 
 	backoffPolicy := libkb.BackoffPolicy{
-		Millis: []int{500, 500, 500, 500, 500, 500, 500, 1000},
+		Millis: []int{2000, 3000, 5000},
 	}
-	for i := 0; i <= 30; i++ {
-		err := p.loadPayment(paymentID)
+	for i := 0; i <= 3; i++ {
+		err := p.loadPayment(mctx, paymentID)
 		if err == nil {
 			break
 		}
@@ -266,15 +268,13 @@ func (p *Loader) LoadPaymentSync(ctx context.Context, paymentID stellar1.Payment
 	}
 }
 
-func (p *Loader) loadPayment(id stellar1.PaymentID) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+func (p *Loader) loadPayment(mctx libkb.MetaContext, id stellar1.PaymentID) (err error) {
+	mctx, cancel := mctx.BackgroundWithLogTags().WithLogTag("LP").WithTimeout(15 * time.Second)
 	defer cancel()
-
-	mctx := libkb.NewMetaContext(ctx, p.G())
 	defer mctx.TraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
-	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(id).String())
+	details, err := s.remoter.PaymentDetailsGeneric(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
 		mctx.Debug("error getting payment details for %s: %s", id, err)
 		return err

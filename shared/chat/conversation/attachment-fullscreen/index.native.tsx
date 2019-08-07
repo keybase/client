@@ -9,7 +9,11 @@ import logger from '../../../logger'
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
 class AutoMaxSizeImage extends React.Component<
-  any,
+  {
+    source: {uri: string}
+    onLoad: () => void
+    opacity: number
+  },
   {
     width: number
     height: number
@@ -24,11 +28,15 @@ class AutoMaxSizeImage extends React.Component<
   }
   componentDidMount() {
     this._mounted = true
-    Kb.NativeImage.getSize(this.props.source.uri, (width, height) => {
-      if (this._mounted) {
-        this.setState({height, width})
-      }
-    })
+    Kb.NativeImage.getSize(
+      this.props.source.uri,
+      (width, height) => {
+        if (this._mounted) {
+          this.setState({height, width})
+        }
+      },
+      () => {}
+    )
   }
 
   _setLoaded = () => this.setState({loaded: true})
@@ -58,12 +66,7 @@ class AutoMaxSizeImage extends React.Component<
   }
 }
 
-class _Fullscreen extends React.Component<
-  Props & Kb.OverlayParentProps,
-  {
-    loaded: boolean
-  }
-> {
+class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded: boolean}> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
@@ -117,6 +120,7 @@ class _Fullscreen extends React.Component<
         </Kb.Box>
         <Kb.Icon
           type="iconfont-ellipsis"
+          // @ts-ignore TODO fix styles
           style={styleHeaderFooter}
           color={Styles.globalColors.white}
           onClick={this.props.toggleShowingMenu}

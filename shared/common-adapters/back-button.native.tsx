@@ -7,7 +7,7 @@ import * as Styles from '../styles'
 import {Props} from './back-button'
 
 export default class BackButton extends Component<Props> {
-  onClick(event: React.SyntheticEvent) {
+  onClick(event: React.BaseSyntheticEvent) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {

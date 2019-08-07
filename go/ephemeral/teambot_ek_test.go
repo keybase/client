@@ -88,6 +88,7 @@ func TestNewTeambotEK(t *testing.T) {
 	require.Error(t, err)
 
 	ek, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	require.NoError(t, err)
 	typ, err = ek.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeam())

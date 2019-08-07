@@ -50,14 +50,14 @@ const EmailPhone = (props: Props) => (
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
       {flags.sbsContacts && (
-        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
+        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone number" small={true} />
       )}
     </Kb.ButtonBar>
   </SettingsSection>
 )
 
 const Password = (props: Props) => {
-  let passwordLabel
+  let passwordLabel: string
   if (props.hasPassword) {
     passwordLabel = Styles.isMobile ? 'Change' : 'Change password'
   } else {
@@ -71,7 +71,7 @@ const Password = (props: Props) => {
           Allows you to log out and log back in, and use the keybase.io website.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {props.hasPassword && (
           <Kb.Text type="BodySemibold" style={styles.password}>
             ********************
@@ -134,8 +134,12 @@ const AccountSettings = (props: Props) => (
         <EmailPhone {...props} />
         <Kb.Divider />
         <Password {...props} />
-        <Kb.Divider />
-        <DeleteAccount {...props} />
+        {!Styles.isMobile && (
+          <>
+            <Kb.Divider />
+            <DeleteAccount {...props} />
+          </>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   </Kb.Reloadable>
@@ -167,6 +171,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.medium,
         Styles.globalMargins.small
       ),
+      maxWidth: 600,
     },
     isMobile: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
