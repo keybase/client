@@ -79,6 +79,23 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 	return s.SaveProcessedContacts(mctx, results)
 }
 
+func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {
+	res = make(map[string]string)
+	toRemove := make(map[string]struct{})
+	for _, contact := range contacts {
+		if _, ok := res[contact.Assertion]; ok {
+			// multiple contacts match this assertion, remove once we're done
+			toRemove[contact.Assertion] = struct{}{}
+			continue
+		}
+		res[contact.Assertion] = contact.ContactName
+	}
+	for remove := range toRemove {
+		delete(res, remove)
+	}
+	return res
+}
+
 func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, contacts []keybase1.ProcessedContact) (err error) {
 	val := savedContactsCache{
 		Contacts: contacts,
@@ -91,19 +108,7 @@ func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, conta
 		return err
 	}
 
-	assertionToName := make(map[string]string)
-	toRemove := make(map[string]struct{})
-	for _, contact := range contacts {
-		if _, ok := assertionToName[contact.Assertion]; ok {
-			// multiple contacts match this assertion, remove once we're done
-			toRemove[contact.Assertion] = struct{}{}
-			continue
-		}
-		assertionToName[contact.Assertion] = contact.ContactName
-	}
-	for remove := range toRemove {
-		delete(assertionToName, remove)
-	}
+	assertionToName := makeAssertionToName(contacts)
 	lookupVal := assertionToNameCache{
 		AssertionToName: assertionToName,
 		Version:         assertionToNameCurrentVer,

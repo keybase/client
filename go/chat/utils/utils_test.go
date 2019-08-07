@@ -500,15 +500,4 @@ func TestAttachContactNames(t *testing.T) {
 	require.Equal(t, "Alice", *rawParticipants[1].ContactName)
 	require.Nil(t, rawParticipants[2].ContactName)
 	require.Nil(t, rawParticipants[3].ContactName)
-
-	// Add new contact that has same phone number as alice. AttachContactNames
-	// should no longer attach name for that number because of ambiguity.
-	delete(mock.assertionToName, "18005558638@phone")
-
-	AttachContactNames(tc.MetaContext(), rawParticipants)
-	require.NotNil(t, rawParticipants[0].ContactName)
-	require.Equal(t, "Tofu R-Key", *rawParticipants[0].ContactName)
-	require.Nil(t, rawParticipants[1].ContactName)
-	require.Nil(t, rawParticipants[2].ContactName)
-	require.Nil(t, rawParticipants[3].ContactName)
 }
