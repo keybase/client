@@ -40,7 +40,7 @@
   gid_t gid = 0;
   NSNumber *permissions = [NSNumber numberWithShort:0600];
   NSString *volDir = [self.config volumesRedirectorMount];
-  NSString *rootDir = [self.config volumesRedirectorMount];
+  NSString *rootDir = [self.config redirectorMount];
   NSString *binPath = [self.config redirectorBinPathWithPathOptions:0 servicePath:_servicePath];
   NSDictionary *params = @{@"directory": rootDir, @"link": volDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": binPath};
   DDLogDebug(@"Starting redirector: %@", params);

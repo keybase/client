@@ -274,6 +274,19 @@
     return;
   }
 
+  // Heavily restrict which directories and links are allowed for the
+  // redirector.
+  NSString *prefixOption1 = @"/keybase";
+  NSString *prefixOption2 = @"/Volumes/Keybase";
+  if (!([KBFSUtils checkAbsolutePath:directory hasAbsolutePrefix:prefixOption1] || [KBFSUtils checkAbsolutePath:directory hasAbsolutePrefix:prefixOption2])) {
+    NSString *errorMessage = [NSString stringWithFormat:@"%@ is not an allowed directory", directory];
+    completion(KBMakeError(-1, errorMessage), nil);
+  }
+  if (!([KBFSUtils checkAbsolutePath:link hasAbsolutePrefix:prefixOption1] || [KBFSUtils checkAbsolutePath:link hasAbsolutePrefix:prefixOption2])) {
+    NSString *errorMessage = [NSString stringWithFormat:@"%@ is not an allowed symlink", link];
+    completion(KBMakeError(-1, errorMessage), nil);
+  }
+
   // Unmount anything that's already mounted there.
   NSError *error = nil;
   [self unmount:directory error:&error];
