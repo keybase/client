@@ -1,4 +1,6 @@
 import * as React from 'react'
+// eslint-disable-next-line confused about TS
+import {Draft as _Draft} from 'immer'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
@@ -76,5 +78,5 @@ export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
 export {flowRight as compose} from 'lodash-es'
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
-// eslint-disable-next-line confused about TS
-export {produce, Draft} from 'immer'
+export {produce} from 'immer'
+export type Draft = _Draft
