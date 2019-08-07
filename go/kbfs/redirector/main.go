@@ -324,9 +324,11 @@ func main() {
 	// mountpoints.  TODO: Read a redirector mountpoint from a
 	// root-owned config file.
 	r := newRoot()
-	if os.Args[1] != fmt.Sprintf("/%s", r.runmodeStr) {
+	if os.Args[1] != fmt.Sprintf("/%s", r.runmodeStr) &&
+		os.Args[1] != fmt.Sprintf("/Volumes/%s", r.runmodeStrFancy) {
 		fmt.Fprintf(os.Stderr, "ERROR: The redirector may only mount at "+
-			"/%s; %s is an invalid mountpoint\n", r.runmodeStr, os.Args[1])
+			"/%s or /Volumes/%s; %s is an invalid mountpoint\n",
+			r.runmodeStr, r.runmodeStrFancy, os.Args[1])
 		os.Exit(1)
 	}
 
