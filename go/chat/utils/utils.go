@@ -1154,6 +1154,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	}
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.Draft = rc.LocalDraft
 	return res
 }
 
@@ -1258,6 +1259,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.Draft = rawConv.Info.Draft
 	return res
 }
 

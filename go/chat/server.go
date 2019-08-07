@@ -1113,6 +1113,11 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Clear draft
+	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, nil); err != nil {
+		h.Debug(ctx, "PostLocalNonblock: failed to clear draft: %s", err)
+	}
+
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
@@ -1424,6 +1429,11 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
+	}
+
+	// Save draft
+	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, &arg.Text); err != nil {
+		h.Debug(ctx, "UpdateUnsentText: failed to save draft: %s", err)
 	}
 
 	// Attempt to prefetch any unfurls in the background that are in the message text
