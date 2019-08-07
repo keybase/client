@@ -111,7 +111,7 @@
   } else if ([method isEqualToString:@"removeFromPath"]) {
     [self removeFromPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"startRedirector"]) {
-    [self startRedirector:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] redirectorBin:args[@"redirectorBin"] completion:completion];
+    [self startRedirector:args[@"directory"] link:args[@"link"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] redirectorBin:args[@"redirectorBin"] completion:completion];
   } else if ([method isEqualToString:@"stopRedirector"]) {
     [self stopRedirector:args[@"directory"] completion:completion];
   } else {
@@ -267,7 +267,7 @@
   }
 }
 
-- (void)startRedirector:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
+- (void)startRedirector:(NSString *)directory link:(NSString *)link uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
   if (self.redirector) {
     // Already started.
     completion(nil, @{});
@@ -311,6 +311,12 @@
     task.arguments = @[directory];
     self.redirector = task;
     [self.redirector launch];
+
+    // Create a link to the mount from another given location, if possible.
+    if (![self createLink:directory linkPath:link uid:uid gid:gid]) {
+      KBLog(@"Couldn't make redirector link: %@", link);
+    }
+
     completion(nil, value);
   }];
 }
