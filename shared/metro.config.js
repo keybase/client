@@ -5,13 +5,24 @@
  * @format
  */
 
-module.exports = {
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
-}
+const {getDefaultConfig} = require('metro-config')
+
+module.exports = (async () => {
+  const {
+    resolver: {sourceExts},
+  } = await getDefaultConfig()
+  return {
+    transformer: {
+      getTransformOptions: async () => ({
+        transform: {
+          experimentalImportSupport: false,
+          inlineRequires: true,
+        },
+      }),
+      babelTransformerPath: require.resolve('./rn-css-transformer.js'),
+    },
+    resolver: {
+      sourceExts: [...sourceExts, 'css'],
+    },
+  }
+})()
