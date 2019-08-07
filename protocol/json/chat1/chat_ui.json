@@ -1145,6 +1145,54 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIChatThreadStatusTyp",
+      "symbols": [
+        "NONE_0",
+        "SERVER_1",
+        "VALIDATING_2",
+        "VALIDATED_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIChatThreadStatus",
+      "switch": {
+        "type": "UIChatThreadStatusTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NONE",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "SERVER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "VALIDATING",
+            "def": false
+          },
+          "body": "int"
+        },
+        {
+          "label": {
+            "name": "VALIDATED",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "UIChatSearchConvHit",
       "fields": [
@@ -1707,8 +1755,7 @@
           ]
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatThreadFull": {
       "request": [
@@ -1721,8 +1768,20 @@
           "type": "string"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
+    },
+    "chatThreadStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "UIChatThreadStatus"
+        }
+      ],
+      "response": null
     },
     "chatSearchHit": {
       "request": [

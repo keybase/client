@@ -71,7 +71,7 @@ export type HeaderRowItem = {
   key: string
   rowType: RowType.Header
   height: number
-  node: React.ReactNode
+  node: React.ReactElement
 }
 
 export type NamedRowItem =

@@ -5,6 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import uuidv1 from 'uuid/v1'
+import flags from '../../util/feature-flags'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -16,6 +17,17 @@ const useDispatchWhenConnected = () => {
   const dispatch = Container.useDispatch()
   return kbfsDaemonConnected ? dispatch : noop
 }
+
+const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
+  ? () => {
+      const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+      const dispatch = Container.useDispatch()
+      return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+        kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
+        ? dispatch
+        : noop
+    }
+  : useDispatchWhenConnected
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
@@ -41,7 +53,7 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
@@ -49,7 +61,7 @@ export const useFsPathMetadata = (path: Types.Path) => {
 
 export const useFsChildren = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createFolderListLoad({path}))
   }, [dispatch, path])
@@ -65,3 +77,11 @@ export const useFsTlfs = () => {
 
 export const useFsJournalStatus = () =>
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
+
+export const useFsOnlineStatus = () => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createGetOnlineStatus())
+  }, [dispatch])
+}

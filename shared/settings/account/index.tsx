@@ -29,7 +29,7 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const AddButton = (props: {disabled: boolean; kind: 'phone' | 'email'; onClick: () => void}) => {
+const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
   const btn = (
     <Kb.Button
       mode="Secondary"
@@ -69,7 +69,7 @@ const EmailPhone = (props: Props) => (
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
       {flags.sbsContacts && (
-        <AddButton onClick={props.onAddPhone} kind="phone" disabled={props.tooManyPhones} />
+        <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
       )}
     </Kb.ButtonBar>
   </SettingsSection>

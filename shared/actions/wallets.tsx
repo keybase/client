@@ -154,6 +154,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   type: 'native',
   verifiedDomain: '',
   withdrawButtonText: '',
+  withdrawType: '',
 }
 
 const emptyAssetWithoutType: RPCStellarTypes.Asset = {
@@ -1008,7 +1009,7 @@ const acceptDisclaimer = (_: TypedState) =>
     }
   )
 
-const checkDisclaimer = (_: TypedState, __: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
+const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     .then(accepted => {
       const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
@@ -1017,18 +1018,20 @@ const checkDisclaimer = (_: TypedState, __: WalletsGen.CheckDisclaimerPayload, l
         actions.push(RouteTreeGen.createClearModals())
         actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
         if (isMobile) {
-          actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+          if (action.payload.nextScreen === 'airdrop') {
+            actions.push(
+              RouteTreeGen.createNavigateAppend({
+                path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
+              })
+            )
+          } else {
+            actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+          }
         }
       }
       return actions
     })
     .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
-
-const maybeNavToLinkExisting = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
-  action.payload.nextScreen === 'linkExisting' &&
-  RouteTreeGen.createNavigateAppend({
-    path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
-  })
 
 const rejectDisclaimer = (_: TypedState, __: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
@@ -1115,21 +1118,6 @@ const changeAirdrop = (_: TypedState, action: WalletsGen.ChangeAirdropPayload) =
     Constants.airdropWaitingKey
   ).then(() => WalletsGen.createUpdateAirdropState()) // reload
 
-type AirdropDetailsJSONType = {
-  header?: {
-    body?: string | null
-    title?: string | null
-  } | null
-  sections?: Array<{
-    icon?: string | null
-    section?: string | null
-    lines?: Array<{
-      bullet?: boolean | null
-      text?: string | null
-    } | null> | null
-  } | null> | null
-} | null
-
 const updateAirdropDetails = (
   state: TypedState,
   _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
@@ -1138,30 +1126,11 @@ const updateAirdropDetails = (
   state.config.loggedIn &&
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
-      const json: AirdropDetailsJSONType = JSON.parse(response.details)
+      const details: Constants.StellarDetailsJSONType = JSON.parse(response.details)
+      const disclaimer: Constants.StellarDetailsJSONType = JSON.parse(response.disclaimer)
       return WalletsGen.createUpdatedAirdropDetails({
-        details: Constants.makeAirdropDetailsResponse({
-          header: Constants.makeAirdropDetailsHeader({
-            body: (json && json.header && json.header.body) || '',
-            title: (json && json.header && json.header.title) || '',
-          }),
-          sections: I.List(
-            ((json && json.sections) || []).map(section =>
-              Constants.makeAirdropDetailsSection({
-                icon: (section && section.icon) || '',
-                lines: I.List(
-                  ((section && section.lines) || []).map(l =>
-                    Constants.makeAirdropDetailsLine({
-                      bullet: (l && l.bullet) || false,
-                      text: (l && l.text) || '',
-                    })
-                  )
-                ),
-                section: (section && section.section) || '',
-              })
-            )
-          ),
-        }),
+        details: Constants.makeStellarDetailsFromJSON(details),
+        disclaimer: Constants.makeStellarDetailsFromJSON(disclaimer),
         isPromoted: response.isPromoted,
       })
     })
@@ -1234,6 +1203,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
   withdrawButtonText: '',
+  withdrawType: '',
 })
 
 const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
@@ -1511,7 +1481,13 @@ const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
     return openURL(res.externalUrl)
   }
   if (res.messageFromAnchor) {
-    return WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor})
+    return [
+      WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+      }),
+    ]
   }
   console.warn('SEP6 result without Url or Message', res)
   return null
@@ -1890,11 +1866,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.checkDisclaimer,
     checkDisclaimer,
     'checkDisclaimer'
-  )
-  yield* Saga.chainAction<WalletsGen.CheckDisclaimerPayload>(
-    WalletsGen.checkDisclaimer,
-    maybeNavToLinkExisting,
-    'maybeNavToLinkExisting'
   )
   yield* Saga.chainAction<WalletsGen.RejectDisclaimerPayload>(
     WalletsGen.rejectDisclaimer,

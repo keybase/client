@@ -162,7 +162,10 @@ const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Ty
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
-  if (!state.kbfsDaemonStatus.online && action.payload.expectedIfOffline) {
+  if (
+    state.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
+    action.payload.expectedIfOffline
+  ) {
     return state
   }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
@@ -517,11 +520,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.kbfsDaemonRpcStatusChanged:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('rpcStatus', action.payload.rpcStatus)
+        (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
+          ? kbfsDaemonStatus.set('onlineStatus', Types.KbfsDaemonOnlineStatus.Offline)
+          : kbfsDaemonStatus
+        ).set('rpcStatus', action.payload.rpcStatus)
       )
     case FsGen.kbfsDaemonOnlineStatusChanged:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('online', action.payload.online)
+        kbfsDaemonStatus.set(
+          'onlineStatus',
+          action.payload.online ? Types.KbfsDaemonOnlineStatus.Online : Types.KbfsDaemonOnlineStatus.Offline
+        )
       )
     case FsGen.overallSyncStatusChanged:
       return state.update('overallSyncStatus', overallSyncStatus =>

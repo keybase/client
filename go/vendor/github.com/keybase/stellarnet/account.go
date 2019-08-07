@@ -19,6 +19,7 @@ import (
 	snetwork "github.com/stellar/go/network"
 	horizonProtocol "github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/protocols/horizon/base"
+	horizonProtocolBase "github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/xdr"
 )
 
@@ -167,6 +168,22 @@ func (a *Account) Balances() ([]horizonProtocol.Balance, error) {
 	}
 
 	return a.internal.Balances, nil
+}
+
+// Assets returns the assets issued by the account.
+// `complete` is false if there may be more assets.
+func (a *Account) Assets() (res []horizonProtocolBase.Asset, complete bool, err error) {
+	const limit = 100
+	link := fmt.Sprintf("%s/assets?asset_issuer=%s&limit=%v&order=asc", Client().URL, a.address.String(), limit)
+	var page horizonProtocol.AssetsPage
+	err = getDecodeJSONStrict(link, Client().HTTP.Get, &page)
+	if err != nil {
+		return nil, false, errMap(err)
+	}
+	for _, record := range page.Embedded.Records {
+		res = append(res, record.Asset)
+	}
+	return res, len(page.Embedded.Records) < limit, nil
 }
 
 // Trustline describes a stellar trustline.  It contains an asset and a limit.

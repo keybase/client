@@ -333,6 +333,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,
+            'WrapperMessage-systemMessage': this.props.message.type.startsWith('system'),
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'

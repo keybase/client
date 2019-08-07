@@ -2096,7 +2096,7 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 			fail("proof should have failed")
 		}
 
-		err = nil
+		// err is definitely nil here.
 		if isdns {
 			if !unit.proofinfo.stubDNS.IsOk() {
 				fail("DNS stub ran out of bounds")

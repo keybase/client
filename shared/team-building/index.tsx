@@ -11,6 +11,7 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
+import {throttle} from 'lodash-es'
 
 export const numSectionLabel = '0-9'
 
@@ -57,6 +58,7 @@ type ContactProps = {
 
 export type Props = ContactProps & {
   fetchUserRecs: () => void
+  includeContacts: boolean
   highlightedIndex: number | null
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -227,6 +229,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore due to no RN types
         ref.scrollToLocation({
+          animated: false,
           itemIndex: 0,
           sectionIndex,
         })
@@ -238,9 +241,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     sections: Array<SearchRecSection>,
     indexInList: number
   ): {index: number; length: number; offset: number} => {
+    const sectionDividerHeight = Kb.SectionDivider.height
+    const dataRowHeight = userResultHeight
+
     let numSections = 0
     let numData = 0
-    let length = userResultHeight
+    let length = dataRowHeight
     let currSectionHeaderIdx = 0
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i]
@@ -250,7 +256,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         break
       }
       numSections++
-      const indexInSection = indexInList - currSectionHeaderIdx
+      const indexInSection = indexInList - currSectionHeaderIdx - 1
+      if (indexInSection === s.data.length) {
+        // it's the section footer (we don't render footers so 0px).
+        numData += s.data.length
+        length = 0
+        break
+      }
       if (indexInSection < s.data.length) {
         // we are in this data
         numData += indexInSection
@@ -258,9 +270,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       }
       // we're not in this section
       numData += s.data.length
-      currSectionHeaderIdx += s.data.length + 1
+      currSectionHeaderIdx += s.data.length + 2 // +2 because footer
     }
-    const offset = numSections * 40 + numData * 64
+    const offset = numSections * sectionDividerHeight + numData * dataRowHeight
     return {index: indexInList, length, offset}
   }
 
@@ -335,6 +347,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
@@ -374,8 +388,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
+        keyboardShouldPersistTaps="handled"
         keyProperty={'key'}
-        onEndReached={this.props.onSearchForMore}
+        onEndReached={this._onEndReached}
+        onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
           <UserResult
             resultForService={this.props.selectedService}
@@ -395,6 +411,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
   }
 
+  _onEndReached = throttle(() => {
+    this.props.onSearchForMore()
+  }, 500)
+
   render = () => {
     const props = this.props
     return (
@@ -402,6 +422,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         {Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <TeamBox
+              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
               onChangeText={props.onChangeText}
               onDownArrowKeyDown={props.onDownArrowKeyDown}
               onUpArrowKeyDown={props.onUpArrowKeyDown}
@@ -416,6 +437,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Box2>
         ) : (
           <TeamBox
+            allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}
             onUpArrowKeyDown={props.onUpArrowKeyDown}

@@ -1,0 +1,781 @@
+{
+  "protocol": "api",
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "chat_ui.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RateLimitRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tank"
+        },
+        {
+          "type": "int",
+          "name": "capacity"
+        },
+        {
+          "type": "int",
+          "name": "reset"
+        },
+        {
+          "type": "int",
+          "name": "gas"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatChannel",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "public",
+          "jsonkey": "public"
+        },
+        {
+          "type": "string",
+          "name": "membersType",
+          "jsonkey": "members_type"
+        },
+        {
+          "type": "string",
+          "name": "topicType",
+          "jsonkey": "topic_type"
+        },
+        {
+          "type": "string",
+          "name": "topicName",
+          "jsonkey": "topic_name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMessage",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body",
+          "jsonkey": "body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgSender",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uid",
+          "jsonkey": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "username"
+        },
+        {
+          "type": "string",
+          "name": "deviceID",
+          "jsonkey": "device_id"
+        },
+        {
+          "type": "string",
+          "name": "deviceName",
+          "jsonkey": "device_name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgFlipContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text",
+          "jsonkey": "text"
+        },
+        {
+          "type": "string",
+          "name": "gameID",
+          "jsonkey": "game_id"
+        },
+        {
+          "type": "string",
+          "name": "flipConvID",
+          "jsonkey": "flip_conv_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions",
+          "jsonkey": "user_mentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions",
+          "jsonkey": "team_mentions"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "typeName",
+          "jsonkey": "type"
+        },
+        {
+          "type": [
+            null,
+            "MessageText"
+          ],
+          "name": "text",
+          "jsonkey": "text"
+        },
+        {
+          "type": [
+            null,
+            "MessageAttachment"
+          ],
+          "name": "attachment",
+          "jsonkey": "attachment"
+        },
+        {
+          "type": [
+            null,
+            "MessageEdit"
+          ],
+          "name": "edit",
+          "jsonkey": "edit"
+        },
+        {
+          "type": [
+            null,
+            "MessageReaction"
+          ],
+          "name": "reaction",
+          "jsonkey": "reaction"
+        },
+        {
+          "type": [
+            null,
+            "MessageDelete"
+          ],
+          "name": "delete",
+          "jsonkey": "delete"
+        },
+        {
+          "type": [
+            null,
+            "MessageConversationMetadata"
+          ],
+          "name": "metadata",
+          "jsonkey": "metadata"
+        },
+        {
+          "type": [
+            null,
+            "MessageHeadline"
+          ],
+          "name": "headline",
+          "jsonkey": "headline"
+        },
+        {
+          "type": [
+            null,
+            "MessageAttachmentUploaded"
+          ],
+          "name": "attachmentUploaded",
+          "jsonkey": "attachment_uploaded"
+        },
+        {
+          "type": [
+            null,
+            "MessageSystem"
+          ],
+          "name": "system",
+          "jsonkey": "system"
+        },
+        {
+          "type": [
+            null,
+            "MessageSendPayment"
+          ],
+          "name": "sendPayment",
+          "jsonkey": "send_payment"
+        },
+        {
+          "type": [
+            null,
+            "MessageRequestPayment"
+          ],
+          "name": "requestPayment",
+          "jsonkey": "request_payment"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnfurl"
+          ],
+          "name": "unfurl",
+          "jsonkey": "unfurl"
+        },
+        {
+          "type": [
+            null,
+            "MsgFlipContent"
+          ],
+          "name": "flip",
+          "jsonkey": "flip"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgSummary",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "id",
+          "jsonkey": "id"
+        },
+        {
+          "type": "string",
+          "name": "convID",
+          "jsonkey": "conversation_id"
+        },
+        {
+          "type": "ChatChannel",
+          "name": "channel",
+          "jsonkey": "channel"
+        },
+        {
+          "type": "MsgSender",
+          "name": "sender",
+          "jsonkey": "sender"
+        },
+        {
+          "type": "int64",
+          "name": "sentAt",
+          "jsonkey": "sent_at"
+        },
+        {
+          "type": "int64",
+          "name": "sentAtMs",
+          "jsonkey": "sent_at_ms"
+        },
+        {
+          "type": "MsgContent",
+          "name": "content",
+          "jsonkey": "content"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessagePreviousPointer"
+          },
+          "name": "prev",
+          "jsonkey": "prev"
+        },
+        {
+          "type": "boolean",
+          "name": "unread",
+          "jsonkey": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "revokedDevice",
+          "jsonkey": "revoked_device"
+        },
+        {
+          "type": "boolean",
+          "name": "offline",
+          "jsonkey": "offline"
+        },
+        {
+          "type": "boolean",
+          "name": "kbfsEncrypted",
+          "jsonkey": "kbfs_encrypted"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral",
+          "jsonkey": "is_ephemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired",
+          "jsonkey": "is_ephemeral_expired"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "eTime",
+          "jsonkey": "e_time"
+        },
+        {
+          "type": [
+            null,
+            "ReactionMap"
+          ],
+          "name": "reactions",
+          "jsonkey": "reactions"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs",
+          "jsonkey": "has_pairwise_macs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentionUsernames",
+          "jsonkey": "at_mention_usernames"
+        },
+        {
+          "type": "string",
+          "name": "channelMention",
+          "jsonkey": "channel_mention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChannelNameMention"
+          },
+          "name": "channelNameMentions",
+          "jsonkey": "channel_name_mentions"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Message",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MsgSummary"
+          ],
+          "name": "msg",
+          "jsonkey": "msg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error",
+          "jsonkey": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Thread",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Message"
+          },
+          "name": "messages",
+          "jsonkey": "messages"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination",
+          "jsonkey": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline",
+          "jsonkey": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConvSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id",
+          "jsonkey": "id"
+        },
+        {
+          "type": "ChatChannel",
+          "name": "channel",
+          "jsonkey": "channel"
+        },
+        {
+          "type": "boolean",
+          "name": "unread",
+          "jsonkey": "unread"
+        },
+        {
+          "type": "int64",
+          "name": "activeAt",
+          "jsonkey": "active_at"
+        },
+        {
+          "type": "int64",
+          "name": "activeAtMs",
+          "jsonkey": "active_at_ms"
+        },
+        {
+          "type": "string",
+          "name": "memberStatus",
+          "jsonkey": "member_status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetUsers",
+          "jsonkey": "reset_users",
+          "optional": true
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo",
+          "jsonkey": "finalize_info"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "supersedes",
+          "jsonkey": "supersedes",
+          "optional": true
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "supersededBy",
+          "jsonkey": "superseded_by",
+          "optional": true
+        },
+        {
+          "type": "string",
+          "name": "error",
+          "jsonkey": "error",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatList",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConvSummary"
+          },
+          "name": "conversations",
+          "jsonkey": "conversations"
+        },
+        {
+          "type": "boolean",
+          "name": "offline",
+          "jsonkey": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination",
+          "jsonkey": "pagination"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message",
+          "jsonkey": "message"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "messageID",
+          "jsonkey": "id"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID",
+          "jsonkey": "outbox_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchInboxResOutput",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ChatSearchInboxResults"
+          ],
+          "name": "results",
+          "jsonkey": "results"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RegexpRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits",
+          "jsonkey": "hits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConvRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id",
+          "jsonkey": "id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures",
+          "jsonkey": "identify_failures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListCommandsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandOutput"
+          },
+          "name": "commands",
+          "jsonkey": "commands"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmptyRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits",
+          "jsonkey": "ratelimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgNotification",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": [
+            null,
+            "MsgSummary"
+          ],
+          "name": "msg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

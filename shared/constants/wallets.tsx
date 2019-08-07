@@ -36,29 +36,69 @@ export const makeAirdropQualification = I.Record<Types._AirdropQualification>({
   valid: false,
 })
 
-export const makeAirdropDetailsLine = I.Record<Types._AirdropDetailsLine>({
+export const makeStellarDetailsLine = I.Record<Types._StellarDetailsLine>({
   bullet: false,
   text: '',
 })
 
-export const makeAirdropDetailsHeader = I.Record<Types._AirdropDetailsHeader>({
+export const makeStellarDetailsHeader = I.Record<Types._StellarDetailsHeader>({
   body: '',
   title: '',
 })
 
-export const makeAirdropDetailsSection = I.Record<Types._AirdropDetailsSection>({
+export const makeStellarDetailsSection = I.Record<Types._StellarDetailsSection>({
   icon: '',
   lines: I.List(),
   section: '',
 })
 
-export const makeAirdropDetailsResponse = I.Record<Types._AirdropDetailsResponse>({
-  header: makeAirdropDetailsHeader({}),
+export const makeStellarDetailsResponse = I.Record<Types._StellarDetailsResponse>({
+  header: makeStellarDetailsHeader({}),
   sections: I.List(),
 })
 
-export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
-  details: makeAirdropDetailsResponse(),
+export type StellarDetailsJSONType = {
+  header?: {
+    body?: string | null
+    title?: string | null
+  } | null
+  sections?: Array<{
+    icon?: string | null
+    section?: string | null
+    lines?: Array<{
+      bullet?: boolean | null
+      text?: string | null
+    } | null> | null
+  } | null> | null
+} | null
+
+export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
+  makeStellarDetailsResponse({
+    header: makeStellarDetailsHeader({
+      body: (json && json.header && json.header.body) || '',
+      title: (json && json.header && json.header.title) || '',
+    }),
+    sections: I.List(
+      ((json && json.sections) || []).map(section =>
+        makeStellarDetailsSection({
+          icon: (section && section.icon) || '',
+          lines: I.List(
+            ((section && section.lines) || []).map(l =>
+              makeStellarDetailsLine({
+                bullet: (l && l.bullet) || false,
+                text: (l && l.text) || '',
+              })
+            )
+          ),
+          section: (section && section.section) || '',
+        })
+      )
+    ),
+  })
+
+export const makeStellarDetails = I.Record<Types._StellarDetails>({
+  details: makeStellarDetailsResponse(),
+  disclaimer: makeStellarDetailsResponse(),
   isPromoted: false,
 })
 
@@ -181,6 +221,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   operation: '',
   originDomain: '',
   recipient: '',
+  signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
 })
@@ -219,7 +260,7 @@ export const makeState = I.Record<Types._State>({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
-  airdropDetails: makeAirdropDetails(),
+  airdropDetails: makeStellarDetails(),
   airdropQualifications: I.List(),
   airdropShowBanner: false,
   airdropState: 'loading',
@@ -705,8 +746,14 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
 export const getAirdropSelected = () => {
-  const path = Router2Constants.getVisibleScreen().routeName
-  return path === 'airdrop' || path === 'airdropQualify'
+  const path = Router2Constants.getFullRoute()
+  const topPath = path[path.length - 1].routeName
+  const nextPathDown = path[path.length - 2].routeName
+  return (
+    topPath === 'airdrop' ||
+    topPath === 'airdropQualify' ||
+    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop')
+  )
 }
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount

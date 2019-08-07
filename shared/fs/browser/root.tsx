@@ -36,7 +36,7 @@ const renderItem = ({item, section}) =>
     </WrapRow>
   ) : (
     <WrapRow>
-      <Tlf name={item.name} tlfType={item.tlfType} showTlfTypeIcon={true} />
+      <Tlf name={item.name} tlfType={item.tlfType} mixedMode={true} />
     </WrapRow>
   )
 
@@ -105,7 +105,12 @@ const Root = (_: Props) => {
     },
   ]
   return (
-    <Kb.SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
+    <Kb.SectionList
+      sections={sections}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      stickySectionHeadersEnabled={false}
+    />
   )
 }
 

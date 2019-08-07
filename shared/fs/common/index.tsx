@@ -13,4 +13,4 @@ export {default as FolderViewFilterIcon} from './folder-view-filter-icon'
 export {default as SyncStatus} from './sync-status-container'
 export {default as Filename} from './filename'
 
-export {useFsPathMetadata, useFsChildren, useFsTlfs, useFsJournalStatus} from './hooks'
+export {useFsPathMetadata, useFsChildren, useFsTlfs, useFsJournalStatus, useFsOnlineStatus} from './hooks'

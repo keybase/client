@@ -549,9 +549,14 @@ export enum KbfsDaemonRpcStatus {
   Waiting = 'waiting',
   WaitTimeout = 'wait-timeout',
 }
+export enum KbfsDaemonOnlineStatus {
+  Unknown = 'unknown',
+  Offline = 'offline',
+  Online = 'online',
+}
 export type _KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
-  online: boolean
+  onlineStatus: KbfsDaemonOnlineStatus
 }
 export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
 

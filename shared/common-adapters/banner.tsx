@@ -17,6 +17,7 @@ type BannerParagraphProps = {
   bannerColor: Color
   content: string | Array<Segment>
   inline?: boolean
+  selectable?: boolean
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
@@ -37,6 +38,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
           <React.Fragment key={index.toString()}>
             {segment.text.startsWith(' ') && <>&nbsp;</>}
             <Text
+              selectable={props.selectable}
               type="BodySmallSemibold"
               style={Styles.collapseStyles([
                 colorToTextColorStyles[props.bannerColor],

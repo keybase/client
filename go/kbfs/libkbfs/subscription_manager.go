@@ -104,7 +104,8 @@ type pathSubscriptionRef struct {
 type subscriptionManager struct {
 	config Config
 
-	lock sync.RWMutex
+	shutdownOnlineStatusWatcher func()
+	lock                        sync.RWMutex
 	// TODO HOTPOT-416: add another layer here to reference by topics, and
 	// actually check topics in LocalChange and BatchChanges.
 	pathSubscriptions               map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify
@@ -120,6 +121,36 @@ type subscriber struct {
 	notifier SubscriptionNotifier
 }
 
+func (sm *subscriptionManager) notifyOnlineStatus() {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_ONLINE_STATUS] == nil {
+		return
+	}
+	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_ONLINE_STATUS] {
+		notifier.notify()
+	}
+}
+
+func (sm *subscriptionManager) watchOnlineStatus() func() {
+	ctx, shutdown := context.WithCancel(context.Background())
+	go func() {
+		for sm.config.KBFSOps() == nil {
+			time.Sleep(100 * time.Millisecond)
+		}
+		for {
+			_, invalidateChan := sm.config.KBFSOps().StatusOfServices()
+			select {
+			case <-invalidateChan:
+				sm.notifyOnlineStatus()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	return shutdown
+}
+
 func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
 	sm := &subscriptionManager{
 		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
@@ -130,10 +161,12 @@ func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionMan
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
 	}
+	sm.shutdownOnlineStatusWatcher = sm.watchOnlineStatus()
 	return sm, sm
 }
 
 func (sm *subscriptionManager) Shutdown(ctx context.Context) {
+	sm.shutdownOnlineStatusWatcher()
 	pathSids := make([]SubscriptionID, 0, len(sm.pathSubscriptionIDToRef))
 	nonPathSids := make([]SubscriptionID, 0, len(sm.nonPathSubscriptionIDToTopic))
 	for sid := range sm.pathSubscriptionIDToRef {
@@ -191,6 +224,11 @@ func (sm *subscriptionManager) subscribePath(ctx context.Context,
 	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
 	if err != nil {
 		return err
+	}
+	if fb == (data.FolderBranch{}) {
+		// ignore non-existent TLF.
+		// TODO: deal with this case HOTPOTP-501
+		return nil
 	}
 	nitp := getCleanInTlfPath(parsedPath)
 

@@ -19,7 +19,7 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
-import {validateNumber, formatPhoneNumber} from '../util/phone-numbers'
+import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -64,14 +64,12 @@ const deriveSearchResults = memoize(
       const label = info.label || ''
       return {
         contact: !!info.contact,
-        displayLabel: validateNumber(label).valid ? formatPhoneNumber(label) : label,
+        displayLabel: formatAnyPhoneNumbers(label),
         followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
         inTeam: teamSoFar.some(u => u.id === info.id),
         isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-        key: [info.id, info.prettyName, info.label].join('&'),
-        prettyName: validateNumber(info.prettyName).valid
-          ? formatPhoneNumber(info.prettyName)
-          : info.prettyName,
+        key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
+        prettyName: formatAnyPhoneNumbers(info.prettyName),
         services: info.serviceMap,
         userId: info.id,
         username: info.id.split('@')[0],
@@ -522,6 +520,7 @@ const mergeProps = (
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
+    includeContacts: ownProps.namespace === 'chat2',
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,

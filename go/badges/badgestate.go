@@ -114,14 +114,6 @@ type teamDeletedBody struct {
 	} `json:"op_by"`
 }
 
-type memberOutBody struct {
-	TeamName  string `json:"team_name"`
-	ResetUser struct {
-		UID      string `json:"uid"`
-		Username string `json:"username"`
-	} `json:"reset_user"`
-}
-
 type unverifiedCountBody struct {
 	UnverifiedCount int `json:"unverified_count"`
 }

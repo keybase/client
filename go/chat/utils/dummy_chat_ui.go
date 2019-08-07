@@ -42,6 +42,10 @@ func (r DummyChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFul
 	return nil
 }
 
+func (r DummyChatUI) ChatThreadStatus(ctx context.Context, arg chat1.ChatThreadStatusArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return true, nil
 }

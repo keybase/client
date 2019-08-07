@@ -69,6 +69,7 @@ const partialAsset = {
   transferServer: '',
   type: '',
   withdrawButtonText: '',
+  withdrawType: '',
 }
 
 const load = () => {

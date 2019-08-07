@@ -262,7 +262,9 @@ protocol config {
     string deviceName;      // current logged in user's device name
     FullName fullname;        // current user's fullname
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
+    union { null, HttpSrvInfo } httpSrvInfo; // info about the service http server
   }
+
   BootstrapStatus getBootstrapStatus(int sessionID);
   void requestFollowerInfo(UID uid);
 
