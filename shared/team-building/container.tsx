@@ -353,7 +353,12 @@ const sortAndSplitRecommendations = memoize(
         return
       }
       if (rec.prettyName || rec.displayLabel) {
-        const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
+        // Use the first letter of the name we will display, but first normalize out
+        // any diacritics.
+        const letter = (rec.prettyName || rec.displayLabel)[0]
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
           const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
