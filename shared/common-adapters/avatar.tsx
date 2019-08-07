@@ -86,42 +86,23 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
   }
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  return {
+const ConnectedAvatar = Container.connect(
+  (state, ownProps: OwnProps) => ({
     _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '', 0),
     _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
-  return {
+  }),
+  (dispatch, ownProps: OwnProps) => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
-  }
-}
-
-const ConnectedAvatar = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {username} = ownProps
     const isTeam = ownProps.isTeam || !!ownProps.teamname
-
-    let onClick = dispatchProps.onClick
-    if (!onClick && username) {
-      onClick = () => dispatchProps._goToProfile(username)
-    }
-
-    const style: Styles.StylesCrossPlatform = Styles.isMobile
-      ? ownProps.style
-      : Styles.collapseStyles([
-          ownProps.style,
-          onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-        ])
-
+    const onClick =
+      dispatchProps.onClick || (username ? () => dispatchProps._goToProfile(username) : undefined)
     const name = isTeam ? ownProps.teamname : username
     const urlMap = [960, 256, 192].reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
@@ -129,7 +110,7 @@ const ConnectedAvatar = Container.connect(
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
-    let url = stateProps._httpSrvAddress
+    const url = stateProps._httpSrvAddress
       ? urlsToImgSet(urlMap, ownProps.size)
       : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
@@ -149,7 +130,7 @@ const ConnectedAvatar = Container.connect(
       size: ownProps.size,
       skipBackground: ownProps.skipBackground,
       skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
-      style,
+      style: ownProps.style,
       url,
     }
   }
@@ -165,16 +146,7 @@ const mockOwnToViewProps = (
   const following = username && follows.includes(username)
   const followsYou = username && followers.includes(username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
-
-  let onClick = ownProps.onClick
-  if (!onClick && username) {
-    onClick = action('onClickToProfile')
-  }
-
-  const style = Styles.collapseStyles([
-    ownProps.style,
-    onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-  ])
+  const onClick = ownProps.onClick || (username ? () => action('onClickToProfile') : undefined)
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   const name = isTeam ? ownProps.teamname : username
   const iconInfo = followIconHelper(
@@ -194,7 +166,7 @@ const mockOwnToViewProps = (
     onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
-    style,
+    style: ownProps.style,
     url,
   }
 }

@@ -9,7 +9,7 @@ const Avatar = (props: Props) => {
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
       onClick={props.onClick}
-      style={(props.style as unknown) as React.CSSProperties}
+      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable])}
     >
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
@@ -62,6 +62,7 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: -18,
   },
+  clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
 })
 
 export default Avatar
