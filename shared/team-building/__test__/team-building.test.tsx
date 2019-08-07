@@ -144,20 +144,21 @@ describe('team building list', () => {
       userId: '',
       username: '',
     }
-    const makeTest = (name: string, expect: string) => ({
-      expect,
-      result: {...testSearchResult, prettyName: name},
-    })
-    const tests = [
-      makeTest('James', 'J'),
-      makeTest('Łukasz', 'L'),
-      makeTest('高嵩', 'G'),
-      makeTest('Über Foo', 'U'),
-      makeTest('Этери', 'E'),
-      makeTest('हिन्दी', 'H'),
-      makeTest('தமிழ்', 'T'),
-      makeTest('తెలుగు', 'T'),
-    ]
+    const makeTests = (arr: Array<[string, string]>) =>
+      arr.map(([name, expect]) => ({
+        expect,
+        result: {...testSearchResult, prettyName: name},
+      }))
+    const tests = makeTests([
+      ['James', 'J'],
+      ['Łukasz', 'L'],
+      ['高嵩', 'G'],
+      ['Über Foo', 'U'],
+      ['Этери', 'E'],
+      ['हिन्दी', 'H'],
+      ['தமிழ்', 'T'],
+      ['తెలుగు', 'T'],
+    ])
     const sections = sortAndSplitRecommendations(tests.map(t => t.result), false) || []
     const sectionMap = {}
     for (const s of sections) {
