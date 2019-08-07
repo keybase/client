@@ -1512,7 +1512,7 @@ const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
         })
       ),
     },
-    Constants.assetDepositWaitingKey(action.payload.issuerAccountID)
+    Constants.assetDepositWaitingKey(action.payload.issuerAccountID, action.payload.code)
   )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))
@@ -1528,7 +1528,7 @@ const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =
         })
       ),
     },
-    Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID)
+    Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID, action.payload.code)
   )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))

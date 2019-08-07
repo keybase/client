@@ -31,7 +31,7 @@ export default Container.connect(
       balance: asset.balanceTotal,
       code: asset.assetCode,
       depositButtonText: asset.showDepositButton ? asset.depositButtonText : '',
-      depositButtonWaitingKey: Constants.assetDepositWaitingKey(asset.issuerAccountID),
+      depositButtonWaitingKey: Constants.assetDepositWaitingKey(asset.issuerAccountID, asset.assetCode),
       equivAvailableToSend: `${asset.availableToSendWorth}`,
       equivBalance: `${asset.worth}`,
       infoUrlText: asset.infoUrlText,
@@ -49,7 +49,7 @@ export default Container.connect(
       openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
       reserves: asset.reserves.toArray(),
       withdrawButtonText: asset.showWithdrawButton ? asset.withdrawButtonText : '',
-      withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(asset.issuerAccountID),
+      withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(asset.issuerAccountID, asset.assetCode),
     }
   }
 )(Asset)
