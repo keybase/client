@@ -323,7 +323,7 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
-const sortAndSplitRecommendations = memoize(
+export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
