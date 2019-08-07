@@ -58,6 +58,7 @@ export const makeState = I.Record<Types._State>({
   quote: null,
   replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
+  previousSelectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),

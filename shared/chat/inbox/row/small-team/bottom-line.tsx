@@ -24,12 +24,20 @@ type Props = {
   isSelected: boolean
   isDecryptingSnippet: boolean
   isTypingSnippet: boolean
+  draft?: string
 }
 
 class BottomLine extends PureComponent<Props> {
   render() {
     let content
-
+    const style = collapseStyles([
+      styles.bottomLine,
+      {
+        color: this.props.subColor,
+        ...(this.props.showBold ? globalStyles.fontBold : {}),
+      },
+      this.props.isTypingSnippet ? styles.typingSnippet : null,
+    ])
     if (this.props.youNeedToRekey) {
       content = null
     } else if (this.props.youAreReset) {
@@ -53,18 +61,20 @@ class BottomLine extends PureComponent<Props> {
           Waiting for participants to rekey...
         </Text>
       )
+    } else if (this.props.draft) {
+      content = (
+        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+          <Text type="BodySmall" style={styles.draftLabel}>
+            Draft:
+          </Text>
+          <Markdown preview={true} style={style}>
+            {this.props.draft}
+          </Markdown>
+        </Box2>
+      )
     } else if (this.props.isDecryptingSnippet) {
       content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
     } else if (this.props.snippet) {
-      const style = collapseStyles([
-        styles.bottomLine,
-        {
-          color: this.props.subColor,
-          ...(this.props.showBold ? globalStyles.fontBold : {}),
-        },
-        this.props.isTypingSnippet ? styles.typingSnippet : null,
-      ])
-
       let snippetDecoration
       let exploded = false
 
@@ -173,6 +183,9 @@ const styles = styleSheetCreate({
     ...globalStyles.fillAbsolute,
     alignItems: 'center',
     width: '100%',
+  },
+  draftLabel: {
+    color: globalColors.orange,
   },
   innerBox: {
     ...globalStyles.flexBoxRow,

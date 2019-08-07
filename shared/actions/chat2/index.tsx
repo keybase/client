@@ -2427,6 +2427,16 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
+const refreshPreviousSelected = (state: TypedState) => {
+  if (state.chat2.previousSelectedConversation !== Constants.noConversationIDKey) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [state.chat2.previousSelectedConversation],
+      force: true,
+    })
+  }
+  return undefined
+}
+
 const deselectConversation = (state: TypedState, action: Chat2Gen.DeselectConversationPayload) => {
   if (state.chat2.selectedConversation === action.payload.ifConversationIDKey) {
     return Chat2Gen.createSelectConversation({
@@ -3852,6 +3862,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
     Chat2Gen.loadAttachmentView,
     loadAttachmentView
+  )
+
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    refreshPreviousSelected
   )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')

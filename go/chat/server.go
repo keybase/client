@@ -286,7 +286,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				}
 				// If we get a transient failure, add this to the retrier queue
 				if convRes.ConvLocal.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Metadata.IdTriple.Tlfid)
+					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 			} else {
 				pconv := utils.PresentConversationLocal(ctx, convRes.ConvLocal,
@@ -314,10 +314,10 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				if isSuccess {
 					h.G().FetchRetrier.Success(ctx, uid,
 						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
-							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
+							&convRes.Conv.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				} else {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to transmit conv, retrying")
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Metadata.IdTriple.Tlfid)
+					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 				convLocalsCh <- convRes.ConvLocal
 			}

@@ -462,6 +462,7 @@ const rootReducer = (
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.deleteIn(['threadLoadStatus', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
+        s.set('previousSelectedConversation', s.get('selectedConversation'))
         s.set('selectedConversation', conversationIDKey)
         if (Constants.isValidConversationIDKey(conversationIDKey)) {
           // If navigating away from error conversation to a valid conv - clear
