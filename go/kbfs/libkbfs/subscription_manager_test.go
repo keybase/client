@@ -87,7 +87,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		ctx, rootNode, rootNode.ChildName("dir1"))
 	require.NoError(t, err)
 
-	// wait for done1 to happen before unsubscribing to avoid races
+	// These waits are needed to avoid races.
+	t.Logf("Waiting for last notification (done1) before unsubscribing.")
 	waiter1()
 
 	t.Logf("Unsubscribe sid1, and make another dir. We should only get a notification for STAT.")
@@ -98,7 +99,7 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		ctx, rootNode, rootNode.ChildName("dir2"))
 	require.NoError(t, err)
 
-	// wait for done2 to happen before unsubscribing to avoid races
+	t.Logf("Waiting for last notification (done2) before unsubscribing.")
 	waiter2()
 
 	t.Logf("Unsubscribe sid2 as well. Then subscribe to STAT on the file using sid1 (which we unsubscribed earlier), and write to it. We should get STAT notification.")
@@ -110,7 +111,7 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
 	require.NoError(t, err)
 
-	// wait for done3 to happen before finishing the test
+	t.Logf("Waiting for last notification (done3) before finishing the test.")
 	waiter3()
 }
 
@@ -135,6 +136,6 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// wait for done3 to happen before finishing the test
+	t.Logf("Waiting for last notification (done1) before finishing the test.")
 	waiter1()
 }
