@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import logger from '../../../../../logger'
 import {Props} from './image-render.types'
-import {Video as ExpoVideo} from 'expo-av'
+import {Video} from 'expo-av'
 
 type State = {
   paused: boolean
@@ -40,14 +40,14 @@ export class ImageRender extends React.Component<Props, State> {
       return (
         <Kb.Box2 direction="vertical" style={[styles.container, this.props.style, {height, width}]}>
           {this.state.showVideo ? (
-            <ExpoVideo
+            <Video
               source={source}
               useNativeControls={!this.state.paused}
               onLoad={() => this._allLoads()}
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
-              resizeMode={ExpoVideo.RESIZE_MODE_COVER}
+              resizeMode={Video.RESIZE_MODE_COVER}
               style={Styles.collapseStyles([styles.video, {height, width}])}
               shouldPlay={true}
               ref={this.videoRef}
