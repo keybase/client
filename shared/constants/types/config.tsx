@@ -29,7 +29,7 @@ export type _State = {
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
-  avatars: I.Map<string, I.Map<number, string>>
+  avatarRefreshCounter: I.Map<string, number>
   configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState
@@ -46,6 +46,8 @@ export type _State = {
   followers: I.Set<string>
   following: I.Set<string>
   globalError: null | Error | RPCError
+  httpSrvAddress: string
+  httpSrvToken: string
   justDeletedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: I.Map<string, number>

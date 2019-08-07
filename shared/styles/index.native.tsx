@@ -54,6 +54,7 @@ export const globalStyles = {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
+// @ts-ignore TODO fix native styles
 export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
 export {isDarkMode} from './dark-mode'
 export const collapseStyles = (

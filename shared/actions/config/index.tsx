@@ -21,7 +21,6 @@ import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
-import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
@@ -65,6 +64,15 @@ const onTrackingInfo = (
     uid: action.payload.params.uid,
   })
 
+const onHTTPSrvInfoUpdated = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+) =>
+  ConfigGen.createUpdateHTTPSrvInfo({
+    address: action.payload.params.info.address,
+    token: action.payload.params.info.token,
+  })
+
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -102,6 +110,12 @@ function* loadDaemonBootstrapStatus(
     yield Saga.put(loadedAction)
     // request follower info in the background
     yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
+    // set HTTP srv info
+    if (s.httpSrvInfo) {
+      yield Saga.put(
+        ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
+      )
+    }
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
@@ -668,6 +682,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload>(
+    EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate,
+    onHTTPSrvInfoUpdated
+  )
 
   yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
 
@@ -677,7 +695,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
-  yield Saga.spawn(avatarSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 }
 

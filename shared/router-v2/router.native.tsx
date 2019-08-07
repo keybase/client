@@ -1,4 +1,5 @@
 import * as Kb from '../common-adapters/mobile.native'
+import {IconType} from '../common-adapters/icon.constants'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
@@ -51,7 +52,7 @@ const defaultNavigationOptions = {
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
-const icons = {
+const icons: {[key: string]: IconType} = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
