@@ -34,7 +34,7 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
-    ...dispatchProps,
+    onClose: dispatchProps.onClose,
     onDelete: (notifyTeam: boolean) =>
       dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
     title: 'Delete repo?',

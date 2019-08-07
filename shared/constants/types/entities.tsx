@@ -1,6 +1,5 @@
 import * as I from 'immutable'
 import * as SearchTypes from './search'
-import * as Git from './git'
 
 export type _SearchSubState = {
   searchResults: I.Map<SearchTypes.SearchResultId, I.RecordOf<SearchTypes.SearchResult>>
@@ -23,7 +22,6 @@ export type SearchSubState = I.RecordOf<_SearchSubState>
 
 // State
 export type _State = {
-  git: Git.State
   search: SearchSubState
   searchQueryToResult: I.Map<SearchTypes.SearchQuery, I.List<SearchTypes.SearchResultId>>
   searchResults: I.Map<SearchTypes.SearchResultId, SearchTypes.SearchResult>

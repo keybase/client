@@ -12,6 +12,5 @@ export const newRoutes = {
 export const newModalRoutes = {
   gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo/container').default},
   gitNewRepo: {getScreen: (): typeof GitNewRepo => require('./new-repo/container').default},
-  // TODO broken connect
   gitSelectChannel: {getScreen: (): typeof GitSelectChannel => require('./select-channel/container').default},
 }

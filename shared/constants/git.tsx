@@ -52,21 +52,18 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
 
 export const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   let errors: Array<Error> = []
-  let repos = {}
+  let repos = new Map<string, Types.GitInfo>()
   results.forEach(result => {
     if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
       const parsedRepo = parseRepoResult(result)
       if (parsedRepo) {
-        repos[parsedRepo.id] = parsedRepo
+        repos.set(parsedRepo.id, parsedRepo)
       }
     } else {
       errors.push(parseRepoError(result))
     }
   })
-  return {
-    errors,
-    repos,
-  }
+  return {errors, repos}
 }
 
 export const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string) => {

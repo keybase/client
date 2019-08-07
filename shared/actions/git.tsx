@@ -3,71 +3,80 @@ import * as GregorGen from './gregor-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 
-const load = (state: TypedState) =>
-  state.config.loggedIn &&
-  RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
-    .then((results: Array<RPCTypes.GitRepoResult> | null) =>
-      // @ts-ignore codemod-issue
-      GitGen.createLoaded(Constants.parseRepos(results || []))
+const load = async (state: TypedState) => {
+  if (!state.config.loggedIn) {
+    return false
+  }
+
+  try {
+    const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
+    const {errors, repos} = Constants.parseRepos(results || [])
+    const errorActions = errors.map(globalError => ConfigGen.createGlobalError({globalError}))
+    return [GitGen.createLoaded({repos}), ...errorActions]
+  } catch (_) {
+    return false
+  }
+}
+
+const createPersonalRepo = async (_: TypedState, action: GitGen.CreatePersonalRepoPayload) => {
+  try {
+    await RPCTypes.gitCreatePersonalRepoRpcPromise(
+      {repoName: action.payload.name},
+      Constants.loadingWaitingKey
     )
-    .catch(() => {})
+    return GitGen.createRepoCreated()
+  } catch (error) {
+    return GitGen.createSetError({error})
+  }
+}
 
-const surfaceGlobalErrors = (_, {payload: {errors}}: GitGen.LoadedPayload) =>
-  errors.map(globalError => ConfigGen.createGlobalError({globalError}))
+const createTeamRepo = async (_: TypedState, action: GitGen.CreateTeamRepoPayload) => {
+  try {
+    await RPCTypes.gitCreateTeamRepoRpcPromise(
+      {
+        notifyTeam: action.payload.notifyTeam,
+        repoName: action.payload.name,
+        teamName: {parts: action.payload.teamname.split('.')},
+      },
+      Constants.loadingWaitingKey
+    )
+    return GitGen.createRepoCreated()
+  } catch (error) {
+    return GitGen.createSetError({error})
+  }
+}
 
-const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
-  RPCTypes.gitCreatePersonalRepoRpcPromise(
-    {
-      repoName: action.payload.name,
-    },
-    Constants.loadingWaitingKey
-  )
-    .then(() => GitGen.createRepoCreated())
-    .catch(error => GitGen.createSetError({error}))
+const deletePersonalRepo = async (_: TypedState, action: GitGen.DeletePersonalRepoPayload) => {
+  try {
+    await RPCTypes.gitDeletePersonalRepoRpcPromise(
+      {repoName: action.payload.name},
+      Constants.loadingWaitingKey
+    )
+    return GitGen.createRepoDeleted()
+  } catch (error) {
+    return GitGen.createSetError({error})
+  }
+}
 
-const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
-  RPCTypes.gitCreateTeamRepoRpcPromise(
+const deleteTeamRepo = await (_: TypedState, action: GitGen.DeleteTeamRepoPayload) => {
+    try {
+  await RPCTypes.gitDeleteTeamRepoRpcPromise(
     {
       notifyTeam: action.payload.notifyTeam,
       repoName: action.payload.name,
-      teamName: {
-        parts: action.payload.teamname.split('.'),
-      },
+      teamName: { parts: action.payload.teamname.split('.'), },
     },
     Constants.loadingWaitingKey
   )
-    .then(() => GitGen.createRepoCreated())
-    .catch(error => GitGen.createSetError({error}))
-
-const deletePersonalRepo = (_, action: GitGen.DeletePersonalRepoPayload) =>
-  RPCTypes.gitDeletePersonalRepoRpcPromise(
-    {
-      repoName: action.payload.name,
-    },
-    Constants.loadingWaitingKey
-  )
-    .then(() => GitGen.createRepoDeleted())
-    .catch(error => GitGen.createSetError({error}))
-
-const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
-  RPCTypes.gitDeleteTeamRepoRpcPromise(
-    {
-      notifyTeam: action.payload.notifyTeam,
-      repoName: action.payload.name,
-      teamName: {
-        parts: action.payload.teamname.split('.'),
-      },
-    },
-    Constants.loadingWaitingKey
-  )
-    .then(() => GitGen.createRepoDeleted())
-    .catch(error => GitGen.createSetError({error}))
+    return GitGen.createRepoDeleted()
+    }
+    catch(error){return  GitGen.createSetError({error})}
+}
 
 const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   RPCTypes.gitSetTeamRepoSettingsRpcPromise({
@@ -95,7 +104,7 @@ const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
       return GitGen.createLoadGit()
     }
   }
-    return undefined
+  return undefined
 }
 
 function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
@@ -104,7 +113,7 @@ function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
   if (!id) {
     yield Saga.put(GitGen.createLoadGit())
     yield Saga.take(GitGen.loaded)
-      const nextState: TypedState = yield* Saga.selectState()
+    const nextState: TypedState = yield* Saga.selectState()
     id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
   }
 
@@ -126,9 +135,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     [GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit],
     load
   )
-
-  // Loading
-  yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)
 
   // Team Repos
   yield* Saga.chainAction<GitGen.SetTeamRepoSettingsPayload>(GitGen.setTeamRepoSettings, setTeamRepoSettings)
