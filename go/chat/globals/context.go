@@ -196,13 +196,6 @@ func CtxAddLocalizerCancelable(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localizerCancelableKey, true)
 }
 
-func CtxRemoveLocalizerCancelable(ctx context.Context) context.Context {
-	if IsLocalizerCancelableCtx(ctx) {
-		return context.WithValue(ctx, localizerCancelableKey, false)
-	}
-	return ctx
-}
-
 func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
