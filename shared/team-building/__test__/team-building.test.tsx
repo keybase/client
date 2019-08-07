@@ -165,10 +165,7 @@ describe('team building list', () => {
       sectionMap[s.label] = s.data
     }
     for (const t of tests) {
-      expect(sectionMap[t.expect]).toContainEqual({
-        ...testSearchResult,
-        prettyName: t.result.prettyName || '',
-      })
+      expect(sectionMap[t.expect]).toContainEqual(t.result)
     }
   })
 })
