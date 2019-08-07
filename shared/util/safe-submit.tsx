@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Container from './container'
 
 // TODO entirely replace with a hook. We can't really type this as we really want submitProps / resetSafeProps to be keyof P but we don't know the type ahead of time
 //
@@ -45,6 +46,8 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
         return <BaseComponent {...this.props} {...wrapped} />
       }
     }
+
+    Container.hoistNonReactStatic(SafeSubmit, BaseComponent)
     return SafeSubmit
   }
 }

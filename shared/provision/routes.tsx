@@ -2,7 +2,7 @@ import CodePage from './code-page/container'
 import ErrorView from './error/container'
 import ForgotUsername from './forgot-username/container'
 import GpgSign from './gpg-sign/container'
-import Paperkey from './paper-key/container'
+import Paperkey from './paper-key'
 import Password from './password/container'
 import SelectOtherDevice from './select-other-device/container'
 import SetPublicName from './set-public-name/container'
@@ -14,7 +14,7 @@ export const newRoutes = {
   error: {getScreen: (): typeof ErrorView => require('./error/container').default},
   forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default},
   gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default},
-  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default},
+  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key').default},
   password: {getScreen: (): typeof Password => require('./password/container').default},
   selectOtherDevice: {
     getScreen: (): typeof SelectOtherDevice => require('./select-other-device/container').default,

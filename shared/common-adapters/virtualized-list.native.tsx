@@ -1,30 +1,44 @@
 import * as React from 'react'
-import {VirtualizedList, VirtualizedListProps} from 'react-native'
+import {VirtualizedList, VirtualizedListProps, ViewToken} from 'react-native'
 
-class NativeVirtualizedList<ItemT> extends React.Component<
-  VirtualizedListProps<ItemT> & {forwardedRef?: React.RefObject<VirtualizedList<ItemT>>}
-> {
-  _mounted = false
+type ExtraProps = {
+  // exist in class but not type or docs
+  maintainVisibleContentPosition?: {
+    minIndexForVisible: number
+    autoscrollToTopThreshold?: number
+  }
+}
+
+class NativeVirtualizedList<ItemT> extends React.Component<VirtualizedListProps<ItemT> & ExtraProps> {
+  private mounted = false
+  private list = React.createRef<VirtualizedList<ItemT>>()
 
   componentDidMount() {
-    this._mounted = true
+    this.mounted = true
   }
   componentWillUnmount() {
-    this._mounted = false
+    this.mounted = false
+  }
+
+  scrollToIndex = (params: {
+    animated?: boolean
+    index: number
+    viewOffset?: number
+    viewPosition?: number
+  }) => {
+    // @ts-ignore actually does exist
+    this.list.current && this.list.current.scrollToIndex(params)
   }
 
   // This can be called while unmounted which causes all sorts of problems: https://github.com/facebook/react-native/issues/21170
-  _onViewableItemsChanged = info => {
-    if (this._mounted && this.props.onViewableItemsChanged) {
+  private onViewableItemsChanged = (info: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+    if (this.mounted && this.props.onViewableItemsChanged) {
       this.props.onViewableItemsChanged(info)
     }
   }
 
   render() {
-    const {forwardedRef, ...rest} = this.props
-    return (
-      <VirtualizedList {...rest} ref={forwardedRef} onViewableItemsChanged={this._onViewableItemsChanged} />
-    )
+    return <VirtualizedList {...this.props} onViewableItemsChanged={this.onViewableItemsChanged} />
   }
 }
 
