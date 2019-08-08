@@ -139,6 +139,17 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 //     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 	s.logger.Debug("Incoming request from %q: %s", req.UserAgent(), req.URL)
+	addr, err := s.server.Addr()
+	if err != nil {
+		s.logger.Debug("serve: failed to get HTTP server address: %s", err)
+		s.handleBadRequest(w)
+		return
+	}
+	if req.Host != addr {
+		s.logger.Debug("Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
+		s.handleBadRequest(w)
+		return
+	}
 	token := req.URL.Query().Get("token")
 	if len(token) == 0 || !s.tokens.Contains(token) {
 		s.logger.Info("Invalid token %q", token)
