@@ -737,3 +737,18 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 		require.Contains(t, err.Error(), "Invalid phone number")
 	}
 }
+
+func TestCaseSensitiveEmails(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, strings.ToUpper(fus[0].Email))
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.NoError(t, err)
+	spew.Dump(teamObj.ID)
+	spew.Dump(teamObj.GetActiveAndObsoleteInvites())
+
+	_, _, teamName, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, strings.ToLower(displayNameInput), false /*isPublic*/)
+	require.NoError(t, err)
+	spew.Dump(teamName)
+}
