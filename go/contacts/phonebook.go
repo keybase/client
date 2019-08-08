@@ -76,7 +76,7 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 		return nil, err
 	}
 
-	// Send notifications for newly resolved
+	// find newly resolved
 	s := mctx.G().SyncedContactList
 	cts, err := s.RetrieveContacts(mctx)
 	if err == nil {
@@ -93,7 +93,6 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 			}
 		}
 	} else {
-		// We'll fail sending a push notification
 		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
 	}
 

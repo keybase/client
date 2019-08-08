@@ -84,7 +84,7 @@ func TestContactSyncAndSearch(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// bust cache
+	// bust cache, new resolution should be returned
 	clock.Advance(72 * time.Hour)
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
 	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
