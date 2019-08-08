@@ -19,7 +19,8 @@ const isPositive = thing => typeof thing === 'number' && thing > 0
 export const getVideoSize = (state: VideoState): Size => {
   const {containerHeight, containerWidth, videoHeight, videoWidth} = state
   if (!isPositive(containerHeight) || !isPositive(containerWidth)) {
-    return {height: 0, width: 0}
+    // On android it seems size 0 doesn't trigger load at all.
+    return {height: 1, width: 1}
   }
   if (!isPositive(videoHeight) || !isPositive(videoWidth)) {
     // Might be an audio file. In this case height doesn't seem to affect

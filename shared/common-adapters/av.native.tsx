@@ -50,6 +50,8 @@ export const Video = (props: Props) => {
   )
 }
 
+// TODO we should probalby have custom style here. The controls auto hides on
+// Android.
 export const Audio = (props: Props) => (
   <ExpoVideo
     source={{uri: props.url}}
@@ -67,7 +69,8 @@ export const Audio = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   audio: {
     ...Styles.globalStyles.fullWidth,
-    height: 48,
+    backgroundColor: Styles.globalColors.black,
+    height: Styles.isAndroid ? 96 : 48,
   },
   container: {
     ...Styles.globalStyles.flexBoxRow,
