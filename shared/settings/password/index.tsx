@@ -69,6 +69,18 @@ class UpdatePassword extends Component<Props, State> {
       : this.props.hasPGPKeyOnServer
       ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
       : null
+
+    const hintType = this.state.errorSaving
+      ? 'BodySmallError'
+      : this.state.password.length < 8
+      ? 'BodySmall'
+      : 'BodySmallSuccess'
+    const hintText = this.state.errorSaving
+      ? this.state.errorSaving
+      : this.state.password.length < 8
+      ? 'Password must be at least 8 characters.'
+      : 'Ready to change the password!'
+
     return (
       <Kb.Modal
         banners={[
@@ -154,11 +166,8 @@ class UpdatePassword extends Component<Props, State> {
               }}
             />
           </Kb.RoundedBox>
-          <Kb.Text
-            style={styles.passwordFormat}
-            type={this.state.errorSaving ? 'BodySmallError' : 'BodySmall'}
-          >
-            {this.state.errorSaving || 'Password must be at least 8 characters.'}
+          <Kb.Text style={styles.passwordFormat} type={hintType}>
+            {hintText}
           </Kb.Text>
           <Kb.Checkbox
             boxBackgroundColor={Styles.globalColors.white}
