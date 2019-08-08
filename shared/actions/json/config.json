@@ -124,6 +124,12 @@
       "type": "ConnectionType",
       "isInit?": "boolean"
     },
+    "setDarkModePreference": {
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+    },
+    "setSystemDarkMode": {
+        "dark": "boolean"
+    },
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"

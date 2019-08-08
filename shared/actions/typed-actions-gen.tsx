@@ -233,6 +233,8 @@ export type TypedActionsMap = {
   'config:openAppStore': config.OpenAppStorePayload
   'config:updateCriticalCheckStatus': config.UpdateCriticalCheckStatusPayload
   'config:osNetworkStatusChanged': config.OsNetworkStatusChangedPayload
+  'config:setDarkModePreference': config.SetDarkModePreferencePayload
+  'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
@@ -449,7 +451,7 @@ export type TypedActionsMap = {
   'fs:subscribePath': fs.SubscribePathPayload
   'fs:subscribeNonPath': fs.SubscribeNonPathPayload
   'fs:unsubscribe': fs.UnsubscribePayload
-  'fs:onJournalNotification': fs.OnJournalNotificationPayload
+  'fs:pollJournalStatus': fs.PollJournalStatusPayload
   'fs:getOnlineStatus': fs.GetOnlineStatusPayload
   'fs:folderListLoad': fs.FolderListLoadPayload
   'fs:folderListLoaded': fs.FolderListLoadedPayload

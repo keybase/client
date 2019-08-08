@@ -17,6 +17,8 @@ const props = {
   onManageContacts: Sb.action('onManageContacts'),
   onReload: Sb.action('onReload'),
   onSetPassword: Sb.action('onSetPassword'),
+  tooManyEmails: false,
+  tooManyPhones: false,
   waiting: false,
 }
 

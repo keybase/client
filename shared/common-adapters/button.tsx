@@ -159,52 +159,30 @@ const typeToColorName = {
 const smallHeight = Styles.isMobile ? 32 : 28
 const regularHeight = Styles.isMobile ? 40 : 32
 
-const common = Styles.platformStyles({
-  common: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    borderRadius: Styles.borderRadius,
-    height: regularHeight,
-    justifyContent: 'center',
-  },
-  isElectron: {
-    display: 'inline-block',
-    lineHeight: 'inherit',
-    minWidth: '100px',
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-  },
-  isMobile: {
-    minWidth: 120,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-})
+const common = () =>
+  Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      borderRadius: Styles.borderRadius,
+      height: regularHeight,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      display: 'inline-block',
+      lineHeight: 'inherit',
+      minWidth: '100px',
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      minWidth: 120,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  })
 
-const commonSecondaryWhiteBg = Styles.platformStyles({
-  common,
-  isElectron: {
-    backgroundColor: Styles.globalColors.white,
-    transition: 'border 0.3s ease-out',
-  },
-  isMobile: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderStyle: 'solid',
-    borderWidth: 1,
-  },
-})
-
-const commonLabel = Styles.platformStyles({
-  common: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
-  isElectron: {whiteSpace: 'pre'},
-  isMobile: {lineHeight: undefined},
-})
-
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   fullWidth: {
     flexGrow: 1,
     maxWidth: 460,
@@ -226,54 +204,82 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
     paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
   },
+}))
+
+const containerStyles = Styles.styleSheetCreate(() => {
+  const commonSecondaryWhiteBg = Styles.platformStyles({
+    common: common(),
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      transition: 'border 0.3s ease-out',
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_20,
+      borderStyle: 'solid',
+      borderWidth: 1,
+    },
+  })
+
+  return {
+    PrimaryDefault: {...common(), backgroundColor: Styles.globalColors.blue},
+    PrimarySuccess: {...common(), backgroundColor: Styles.globalColors.green},
+    PrimaryDanger: {...common(), backgroundColor: Styles.globalColors.red},
+    PrimaryWallet: {...common(), backgroundColor: Styles.globalColors.purple},
+    PrimaryDim: {...common(), backgroundColor: Styles.globalColors.grey},
+    SecondaryDefault: commonSecondaryWhiteBg,
+    SecondarySuccess: commonSecondaryWhiteBg,
+    SecondaryDanger: commonSecondaryWhiteBg,
+    SecondaryWallet: commonSecondaryWhiteBg,
+    SecondaryDim: commonSecondaryWhiteBg,
+  }
 })
 
-const containerStyles = Styles.styleSheetCreate({
-  PrimaryDefault: {...common, backgroundColor: Styles.globalColors.blue},
-  PrimarySuccess: {...common, backgroundColor: Styles.globalColors.green},
-  PrimaryDanger: {...common, backgroundColor: Styles.globalColors.red},
-  PrimaryWallet: {...common, backgroundColor: Styles.globalColors.purple},
-  PrimaryDim: {...common, backgroundColor: Styles.globalColors.grey},
-  SecondaryDefault: commonSecondaryWhiteBg,
-  SecondarySuccess: commonSecondaryWhiteBg,
-  SecondaryDanger: commonSecondaryWhiteBg,
-  SecondaryWallet: commonSecondaryWhiteBg,
-  SecondaryDim: commonSecondaryWhiteBg,
-})
+const commonLabel = () =>
+  Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
+    isElectron: {whiteSpace: 'pre'},
+    isMobile: {lineHeight: undefined},
+  })
 
-const primaryWhiteBgLabel = {
-  ...commonLabel,
-  color: Styles.globalColors.white,
-}
-const labelStyles = Styles.styleSheetCreate({
-  PrimaryDefault: primaryWhiteBgLabel,
-  PrimarySuccess: primaryWhiteBgLabel,
-  PrimaryDanger: primaryWhiteBgLabel,
-  PrimaryWallet: primaryWhiteBgLabel,
-  PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
-  SecondaryDefault: {...commonLabel, color: Styles.globalColors.blueDark},
-  SecondarySuccess: {...commonLabel, color: Styles.globalColors.greenDark},
-  SecondaryDanger: {...commonLabel, color: Styles.globalColors.redDark},
-  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purpleDark},
-  SecondaryDim: {...commonLabel, color: Styles.globalColors.black_50},
+const labelStyles = Styles.styleSheetCreate(() => {
+  const primaryWhiteBgLabel = {
+    ...commonLabel(),
+    color: Styles.globalColors.white,
+  }
+  return {
+    PrimaryDefault: primaryWhiteBgLabel,
+    PrimarySuccess: primaryWhiteBgLabel,
+    PrimaryDanger: primaryWhiteBgLabel,
+    PrimaryWallet: primaryWhiteBgLabel,
+    PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
+    SecondaryDefault: {...commonLabel(), color: Styles.globalColors.blueDark},
+    SecondarySuccess: {...commonLabel(), color: Styles.globalColors.greenDark},
+    SecondaryDanger: {...commonLabel(), color: Styles.globalColors.redDark},
+    SecondaryWallet: {...commonLabel(), color: Styles.globalColors.purpleDark},
+    SecondaryDim: {...commonLabel(), color: Styles.globalColors.black_50},
+  }
 })
 
 // With backgroundColor styles
-const backgroundColorContainerStyles = Styles.styleSheetCreate({
-  Primary: {...common, backgroundColor: Styles.globalColors.white},
+const backgroundColorContainerStyles = Styles.styleSheetCreate(() => ({
+  Primary: {...common(), backgroundColor: Styles.globalColors.white},
   Secondary: Styles.platformStyles({
-    common: {...common, backgroundColor: Styles.globalColors.black_20},
+    common: {...common(), backgroundColor: Styles.globalColors.black_20},
     isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
   }),
-})
+}))
 
-const backgroundColorLabelStyles = Styles.styleSheetCreate({
-  Primaryblue: {...commonLabel, color: Styles.globalColors.blueDark},
-  Primaryred: {...commonLabel, color: Styles.globalColors.redDark},
-  Primarygreen: {...commonLabel, color: Styles.globalColors.greenDark},
-  Primarypurple: {...commonLabel, color: Styles.globalColors.purpleDark},
-  Primaryblack: {...commonLabel, color: Styles.globalColors.black},
-  Secondary: {...commonLabel, color: Styles.globalColors.white},
-})
+const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
+  Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
+  Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
+  Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
+  Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
+  Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
+  Secondary: {...commonLabel(), color: Styles.globalColors.white},
+}))
 
 export default Button

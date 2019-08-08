@@ -7,6 +7,7 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from './types'
+import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -234,6 +235,7 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
     </Box>
   )
 
+  hoistNonReactStatic(HeaderHocWrapper, WrappedComponent)
   return HeaderHocWrapper
 }
 

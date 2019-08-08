@@ -32,6 +32,12 @@ const appVersionCode = nativeBridge.appVersionCode || ''
 const mobileOsVersion = Platform.Version
 
 class FeedbackContainer extends React.Component<Props, State> {
+  static navigationOptions = {
+    header: undefined,
+    headerHeight: 60,
+    title: 'Feedback',
+  }
+
   mounted = false
 
   state = {
@@ -143,12 +149,5 @@ const connected = Container.compose(
   ),
   HOCTimers
 )(FeedbackContainer)
-
-// @ts-ignore TODO fix
-connected.navigationOptions = {
-  header: undefined,
-  headerHeight: 60,
-  title: 'Feedback',
-}
 
 export default connected
