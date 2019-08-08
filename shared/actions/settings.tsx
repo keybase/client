@@ -17,122 +17,114 @@ import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
 
-const onUpdatePGPSettings = () =>
-  RPCTypes.accountHasServerKeysRpcPromise()
-    .then(({hasServerKeys}) => SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
-    .catch(error => SettingsGen.createOnUpdatePasswordError({error}))
-
-function* onSubmitNewEmail(state: TypedState) {
+const onUpdatePGPSettings = async () => {
   try {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const newEmail = state.settings.email.newEmail
-    yield RPCTypes.accountEmailChangeRpcPromise({newEmail})
-    yield Saga.put(SettingsGen.createLoadSettings())
-    yield Saga.put(RouteTreeGen.createNavigateUp())
+    const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
+    return SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys})
   } catch (error) {
-    yield Saga.put(SettingsGen.createOnUpdateEmailError({error}))
-  } finally {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))
+    return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
 
-function* onSubmitNewPassword(state: TypedState, action: SettingsGen.OnSubmitNewPasswordPayload) {
+const onSubmitNewEmail = async (state: TypedState) => {
   try {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
+    const newEmail = state.settings.email.newEmail
+    await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
+    return [SettingsGen.createLoadSettings(), RouteTreeGen.createNavigateUp()]
+  } catch (error) {
+    return SettingsGen.createOnUpdateEmailError({error})
+  }
+}
+
+const onSubmitNewPassword = async (state: TypedState, action: SettingsGen.OnSubmitNewPasswordPayload) => {
+  try {
     const {newPassword, newPasswordConfirm} = state.settings.password
     if (newPassword.stringValue() !== newPasswordConfirm.stringValue()) {
-      yield Saga.put(SettingsGen.createOnUpdatePasswordError({error: new Error("Passwords don't match")}))
-      return
+      return SettingsGen.createOnUpdatePasswordError({error: new Error("Passwords don't match")})
     }
-    yield RPCTypes.accountPassphraseChangeRpcPromise({
+    await RPCTypes.accountPassphraseChangeRpcPromise({
       force: true,
       oldPassphrase: '',
       passphrase: newPassword.stringValue(),
     })
-    yield Saga.put(RouteTreeGen.createNavigateUp())
-    if (action.payload.thenSignOut) {
-      yield Saga.put(ConfigGen.createLogout())
-    }
+
+    return [
+      RouteTreeGen.createNavigateUp(),
+      ...(action.payload.thenSignOut ? [ConfigGen.createLogout()] : []),
+    ]
   } catch (error) {
-    yield Saga.put(SettingsGen.createOnUpdatePasswordError({error}))
-  } finally {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))
+    return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
 
-function* toggleNotifications(state: TypedState) {
-  try {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const current = state.settings.notifications
+const toggleNotifications = async (state: TypedState) => {
+  const current = state.settings.notifications
+  if (!current || !current.groups.get('email')) {
+    throw new Error('No notifications loaded yet')
+  }
 
-    if (!current || !current.groups.get('email')) {
-      throw new Error('No notifications loaded yet')
-    }
-
-    let JSONPayload: Array<{key: string; value: string}> = []
-    let chatGlobalArg = {}
-    current.groups.forEach((group, groupName) => {
-      if (groupName === Constants.securityGroup) {
-        // Special case this since it will go to chat settings endpoint
-        group.settings.forEach(
-          setting =>
-            (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name]}`] = !!setting.subscribed)
-        )
-      } else {
-        group.settings.forEach(setting =>
-          JSONPayload.push({
-            key: `${setting.name}|${groupName}`,
-            value: setting.subscribed ? '1' : '0',
-          })
-        )
+  let JSONPayload: Array<{key: string; value: string}> = []
+  let chatGlobalArg = {}
+  current.groups.forEach((group, groupName) => {
+    if (groupName === Constants.securityGroup) {
+      // Special case this since it will go to chat settings endpoint
+      group.settings.forEach(
+        setting =>
+          (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name]}`] = !!setting.subscribed)
+      )
+    } else {
+      group.settings.forEach(setting =>
         JSONPayload.push({
-          key: `unsub|${groupName}`,
-          value: group.unsubscribedFromAll ? '1' : '0',
+          key: `${setting.name}|${groupName}`,
+          value: setting.subscribed ? '1' : '0',
         })
-      }
-    })
-
-    const [result] = yield Saga.all([
-      Saga.callUntyped(RPCTypes.apiserverPostJSONRpcPromise, {
-        JSONPayload,
-        args: [],
-        endpoint: 'account/subscribe',
-      }),
-      Saga.callUntyped(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
-        settings: {
-          ...chatGlobalArg,
-        },
-      }),
-    ])
-    if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
-      throw new Error(`Invalid response ${result || '(no result)'}`)
+      )
+      JSONPayload.push({
+        key: `unsub|${groupName}`,
+        value: group.unsubscribedFromAll ? '1' : '0',
+      })
     }
+  })
 
-    yield Saga.put(SettingsGen.createNotificationsSaved())
-  } finally {
-    yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))
+  const result = await RPCTypes.apiserverPostJSONRpcPromise({
+    JSONPayload,
+    args: [],
+    endpoint: 'account/subscribe',
+  })
+  await ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise({
+    settings: {
+      ...chatGlobalArg,
+    },
+  })
+
+  if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
+    throw new Error(`Invalid response ${result || '(no result)'}`)
   }
+
+  return SettingsGen.createNotificationsSaved()
 }
 
-const reclaimInvite = (_: TypedState, action: SettingsGen.InvitesReclaimPayload) =>
-  RPCTypes.apiserverPostRpcPromise({
+const reclaimInvite = async (_: TypedState, action: SettingsGen.InvitesReclaimPayload) => {
+    try {
+  await RPCTypes.apiserverPostRpcPromise({
     args: [{key: 'invitation_id', value: action.payload.inviteId}],
     endpoint: 'cancel_invitation',
   })
-    .then(() => [SettingsGen.createInvitesReclaimed(), SettingsGen.createInvitesRefresh()])
-    .catch(e => {
+    return [SettingsGen.createInvitesReclaimed(), SettingsGen.createInvitesRefresh()]
+    .catch(e) {
       logger.warn('Error reclaiming an invite:', e)
       return [
         SettingsGen.createInvitesReclaimedError({errorText: e.desc + e.name}),
         SettingsGen.createInvitesRefresh(),
       ]
-    })
+    }
+}
 
-const refreshInvites = () =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
+const refreshInvites = async () => {
+  const json = await RPCTypes.apiserverGetWithSessionRpcPromise({
     args: [],
     endpoint: 'invitations_sent',
-  }).then(json => {
+  })
     const results: {
       invitations: Array<{
         assertion: string | null
@@ -182,7 +174,7 @@ const refreshInvites = () =>
         pendingInvites: I.List(pendingInvites),
       },
     })
-  })
+}
 
 function* sendInvite(_: TypedState, action: SettingsGen.InvitesSendPayload) {
   try {
@@ -758,116 +750,70 @@ const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger
 }
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
-  yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
+  yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
+  yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
   yield* Saga.chainGenerator<SettingsGen.InvitesSendPayload>(SettingsGen.invitesSend, sendInvite)
   yield* Saga.chainGenerator<SettingsGen.NotificationsRefreshPayload>(
     SettingsGen.notificationsRefresh,
     refreshNotifications
   )
-  yield* Saga.chainGenerator<SettingsGen.NotificationsTogglePayload>(
-    SettingsGen.notificationsToggle,
-    toggleNotifications
-  )
-  yield* Saga.chainAction<SettingsGen.DbNukePayload>(SettingsGen.dbNuke, dbNuke)
-  yield* Saga.chainAction<SettingsGen.DeleteAccountForeverPayload>(
-    SettingsGen.deleteAccountForever,
-    deleteAccountForever
-  )
-  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>([SettingsGen.loadSettings], loadSettings)
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
-    SettingsGen.onSubmitNewPassword,
-    onSubmitNewPassword
-  )
-  yield* Saga.chainAction<SettingsGen.OnUpdatePGPSettingsPayload>(
-    SettingsGen.onUpdatePGPSettings,
-    onUpdatePGPSettings
-  )
+  yield* Saga.chainActions2(SettingsGen.notificationsToggle, toggleNotifications)
+  yield* Saga.chainAction2(SettingsGen.dbNuke, dbNuke)
+  yield* Saga.chainAction2(SettingsGen.deleteAccountForever, deleteAccountForever)
+  yield* Saga.chainAction2(SettingsGen.loadSettings, loadSettings)
+  yield* Saga.chainAction2(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
+  yield* Saga.chainAction2(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
   yield* Saga.chainGenerator<SettingsGen.TracePayload>(SettingsGen.trace, trace)
   yield* Saga.chainGenerator<SettingsGen.ProcessorProfilePayload>(
     SettingsGen.processorProfile,
     processorProfile
   )
-  yield* Saga.chainAction<SettingsGen.LoadRememberPasswordPayload>(
-    SettingsGen.loadRememberPassword,
-    getRememberPassword
-  )
-  yield* Saga.chainAction<SettingsGen.OnChangeRememberPasswordPayload>(
-    SettingsGen.onChangeRememberPassword,
-    rememberPassword
-  )
-  yield* Saga.chainAction<SettingsGen.LoadLockdownModePayload>(SettingsGen.loadLockdownMode, loadLockdownMode)
-  yield* Saga.chainAction<SettingsGen.OnChangeLockdownModePayload>(
-    SettingsGen.onChangeLockdownMode,
-    setLockdownMode
-  )
-  yield* Saga.chainAction<SettingsGen.SendFeedbackPayload>(SettingsGen.sendFeedback, sendFeedback)
-  yield* Saga.chainAction<SettingsGen.UnfurlSettingsRefreshPayload>(
-    SettingsGen.unfurlSettingsRefresh,
-    unfurlSettingsRefresh
-  )
-  yield* Saga.chainAction<SettingsGen.UnfurlSettingsSavedPayload>(
-    SettingsGen.unfurlSettingsSaved,
-    unfurlSettingsSaved
-  )
-  yield* Saga.chainAction<SettingsGen.LoadHasRandomPwPayload>(SettingsGen.loadHasRandomPw, loadHasRandomPW)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersPasswordChangedPayload>(
-    EngineGen.keybase1NotifyUsersPasswordChanged,
-    passwordChanged
-  )
+  yield* Saga.chainAction2(SettingsGen.loadRememberPassword, getRememberPassword)
+  yield* Saga.chainAction2(SettingsGen.onChangeRememberPassword, rememberPassword)
+  yield* Saga.chainAction2(SettingsGen.loadLockdownMode, loadLockdownMode)
+  yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
+  yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
+  yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
+  yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
+  yield* Saga.chainAction2(SettingsGen.loadHasRandomPw, loadHasRandomPW)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
 
-  yield* Saga.chainAction<SettingsGen.StopPayload>(SettingsGen.stop, stop)
+  yield* Saga.chainAction2(SettingsGen.stop, stop)
 
-  yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
+  yield* Saga.chainAction2(SettingsGen.checkPassword, checkPassword)
 
-  yield* Saga.chainAction<SettingsGen.LoadProxyDataPayload>(SettingsGen.loadProxyData, loadProxyData)
-  yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
+  yield* Saga.chainAction2(SettingsGen.loadProxyData, loadProxyData)
+  yield* Saga.chainAction2(SettingsGen.saveProxyData, saveProxyData)
 
   // Runtime Stats
-  yield* Saga.chainAction<SettingsGen.ToggleRuntimeStatsPayload>(
-    SettingsGen.toggleRuntimeStats,
-    toggleRuntimeStats
-  )
+  yield* Saga.chainAction2(SettingsGen.toggleRuntimeStats, toggleRuntimeStats)
 
   // Phone numbers
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
-  yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
-    SettingsGen.addPhoneNumber,
-    addPhoneNumber,
-    'addPhoneNumber'
-  )
-  yield* Saga.chainAction<SettingsGen.VerifyPhoneNumberPayload>(
-    SettingsGen.verifyPhoneNumber,
-    verifyPhoneNumber,
-    'verifyPhoneNumber'
-  )
-  yield* Saga.chainAction<SettingsGen.ResendVerificationForPhoneNumberPayload>(
+  yield* Saga.chainAction2(SettingsGen.editPhone, editPhone, 'editPhone')
+  yield* Saga.chainAction2(SettingsGen.addPhoneNumber, addPhoneNumber, 'addPhoneNumber')
+  yield* Saga.chainAction2(SettingsGen.verifyPhoneNumber, verifyPhoneNumber, 'verifyPhoneNumber')
+  yield* Saga.chainAction2(
     SettingsGen.resendVerificationForPhoneNumber,
     resendVerificationForPhoneNumber,
     'resendVerificationForPhoneNumber'
   )
 
   // Contacts
-  yield* Saga.chainAction<
-    SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload
-  >(
+  yield* Saga.chainAction2(
     [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )
-  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
+  yield* Saga.chainAction2(
     SettingsGen.editContactImportEnabled,
     editContactImportEnabled,
     'editContactImportEnabled'
   )
 
   // Emails
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
-  yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
-    SettingsGen.onSubmitNewEmail,
-    onSubmitNewEmail
-  )
+  yield* Saga.chainAction2(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction2(SettingsGen.addEmail, addEmail, 'addEmail')
+  yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
 }
 
 export default settingsSaga
