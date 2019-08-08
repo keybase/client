@@ -278,9 +278,9 @@ const bodyOverride = {
 const bulletOverride = {
   paragraph: {
     ...bodyOverride.paragraph,
-    marginTop: undefined,
     marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.tiny,
+    marginTop: undefined,
   },
   strong: bodyOverride.strong,
 }
