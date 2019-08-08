@@ -184,6 +184,34 @@ func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *ke
 	return nil
 }
 
+// CheckPTKsForDuplicates checks that the new per-team-keys don't duplicate keys we've gotten along the
+// visible chain, via the given getter.
+func (l *LoaderPackage) CheckPTKsForDuplicates(mctx libkb.MetaContext, getter func(g keybase1.PerTeamKeyGeneration) bool) error {
+	if l.newData == nil {
+		return nil
+	}
+	for k := range l.newData.ReaderPerTeamKeys {
+		if getter(k) {
+			return newRepeatPTKGenerationError(k, "clashes a previously-loaded visible rotation")
+		}
+	}
+	return nil
+}
+
+func (l *LoaderPackage) CheckNoPTK(mctx libkb.MetaContext, g keybase1.PerTeamKeyGeneration) (err error) {
+	var found bool
+	if l.newData != nil {
+		_, found = l.newData.ReaderPerTeamKeys[g]
+	}
+	if l.data != nil && !found {
+		_, found = l.data.ReaderPerTeamKeys[g]
+	}
+	if found {
+		return newRepeatPTKGenerationError(g, "clashes a previously-loaded hidden rotation")
+	}
+	return nil
+}
+
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
@@ -353,7 +381,7 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, getSeed func(keybase1.PerTea
 		return err
 	}
 	if readerKey.Check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
-		return NewLoaderError("can only handle seed check version 1; got %s", readerKey.Check.Version)
+		return NewLoaderError("can only handle seed check version 1; got %d", readerKey.Check.Version)
 	}
 	if check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
 		return NewLoaderError("can only handle seed check version 1; got computed check %s", check.Version)
@@ -401,11 +429,10 @@ func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
 
 // MaxRatchet returns the greatest sequence number across all ratchets in the loaded data and also
 // in the data from the recent update from the server.
-func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
-	if l.data == nil {
-		return keybase1.Seqno(0)
+func (l *LoaderPackage) MaxRatchet() (ret keybase1.Seqno) {
+	if l.data != nil {
+		ret = l.data.RatchetSet.Max()
 	}
-	ret := l.data.RatchetSet.Max()
 	tmp := l.newRatchetSet.Max()
 	if tmp > ret {
 		ret = tmp

@@ -112,6 +112,7 @@ export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPrependText = 'chat2:setPrependText'
+export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
@@ -524,6 +525,10 @@ type _SetPrependTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString | null
 }
+type _SetThreadLoadStatusPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly status: RPCChatTypes.UIChatThreadStatus
+}
 type _SetThreadSearchQueryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
@@ -904,6 +909,12 @@ export const createSetThreadSearchStatus = (
 export const createInboxSearchSetTextStatus = (
   payload: _InboxSearchSetTextStatusPayload
 ): InboxSearchSetTextStatusPayload => ({payload, type: inboxSearchSetTextStatus})
+/**
+ * Set thread load status
+ */
+export const createSetThreadLoadStatus = (
+  payload: _SetThreadLoadStatusPayload
+): SetThreadLoadStatusPayload => ({payload, type: setThreadLoadStatus})
 /**
  * Set thread search query (used from inbox search to initialize it)
  */
@@ -1668,6 +1679,10 @@ export type SetPrependTextPayload = {
   readonly payload: _SetPrependTextPayload
   readonly type: typeof setPrependText
 }
+export type SetThreadLoadStatusPayload = {
+  readonly payload: _SetThreadLoadStatusPayload
+  readonly type: typeof setThreadLoadStatus
+}
 export type SetThreadSearchQueryPayload = {
   readonly payload: _SetThreadSearchQueryPayload
   readonly type: typeof setThreadSearchQuery
@@ -1891,6 +1906,7 @@ export type Actions =
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
   | SetPrependTextPayload
+  | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload

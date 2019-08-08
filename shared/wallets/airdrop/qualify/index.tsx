@@ -25,6 +25,7 @@ const Accepted = p =>
         'fade-anim-enter': true,
         'fade-anim-enter-active': p.state === 'accepted',
       })}
+      contentContainerStyle={styles.scrollViewContent}
     >
       <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.grow} />
@@ -177,6 +178,7 @@ class Qualified extends React.PureComponent<Props, State> {
           'fade-anim-enter': true,
           'fade-anim-enter-active': this.props.state !== 'accepted',
         })}
+        contentContainerStyle={styles.scrollViewContent}
       >
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
           <>
@@ -325,6 +327,9 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.medium,
   },
   scrollView: {...Styles.globalStyles.fillAbsolute},
+  scrollViewContent: {
+    flex: 1,
+  },
   star: {
     alignSelf: 'center',
     height: 120,

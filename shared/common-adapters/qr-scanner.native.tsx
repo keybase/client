@@ -12,11 +12,11 @@ const Kb = {
 
 type Props = {
   onBarCodeRead: (code: string) => void
-  notAuthorizedView: React.ReactNode
+  notAuthorizedView: React.ReactElement | null
   style: Styles.StylesCrossPlatform
 }
 
-const QRScanner = (p: Props) => {
+const QRScanner = (p: Props): React.ReactElement<any> | null => {
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | undefined>(undefined)
   const [scanned, setScanned] = React.useState<boolean>(false)
 
@@ -34,7 +34,7 @@ const QRScanner = (p: Props) => {
     )
   }
   if (hasCameraPermission === false) {
-    return p.notAuthorizedView
+    return p.notAuthorizedView || null
   }
 
   return (
@@ -47,7 +47,7 @@ const QRScanner = (p: Props) => {
               p.onBarCodeRead(data)
             }
       }
-      style={p.style}
+      style={p.style as any}
     />
   )
 }

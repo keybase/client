@@ -57,22 +57,22 @@ func TestLoadParamServices(t *testing.T) {
 	require.Equal(t, fmt.Sprintf("%s%s", gubbleAPIRoot, "/%{username}/proofs.json"), gubbleConf.CheckUrl)
 
 	require.Equal(t, []keybase1.SelectorEntry{
-		keybase1.SelectorEntry{
+		{
 			IsKey: true,
 			Key:   "res",
 		},
-		keybase1.SelectorEntry{
+		{
 			IsKey: true,
 			Key:   "keybase_proofs",
 		},
 	}, gubbleConf.CheckPath)
 
 	require.Equal(t, []keybase1.SelectorEntry{
-		keybase1.SelectorEntry{
+		{
 			IsKey: true,
 			Key:   "res",
 		},
-		keybase1.SelectorEntry{
+		{
 			IsKey: true,
 			Key:   "avatar",
 		},

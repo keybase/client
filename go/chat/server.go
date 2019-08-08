@@ -25,7 +25,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
-	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
 
@@ -43,13 +42,11 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn        ServerConnection
-	uiSource          UISource
-	boxer             *Boxer
-	identNotifier     types.IdentifyNotifier
-	clock             clockwork.Clock
-	convPageStatus    map[string]chat1.Pagination
-	cachedThreadDelay *time.Duration
+	serverConn     ServerConnection
+	uiSource       UISource
+	boxer          *Boxer
+	identNotifier  types.IdentifyNotifier
+	uiThreadLoader *UIThreadLoader
 
 	searchMu            sync.Mutex
 	searchInboxMu       sync.Mutex
@@ -59,9 +56,8 @@ type Server struct {
 	loadGalleryCancelFn context.CancelFunc
 
 	// Only for testing
-	rc                chat1.RemoteInterface
-	mockChatUI        libkb.ChatUI
-	remoteThreadDelay *time.Duration
+	rc         chat1.RemoteInterface
+	mockChatUI libkb.ChatUI
 }
 
 var _ chat1.LocalInterface = (*Server)(nil)
@@ -74,13 +70,8 @@ func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISourc
 		uiSource:       uiSource,
 		boxer:          NewBoxer(g),
 		identNotifier:  NewCachingIdentifyNotifier(g),
-		clock:          clockwork.NewRealClock(),
-		convPageStatus: make(map[string]chat1.Pagination),
+		uiThreadLoader: NewUIThreadLoader(g),
 	}
-}
-
-func (h *Server) SetClock(clock clockwork.Clock) {
-	h.clock = clock
 }
 
 func (h *Server) getChatUI(sessionID int) libkb.ChatUI {
@@ -471,18 +462,6 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	}, nil
 }
 
-func (h *Server) messageIDControlToPagination(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgIDControl chat1.MessageIDControl) *chat1.Pagination {
-	var mcconv *types.RemoteConversation
-	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
-	if err != nil {
-		h.Debug(ctx, "messageIDControlToPagination: failed to get conversation: %s", err)
-	} else {
-		mcconv = &conv
-	}
-	return utils.MessageIDControlToPagination(ctx, h.DebugLabeler, &msgIDControl, mcconv)
-}
-
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -494,166 +473,15 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
-
-	// Xlate pager control into pagination if given
-	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		arg.Pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
-			*arg.Query.MessageIDControl)
-	}
-
-	// Get messages from the source
-	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID, uid,
-		arg.Reason, arg.Query, arg.Pagination)
+	thread, err := h.uiThreadLoader.Load(ctx, uid, arg.ConversationID, arg.Reason, arg.Query,
+		arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
-
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
 		IdentifyFailures: identBreaks,
 	}, nil
-}
-
-func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
-	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
-	defer func() {
-		if err != nil || localThread == nil {
-			return
-		}
-		rm := make(map[chat1.MessageID]bool)
-		for _, m := range res.Messages {
-			rm[m.GetMessageID()] = true
-		}
-		// Check for any stray placeholders in the local thread we sent, and set them to some
-		// undisplayable type
-		for _, m := range localThread.Messages {
-			state, err := m.State()
-			if err != nil {
-				continue
-			}
-			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
-				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
-					m.GetMessageID())
-				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
-			}
-		}
-		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
-	}()
-
-	shouldAppend := func(newMsg chat1.MessageUnboxed, oldMsgs map[chat1.MessageID]chat1.MessageUnboxed) bool {
-		oldMsg, ok := oldMsgs[newMsg.GetMessageID()]
-		if !ok {
-			return true
-		}
-		// If either message is not valid, return the new one, something weird might be going on
-		if !oldMsg.IsValid() || !newMsg.IsValid() {
-			return true
-		}
-		// If newMsg is now superseded by something different than what we sent, then let's include it
-		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
-			h.Debug(ctx, "mergeLocalRemoteThread: including supersededBy change: msgID: %d",
-				newMsg.GetMessageID())
-			return true
-		}
-		// If replyTo is different, then let's also transmit this up
-		if newMsg.Valid().ReplyTo != oldMsg.Valid().ReplyTo {
-			return true
-		}
-		return false
-	}
-	switch mode {
-	case chat1.GetThreadNonblockCbMode_FULL:
-		return *remoteThread, nil
-	case chat1.GetThreadNonblockCbMode_INCREMENTAL:
-		if localThread != nil {
-			lm := make(map[chat1.MessageID]chat1.MessageUnboxed)
-			for _, m := range localThread.Messages {
-				lm[m.GetMessageID()] = m
-			}
-			res.Pagination = remoteThread.Pagination
-			for _, m := range remoteThread.Messages {
-				if shouldAppend(m, lm) {
-					res.Messages = append(res.Messages, m)
-				}
-			}
-			h.Debug(ctx, "mergeLocalRemoteThread: incremental cb mode: orig: %d post: %d",
-				len(remoteThread.Messages), len(res.Messages))
-			return res, nil
-		}
-		return *remoteThread, nil
-	}
-	return res, errors.New("unknown get thread cb mode")
-}
-
-func (h *Server) applyPagerModeIncoming(ctx context.Context, convID chat1.ConversationID,
-	pagination *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) (res *chat1.Pagination) {
-	defer func() {
-		h.Debug(ctx, "applyPagerModeIncoming: mode: %v convID: %s xform: %s -> %s", pgmode, convID,
-			pagination, res)
-	}()
-	switch pgmode {
-	case chat1.GetThreadNonblockPgMode_SERVER:
-		if pagination == nil {
-			return nil
-		}
-		oldStored := h.convPageStatus[convID.String()]
-		if len(pagination.Next) > 0 {
-			return &chat1.Pagination{
-				Num:  pagination.Num,
-				Next: oldStored.Next,
-				Last: oldStored.Last,
-			}
-		} else if len(pagination.Previous) > 0 {
-			return &chat1.Pagination{
-				Num:      pagination.Num,
-				Previous: oldStored.Previous,
-			}
-		}
-	}
-	return pagination
-}
-
-func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.ConversationID,
-	pagination *chat1.Pagination, incoming *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) {
-	switch pgmode {
-	case chat1.GetThreadNonblockPgMode_SERVER:
-		if pagination == nil {
-			return
-		}
-		if incoming.FirstPage() {
-			h.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID, pagination)
-			h.convPageStatus[convID.String()] = *pagination
-		} else {
-			oldStored := h.convPageStatus[convID.String()]
-			if len(incoming.Next) > 0 {
-				oldStored.Next = pagination.Next
-				h.Debug(ctx, "applyPagerModeOutgoing: setting next pagination: convID: %s p: %s", convID,
-					pagination)
-			} else if len(incoming.Previous) > 0 {
-				h.Debug(ctx, "applyPagerModeOutgoing: setting prev pagination: convID: %s p: %s", convID,
-					pagination)
-				oldStored.Previous = pagination.Previous
-			}
-			oldStored.Last = pagination.Last
-			h.convPageStatus[convID.String()] = oldStored
-		}
-	}
-}
-
-func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	pagination *chat1.Pagination, resultPagination *chat1.Pagination) {
-	// Fire off pageback background jobs if we fetched the first page
-	if pagination.FirstPage() && resultPagination != nil && !resultPagination.Last {
-		p := &chat1.Pagination{
-			Num:  50,
-			Next: resultPagination.Next,
-		}
-		h.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
-		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /* query */, p, types.ConvLoaderPriorityLow,
-			newConvLoaderPagebackHook(h.G(), 0, 5))); err != nil {
-			h.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
-		}
-	}
 }
 
 func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) (res chat1.UnreadlineRes, err error) {
@@ -677,212 +505,22 @@ func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) 
 	return res, nil
 }
 
-func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
-	var pagination, resultPagination *chat1.Pagination
+func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
-	defer h.Trace(ctx, func() error { return fullErr },
+	defer h.Trace(ctx, func() error { return err },
 		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer func() {
-		origErr := fullErr
-		fullErr = h.handleOfflineError(ctx, fullErr, &res)
-		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
-		// Otherwise, send notice that we successfully loaded the conversation.
-		if origErr != nil {
-			h.Debug(ctx, "GetThreadNonblock: queueing retry because of: %s", origErr)
-			h.G().FetchRetrier.Failure(ctx, uid,
-				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
-		} else if res.Offline {
-			h.Debug(ctx, "GetThreadNonblock: queueing retry because result marked offline")
-			h.G().FetchRetrier.Failure(ctx, uid,
-				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
-		} else {
-			h.G().FetchRetrier.Success(ctx, uid,
-				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
-			// Load old pages of this conversation on success
-			h.dispatchOldPagesJob(ctx, arg.ConversationID, uid, pagination, resultPagination)
-		}
-	}()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer h.suspendBgConvLoads(ctx)()
 	defer h.suspendInboxSource(ctx)()
-	// Lock conversation while this is running
-	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
-		return res, err
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return chat1.NonblockFetchRes{}, err
 	}
-	defer h.G().ConvSource.ReleaseConversationLock(ctx, uid, arg.ConversationID)
-	h.Debug(ctx, "GetThreadNonblock: conversation lock obtained")
-
-	if _, err := utils.AssertLoggedInUID(ctx, h.G()); err != nil {
-		return res, err
-	}
-	// If this is from a push or foreground, set us into the foreground
-	switch arg.Reason {
-	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
-		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
-		// to reset any delay checks or timers
-		switch h.G().MobileAppState.State() {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-		default:
-			h.G().Syncer.Disconnected(ctx)
-		}
-		h.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	}
-
-	// Set last select conversation on syncer
-	h.G().Syncer.SelectConversation(ctx, arg.ConversationID)
-
-	// Decode presentation form pagination
-	var err error
-	if pagination, err = utils.DecodePagination(arg.Pagination); err != nil {
-		return res, err
-	}
-
-	// Enable delete placeholders for supersede transform
-	if arg.Query == nil {
-		arg.Query = new(chat1.GetThreadQuery)
-	}
-	arg.Query.EnableDeletePlaceholders = true
-
-	// Parse out options
-	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		// Pager control into pagination if given
-		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
-			*arg.Query.MessageIDControl)
-		pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
-			*arg.Query.MessageIDControl)
-	} else {
-		// Apply any pager mode transformations
-		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
-	}
-	if pagination != nil && pagination.Last {
-		return res, nil
-	}
-
-	// Grab local copy first
 	chatUI := h.getChatUI(arg.SessionID)
-
-	// Race the full operation versus the local one, so we don't lose anytime grabbing the local
-	// version if they are roughly as fast. However, the full operation has preference, so if it does
-	// win the race we don't send anything up from the local operation.
-	var localSentThread *chat1.ThreadView
-	var uilock sync.Mutex
-	var wg sync.WaitGroup
-	localCtx, cancel := context.WithCancel(ctx)
-	wg.Add(1)
-	go func(ctx context.Context) {
-		defer wg.Done()
-		// Get local copy of the thread, abort the call if we have sent the full copy
-		var resThread *chat1.ThreadView
-		var localThread chat1.ThreadView
-		ch := make(chan error, 1)
-		go func() {
-			var err error
-			if h.cachedThreadDelay != nil {
-				h.clock.Sleep(*h.cachedThreadDelay)
-			}
-			localThread, err = h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
-				uid, arg.Query, pagination, 10)
-			ch <- err
-		}()
-		select {
-		case err := <-ch:
-			if err != nil {
-				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (sending miss): %s",
-					err.Error())
-			} else {
-				resThread = &localThread
-			}
-		case <-ctx.Done():
-			h.Debug(ctx, "GetThreadNonblock: context canceled before PullLocalOnly returned")
-			return
-		}
-
-		uilock.Lock()
-		defer uilock.Unlock()
-		// Check this again, since we might have waited on the lock while full sent
-		select {
-		case <-ctx.Done():
-			resThread = nil
-			h.Debug(ctx, "GetThreadNonblock: context canceled before local copy sent")
-			return
-		default:
-		}
-		var pthread *string
-		if resThread != nil {
-			h.Debug(ctx, "GetThreadNonblock: sending cached response: messages: %d pager: %s",
-				len(resThread.Messages), resThread.Pagination)
-			localSentThread = resThread
-			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
-			jsonPt, err := json.Marshal(pt)
-			if err != nil {
-				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %v", err)
-				return
-			}
-			sJSONPt := string(jsonPt)
-			pthread = &sJSONPt
-			h.applyPagerModeOutgoing(ctx, arg.ConversationID, resThread.Pagination, pagination, arg.Pgmode)
-		} else {
-			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
-		}
-		start := time.Now()
-		chatUI.ChatThreadCached(ctx, chat1.ChatThreadCachedArg{
-			SessionID: arg.SessionID,
-			Thread:    pthread,
-		})
-		h.Debug(ctx, "GetThreadNonblock: cached response send time: %v", time.Since(start))
-	}(localCtx)
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		// Run the full Pull operation, and redo pagination
-		if h.remoteThreadDelay != nil {
-			h.clock.Sleep(*h.remoteThreadDelay)
-		}
-		var remoteThread chat1.ThreadView
-		remoteThread, fullErr = h.G().ConvSource.Pull(ctx, arg.ConversationID,
-			uid, arg.Reason, arg.Query, pagination)
-		if fullErr != nil {
-			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
-			return
-		}
-
-		// Acquire lock and send up actual response
-		uilock.Lock()
-		defer uilock.Unlock()
-		var rthread chat1.ThreadView
-		if rthread, fullErr =
-			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
-			return
-		}
-		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
-			len(rthread.Messages), rthread.Pagination)
-		uires := utils.PresentThreadView(ctx, h.G(), uid, rthread, arg.ConversationID)
-		var jsonUIRes []byte
-		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
-			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
-			return
-		}
-		resultPagination = rthread.Pagination
-		h.applyPagerModeOutgoing(ctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
-		start := time.Now()
-		chatUI.ChatThreadFull(ctx, chat1.ChatThreadFullArg{
-			SessionID: arg.SessionID,
-			Thread:    string(jsonUIRes),
-		})
-		h.Debug(ctx, "GetThreadNonblock: full response send time: %v", time.Since(start))
-
-		// This means we transmitted with success, so cancel local thread
-		cancel()
-	}()
-	wg.Wait()
-
-	// Clean up context
-	cancel()
-	return res, fullErr
+	return res, h.uiThreadLoader.LoadNonblock(ctx, chatUI, uid, arg.ConversationID, arg.Reason,
+		arg.Pgmode, arg.CbMode, arg.Query, arg.Pagination)
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
@@ -2697,7 +2335,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs)
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
 		if err != nil {
 			return err
 		}

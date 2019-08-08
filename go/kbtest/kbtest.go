@@ -430,7 +430,10 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 // considered `possible`, but not `valid` by libphonenumber.
 func GenerateTestPhoneNumber() string {
 	ret := make([]byte, 7)
-	rand.Read(ret)
+	_, err := rand.Read(ret)
+	if err != nil {
+		panic(err)
+	}
 	for i := range ret {
 		ret[i] = "0123456789"[int(ret[i])%10]
 	}

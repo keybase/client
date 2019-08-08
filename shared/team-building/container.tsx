@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
+import unidecode from 'unidecode'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
@@ -68,7 +69,7 @@ const deriveSearchResults = memoize(
         followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
         inTeam: teamSoFar.some(u => u.id === info.id),
         isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-        key: [info.id, info.prettyName, info.label].join('&'),
+        key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
         prettyName: formatAnyPhoneNumbers(info.prettyName),
         services: info.serviceMap,
         userId: info.id,
@@ -322,7 +323,7 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
-const sortAndSplitRecommendations = memoize(
+export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
@@ -353,7 +354,9 @@ const sortAndSplitRecommendations = memoize(
         return
       }
       if (rec.prettyName || rec.displayLabel) {
-        const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
+        // Use the first letter of the name we will display, but first normalize out
+        // any diacritics.
+        const letter = unidecode(rec.prettyName || rec.displayLabel)[0].toLowerCase()
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
           const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
@@ -377,7 +380,7 @@ const sortAndSplitRecommendations = memoize(
         }
       }
     })
-    return sections.filter(Boolean)
+    return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
 

@@ -39,7 +39,7 @@ class Keybase extends Component<any> {
 
   componentDidMount() {
     Linking.addEventListener('url', this._handleOpenURL)
-    Linking.getInitialURL().then(event => event && event.url && this._handleOpenURL(event))
+    Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
   }
 
   componentWillUnmount() {

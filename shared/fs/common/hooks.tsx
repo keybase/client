@@ -5,6 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import uuidv1 from 'uuid/v1'
+import flags from '../../util/feature-flags'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -17,14 +18,16 @@ const useDispatchWhenConnected = () => {
   return kbfsDaemonConnected ? dispatch : noop
 }
 
-const useDispatchWhenConnectedAndOnline = () => {
-  const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
-  const dispatch = Container.useDispatch()
-  return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
-    kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
-    ? dispatch
-    : noop
-}
+const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
+  ? () => {
+      const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+      const dispatch = Container.useDispatch()
+      return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+        kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
+        ? dispatch
+        : noop
+    }
+  : useDispatchWhenConnected
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
@@ -72,8 +75,13 @@ export const useFsTlfs = () => {
   }, [dispatch])
 }
 
-export const useFsJournalStatus = () =>
+export const useFsJournalStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createPollJournalStatus())
+  }, [dispatch])
+}
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)

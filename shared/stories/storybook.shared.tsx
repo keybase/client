@@ -228,7 +228,15 @@ class PerfBox extends React.Component<
     console.log('PerfTiming: ', diff)
   }
 
-  _getTime = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now() // eslint-disable-line
+  _getTime = () => {
+    // @ts-ignore
+    const perf: any = window ? window.performance : undefined
+    if (typeof perf !== 'undefined') {
+      return perf.now()
+    } else {
+      return Date.now()
+    }
+  }
 
   render() {
     this._startTime = this._getTime()

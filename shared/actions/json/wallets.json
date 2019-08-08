@@ -476,7 +476,8 @@
     },
     "updateAirdropDetails": {},
     "updatedAirdropDetails": {
-      "details": "Types.AirdropDetailsResponse",
+      "details": "Types.StellarDetailsResponse",
+      "disclaimer": "Types.StellarDetailsResponse",
       "isPromoted": "boolean"
     },
     "refreshTrustlineAcceptedAssets": {

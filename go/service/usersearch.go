@@ -434,6 +434,14 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			}
 
 			sort.Slice(res, func(i, j int) bool {
+				// Float comparasion - we expect exact floats here when multiple
+				// results match in same way and yield identical score thorugh
+				// same scoring operations.
+				if res[i].RawScore == res[j].RawScore {
+					idI := res[i].GetStringIDForCompare()
+					idJ := res[j].GetStringIDForCompare()
+					return idI > idJ
+				}
 				return res[i].RawScore > res[j].RawScore
 			})
 
