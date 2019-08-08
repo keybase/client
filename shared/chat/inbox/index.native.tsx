@@ -24,10 +24,10 @@ const NoChats = (props: {onNewChat: () => void}) => (
       justifyContent: 'center',
     }}
   >
-    <Kb.Text type="BodySmall" negative={true} style={{color: Styles.globalColors.black_50}}>
+    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
       All conversations are
     </Kb.Text>
-    <Kb.Text type="BodySmall" negative={true} style={{color: Styles.globalColors.black_50}}>
+    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
       end-to-end encrypted.
     </Kb.Text>
     <Kb.Button
@@ -278,6 +278,9 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
     flex: 1,
     position: 'relative',
+  },
+  text: {
+    color: Styles.globalColors.black_50,
   },
 })
 
