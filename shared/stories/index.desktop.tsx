@@ -8,6 +8,7 @@ import desktopStories from './platform-stories.desktop'
 import '../desktop/renderer/style.css'
 import '../chat/conversation/conversation.css'
 import {initDesktopStyles} from '../styles/index.desktop'
+import {_setSystemIsDarkMode} from '../styles/dark-mode'
 
 const stories = {...sharedStories, ...desktopStories}
 
@@ -23,19 +24,43 @@ const filteredStories = Object.keys(stories).reduce(
   filter ? {} : stories
 )
 
-const rootDecorator = story => (
-  <div style={{height: '100%', width: '100%'}}>
-    {story()}
-    <div id="modal-root" />
-  </div>
-)
+const RootWrapper = ({children}) => {
+  const [darkMode, setDarkMode] = React.useState(false)
+
+  return (
+    <div
+      key={darkMode ? 'dark' : 'light'}
+      style={{height: '100%', width: '100%'}}
+      className={darkMode ? 'darkMode' : ''}
+    >
+      <div
+        style={{
+          border: 'red 1px solid',
+          color: darkMode ? 'white' : 'black',
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          zIndex: 9999,
+        }}
+        onClick={() => {
+          setDarkMode(!darkMode)
+          _setSystemIsDarkMode(!darkMode)
+        }}
+      >
+        {darkMode ? 'Dark Mode' : 'Light Mode'}
+      </div>
+      {children}
+      <div id="modal-root" />
+    </div>
+  )
+}
 
 const store = Sb.createStoreWithCommon()
 
 const load = () => {
   initDesktopStyles()
-  addDecorator(rootDecorator)
-  addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+  addDecorator((story: any) => <RootWrapper>{story()}</RootWrapper>)
+  addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
   Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 
