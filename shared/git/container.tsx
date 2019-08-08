@@ -82,6 +82,14 @@ class GitReloadable extends React.PureComponent<
   Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleExpand'>,
   {expandedSet: I.Set<string>}
 > {
+  static navigationOptions = Container.isMobile
+    ? undefined
+    : {
+        header: undefined,
+        headerRightActions: HeaderRightActions,
+        headerTitle: HeaderTitle,
+        title: 'Git',
+      }
   state = {expandedSet: _expandedSet}
   _toggleExpand = id => {
     _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
@@ -104,16 +112,6 @@ class GitReloadable extends React.PureComponent<
         <Git expandedSet={this.state.expandedSet} onToggleExpand={this._toggleExpand} {...rest} />
       </Kb.Reloadable>
     )
-  }
-}
-
-if (!Container.isMobile) {
-  // @ts-ignore lets fix this
-  GitReloadable.navigationOptions = {
-    header: undefined,
-    headerRightActions: HeaderRightActions,
-    headerTitle: HeaderTitle,
-    title: 'Git',
   }
 }
 

@@ -99,7 +99,7 @@ func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryR
 
 func (pi *pinentryInstance) Close() {
 	pi.stdin.Close()
-	pi.cmd.Wait()
+	_ = pi.cmd.Wait()
 }
 
 type pinentryInstance struct {
