@@ -720,7 +720,6 @@ export type TypedActionsMap = {
   'settings:stop': settings.StopPayload
   'settings:trace': settings.TracePayload
   'settings:processorProfile': settings.ProcessorProfilePayload
-  'settings:waitingForResponse': settings.WaitingForResponsePayload
   'settings:unfurlSettingsSaved': settings.UnfurlSettingsSavedPayload
   'settings:unfurlSettingsRefresh': settings.UnfurlSettingsRefreshPayload
   'settings:unfurlSettingsRefreshed': settings.UnfurlSettingsRefreshedPayload
