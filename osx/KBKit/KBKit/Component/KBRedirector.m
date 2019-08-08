@@ -45,10 +45,15 @@
   NSDictionary *params = @{@"directory": rootDir, @"link": volDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": binPath};
   DDLogDebug(@"Starting redirector: %@", params);
   [self.helperTool.helper sendRequest:@"startRedirector" params:@[params] completion:^(NSError *err, id value) {
+    if (!err) {
+      completion(nil);
+      return;
+    }
+
     // Mounting at the root dir didn't work, so instead try mounting
     // at the volumes dir and symlinking the other way.
     NSDictionary *params = @{@"directory": volDir, @"link": rootDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": binPath};
-    DDLogDebug(@"Root mount failed; instead, starting redirector under /Volumes dir: %@", params);
+    DDLogDebug(@"Root mount failed (%@); instead, starting redirector under /Volumes dir: %@", err, params);
     [self.helperTool.helper sendRequest:@"startRedirector" params:@[params] completion:^(NSError *err, id value) {
       completion(err);
     }];
