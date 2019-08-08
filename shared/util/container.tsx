@@ -1,5 +1,5 @@
 import * as React from 'react'
-// eslint-disable-next-line confused about TS
+// eslint-disable-next-line
 import {Draft as _Draft} from 'immer'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
