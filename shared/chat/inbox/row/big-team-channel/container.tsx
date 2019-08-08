@@ -26,7 +26,7 @@ export default namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     channelname: ownProps.channelname,
     hasBadge: stateProps.hasBadge,
-    hasDraft: !!stateProps._meta.draft,
+    hasDraft: !!stateProps._meta.draft && !stateProps.isSelected,
     hasUnread: stateProps.hasUnread,
     isError: stateProps._meta.trustedState === 'error',
     isMuted: stateProps._meta.isMuted,

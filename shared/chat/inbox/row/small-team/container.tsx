@@ -58,7 +58,10 @@ export default Container.namedConnect(
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
       conversationIDKey: stateProps._meta.conversationIDKey,
-      draft: stateProps._meta.draft || undefined,
+      draft:
+        stateProps._meta.draft && !stateProps.isSelected && !stateProps.hasUnread
+          ? stateProps._meta.draft
+          : undefined,
       hasBadge: stateProps.hasBadge,
       hasBottomLine:
         stateProps.youAreReset ||
