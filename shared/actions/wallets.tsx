@@ -1118,21 +1118,6 @@ const changeAirdrop = (_: TypedState, action: WalletsGen.ChangeAirdropPayload) =
     Constants.airdropWaitingKey
   ).then(() => WalletsGen.createUpdateAirdropState()) // reload
 
-type AirdropDetailsJSONType = {
-  header?: {
-    body?: string | null
-    title?: string | null
-  } | null
-  sections?: Array<{
-    icon?: string | null
-    section?: string | null
-    lines?: Array<{
-      bullet?: boolean | null
-      text?: string | null
-    } | null> | null
-  } | null> | null
-} | null
-
 const updateAirdropDetails = (
   state: TypedState,
   _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
@@ -1141,30 +1126,11 @@ const updateAirdropDetails = (
   state.config.loggedIn &&
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(response => {
-      const json: AirdropDetailsJSONType = JSON.parse(response.details)
+      const details: Constants.StellarDetailsJSONType = JSON.parse(response.details)
+      const disclaimer: Constants.StellarDetailsJSONType = JSON.parse(response.disclaimer)
       return WalletsGen.createUpdatedAirdropDetails({
-        details: Constants.makeAirdropDetailsResponse({
-          header: Constants.makeAirdropDetailsHeader({
-            body: (json && json.header && json.header.body) || '',
-            title: (json && json.header && json.header.title) || '',
-          }),
-          sections: I.List(
-            ((json && json.sections) || []).map(section =>
-              Constants.makeAirdropDetailsSection({
-                icon: (section && section.icon) || '',
-                lines: I.List(
-                  ((section && section.lines) || []).map(l =>
-                    Constants.makeAirdropDetailsLine({
-                      bullet: (l && l.bullet) || false,
-                      text: (l && l.text) || '',
-                    })
-                  )
-                ),
-                section: (section && section.section) || '',
-              })
-            )
-          ),
-        }),
+        details: Constants.makeStellarDetailsFromJSON(details),
+        disclaimer: Constants.makeStellarDetailsFromJSON(disclaimer),
         isPromoted: response.isPromoted,
       })
     })
@@ -1536,28 +1502,34 @@ const handleSEP6Error = (err: RPCError) => [
 ]
 
 const assetDeposit = (_: TypedState, action: WalletsGen.AssetDepositPayload) =>
-  RPCStellarTypes.localAssetDepositLocalRpcPromise({
-    accountID: action.payload.accountID,
-    asset: assetDescriptionOrNativeToRpcAsset(
-      Constants.makeAssetDescription({
-        code: action.payload.code,
-        issuerAccountID: action.payload.issuerAccountID,
-      })
-    ),
-  })
+  RPCStellarTypes.localAssetDepositLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      asset: assetDescriptionOrNativeToRpcAsset(
+        Constants.makeAssetDescription({
+          code: action.payload.code,
+          issuerAccountID: action.payload.issuerAccountID,
+        })
+      ),
+    },
+    Constants.assetDepositWaitingKey(action.payload.issuerAccountID, action.payload.code)
+  )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))
 
 const assetWithdraw = (_: TypedState, action: WalletsGen.AssetWithdrawPayload) =>
-  RPCStellarTypes.localAssetWithdrawLocalRpcPromise({
-    accountID: action.payload.accountID,
-    asset: assetDescriptionOrNativeToRpcAsset(
-      Constants.makeAssetDescription({
-        code: action.payload.code,
-        issuerAccountID: action.payload.issuerAccountID,
-      })
-    ),
-  })
+  RPCStellarTypes.localAssetWithdrawLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      asset: assetDescriptionOrNativeToRpcAsset(
+        Constants.makeAssetDescription({
+          code: action.payload.code,
+          issuerAccountID: action.payload.issuerAccountID,
+        })
+      ),
+    },
+    Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID, action.payload.code)
+  )
     .then(res => handleSEP6Result(res))
     .catch(err => handleSEP6Error(err))
 

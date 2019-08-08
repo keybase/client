@@ -21,7 +21,6 @@ import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
-import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
@@ -65,6 +64,15 @@ const onTrackingInfo = (
     uid: action.payload.params.uid,
   })
 
+const onHTTPSrvInfoUpdated = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+) =>
+  ConfigGen.createUpdateHTTPSrvInfo({
+    address: action.payload.params.info.address,
+    token: action.payload.params.info.token,
+  })
+
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -102,6 +110,12 @@ function* loadDaemonBootstrapStatus(
     yield Saga.put(loadedAction)
     // request follower info in the background
     yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
+    // set HTTP srv info
+    if (s.httpSrvInfo) {
+      yield Saga.put(
+        ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
+      )
+    }
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
@@ -540,6 +554,37 @@ function* criticalOutOfDateCheck() {
   }
 }
 
+const loadDarkPrefs = async () => {
+  try {
+    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+    const preference = v.s || undefined
+
+    switch (preference) {
+      case undefined:
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'system':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysDark':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysLight':
+        return ConfigGen.createSetDarkModePreference({preference})
+      default:
+        return false
+    }
+  } catch (_) {
+    return false
+  }
+}
+
+const saveDarkPrefs = async (state: Container.TypedState) => {
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.darkMode',
+      value: {isNull: false, s: state.config.darkModePreference},
+    })
+  } catch (_) {}
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -552,6 +597,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeWait,
     maybeDoneWithDaemonHandshake
   )
+  // darkmode
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
     ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
@@ -635,12 +682,19 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload>(
+    EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate,
+    onHTTPSrvInfoUpdated
+  )
 
   yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(SettingsGen.loadedSettings, maybeLoadAppLink)
 
+  yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
+    ConfigGen.setDarkModePreference,
+    saveDarkPrefs
+  )
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
-  yield Saga.spawn(avatarSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 }
 

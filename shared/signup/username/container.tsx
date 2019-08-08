@@ -1,14 +1,10 @@
-import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/signup'
 import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {anyWaiting} from '../../constants/waiting'
 import EnterUsername from '.'
-import {InfoIcon} from '../common'
 
 type OwnProps = {}
 
@@ -38,20 +34,5 @@ const ConnectedEnterUsername = Container.connect(
     onBack: s._users.some(account => account.hasStoredSecret) ? d._onReturnToMain : d._onBack,
   })
 )(EnterUsername)
-
-// @ts-ignore fix this
-ConnectedEnterUsername.navigationOptions = {
-  header: null,
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
 
 export default ConnectedEnterUsername

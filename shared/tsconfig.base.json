@@ -5,9 +5,11 @@
     "baseUrl": ".",
     "checkJs": false,
     "incremental": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "jsx": "preserve",
+    "lib": ["es2017", "dom"],
     "module": "commonjs",
+    "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "noImplicitReturns": true,
@@ -23,9 +25,9 @@
   },
   "include": ["globals.d.ts"],
   "exclude": [
-    "node_modules",
-    "react-native",
-    "desktop/dist",
-    "desktop/build"
+    "./node_modules",
+    "./react-native",
+    "./desktop/dist",
+    "./desktop/build"
   ]
 }

@@ -1,6 +1,8 @@
 import {MessageAttachment} from '../../../constants/types/chat2'
 export type Props = {
   path: string
+  previewHeight: number
+  previewWidth: number
   title: string
   message: MessageAttachment
   progress: number

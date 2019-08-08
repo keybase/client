@@ -18,6 +18,8 @@ type upakfinderKey int
 type rateLimitKey int
 type nameInfoOverride int
 type localizerCancelableKeyTyp int
+type messageSkipsKeyTyp int
+type unboxModeKeyTyp int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -27,6 +29,8 @@ var upKey upakfinderKey
 var rlKey rateLimitKey
 var nameInfoOverrideKey nameInfoOverride
 var localizerCancelableKey localizerCancelableKeyTyp
+var messageSkipsKey messageSkipsKeyTyp
+var unboxModeKey unboxModeKeyTyp
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -103,6 +107,43 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 	return res
 }
 
+func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	val := ctx.Value(messageSkipsKey)
+	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
+		existingSkips[convID.String()] = MessageCacheSkip{
+			ConvID: convID,
+			Msgs:   append(existingSkips[convID.String()].Msgs, msgs...),
+		}
+	}
+}
+
+type MessageCacheSkip struct {
+	ConvID chat1.ConversationID
+	Msgs   []chat1.MessageUnboxed
+}
+
+func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
+	val := ctx.Value(messageSkipsKey)
+	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
+		for _, skips := range existingSkips {
+			res = append(res, skips)
+		}
+	}
+	return res
+}
+
+func CtxModifyUnboxMode(ctx context.Context, unboxMode types.UnboxMode) context.Context {
+	return context.WithValue(ctx, unboxModeKey, unboxMode)
+}
+
+func CtxUnboxMode(ctx context.Context) types.UnboxMode {
+	val := ctx.Value(unboxModeKey)
+	if unboxMode, ok := val.(types.UnboxMode); ok {
+		return unboxMode
+	}
+	return types.UnboxModeFull
+}
+
 func CtxOverrideNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
 	val := ctx.Value(nameInfoOverrideKey)
 	if ni, ok := val.(types.NameInfoSource); ok {
@@ -145,7 +186,7 @@ func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
 
 func IsLocalizerCancelableCtx(ctx context.Context) bool {
 	val := ctx.Value(localizerCancelableKey)
-	if _, ok := val.(bool); ok {
+	if bval, ok := val.(bool); ok && bval {
 		return true
 	}
 	return false
@@ -153,6 +194,13 @@ func IsLocalizerCancelableCtx(ctx context.Context) bool {
 
 func CtxAddLocalizerCancelable(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localizerCancelableKey, true)
+}
+
+func CtxRemoveLocalizerCancelable(ctx context.Context) context.Context {
+	if IsLocalizerCancelableCtx(ctx) {
+		return context.WithValue(ctx, localizerCancelableKey, false)
+	}
+	return ctx
 }
 
 func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
@@ -179,6 +227,14 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	val = res.Value(rlKey)
 	if _, ok := val.(map[string]chat1.RateLimit); !ok {
 		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
+	}
+	val = res.Value(messageSkipsKey)
+	if _, ok := val.(map[string]MessageCacheSkip); !ok {
+		res = context.WithValue(res, messageSkipsKey, make(map[string]MessageCacheSkip))
+	}
+	val = res.Value(unboxModeKey)
+	if _, ok := val.(types.UnboxMode); !ok {
+		res = context.WithValue(res, unboxModeKey, types.UnboxModeFull)
 	}
 	if _, ok := CtxTrace(res); !ok {
 		res = CtxAddLogTags(res, g)

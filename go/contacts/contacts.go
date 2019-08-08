@@ -210,11 +210,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			v := &res[i]
 			if v.Resolved {
 				v.DisplayName = v.Username
-				if v.Following && v.FullName != "" {
+				switch {
+				case v.Following && v.FullName != "":
 					v.DisplayLabel = v.FullName
-				} else if v.ContactName != "" {
+				case v.ContactName != "":
 					v.DisplayLabel = v.ContactName
-				} else {
+				default:
 					v.DisplayLabel = v.Component.ValueString()
 				}
 			}

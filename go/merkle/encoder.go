@@ -24,7 +24,10 @@ func (e *Encoder) BlindedPreimage(leaf Leaf, key Key, secret Secret) (BlindedPre
 	switch e.encodingType {
 	case EncodingTypeBlindedSHA512_256v1:
 		h := hmac.New(sha512.New, secret.Secret)
-		h.Write(key.Key)
+		_, err := h.Write(key.Key)
+		if err != nil {
+			return BlindedPreimage{}, err
+		}
 		z := h.Sum(nil)
 		return NewBlindedPreimage(leaf, z[:32])
 	default:
@@ -40,7 +43,10 @@ func (e *Encoder) Hash(preimage BlindedPreimage) ([]byte, error) {
 	switch e.encodingType {
 	case EncodingTypeBlindedSHA512_256v1:
 		h := hmac.New(sha512.New, preimage.BlindedEntropy)
-		h.Write(b)
+		_, err := h.Write(b)
+		if err != nil {
+			return nil, err
+		}
 		z := h.Sum(nil)
 		return z[:32], nil
 	default:

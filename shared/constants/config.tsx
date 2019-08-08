@@ -3,6 +3,7 @@ import * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import {uniq} from 'lodash-es'
 import {runMode} from './platform'
+import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 
 export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
@@ -92,7 +93,7 @@ export const makeState = I.Record<Types._State>({
   appFocusedCount: 0,
   appOutOfDateMessage: '',
   appOutOfDateStatus: 'checking',
-  avatars: I.Map(),
+  avatarRefreshCounter: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,
   daemonHandshakeFailedReason: '',
@@ -100,6 +101,7 @@ export const makeState = I.Record<Types._State>({
   daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: I.Map(),
+  darkModePreference: undefined,
   debugDump: [],
   defaultUsername: '',
   deviceID: '',
@@ -107,6 +109,8 @@ export const makeState = I.Record<Types._State>({
   followers: I.Set(),
   following: I.Set(),
   globalError: null,
+  httpSrvAddress: '',
+  httpSrvToken: '',
   justDeletedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
@@ -126,7 +130,11 @@ export const makeState = I.Record<Types._State>({
   startupSharePath: '',
   startupTab: null,
   startupWasFromPush: false,
+    systemDarkMode: false,
   uid: '',
   userActive: true,
   username: '',
 })
+
+// we proxy the style helper to keep the logic in one place but act like a selector
+export const isDarkMode = (_: Types._State) => _isDarkMode()

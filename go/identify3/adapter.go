@@ -406,14 +406,13 @@ func (i *UIAdapter) plumbUncheckedProof(mctx libkb.MetaContext, row keybase1.Ide
 	i.updateRow(mctx, arg)
 }
 
-func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) error {
+func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(mctx.Ctx(), arg)
 	mctx.Debug("update row %+v", arg)
 	if err != nil {
 		mctx.Debug("Failed to send update row (%+v): %s", arg, err)
 	}
-	return err
 }
 
 func (i *UIAdapter) shouldSkipSendResult() bool {
@@ -570,12 +569,12 @@ func (i *UIAdapter) ReportTrackToken(mctx libkb.MetaContext, token keybase1.Trac
 }
 
 func (i *UIAdapter) Cancel(mctx libkb.MetaContext) error {
-	i.sendResult(mctx, keybase1.Identify3ResultType_CANCELED)
+	_ = i.sendResult(mctx, keybase1.Identify3ResultType_CANCELED)
 	return nil
 }
 
 func (i *UIAdapter) Finish(mctx libkb.MetaContext) error {
-	i.sendResult(mctx, i.session.ResultType())
+	_ = i.sendResult(mctx, i.session.ResultType())
 	return nil
 }
 func (i *UIAdapter) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {

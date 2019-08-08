@@ -6,8 +6,34 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "HttpSrvInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "address"
+        },
+        {
+          "type": "string",
+          "name": "token"
+        }
+      ]
+    }
+  ],
   "messages": {
+    "HTTPSrvInfoUpdate": {
+      "request": [
+        {
+          "name": "info",
+          "type": "HttpSrvInfo"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
     "shutdown": {
       "request": [
         {

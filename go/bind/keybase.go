@@ -209,7 +209,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	svc.SetupCriticalSubServices()
+	err = svc.SetupCriticalSubServices()
+	if err != nil {
+		return err
+	}
 	svc.SetupChatModules(nil)
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
@@ -249,9 +252,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	return nil
 }
 
-type serviceCn struct {
-	ctx *libkb.GlobalContext
-}
+type serviceCn struct{}
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	// TODO: plumb the func somewhere it can be called on shutdown?
@@ -348,7 +349,7 @@ func ReadB64() (res string, err error) {
 
 	if err != nil {
 		// Attempt to fix the connection
-		Reset()
+		_ = Reset()
 		return "", fmt.Errorf("Read error: %s", err)
 	}
 
@@ -680,7 +681,7 @@ func startTrace(logFile string) {
 		return
 	}
 	fmt.Printf("Go: starting trace %s\n", tname)
-	trace.Start(f)
+	_ = trace.Start(f)
 	go func() {
 		fmt.Printf("Go: sleeping 30s for trace\n")
 		time.Sleep(30 * time.Second)

@@ -474,16 +474,12 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 			g.Debug(ctx, "getSupersedesTarget: failed to get message: %v", err)
 			return nil
 		}
-		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
 		if err != nil || len(msgs) == 0 {
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
 		}
-		filledMsg, err := NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msgs[0])
-		if err != nil {
-			g.Debug(ctx, "getSupersedesTarget: failed to fill reply: %v", err)
-		}
-		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), filledMsg, uid, conv.GetConvID())
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
 		return &uiMsg
 	}
 	return nil

@@ -37,7 +37,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     }
   }
 
-  _onEnterKeyDown = (e: React.KeyboardEvent) => {
+  _onEnterKeyDown = (e: React.BaseSyntheticEvent) => {
     if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
@@ -162,11 +162,9 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   containerFiltering: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
+    common: {position: 'relative'},
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
@@ -258,9 +256,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_35,
     position: 'relative',
   },
-  whiteBg: {
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+  whiteBg: {backgroundColor: Styles.globalColors.white},
+}))
 
 export default ConversationFilterInput

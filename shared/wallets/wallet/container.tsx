@@ -63,6 +63,7 @@ export default Container.connect(
       stateProps.assets.count() > 0 ? stateProps.assets.map((_, index) => index).toArray() : ['notLoadedYet']
     sections.push({
       data: assets,
+      kind: 'assets',
       title: (
         <AssetSectionTitle
           onSetupTrustline={() => dispatchProps.onSetupTrustline(stateProps.accountID)}
@@ -89,6 +90,7 @@ export default Container.connect(
     if (pending.length) {
       sections.push({
         data: sortAndStripTimestamps(pending),
+        kind: 'payments',
         stripeHeader: true,
         title: 'Pending',
       })
@@ -96,6 +98,7 @@ export default Container.connect(
 
     sections.push({
       data: history,
+      kind: 'payments',
       title: 'History',
     })
 

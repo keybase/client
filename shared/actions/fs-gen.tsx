@@ -47,7 +47,6 @@ export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
-export const onJournalNotification = 'fs:onJournalNotification'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
@@ -57,6 +56,7 @@ export const overallSyncStatusChanged = 'fs:overallSyncStatusChanged'
 export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
+export const pollJournalStatus = 'fs:pollJournalStatus'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
@@ -169,7 +169,6 @@ type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: st
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
-type _OnJournalNotificationPayload = void
 type _OpenAndUploadPayload = {readonly type: Types.OpenDialogType; readonly parentPath: Types.Path}
 type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Types.PathType}
 type _OpenLocalPathInSystemFileManagerPayload = {readonly localPath: string}
@@ -182,6 +181,7 @@ type _OverallSyncStatusChangedPayload = {
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
 type _PlaceholderActionPayload = void
+type _PollJournalStatusPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
@@ -374,9 +374,6 @@ export const createNewFolderRow = (payload: _NewFolderRowPayload): NewFolderRowP
   payload,
   type: newFolderRow,
 })
-export const createOnJournalNotification = (
-  payload: _OnJournalNotificationPayload
-): OnJournalNotificationPayload => ({payload, type: onJournalNotification})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload): OpenAndUploadPayload => ({
   payload,
   type: openAndUpload,
@@ -407,6 +404,10 @@ export const createPickAndUpload = (payload: _PickAndUploadPayload): PickAndUplo
 export const createPlaceholderAction = (payload: _PlaceholderActionPayload): PlaceholderActionPayload => ({
   payload,
   type: placeholderAction,
+})
+export const createPollJournalStatus = (payload: _PollJournalStatusPayload): PollJournalStatusPayload => ({
+  payload,
+  type: pollJournalStatus,
 })
 export const createRefreshDriverStatus = (
   payload: _RefreshDriverStatusPayload
@@ -682,10 +683,6 @@ export type NewFolderNamePayload = {
   readonly type: typeof newFolderName
 }
 export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: typeof newFolderRow}
-export type OnJournalNotificationPayload = {
-  readonly payload: _OnJournalNotificationPayload
-  readonly type: typeof onJournalNotification
-}
 export type OpenAndUploadPayload = {
   readonly payload: _OpenAndUploadPayload
   readonly type: typeof openAndUpload
@@ -721,6 +718,10 @@ export type PickAndUploadPayload = {
 export type PlaceholderActionPayload = {
   readonly payload: _PlaceholderActionPayload
   readonly type: typeof placeholderAction
+}
+export type PollJournalStatusPayload = {
+  readonly payload: _PollJournalStatusPayload
+  readonly type: typeof pollJournalStatus
 }
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
@@ -927,7 +928,6 @@ export type Actions =
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
-  | OnJournalNotificationPayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
   | OpenLocalPathInSystemFileManagerPayload
@@ -937,6 +937,7 @@ export type Actions =
   | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
+  | PollJournalStatusPayload
   | RefreshDriverStatusPayload
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload

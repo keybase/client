@@ -8,6 +8,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
+  darkMode: false,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: true,
