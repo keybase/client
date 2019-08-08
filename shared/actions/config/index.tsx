@@ -550,6 +550,7 @@ function* criticalOutOfDateCheck() {
     } catch (e) {
       logger.error("Can't call critical check", e)
     }
+    // TODO this is an issue on android
     yield Saga.delay(3600 * 1000) // 1 hr
   }
 }
