@@ -199,39 +199,27 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 		mctx.Debug("AttachContactNames: SyncedContactList is nil")
 		return
 	}
-	var contacts []keybase1.ProcessedContact
+	var assertionToContactName map[string]string
 	var err error
 	contactsFetched := false
 	for i, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
 			if !contactsFetched {
-				contacts, err = syncedContacts.RetrieveContacts(mctx)
+				assertionToContactName, err = syncedContacts.RetrieveAssertionToName(mctx)
 				if err != nil {
 					mctx.Debug("AttachContactNames: error fetching contacts: %s", err)
 					return
 				}
 				contactsFetched = true
 			}
-			participant.ContactName = findContactName(contacts, participant.Username)
+			if contactName, ok := assertionToContactName[participant.Username]; ok {
+				participant.ContactName = &contactName
+			} else {
+				participant.ContactName = nil
+			}
 			participants[i] = participant
 		}
 	}
-}
-
-func findContactName(contacts []keybase1.ProcessedContact, assertion string) *string {
-	var result *string
-	for _, contact := range contacts {
-		if contact.Assertion == assertion {
-			if result != nil {
-				// Found multiple contacts for one phone or email value, return
-				// nil rather than potentially chosing wrong name.
-				return nil
-			}
-			contactName := contact.ContactName
-			result = &contactName
-		}
-	}
-	return result
 }
 
 func isPhoneOrEmail(username string) bool {
