@@ -75,6 +75,10 @@ func (s *Server) handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
+func (s *Server) handleInternalServerError(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
 type obsoleteTrackingFS struct {
 	fs *libfs.FS
 	ch <-chan struct{}
@@ -142,7 +146,7 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 	addr, err := s.server.Addr()
 	if err != nil {
 		s.logger.Debug("serve: failed to get HTTP server address: %s", err)
-		s.handleBadRequest(w)
+		s.handleInternalServerError(w)
 		return
 	}
 	if req.Host != addr {
