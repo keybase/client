@@ -513,7 +513,7 @@ async function manageContactsCache(
 
   // feature enabled and permission granted
   const contacts = await Contacts.getContactsAsync()
-  let defaultCountryCode: string
+  let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
     if (__DEV__ && !defaultCountryCode) {
@@ -546,17 +546,21 @@ async function manageContactsCache(
     return ret
   }, [])
   logger.info(`Importing ${mapped.length} contacts.`)
-  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
-    .then(() => {
-      logger.info(`Success`)
-      return [
-        SettingsGen.createSetContactImportedCount({count: mapped.length}),
-        SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode}),
-      ]
-    })
-    .catch(e => {
-      logger.error('Error saving contacts list: ', e.message)
-    })
+  const actions: Array<any> = []
+  try {
+    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    logger.info(`Success`)
+    actions.push(
+      SettingsGen.createSetContactImportedCount({count: mapped.length}),
+      SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
+    )
+    if (newlyResolved && newlyResolved.length) {
+      actions.push()
+    }
+  } catch (e) {
+    logger.error('Error saving contacts list: ', e.message)
+  }
+  return actions
 }
 
 // Get phone number in e.164, or null if we can't parse it.
