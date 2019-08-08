@@ -2,5 +2,3 @@
 // this source code is governed by the included BSD license.
 
 package libkb
-
-import ()

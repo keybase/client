@@ -49,7 +49,7 @@ func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 		return err
 	}
 
-	file := NewFile(path, []byte(out), 0644)
+	file := NewFile(path, out, 0644)
 	return file.Save(log)
 }
 
@@ -133,18 +133,15 @@ func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServi
 	defer ticker.Stop()
 	resultChan := make(chan serviceInfoResult, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				info, err := fn()
-				if err != nil {
-					resultChan <- serviceInfoResult{info: nil, err: err}
-					return
-				}
-				if info != nil {
-					resultChan <- serviceInfoResult{info: info, err: nil}
-					return
-				}
+		for range ticker.C {
+			info, err := fn()
+			if err != nil {
+				resultChan <- serviceInfoResult{info: nil, err: err}
+				return
+			}
+			if info != nil {
+				resultChan <- serviceInfoResult{info: info, err: nil}
+				return
 			}
 		}
 	}()

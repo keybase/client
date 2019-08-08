@@ -50,7 +50,8 @@ func TestProductionCA(t *testing.T) {
 		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
 	}
 
-	tc.G.ConfigureAPI()
+	err = tc.G.ConfigureAPI()
+	require.NoError(t, err)
 
 	// make sure endpoint is correct:
 	arg := APIArg{Endpoint: "ping"}
@@ -95,7 +96,8 @@ func TestProductionBadCA(t *testing.T) {
 		apiCAOverrideForTest = ""
 	}()
 
-	tc.G.ConfigureAPI()
+	err = tc.G.ConfigureAPI()
+	require.NoError(t, err)
 
 	// make sure endpoint is correct:
 	arg := APIArg{Endpoint: "ping"}

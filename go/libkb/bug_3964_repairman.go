@@ -194,8 +194,7 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 	m.G().Log.CDebugf(m.Ctx(), "| SKB keyring repair completed; edits=%v", ran)
 
 	if !ran {
-		b.saveRepairmanVisit(nun)
-		return nil
+		return b.saveRepairmanVisit(nun)
 	}
 
 	if err := b.fixLKSClientHalf(m, lksec, pps.Generation()); err != nil {
@@ -205,7 +204,10 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 	if ussErr := b.updateSecretStore(m, nun, lksec); ussErr != nil {
 		m.G().Log.CWarningf(m.Ctx(), "Error in secret store manipulation: %s", ussErr)
 	} else {
-		b.saveRepairmanVisit(nun)
+		err := b.saveRepairmanVisit(nun)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = b.postToServer(m, serverHalfSet, pps.Generation(), nun)

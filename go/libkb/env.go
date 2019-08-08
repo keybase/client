@@ -372,7 +372,7 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
-		func() string { return e.GetMountDirDefault() },
+		e.GetMountDirDefault,
 	), nil
 }
 
@@ -390,11 +390,11 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.HomeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromTestOrCmd() },
+		e.getHomeFromTestOrCmd,
 		func() string { return e.GetConfig().GetHome() },
-		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
+		e.getMobileSharedHomeFromCmdOrConfig,
 		osname,
-		func() RunMode { return e.GetRunMode() },
+		e.GetRunMode,
 		getLog,
 		os.Getenv)
 	return &e
@@ -510,15 +510,6 @@ func (e *Env) GetString(flist ...(func() string)) string {
 		}
 	}
 	return ret
-}
-
-func (e *Env) getPGPFingerprint(flist ...(func() *PGPFingerprint)) *PGPFingerprint {
-	for _, f := range flist {
-		if ret := f(); ret != nil {
-			return ret
-		}
-	}
-	return nil
 }
 
 func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
@@ -906,8 +897,8 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketBindFile() (string, error) {
 	return e.GetString(
-		func() string { return e.sandboxSocketFile() },
-		func() string { return e.defaultSocketFile() },
+		e.sandboxSocketFile,
+		e.defaultSocketFile,
 	), nil
 }
 
@@ -1608,7 +1599,7 @@ func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 
 	filePrefix := e.GetLogPrefix()
 	if filePrefix != "" {
-		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		filePrefix += time.Now().Format("20060102T150405.999999999Z0700")
 		logFile = filePrefix + ".log"
 		return logFile, true
 	}

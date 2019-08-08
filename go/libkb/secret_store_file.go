@@ -134,8 +134,8 @@ func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsern
 	}
 
 	// remove the temp file if it still exists at the end of this function
-	defer ShredFile(fsec.Name())
-	defer ShredFile(fnoise.Name())
+	defer func() { _ = ShredFile(fsec.Name()) }()
+	defer func() { _ = ShredFile(fnoise.Name()) }()
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows

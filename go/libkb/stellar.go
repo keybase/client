@@ -102,7 +102,7 @@ func StellarSimplifyAmount(amount string) string {
 		// is to ensure that thousands separator is not confused with
 		// decimal point.
 		for len(simpleRight) < 2 {
-			simpleRight = simpleRight + "0"
+			simpleRight += "0"
 		}
 	} else if len(simpleRight) == 0 {
 		return sides[0]
