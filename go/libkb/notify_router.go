@@ -2514,7 +2514,7 @@ func (n *NotifyRouter) HandleIdentifyUpdate(ctx context.Context, okUsernames []s
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Users {
 			go func() {
-				(keybase1.NotifyUsersClient{
+				_ = (keybase1.NotifyUsersClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).IdentifyUpdate(ctx, keybase1.IdentifyUpdateArg{
 					OkUsernames:     okUsernames,
