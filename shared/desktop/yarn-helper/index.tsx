@@ -30,9 +30,20 @@ const commands = {
       // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
       makeShims()
       fixTypes()
+      checkFSEvents()
     },
     help: '',
   },
+}
+
+const checkFSEvents = () => {
+  if (process.platform === 'darwin') {
+    if (!fs.existsSync(path.resolve(__dirname, '..', '..', 'node_modules', 'fsevents'))) {
+      console.log(
+        `⚠️: You seem to be running OSX and don't have fsevents installed. This can make your hot server slow. Run 'yarn --check-files' once to fix this`
+      )
+    }
+  }
 }
 
 const fixTypes = () => {
@@ -68,7 +79,14 @@ function makeShims() {
 }
 
 function exec(command, env, options) {
-  console.log(execSync(command, {encoding: 'utf8', env: env || process.env, stdio: 'inherit', ...options}))
+  console.log(
+    execSync(command, {
+      encoding: 'utf8',
+      env: env || process.env,
+      stdio: 'inherit',
+      ...options,
+    })
+  )
 }
 
 const decorateInfo = info => {

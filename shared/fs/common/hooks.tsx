@@ -75,8 +75,13 @@ export const useFsTlfs = () => {
   }, [dispatch])
 }
 
-export const useFsJournalStatus = () =>
+export const useFsJournalStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createPollJournalStatus())
+  }, [dispatch])
+}
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)

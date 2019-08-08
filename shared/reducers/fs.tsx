@@ -628,7 +628,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.subscribePath:
     case FsGen.subscribeNonPath:
     case FsGen.unsubscribe:
-    case FsGen.onJournalNotification:
+    case FsGen.pollJournalStatus:
       return state
     default:
       return state
