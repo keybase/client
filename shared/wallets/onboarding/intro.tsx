@@ -60,7 +60,7 @@ const bodyOverride = {
 }
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny},
+  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
   buttonLabelStyle: {color: Styles.globalColors.purpleDark},
   buttonStyle: {width: '100%'},
   container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
