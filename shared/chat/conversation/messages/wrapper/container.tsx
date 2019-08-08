@@ -184,6 +184,7 @@ export default Container.namedConnect(
       failureDescription,
       forceAsh,
       hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+      isJoinLeave: message.type === 'systemJoined' || message.type === 'systemLeft',
       isLastInThread: stateProps.isLastInThread,
       isPendingPayment: stateProps.isPendingPayment,
       isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,

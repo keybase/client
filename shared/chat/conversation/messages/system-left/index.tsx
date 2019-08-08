@@ -16,6 +16,6 @@ export default (props: Props) => (
     colorFollowing={true}
     underline={true}
     usernames={props.leavers}
-    suffix={`left ${props.isBigTeam ? `#${props.channelname}` : props.teamname}.`}
+    suffix={` left ${props.isBigTeam ? `#${props.channelname}` : props.teamname}.`}
   />
 )

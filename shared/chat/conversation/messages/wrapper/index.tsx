@@ -47,6 +47,7 @@ export type Props = {
   failureDescription: string
   forceAsh: boolean
   hasUnfurlPrompts: boolean
+  isJoinLeave: boolean
   isLastInThread: boolean
   isPendingPayment: boolean
   isRevoked: boolean
@@ -310,6 +311,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
@@ -604,6 +606,11 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.yellow,
   },
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+  containerJoinLeave: Styles.platformStyles({
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+  }),
   containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
