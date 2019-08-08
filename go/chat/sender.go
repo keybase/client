@@ -484,34 +484,45 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	return errors.New("failed to find message to edit")
 }
 
-func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext,
-	replyTo *chat1.MessageID) chat1.MessagePlaintext {
+func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, replyTo *chat1.MessageID) (chat1.MessagePlaintext, error) {
 	if replyTo == nil {
-		return msg
+		return msg, nil
 	}
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		s.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
-		return msg
+		return msg, nil
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
 		s.Debug(ctx, "handleReplyTo: handling text message")
 		header := msg.ClientHeader
 		header.Supersedes = *replyTo
+		reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+		if err != nil {
+			s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+			return msg, err
+		}
+		if !reply.IsValid() {
+			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
+			return msg, nil
+		}
+		replyToUID := reply.Valid().ClientHeader.Sender
 		return chat1.MessagePlaintext{
 			ClientHeader: header,
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body:     msg.MessageBody.Text().Body,
-				Payments: msg.MessageBody.Text().Payments,
-				ReplyTo:  replyTo,
+				Body:       msg.MessageBody.Text().Body,
+				Payments:   msg.MessageBody.Text().Payments,
+				ReplyTo:    replyTo,
+				ReplyToUID: &replyToUID,
 			}),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}
+		}, nil
 	default:
 		s.Debug(ctx, "handleReplyTo: skipping message of type: %v", typ)
 	}
-	return msg
+	return msg, nil
 }
 
 func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
@@ -700,7 +711,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg.MessageBody = body
 
 		// Handle reply to
-		msg = s.handleReplyTo(ctx, msg, opts.ReplyTo)
+		if msg, err = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo); err != nil {
+			return res, err
+		}
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
@@ -1000,7 +1013,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
 	} else {
-		if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, unboxedMsg); cerr != nil {
+		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
 			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 		}
 	}

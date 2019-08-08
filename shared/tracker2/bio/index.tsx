@@ -38,7 +38,7 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
     <Kb.Icon color={Styles.globalColors.yellowDark} type="iconfont-identity-stellar" style={styles.star} />
     <Kb.FloatingMenu
       attachTo={p.getAttachmentRef}
-      closeOnSelect={false}
+      closeOnSelect={true}
       containerStyle={styles.floatingContainer}
       listStyle={styles.floatingContainer}
       backgroundColor={Styles.globalColors.purple}

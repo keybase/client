@@ -3,9 +3,10 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import {Box, LoadingLine, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import {Props} from './index.types'
+import ThreadLoadStatus from '../load-status/container'
 
 const Offline = () => (
   <Box
@@ -28,20 +29,23 @@ const Offline = () => (
 class Conversation extends React.PureComponent<Props> {
   render() {
     return (
-      <Box style={containerStyle}>
+      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
           onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.props.showLoader && <LoadingLine />}
-        <ListArea
-          scrollListDownCounter={this.props.scrollListDownCounter}
-          scrollListToBottomCounter={this.props.scrollListToBottomCounter}
-          scrollListUpCounter={this.props.scrollListUpCounter}
-          onFocusInput={this.props.onFocusInput}
-          conversationIDKey={this.props.conversationIDKey}
-        />
+        <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+          <ListArea
+            scrollListDownCounter={this.props.scrollListDownCounter}
+            scrollListToBottomCounter={this.props.scrollListToBottomCounter}
+            scrollListUpCounter={this.props.scrollListUpCounter}
+            onFocusInput={this.props.onFocusInput}
+            conversationIDKey={this.props.conversationIDKey}
+          />
+          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+          {this.props.showLoader && <LoadingLine />}
+        </Box2>
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           focusInputCounter={this.props.focusInputCounter}
@@ -51,14 +55,16 @@ class Conversation extends React.PureComponent<Props> {
           onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
-      </Box>
+      </Box2>
     )
   }
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
-}
+const styles = styleSheetCreate({
+  innerContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+})
 
 export default Conversation

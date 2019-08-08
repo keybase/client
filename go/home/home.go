@@ -119,7 +119,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int, bu
 	if !bustCache {
 		useCache = shouldUseCache
 		if useCache && markViewed {
-			h.bustHomeCacheIfBadgedFollowers(ctx)
+			if err := h.bustHomeCacheIfBadgedFollowers(ctx); err != nil {
+				return ret, err
+			}
+
 			useCache = h.homeCache != nil
 			// If we blew up our cache, get out of here and refetch, proceed with
 			// marking the view.
@@ -148,7 +151,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int, bu
 	if people != nil {
 		tmp.FollowSuggestions = people
 	} else {
-		h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		err := h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		if err != nil {
+			return ret, err
+		}
 	}
 
 	// Return a deep copy of the tmp object, so that the caller can't
@@ -295,7 +301,10 @@ func (h *Home) MarkViewed(ctx context.Context) (err error) {
 
 func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
 	defer h.G().CTraceTimed(ctx, "Home#markViewedWithLock", func() error { return err })()
-	h.bustHomeCacheIfBadgedFollowers(ctx)
+	err = h.bustHomeCacheIfBadgedFollowers(ctx)
+	if err != nil {
+		return err
+	}
 	return h.markViewedAPICall(ctx)
 }
 
@@ -375,7 +384,7 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	}
 
 	// Ignore the error code...
-	h.updateUI(ctx)
+	_ = h.updateUI(ctx)
 	return nil
 }
 

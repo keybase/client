@@ -183,6 +183,13 @@
           "name": "replyTo"
         },
         {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "replyToUID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "KnownUserMention"

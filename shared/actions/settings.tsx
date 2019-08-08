@@ -381,6 +381,16 @@ const deleteAccountForever = (state: TypedState) => {
   )
 }
 
+const comparePhoneRows = (
+  row1: ChatTypes.Keybase1.UserPhoneNumber,
+  row2: ChatTypes.Keybase1.UserPhoneNumber
+) => {
+  if (row1.superseded !== row2.superseded) {
+    return row1.superseded ? -1 : 1
+  }
+  return row1.phoneNumber.localeCompare(row2.phoneNumber)
+}
+
 const loadSettings = (
   state: TypedState,
   _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload,
@@ -393,7 +403,12 @@ const loadSettings = (
         (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
       )
       const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
+        // Sort the superseded numbers first, so that if a number exxists in both
+        // superseded and non-superseded form, the non-superseded version ends up
+        // in the map.
+        (settings.phoneNumbers || [])
+          .sort(comparePhoneRows)
+          .map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
       )
       const loadedAction = SettingsGen.createLoadedSettings({
         emails: emailMap,
@@ -531,10 +546,7 @@ const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdown
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
-const sendFeedback = (
-  state: TypedState,
-  action: SettingsGen.SendFeedbackPayload
-): Promise<Saga.MaybeAction> => {
+const sendFeedback = (state: TypedState, action: SettingsGen.SendFeedbackPayload) => {
   const {feedback, sendLogs, sendMaxBytes} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}

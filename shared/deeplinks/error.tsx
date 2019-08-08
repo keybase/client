@@ -14,7 +14,7 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Banner color={bannerColor}>
-        <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} />
+        <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
       </Kb.Banner>
     </Kb.Box2>
   )

@@ -296,13 +296,13 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 }
 
 // Failure indicates a failure of type kind has happened when loading a conversation.
-func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) (err error) {
+func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Failure(%s)", desc))()
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Failure(%s)", desc))()
 	if !f.running {
 		f.Debug(ctx, "Failure: not starting new retrier, not running")
-		return nil
+		return
 	}
 	key := f.key(uid, desc)
 	if _, ok := f.retriers[key]; !ok {
@@ -311,23 +311,18 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 		f.retriers[key] = control
 		f.spawnRetrier(ctx, uid, desc, control)
 	}
-
-	return nil
 }
 
 // Success indicates a success of type kind loading a conversation. This effectively removes
 // that conversation from the retry queue.
-func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) (err error) {
+func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Success(%s)", desc))()
-
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Success(%s)", desc))()
 	key := f.key(uid, desc)
 	if control, ok := f.retriers[key]; ok {
 		control.Shutdown()
 	}
-
-	return nil
 }
 
 // Connected is called when a connection to the chat server is established, and forces a

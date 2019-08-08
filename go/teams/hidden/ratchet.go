@@ -202,7 +202,7 @@ func (r *RatchetBlind) check(tail sig3.Tail) (err error) {
 		return err
 	}
 	if !hmac.Equal(computed[:], r.Hash[:]) {
-		return newRatchetError("blinding check failed")
+		return newRatchetError("blinding check failed %x v %x", computed[:], r.Hash[:])
 	}
 	return nil
 }

@@ -178,11 +178,9 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 					}
 					mctx.Debug("git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
 					resultList = append(resultList, keybase1.NewGitRepoResultWithErr(err.Error()))
-				} else {
-					if !skip {
-						anySuccess = true
-						resultList = append(resultList, keybase1.NewGitRepoResultWithOk(*info))
-					}
+				} else if !skip {
+					anySuccess = true
+					resultList = append(resultList, keybase1.NewGitRepoResultWithOk(*info))
 				}
 				resLock.Unlock()
 

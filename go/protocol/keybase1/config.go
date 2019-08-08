@@ -639,14 +639,15 @@ func (o UpdateInfo) DeepCopy() UpdateInfo {
 }
 
 type BootstrapStatus struct {
-	Registered  bool        `codec:"registered" json:"registered"`
-	LoggedIn    bool        `codec:"loggedIn" json:"loggedIn"`
-	Uid         UID         `codec:"uid" json:"uid"`
-	Username    string      `codec:"username" json:"username"`
-	DeviceID    DeviceID    `codec:"deviceID" json:"deviceID"`
-	DeviceName  string      `codec:"deviceName" json:"deviceName"`
-	Fullname    FullName    `codec:"fullname" json:"fullname"`
-	UserReacjis UserReacjis `codec:"userReacjis" json:"userReacjis"`
+	Registered  bool         `codec:"registered" json:"registered"`
+	LoggedIn    bool         `codec:"loggedIn" json:"loggedIn"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	Username    string       `codec:"username" json:"username"`
+	DeviceID    DeviceID     `codec:"deviceID" json:"deviceID"`
+	DeviceName  string       `codec:"deviceName" json:"deviceName"`
+	Fullname    FullName     `codec:"fullname" json:"fullname"`
+	UserReacjis UserReacjis  `codec:"userReacjis" json:"userReacjis"`
+	HttpSrvInfo *HttpSrvInfo `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
 }
 
 func (o BootstrapStatus) DeepCopy() BootstrapStatus {
@@ -659,6 +660,13 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 		DeviceName:  o.DeviceName,
 		Fullname:    o.Fullname.DeepCopy(),
 		UserReacjis: o.UserReacjis.DeepCopy(),
+		HttpSrvInfo: (func(x *HttpSrvInfo) *HttpSrvInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.HttpSrvInfo),
 	}
 }
 

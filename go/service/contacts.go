@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/contacts"
@@ -215,6 +216,10 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 			}
 		}
 	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].DisplayName < res[j].DisplayName
+	})
 
 	return res, nil
 }

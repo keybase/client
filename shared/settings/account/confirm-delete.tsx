@@ -16,17 +16,23 @@ type Props = {
 
 const getIcon = (props: Props) => {
   if (props.type === 'email') {
-    return Styles.isMobile ? 'icon-email-remove-64' : 'icon-email-remove-48'
+    return Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
   }
-  return Styles.isMobile ? 'icon-phone-number-remove-64' : 'icon-phone-number-remove-48'
+  return Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
 }
-const getPrompt = (props: Props) => {
-  return props.type === 'email'
-    ? `Delete email
-${props.address}`
-    : `Delete number
-${PhoneUtil.e164ToDisplay(props.address)}`
-}
+const getPrompt = (props: Props) =>
+  props.type === 'email' ? (
+    <Kb.Box2 direction="vertical" alignItems="center">
+      <Kb.Text type="HeaderBig">Delete email</Kb.Text>
+      <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="vertical" alignItems="center">
+      <Kb.Text type="HeaderBig">Delete number</Kb.Text>
+      <Kb.Text type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text>
+    </Kb.Box2>
+  )
+
 const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
     icon={getIcon(props)}
@@ -40,6 +46,7 @@ const ConfirmDeleteAddress = (props: Props) => (
     }
     onCancel={props.onCancel}
     onConfirm={props.onConfirm}
+    confirmText="Yes, delete"
   />
 )
 

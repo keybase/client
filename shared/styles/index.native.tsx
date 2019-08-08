@@ -49,6 +49,7 @@ export const globalStyles = {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
+// @ts-ignore TODO use actual RN styles and dom styles
 export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>

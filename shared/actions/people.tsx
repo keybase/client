@@ -135,9 +135,7 @@ const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
     })
   )
 
-let _wasOnPeopleTab = false
 const homeUIRefresh = () =>
-  _wasOnPeopleTab &&
   PeopleGen.createGetPeopleData({
     bustCache: false,
     markViewed: false,

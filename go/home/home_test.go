@@ -30,7 +30,7 @@ func TestHome(t *testing.T) {
 		// setup caches so we test those branches
 		newPeopleCache := &peopleCache{
 			all: []keybase1.HomeUserSummary{
-				keybase1.HomeUserSummary{},
+				{},
 			},
 			cachedAt: tc.G.GetClock().Now(),
 		}
@@ -39,7 +39,7 @@ func TestHome(t *testing.T) {
 			cachedAt: tc.G.GetClock().Now(),
 			obj: keybase1.HomeScreen{
 				Items: []keybase1.HomeScreenItem{
-					keybase1.HomeScreenItem{
+					{
 						Badged: true,
 						Data:   keybase1.NewHomeScreenItemDataWithPeople(keybase1.HomeScreenPeopleNotification{}),
 					},

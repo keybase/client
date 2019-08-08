@@ -9,14 +9,9 @@ type SmallAccountIDProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-class SmallAccountID extends React.Component<
-  SmallAccountIDProps,
-  {
-    expanded: boolean
-  }
-> {
+class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boolean}> {
   state = {expanded: false}
-  _expand = (evt: React.SyntheticEvent) => {
+  _expand = (evt: React.BaseSyntheticEvent) => {
     evt.stopPropagation()
     this.setState(s => (s.expanded ? null : {expanded: true}))
   }

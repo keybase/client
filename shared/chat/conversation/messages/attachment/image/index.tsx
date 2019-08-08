@@ -11,7 +11,7 @@ type Props = {
   isCollapsed: boolean
   onClick: () => void
   onCollapse: () => void
-  onShowInFinder: null | ((e: React.SyntheticEvent) => void)
+  onShowInFinder?: ((e: React.BaseSyntheticEvent) => void)
   onDoubleClick: () => void
   path: string
   fullPath: string
@@ -84,21 +84,19 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             onLongPress={this.props.toggleMessageMenu}
           >
             <Kb.Box
-              style={Kb.iconCastPlatformStyles(
-                Styles.collapseStyles([
-                  styles.backgroundContainer,
-                  {
-                    // Add 6 extra width+height to the background container to create the background
-                    // for the image. We use this in conjunction with the margin to reliably
-                    // center the image in the background container.
-                    minHeight: this.props.height + 6,
-                    minWidth: this.props.width + 6,
-                  },
-                ])
-              )}
+              style={Styles.collapseStyles([
+                styles.backgroundContainer,
+                {
+                  // Add 6 extra width+height to the background container to create the background
+                  // for the image. We use this in conjunction with the margin to reliably
+                  // center the image in the background container.
+                  minHeight: this.props.height + 6,
+                  minWidth: this.props.width + 6,
+                },
+              ])}
             >
               {!!this.props.path && (
-                <React.Fragment>
+                <Kb.Box>
                   <ImageRender
                     ref={ref => {
                       this.imageRef = ref
@@ -134,7 +132,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     </Kb.Text>
                   )}
                   {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
-                </React.Fragment>
+                </Kb.Box>
               )}
               {!this.state.playingVideo && (
                 <Kb.Box

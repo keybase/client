@@ -305,8 +305,21 @@ protocol chatUi {
   void chatInboxConversation(int sessionID, string conv);
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
-  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
-  void chatThreadFull(int sessionID, string thread) oneway;
+  enum UIChatThreadStatusTyp {
+    NONE_0,
+    SERVER_1,
+    VALIDATING_2,
+    VALIDATED_3
+  }
+  variant UIChatThreadStatus switch (UIChatThreadStatusTyp typ) {
+    case NONE: void;
+    case SERVER: void;
+    case VALIDATING: int;
+    case VALIDATED: void;
+  }
+  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadFull(int sessionID, string thread);
+  void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
@@ -466,5 +479,5 @@ protocol chatUi {
     FAILED_2,
     BLANK_3
   }
-  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
 }

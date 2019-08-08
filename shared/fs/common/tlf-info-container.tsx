@@ -5,6 +5,7 @@ import TlfInfo from './tlf-info'
 
 export type OwnProps = {
   path: Types.Path
+  mixedMode?: boolean
   mode: 'row' | 'default'
 }
 
@@ -18,11 +19,14 @@ export default Container.namedConnect(
     const resetParticipants =
       stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants.toArray()
     return {
+      mixedMode: ownProps.mixedMode,
       mode: ownProps.mode,
       reset:
         !!resetParticipants &&
         !!resetParticipants.length &&
         (resetParticipants.includes(stateProps._username) || resetParticipants),
+      tlfMtime: stateProps._tlf.tlfMtime,
+      tlfType: Types.getPathVisibility(ownProps.path),
     }
   },
   'TlfInfo'

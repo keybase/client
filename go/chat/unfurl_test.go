@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/client/go/externalstest"
 	"io"
 	"io/ioutil"
 	"net"
@@ -16,6 +15,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/libkb"
@@ -143,8 +145,9 @@ func TestChatSrvUnfurl(t *testing.T) {
 		unfurler.SetClock(clock)
 		tc.ChatG.Unfurler = unfurler
 		fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
-		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), fetcher,
-			func() chat1.RemoteInterface { return mockSigningRemote{} })
+		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+			manager.NewSrv(tc.Context().ExternalG()),
+			fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		recvSingleRetry := func() {

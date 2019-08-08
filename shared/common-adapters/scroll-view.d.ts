@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {RefreshControlProps} from 'react-native'
 import {StylesCrossPlatform} from '../styles'
 
 export type Props = {
@@ -25,7 +26,7 @@ export type Props = {
   showsHorizontalScrollIndicator?: boolean
   horizontal?: boolean
   snapToInterval?: number
-  refreshControl?: React.ElementType<any>
+  refreshControl?: React.ReactElement<RefreshControlProps>
 }
 
 export default class ScrollView extends React.Component<Props> {

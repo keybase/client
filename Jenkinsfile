@@ -209,6 +209,9 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
                       }
+                      dir("go/fuzz") {
+                        sh "go build -tags gofuzz ./..."
+                      }
                       testGo("test_linux_go_", packagesToTest)
                     }
                   }},
@@ -480,7 +483,7 @@ def testGo(prefix, packagesToTest) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
       }
     }
 
