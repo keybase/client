@@ -655,7 +655,15 @@
     {
       "type": "record",
       "name": "MessageJoin",
-      "fields": []
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "joiners"
+        }
+      ]
     },
     {
       "type": "record",

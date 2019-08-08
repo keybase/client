@@ -329,6 +329,7 @@ export type _MessageSystemJoined = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
+  joiners: Array<string>
   reactions: Reactions
   timestamp: number
   type: 'systemJoined'

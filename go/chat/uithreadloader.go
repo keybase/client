@@ -43,6 +43,45 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 	}
 }
 
+func (t *UIThreadLoader) groupJoins(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	var grouped []chat1.MessageUnboxed
+	addGrouped := func() {
+		if len(grouped) == 0 {
+			return
+		}
+		mvalid := grouped[0].Valid()
+		var joiners []string
+		for _, j := range grouped {
+			joiners = append(joiners, j.Valid().SenderUsername)
+		}
+		mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
+			Joiners: joiners,
+		})
+		res = append(res, chat1.NewMessageUnboxedWithValid(mvalid))
+		grouped = nil
+	}
+	for _, msg := range msgs {
+		if msg.IsValid() && msg.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+			if len(grouped) == 0 || grouped[len(grouped)-1].GetMessageID() == msg.GetMessageID()+1 {
+				grouped = append(grouped, msg)
+			} else {
+				addGrouped()
+			}
+		} else {
+			addGrouped()
+			res = append(res, msg)
+		}
+	}
+	addGrouped()
+	return res
+}
+
+func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
+	newMsgs := t.groupJoins(ctx, uid, tv.Messages)
+	tv.Messages = newMsgs
+	return tv
+}
+
 func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat1.ConversationID,
 	pagination *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) (res *chat1.Pagination) {
 	defer func() {
@@ -127,7 +166,9 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 			if err != nil {
 				continue
 			}
-			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
+			if (state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()]) ||
+				state == chat1.MessageUnboxedState_VALID &&
+					m.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
 				t.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
 				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
@@ -143,6 +184,11 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 		}
 		// If either message is not valid, return the new one, something weird might be going on
 		if !oldMsg.IsValid() || !newMsg.IsValid() {
+			return true
+		}
+		// If this is a join message (or any other message that can get consolidated, then always
+		// transmit
+		if newMsg.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
 			return true
 		}
 		// If newMsg is now superseded by something different than what we sent, then let's include it
@@ -360,6 +406,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		var pthread *string
 		if resThread != nil {
+			*resThread = t.groupThreadView(ctx, uid, *resThread)
 			t.Debug(ctx, "LoadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
 			localSentThread = resThread
@@ -408,6 +455,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		uilock.Lock()
 		defer uilock.Unlock()
 		var rthread chat1.ThreadView
+		remoteThread = t.groupThreadView(ctx, uid, remoteThread)
 		if rthread, fullErr =
 			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return

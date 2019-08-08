@@ -103,7 +103,7 @@ const getUsernameToShow = (
     case 'systemAddedToTeam':
       return message.addee === you ? '' : message.addee
     case 'systemJoined':
-      return message.author === you ? '' : message.author
+      return ''
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'systemLeft':

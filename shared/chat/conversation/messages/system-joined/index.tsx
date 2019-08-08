@@ -9,6 +9,7 @@ type Props = {
   authorIsYou: boolean
   channelname: string
   isBigTeam: boolean
+  joiners: Array<string>
   onManageChannels: () => void
   onManageNotifications: () => void
   teamname: string
@@ -22,10 +23,20 @@ const Joined = (props: Props) =>
   props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <Kb.Text type="BodySmall" style={styles.text}>
-      joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
-      {'. '}
-    </Kb.Text>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+      <Kb.ConnectedUsernames
+        inline={true}
+        type="BodySmallSemibold"
+        onUsernameClicked="profile"
+        colorFollowing={true}
+        underline={true}
+        usernames={props.joiners}
+      />
+      <Kb.Text type="BodySmall" style={styles.text}>
+        joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
+        {'. '}
+      </Kb.Text>
+    </Kb.Box2>
   )
 
 const JoinedUserNotice = (props: Props) => (

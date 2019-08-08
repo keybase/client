@@ -188,7 +188,9 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
-  record MessageJoin {}
+  record MessageJoin {
+    array<string> joiners;
+  }
 
   record MessageLeave {}
 

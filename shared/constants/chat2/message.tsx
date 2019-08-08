@@ -291,6 +291,7 @@ export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>
 
 const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
   ...makeMessageCommonNoDeleteNoEdit,
+  joiners: [],
   reactions: I.Map(),
   type: 'systemJoined',
 })
@@ -838,7 +839,7 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.MessageType.join:
-      return makeMessageSystemJoined({...common, reactions})
+      return makeMessageSystemJoined({...common, reactions, joiners: m.messageBody.join.joiners || []})
     case RPCChatTypes.MessageType.leave:
       return makeMessageSystemLeft({...common, reactions})
     case RPCChatTypes.MessageType.system:
