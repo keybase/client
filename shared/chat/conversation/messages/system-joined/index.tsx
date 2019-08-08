@@ -23,20 +23,15 @@ const Joined = (props: Props) =>
   props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Kb.ConnectedUsernames
-        inline={true}
-        type="BodySmallSemibold"
-        onUsernameClicked="profile"
-        colorFollowing={true}
-        underline={true}
-        usernames={props.joiners}
-      />
-      <Kb.Text type="BodySmall" style={styles.text}>
-        joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
-        {'. '}
-      </Kb.Text>
-    </Kb.Box2>
+    <Kb.ConnectedUsernames
+      type="BodySmallSemibold"
+      suffixType="BodySmall"
+      onUsernameClicked="profile"
+      colorFollowing={true}
+      underline={true}
+      usernames={props.joiners}
+      suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+    />
   )
 
 const JoinedUserNotice = (props: Props) => (
@@ -81,9 +76,5 @@ const JoinedUserNotice = (props: Props) => (
     )}
   </UserNotice>
 )
-
-const styles = Styles.styleSheetCreate({
-  text: {flexGrow: 1},
-})
 
 export default Joined

@@ -555,6 +555,10 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 					ConvID: convID,
 				}
 				for _, msg := range resolved {
+					if t.isConsolidateMsg(msg) {
+						// we don't want to update these, it just messes up consolidation
+						continue
+					}
 					notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
 						convID))
 				}
