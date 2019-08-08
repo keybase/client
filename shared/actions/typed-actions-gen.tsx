@@ -17,6 +17,7 @@ import {Actions as pinentryActions} from './pinentry-gen'
 import {Actions as profileActions} from './profile-gen'
 import {Actions as provisionActions} from './provision-gen'
 import {Actions as pushActions} from './push-gen'
+import {Actions as recoverpasswordActions} from './recover-password-gen'
 import {Actions as routetreeActions} from './route-tree-gen'
 import {Actions as searchActions} from './search-gen'
 import {Actions as settingsActions} from './settings-gen'
@@ -47,6 +48,7 @@ export type TypedActions =
   | profileActions
   | provisionActions
   | pushActions
+  | recoverpasswordActions
   | routetreeActions
   | searchActions
   | settingsActions

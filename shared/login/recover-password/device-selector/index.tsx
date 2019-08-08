@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as ProvisionTypes from '../../constants/types/provision'
-import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
+import * as Kb from '../../../common-adapters'
+import * as ProvisionTypes from '../../../constants/types/provision'
+import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../../styles'
 
 type ItemProps = {
   index: number
@@ -72,7 +72,7 @@ export type Props = {
   onResetAccount: () => void
 }
 
-const RecoverPassword = (props: Props) => {
+const DeviceSelector = (props: Props) => {
   const items = [
     ...props.devices,
     {
@@ -118,4 +118,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default RecoverPassword
+export default DeviceSelector

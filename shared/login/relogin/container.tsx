@@ -6,6 +6,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 import * as ConfigTypes from '../../constants/types/config'
 
 type OwnProps = {}
@@ -92,7 +93,9 @@ export default Container.connect(
   }),
   dispatch => ({
     onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+    onForgotPassword: () => flags.resetPipeline
+      ? dispatch(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordDeviceSelector']}))
+      : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
     onLogin: (username: string, password: string) =>
       dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
