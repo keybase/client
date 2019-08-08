@@ -315,7 +315,17 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-	return eng.Status(), nil
+	status := eng.Status()
+	addr, err := h.svc.httpSrv.Addr()
+	if err != nil {
+		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
+	} else {
+		status.HttpSrvInfo = &keybase1.HttpSrvInfo{
+			Address: addr,
+			Token:   h.svc.httpSrv.Token(),
+		}
+	}
+	return status, nil
 }
 
 func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {

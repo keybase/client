@@ -1,4 +1,5 @@
 /* Handles Button's hover effects on desktop */
+/* TODO dark mode */
 
 .button__border {
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -8,6 +9,9 @@
 }
 .button__border_red:hover {
   border: 1px solid rgba(255, 77, 97, 0.3);
+}
+.darkMode .button__border_red:hover {
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .button__border_green:hover {
   border: 1px solid rgba(55, 189, 153, 0.3);
@@ -36,6 +40,9 @@
 }
 .button__underlay_red:hover {
   background-color: rgba(255, 77, 97, 0.05);
+}
+.darkMode .button__underlay_red:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .button__underlay_green:hover {
   background-color: rgba(55, 189, 153, 0.05);

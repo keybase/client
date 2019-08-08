@@ -6,7 +6,7 @@ import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-
+import {TextInput} from 'react-native'
 import {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
@@ -17,7 +17,7 @@ type State = {
 
 class Input extends Component<Props, State> {
   state: State
-  _input: typeof NativeTextInput | null = null
+  _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: {
     start: number | null
@@ -70,17 +70,13 @@ class Input extends Component<Props, State> {
     }))
   }
 
-  _setInputRef = (ref: typeof NativeTextInput | null) => {
-    this._input = ref
-  }
-
   // Does nothing on mobile
   select = () => {}
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
-    this._input && this._input.setNativeProps(nativeProps)
+    this._input.current && this._input.current.setNativeProps(nativeProps)
   }
 
   _onContentSizeChange = event => {
@@ -133,11 +129,11 @@ class Input extends Component<Props, State> {
   }
 
   focus = () => {
-    this._input && this._input.focus()
+    this._input.current && this._input.current.focus()
   }
 
   blur = () => {
-    this._input && this._input.blur()
+    this._input.current && this._input.current.blur()
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo) => {
@@ -326,7 +322,7 @@ class Input extends Component<Props, State> {
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.hintText,
-      ref: this._setInputRef,
+      ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       selectTextOnFocus: this.props.selectTextOnFocus,

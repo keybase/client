@@ -2,6 +2,13 @@
 protocol NotifyService {
   import idl "common.avdl";
 
+  record HttpSrvInfo {
+    string address;
+    string token;
+  }
+  @lint("ignore")
+  void HTTPSrvInfoUpdate(HttpSrvInfo info) oneway;
+
   // sent when the service shuts down.
   void shutdown(int code);
 }

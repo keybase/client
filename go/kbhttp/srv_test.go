@@ -32,6 +32,7 @@ func TestSrv(t *testing.T) {
 		require.Equal(t, "success", string(out))
 		<-srv.Stop()
 	}
-	test(NewRandomPortListenerSource())
+	test(NewAutoPortListenerSource())
 	test(NewPortRangeListenerSource(7000, 8000))
+	test(NewRandomPortRangeListenerSource(7000, 8000))
 }
