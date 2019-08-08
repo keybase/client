@@ -152,10 +152,10 @@ const checkDevicename = async (state: Container.TypedState) => {
 }
 
 // Actually sign up ///////////////////////////////////////////////////////////
-const reallySignupOnNoErrors = async (state: Container.TypedState) => {
+function* reallySignupOnNoErrors(state: Container.TypedState): Saga.SagaGenerator<any, any> {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
-    return false
+    return
   }
 
   const {email, username, inviteCode, devicename} = state.signup
@@ -166,7 +166,7 @@ const reallySignupOnNoErrors = async (state: Container.TypedState) => {
   }
 
   try {
-    await RPCTypes.signupSignupRpcSaga({
+    yield RPCTypes.signupSignupRpcSaga({
       customResponseIncomingCallMap: {
         // Do not add a gpg key for now
         'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
@@ -193,9 +193,9 @@ const reallySignupOnNoErrors = async (state: Container.TypedState) => {
       },
       waitingKey: Constants.waitingKey,
     })
-    return SignupGen.createSignedup()
+    yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
-    return SignupGen.createSignedupError({error})
+    yield Saga.put(SignupGen.createSignedupError({error}))
   }
 }
 
@@ -217,7 +217,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
   // actually make the signup call
-  yield* Saga.chainAction2(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
   yield* Saga.chainAction2(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
