@@ -493,6 +493,7 @@ const getWaitDuration = (endEstimate: number | null, lower: number, upper: numbe
   return diff < lower ? lower : diff > upper ? upper : diff
 }
 
+// TODO: move these logic into Go HOTPOT-533
 let polling = false
 function* pollJournalFlushStatusUntilDone() {
   if (polling) {
@@ -1053,7 +1054,7 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
     case RPCTypes.SubscriptionTopic.favorites:
       return FsGen.createFavoritesLoad()
     case RPCTypes.SubscriptionTopic.journalStatus:
-      return FsGen.createOnJournalNotification()
+      return FsGen.createPollJournalStatus()
     case RPCTypes.SubscriptionTopic.onlineStatus:
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
   }
@@ -1087,8 +1088,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
-  yield* Saga.chainGenerator<FsGen.OnJournalNotificationPayload>(
-    FsGen.onJournalNotification,
+  yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
+    FsGen.pollJournalStatus,
     pollJournalFlushStatusUntilDone
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
