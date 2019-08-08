@@ -166,7 +166,10 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	var u *User
 
 	if m.me != nil && m.isSelfLoad(arg) {
-		m.maybeClearCache(ctx, &arg)
+		err := m.maybeClearCache(ctx, &arg)
+		if err != nil {
+			return err
+		}
 	}
 
 	if m.me == nil || !m.isSelfLoad(arg) {

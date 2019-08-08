@@ -261,11 +261,3 @@ func (i IdentifyOutcome) GetError() error {
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
 	return i.GetErrorAndWarnings(false)
 }
-
-type byDisplayString []*LinkCheckResult
-
-func (a byDisplayString) Len() int      { return len(a) }
-func (a byDisplayString) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byDisplayString) Less(i, j int) bool {
-	return a[i].link.ToDisplayString() < a[j].link.ToDisplayString()
-}

@@ -116,7 +116,10 @@ func (g *GpgCLI) ImportKeyArmored(secret bool, fp PGPFingerprint, tty string) (s
 	}
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Stdout)
+	_, err := buf.ReadFrom(res.Stdout)
+	if err != nil {
+		return "", err
+	}
 	armored := buf.String()
 
 	// Convert to posix style on windows
@@ -221,11 +224,17 @@ func (g *GpgCLI) Sign(fp PGPFingerprint, payload []byte) (string, error) {
 		return "", res.Err
 	}
 
-	res.Stdin.Write(payload)
+	_, err := res.Stdin.Write(payload)
+	if err != nil {
+		return "", err
+	}
 	res.Stdin.Close()
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Stdout)
+	_, err = buf.ReadFrom(res.Stdout)
+	if err != nil {
+		return "", err
+	}
 	armored := buf.String()
 
 	// Convert to posix style on windows

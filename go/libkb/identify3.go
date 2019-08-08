@@ -149,7 +149,7 @@ func (s *Identify3State) Shutdown() chan struct{} {
 	ch := make(chan struct{})
 	if s.markShutdown() {
 		go func() {
-			s.eg.Wait()
+			_ = s.eg.Wait()
 			close(ch)
 		}()
 	} else {

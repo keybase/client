@@ -21,7 +21,7 @@ type SocketInfo struct {
 	log       logger.Logger
 	bindFile  string
 	dialFiles []string
-	testOwner bool
+	testOwner bool //nolint
 }
 
 func (s SocketInfo) GetBindFile() string {

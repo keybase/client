@@ -288,7 +288,7 @@ func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
 	defer g.switchUserMu.Acquire(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
-	g.ActiveDevice.Clear()
+	_ = g.ActiveDevice.Clear()
 }
 
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
@@ -335,7 +335,10 @@ func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username 
 
 	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
 
-	g.ActiveDevice.Clear()
+	err = g.ActiveDevice.Clear()
+	if err != nil {
+		return err
+	}
 
 	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
@@ -365,7 +368,10 @@ func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username 
 
 	g.Identify3State.OnLogout()
 
-	g.GetUPAKLoader().OnLogout()
+	err = g.GetUPAKLoader().OnLogout()
+	if err != nil {
+		return err
+	}
 
 	g.Pegboard.OnLogout(mctx)
 
@@ -412,12 +418,14 @@ func (g *GlobalContext) ConfigureConfig() error {
 
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
+	if err != nil {
+		return err
+	}
 	guiConfigErr := g.ConfigureGUIConfig()
 	if guiConfigErr != nil {
 		g.Log.Debug("Failed to open gui config: %s", guiConfigErr)
 	}
-	g.ConfigureUpdaterConfig()
-	return err
+	return g.ConfigureUpdaterConfig()
 }
 
 // migrateGUIConfig does not delete old values from service's config.
@@ -476,7 +484,10 @@ func (g *GlobalContext) ConfigureGUIConfig() error {
 	found, err := guiConfig.LoadCheckFound()
 	if err == nil {
 		if !found {
-			guiConfig.SetBoolAtPath("gui", true)
+			err := guiConfig.SetBoolAtPath("gui", true)
+			if err != nil {
+				return err
+			}
 			// If this is the first time creating this file, manually migrate
 			// old GUI config values from the main config file best-effort.
 			serviceConfig := g.Env.GetConfig()
@@ -594,7 +605,7 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 	// If we're just flushing the caches, and already have a Proof cache, then the right idea
 	// is just to reset what's in the ProofCache. Otherwise, we make a new one.
 	if isFlush && g.ProofCache != nil {
-		g.ProofCache.Reset()
+		_ = g.ProofCache.Reset()
 	} else {
 		g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
 	}
@@ -934,11 +945,11 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 }
 
 func (g *GlobalContext) OutputString(s string) {
-	g.Output.Write([]byte(s))
+	_, _ = g.Output.Write([]byte(s))
 }
 
 func (g *GlobalContext) OutputBytes(b []byte) {
-	g.Output.Write(b)
+	_, _ = g.Output.Write(b)
 }
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {
@@ -949,11 +960,9 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() keybase1.UID {
-	var uid keybase1.UID
-
 	// Prefer ActiveDevice, that's the prefered way
 	// to figure out what the current user's UID is.
-	uid = g.ActiveDevice.UID()
+	uid := g.ActiveDevice.UID()
 	if uid.Exists() {
 		return uid
 	}
@@ -1109,10 +1118,10 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(mctx.Ctx())
 
-	g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
+	_ = g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 
 	// Do so outside the lock below
-	g.GetFullSelfer().OnLogin(mctx)
+	_ = g.GetFullSelfer().OnLogin(mctx)
 
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
@@ -1343,7 +1352,7 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 
 func (g *GlobalContext) BustLocalUserCache(ctx context.Context, u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(ctx, u)
-	g.GetFullSelfer().HandleUserChanged(u)
+	_ = g.GetFullSelfer().HandleUserChanged(u)
 }
 
 func (g *GlobalContext) OverrideUPAKLoader(upak UPAKLoader) {
@@ -1458,7 +1467,7 @@ func (g *GlobalContext) StartStandaloneChat() {
 		return
 	}
 
-	g.StandaloneChatConnector.StartStandaloneChat(g)
+	_ = g.StandaloneChatConnector.StartStandaloneChat(g)
 }
 
 func (g *GlobalContext) SecretStore() *SecretStoreLocked {

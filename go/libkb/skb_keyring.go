@@ -269,7 +269,10 @@ func (k *SKBKeyringFile) RemoveAllPGPBlocks() error {
 	k.Blocks = blocks
 	k.fpIndex = make(map[PGPFingerprint]*SKB)
 	k.kidIndex = make(map[keybase1.KID]*SKB)
-	k.indexLocked()
+	err := k.indexLocked()
+	if err != nil {
+		return err
+	}
 	k.dirty = true
 
 	return nil

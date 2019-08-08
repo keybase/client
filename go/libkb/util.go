@@ -200,7 +200,7 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 	}
 	g.Debug("| Temporary file generated: %s", tmpfn)
 	defer tmp.Close()
-	defer ShredFile(tmpfn)
+	defer func() { _ = ShredFile(tmpfn) }()
 
 	g.Debug("| WriteTo %s", tmpfn)
 	n, err := t.WriteTo(tmp)
@@ -299,10 +299,7 @@ func IsValidHostname(s string) bool {
 		}
 	}
 	// TLDs must be >=2 chars
-	if len(parts[len(parts)-1]) < 2 {
-		return false
-	}
-	return true
+	return len(parts[len(parts)-1]) >= 2
 }
 
 var phoneAssertionRE = regexp.MustCompile(`^[1-9]\d{1,14}$`)

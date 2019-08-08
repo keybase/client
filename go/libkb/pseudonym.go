@@ -62,7 +62,7 @@ type tlfPseudonymReq struct {
 
 // tlfPseudonymContents is the data packed inside the HMAC
 type tlfPseudonymContents struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version int
 	Name    string
 	ID      tlfID
@@ -111,7 +111,10 @@ func MakePseudonym(info TlfPseudonymInfo) (TlfPseudonym, error) {
 		return [32]byte{}, err
 	}
 	mac := hmac.New(sha256.New, info.HmacKey[:])
-	mac.Write(buf)
+	_, err = mac.Write(buf)
+	if err != nil {
+		return [32]byte{}, err
+	}
 	hmac := MakeByte32(mac.Sum(nil))
 	return hmac, nil
 }
