@@ -54,12 +54,8 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() && msg.Valid().MessageBody.IsType(typ) {
-			if len(grouped) == 0 || grouped[len(grouped)-1].GetMessageID() == msg.GetMessageID()+1 {
-				grouped = append(grouped, msg)
-			} else {
-				addGrouped()
-			}
+		if msg.IsValid() && msg.Valid().MessageBody.IsType(typ) && !msg.Valid().ClientHeader.Sender.Eq(uid) {
+			grouped = append(grouped, msg)
 		} else {
 			addGrouped()
 			res = append(res, msg)
