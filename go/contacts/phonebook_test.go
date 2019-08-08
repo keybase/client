@@ -12,15 +12,15 @@ import (
 
 func TestMakeAssertionToName(t *testing.T) {
 	contacts := []keybase1.ProcessedContact{
-		keybase1.ProcessedContact{
+		{
 			Assertion:   "[example@example.com]@email",
 			ContactName: "Example 1",
 		},
-		keybase1.ProcessedContact{
+		{
 			Assertion:   "1234567890@phone",
 			ContactName: "Mr. Contact",
 		},
-		keybase1.ProcessedContact{
+		{
 			Assertion:   "[example@example.com]@email",
 			ContactName: "Example 2",
 		},
