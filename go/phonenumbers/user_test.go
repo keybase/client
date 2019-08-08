@@ -59,6 +59,15 @@ func TestSetPhoneNumber(t *testing.T) {
 	require.Len(t, resp, 0)
 }
 
+func TestDeleteSupersededNumber(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("phon", tc.G)
+	require.NoError(t, err)
+
+}
+
 func TestBadPhoneNumbers(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
 	defer tc.Cleanup()

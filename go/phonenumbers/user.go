@@ -22,7 +22,24 @@ func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, vi
 	}
 
 	_, err := mctx.G().API.PostJSON(mctx, arg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	nums, err := GetPhoneNumbers(mctx)
+	if err == nil {
+		for _, num := range nums {
+			if num.Superseded && num.PhoneNumber == phoneNumber {
+				err = DeletePhoneNumber(mctx, num.PhoneNumber)
+				if err != nil {
+					mctx.Warning("error deleting superseded number on add: %s", err)
+				}
+			}
+		}
+	} else {
+		mctx.Warning("error fetching numbers on add: %s", err)
+	}
+	return nil
 }
 
 // VerifyPhoneNumber calls API to verify previously added phone number using
