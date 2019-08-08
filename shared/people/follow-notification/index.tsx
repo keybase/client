@@ -101,7 +101,7 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {marginRight: Styles.globalMargins.xtiny},
   iconContainer: {width: 'auto'},
   multiText: Styles.platformStyles({
@@ -129,4 +129,4 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}}),
-})
+}))

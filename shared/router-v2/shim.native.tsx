@@ -39,9 +39,10 @@ const shimNewRoute = (Original: any) => {
   }
   return ShimmedNew
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   keyboard: {
+    backgroundColor: Styles.globalColors.white,
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))

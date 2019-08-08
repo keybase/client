@@ -237,7 +237,7 @@ export const assertionToDisplay = (assertion: string): string => {
   return assertion
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
@@ -263,6 +263,6 @@ const styles = Styles.styleSheetCreate({
       textDecoration: 'inherit',
     },
   }),
-})
+}))
 
 export {UsernameText, Usernames, PlaintextUsernames}

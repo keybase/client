@@ -73,6 +73,32 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
+ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
+  const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+  return Container.isMobile
+    ? path === Constants.defaultPath
+      ? {
+          header: undefined,
+          title: 'Files',
+        }
+      : {
+          header: (
+            <MobileHeader
+              path={path}
+              onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
+            />
+          ),
+          headerHeight: mobileHeaderHeight(path),
+        }
+    : {
+        header: undefined,
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
+        headerTitle: () => <Title path={path} />,
+        subHeader: MainBanner,
+        title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
+      }
+}
+
 type OwnProps = Container.RouteProps<{path: Types.Path}>
 
 const Connected = Container.namedConnect(
@@ -114,32 +140,5 @@ const Connected = Container.namedConnect(
   },
   'FsMain'
 )(ChooseComponent)
-
-// @ts-ignore
-Connected.navigationOptions = (ownProps: OwnProps) => {
-  const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
-  return Container.isMobile
-    ? path === Constants.defaultPath
-      ? {
-          header: undefined,
-          title: 'Files',
-        }
-      : {
-          header: (
-            <MobileHeader
-              path={path}
-              onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
-            />
-          ),
-          headerHeight: mobileHeaderHeight(path),
-        }
-    : {
-        header: undefined,
-        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
-        headerTitle: () => <Title path={path} />,
-        subHeader: MainBanner,
-        title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
-      }
-}
 
 export default Connected

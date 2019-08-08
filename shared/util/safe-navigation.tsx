@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
-import {withNavigation} from '@react-navigation/core'
+import {NavigationInjectedProps, withNavigation} from '@react-navigation/core'
+import {hoistNonReactStatic} from '../util/container'
 
 type Path = Array<string | {props?: any; selected?: string}>
 
@@ -15,8 +16,8 @@ function withSafeNavigation<P extends {}>(
 ): React.ComponentType<P> {
   type WithSafeNavigationProps = {
     forwardedRef: React.Ref<React.ComponentType<P>>
-    navigation: any
-  } & P
+  } & NavigationInjectedProps &
+    P
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
@@ -39,11 +40,20 @@ function withSafeNavigation<P extends {}>(
       )
     }
   }
+
+  hoistNonReactStatic(WithSafeNavigation, Component)
+
   const WithForwardRef = React.forwardRef((props: WithSafeNavigationProps, ref) => (
     <WithSafeNavigation {...props} forwardedRef={ref} />
   ))
+
+  hoistNonReactStatic(WithForwardRef, WithSafeNavigation)
   WithForwardRef.displayName = `ForwardRef(WithSafeNavigation)`
-  return withNavigation(WithForwardRef)
+
+  const WithNav = withNavigation(WithForwardRef)
+  hoistNonReactStatic(WithNav, WithForwardRef)
+  // @ts-ignore not exactly sure
+  return WithNav
 }
 
 function withSafeNavigationStorybook<P extends {}>(

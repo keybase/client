@@ -105,7 +105,7 @@ const DraftIcon = ({isSelected}) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   channelBackground: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -177,6 +177,6 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     justifyContent: 'flex-end',
   },
-})
+}))
 
 export {BigTeamChannel}

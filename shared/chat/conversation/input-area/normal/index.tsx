@@ -572,7 +572,7 @@ class Input extends React.Component<InputProps, InputState> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   boldStyle: {
     fontWeight: '700',
   },
@@ -608,7 +608,7 @@ const styles = Styles.styleSheetCreate({
   suggestionOverlay: Styles.platformStyles({
     isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
   }),
-})
+}))
 
 export type Props = InputProps
 export default Input

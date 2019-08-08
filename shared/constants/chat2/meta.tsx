@@ -449,7 +449,6 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
   }
 }
 
-const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
@@ -465,7 +464,11 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
 
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
-  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
+  const backgroundColor = isSelected
+    ? globalColors.blue
+    : isMobile
+    ? globalColors.fastBlank
+    : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isError
     ? globalColors.redDark
