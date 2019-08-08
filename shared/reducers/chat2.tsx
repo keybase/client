@@ -901,8 +901,9 @@ const rootReducer = (
       const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
       return state.update('messageMap', messageMap =>
         messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
-          return map.update(targetOrdinal, message => {
-            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+          return map.update(targetOrdinal, inmessage => {
+            const message = Constants.makeDecoratedMessage(inmessage)
+            if (!message) {
               return message
             }
             const reactions = message.reactions

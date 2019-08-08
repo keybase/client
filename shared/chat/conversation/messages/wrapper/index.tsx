@@ -287,8 +287,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemChangeRetention' ||
       this.props.message.type === 'systemGitPush' ||
       this.props.message.type === 'systemInviteAccepted' ||
-      this.props.message.type === 'systemJoined' ||
-      this.props.message.type === 'systemLeft' ||
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemText' ||
       this.props.message.type === 'systemUsersAddedToConversation') &&
@@ -506,20 +504,22 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                {!this._shouldShowReactionsRow() && !this.props.showingMenu && (
-                  <EmojiRow
-                    className={Styles.classNames({
-                      'WrapperMessage-emojiRow': !this.props.isLastInThread,
-                    })}
-                    conversationIDKey={this.props.conversationIDKey}
-                    onShowingEmojiPicker={this._setShowingPicker}
-                    ordinal={message.ordinal}
-                    style={Styles.collapseStyles([
-                      styles.emojiRow,
-                      this.props.isLastInThread && styles.emojiRowLast,
-                    ])}
-                  />
-                )}
+                {!this._shouldShowReactionsRow() &&
+                  !!Constants.makeDecoratedMessage(this.props.message) &&
+                  !this.props.showingMenu && (
+                    <EmojiRow
+                      className={Styles.classNames({
+                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
+                      })}
+                      conversationIDKey={this.props.conversationIDKey}
+                      onShowingEmojiPicker={this._setShowingPicker}
+                      ordinal={message.ordinal}
+                      style={Styles.collapseStyles([
+                        styles.emojiRow,
+                        this.props.isLastInThread && styles.emojiRowLast,
+                      ])}
+                    />
+                  )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon

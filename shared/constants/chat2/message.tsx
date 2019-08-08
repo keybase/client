@@ -292,14 +292,12 @@ export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>
 const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
   ...makeMessageCommonNoDeleteNoEdit,
   joiners: [],
-  reactions: I.Map(),
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
   ...makeMessageCommonNoDeleteNoEdit,
   leavers: [],
-  reactions: I.Map(),
   type: 'systemLeft',
 })
 
@@ -843,13 +841,11 @@ const validUIMessagetoMessage = (
       return makeMessageSystemJoined({
         ...common,
         joiners: m.messageBody.join ? m.messageBody.join.joiners || [] : [],
-        reactions,
       })
     case RPCChatTypes.MessageType.leave:
       return makeMessageSystemLeft({
         ...common,
         leavers: m.messageBody.leave ? m.messageBody.leave.leavers || [] : [],
-        reactions,
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
@@ -1244,8 +1240,6 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemChangeRetention':
     case 'systemGitPush':
     case 'systemInviteAccepted':
-    case 'systemJoined':
-    case 'systemLeft':
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
