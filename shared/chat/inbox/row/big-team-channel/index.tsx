@@ -63,7 +63,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
             {this.props.isMuted && (
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
             )}
-            {this.props.hasDraft && <DraftIcon />}
+            {this.props.hasDraft && <DraftIcon isSelected={this.props.isSelected} />}
             {this.props.hasBadge && <UnreadIcon />}
           </Kb.Box2>
         </Kb.Box>
@@ -99,9 +99,9 @@ const UnreadIcon = () => (
   </Kb.Box>
 )
 
-const DraftIcon = () => (
+const DraftIcon = ({isSelected}) => (
   <Kb.Box style={styles.unreadContainer}>
-    <Kb.Icon type="iconfont-edit" />
+    <Kb.Icon type="iconfont-edit" color={isSelected ? Styles.globalColors.white : undefined} />
   </Kb.Box>
 )
 
