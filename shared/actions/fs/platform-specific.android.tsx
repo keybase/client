@@ -67,5 +67,5 @@ const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => 
 
 export default function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(nativeSaga)
-  yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessAndroid)
+  yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccessAndroid)
 }

@@ -66,7 +66,7 @@ const rpcConflictStateToConflictState = (
   }
 }
 
-const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
+const loadFavorites = (state: TypedState, action: FsGen.FavoritesLoadPayload) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   state.config.loggedIn &&
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -1008,7 +1008,7 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   return actions
 }
 
-const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
+const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = (state: TypedState) =>
   state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
   FsGen.createSetTlfsAsUnloaded()
 
@@ -1062,11 +1062,8 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
 const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
-    FsGen.refreshLocalHTTPServerInfo,
-    refreshLocalHTTPServerInfo
-  )
-  yield* Saga.chainAction<FsGen.CancelDownloadPayload>(FsGen.cancelDownload, cancelDownload)
+  yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
+  yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
   yield* Saga.chainGenerator<FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload>(
     [FsGen.download, FsGen.shareNative, FsGen.saveMedia],
     download
@@ -1076,83 +1073,51 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
-  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
-    FsGen.kbfsDaemonRpcStatusChanged,
-    setTlfsAsUnloadedWhenKbfsDaemonDisconnects
-  )
+  yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
-  yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
-  yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
-  yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
+  yield* Saga.chainAction2(FsGen.favoritesLoaded, updateFsBadge)
+  yield* Saga.chainAction2(FsGen.letResetUserBackIn, letResetUserBackIn)
+  yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
+  yield* Saga.chainAction2(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainGenerator<FsGen.OnJournalNotificationPayload>(
     FsGen.onJournalNotification,
     pollJournalFlushStatusUntilDone
   )
-  yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>(
-    [FsGen.showMoveOrCopy, FsGen.showIncomingShare],
-    showMoveOrCopy
+  yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)
+  yield* Saga.chainAction2([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
+  yield* Saga.chainAction2(FsGen.closeDestinationPicker, closeDestinationPicker)
+  yield* Saga.chainAction2(FsGen.initSendLinkToChat, initSendLinkToChat)
+  yield* Saga.chainAction2(FsGen.triggerSendLinkToChat, triggerSendLinkToChat)
+  yield* Saga.chainAction2(
+    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
+    waitForKbfsDaemon
   )
-  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(
-    FsGen.closeDestinationPicker,
-    closeDestinationPicker
-  )
-  yield* Saga.chainAction<FsGen.InitSendLinkToChatPayload>(FsGen.initSendLinkToChat, initSendLinkToChat)
-  yield* Saga.chainAction<FsGen.TriggerSendLinkToChatPayload>(
-    FsGen.triggerSendLinkToChat,
-    triggerSendLinkToChat
-  )
-  yield* Saga.chainAction<
-    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
-  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
-    yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
-      [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
-      loadTlfSyncConfig
-    )
-    yield* Saga.chainAction<FsGen.GetOnlineStatusPayload>([FsGen.getOnlineStatus], getOnlineStatus)
-    yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
-      ConfigGen.osNetworkStatusChanged,
-      checkKbfsServerReachabilityIfNeeded
-    )
-    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+    yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
+    yield* Saga.chainAction2([FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata], loadTlfSyncConfig)
+    yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
+    yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
+    yield* Saga.chainAction2(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onNotifyFSOverallSyncSyncStatusChanged
     )
-    yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
-    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
-      FsGen.setSpaceAvailableNotificationThreshold,
-      setSpaceNotificationThreshold
-    )
+    yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
+    yield* Saga.chainAction2(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   }
   if (flags.conflictResolution) {
-    yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
-      FsGen.startManualConflictResolution,
-      startManualCR
-    )
-    yield* Saga.chainAction<FsGen.FinishManualConflictResolutionPayload>(
-      FsGen.finishManualConflictResolution,
-      finishManualCR
-    )
+    yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
+    yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   }
 
-  yield* Saga.chainAction<FsGen.SubscribePathPayload>(FsGen.subscribePath, subscribePath)
-  yield* Saga.chainAction<FsGen.SubscribeNonPathPayload>(FsGen.subscribeNonPath, subscribeNonPath)
-  yield* Saga.chainAction<FsGen.UnsubscribePayload>(FsGen.unsubscribe, unsubscribe)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload>(
-    EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath,
-    onPathChange
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload>(
-    EngineGen.keybase1NotifyFSFSSubscriptionNotify,
-    onNonPathChange
-  )
+  yield* Saga.chainAction2(FsGen.subscribePath, subscribePath)
+  yield* Saga.chainAction2(FsGen.subscribeNonPath, subscribeNonPath)
+  yield* Saga.chainAction2(FsGen.unsubscribe, unsubscribe)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
 
-  yield* Saga.chainAction<FsGen.SetDebugLevelPayload>(FsGen.setDebugLevel, setDebugLevel)
+  yield* Saga.chainAction2(FsGen.setDebugLevel, setDebugLevel)
 
   yield Saga.spawn(platformSpecificSaga)
 }
