@@ -163,7 +163,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
     []
   ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce<Object>((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'

@@ -4,8 +4,10 @@
 package kbhttp
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"net"
 	"net/http"
 	"sync"
@@ -18,11 +20,12 @@ type ListenerSource interface {
 	GetListener() (net.Listener, string, error)
 }
 
-// RandomPortListenerSource means listen on a random port.
-type RandomPortListenerSource struct{}
+// AutoPortListenerSource means listen on a port that's picked automatically by
+// the kernel.
+type AutoPortListenerSource struct{}
 
 // GetListener implements ListenerSource.
-func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
+func (r AutoPortListenerSource) GetListener() (net.Listener, string, error) {
 	localhost := "127.0.0.1"
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", localhost))
 	if err != nil {
@@ -33,9 +36,9 @@ func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
 	return listener, address, nil
 }
 
-// NewRandomPortListenerSource creates a new RandomPortListenerSource.
-func NewRandomPortListenerSource() *RandomPortListenerSource {
-	return &RandomPortListenerSource{}
+// NewAutoPortListenerSource creates a new AutoPortListenerSource.
+func NewAutoPortListenerSource() *AutoPortListenerSource {
+	return &AutoPortListenerSource{}
 }
 
 var ErrPinnedPortInUse = errors.New("unable to bind to pinned port")
@@ -75,6 +78,54 @@ func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address 
 		return listener, address, nil
 	}
 	for port := p.low; port <= p.high; port++ {
+		address = fmt.Sprintf("%s:%d", localhost, port)
+		listener, err = net.Listen("tcp", address)
+		if err == nil {
+			p.pinnedPort = port
+			return listener, address, nil
+		}
+	}
+	return listener, address, errors.New("failed to bind to port in range")
+}
+
+// RandomPortRangeListenerSource listens on a port randomly chosen within a
+// given range.
+type RandomPortRangeListenerSource struct {
+	sync.Mutex
+	pinnedPort int
+	low, high  int
+}
+
+// NewRandomPortRangeListenerSource creates a new RadomPortListenerSource
+// listening on low to high (exclusive).
+func NewRandomPortRangeListenerSource(low, high int) *RandomPortRangeListenerSource {
+	return &RandomPortRangeListenerSource{
+		low:  low,
+		high: high,
+	}
+}
+
+const maxRandomTries = 10
+
+// GetListener implements ListenerSource.
+func (p *RandomPortRangeListenerSource) GetListener() (listener net.Listener, address string, err error) {
+	p.Lock()
+	defer p.Unlock()
+	localhost := "127.0.0.1"
+	for i := 0; i < maxRandomTries; i++ {
+		if p.pinnedPort > 0 {
+			address = fmt.Sprintf("%s:%d", localhost, p.pinnedPort)
+			if listener, err = net.Listen("tcp", address); err != nil {
+				return listener, address, ErrPinnedPortInUse
+			}
+			return listener, address, nil
+		}
+
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(p.high-p.low)))
+		if err != nil {
+			return nil, "", err
+		}
+		port := p.low + int(n.Int64())
 		address = fmt.Sprintf("%s:%d", localhost, port)
 		listener, err = net.Listen("tcp", address)
 		if err == nil {

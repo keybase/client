@@ -207,7 +207,7 @@ const uploadPushToken = state =>
   })
     .then(() => {
       logger.info('[PushToken] Uploaded to server')
-      return false
+      return false as const
     })
     .catch(e => {
       logger.error("[PushToken] Couldn't save a push token", e)

@@ -116,7 +116,7 @@ const Header = (props: HeaderProps) =>
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
-          <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
+          <Kb.Avatar size={16} username={props.sender} />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
             colorFollowing={true}

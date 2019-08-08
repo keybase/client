@@ -49,9 +49,4 @@ const Connected = Container.connect(
   })
 )(SettingsContainer)
 
-// @ts-ignore TODO fix
-Connected.navigationOptions = {
-  header: null,
-}
-
 export default Connected
