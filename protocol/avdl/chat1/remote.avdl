@@ -318,7 +318,8 @@ protocol remote {
   void broadcastGregorMessageToConv(ConversationID convID, gregor1.Message msg);
 
   // Get the team ID of a conversation (server-to-server only)
-  keybase1.TeamID teamIDOfConv(ConversationID convID);
+  // Returns null if the conversation no simply-associated team ID (legacy kbfs-backed convs)
+  union { null, keybase1.TeamID } teamIDOfConv(ConversationID convID);
 
   record ServerNowRes {
     union { null, RateLimit } rateLimit;

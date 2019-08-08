@@ -87,6 +87,9 @@ const (
 	markAndSweepPeriod = 1 * time.Hour
 	// A hard-coded reason used to derive the log obfuscator secret.
 	obfuscatorDerivationString = "Keybase-Derived-KBFS-Log-Obfuscator-1"
+	// How long do we skip identifies after seeing one with a broken
+	// proof warning?
+	cacheBrokenProofIdentifiesDuration = 5 * time.Minute
 )
 
 // ErrStillStagedAfterCR indicates that conflict resolution failed to take
@@ -310,9 +313,10 @@ type folderBranchOps struct {
 	nodeCache NodeCache
 
 	// Whether we've identified this TLF or not.
-	identifyLock sync.Mutex
-	identifyDone bool
-	identifyTime time.Time
+	identifyLock            sync.Mutex
+	identifyDone            bool
+	identifyTime            time.Time
+	identifyDoneWithWarning bool
 
 	// The current status summary for this folder
 	status *folderBranchStatusKeeper
@@ -2166,10 +2170,15 @@ func (fbo *folderBranchOps) identifyOnce(
 	defer fbo.identifyLock.Unlock()
 
 	ei := tlfhandle.GetExtendedIdentify(ctx)
-	if fbo.identifyDone && !ei.Behavior.AlwaysRunIdentify() {
-		// TODO: provide a way for the service to break this cache when identify
-		// state changes on a TLF. For now, we do it this way to make chat work.
-		return nil
+	if !ei.Behavior.AlwaysRunIdentify() {
+		if fbo.identifyDone ||
+			(fbo.identifyDoneWithWarning &&
+				ei.Behavior.WarningInsteadOfErrorOnBrokenTracks()) {
+			// TODO: provide a way for the service to break this cache
+			// when identify state changes on a TLF. For now, we do it
+			// this way to make chat work.
+			return nil
+		}
 	}
 
 	h := md.GetTlfHandle()
@@ -2186,8 +2195,38 @@ func (fbo *folderBranchOps) identifyOnce(
 	switch {
 	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
 		len(ei.GetTlfBreakAndClose().Breaks) > 0:
+		// In the (currently unused) condition that we get here when
+		// `ei.Behavior.AlwaysRunIdentify()` is true, avoid setting
+		// multiple timers.
+		if fbo.identifyDoneWithWarning {
+			break
+		}
+
+		// In this case, the caller has explicitly requested that we
+		// treat proof failures as warnings, instead of errors.  For
+		// example, the GUI does this and shows a warning banner but
+		// still allows access to the files.  Identifies are
+		// expensive, so in this case we skip future identifies that
+		// also have this behavior for a short time period.
 		fbo.log.CDebugf(ctx,
-			"Identify finished with no error but broken proof warnings")
+			"Identify finished with no error but broken proof warnings; "+
+				"caching result for %d", cacheBrokenProofIdentifiesDuration)
+		fbo.identifyDoneWithWarning = true
+		timer := time.NewTimer(cacheBrokenProofIdentifiesDuration)
+		fbo.goTracked(func() {
+			select {
+			case <-timer.C:
+				fbo.identifyLock.Lock()
+				defer fbo.identifyLock.Unlock()
+				fbo.vlog.CLogf(
+					context.TODO(), libkb.VLog1,
+					"Expiring cached identify with broken proofs")
+				fbo.identifyDoneWithWarning = false
+			case <-fbo.shutdownChan:
+				timer.Stop()
+			}
+		})
+
 	case ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP:
 		fbo.log.CDebugf(ctx, "Identify skipped")
 	default:

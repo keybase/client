@@ -177,7 +177,6 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace, includeContacts}
     .then(([_suggestionRes, _contactRes]) => {
       const suggestionRes = _suggestionRes || []
       const contactRes = _contactRes || []
-      const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
           contact: true,
@@ -187,15 +186,13 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace, includeContacts}
           serviceMap: {keybase: x.username},
         })
       )
-      let suggestions = suggestionRes
-        .filter(({username}) => !contactUsernames.has(username))
-        .map(
-          ({username, fullname}): TeamBuildingTypes.User => ({
-            id: username,
-            prettyName: fullname,
-            serviceMap: {keybase: username},
-          })
-        )
+      let suggestions = suggestionRes.map(
+        ({username, fullname}): TeamBuildingTypes.User => ({
+          id: username,
+          prettyName: fullname,
+          serviceMap: {keybase: username},
+        })
+      )
       const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts
       if (expectingContacts) {
         suggestions = suggestions.slice(0, 10)

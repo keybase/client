@@ -110,21 +110,19 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (
-  state,
-  action: FsGen.OpenPathInSystemFileManagerPayload
-): Promise<Saga.MaybeAction> =>
+const openPathInSystemFileManager = (state, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-        .then(mountLocation =>
-          _openPathInSystemFileManagerPromise(
-            _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
-              Constants.parsePath(action.payload.path).kind
-            ) ||
-              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-                Types.PathType.Folder
-          )
+        .then(
+          mountLocation =>
+            _openPathInSystemFileManagerPromise(
+              _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
+              ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+                Constants.parsePath(action.payload.path).kind
+              ) ||
+                state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
+                  Types.PathType.Folder
+            ) as any
         )
         .catch(err => {
           return makeRetriableErrorHandler(action, action.payload.path)(err)
@@ -236,17 +234,19 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (_, action: FsGen.DriverEnablePayload): Promise<Saga.MaybeAction> =>
-  RPCTypes.installInstallFuseRpcPromise().then((result: RPCTypes.InstallResult) =>
-    fuseInstallResultIsKextPermissionError(result)
-      ? [
-          FsGen.createDriverKextPermissionError(),
-          ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
-        ]
-      : RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-          .then(() => waitForMount(0))
-          .then(() => FsGen.createRefreshDriverStatus())
-  )
+const driverEnableFuse = async (_, action: FsGen.DriverEnablePayload) => {
+  const result = await RPCTypes.installInstallFuseRpcPromise()
+  if (fuseInstallResultIsKextPermissionError(result)) {
+    return [
+      FsGen.createDriverKextPermissionError(),
+      ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
+    ]
+  } else {
+    await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
+    await waitForMount(0)
+    return FsGen.createRefreshDriverStatus()
+  }
+}
 
 const uninstallKBFSConfirm = () =>
   new Promise(resolve =>

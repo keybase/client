@@ -18,7 +18,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	ctc := makeChatTestContext(t, "TestUIThreadLoaderCache", 1)
 	defer ctc.cleanup()
 
-	timeout := 20 * time.Second
+	timeout := 2 * time.Second
 	users := ctc.users()
 	chatUI := kbtest.NewChatUI()
 	tc := ctc.world.Tcs[users[0].Username]
@@ -56,12 +56,19 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 	clock.Advance(10 * time.Second)
-	select {
-	case err := <-cb:
-		require.NoError(t, err)
-	case <-time.After(timeout):
-		require.Fail(t, "no end")
+	worked := false
+	for i := 0; i < 5; i++ {
+		select {
+		case err := <-cb:
+			require.NoError(t, err)
+			worked = true
+			break
+		case <-time.After(timeout):
+			t.Logf("end failed: %d", i)
+			clock.Advance(10 * time.Second)
+		}
 	}
+	require.True(t, worked)
 	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tv.Messages))

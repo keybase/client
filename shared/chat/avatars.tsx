@@ -78,7 +78,6 @@ class Avatars extends React.Component<AvatarProps> {
           loadingColor: globalColors.greyLight,
           size: 32,
           skipBackground: isMobile,
-          skipBackgroundAfterLoaded: isMobile,
           username,
         } as const)
     )

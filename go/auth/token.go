@@ -152,7 +152,7 @@ func VerifyToken(signature, server, challenge string, maxExpireIn int) (*Token, 
 func (t Token) TimeRemaining() int {
 	ctime := time.Unix(t.CreationTime, 0)
 	expires := ctime.Add(time.Duration(t.ExpireIn) * time.Second)
-	return int(math.Ceil(expires.Sub(time.Now()).Seconds()))
+	return int(math.Ceil(time.Until(expires).Seconds()))
 }
 
 func (t Token) Server() string {

@@ -4,6 +4,8 @@ import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
 type IntroProps = {
+  headerBody: string
+  headerTitle: string
   onClose: () => void
   onSeenIntro: () => void
 }
@@ -30,25 +32,13 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
-          Keybase supports Stellar wallets
+          {props.headerTitle || 'Keybase supports Stellar wallets.'}
         </Kb.Text>
 
-        <Kb.Text center={true} type="Body" style={styles.bodyText}>
-          You can now send or request Stellar Lumens to any Keybase user on{' '}
-          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
-            Earth
-          </Kb.Text>
-          . Transactions settle in seconds, and cost a fraction of a penny.
-        </Kb.Text>
-
-        <Kb.Text center={true} type="Body" style={styles.bodyText}>
-          When sending and receiving Lumens, we automatically do the conversion in your favorite currency. We
-          went ahead and set it to{' '}
-          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
-            USD
-          </Kb.Text>
-          .
-        </Kb.Text>
+        <Kb.Markdown styleOverride={bodyOverride} style={styles.bodyText}>
+          {props.headerBody ||
+            'You can now send or request Stellar Lumens to any Keybase user on *Earth*. Transactions settle in seconds, and cost a fraction of a penny.\n\nWhen sending and receiving Lumens, we automatically do the conversion in your favorite currency. We went ahead and set it to *USD*.'}
+        </Kb.Markdown>
 
         <Kb.Icon
           color={Styles.globalColors.black}
@@ -58,6 +48,15 @@ const Intro = (props: IntroProps) => {
       </Kb.Box2>
     </WalletPopup>
   )
+}
+
+const bodyOverride = {
+  paragraph: {
+    color: Styles.globalColors.white,
+    fontSize: Styles.isMobile ? 16 : 13,
+    textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
+  },
+  strong: Styles.globalStyles.fontExtrabold,
 }
 
 const styles = Styles.styleSheetCreate({

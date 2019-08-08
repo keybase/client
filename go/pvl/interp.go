@@ -195,11 +195,12 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		}
 	}
 
-	if len(errs) == 0 {
+	switch len(errs) {
+	case 0:
 		return nil
-	} else if len(errs) == 1 {
+	case 1:
 		return errs[0]
-	} else {
+	default:
 		for _, err := range errs {
 			debug(m, "multiple failures include: %v", err)
 		}
@@ -269,10 +270,8 @@ func setupRegs(m metaContext, regs *namedRegsStore, info ProofInfo, sigBody []by
 		if err := regs.Set("protocol", canonicalProtocol); err != nil {
 			return err
 		}
-	} else {
-		if err := regs.Ban("protocol"); err != nil {
-			return err
-		}
+	} else if err := regs.Ban("protocol"); err != nil {
+		return err
 	}
 
 	return nil
@@ -951,11 +950,12 @@ func stepSelectorCSS(m metaContext, ins selectorCSST, state scriptState) (script
 
 	// Get the text, attribute, or data.
 	var res string
-	if ins.Attr != "" {
+	switch {
+	case ins.Attr != "":
 		res = selectionAttr(selection, ins.Attr)
-	} else if ins.Data {
+	case ins.Data:
 		res = selectionData(selection)
-	} else {
+	default:
 		res = selectionText(selection)
 	}
 
@@ -986,9 +986,7 @@ func runCSSSelectorInner(m metaContext, html *goquery.Selection,
 			"CSS selectors array must not be empty")
 	}
 
-	var selection *goquery.Selection
-	selection = html
-
+	selection := html
 	for _, selector := range selectors {
 		switch {
 		case selector.IsIndex:

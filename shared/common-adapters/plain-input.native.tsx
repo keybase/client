@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import {TextInput} from 'react-native'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
@@ -35,7 +36,7 @@ class PlainInput extends Component<InternalProps, State> {
     focused: false,
     height: null,
   }
-  _input: typeof NativeTextInput | null = null
+  _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
 
@@ -43,10 +44,6 @@ class PlainInput extends Component<InternalProps, State> {
   // use HOCTimers with this component.
   // https://github.com/reduxjs/react-redux/pull/1000
   _timeoutIDs: Array<NodeJS.Timeout> = []
-
-  _setInputRef = (ref: typeof NativeTextInput | null) => {
-    this._input = ref
-  }
 
   _setTimeout = (fn: () => void, timeoutMS: number) => {
     this._timeoutIDs.push(setTimeout(fn, timeoutMS))
@@ -62,7 +59,7 @@ class PlainInput extends Component<InternalProps, State> {
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
-    this._input && this._input.setNativeProps(nativeProps)
+    this._input.current && this._input.current.setNativeProps(nativeProps)
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
@@ -164,14 +161,14 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   focus = () => {
-    this._input && this._input.focus()
+    this._input.current && this._input.current.focus()
   }
 
   blur = () => {
-    this._input && this._input.blur()
+    this._input.current && this._input.current.blur()
   }
 
-  isFocused = () => !!this._input && this._input.isFocused()
+  isFocused = () => !!this._input.current && this._input.current.isFocused()
 
   _onFocus = () => {
     this.setState({focused: true})
@@ -235,7 +232,7 @@ class PlainInput extends Component<InternalProps, State> {
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
       placeholderTextColor: this.props.placeholderColor || globalColors.black_50,
-      ref: this._setInputRef,
+      ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       style: this._getStyle(),

@@ -135,8 +135,8 @@ func (t *WebServiceType) GetPrompt() string {
 func (t *WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	h, p, _ := ParseWeb(un)
 	ret := jsonw.NewDictionary()
-	ret.SetKey("protocol", jsonw.NewString(p+":"))
-	ret.SetKey("hostname", jsonw.NewString(h))
+	_ = ret.SetKey("protocol", jsonw.NewString(p+":"))
+	_ = ret.SetKey("hostname", jsonw.NewString(h))
 	return ret
 }
 

@@ -54,7 +54,7 @@ func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncT
 }
 
 func (c *contactSyncTest) clearCache(mctx libkb.MetaContext) error {
-	return c.contactsCache.CleanCache(mctx)
+	return c.contactsCache.Store.ClearCache(mctx)
 }
 
 func TestContactSyncAndSearch(t *testing.T) {

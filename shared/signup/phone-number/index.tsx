@@ -47,6 +47,9 @@ const EnterPhoneNumber = (props: Props) => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
+        // the push prompt might be overlaying us
+        // TODO Y2K-57 move phone number earlier and check that email won't have this problem
+        autoFocus={!Styles.isMobile}
         onChangeNumber={onChangePhoneNumber}
         onChangeValidity={onChangeValidity}
         onContinue={onContinue}
@@ -58,6 +61,7 @@ const EnterPhoneNumber = (props: Props) => {
 }
 
 type BodyProps = {
+  autoFocus: boolean
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
   onContinue: () => void
@@ -78,6 +82,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       {props.icon}
       <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
         <PhoneInput
+          autoFocus={props.autoFocus}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
           onChangeValidity={props.onChangeValidity}
@@ -96,6 +101,9 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+EnterPhoneNumberBody.defaultProps = {
+  autoFocus: true,
 }
 
 const styles = Styles.styleSheetCreate({

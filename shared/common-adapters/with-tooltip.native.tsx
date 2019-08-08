@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Dimensions, View} from 'react-native'
+import {NativeDimensions, NativeView} from './native-wrappers.native'
 import FloatingBox from './floating-box'
 import hOCTimers, {PropsWithTimer} from './hoc-timers'
 import ClickableBox from './clickable-box'
@@ -18,6 +18,8 @@ const Kb = {
   Animated,
   ClickableBox,
   FloatingBox,
+  NativeDimensions,
+  NativeView,
   Text,
 }
 
@@ -34,13 +36,13 @@ type Dims = {
   width: number
 }
 const measureCb = (resolve: (dims: Dims) => void) => (
-  _1: never,
-  _2: never,
+  _x: number,
+  _y: number,
   width: number,
   height: number,
-  left: number,
-  top: number
-) => resolve({height, left, top, width})
+  pageX: number,
+  pageY: number
+) => resolve({height, left: pageX, top: pageY, width})
 
 class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
   state = {
@@ -48,15 +50,15 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
     top: 0,
     visible: false,
   }
-  _clickableRef = React.createRef<View>()
-  _tooltipRef = React.createRef<View>()
+  _clickableRef = React.createRef<NativeView>()
+  _tooltipRef = React.createRef<NativeView>()
   _onClick = () => {
     if (!this._clickableRef.current || !this._tooltipRef.current || this.state.visible) {
       return
     }
 
-    const screenWidth = Dimensions.get('window').width
-    const screenHeight = Dimensions.get('window').height
+    const screenWidth = Kb.NativeDimensions.get('window').width
+    const screenHeight = Kb.NativeDimensions.get('window').height
 
     Promise.all([
       new Promise(
@@ -71,8 +73,8 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
         return
       }
 
-      const constrainLeft = ideal => Math.max(0, Math.min(ideal, screenWidth - t.width))
-      const constrainTop = ideal => Math.max(0, Math.min(ideal, screenHeight - t.height))
+      const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
+      const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
       this.props.position === 'bottom center'
         ? this.setState({
             left: constrainLeft(c.left + c.width / 2 - t.width / 2),
@@ -101,22 +103,22 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
 
   render() {
     if (!this.props.showOnPressMobile || this.props.disabled) {
-      return <View style={this.props.containerStyle}>{this.props.children}</View>
+      return <Kb.NativeView style={this.props.containerStyle as any}>{this.props.children}</Kb.NativeView>
     }
 
     return (
       <>
-        <View style={this.props.containerStyle} ref={this._clickableRef} className={this.props.className}>
+        <Kb.NativeView style={this.props.containerStyle as any} ref={this._clickableRef}>
           <Kb.ClickableBox onClick={this._onClick}>{this.props.children}</Kb.ClickableBox>
-        </View>
+        </Kb.NativeView>
         <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
           {animatedStyle => (
             <Kb.FloatingBox>
-              <View
+              <Kb.NativeView
                 pointerEvents="none"
                 style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}
               >
-                <View
+                <Kb.NativeView
                   style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
                   ref={this._tooltipRef}
                 >
@@ -128,8 +130,8 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
                   >
                     {this.props.text}
                   </Kb.Text>
-                </View>
-              </View>
+                </Kb.NativeView>
+              </Kb.NativeView>
             </Kb.FloatingBox>
           )}
         </Kb.Animated>

@@ -23,7 +23,11 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
 
   _mounted = false
 
-  _animations = {
+  _animations: {
+    in: NativeAnimated.CompositeAnimation | null
+    loop: NativeAnimated.CompositeAnimation | null
+    out: NativeAnimated.CompositeAnimation | null
+  } = {
     in: null,
     loop: null,
     out: null,

@@ -13,6 +13,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => {
   const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
   return {
+    _disclaimer: state.wallets.airdropDetails.disclaimer,
     acceptDisclaimerError: error && error.message ? error.message : '',
     acceptingDisclaimerDelay: state.wallets.acceptingDisclaimerDelay,
   }
@@ -23,6 +24,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
     dispatch(WalletsGen.createCheckDisclaimer({nextScreen})),
   onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
+  onLoadDetails: () => dispatch(WalletsGen.createUpdateAirdropDetails()),
 })
 
 const ConnectedOnboarding = Container.connect(
@@ -31,10 +33,21 @@ const ConnectedOnboarding = Container.connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     acceptDisclaimerError: stateProps.acceptDisclaimerError,
     acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
+    headerBody: stateProps._disclaimer.header.body,
+    headerTitle: stateProps._disclaimer.header.title,
     nextScreen: ownProps.nextScreen,
     onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
     onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
     onClose: dispatchProps.onClose,
+    onLoadDetails: dispatchProps.onLoadDetails,
+    sections: stateProps._disclaimer.sections.toArray().map(s => ({
+      icon: s.icon,
+      lines: s.lines.toArray().map(l => ({
+        bullet: l.bullet,
+        text: l.text,
+      })),
+      section: s.section,
+    })),
   })
 )(Onboarding)
 

@@ -105,8 +105,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	if err != nil {
 		return err
 	}
-	switch apiRes.AppStatus.Code {
-	case libkb.SCTeamWritePermDenied:
+	if apiRes.AppStatus.Code == libkb.SCTeamWritePermDenied {
 		return libkb.TeamWritePermDeniedError{}
 	}
 	return nil

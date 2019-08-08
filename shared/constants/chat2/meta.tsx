@@ -424,7 +424,7 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
     emptyMeta
   )
 
-const blankCommands = []
+const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
