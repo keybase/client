@@ -30,6 +30,7 @@ import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {pluralize} from '../../util/string'
 
 type NextURI = string
 
@@ -555,12 +556,33 @@ async function manageContactsCache(
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      actions.push()
+      PushNotifications.localNotification({
+        message: makeResolvedMessage(newlyResolved),
+      })
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
   }
   return actions
+}
+
+const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `Your contact ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `Your contacts ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `Your contacts ${cts[0].contactName}, ${cts[1].contactName}, and ${lenMinusTwo} ${pluralize(
+        'other',
+        lenMinusTwo
+      )} joined Keybase!`
+    }
+  }
 }
 
 // Get phone number in e.164, or null if we can't parse it.
