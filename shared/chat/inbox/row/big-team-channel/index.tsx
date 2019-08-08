@@ -11,6 +11,7 @@ type Props = {
   showBold: boolean
   hasUnread: boolean
   hasBadge: boolean
+  hasDraft: boolean
   onSelectConversation: () => void
 }
 
@@ -62,6 +63,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
             {this.props.isMuted && (
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
             )}
+            {this.props.hasDraft && <DraftIcon />}
             {this.props.hasBadge && <UnreadIcon />}
           </Kb.Box2>
         </Kb.Box>
@@ -94,6 +96,12 @@ const mutedStyle = {
 const UnreadIcon = () => (
   <Kb.Box style={styles.unreadContainer}>
     <Kb.Box style={styles.unread} />
+  </Kb.Box>
+)
+
+const DraftIcon = () => (
+  <Kb.Box style={styles.unreadContainer}>
+    <Kb.Icon type="iconfont-edit" />
   </Kb.Box>
 )
 

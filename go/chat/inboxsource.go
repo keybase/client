@@ -653,7 +653,22 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text *string) error {
-	return s.createInbox().Draft(ctx, uid, convID, text)
+	if err := s.createInbox().Draft(ctx, uid, convID, text); err != nil {
+		return err
+	}
+	if text == nil {
+		// if the text gets cleared, then update the UI right away
+		conv, err := s.getConvLocal(ctx, uid, convID)
+		if err != nil {
+			return err
+		}
+		act := chat1.NewChatActivityWithConvsUpdated(chat1.ConvsUpdated{
+			Items: []chat1.InboxUIItem{utils.PresentConversationLocal(ctx, *conv,
+				s.G().Env.GetUsername().String())},
+		})
+		s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &act, chat1.ChatActivitySource_LOCAL)
+	}
+	return nil
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,

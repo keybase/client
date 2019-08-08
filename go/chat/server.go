@@ -1432,7 +1432,11 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 	}
 
 	// Save draft
-	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, &arg.Text); err != nil {
+	var draftText *string
+	if len(arg.Text) > 0 {
+		draftText = &arg.Text
+	}
+	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, draftText); err != nil {
 		h.Debug(ctx, "UpdateUnsentText: failed to save draft: %s", err)
 	}
 

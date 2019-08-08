@@ -64,7 +64,13 @@ class BottomLine extends PureComponent<Props> {
     } else if (this.props.draft) {
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-          <Text type="BodySmall" style={styles.draftLabel}>
+          <Text
+            type="BodySmall"
+            style={collapseStyles([
+              styles.draftLabel,
+              this.props.isSelected ? {color: globalColors.white} : null,
+            ])}
+          >
             Draft:
           </Text>
           <Markdown preview={true} style={style}>
