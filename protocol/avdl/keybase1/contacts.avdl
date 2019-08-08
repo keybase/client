@@ -62,7 +62,8 @@ protocol contacts {
     // separate because each one can be used in the UI to allow for SBS chat.
     array<ProcessedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
 
-    void saveContactList(int sessionID, array<Contact> contacts);
+    // Returns newly resolved contacts
+    array<ProcessedContact> saveContactList(int sessionID, array<Contact> contacts);
     array<ProcessedContact> lookupSavedContactsList(int sessionID);
 
     // Process saved contact list for user recommendations in "new chat" screen.

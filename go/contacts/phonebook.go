@@ -70,35 +70,34 @@ type assertionToNameCache struct {
 
 const assertionToNameCurrentVer = 1
 
-func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
 	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Send notifications for newly resolved
 	s := mctx.G().SyncedContactList
 	cts, err := s.RetrieveContacts(mctx)
-	if err != nil {
+	if err == nil {
+		unres := make(map[string]struct{})
+		for _, contact := range cts {
+			if !contact.Resolved {
+				unres[contact.Assertion] = struct{}{}
+			}
+		}
+
+		for _, result := range results {
+			if _, ok := unres[result.Assertion]; ok && result.Resolved {
+				newlyResolved = append(newlyResolved, result)
+			}
+		}
+	} else {
 		// We'll fail sending a push notification
 		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
-		return s.SaveProcessedContacts(mctx, results)
-	}
-	unres := make(map[string]struct{})
-	for _, contact := range cts {
-		if !contact.Resolved {
-			unres[contact.Assertion] = struct{}{}
-		}
 	}
 
-	newlyResolved := make([]keybase1.ProcessedContact, 0, len(unres))
-	for _, result := range results {
-		if _, ok := unres[result.Assertion]; ok && result.Resolved {
-			newlyResolved = append(newlyResolved, result)
-		}
-	}
-
-	return s.SaveProcessedContacts(mctx, results)
+	return newlyResolved, s.SaveProcessedContacts(mctx, results)
 }
 
 func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {

@@ -76,7 +76,7 @@ func TestContactSyncAndSearch(t *testing.T) {
 	// will not. We are expecting to be able to search for both, but not see
 	// both in user recommendations.
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -177,7 +177,7 @@ func TestContactShouldFilterOutSelf(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -206,7 +206,7 @@ func TestRecommendationsPreferEmail(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -232,7 +232,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -261,7 +261,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "A. Alice")
 
 		require.NoError(t, all.clearCache(tc.MetaContext()))
-		err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 			Contacts: rawContacts,
 		})
 		require.NoError(t, err)
