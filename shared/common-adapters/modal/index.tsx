@@ -148,12 +148,12 @@ const styles = Styles.styleSheetCreate({
     ...headerCommon,
     minHeight: 48,
   },
-  headerHideBorder: {
-    borderWidth: 0,
-  },
   headerCenter: {
     flexGrow: 1,
     flexShrink: 1,
+  },
+  headerHideBorder: {
+    borderWidth: 0,
   },
   headerLeft: {
     flexGrow: 0,
