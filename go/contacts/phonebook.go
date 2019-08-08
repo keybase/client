@@ -75,7 +75,29 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 	if err != nil {
 		return err
 	}
+
+	// Send notifications for newly resolved
 	s := mctx.G().SyncedContactList
+	cts, err := s.RetrieveContacts(mctx)
+	if err != nil {
+		// We'll fail sending a push notification
+		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
+		return s.SaveProcessedContacts(mctx, results)
+	}
+	unres := make(map[string]struct{})
+	for _, contact := range cts {
+		if !contact.Resolved {
+			unres[contact.Assertion] = struct{}{}
+		}
+	}
+
+	newlyResolved := make([]keybase1.ProcessedContact, 0, len(unres))
+	for _, result := range results {
+		if _, ok := unres[result.Assertion]; ok && result.Resolved {
+			newlyResolved = append(newlyResolved, result)
+		}
+	}
+
 	return s.SaveProcessedContacts(mctx, results)
 }
 
