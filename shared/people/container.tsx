@@ -78,7 +78,7 @@ class LoadOnMount extends React.PureComponent<Props> {
   }
 }
 
-export default Container.connectDEBUG(
+export default Container.connect(
   state => ({
     followSuggestions: state.people.followSuggestions,
     myUsername: state.config.username,
