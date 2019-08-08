@@ -16,7 +16,7 @@
     "unsubscribe": {
       "subscriptionID": "string"
     },
-    "onJournalNotification": {},
+    "pollJournalStatus": {},
     "getOnlineStatus": {},
     "folderListLoad": {
       "path": "Types.Path"

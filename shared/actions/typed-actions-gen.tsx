@@ -451,7 +451,7 @@ export type TypedActionsMap = {
   'fs:subscribePath': fs.SubscribePathPayload
   'fs:subscribeNonPath': fs.SubscribeNonPathPayload
   'fs:unsubscribe': fs.UnsubscribePayload
-  'fs:onJournalNotification': fs.OnJournalNotificationPayload
+  'fs:pollJournalStatus': fs.PollJournalStatusPayload
   'fs:getOnlineStatus': fs.GetOnlineStatusPayload
   'fs:folderListLoad': fs.FolderListLoadPayload
   'fs:folderListLoaded': fs.FolderListLoadedPayload
