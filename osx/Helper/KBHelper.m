@@ -195,18 +195,34 @@
   attributes[NSFileOwnerAccountID] = uid;
   attributes[NSFileGroupOwnerAccountID] = gid;
 
+  NSURL *directoryURL = [NSURL fileURLWithPath:directory];
   NSError *error = nil;
-  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:attributes error:&error]) {
+  if (![NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:&error]) {
     completion(error, nil);
     return;
   }
 
   if (excludeFromBackup) {
-    NSURL *directoryURL = [NSURL fileURLWithPath:directory];
-    OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
-    if (status != noErr) {
-      completion(KBMakeError(status, @"Error trying to exclude from backup"), nil);
-      return;
+    // Retry excluding the directory from backup for up to a minute.
+    // On macOS 10.15 (the beta, anyway), this fails with a "One or
+    // more parameters passed to a function were not valid" error if
+    // it's called too quickly after the directory is created.
+    for (int i = 0; i < 12; i++) {
+      OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
+      if (status == noErr) {
+        break;
+      }
+
+      CFStringRef msg = SecCopyErrorMessageString(status, NULL);
+      if (i < 11) {
+          KBLog(@"Couldn't exclude %@ (%@), trying again shortly", directory, msg);
+          [NSThread sleepForTimeInterval:5.0f];
+      } else {
+        CFStringRef msg = SecCopyErrorMessageString(status, NULL);
+        NSString *errorMessage = [NSString stringWithFormat:@"Error trying to exclude from backup: %@ -- %@", directoryURL, msg];
+        completion(KBMakeError(status, errorMessage), nil);
+        return;
+      }
     }
   }
 
