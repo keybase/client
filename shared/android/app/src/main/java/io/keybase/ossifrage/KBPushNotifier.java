@@ -194,13 +194,15 @@ public class KBPushNotifier implements PushNotifier {
   private void genericNotification(String uniqueTag, String notificationTitle, String notificationMsg, Bundle bundle, String channelID) {
     NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, channelID)
       .setSmallIcon(R.drawable.ic_notif)
-      .setContentTitle(notificationTitle)
       // Set the intent that will fire when the user taps the notification
       .setContentIntent(buildPendingIntent(bundle))
       .setAutoCancel(true);
 
     if (!notificationMsg.isEmpty()) {
       builder.setContentText(notificationMsg);
+    }
+    if (!notificationTitle.isEmpty()) {
+      builder.setContentTitle(notificationTitle);
     }
 
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
@@ -210,7 +212,7 @@ public class KBPushNotifier implements PushNotifier {
 
   public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
                                 String typ) {
-    // Not used anymore
+    genericNotification(ident, "", msg, this.bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
   }
 
 }

@@ -150,7 +150,7 @@ public class MainActivity extends ReactFragmentActivity {
   protected void onPause() {
     super.onPause();
     if (Keybase.appDidEnterBackground()) {
-      Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this));
+      Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this, new Bundle()));
     } else {
       Keybase.setAppStateBackground();
     }
@@ -310,7 +310,7 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    Keybase.appWillExit(new KBPushNotifier(this));
+    Keybase.appWillExit(new KBPushNotifier(this, new Bundle()));
   }
 
   @Override
