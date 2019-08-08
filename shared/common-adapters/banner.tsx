@@ -7,7 +7,6 @@ import * as Styles from '../styles'
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey'
 
 type _Segment = {
-  newline?: boolean
   onClick?: () => void
   text: string
 }
