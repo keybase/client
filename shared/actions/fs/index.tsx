@@ -154,24 +154,27 @@ const getSyncConfigFromRPC = (
   }
 }
 
-const loadTlfSyncConfig = (_: TypedState, action: FsGen.LoadTlfSyncConfigPayload) => {
-  // @ts-ignore probably a real issue
+const loadTlfSyncConfig = async (
+  _: TypedState,
+  action: FsGen.LoadTlfSyncConfigPayload | FsGen.LoadPathMetadataPayload
+) => {
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
-    return null
+    return false
   }
-  return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-    path: Constants.pathToRPCPath(tlfPath),
-  })
-    .then(result =>
-      FsGen.createTlfSyncConfigLoaded({
-        syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
-        tlfName: parsedPath.tlfName,
-        tlfType: parsedPath.tlfType,
-      })
-    )
-    .catch(makeUnretriableErrorHandler(action, tlfPath))
+  try {
+    const result = await RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+      path: Constants.pathToRPCPath(tlfPath),
+    })
+    return FsGen.createTlfSyncConfigLoaded({
+      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
+      tlfName: parsedPath.tlfName,
+      tlfType: parsedPath.tlfType,
+    })
+  } catch (e) {
+    return makeUnretriableErrorHandler(action, tlfPath)(e)
+  }
 }
 
 const setTlfSyncConfig = (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) =>
