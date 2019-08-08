@@ -79,4 +79,4 @@ export {useSelector, useDispatch} from 'react-redux'
 export {flowRight as compose} from 'lodash-es'
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
-export type Draft = _Draft
+export type Draft<T> = _Draft<T>
