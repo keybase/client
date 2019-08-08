@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
 import AdvancedTab from './advanced/container'
@@ -40,8 +40,8 @@ const settingsSubRoutes = {
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
-
-class SettingsSubNav extends React.PureComponent<any> {
+const noScreenProps = {}
+class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -56,7 +56,7 @@ class SettingsSubNav extends React.PureComponent<any> {
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
+            screenProps={this.props.screenProps || noScreenProps}
           />
         </Settings>
       </Kb.Box2>
