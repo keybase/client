@@ -459,10 +459,15 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        const prevConvIDKey = s.get('selectedConversation')
+        // blank out draft so we don't flash old data when switching convs
+        s.updateIn(['metaMap', prevConvIDKey], (m: Types.ConversationMeta) => {
+          return m ? m.merge({draft: null}) : m
+        })
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.deleteIn(['threadLoadStatus', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
-        s.set('previousSelectedConversation', s.get('selectedConversation'))
+        s.set('previousSelectedConversation', prevConvIDKey)
         s.set('selectedConversation', conversationIDKey)
         if (Constants.isValidConversationIDKey(conversationIDKey)) {
           // If navigating away from error conversation to a valid conv - clear

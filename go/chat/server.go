@@ -1114,9 +1114,11 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Clear draft
-	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, nil); err != nil {
-		h.Debug(ctx, "PostLocalNonblock: failed to clear draft: %s", err)
-	}
+	go func(ctx context.Context) {
+		if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, nil); err != nil {
+			h.Debug(ctx, "PostLocalNonblock: failed to clear draft: %s", err)
+		}
+	}(globals.BackgroundChatCtx(ctx, h.G()))
 
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
