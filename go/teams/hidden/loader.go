@@ -190,7 +190,7 @@ func (l *LoaderPackage) CheckPTKsForDuplicates(mctx libkb.MetaContext, getter fu
 	if l.newData == nil {
 		return nil
 	}
-	for k, _ := range l.newData.ReaderPerTeamKeys {
+	for k := range l.newData.ReaderPerTeamKeys {
 		if getter(k) {
 			return newRepeatPTKGenerationError(k, "clashes a previously-loaded visible rotation")
 		}
