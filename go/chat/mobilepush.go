@@ -75,6 +75,28 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 	}
 }
 
+func (h *MobilePush) GetConvInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (info chat1.ConversationInfoLocal, err error) {
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+
+	if err != nil || len(ib.Convs) == 0 {
+		h.Debug(ctx, "getConvInfo: failed to unbox conv: %v", convID)
+		return chat1.ConversationInfoLocal{}, fmt.Errorf("Failed to unbox %v", convID)
+	}
+
+	return ib.Convs[0].Info, nil
+}
+
+func GetUserAvatar(username string, srvInfo *keybase1.HttpSrvInfo) string {
+	if srvInfo != nil {
+		return fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", srvInfo.Address, username, srvInfo.Token)
+	}
+	return ""
+}
+
 func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
 	switch membersType {

@@ -118,6 +118,22 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
+func (d *Service) GetHttpSrvInfo() (*keybase1.HttpSrvInfo, error) {
+	if d == nil || d.httpSrv == nil {
+		return nil, fmt.Errorf("HttpSrv is not ready")
+	}
+
+	addr, err := d.httpSrv.Addr()
+	if err != nil {
+		return nil, err
+	}
+
+	return &keybase1.HttpSrvInfo{
+		Address: addr,
+		Token:   d.httpSrv.Token(),
+	}, nil
+}
+
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
 	g := d.G()
 	cg := globals.NewContext(g, d.ChatG())

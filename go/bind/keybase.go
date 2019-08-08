@@ -43,6 +43,7 @@ import (
 
 var kbCtx *libkb.GlobalContext
 var kbChatCtx *globals.ChatContext
+var kbSvc *service.Service
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext status.LogSendContext
@@ -51,8 +52,34 @@ var kbfsConfig libkbfs.Config
 var initMutex sync.Mutex
 var initComplete bool
 
+type Person struct {
+	KeybaseUsername string
+	KeybaseAvatar   string
+	IsBot           bool
+}
+
+type Message struct {
+	Id        int
+	Plaintext string
+	From      *Person
+	At        int64
+}
+
+type ChatNotification struct {
+	// Ordered from oldest to newest
+	Message   *Message
+	ConvID    string
+	TeamName  string
+	TopicName string
+	// e.g. "keybase#general, CoolTeam, Susannah,Jake"
+	ConversationName    string
+	IsGroupConversation bool
+	IsPlaintext         bool
+}
+
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+	DisplayChatNotification(notification *ChatNotification)
 }
 
 type NativeVideoHelper interface {
@@ -200,8 +227,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		return err
 	}
 
-	svc := service.NewService(kbCtx, false)
-	err = svc.StartLoopbackServer()
+	kbSvc = service.NewService(kbCtx, false)
+	err = kbSvc.StartLoopbackServer()
 	if err != nil {
 		return err
 	}
@@ -209,13 +236,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	err = svc.SetupCriticalSubServices()
+	err = kbSvc.SetupCriticalSubServices()
 	if err != nil {
 		return err
 	}
-	svc.SetupChatModules(nil)
-	svc.RunBackgroundOperations(uir)
-	kbChatCtx = svc.ChatContextified.ChatG()
+	kbSvc.SetupChatModules(nil)
+	kbSvc.RunBackgroundOperations(uir)
+	kbChatCtx = kbSvc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
 	logs := status.Logs{
@@ -464,6 +491,13 @@ func BackgroundSync() {
 	<-doneCh
 }
 
+func formatConversationName(info chat1.ConversationInfoLocal) string {
+	if info.TopicName != "" {
+		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
+	}
+	return fmt.Sprintf("%s", info.TlfName)
+}
+
 func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
 	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
@@ -495,9 +529,56 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		return err
 	}
+
+	convInfo, err := mp.GetConvInfo(ctx, uid, convID)
+
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "Failed to get conversation info", err)
+		return err
+	}
+
+	// TODO how to figure out if it's a bot?
+	username := msgUnboxed.Valid().SenderUsername
+
+	chatNotification := ChatNotification{
+		IsPlaintext: false,
+		Message: &Message{
+			Id: intMessageID,
+			From: &Person{
+				KeybaseUsername: username,
+				IsBot:           false,
+			},
+			At: int64(unixTime) * 1000,
+		},
+		ConvID:              strConvID,
+		TopicName:           convInfo.TopicName,
+		IsGroupConversation: len(convInfo.Participants) > 2,
+		ConversationName:    formatConversationName(convInfo),
+	}
+
 	if !displayPlaintext {
+		if runtime.GOOS == "android" {
+			pusher.DisplayChatNotification(&chatNotification)
+		}
 		return nil
 	}
+
+	if runtime.GOOS == "android" {
+		srvInfo, err := kbSvc.GetHttpSrvInfo()
+		if err == nil {
+			avatar := chat.GetUserAvatar(username, srvInfo)
+			chatNotification.Message.From.KeybaseAvatar = avatar
+		}
+
+		chatNotification.IsPlaintext = true
+		chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
+
+		pusher.DisplayChatNotification(&chatNotification)
+		mp.AckNotificationSuccess(ctx, []string{pushID})
+		return nil
+	}
+
+	// TODO delete this logic when we update iOS
 
 	// Send notification
 	msg, err := mp.FormatPushText(ctx, uid, convID, membersType, msgUnboxed)
