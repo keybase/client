@@ -2,11 +2,13 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -61,9 +63,10 @@ func TestContactSyncAndSearch(t *testing.T) {
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
-	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+	clock := clockwork.NewFakeClock()
+	tc.G.SetClock(clock)
 
-	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	all.searchMock.addUser(testAddUserArg{username: "alice2"})
 
 	rawContacts := []keybase1.Contact{
 		contacts.MakeContact("Alice A",
@@ -80,6 +83,15 @@ func TestContactSyncAndSearch(t *testing.T) {
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
+
+	// bust cache
+	clock.Advance(72 * time.Hour)
+	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+	require.Len(t, newlyResolved, 1)
 
 	{
 		// Try raw contact list lookup.
