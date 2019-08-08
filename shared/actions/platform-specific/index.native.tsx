@@ -389,7 +389,7 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<Saga.MaybeAction> =>
+const editAvatar = () =>
   launchImageLibraryAsync('photo')
     .then(result =>
       result.cancelled === true

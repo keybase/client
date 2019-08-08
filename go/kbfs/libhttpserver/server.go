@@ -156,7 +156,7 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 }
 
 const portStart = 16723
-const portEnd = 18000
+const portEnd = 60000
 const requestPathRoot = "/files/"
 
 func (s *Server) restart() (err error) {
@@ -171,7 +171,7 @@ func (s *Server) restart() (err error) {
 		// server before.
 		err == kbhttp.ErrPinnedPortInUse {
 		s.server = kbhttp.NewSrv(s.logger,
-			kbhttp.NewPortRangeListenerSource(portStart, portEnd))
+			kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd))
 		err = s.server.Start()
 	}
 	if err != nil {
