@@ -1,5 +1,4 @@
 /* eslint-env jest */
-import * as I from 'immutable'
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -23,7 +22,6 @@ const initialStore = {
 const gitRepos = [
   {
     canDelete: true,
-    channelName: null,
     chatDisabled: false,
     devicename: 'My Mac Device',
     id: '1b091b39c3c248a0b97d09a4c46c9224_b3749db074a859d991c71bc28d99d82c',
@@ -31,7 +29,6 @@ const gitRepos = [
     lastEditUser: 'eifjls092',
     name: 'meta',
     repoID: 'b3749db074a859d991c71bc28d99d82c',
-    teamname: null,
     url: 'keybase://private/eifjls092/meta',
   },
   {
@@ -118,10 +115,10 @@ const nowTimestamp = 1534635058000
 
 const loadedStore = {
   ...initialStore,
-  // @ts-ignore codemod issue
-  git: initialStore.git.merge({
-    idToInfo: gitRepos.reduce((acc, r) => acc.set(r.id, I.Record(r)()), I.Map()),
-  }),
+  git: {
+    ...initialStore.git,
+    idToInfo: gitRepos.reduce((m, r) => m.set(r.id, r), new Map()),
+  },
 }
 
 const startOnGitTab = dispatch => {
@@ -181,11 +178,7 @@ describe('load', () => {
 
     dispatch(GitGen.createLoadGit())
     return Testing.flushPromises().then(() => {
-      expect(
-        getState()
-          .git.idToInfo.sort()
-          .toJS()
-      ).toEqual(loadedStore.git.idToInfo.sort().toJS())
+      expect(getState().git.idToInfo).toEqual(loadedStore.git.idToInfo)
       expect(rpc).toHaveBeenCalled()
     })
   })
@@ -196,7 +189,7 @@ describe('load', () => {
     rpc.mockImplementation(() => Promise.resolve())
     dispatch(GitGen.createLoadGit())
     return Testing.flushPromises().then(() => {
-      expect(getState().git.idToInfo).toEqual(I.Map())
+      expect(getState().git.idToInfo).toEqual(new Map())
       expect(rpc).toHaveBeenCalled()
     })
   })
