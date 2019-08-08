@@ -11,13 +11,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.Person;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
-import com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService;
-import com.facebook.react.ReactApplication;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONArray;
@@ -37,12 +31,13 @@ import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
-import keybase.PushNotifier;
 
 import static keybase.Keybase.initOnce;
 
-public class KeybasePushNotificationListenerService extends RNPushNotificationListenerService {
+public class KeybasePushNotificationListenerService extends FirebaseMessagingService {
     public static String CHAT_CHANNEL_ID = "kb_chat_channel";
+    public static String FOLLOW_CHANNEL_ID = "kb_follow_channel";
+    public static String DEVICE_CHANNEL_ID = "kb_device_channel";
     public static String GENERAL_CHANNEL_ID = "kb_rest_channel";
 
     // This keeps a small (5 msg) ring buffer cache of the last messages the user was notified about,
@@ -82,7 +77,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         }
         String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
         initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+          new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
         NativeLogger.info("KeybasePushNotificationListenerService created. path: " + getApplicationContext().getFilesDir().getPath());
 
         createNotificationChannel(this);
@@ -95,26 +90,51 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         // the NotificationChannel class is new and not in the support library
         // Safe to call this multiple times - no ops afterwards
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Chat Notifications
-            CharSequence name = context.getString(R.string.channel_name);
-            String description = context.getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel chat_channel = new NotificationChannel(CHAT_CHANNEL_ID, name, importance);
-            chat_channel.setDescription(description);
-
-            // TODO Add more channels for device notifs, follows, etc
-            // The rest of the notifications
-            CharSequence general_name = context.getString(R.string.general_channel_name);
-            String general_description = context.getString(R.string.general_channel_description);
-            int general_importance = NotificationManager.IMPORTANCE_LOW;
-            NotificationChannel general_channel = new NotificationChannel(GENERAL_CHANNEL_ID, general_name, general_importance);
-            chat_channel.setDescription(general_description);
-
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(chat_channel);
-            notificationManager.createNotificationChannel(general_channel);
+
+            // Chat Notifications
+            {
+                CharSequence name = context.getString(R.string.channel_name);
+                String description = context.getString(R.string.channel_description);
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel chat_channel = new NotificationChannel(CHAT_CHANNEL_ID, name, importance);
+                chat_channel.setDescription(description);
+                // Register the channel with the system; you can't change the importance
+                // or other notification behaviors after this
+                notificationManager.createNotificationChannel(chat_channel);
+            }
+
+
+            // Follow Notifications
+            {
+                CharSequence follow_name = context.getString(R.string.notif_follows_name);
+                String follow_description = context.getString(R.string.notif_follow_desc);
+                int follow_importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel follow_channel = new NotificationChannel(FOLLOW_CHANNEL_ID, follow_name, follow_importance);
+                follow_channel.setDescription(follow_description);
+                notificationManager.createNotificationChannel(follow_channel);
+            }
+
+            // Device Notifications
+            {
+                CharSequence device_name = context.getString(R.string.notif_devices_name);
+                String device_description = context.getString(R.string.notif_device_description);
+                int device_importance = NotificationManager.IMPORTANCE_HIGH;
+                NotificationChannel device_channel = new NotificationChannel(DEVICE_CHANNEL_ID, device_name, device_importance);
+                device_channel.setDescription(device_description);
+                notificationManager.createNotificationChannel(device_channel);
+            }
+
+            // The rest of the notifications
+            {
+                CharSequence general_name = context.getString(R.string.general_channel_name);
+                String general_description = context.getString(R.string.general_channel_description);
+                int general_importance = NotificationManager.IMPORTANCE_LOW;
+                NotificationChannel general_channel = new NotificationChannel(GENERAL_CHANNEL_ID, general_name, general_importance);
+                general_channel.setDescription(general_description);
+                notificationManager.createNotificationChannel(general_channel);
+            }
+
         }
     }
 
@@ -150,32 +170,35 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         try {
             String type = bundle.getString("type");
             String payload = bundle.getString("m");
-            KBPushNotifier notifier = new KBPushNotifier(getApplicationContext());
-            notifier.setBundle(bundle);
+            KBPushNotifier notifier = new KBPushNotifier(getApplicationContext(), bundle);
             switch (type) {
                 case "chat.newmessageSilent_2": {
-                    Boolean displayPlaintext = "true".equals(bundle.getString("n"));
-                    Integer membersType = Integer.parseInt(bundle.getString("t"));
+                    boolean displayPlaintext = "true".equals(bundle.getString("n"));
+                    int membersType = Integer.parseInt(bundle.getString("t"));
                     String convID = bundle.getString("c");
-                    Integer messageId = Integer.parseInt(bundle.getString("d"));
+                    int messageId = Integer.parseInt(bundle.getString("d"));
                     JSONArray pushes = parseJSONArray(bundle.getString("p"));
                     String pushId = pushes.getString(0);
-                    Integer badgeCount = Integer.parseInt(bundle.getString("b"));
-                    Integer unixTime = Integer.parseInt(bundle.getString("x"));
+                    int badgeCount = Integer.parseInt(bundle.getString("b"));
+                    int unixTime = Integer.parseInt(bundle.getString("x"));
                     String soundName = bundle.getString("s");
 
-                    if (!msgCache.containsKey(convID)) {
+                    // Blow the cache if we aren't displaying plaintext
+                    if (!msgCache.containsKey(convID) || !displayPlaintext) {
                         msgCache.put(convID, new SmallMsgRingBuffer());
                     }
                     notifier.setMsgCache(msgCache.get(convID));
-                    // unixTime is in seconds android api expects ms
-                    notifier.setTs(unixTime * 1000);
 
                     Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageId, pushId, badgeCount, unixTime, soundName, notifier);
                 }
                 break;
-                case "chat.newmessage": {
-                  // We are just using chat.newmessageSilent_2
+                case "follow": {
+                    notifier.followNotification(bundle.getString("username"), bundle.getString("message"));
+                }
+                break;
+                case "device.revoked":
+                case "device.new": {
+                    notifier.deviceNotification();
                 }
                 break;
                 case "chat.readmessage": {
@@ -184,15 +207,18 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     notificationManager.cancelAll();
                 }
                 break;
+                case "chat.newmessage": {
+                  // Ignore this
+                  // We are just using chat.newmessageSilent_2
+                }
+                break;
                 default:
-                    super.onMessageReceived(message);
+                    notifier.generalNotification();
             }
         } catch (JSONException jex) {
             NativeLogger.error("Couldn't parse json: " + jex.getMessage());
         } catch (Exception ex) {
             NativeLogger.error("Couldn't handle background notification: " + ex.getMessage());
-            // Delegate to the RN code so at least something is sent.
-            super.onMessageReceived(message);
         }
 
     }

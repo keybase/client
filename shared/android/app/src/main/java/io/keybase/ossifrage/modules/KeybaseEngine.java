@@ -3,6 +3,7 @@ package io.keybase.ossifrage.modules;
 import android.app.KeyguardManager;
 import android.content.Context;
 
+import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
