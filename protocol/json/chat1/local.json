@@ -668,7 +668,15 @@
     {
       "type": "record",
       "name": "MessageLeave",
-      "fields": []
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "leavers"
+        }
+      ]
     },
     {
       "type": "record",

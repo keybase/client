@@ -43,25 +43,18 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 	}
 }
 
-func (t *UIThreadLoader) groupJoins(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+	typ chat1.MessageType, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	var grouped []chat1.MessageUnboxed
 	addGrouped := func() {
 		if len(grouped) == 0 {
 			return
 		}
-		mvalid := grouped[0].Valid()
-		var joiners []string
-		for _, j := range grouped {
-			joiners = append(joiners, j.Valid().SenderUsername)
-		}
-		mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
-			Joiners: joiners,
-		})
-		res = append(res, chat1.NewMessageUnboxedWithValid(mvalid))
+		res = append(res, makeCombined(grouped))
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() && msg.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+		if msg.IsValid() && msg.Valid().MessageBody.IsType(typ) {
 			if len(grouped) == 0 || grouped[len(grouped)-1].GetMessageID() == msg.GetMessageID()+1 {
 				grouped = append(grouped, msg)
 			} else {
@@ -77,7 +70,30 @@ func (t *UIThreadLoader) groupJoins(ctx context.Context, uid gregor1.UID, msgs [
 }
 
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
-	newMsgs := t.groupJoins(ctx, uid, tv.Messages)
+	newMsgs := t.groupGeneric(ctx, uid, tv.Messages, chat1.MessageType_JOIN,
+		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
+			mvalid := grouped[len(grouped)-1].Valid()
+			var joiners []string
+			for _, j := range grouped {
+				joiners = append(joiners, j.Valid().SenderUsername)
+			}
+			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
+				Joiners: joiners,
+			})
+			return chat1.NewMessageUnboxedWithValid(mvalid)
+		})
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs, chat1.MessageType_LEAVE,
+		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
+			mvalid := grouped[len(grouped)-1].Valid()
+			var leavers []string
+			for _, j := range grouped {
+				leavers = append(leavers, j.Valid().SenderUsername)
+			}
+			mvalid.MessageBody = chat1.NewMessageBodyWithLeave(chat1.MessageLeave{
+				Leavers: leavers,
+			})
+			return chat1.NewMessageUnboxedWithValid(mvalid)
+		})
 	tv.Messages = newMsgs
 	return tv
 }
@@ -149,6 +165,23 @@ func (t *UIThreadLoader) messageIDControlToPagination(ctx context.Context, uid g
 	return utils.MessageIDControlToPagination(ctx, t.DebugLabeler, &msgIDControl, mcconv)
 }
 
+func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return false
+	}
+	switch typ {
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		return true
+	default:
+		return false
+	}
+}
+
 func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThread,
 	localThread *chat1.ThreadView, mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
 	defer func() {
@@ -167,8 +200,7 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 				continue
 			}
 			if (state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()]) ||
-				state == chat1.MessageUnboxedState_VALID &&
-					m.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+				t.isConsolidateMsg(m) {
 				t.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
 				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
@@ -188,7 +220,7 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 		}
 		// If this is a join message (or any other message that can get consolidated, then always
 		// transmit
-		if newMsg.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+		if t.isConsolidateMsg(newMsg) {
 			return true
 		}
 		// If newMsg is now superseded by something different than what we sent, then let's include it

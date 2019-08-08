@@ -987,10 +987,23 @@ func (o MessageJoin) DeepCopy() MessageJoin {
 }
 
 type MessageLeave struct {
+	Leavers []string `codec:"leavers" json:"leavers"`
 }
 
 func (o MessageLeave) DeepCopy() MessageLeave {
-	return MessageLeave{}
+	return MessageLeave{
+		Leavers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Leavers),
+	}
 }
 
 type MessageReaction struct {

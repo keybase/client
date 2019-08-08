@@ -298,6 +298,7 @@ const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
 
 const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
   ...makeMessageCommonNoDeleteNoEdit,
+  leavers: [],
   reactions: I.Map(),
   type: 'systemLeft',
 })
@@ -839,9 +840,17 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.MessageType.join:
-      return makeMessageSystemJoined({...common, reactions, joiners: m.messageBody.join.joiners || []})
+      return makeMessageSystemJoined({
+        ...common,
+        joiners: m.messageBody.join ? m.messageBody.join.joiners || [] : [],
+        reactions,
+      })
     case RPCChatTypes.MessageType.leave:
-      return makeMessageSystemLeft({...common, reactions})
+      return makeMessageSystemLeft({
+        ...common,
+        leavers: m.messageBody.leave ? m.messageBody.leave.leavers || [] : [],
+        reactions,
+      })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)

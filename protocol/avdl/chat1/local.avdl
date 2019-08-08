@@ -192,7 +192,9 @@ protocol local {
     array<string> joiners;
   }
 
-  record MessageLeave {}
+  record MessageLeave {
+    array<string> leavers;
+  }
 
   record MessageReaction {
      @mpackkey("m") @jsonkey("m")

@@ -13,6 +13,7 @@ export default connect(
     return {
       channelname: meta.channelname,
       isBigTeam: meta.teamType === 'big',
+      leavers: message.leavers,
       teamname: meta.teamname,
     }
   },

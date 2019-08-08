@@ -344,6 +344,7 @@ export type _MessageSystemLeft = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
+  leavers: Array<string>
   reactions: Reactions
   timestamp: number
   type: 'systemLeft'
