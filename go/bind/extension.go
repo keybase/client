@@ -210,7 +210,10 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	svc.SetupCriticalSubServices()
+	err = svc.SetupCriticalSubServices()
+	if err != nil {
+		return err
+	}
 
 	var uid gregor1.UID
 	extensionRi = chat1.RemoteClient{Cli: chat.OfflineClient{}}
@@ -738,11 +741,11 @@ func ExtensionForceGC() {
 	kbCtx.FlushCaches()
 	if _, ok := kbCtx.LocalChatDb.GetEngine().(*libkb.MemDb); ok {
 		fmt.Printf("Nuking in memory chat db\n")
-		kbCtx.LocalChatDb.Nuke()
+		_, _ = kbCtx.LocalChatDb.Nuke()
 	}
 	if _, ok := kbCtx.LocalDb.GetEngine().(*libkb.MemDb); ok {
 		fmt.Printf("Nuking in memory local db\n")
-		kbCtx.LocalDb.Nuke()
+		_, _ = kbCtx.LocalDb.Nuke()
 	}
 	debug.FreeOSMemory()
 	fmt.Printf("Done flushing global caches\n")

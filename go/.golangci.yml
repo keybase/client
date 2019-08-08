@@ -1,5 +1,10 @@
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+
 linters:
-        enable:
-                - gofmt
-                - gocritic
-                - unconvert
+  enable:
+    - gofmt
+    - gocritic
+    - unconvert

@@ -1507,7 +1507,7 @@ type RemoteInterface interface {
 	RegisterSharePost(context.Context, RegisterSharePostArg) error
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
-	TeamIDOfConv(context.Context, ConversationID) (keybase1.TeamID, error)
+	TeamIDOfConv(context.Context, ConversationID) (*keybase1.TeamID, error)
 	ServerNow(context.Context) (ServerNowRes, error)
 	GetExternalAPIKeys(context.Context, []ExternalAPIKeyTyp) ([]ExternalAPIKey, error)
 	AdvertiseBotCommands(context.Context, []RemoteBotCommandsAdvertisement) (AdvertiseBotCommandsRes, error)
@@ -2374,7 +2374,7 @@ func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg Br
 	return
 }
 
-func (c RemoteClient) TeamIDOfConv(ctx context.Context, convID ConversationID) (res keybase1.TeamID, err error) {
+func (c RemoteClient) TeamIDOfConv(ctx context.Context, convID ConversationID) (res *keybase1.TeamID, err error) {
 	__arg := TeamIDOfConvArg{ConvID: convID}
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return

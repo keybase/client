@@ -21,12 +21,14 @@ import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
 import {Props} from './router'
 
+const {createStackNavigator} = Stack
+
 // turn on screens
 useScreens()
 
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
-const defaultNavigationOptions = {
+const defaultNavigationOptions: any = {
   backBehavior: 'none',
   header: null,
   headerLeft: hp =>
@@ -103,7 +105,7 @@ const TabBarIconContainer = props => (
 
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
-    map[tab] = Stack.createStackNavigator(Shim.shim(routes), {
+    map[tab] = createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -123,7 +125,7 @@ const TabNavigator = createBottomTabNavigator(
     defaultNavigationOptions: ({navigation}) => ({
       tabBarButtonComponent: TabBarIconContainer,
       tabBarIcon: ({focused}) => (
-        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
+        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
       ),
     }),
     order: tabs,
@@ -155,7 +157,7 @@ const tabStyles = Styles.styleSheetCreate({
   },
 })
 
-const LoggedInStackNavigator = Stack.createStackNavigator(
+const LoggedInStackNavigator = createStackNavigator(
   {
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
@@ -166,7 +168,7 @@ const LoggedInStackNavigator = Stack.createStackNavigator(
   }
 )
 
-const LoggedOutStackNavigator = Stack.createStackNavigator(
+const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: {
@@ -240,7 +242,7 @@ class RNApp extends React.PureComponent<Props> {
         return false
       }
     }
-    nav.dispatch(StackActions.pop())
+    nav.dispatch(StackActions.pop({}))
     return true
   }
 
