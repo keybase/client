@@ -233,6 +233,8 @@ export type TypedActionsMap = {
   'config:openAppStore': config.OpenAppStorePayload
   'config:updateCriticalCheckStatus': config.UpdateCriticalCheckStatusPayload
   'config:osNetworkStatusChanged': config.OsNetworkStatusChangedPayload
+  'config:setDarkModePreference': config.SetDarkModePreferencePayload
+  'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
