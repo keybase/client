@@ -6,13 +6,13 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
-import {TypedState} from '../constants/reducer'
+import * as Container from '../util/container'
 import * as SettingsGen from './settings-gen'
 import flags from '../util/feature-flags'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
-const noErrors = (state: TypedState) =>
+const noErrors = (state: Container.TypedState) =>
   !state.signup.devicenameError &&
   !state.signup.emailError &&
   !state.signup.inviteCodeError &&
@@ -25,7 +25,7 @@ const noErrors = (state: TypedState) =>
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 
-const showUserOnNoErrors = (state: TypedState) =>
+const showUserOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
     RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}),
@@ -33,103 +33,129 @@ const showUserOnNoErrors = (state: TypedState) =>
 
 const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
 
-const showInviteSuccessOnNoErrors = (state: TypedState) =>
+const showInviteSuccessOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
 
-const showEmailScreenOnNoErrors = (state: TypedState) =>
+const showEmailScreenOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
-const showDeviceScreenOnNoErrors = (state: TypedState) =>
+const showDeviceScreenOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
-const showErrorOrCleanupAfterSignup = (state: TypedState) =>
+const showErrorOrCleanupAfterSignup = (state: Container.TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
     : RouteTreeGen.createNavigateAppend({path: ['signupError']})
 
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
-const setEmailVisibilityAfterSignup = (state: TypedState) =>
+const setEmailVisibilityAfterSignup = (state: Container.TypedState) =>
   flags.sbsContacts &&
   noErrors(state) &&
   state.signup.emailVisible &&
   SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})
 
 // Validation side effects ///////////////////////////////////////////////////////////
-const checkInviteCode = (state: TypedState) =>
-  RPCTypes.signupCheckInvitationCodeRpcPromise(
-    {invitationCode: state.signup.inviteCode},
-    Constants.waitingKey
-  )
-    .then(() => SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode}))
-    .catch((err: RPCError) =>
-      SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
+const checkInviteCode = async (state: Container.TypedState) => {
+  try {
+    await RPCTypes.signupCheckInvitationCodeRpcPromise(
+      {invitationCode: state.signup.inviteCode},
+      Constants.waitingKey
     )
-
-const requestAutoInvite = () =>
-  RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
-    .then((inviteCode: string) => SignupGen.createRequestedAutoInvite({inviteCode}))
-    .catch(() => SignupGen.createRequestedAutoInviteError())
-
-const requestInvite = (state: TypedState) =>
-  noErrors(state) &&
-  RPCTypes.signupInviteRequestRpcPromise(
-    {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
-    Constants.waitingKey
-  )
-    .then(() =>
-      SignupGen.createRequestedInvite({
-        email: state.signup.email,
-        name: state.signup.name,
-      })
-    )
-    .catch(err =>
-      SignupGen.createRequestedInviteError({
-        email: state.signup.email,
-        emailError: `Sorry can't get an invite: ${err.desc}`,
-        name: state.signup.name,
-        nameError: '',
-      })
-    )
-
-const checkUsername = (state: TypedState, _, logger) => {
-  logger.info(`checking ${state.signup.username}`)
-  return (
-    noErrors(state) &&
-    RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
-      .then(() => {
-        logger.info(`${state.signup.username} success`)
-        return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
-      })
-      .catch(err => {
-        logger.warn(`${state.signup.username} error: ${err.message}`)
-        const error = err.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : err.desc
-        return SignupGen.createCheckedUsername({
-          // Don't set error if it's 'username taken', we show a banner in that case
-          error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
-          username: state.signup.username,
-          usernameTaken:
-            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
-        })
-      })
-  )
+    return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
+  } catch (e) {
+    const err: RPCError = e
+    return SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
+  }
 }
 
-const checkDevicename = (state: TypedState) =>
-  noErrors(state) &&
-  RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: state.signup.devicename}, Constants.waitingKey)
-    .then(() => SignupGen.createCheckedDevicename({devicename: state.signup.devicename}))
-    .catch(error =>
-      SignupGen.createCheckedDevicenameError({
-        devicename: state.signup.devicename,
-        error: `Device name is invalid: ${error.desc}.`,
-      })
+const requestAutoInvite = async () => {
+  try {
+    const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
+    return SignupGen.createRequestedAutoInvite({inviteCode})
+  } catch (_) {
+    return SignupGen.createRequestedAutoInviteError()
+  }
+}
+
+const requestInvite = async (state: Container.TypedState) => {
+  if (!noErrors(state)) {
+    return false
+  }
+  try {
+    await RPCTypes.signupInviteRequestRpcPromise(
+      {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
+      Constants.waitingKey
     )
+    return SignupGen.createRequestedInvite({
+      email: state.signup.email,
+      name: state.signup.name,
+    })
+  } catch (e) {
+    const err: RPCError = e
+    return SignupGen.createRequestedInviteError({
+      email: state.signup.email,
+      emailError: `Sorry can't get an invite: ${err.desc}`,
+      name: state.signup.name,
+      nameError: '',
+    })
+  }
+}
+
+const checkUsername = async (
+  state: Container.TypedState,
+  _: SignupGen.CheckUsernamePayload,
+  logger: Saga.SagaLogger
+) => {
+  logger.info(`checking ${state.signup.username}`)
+  if (!noErrors(state)) {
+    return false
+  }
+
+  try {
+    await RPCTypes.signupCheckUsernameAvailableRpcPromise(
+      {username: state.signup.username},
+      Constants.waitingKey
+    )
+    logger.info(`${state.signup.username} success`)
+    return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
+  } catch (e) {
+    const err: RPCError = e
+    logger.warn(`${state.signup.username} error: ${err.message}`)
+    const error = err.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : err.desc
+    return SignupGen.createCheckedUsername({
+      // Don't set error if it's 'username taken', we show a banner in that case
+      error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
+      username: state.signup.username,
+      usernameTaken:
+        err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
+    })
+  }
+}
+
+const checkDevicename = async (state: Container.TypedState) => {
+  if (!noErrors(state)) {
+    return false
+  }
+  try {
+    await RPCTypes.deviceCheckDeviceNameFormatRpcPromise(
+      {name: state.signup.devicename},
+      Constants.waitingKey
+    )
+    return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
+  } catch (e) {
+    const err: RPCError = e
+    return SignupGen.createCheckedDevicenameError({
+      devicename: state.signup.devicename,
+      error: `Device name is invalid: ${err.desc}.`,
+    })
+  }
+}
 
 // Actually sign up ///////////////////////////////////////////////////////////
-function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any> {
+const reallySignupOnNoErrors = async (state: Container.TypedState) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
-    return
+    return false
   }
 
   const {email, username, inviteCode, devicename} = state.signup
@@ -140,7 +166,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
   }
 
   try {
-    yield RPCTypes.signupSignupRpcSaga({
+    await RPCTypes.signupSignupRpcSaga({
       customResponseIncomingCallMap: {
         // Do not add a gpg key for now
         'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
@@ -167,54 +193,32 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
       },
       waitingKey: Constants.waitingKey,
     })
-    yield Saga.put(SignupGen.createSignedup())
+    return SignupGen.createSignedup()
   } catch (error) {
-    yield Saga.put(SignupGen.createSignedupError({error}))
+    return SignupGen.createSignedupError({error})
   }
 }
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
-  yield* Saga.chainAction<SignupGen.RequestInvitePayload>(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction<SignupGen.CheckUsernamePayload>(
-    SignupGen.checkUsername,
-    checkUsername,
-    'checkUsername'
-  )
-  yield* Saga.chainAction<SignupGen.RequestAutoInvitePayload>(SignupGen.requestAutoInvite, requestAutoInvite)
-  yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload | SignupGen.CheckInviteCodePayload>(
-    [SignupGen.requestedAutoInvite, SignupGen.checkInviteCode],
-    checkInviteCode
-  )
-  yield* Saga.chainAction<SignupGen.CheckDevicenamePayload>(SignupGen.checkDevicename, checkDevicename)
+  yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
+  yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername, 'checkUsername')
+  yield* Saga.chainAction2(SignupGen.requestAutoInvite, requestAutoInvite)
+  yield* Saga.chainAction2([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  yield* Saga.chainAction2(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions\
-  yield* Saga.chainAction<SignupGen.RequestedInvitePayload>(
-    SignupGen.requestedInvite,
-    showInviteSuccessOnNoErrors
-  )
-  yield* Saga.chainAction<SignupGen.CheckedUsernamePayload>(
-    SignupGen.checkedUsername,
-    showEmailScreenOnNoErrors
-  )
-  yield* Saga.chainAction<SignupGen.CheckEmailPayload>([SignupGen.checkEmail], showDeviceScreenOnNoErrors)
-  yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
-    SignupGen.requestedAutoInvite,
-    showInviteScreen
-  )
-  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(SignupGen.checkedInviteCode, showUserOnNoErrors)
-  yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
-  yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, setEmailVisibilityAfterSignup)
+  yield* Saga.chainAction2(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.checkedUsername, showEmailScreenOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.checkEmail, showDeviceScreenOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.requestedAutoInvite, showInviteScreen)
+  yield* Saga.chainAction2(SignupGen.checkedInviteCode, showUserOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield* Saga.chainAction2(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
   // actually make the signup call
-  yield* Saga.chainGenerator<SignupGen.CheckedDevicenamePayload>(
-    SignupGen.checkedDevicename,
-    reallySignupOnNoErrors
-  )
-  yield* Saga.chainAction<SignupGen.GoBackAndClearErrorsPayload>(
-    SignupGen.goBackAndClearErrors,
-    goBackAndClearErrors
-  )
+  yield* Saga.chainAction2(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
 export default signupSaga

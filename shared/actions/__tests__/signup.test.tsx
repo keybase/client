@@ -162,7 +162,7 @@ describe('checkInviteCode', () => {
 describe('checkUsername', () => {
   it("ignores if there's an error", () => {
     const state = Constants.makeState({inviteCodeError: 'invite error'})
-    expect(_testing.checkUsername(makeTypedState(state), null, testLogger)).toEqual(false)
+    expect(_testing.checkUsername(makeTypedState(state), null as any, testLogger)).resolves.toEqual(false)
   })
 
   it('Updates store on success', () => {
@@ -284,27 +284,27 @@ describe('deviceScreen', () => {
 describe('actually sign up', () => {
   it('bails on devicenameError', () => {
     const state = Constants.makeState({devicenameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
   it('bails on emailError', () => {
     const state = Constants.makeState({emailError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
   it('bails on inviteCodeError', () => {
     const state = Constants.makeState({inviteCodeError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
   it('bails on nameError', () => {
     const state = Constants.makeState({nameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
   it('bails on usernameError', () => {
     const state = Constants.makeState({usernameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
   it('bails on signupError', () => {
     const state = Constants.makeState({signupError: new RPCError('error', 0)})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).resolves.toBeUndefined()
   })
 
   const validSignup = Constants.makeState({
@@ -317,24 +317,24 @@ describe('actually sign up', () => {
   const signupError = new Error('Missing data for signup')
 
   it('bails on missing email', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', ''))).next()
-    ).toThrow(signupError)
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', '')))).resolves.toThrow(
+      signupError
+    )
   })
   it('bails on missing devicename', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', ''))).next()
-    ).toThrow(signupError)
+    expect(
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', '')))
+    ).resolves.toThrow(signupError)
   })
   it('bails on missing inviteCode', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('inviteCode', ''))).next()
-    ).toThrow(signupError)
+    expect(
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('inviteCode', '')))
+    ).resolves.toThrow(signupError)
   })
   it('bails on missing username', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('username', ''))).next()
-    ).toThrow(signupError)
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('username', '')))).resolves.toThrow(
+      signupError
+    )
   })
   it('updates error', () => {
     const state = Constants.makeState()
