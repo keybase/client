@@ -13,33 +13,33 @@ const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 
-const apiSearch = (
+const apiSearch = async (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
-): Promise<Array<TeamBuildingTypes.User>> =>
-  RPCTypes.userSearchUserSearchRpcPromise({
-    impTofuQuery,
-    includeContacts: flags.sbsContacts && service === 'keybase' && includeContacts,
-    includeServicesSummary,
-    maxResults,
-    query,
-    service,
-  })
-    .then(results =>
-      (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
-        const u = Constants.parseRawResultToUser(r, service)
-        u && arr.push(u)
-        return arr
-      }, [])
-    )
-    .catch(err => {
-      logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
-      return []
+): Promise<Array<TeamBuildingTypes.User>> => {
+  try {
+    const results = await RPCTypes.userSearchUserSearchRpcPromise({
+      impTofuQuery,
+      includeContacts: flags.sbsContacts && service === 'keybase' && includeContacts,
+      includeServicesSummary,
+      maxResults,
+      query,
+      service,
     })
+    return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
+      const u = Constants.parseRawResultToUser(r, service)
+      u && arr.push(u)
+      return arr
+    }, [])
+  } catch (err) {
+    logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
+    return []
+  }
+}
 
 function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
   const teamBuildingState = state[namespace].teamBuilding
@@ -133,14 +133,14 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
   return null
 }
 
-const search = (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
+const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
     namespace
   ].teamBuilding
   // We can only ask the api for at most 100 results
   if (teamBuildingSearchLimit > 100) {
     logger.info('ignoring search request with a limit over 100')
-    return
+    return false
   }
 
   const query = teamBuildingSearchQuery
@@ -150,60 +150,61 @@ const search = (state: TypedState, {payload: {namespace, includeContacts}}: Sear
     impTofuQuery = makeImpTofuQuery(query, userRegion)
   }
 
-  return apiSearch(
+  const users = await apiSearch(
     query,
     teamBuildingSelectedService,
     teamBuildingSearchLimit,
     true,
     impTofuQuery,
     includeContacts
-  ).then(users =>
-    TeamBuildingGen.createSearchResultsLoaded({
-      namespace,
-      query,
-      service: teamBuildingSelectedService,
-      users,
-    })
   )
+  return TeamBuildingGen.createSearchResultsLoaded({
+    namespace,
+    query,
+    service: teamBuildingSelectedService,
+    users,
+  })
 }
 
-const fetchUserRecs = (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) =>
-  Promise.all([
-    RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
-    flags.sbsContacts && includeContacts
-      ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
-      : Promise.resolve([] as RPCTypes.ProcessedContact[]),
-  ])
-    .then(([_suggestionRes, _contactRes]) => {
-      const suggestionRes = _suggestionRes || []
-      const contactRes = _contactRes || []
-      const contacts = contactRes.map(
-        (x): TeamBuildingTypes.User => ({
-          contact: true,
-          id: x.assertion,
-          label: x.displayLabel,
-          prettyName: x.displayName,
-          serviceMap: {keybase: x.username},
-        })
-      )
-      let suggestions = suggestionRes.map(
-        ({username, fullname}): TeamBuildingTypes.User => ({
-          id: username,
-          prettyName: fullname,
-          serviceMap: {keybase: username},
-        })
-      )
-      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts
-      if (expectingContacts) {
-        suggestions = suggestions.slice(0, 10)
-      }
-      return suggestions.concat(contacts)
-    })
-    .catch(() => {
-      logger.error(`Error in fetching recs`)
-      return []
-    })
-    .then(users => TeamBuildingGen.createFetchedUserRecs({namespace, users}))
+const fetchUserRecs = async (
+  state: TypedState,
+  {payload: {namespace, includeContacts}}: SearchOrRecAction
+) => {
+  try {
+    const [_suggestionRes, _contactRes] = await Promise.all([
+      RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
+      flags.sbsContacts && includeContacts
+        ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
+        : Promise.resolve([] as RPCTypes.ProcessedContact[]),
+    ])
+    const suggestionRes = _suggestionRes || []
+    const contactRes = _contactRes || []
+    const contacts = contactRes.map(
+      (x): TeamBuildingTypes.User => ({
+        contact: true,
+        id: x.assertion,
+        label: x.displayLabel,
+        prettyName: x.displayName,
+        serviceMap: {keybase: x.username},
+      })
+    )
+    let suggestions = suggestionRes.map(
+      ({username, fullname}): TeamBuildingTypes.User => ({
+        id: username,
+        prettyName: fullname,
+        serviceMap: {keybase: username},
+      })
+    )
+    const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts
+    if (expectingContacts) {
+      suggestions = suggestions.slice(0, 10)
+    }
+    return TeamBuildingGen.createFetchedUserRecs({namespace, users: suggestions.concat(contacts)})
+  } catch (_) {
+    logger.error(`Error in fetching recs`)
+    return TeamBuildingGen.createFetchedUserRecs({namespace, users: []})
+  }
+}
 
 export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
@@ -231,22 +232,14 @@ function filterGenForNs<S, A, L>(
 export default function* commonSagas(
   namespace: TeamBuildingTypes.AllowedNamespace
 ): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(
-    TeamBuildingGen.search,
-    filterForNs(namespace, search)
-  )
-  yield* Saga.chainAction<TeamBuildingGen.FetchUserRecsPayload>(
-    TeamBuildingGen.fetchUserRecs,
-    filterForNs(namespace, fetchUserRecs)
-  )
+  yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
+  yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
     TeamBuildingGen.search,
     filterGenForNs(namespace, searchResultCounts)
   )
   // Navigation, before creating
-  yield* Saga.chainAction<
-    TeamBuildingGen.CancelTeamBuildingPayload | TeamBuildingGen.FinishedTeamBuildingPayload
-  >(
+  yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
     filterForNs(namespace, closeTeamBuilding)
   )

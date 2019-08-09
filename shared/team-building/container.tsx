@@ -380,7 +380,7 @@ export const sortAndSplitRecommendations = memoize(
         }
       }
     })
-    return sections.filter(Boolean)
+    return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
 

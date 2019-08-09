@@ -149,7 +149,7 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 	ctx := context.TODO()
 	ui := c.G().UI.GetTerminalUI()
 	if c.getAll {
-		res, err := cli.SimpleFSSyncConfigAndStatus(ctx)
+		res, err := cli.SimpleFSSyncConfigAndStatus(ctx, nil)
 		if err != nil {
 			return err
 		}
