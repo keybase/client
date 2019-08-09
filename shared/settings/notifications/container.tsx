@@ -36,7 +36,7 @@ export default Container.connect(
     mobileHasPermissions: state.push.hasPermissions,
     showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
     sound: state.config.notifySound,
-    waitingForResponse: state.settings.waitingForResponse,
+    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),

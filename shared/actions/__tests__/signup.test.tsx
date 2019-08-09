@@ -162,7 +162,7 @@ describe('checkInviteCode', () => {
 describe('checkUsername', () => {
   it("ignores if there's an error", () => {
     const state = Constants.makeState({inviteCodeError: 'invite error'})
-    expect(_testing.checkUsername(makeTypedState(state), null, testLogger)).toEqual(false)
+    expect(_testing.checkUsername(makeTypedState(state), null as any, testLogger)).resolves.toEqual(false)
   })
 
   it('Updates store on success', () => {

@@ -50,6 +50,12 @@ protocol SimpleFS {
   record KBFSArchivedPath {
     string path;
     KBFSArchivedParam archivedParam;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
+  }
+
+  record KBFSPath {
+    string path;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
   }
 
   enum PathType {
@@ -60,7 +66,7 @@ protocol SimpleFS {
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
-    case KBFS: string;
+    case KBFS: KBFSPath;
     case KBFS_ARCHIVED: KBFSArchivedPath;
   }
 
@@ -321,7 +327,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior, boolean refreshSubscription);
+  Dirent simpleFSStat(Path path, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry
@@ -509,7 +515,7 @@ protocol SimpleFS {
   // simpleFSSyncConfigAndStatus returns the sync config and status
   // for all syncing folders, as well as an overall status for the whole
   // device.
-  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus();
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   boolean simpleFSAreWeConnectedToMDServer();
 

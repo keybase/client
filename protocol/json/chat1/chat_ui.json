@@ -187,6 +187,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": [
+            null,
             "ConversationFinalizeInfo"
           ],
           "name": "finalizeInfo"
@@ -316,6 +323,13 @@
         {
           "type": "string",
           "name": "headlineDecorated"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",

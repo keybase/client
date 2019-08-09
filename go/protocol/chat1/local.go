@@ -3085,6 +3085,7 @@ type ConversationInfoLocal struct {
 	TopicName    string                         `codec:"topicName" json:"topicName"`
 	Headline     string                         `codec:"headline" json:"headline"`
 	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
+	Draft        *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
 	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus             `codec:"status" json:"status"`
 	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
@@ -3112,6 +3113,13 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SnippetMsg),
+		Draft: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Draft),
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
 		MembersType:  o.MembersType.DeepCopy(),
