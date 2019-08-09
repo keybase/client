@@ -92,6 +92,9 @@ func TestContactSyncAndSearch(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, newlyResolved, 1)
+	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
+	require.Equal(t, newlyResolved[0].Username, "alice")
+	require.Equal(t, newlyResolved[0].Assertion, "48111222333@phone")
 
 	{
 		// Try raw contact list lookup.
