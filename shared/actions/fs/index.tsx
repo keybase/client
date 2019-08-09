@@ -44,8 +44,8 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: I.List(
           ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-            // @ts-ignore TODO fix p.kbfs is a path already
-            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs))
+            // @ts-ignore TODO fix p.kbfs.path is a path already
+            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
             return arr
           }, [])
         ),
@@ -57,8 +57,12 @@ const rpcConflictStateToConflictState = (
         rpcConflictState.manualresolvinglocalview && rpcConflictState.manualresolvinglocalview.normalView
       return Constants.makeConflictStateManualResolvingLocalView({
         normalViewTlfPath:
-          // @ts-ignore TODO fix p.kbfs is a path already
-          nv && nv.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(nv.kbfs) : Constants.defaultPath,
+          nv && nv.PathType === RPCTypes.PathType.kbfs
+            ? Types.stringToPath(
+                // @ts-ignore TODO fix p.kbfs.path is a path already
+                nv.kbfs.path
+              )
+            : Constants.defaultPath,
       })
     }
   } else {
@@ -413,7 +417,10 @@ function* download(
   )
 
   yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: {PathType: RPCTypes.PathType.local, local: localPath},
+    dest: {
+      PathType: RPCTypes.PathType.local,
+      local: localPath,
+    },
     opID,
     src: Constants.pathToRPCPath(path),
   })
