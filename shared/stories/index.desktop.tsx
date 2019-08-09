@@ -63,37 +63,41 @@ const RootWrapper = ({children}) => {
     autoSwap ? 1000 : null
   )
 
-  return (
-    <div
-      key={darkMode ? 'dark' : 'light'}
-      style={{height: '100%', width: '100%'}}
-      className={darkMode ? 'darkMode' : ''}
-    >
+  if (__STORYSHOT__) {
+    return children
+  } else {
+    return (
       <div
-        style={{
-          border: 'red 1px solid',
-          color: darkMode ? 'white' : 'black',
-          position: 'absolute',
-          right: 0,
-          top: 0,
-          zIndex: 9999,
-        }}
-        title="Shift+Click to turn on auto"
-        onClick={(e: React.MouseEvent) => {
-          if (e.shiftKey) {
-            setAutoSwap(!autoSwap)
-          } else {
-            setDarkMode(!darkMode)
-            _setSystemIsDarkMode(!darkMode)
-          }
-        }}
+        key={darkMode ? 'dark' : 'light'}
+        style={{height: '100%', width: '100%'}}
+        className={darkMode ? 'darkMode' : ''}
       >
-        {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
+        <div
+          style={{
+            border: 'red 1px solid',
+            color: darkMode ? 'white' : 'black',
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            zIndex: 9999,
+          }}
+          title="Shift+Click to turn on auto"
+          onClick={(e: React.MouseEvent) => {
+            if (e.shiftKey) {
+              setAutoSwap(!autoSwap)
+            } else {
+              setDarkMode(!darkMode)
+              _setSystemIsDarkMode(!darkMode)
+            }
+          }}
+        >
+          {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
+        </div>
+        {children}
+        <div id="modal-root" />
       </div>
-      {children}
-      <div id="modal-root" />
-    </div>
-  )
+    )
+  }
 }
 
 const store = Sb.createStoreWithCommon()
