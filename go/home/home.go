@@ -115,6 +115,7 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	if useCache {
 		useCache = h.homeCache.isValid(ctx, h.G())
 	}
+
 	if useCache && markViewed {
 		err := h.bustHomeCacheIfBadgedFollowers(ctx)
 		if err != nil {
@@ -128,6 +129,16 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 			if err := h.markViewedAPICall(ctx); err != nil {
 				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", err.Error())
 			}
+		}
+	}
+
+	if !useCache {
+		h.G().Log.CDebugf(ctx, "| cache is no good; going fetching from server")
+		// If we've already found the people we need to show in the cache,
+		// there's no reason to reload them.
+		skipLoadPeople := len(people) > 0
+		if err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople); err != nil {
+			return ret, err
 		}
 	}
 
