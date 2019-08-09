@@ -4,21 +4,24 @@ import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/provision'
 
-const chooseDevice = (params, response) => {
-
+const chooseDevice = (params, _) => {
   const devices = (params.devices || []).map(d => Constants.rpcDeviceToDevice(d))
   console.log(devices)
 
-  return Saga.put(RecoverPasswordGen.createShowDeviceListPage({
-    devices: devices,
-  }))
+  return Saga.put(
+    RecoverPasswordGen.createShowDeviceListPage({
+      devices: devices,
+    })
+  )
 }
 
 function* startRecoverPassword(_, action: RecoverPasswordGen.StartRecoverPasswordPayload) {
   try {
-    yield Saga.put(RouteTreeGen.createNavigateAppend({
-      path: ['recoverPasswordDeviceSelector'],
-    }))
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: ['recoverPasswordDeviceSelector'],
+      })
+    )
 
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
@@ -36,7 +39,8 @@ function* startRecoverPassword(_, action: RecoverPasswordGen.StartRecoverPasswor
 
 function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<RecoverPasswordGen.StartRecoverPasswordPayload>(
-    RecoverPasswordGen.startRecoverPassword, startRecoverPassword,
+    RecoverPasswordGen.startRecoverPassword,
+    startRecoverPassword
   )
 }
 

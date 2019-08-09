@@ -14,6 +14,7 @@ import pinentry from './pinentry'
 import profile from './profile'
 import provision from './provision'
 import push from './push'
+import recoverPassword from './recover-password'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
@@ -41,6 +42,7 @@ const reducers = {
   profile,
   provision,
   push,
+  recoverPassword,
   settings,
   signup,
   teams,

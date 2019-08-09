@@ -5,10 +5,10 @@ type OwnProps = {}
 
 export default Container.connect(
   state => ({
-    devices: [],
+    devices: state.recoverPassword.devices || [],
   }),
-  dispatch => ({
-    onSelect: (name: string) => null,
+  _ => ({
+    onSelect: (_: string) => null,
     onResetAccount: () => null,
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
