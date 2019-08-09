@@ -12,6 +12,7 @@ import SwipeConvActions from './swipe-conv-actions'
 export type Props = {
   backgroundColor?: string
   channelname?: string
+  draft?: string
   hasBadge: boolean
   hasBottomLine: boolean
   hasResetUsers: boolean
@@ -158,6 +159,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     isSelected={props.isSelected}
                     isDecryptingSnippet={props.isDecryptingSnippet}
                     isTypingSnippet={props.isTypingSnippet}
+                    draft={props.draft}
                   />
                 </Kb.Box>
               )}
