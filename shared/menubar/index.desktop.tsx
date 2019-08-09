@@ -10,9 +10,10 @@ import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
-import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
+import UploadCountdownHOC from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'
 import SpaceWarning from './space-warning'
+import flags from '../util/feature-flags'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -37,7 +38,13 @@ export type Props = {
   username: string | null
   waitForKbfsDaemon: () => void
   badgeInfo: {[K in string]: number}
-} & UploadCountdownHOCProps
+
+  // UploadCountdownHOCProps
+  endEstimate?: number
+  files: number
+  fileName: string | null
+  totalSyncingBytes: number
+}
 
 type State = {
   showingMenu: boolean
@@ -206,9 +213,7 @@ class MenubarRender extends React.Component<Props, State> {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
         <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
           <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
-          {!!count && (
-            <Kb.Badge badgeNumber={count || 0} badgeStyle={styles.badge} />
-          )}
+          {!!count && <Kb.Badge badgeNumber={count || 0} badgeStyle={styles.badge} />}
         </Kb.Box>
         <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
@@ -309,12 +314,7 @@ class MenubarRender extends React.Component<Props, State> {
               sizeType="Big"
               ref={this.attachmentRef}
             />
-            {!!badgeCountInMenu && (
-              <Kb.Badge
-                badgeNumber={badgeCountInMenu}
-                badgeStyle={styles.badge}
-              />
-            )}
+            {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
           </Kb.Box>
           <Kb.FloatingMenu
             closeOnSelect={true}
@@ -343,6 +343,10 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box style={styles.footer}>
           <UploadWithCountdown
             endEstimate={this.props.endEstimate}
+            isOnline={
+              !flags.kbfsOfflineMode ||
+              this.props.kbfsDaemonStatus.onlineStatus === FsTypes.KbfsDaemonOnlineStatus.Online
+            }
             files={this.props.files}
             fileName={this.props.fileName}
             totalSyncingBytes={this.props.totalSyncingBytes}

@@ -1,14 +1,16 @@
 import * as Kb from '../common-adapters'
+import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as React from 'react'
 import TabBar from './tab-bar/container.desktop'
 import {
+  NavigationViewProps,
   createNavigator,
   StackRouter,
   SwitchRouter,
   NavigationActions,
   getNavigation,
-  NavigationProvider,
+  NavigationContext,
   SceneView,
   createSwitchNavigator,
 } from '@react-navigation/core'
@@ -33,9 +35,10 @@ import OutOfDate from '../app/out-of-date'
  * Floating is rendered to a portal on top
  */
 
+const noScreenProps = {}
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
-class AppView extends React.PureComponent<any> {
+class AppView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -52,8 +55,7 @@ class AppView extends React.PureComponent<any> {
       <SceneView
         navigation={childNav}
         component={descriptor.getComponent()}
-        screenProps={this.props.screenProps}
-        options={descriptor.options}
+        screenProps={this.props.screenProps || noScreenProps}
       />
     )
     // if the header is transparent this needs to be on the same layer
@@ -89,7 +91,7 @@ class AppView extends React.PureComponent<any> {
   }
 }
 
-class ModalView extends React.PureComponent<any> {
+class ModalView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -109,7 +111,7 @@ class ModalView extends React.PureComponent<any> {
           key="AppLayer"
           navigation={appNav}
           component={appDescriptor.getComponent()}
-          screenProps={this.props.screenProps}
+          screenProps={this.props.screenProps || noScreenProps}
         />
         {index > 0 && (
           <Kb.Box2 direction="vertical" style={styles.modalContainer}>
@@ -117,7 +119,7 @@ class ModalView extends React.PureComponent<any> {
               key="ModalLayer"
               navigation={childNav}
               component={descriptor.getComponent()}
-              screenProps={this.props.screenProps}
+              screenProps={this.props.screenProps || noScreenProps}
             />
           </Kb.Box2>
         )}
@@ -128,7 +130,7 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
-class TabView extends React.PureComponent<any> {
+class TabView extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -140,13 +142,12 @@ class TabView extends React.PureComponent<any> {
       <SceneView
         navigation={childNav}
         component={descriptor.getComponent()}
-        screenProps={this.props.screenProps}
-        options={descriptor.options}
+        screenProps={this.props.screenProps || noScreenProps}
       />
     )
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar navigation={navigation} selectedTab={selectedTab} />
+        <TabBar navigation={navigation} selectedTab={selectedTab as Tabs.AppTab} />
         {sceneView}
       </Kb.Box2>
     )
@@ -169,7 +170,7 @@ const TabNavigator = createNavigator(
       )
       return map
     }, {}),
-    {resetOnBlur: false}
+    {backBehavior: 'none', resetOnBlur: false}
   ),
   {}
 )
@@ -191,6 +192,7 @@ const LoggedOutStackNavigator = createNavigator(
   StackRouter(
     {...Shim.shim(loggedOutRoutes)},
     {
+      // @ts-ignore TODO add custom nav options somewhere
       defaultNavigationOptions: () => ({headerHideBorder: true}),
       initialRouteName: 'login',
     }
@@ -211,32 +213,32 @@ type Subscriber = (data: {action: Object | null; lastState: Object | null; state
 const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
   class ElectronApp extends React.PureComponent<any, any> {
-    _navState: any = null // always use this value and not whats in state since thats async
-    _actionEventSubscribers = new Set<Subscriber>()
-    _navigation: any
-    _initialAction = null
+    private navState: any = null // always use this value and not whats in state since thats async
+    private actionEventSubscribers = new Set<Subscriber>()
+    private navigation: any
+    private initialAction: any = null
 
     constructor(props: any) {
       super(props)
-      this._initialAction = NavigationActions.init()
-      this.state = {nav: Component.router.getStateForAction(this._initialAction)}
+      this.initialAction = NavigationActions.init()
+      this.state = {nav: Component.router.getStateForAction(this.initialAction)}
     }
 
     componentDidUpdate() {
-      // Clear cached _navState every tick
-      if (this._navState === this.state.nav) {
-        this._navState = null
+      // Clear cached navState every tick
+      if (this.navState === this.state.nav) {
+        this.navState = null
       }
     }
 
     componentDidMount() {
-      let action = this._initialAction
+      let action = this.initialAction
       let startupState = this.state.nav
       if (!startupState) {
         startupState = Component.router.getStateForAction(action)
       }
       const dispatchActions = () =>
-        this._actionEventSubscribers.forEach(subscriber =>
+        this.actionEventSubscribers.forEach(subscriber =>
           subscriber({
             action,
             lastState: null,
@@ -258,13 +260,13 @@ const createElectronApp = Component => {
 
     dispatch = (action: any) => {
       // navState will have the most up-to-date value, because setState sometimes behaves asyncronously
-      this._navState = this._navState || this.state.nav
-      const lastNavState = this._navState
+      this.navState = this.navState || this.state.nav
+      const lastNavState = this.navState
       const reducedState = Component.router.getStateForAction(action, lastNavState)
       const navState = reducedState === null ? lastNavState : reducedState
 
       const dispatchActionEvents = () => {
-        this._actionEventSubscribers.forEach(subscriber =>
+        this.actionEventSubscribers.forEach(subscriber =>
           subscriber({
             action,
             lastState: lastNavState,
@@ -283,7 +285,7 @@ const createElectronApp = Component => {
 
       if (navState !== lastNavState) {
         // Cache updates to state.nav during the tick to ensure that subsequent calls will not discard this change
-        this._navState = navState
+        this.navState = navState
         this.setState({nav: navState}, () => {
           dispatchActionEvents()
         })
@@ -302,28 +304,28 @@ const createElectronApp = Component => {
       if (!navState) {
         return null
       }
-      if (!this._navigation || this._navigation.state !== navState) {
-        this._navigation = getNavigation(
+      if (!this.navigation || this.navigation.state !== navState) {
+        this.navigation = getNavigation(
           Component.router,
           navState,
           this.dispatch,
-          this._actionEventSubscribers,
+          this.actionEventSubscribers,
           this._getScreenProps,
-          () => this._navigation
+          () => this.navigation
         )
       }
-      navigation = this._navigation
+      navigation = this.navigation
       return (
-        <NavigationProvider value={navigation}>
+        <NavigationContext.Provider key={this.props.isDarkMode ? 'dark' : 'light'} value={navigation}>
           <Component {...this.props} navigation={navigation} />
-        </NavigationProvider>
+        </NavigationContext.Provider>
       )
     }
 
-    getNavState = () => this._navState || this.state.nav
+    getNavState = () => this.navState || this.state.nav
 
     dispatchOldAction = (old: any) => {
-      const actions = Shared.oldActionToNewActions(old, this._navigation) || []
+      const actions = Shared.oldActionToNewActions(old, this.navigation) || []
       actions.forEach(a => this.dispatch(a))
     }
   }

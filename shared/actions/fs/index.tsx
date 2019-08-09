@@ -44,8 +44,8 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: I.List(
           ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-            // @ts-ignore TODO fix p.kbfs is a path already
-            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs))
+            // @ts-ignore TODO fix p.kbfs.path is a path already
+            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
             return arr
           }, [])
         ),
@@ -57,8 +57,12 @@ const rpcConflictStateToConflictState = (
         rpcConflictState.manualresolvinglocalview && rpcConflictState.manualresolvinglocalview.normalView
       return Constants.makeConflictStateManualResolvingLocalView({
         normalViewTlfPath:
-          // @ts-ignore TODO fix p.kbfs is a path already
-          nv && nv.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(nv.kbfs) : Constants.defaultPath,
+          nv && nv.PathType === RPCTypes.PathType.kbfs
+            ? Types.stringToPath(
+                // @ts-ignore TODO fix p.kbfs.path is a path already
+                nv.kbfs.path
+              )
+            : Constants.defaultPath,
       })
     }
   } else {
@@ -416,7 +420,10 @@ function* download(
   )
 
   yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: {PathType: RPCTypes.PathType.local, local: localPath},
+    dest: {
+      PathType: RPCTypes.PathType.local,
+      local: localPath,
+    },
     opID,
     src: Constants.pathToRPCPath(path),
   })
@@ -496,6 +503,7 @@ const getWaitDuration = (endEstimate: number | null, lower: number, upper: numbe
   return diff < lower ? lower : diff > upper ? upper : diff
 }
 
+// TODO: move these logic into Go HOTPOT-533
 let polling = false
 function* pollJournalFlushStatusUntilDone() {
   if (polling) {
@@ -1056,7 +1064,7 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
     case RPCTypes.SubscriptionTopic.favorites:
       return FsGen.createFavoritesLoad()
     case RPCTypes.SubscriptionTopic.journalStatus:
-      return FsGen.createOnJournalNotification()
+      return FsGen.createPollJournalStatus()
     case RPCTypes.SubscriptionTopic.onlineStatus:
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
   }
@@ -1084,8 +1092,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction2(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
-  yield* Saga.chainGenerator<FsGen.OnJournalNotificationPayload>(
-    FsGen.onJournalNotification,
+  yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
+    FsGen.pollJournalStatus,
     pollJournalFlushStatusUntilDone
   )
   yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)

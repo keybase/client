@@ -43,5 +43,10 @@ const SendFeedback = (props: Props) => {
     </SignupScreen>
   )
 }
+SendFeedback.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerRightActions: null,
+}
 
 export default SendFeedback

@@ -1266,6 +1266,7 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_KBFS_CHAT,
 		TLFIdentifyBehavior_GUI_PROFILE:
@@ -1290,7 +1291,8 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI:
 		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
@@ -1302,7 +1304,9 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 
 func (b TLFIdentifyBehavior) SkipUserCard() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		// We don't need to bother loading a user card in these cases.
 		return true
 	default:
@@ -1334,6 +1338,7 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
@@ -2698,7 +2703,7 @@ func (path Path) String() string {
 	}
 	switch pathType {
 	case PathType_KBFS:
-		return path.Kbfs()
+		return path.Kbfs().Path
 	case PathType_KBFS_ARCHIVED:
 		return path.KbfsArchived().Path
 	case PathType_LOCAL:
@@ -3360,4 +3365,8 @@ func (r APIUserSearchResult) GetStringIDForCompare() string {
 	default:
 		return ""
 	}
+}
+
+func NewPathWithKbfsPath(path string) Path {
+	return NewPathWithKbfs(KBFSPath{Path: path})
 }

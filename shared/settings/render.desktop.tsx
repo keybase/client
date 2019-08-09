@@ -29,5 +29,8 @@ const SettingsRender = (props: Props) => {
     </Box>
   )
 }
+SettingsRender.navigationOptions = {
+  header: null,
+}
 
 export default SettingsRender
