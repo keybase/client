@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const upstreamTransformer = require('metro-react-native-babel-transformer')
 
 module.exports.transform = function(p) {
