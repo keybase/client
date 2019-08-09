@@ -499,6 +499,17 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serve")()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "serve: failed to get HTTP server address: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "unable to determine addr")
+		return
+	}
+	if req.Host != addr {
+		r.Debug(ctx, "Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid host")
+		return
+	}
 	key := req.URL.Query().Get("key")
 	if len(key) < keyPrefixLen {
 		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
