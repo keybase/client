@@ -203,8 +203,8 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 			if err != nil {
 				continue
 			}
-			if (state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()]) ||
-				t.isConsolidateMsg(m) {
+			if (state == chat1.MessageUnboxedState_PLACEHOLDER || t.isConsolidateMsg(m)) &&
+				!rm[m.GetMessageID()] {
 				t.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
 				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))

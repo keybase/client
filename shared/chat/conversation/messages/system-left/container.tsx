@@ -13,8 +13,9 @@ export default connect(
     return {
       channelname: meta.channelname,
       isBigTeam: meta.teamType === 'big',
-      leavers: message.leavers,
+      leavers: [message.author],
       teamname: meta.teamname,
+      timestamp: message.timestamp,
     }
   },
   () => ({}),
