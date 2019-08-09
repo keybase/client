@@ -198,6 +198,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			randomNumber,
 		},
 		keybase1.RegionCode("US"),
+		"",
 	)
 	require.NoError(t, err)
 
