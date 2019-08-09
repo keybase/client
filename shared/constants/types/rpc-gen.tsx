@@ -644,7 +644,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.home.homeGetScreen': {
-    inParam: {readonly markViewed: Boolean; readonly numFollowSuggestionsWanted: Int; readonly bustCache: Boolean}
+    inParam: {readonly markViewed: Boolean; readonly numFollowSuggestionsWanted: Int}
     outParam: HomeScreen
   }
   'keybase.1.home.homeMarkViewed': {

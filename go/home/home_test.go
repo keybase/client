@@ -24,7 +24,7 @@ func TestHome(t *testing.T) {
 	// test we run without error for markViewed true/false
 	numPeopleWanted := 0 // makes mock cache easier
 	for _, markViewed := range []bool{true, false} {
-		_, err = home.Get(ctx, markViewed, numPeopleWanted, false)
+		_, err = home.Get(ctx, markViewed, numPeopleWanted)
 		require.NoError(t, err)
 
 		// setup caches so we test those branches
@@ -49,7 +49,7 @@ func TestHome(t *testing.T) {
 		useCache, _ := home.peopleCache.isValid(ctx, tc.G, numPeopleWanted)
 		require.True(t, useCache)
 		require.True(t, home.homeCache.isValid(ctx, tc.G))
-		_, err = home.Get(ctx, markViewed, numPeopleWanted, false)
+		_, err = home.Get(ctx, markViewed, numPeopleWanted)
 		require.NoError(t, err)
 	}
 
