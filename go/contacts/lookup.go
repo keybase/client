@@ -11,7 +11,7 @@ import (
 )
 
 func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
-	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode) (res ContactLookupResults, err error) {
+	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode, token Token) (res ContactLookupResults, err error) {
 
 	type lookupArg struct {
 		Email       string `json:"e,omitempty"`
@@ -23,6 +23,7 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 		Resolutions           map[ContactLookupKey]ContactLookupResult `json:"resolutions"`
 		ResolvedFreshnessMs   int                                      `json:"resolved_freshness_ms"`
 		UnresolvedFreshnessMs int                                      `json:"unresolved_freshness_ms"`
+		Token                 Token                                    `json:"token"`
 	}
 
 	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
@@ -35,6 +36,7 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 
 	payload := make(libkb.JSONPayload)
 	payload["contacts"] = lookups
+	payload["token"] = token
 	if !userRegionCode.IsNil() {
 		payload["user_region_code"] = userRegionCode
 	}
@@ -53,6 +55,7 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	res.Results = resp.Resolutions
 	res.ResolvedFreshness = time.Duration(resp.ResolvedFreshnessMs) * time.Millisecond
 	res.UnresolvedFreshness = time.Duration(resp.UnresolvedFreshnessMs) * time.Millisecond
+	res.Token = resp.Token
 	mctx.Debug(
 		"BulkLookupContacts: server said we should cache resolved entries for %.2f s and unresolved for %.2f s",
 		res.ResolvedFreshness.Seconds(), res.UnresolvedFreshness.Seconds())
