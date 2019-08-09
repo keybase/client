@@ -720,6 +720,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
+		err = hiddenPackage.CheckPTKsForDuplicates(mctx, func(g keybase1.PerTeamKeyGeneration) bool {
+			_, ok := ret.Chain.PerTeamKeys[g]
+			return ok
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	preloadCancel()
@@ -1071,6 +1078,10 @@ func (l *TeamLoader) doOneLink(mctx libkb.MetaContext, arg load2ArgT, ret *keyba
 	}
 
 	if err := consumeRatchets(mctx, hiddenPackage, link); err != nil {
+		return nil, nilPrev, err
+	}
+
+	if err := checkPTKGenerationNotOnHiddenChain(mctx, hiddenPackage, link); err != nil {
 		return nil, nilPrev, err
 	}
 
