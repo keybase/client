@@ -67,20 +67,11 @@ const fixTypes = () => {
 }
 
 function patchExpoAV() {
-  const toInsert = "  implementation 'com.android.support:support-annotations:28.0.0'\n"
   try {
-    const root = path.resolve(__dirname, '..', '..', 'node_modules', 'expo-av')
-    const fn = path.join(root, 'android', 'build.gradle')
-    const content = fs.readFileSync(fn).toString()
-    if (content.includes(toInsert)) {
-      return
-    }
-    const insertAt = content.indexOf('\n', content.lastIndexOf('unimodule ')) + 1
-    if (insertAt <= 0) {
-      return
-    }
-    const patched = content.substring(0, insertAt) + toInsert + content.substring(insertAt)
-    fs.writeFileSync(fn, patched)
+    const root = path.resolve(__dirname, '..', '..')
+    const src = path.join(root, 'android', 'patched-expo-av-build.gradle')
+    const dst = path.join(root, 'node_modules', 'expo-av', 'android', 'build.gradle')
+    fs.copyFileSync(src, dst)
   } catch (e) {
     console.warn('patching expo-av failed', e)
   }
