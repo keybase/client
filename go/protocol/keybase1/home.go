@@ -372,7 +372,10 @@ func (e HomeScreenTodoType) String() string {
 // item to tell user to verify their email address will carry that email
 // address.
 //
-// This data does not come from the server.
+// All new TODO data bundle types should be records rather than single fields
+// to support adding new data to existing TODOs. If a legacy TODO (such as
+// VERIFY_ALL_EMAIL) uses a single field, the "TodoExt" field should be used to
+// introduce more data to the payload.
 type HomeScreenTodo struct {
 	T__                     HomeScreenTodoType `codec:"t" json:"t"`
 	VerifyAllPhoneNumber__  *PhoneNumber       `codec:"verifyAllPhoneNumber,omitempty" json:"verifyAllPhoneNumber,omitempty"`

@@ -203,7 +203,7 @@
           "body": null
         }
       ],
-      "doc": "Most of TODO items do not carry additional data, but some do. e.g. TODO\n    item to tell user to verify their email address will carry that email\n    address.\n\n    This data does not come from the server."
+      "doc": "Most of TODO items do not carry additional data, but some do. e.g. TODO\n    item to tell user to verify their email address will carry that email\n    address.\n\n    All new TODO data bundle types should be records rather than single fields\n    to support adding new data to existing TODOs. If a legacy TODO (such as\n    VERIFY_ALL_EMAIL) uses a single field, the \"TodoExt\" field should be used to\n    introduce more data to the payload."
     },
     {
       "type": "variant",

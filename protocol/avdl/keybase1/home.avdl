@@ -85,7 +85,10 @@ protocol home {
     item to tell user to verify their email address will carry that email
     address.
 
-    This data does not come from the server.
+    All new TODO data bundle types should be records rather than single fields
+    to support adding new data to existing TODOs. If a legacy TODO (such as
+    VERIFY_ALL_EMAIL) uses a single field, the "TodoExt" field should be used to
+    introduce more data to the payload.
   */
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
     case VERIFY_ALL_PHONE_NUMBER: PhoneNumber;
@@ -93,7 +96,6 @@ protocol home {
     case LEGACY_EMAIL_VISIBILITY: EmailAddress;
     default: void;
   }
-
   variant HomeScreenTodoExt switch (HomeScreenTodoType t) {
     case VERIFY_ALL_EMAIL: VerifyAllEmailTodoExt;
     default: void;
