@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import SystemMessageTimestamp from '../system-message-timestamp'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 type Props = {
   author: string
@@ -23,15 +24,18 @@ const Joined = (props: Props) =>
   props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <Kb.ConnectedUsernames
-      type="BodySmallSemibold"
-      suffixType="BodySmall"
-      onUsernameClicked="profile"
-      colorFollowing={true}
-      underline={true}
-      usernames={props.joiners}
-      suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-    />
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+      <Kb.ConnectedUsernames
+        type="BodySmallSemibold"
+        suffixType="BodySmall"
+        onUsernameClicked="profile"
+        colorFollowing={true}
+        underline={true}
+        usernames={props.joiners}
+        suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+      />
+    </Kb.Box2>
   )
 
 const JoinedUserNotice = (props: Props) => (

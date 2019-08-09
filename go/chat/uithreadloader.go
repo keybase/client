@@ -70,7 +70,7 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages, chat1.MessageType_JOIN,
 		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
-			mvalid := grouped[len(grouped)-1].Valid()
+			mvalid := grouped[0].Valid()
 			var joiners []string
 			for _, j := range grouped {
 				joiners = append(joiners, j.Valid().SenderUsername)
@@ -82,7 +82,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 		})
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs, chat1.MessageType_LEAVE,
 		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
-			mvalid := grouped[len(grouped)-1].Valid()
+			mvalid := grouped[0].Valid()
 			var leavers []string
 			for _, j := range grouped {
 				leavers = append(leavers, j.Valid().SenderUsername)
