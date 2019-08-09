@@ -24,6 +24,8 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 		ResolvedFreshnessMs   int                                      `json:"resolved_freshness_ms"`
 		UnresolvedFreshnessMs int                                      `json:"unresolved_freshness_ms"`
 		Token                 Token                                    `json:"token"`
+		TokenValidateErr      string                                   `json:"validate_err"`
+		TokenValidateSC       int                                      `json:"validate_err_sc"`
 	}
 
 	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
@@ -50,6 +52,9 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	err = mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return res, err
+	}
+	if resp.TokenValidateErr != "" {
+		mctx.Debug("Error in validation of contact token: %s, code %d", resp.TokenValidateErr, resp.TokenValidateSC)
 	}
 	res = NewContactLookupResults()
 	res.Results = resp.Resolutions
