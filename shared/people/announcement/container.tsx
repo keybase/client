@@ -70,15 +70,11 @@ const mapDispatchToProps = dispatch => ({
         break
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(
-      PeopleGen.createGetPeopleData({bustCache: false, markViewed: true, numFollowSuggestionsWanted: 10})
-    )
+    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
   },
   _onDismiss: id => {
     dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(
-      PeopleGen.createGetPeopleData({bustCache: false, markViewed: true, numFollowSuggestionsWanted: 10})
-    )
+    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
   },
 })
 

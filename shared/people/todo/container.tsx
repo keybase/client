@@ -269,17 +269,19 @@ const VerifyAllEmailConnector = connect(
     },
   }),
   (s, d, o: TodoOwnProps) => {
-    const meta = o.metadata
+    const meta = o.metadata && o.metadata.type === 'email' ? o.metadata : undefined
+
+    // Has the user received a verification email less than 30 minutes ago?
+    const hasRecentVerifyEmail =
+      meta && meta.lastVerifyEmailDate && new Date().getTime() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+
     return {
       ...o,
       buttons: [
-        ...(meta && meta.type === 'email'
+        ...(meta
           ? [
               {
-                label:
-                  meta.lastVerifyEmailDate && new Date().getTime() / 1000 - meta.lastVerifyEmailDate < 30 * 60
-                    ? `Resend the verification email`
-                    : 'Verify',
+                label: hasRecentVerifyEmail ? `Resend the verification email` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
                 waiting: s._addedEmail && s._addedEmail === meta.email,

@@ -113,7 +113,7 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
     case T.legacyEmailVisibility:
       return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
     case T.verifyAllEmail:
-      return `Your email address *${todo.verifyAllEmail || ''}* is unverified.`
+      return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case T.verifyAllPhoneNumber: {
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
@@ -293,7 +293,7 @@ export const makeState = I.Record<Types._State>({
 
 export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({
   email: '',
-  lastVerifyEmailDate: '',
+  lastVerifyEmailDate: 0,
   type: 'email',
 })
 export const makeTodoMetaPhone = I.Record<Types._TodoMetaPhone>({phone: '', type: 'phone'})

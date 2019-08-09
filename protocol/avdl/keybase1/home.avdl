@@ -17,7 +17,6 @@ protocol home {
     case ANNOUNCEMENT: HomeScreenAnnouncement;
     default: void; // Note, if badged, we should urge an upgrade here.
   }
-
   variant HomeScreenItemDataExt switch (HomeScreenItemType t) {
     case TODO: HomeScreenTodoExt;
     default: void;

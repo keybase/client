@@ -144,7 +144,6 @@ const skipTodo = async (_: Container.TypedState, action: PeopleGen.SkipTodoPaylo
 
 const homeUIRefresh = () =>
   PeopleGen.createGetPeopleData({
-    bustCache: false,
     markViewed: false,
     numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
   })

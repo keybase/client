@@ -15,7 +15,7 @@ export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 export type _TodoMetaEmail = {
   type: 'email'
   email: string
-  lastVerifyEmailDate?: any
+  lastVerifyEmailDate?: number
 }
 export type _TodoMetaPhone = {type: 'phone'; phone: string}
 
