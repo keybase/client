@@ -19,6 +19,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
 
@@ -54,34 +55,6 @@ var kbfsConfig libkbfs.Config
 
 var initMutex sync.Mutex
 var initComplete bool
-
-type Person struct {
-	KeybaseUsername string
-	KeybaseAvatar   string
-	IsBot           bool
-}
-
-type Message struct {
-	Id        int
-	Kind      string // "Text" | "Reaction"
-	Plaintext string
-	From      *Person
-	At        int64
-}
-
-type ChatNotification struct {
-	// Ordered from oldest to newest
-	Message   *Message
-	ConvID    string
-	TeamName  string
-	TopicName string
-	// e.g. "keybase#general, CoolTeam, Susannah,Jake"
-	ConversationName    string
-	IsGroupConversation bool
-	IsPlaintext         bool
-	SoundName           string
-	BadgeCount          int
-}
 
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
@@ -537,8 +510,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 
-	convInfo, err := mp.GetConvInfo(ctx, uid, convID)
-
+	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to get conversation info", err)
 		return err
@@ -558,9 +530,9 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 			At: int64(unixTime) * 1000,
 		},
 		ConvID:              strConvID,
-		TopicName:           convInfo.TopicName,
-		IsGroupConversation: len(convInfo.Participants) > 2,
-		ConversationName:    formatConversationName(convInfo),
+		TopicName:           conv.Info.TopicName,
+		IsGroupConversation: len(conv.Info.Participants) > 2,
+		ConversationName:    formatConversationName(conv.Info),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
 	}
@@ -572,9 +544,11 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 
 	// We show avatars on Android
 	if runtime.GOOS == "android" {
-		srvInfo, err := kbSvc.GetHttpSrvInfo()
-		if err == nil {
-			avatar := chat.GetUserAvatar(username, srvInfo)
+		avatar, err := kbSvc.GetUserAvatar(username)
+
+		if err != nil {
+			kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
+		} else {
 			chatNotification.Message.From.KeybaseAvatar = avatar
 		}
 	}
@@ -595,6 +569,12 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	default:
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
 		return errors.New("invalid message type for plaintext")
+	}
+
+	age := time.Since(time.Unix(int64(unixTime), 0))
+	if age >= 2*time.Minute {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
+		return errors.New("stale notification")
 	}
 
 	pusher.DisplayChatNotification(&chatNotification)

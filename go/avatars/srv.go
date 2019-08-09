@@ -34,6 +34,21 @@ func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
 	return s
 }
 
+func (s *Srv) GetUserAvatar(username string) (string, error) {
+	if s.httpSrv == nil {
+		return "", fmt.Errorf("HttpSrv is not ready")
+	}
+
+	addr, err := s.httpSrv.Addr()
+	if err != nil {
+		return "", err
+	}
+
+	token := s.httpSrv.Token()
+
+	return fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", addr, username, token), nil
+}
+
 func (s *Srv) debug(msg string, args ...interface{}) {
 	s.G().GetLog().Debug("Avatars.Srv: %s", fmt.Sprintf(msg, args...))
 }

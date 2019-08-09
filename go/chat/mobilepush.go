@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -71,21 +70,6 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 		}); err != nil {
 		h.Debug(ctx, "AckNotificationSuccess: failed to invoke remote notification success: %s", err)
 	}
-}
-
-func (h *MobilePush) GetConvInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (info chat1.ConversationInfoLocal, err error) {
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-
-	if err != nil || len(ib.Convs) == 0 {
-		h.Debug(ctx, "getConvInfo: failed to unbox conv: %v", convID)
-		return chat1.ConversationInfoLocal{}, fmt.Errorf("Failed to unbox %v", convID)
-	}
-
-	return ib.Convs[0].Info, nil
 }
 
 func GetUserAvatar(username string, srvInfo *keybase1.HttpSrvInfo) string {
