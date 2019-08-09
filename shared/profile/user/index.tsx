@@ -17,6 +17,7 @@ import Folders from '../folders/container'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
+import {SiteIcon} from '../generic/shared'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -33,8 +34,9 @@ export type Props = {
   onBack: () => void
   onReload: () => void
   onSearch: () => void
-  onEditAvatar: (() => void) | null
+  onEditAvatar: ((e?: React.SyntheticEvent) => void) | null
   reason: string
+  sbsAvatarUrl?: string
   showAirdropBanner: boolean
   state: Types.DetailsState
   suggestionKeys: Array<string> | null
@@ -42,6 +44,7 @@ export type Props = {
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
+  serviceIcon: readonly Types.SiteIcon[] | null
   fullName: string | null // full name from external profile
   title: string
 }
@@ -62,20 +65,31 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 
 const noopOnClick = () => {}
 
-const BioLayout = p => (
+type SbsTitleProps = {
+  serviceIcon: readonly Types.SiteIcon[] | null
+  sbsUsername: string
+}
+const SbsTitle = (p: SbsTitleProps) => (
+  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
+    {p.serviceIcon && <SiteIcon set={p.serviceIcon} full={false} />}
+    <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
+  </Kb.Box2>
+)
+const BioLayout = (p: BioTeamProofsProps) => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
       onClick={p.title === p.username ? 'profile' : noopOnClick}
-      title={p.title !== p.username ? p.title : null}
+      title={p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : null}
       username={p.username}
       underline={false}
       selectable={true}
       colorFollowing={true}
       notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar}
+      onEditIcon={p.onEditAvatar || undefined}
       avatarSize={avatarSize}
       size="huge"
+      avatarImageOverride={p.sbsAvatarUrl}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -210,13 +224,15 @@ export type BioTeamProofsProps = {
   onAddIdentity: (() => void) | null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: (() => void) | null
+  onEditAvatar: ((e?: React.SyntheticEvent) => void) | null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
   reason: string
   name: string
+  sbsAvatarUrl?: string
   service: string
+  serviceIcon: readonly Types.SiteIcon[] | null
   fullName: string | null
   title: string
 }
@@ -386,7 +402,9 @@ class User extends React.Component<Props, State> {
         username={this.props.username}
         name={this.props.name}
         service={this.props.service}
+        serviceIcon={this.props.serviceIcon}
         reason={this.props.reason}
+        sbsAvatarUrl={this.props.sbsAvatarUrl}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
         notAUser={this.props.notAUser}

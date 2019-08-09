@@ -75,6 +75,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         | undefined,
       followingCount,
       reason: d.reason,
+      serviceIcon: null,
+      sbsAvatarUrl: undefined,
       title: username,
     }
   } else {
@@ -93,7 +95,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       backgroundColorType: headerBackgroundColorType(d.state, false),
       fullName: nonUserDetails.fullName,
       name,
+      sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
       service,
+      serviceIcon: nonUserDetails.siteIconFull,
       title,
     }
   }
@@ -172,7 +176,9 @@ const connected = Container.namedConnect(
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       onSearch: dispatchProps.onSearch,
       reason: stateProps.reason,
+      sbsAvatarUrl: stateProps.sbsAvatarUrl,
       service: stateProps.service,
+      serviceIcon: stateProps.serviceIcon,
       showAirdropBanner: stateProps.showAirdropBanner,
       state: stateProps.state,
       suggestionKeys: stateProps._suggestionKeys
