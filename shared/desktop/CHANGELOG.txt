@@ -1,6 +1,4 @@
 Chat:
-• Swipe left to mute or hide a conversation
-• Swipe left to quickly reply to a message in a conversation
 • Replies will automatically notify who you're replying to
 
 Misc:
