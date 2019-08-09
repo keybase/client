@@ -1,5 +1,4 @@
 import * as I from 'immutable'
-import * as React from 'react'
 import * as Constants from '../../constants/tracker2'
 import {getShowAirdropBanner} from '../../constants/wallets'
 import * as Container from '../../util/container'
@@ -8,11 +7,8 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/tracker2'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
-import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{username: string}>
@@ -193,39 +189,5 @@ const connected = Container.namedConnect(
   },
   'Profile2'
 )(Profile2)
-
-const Header = ({onSearch}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} onSearch={onSearch} />
-  </Kb.Box2>
-)
-const ConnectedHeader = Container.connect(
-  () => ({}),
-  dispatch => ({
-    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
-  }),
-  (s, d, o) => ({...o, ...s, ...d})
-)(Header)
-
-// @ts-ignore let's fix this
-connected.navigationOptions = p => ({
-  header: undefined,
-  headerBackIconColor: Styles.globalColors.white,
-  headerHideBorder: false,
-  headerStyle: {
-    backgroundColor: Styles.globalColors.transparent,
-    borderBottomColor: Styles.globalColors.transparent,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-  headerTintColor: Styles.globalColors.white,
-  headerTitle: ConnectedHeader,
-  headerTitleContainerStyle: {
-    left: 60,
-    right: 20,
-  },
-  headerTransparent: true,
-  underNotch: true,
-})
 
 export default connected

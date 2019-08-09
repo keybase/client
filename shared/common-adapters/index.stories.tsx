@@ -28,6 +28,7 @@ import newInput from './new-input.stories'
 import placeholder from './placeholder.stories'
 import plainInput from './plain-input.stories'
 import popupDialog from './popup-dialog.stories'
+import proofBrokenBanner from './proof-broken-banner.stories'
 import radiobutton from './radio-button.stories'
 import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
@@ -71,6 +72,7 @@ const load = () => {
     placeholder,
     plainInput,
     popupDialog,
+    proofBrokenBanner,
     radiobutton,
     reload,
     saveIndicator,

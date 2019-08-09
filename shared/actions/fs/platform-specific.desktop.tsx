@@ -110,29 +110,26 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state, action: FsGen.OpenPathInSystemFileManagerPayload) =>
+const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-        .then(
-          mountLocation =>
-            _openPathInSystemFileManagerPromise(
-              _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-              ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
-                Constants.parsePath(action.payload.path).kind
-              ) ||
-                state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-                  Types.PathType.Folder
-            ) as any
+        .then(mountLocation =>
+          _openPathInSystemFileManagerPromise(
+            _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
+            ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+              Constants.parsePath(action.payload.path).kind
+            ) ||
+              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
+                Types.PathType.Folder
+          )
         )
-        .catch(err => {
-          return makeRetriableErrorHandler(action, action.payload.path)(err)
-        })
-    : new Promise((_, reject) =>
+        .catch(makeRetriableErrorHandler(action, action.payload.path))
+    : (new Promise((_, reject) =>
         // This usually indicates a developer error as
         // openPathInSystemFileManager shouldn't be used when FUSE integration
         // is not enabled. So just blackbar to encourage a log send.
         reject(new Error('FUSE integration is not enabled'))
-      )
+      ) as Promise<void>)
 
 function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {

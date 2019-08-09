@@ -70,3 +70,16 @@ func NewHiddenRotationNotSupportedError(teamID keybase1.TeamID) HiddenRotationNo
 func (e HiddenRotationNotSupportedError) Error() string {
 	return fmt.Sprintf("hidden team rotation is not enabled for team %s", e.teamID)
 }
+
+type RepeatPTKGenerationError struct {
+	q   keybase1.PerTeamKeyGeneration
+	msg string
+}
+
+func newRepeatPTKGenerationError(q keybase1.PerTeamKeyGeneration, msg string) RepeatPTKGenerationError {
+	return RepeatPTKGenerationError{q, msg}
+}
+
+func (e RepeatPTKGenerationError) Error() string {
+	return fmt.Sprintf("Repeated PTK Generation found at %d (%s)", e.q, e.msg)
+}

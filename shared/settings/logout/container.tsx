@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -11,7 +12,7 @@ export default Container.connect(
   state => ({
     checkPasswordIsCorrect: state.settings.checkPasswordIsCorrect,
     hasRandomPW: state.settings.password.randomPW,
-    waitingForResponse: state.settings.waitingForResponse,
+    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
   }),
   dispatch => ({
     onBootstrap: () => dispatch(SettingsGen.createLoadHasRandomPw()),
