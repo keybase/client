@@ -1211,11 +1211,15 @@ const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types
     ? 'native'
     : Constants.makeAssetDescription({
         code: asset.code,
+        depositButtonText: asset.depositButtonText,
         infoUrl: asset.infoUrl,
         infoUrlText: asset.infoUrlText,
         issuerAccountID: asset.issuer,
         issuerName: asset.issuerName,
         issuerVerifiedDomain: asset.verifiedDomain,
+        showDepositButton: asset.showDepositButton,
+        showWithdrawButton: asset.showWithdrawButton,
+        withdrawButtonText: asset.withdrawButtonText,
       })
 
 const balancesToAction = (

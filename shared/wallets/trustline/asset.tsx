@@ -6,6 +6,7 @@ export type Props = {
   code: string
   cannotAccept: boolean
   depositButtonText: string
+  depositButtonWaitingKey?: string
   expanded: boolean
   firstItem: boolean
   infoUrlText: string
@@ -13,6 +14,7 @@ export type Props = {
   issuerVerifiedDomain: string
   thisDeviceIsLockedOut: boolean
   trusted: boolean // TODO add limit when we support it in GUI
+  withdrawButtonWaitingKey?: string
   withdrawButtonText: string
 
   onAccept: () => void
@@ -63,24 +65,26 @@ const bodyExpanded = (props: Props) => (
     <Kb.ButtonBar direction="row" align="flex-start" small={true}>
       {!!props.depositButtonText && (
         <>
-          <Kb.Button
+          <Kb.WaitingButton
             mode="Secondary"
             label={props.depositButtonText}
-            onClick={props.onDeposit}
+            onClick={stopPropagation(props.onDeposit)}
             small={true}
             type="Wallet"
+            waitingKey={props.depositButtonWaitingKey || null}
           />
         </>
       )}
 
       {!!props.withdrawButtonText && (
         <>
-          <Kb.Button
+          <Kb.WaitingButton
             mode="Secondary"
             label={props.withdrawButtonText}
-            onClick={props.onWithdraw}
+            onClick={stopPropagation(props.onWithdraw)}
             small={true}
             type="Wallet"
+            waitingKey={props.withdrawButtonWaitingKey || null}
           />
         </>
       )}
