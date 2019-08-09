@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {NativeDimensions, NativeView} from './native-wrappers.native'
 import FloatingBox from './floating-box'
-import hOCTimers, {PropsWithTimer} from './hoc-timers'
+import {useTimeout} from './use-timers'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'
@@ -23,12 +23,6 @@ const Kb = {
   Text,
 }
 
-type State = {
-  left: number
-  top: number
-  visible: boolean
-}
-
 type Dims = {
   height: number
   left: number
@@ -44,16 +38,18 @@ const measureCb = (resolve: (dims: Dims) => void) => (
   pageY: number
 ) => resolve({height, left: pageX, top: pageY, width})
 
-class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
-  state = {
-    left: 0,
-    top: 0,
-    visible: false,
-  }
-  _clickableRef = React.createRef<NativeView>()
-  _tooltipRef = React.createRef<NativeView>()
-  _onClick = () => {
-    if (!this._clickableRef.current || !this._tooltipRef.current || this.state.visible) {
+const WithTooltip = (props: Props) => {
+  const {position} = props
+  const [left, setLeft] = React.useState(0)
+  const [top, setTop] = React.useState(0)
+  const [visible, setVisible] = React.useState(false)
+  const clickableRef = React.useRef<NativeView>(null)
+  const tooltipRef = React.useRef<NativeView>(null)
+  const setVisibleFalseLater = useTimeout(() => {
+    setVisible(false)
+  }, 3000)
+  const _onClick = () => {
+    if (!clickableRef.current || !tooltipRef.current || visible) {
       return
     }
 
@@ -61,85 +57,64 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
     const screenHeight = Kb.NativeDimensions.get('window').height
 
     Promise.all([
-      new Promise(
-        resolve => this._clickableRef.current && this._clickableRef.current.measure(measureCb(resolve))
-      ),
-      new Promise(
-        resolve => this._tooltipRef.current && this._tooltipRef.current.measure(measureCb(resolve))
-      ),
+      new Promise(resolve => clickableRef.current && clickableRef.current.measure(measureCb(resolve))),
+      new Promise(resolve => tooltipRef.current && tooltipRef.current.measure(measureCb(resolve))),
       // @ts-ignore this stucture makes this very hard to type
     ]).then(([c, t]: [Dims, Dims]) => {
-      if (!this._mounted) {
-        return
-      }
-
       const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
       const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
-      this.props.position === 'bottom center'
-        ? this.setState({
-            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
-            top: constrainTop(c.top + c.height),
-            visible: true,
-          })
-        : this.setState({
-            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
-            top: constrainTop(c.top - t.height),
-            visible: true,
-          }) // default to top center
+      if (position === 'bottom center') {
+        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+        setTop(constrainTop(c.top + c.height))
+      } else {
+        // default to top center
+        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+        setTop(constrainTop(c.top - t.height))
+      }
 
-      this.props.setTimeout(() => {
-        this._mounted && this.setState({visible: false})
-      }, 3000)
+      setVisible(true)
+      setVisibleFalseLater()
     })
   }
 
-  _mounted = false
-  componentDidMount() {
-    this._mounted = true
-  }
-  componentWillUnmount() {
-    this._mounted = false
+  if (!props.showOnPressMobile || props.disabled) {
+    return <Kb.NativeView style={props.containerStyle as any}>{props.children}</Kb.NativeView>
   }
 
-  render() {
-    if (!this.props.showOnPressMobile || this.props.disabled) {
-      return <Kb.NativeView style={this.props.containerStyle as any}>{this.props.children}</Kb.NativeView>
-    }
-
-    return (
-      <>
-        <Kb.NativeView style={this.props.containerStyle as any} ref={this._clickableRef}>
-          <Kb.ClickableBox onClick={this._onClick}>{this.props.children}</Kb.ClickableBox>
-        </Kb.NativeView>
-        <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
-          {animatedStyle => (
-            <Kb.FloatingBox>
+  return (
+    <>
+      <Kb.NativeView style={props.containerStyle as any} ref={clickableRef}>
+        <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
+      </Kb.NativeView>
+      <Kb.Animated from={{}} to={{opacity: visible ? 1 : 0}}>
+        {animatedStyle => (
+          <Kb.FloatingBox>
+            <Kb.NativeView
+              pointerEvents="none"
+              style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
+            >
               <Kb.NativeView
-                pointerEvents="none"
-                style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}
+                style={Styles.collapseStyles([animatedStyle, styles.container, {left}])}
+                ref={tooltipRef}
               >
-                <Kb.NativeView
-                  style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
-                  ref={this._tooltipRef}
+                <Kb.Text
+                  center={!props.multiline}
+                  type="BodySmall"
+                  style={Styles.collapseStyles([styles.text, props.textStyle])}
+                  lineClamp={props.multiline ? undefined : 1}
                 >
-                  <Kb.Text
-                    center={!this.props.multiline}
-                    type="BodySmall"
-                    style={Styles.collapseStyles([styles.text, this.props.textStyle])}
-                    lineClamp={this.props.multiline ? undefined : 1}
-                  >
-                    {this.props.text}
-                  </Kb.Text>
-                </Kb.NativeView>
+                  {props.text}
+                </Kb.Text>
               </Kb.NativeView>
-            </Kb.FloatingBox>
-          )}
-        </Kb.Animated>
-      </>
-    )
-  }
+            </Kb.NativeView>
+          </Kb.FloatingBox>
+        )}
+      </Kb.Animated>
+    </>
+  )
 }
-export default hOCTimers(WithTooltip)
+
+export default WithTooltip
 
 const styles = Styles.styleSheetCreate({
   container: {
