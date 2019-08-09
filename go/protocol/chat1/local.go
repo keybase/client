@@ -968,6 +968,7 @@ func (o MessageAttachmentUploaded) DeepCopy() MessageAttachmentUploaded {
 
 type MessageJoin struct {
 	Joiners []string `codec:"joiners" json:"joiners"`
+	Leavers []string `codec:"leavers" json:"leavers"`
 }
 
 func (o MessageJoin) DeepCopy() MessageJoin {
@@ -983,15 +984,6 @@ func (o MessageJoin) DeepCopy() MessageJoin {
 			}
 			return ret
 		})(o.Joiners),
-	}
-}
-
-type MessageLeave struct {
-	Leavers []string `codec:"leavers" json:"leavers"`
-}
-
-func (o MessageLeave) DeepCopy() MessageLeave {
-	return MessageLeave{
 		Leavers: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -1004,6 +996,13 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 			return ret
 		})(o.Leavers),
 	}
+}
+
+type MessageLeave struct {
+}
+
+func (o MessageLeave) DeepCopy() MessageLeave {
+	return MessageLeave{}
 }
 
 type MessageReaction struct {

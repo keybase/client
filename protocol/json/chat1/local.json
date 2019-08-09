@@ -662,13 +662,7 @@
             "items": "string"
           },
           "name": "joiners"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MessageLeave",
-      "fields": [
+        },
         {
           "type": {
             "type": "array",
@@ -677,6 +671,11 @@
           "name": "leavers"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MessageLeave",
+      "fields": []
     },
     {
       "type": "record",

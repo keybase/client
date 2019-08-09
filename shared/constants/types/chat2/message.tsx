@@ -330,6 +330,7 @@ export type _MessageSystemJoined = {
   isDeleteable: boolean
   isEditable: boolean
   joiners: Array<string>
+  leavers: Array<string>
   timestamp: number
   type: 'systemJoined'
 } & _MessageCommon
@@ -343,7 +344,6 @@ export type _MessageSystemLeft = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  leavers: Array<string>
   timestamp: number
   type: 'systemLeft'
 } & _MessageCommon

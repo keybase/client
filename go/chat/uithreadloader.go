@@ -46,8 +46,12 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 }
 
 func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
-	typ chat1.MessageType, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	typs []chat1.MessageType, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	var grouped []chat1.MessageUnboxed
+	typMap := make(map[chat1.MessageType]bool)
+	for _, t := range typs {
+		typMap[t] = true
+	}
 	addGrouped := func() {
 		if len(grouped) == 0 {
 			return
@@ -56,8 +60,15 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() && msg.Valid().MessageBody.IsType(typ) && !msg.Valid().ClientHeader.Sender.Eq(uid) {
-			grouped = append(grouped, msg)
+		if msg.IsValid() {
+			body := msg.Valid().MessageBody
+			mtyp, err := body.MessageType()
+			if err == nil && typMap[mtyp] && !msg.Valid().ClientHeader.Sender.Eq(uid) {
+				grouped = append(grouped, msg)
+			} else {
+				addGrouped()
+				res = append(res, msg)
+			}
 		} else {
 			addGrouped()
 			res = append(res, msg)
@@ -68,26 +79,21 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 }
 
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
-	newMsgs := t.groupGeneric(ctx, uid, tv.Messages, chat1.MessageType_JOIN,
+	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
+		[]chat1.MessageType{chat1.MessageType_JOIN, chat1.MessageType_LEAVE},
 		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
 			mvalid := grouped[0].Valid()
-			var joiners []string
+			var joiners, leavers []string
 			for _, j := range grouped {
-				joiners = append(joiners, j.Valid().SenderUsername)
+				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+					joiners = append(joiners, j.Valid().SenderUsername)
+				} else {
+					leavers = append(leavers, j.Valid().SenderUsername)
+				}
 			}
+			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
 			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
 				Joiners: joiners,
-			})
-			return chat1.NewMessageUnboxedWithValid(mvalid)
-		})
-	newMsgs = t.groupGeneric(ctx, uid, newMsgs, chat1.MessageType_LEAVE,
-		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
-			mvalid := grouped[0].Valid()
-			var leavers []string
-			for _, j := range grouped {
-				leavers = append(leavers, j.Valid().SenderUsername)
-			}
-			mvalid.MessageBody = chat1.NewMessageBodyWithLeave(chat1.MessageLeave{
 				Leavers: leavers,
 			})
 			return chat1.NewMessageUnboxedWithValid(mvalid)

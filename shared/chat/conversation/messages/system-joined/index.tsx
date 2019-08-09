@@ -11,6 +11,7 @@ type Props = {
   channelname: string
   isBigTeam: boolean
   joiners: Array<string>
+  leavers: Array<string>
   onManageChannels: () => void
   onManageNotifications: () => void
   teamname: string
@@ -26,15 +27,28 @@ const Joined = (props: Props) =>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
-      <Kb.ConnectedUsernames
-        type="BodySmallSemibold"
-        suffixType="BodySmall"
-        onUsernameClicked="profile"
-        colorFollowing={true}
-        underline={true}
-        usernames={props.joiners}
-        suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-      />
+      {props.joiners.length > 0 && (
+        <Kb.ConnectedUsernames
+          type="BodySmallSemibold"
+          suffixType="BodySmall"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={props.joiners}
+          suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        />
+      )}
+      {props.leavers.length > 0 && (
+        <Kb.ConnectedUsernames
+          type="BodySmallSemibold"
+          suffixType="BodySmall"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={props.leavers}
+          suffix={` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        />
+      )}
     </Kb.Box2>
   )
 
