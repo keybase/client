@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Text, Icon} from '../../../common-adapters'
+import {Text} from '../../../common-adapters'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
@@ -24,7 +24,6 @@ class RequestInvite extends React.Component<Props, State> {
     return (
       <Wrapper onBack={this.props.onBack}>
         <Text type="Header"> Request an invite code </Text>
-        <Icon type="icon-invite-code-48" />
         <Input
           hintText="Your email address"
           value={this.state.email}
