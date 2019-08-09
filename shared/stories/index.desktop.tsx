@@ -64,7 +64,12 @@ const RootWrapper = ({children}) => {
   )
 
   if (__STORYSHOT__) {
-    return children
+    return (
+      <div style={{height: '100%', width: '100%'}}>
+        {children}
+        <div id="modal-root" />
+      </div>
+    )
   } else {
     return (
       <div
