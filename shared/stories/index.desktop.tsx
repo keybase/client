@@ -24,8 +24,44 @@ const filteredStories = Object.keys(stories).reduce(
   filter ? {} : stories
 )
 
+function useInterval(callback: () => void, delay: number | null) {
+  const savedCallback = React.useRef<() => void>()
+
+  React.useEffect(() => {
+    savedCallback.current = callback
+  }, [callback])
+
+  React.useEffect(() => {
+    function tick() {
+      const c = savedCallback.current
+      c && c()
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay)
+      return () => clearInterval(id)
+    } else return undefined
+  }, [delay])
+}
+
+// keep modes in the module so its kept between stories
+let _darkMode = false
+let _autoSwap = false
 const RootWrapper = ({children}) => {
-  const [darkMode, setDarkMode] = React.useState(false)
+  const [darkMode, setDarkMode] = React.useState(_darkMode)
+  const [autoSwap, setAutoSwap] = React.useState(_autoSwap)
+
+  // stash change
+  React.useEffect(() => {
+    _darkMode = darkMode
+    _autoSwap = autoSwap
+  }, [darkMode, autoSwap])
+
+  useInterval(
+    () => {
+      setDarkMode(!darkMode)
+    },
+    autoSwap ? 1000 : null
+  )
 
   return (
     <div
@@ -42,12 +78,17 @@ const RootWrapper = ({children}) => {
           top: 0,
           zIndex: 9999,
         }}
-        onClick={() => {
-          setDarkMode(!darkMode)
-          _setSystemIsDarkMode(!darkMode)
+        title="Shift+Click to turn on auto"
+        onClick={(e: React.MouseEvent) => {
+          if (e.shiftKey) {
+            setAutoSwap(!autoSwap)
+          } else {
+            setDarkMode(!darkMode)
+            _setSystemIsDarkMode(!darkMode)
+          }
         }}
       >
-        {darkMode ? 'Dark Mode' : 'Light Mode'}
+        {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
       </div>
       {children}
       <div id="modal-root" />
