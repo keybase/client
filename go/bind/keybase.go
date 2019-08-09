@@ -24,6 +24,9 @@ import (
 
 	"strings"
 
+	"github.com/kyokomi/emoji"
+
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/fsrpc"
@@ -60,6 +63,7 @@ type Person struct {
 
 type Message struct {
 	Id        int
+	Kind      string // "Text" | "Reaction"
 	Plaintext string
 	From      *Person
 	At        int64
@@ -75,6 +79,8 @@ type ChatNotification struct {
 	ConversationName    string
 	IsGroupConversation bool
 	IsPlaintext         bool
+	SoundName           string
+	BadgeCount          int
 }
 
 type PushNotifier interface {
@@ -525,6 +531,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
+
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		return err
@@ -554,46 +561,43 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		TopicName:           convInfo.TopicName,
 		IsGroupConversation: len(convInfo.Participants) > 2,
 		ConversationName:    formatConversationName(convInfo),
+		SoundName:           soundName,
+		BadgeCount:          badgeCount,
 	}
 
 	if !displayPlaintext {
-		if runtime.GOOS == "android" {
-			pusher.DisplayChatNotification(&chatNotification)
-		}
+		pusher.DisplayChatNotification(&chatNotification)
 		return nil
 	}
 
+	// We show avatars on Android
 	if runtime.GOOS == "android" {
 		srvInfo, err := kbSvc.GetHttpSrvInfo()
 		if err == nil {
 			avatar := chat.GetUserAvatar(username, srvInfo)
 			chatNotification.Message.From.KeybaseAvatar = avatar
 		}
+	}
 
-		chatNotification.IsPlaintext = true
+	chatNotification.IsPlaintext = true
+
+	switch msgUnboxed.GetMessageType() {
+	case chat1.MessageType_TEXT:
+		chatNotification.Message.Kind = "Text"
 		chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
-
-		pusher.DisplayChatNotification(&chatNotification)
-		mp.AckNotificationSuccess(ctx, []string{pushID})
-		return nil
+	case chat1.MessageType_REACTION:
+		chatNotification.Message.Kind = "Reaction"
+		reaction, err := utils.GetReaction(msgUnboxed)
+		if err != nil {
+			return err
+		}
+		chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
+	default:
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
+		return errors.New("invalid message type for plaintext")
 	}
 
-	// TODO delete this logic when we update iOS
-
-	// Send notification
-	msg, err := mp.FormatPushText(ctx, uid, convID, membersType, msgUnboxed)
-	if err != nil {
-		return err
-	}
-	age := time.Since(time.Unix(int64(unixTime), 0))
-	if age >= 2*time.Minute {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
-		return errors.New("stale notification")
-	}
-	// Send up the local notification with our message
-	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
-	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
-	// Hit the remote server to let it know we succeeded in showing something useful
+	pusher.DisplayChatNotification(&chatNotification)
 	mp.AckNotificationSuccess(ctx, []string{pushID})
 	return nil
 }

@@ -1700,12 +1700,13 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	if err != nil {
 		return res, err
 	}
-	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, msg); err != nil {
+	if _, err := mp.GetConvInfo(ctx, uid, convID); err != nil {
 		return res, err
 	}
 	if arg.ShouldAck {
 		mp.AckNotificationSuccess(ctx, arg.PushIDs)
 	}
+	res = msg.Valid().MessageBody.Text().Body
 	return res, nil
 }
 
