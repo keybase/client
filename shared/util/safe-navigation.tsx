@@ -3,6 +3,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
 import {NavigationInjectedProps, withNavigation} from '@react-navigation/core'
 import {hoistNonReactStatic} from '../util/container'
+import {useNavigationState} from './navigation-hooks'
 
 type Path = Array<string | {props?: any; selected?: string}>
 
@@ -65,12 +66,13 @@ function withSafeNavigationStorybook<P extends {}>(
   )
 }
 
-export const useSafeNavigation: () => Omit<NavProps, 'getParam'> = () => {
+export const useSafeNavigation: () => PropsWithSafeNavigation<{}> = () => {
   const state = useNavigationState()
   const fromKey = getActiveKey(state)
   return {
-    navigateAppend: ({path, replace}) => RouteTreeGen.createNavigateAppend({fromKey, path, replace}),
-    navigateUp: () => RouteTreeGen.createNavigateUp({fromKey}),
+    safeNavigateAppendPayload: ({path, replace}) =>
+      RouteTreeGen.createNavigateAppend({fromKey, path, replace}),
+    safeNavigateUpPayload: () => RouteTreeGen.createNavigateUp({fromKey}),
   }
 }
 
