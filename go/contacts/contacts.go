@@ -19,14 +19,14 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 		value = coercedValue
 	} else {
 		value = c.ValueString()
-		if key == "phone" {
-			// ContactComponent has the PhoneNumber type which is E164 phone
-			// number starting with `+`, we need to remove all non-digits for
-			// the assertion.
-			value = keybase1.PhoneNumberToAssertionValue(value)
-		} else {
-			value = strings.TrimSpace(value)
-		}
+	}
+	if key == "phone" {
+		// ContactComponent has the PhoneNumber type which is E164 phone
+		// number starting with `+`, we need to remove all non-digits for
+		// the assertion.
+		value = keybase1.PhoneNumberToAssertionValue(value)
+	} else {
+		value = strings.ToLower(strings.TrimSpace(value))
 	}
 	if key == "" || value == "" {
 		return "", errors.New("invalid variant value in contact component")

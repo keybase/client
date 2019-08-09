@@ -266,7 +266,7 @@ func imptofuQueryToAssertion(typ keybase1.ImpTofuSearchType, val string) (string
 	case keybase1.ImpTofuSearchType_PHONE:
 		return fmt.Sprintf("%s@phone", keybase1.PhoneNumberToAssertionValue(val)), nil
 	case keybase1.ImpTofuSearchType_EMAIL:
-		return fmt.Sprintf("[%s]@email", strings.TrimSpace(val)), nil
+		return fmt.Sprintf("[%s]@email", strings.ToLower(strings.TrimSpace(val))), nil
 	default:
 		return "", errors.New("invalid keybase1.ImpTofuSearchType enum value")
 	}

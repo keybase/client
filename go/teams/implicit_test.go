@@ -738,17 +738,21 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 	}
 }
 
-func TestCaseSensitiveEmails(t *testing.T) {
+func TestCaseSensitiveDisplayNames(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, strings.ToUpper(fus[0].Email))
-	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
-	require.NoError(t, err)
-	spew.Dump(teamObj.ID)
-	spew.Dump(teamObj.GetActiveAndObsoleteInvites())
+	upEmail := strings.ToUpper(fus[0].Email)
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, upEmail)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), upEmail)
 
-	_, _, teamName, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, strings.ToLower(displayNameInput), false /*isPublic*/)
-	require.NoError(t, err)
-	spew.Dump(teamName)
+	rooter := fmt.Sprintf("%s@hackernews", strings.ToUpper(fus[0].Username))
+	displayNameInput = fmt.Sprintf("%s,%s", fus[0].Username, rooter)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), rooter)
 }

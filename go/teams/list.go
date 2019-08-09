@@ -244,7 +244,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		if team.IsImplicit() {
 			displayName, err := team.ImplicitTeamDisplayNameString(ctx)
 			if err != nil {
-				m.Debug("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
+				m.Warning("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
 			} else {
 				anMemberInfo.ImpTeamDisplayName = displayName
 			}
