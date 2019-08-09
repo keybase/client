@@ -823,6 +823,10 @@ export type MessageTypes = {
     inParam: {readonly paperPhrase: String}
     outParam: void
   }
+  'keybase.1.login.recoverPassphrase': {
+    inParam: {readonly username: String}
+    outParam: void
+  }
   'keybase.1.loginUi.displayPaperKeyPhrase': {
     inParam: {readonly phrase: String}
     outParam: void
@@ -3156,6 +3160,7 @@ export const loginLoginRpcSaga = (p: {params: MessageTypes['keybase.1.login.logi
 export const loginLogoutRpcPromise = (params: MessageTypes['keybase.1.login.logout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.logout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.logout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginPaperKeyRpcSaga = (p: {params: MessageTypes['keybase.1.login.paperKey']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.login.paperKey', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const loginPaperKeySubmitRpcPromise = (params: MessageTypes['keybase.1.login.paperKeySubmit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.paperKeySubmit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.paperKeySubmit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const loginRecoverPassphraseRpcSaga = (p: {params: MessageTypes['keybase.1.login.recoverPassphrase']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.login.recoverPassphrase', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const notifyCtlSetNotificationsRpcPromise = (params: MessageTypes['keybase.1.notifyCtl.setNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.notifyCtl.setNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.pgp.pgpKeyGenDefault']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3367,7 +3372,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.login.loginWithPaperKey'
 // 'keybase.1.login.clearStoredSecret'
 // 'keybase.1.login.recoverAccountFromEmailAddress'
-// 'keybase.1.login.recoverPassphrase'
 // 'keybase.1.login.unlock'
 // 'keybase.1.login.unlockWithPassphrase'
 // 'keybase.1.login.loginOneshot'
