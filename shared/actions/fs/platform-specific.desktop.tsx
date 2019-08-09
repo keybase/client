@@ -110,7 +110,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state, action: FsGen.OpenPathInSystemFileManagerPayload) =>
+const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(
