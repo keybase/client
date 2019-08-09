@@ -31,6 +31,7 @@ const commands = {
       makeShims()
       fixTypes()
       checkFSEvents()
+      patchExpoAV()
     },
     help: '',
   },
@@ -63,6 +64,26 @@ const fixTypes = () => {
       path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
     )
   } catch (_) {}
+}
+
+function patchExpoAV() {
+  const toInsert = "  implementation 'com.android.support:support-annotations:28.0.0'\n"
+  try {
+    const root = path.resolve(__dirname, '..', '..', 'node_modules', 'expo-av')
+    const fn = path.join(root, 'android', 'build.gradle')
+    const content = fs.readFileSync(fn).toString()
+    if (content.includes(toInsert)) {
+      return
+    }
+    const insertAt = content.indexOf('\n', content.lastIndexOf('unimodule ')) + 1
+    if (insertAt <= 0) {
+      return
+    }
+    const patched = content.substring(0, insertAt) + toInsert + content.substring(insertAt)
+    fs.writeFileSync(fn, patched)
+  } catch (e) {
+    console.warn('patching expo-av failed', e)
+  }
 }
 
 function makeShims() {
