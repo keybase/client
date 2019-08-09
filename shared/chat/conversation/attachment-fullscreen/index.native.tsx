@@ -43,25 +43,10 @@ class AutoMaxSizeImage extends React.Component<
 
   render() {
     return (
-      <Kb.ZoomableBox
-        contentContainerStyle={{flex: 1, position: 'relative'}}
-        maxZoom={10}
+      <Kb.ZoomableImage
         style={{height: '100%', overflow: 'hidden', position: 'relative', width: '100%'}}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <Kb.NativeFastImage
-          {...this.props}
-          resizeMode="contain"
-          style={{
-            alignSelf: 'center',
-            flex: 1,
-            height: Math.min(this.state.height, screenHeight),
-            opacity: this.props.opacity,
-            width: Math.min(this.state.width, screenWidth),
-          }}
-        />
-      </Kb.ZoomableBox>
+        source={this.props.source}
+      />
     )
   }
 }
