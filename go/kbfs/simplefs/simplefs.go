@@ -202,6 +202,17 @@ func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
 	return libkbfs.CtxWithRandomIDReplayable(ctx, ctxIDKey, ctxOpID, k.log)
 }
 
+func (k *SimpleFS) makeContextWithIdentifyBehavior(ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (newCtx context.Context, err error) {
+	newCtx = libkbfs.CtxWithRandomIDReplayable(ctx, ctxIDKey, ctxOpID, k.log)
+	if identifyBehavior != nil {
+		newCtx, err = tlfhandle.MakeExtendedIdentify(newCtx, *identifyBehavior)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return newCtx, nil
+}
+
 func getIdentifyBehaviorFromPath(path *keybase1.Path) (*keybase1.TLFIdentifyBehavior, error) {
 	if path == nil {
 		return nil, nil
@@ -2512,12 +2523,9 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	identifyBehavior *keybase1.TLFIdentifyBehavior) (
 	res keybase1.SyncConfigAndStatusRes, err error) {
-	ctx = k.makeContext(ctx)
-	if identifyBehavior != nil {
-		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *identifyBehavior)
-		if err != nil {
-			return keybase1.SyncConfigAndStatusRes{}, err
-		}
+	ctx, err = k.makeContextWithIdentifyBehavior(ctx, identifyBehavior)
+	if err != nil {
+		return keybase1.SyncConfigAndStatusRes{}, err
 	}
 	dbc := k.config.DiskBlockCache()
 	bytesAvail, bytesTotal := libkbfs.GetLocalDiskStats(ctx, dbc)
@@ -2905,21 +2913,33 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 
 // SimpleFSSubscribePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribePath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (err error) {
+	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
 	return k.subscriber.SubscribePath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.KbfsPath, arg.Topic, &interval)
 }
 
 // SimpleFSSubscribeNonPath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribeNonPath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (err error) {
+	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
 	return k.subscriber.SubscribeNonPath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
 }
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSUnsubscribe(
-	ctx context.Context, sid string) error {
-	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(sid))
+	ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) (err error) {
+	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
+	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
 	return nil
 }
