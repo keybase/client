@@ -103,6 +103,7 @@ export {default as UserCard} from './user-card'
 export {default as ConnectedUsernames} from './usernames/container'
 export {default as WaitingButton} from './waiting-button'
 export {useTimeout, useInterval} from './use-timers'
+export {default as useMounted} from './use-mounted'
 export {default as HOCTimers} from './hoc-timers'
 export type PropsWithTimer<P> = PropsWithTimer<P>
 export type IconType = IconType

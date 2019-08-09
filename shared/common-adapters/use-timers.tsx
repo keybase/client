@@ -14,7 +14,7 @@ const noop = () => {}
 //
 // The returned function should remain constant through the component
 // lifecycle.
-export const useTimeout = (func: () => any, timing: number) => {
+export const useTimeout = (func: () => any, timing: number): (() => void) => {
   const [t, setT] = React.useState<null | number>(null)
   const [counter, setCounter] = React.useState(0)
   const onceRef = React.useRef({

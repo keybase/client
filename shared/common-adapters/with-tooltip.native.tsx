@@ -2,6 +2,7 @@ import * as React from 'react'
 import {NativeDimensions, NativeView} from './native-wrappers.native'
 import FloatingBox from './floating-box'
 import {useTimeout} from './use-timers'
+import useMounted from './use-mounted'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'
@@ -48,6 +49,7 @@ const WithTooltip = (props: Props) => {
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
+  const getIsMounted = useMounted()
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
       return
@@ -61,6 +63,10 @@ const WithTooltip = (props: Props) => {
       new Promise(resolve => tooltipRef.current && tooltipRef.current.measure(measureCb(resolve))),
       // @ts-ignore this stucture makes this very hard to type
     ]).then(([c, t]: [Dims, Dims]) => {
+      if (!getIsMounted()) {
+        return
+      }
+
       const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
       const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
       if (position === 'bottom center') {
