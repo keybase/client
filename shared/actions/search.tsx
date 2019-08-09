@@ -370,11 +370,8 @@ const clearSearchTextInput = (state, {payload: {searchKey}}: SearchGen.UserInput
 
 function* searchSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<SearchGen.SearchPayload>(SearchGen.search, search)
-  yield* Saga.chainAction<SearchGen.SearchSuggestionsPayload>(SearchGen.searchSuggestions, searchSuggestions)
-  yield* Saga.chainAction<SearchGen.UpdateSelectedSearchResultPayload>(
-    SearchGen.updateSelectedSearchResult,
-    updateSelectedSearchResult
-  )
+  yield* Saga.chainAction2(SearchGen.searchSuggestions, searchSuggestions)
+  yield* Saga.chainAction2(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
   yield* Saga.chainGenerator<SearchGen.AddResultsToUserInputPayload>(
     SearchGen.addResultsToUserInput,
     addResultsToUserInput
@@ -387,19 +384,10 @@ function* searchSaga(): Saga.SagaGenerator<any, any> {
     SearchGen.setUserInputItems,
     setUserInputItems
   )
-  yield* Saga.chainAction<SearchGen.ClearSearchResultsPayload>(
-    SearchGen.clearSearchResults,
-    clearSearchResults
-  )
-  yield* Saga.chainAction<SearchGen.FinishedSearchPayload>(SearchGen.finishedSearch, finishedSearch)
-  yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
-    SearchGen.userInputItemsUpdated,
-    clearSearchTextInput
-  )
-  yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
-    SearchGen.userInputItemsUpdated,
-    maybeNewSearch
-  )
+  yield* Saga.chainAction2(SearchGen.clearSearchResults, clearSearchResults)
+  yield* Saga.chainAction2(SearchGen.finishedSearch, finishedSearch)
+  yield* Saga.chainAction2(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield* Saga.chainAction2(SearchGen.userInputItemsUpdated, maybeNewSearch)
 }
 
 export default searchSaga

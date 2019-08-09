@@ -110,7 +110,6 @@ export const makeState = I.Record<Types._State>({
   phoneNumbers: makePhoneNumbers(),
   proxyData: null,
   useNativeFrame: true,
-  waitingForResponse: false,
 })
 
 export const getPushTokenForLogSend = (state: any) => ({pushToken: state.push.token})
@@ -207,3 +206,4 @@ export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
 export const addEmailWaitingKey = 'settings:addPhoneNumber'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
+export const settingsWaitingKey = 'settings:generic'

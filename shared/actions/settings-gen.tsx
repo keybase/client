@@ -81,7 +81,6 @@ export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
-export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
@@ -182,7 +181,6 @@ type _UnfurlSettingsSavedPayload = {
 }
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
-type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
@@ -476,10 +474,6 @@ export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): T
   type: toggleRuntimeStats,
 })
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
-export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
-  payload,
-  type: waitingForResponse,
-})
 
 // Action Payloads
 export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
@@ -748,10 +742,6 @@ export type VerifyPhoneNumberPayload = {
   readonly payload: _VerifyPhoneNumberPayload
   readonly type: typeof verifyPhoneNumber
 }
-export type WaitingForResponsePayload = {
-  readonly payload: _WaitingForResponsePayload
-  readonly type: typeof waitingForResponse
-}
 
 // All Actions
 // prettier-ignore
@@ -831,5 +821,4 @@ export type Actions =
   | UnfurlSettingsSavedPayload
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
-  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: {}}
