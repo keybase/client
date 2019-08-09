@@ -223,6 +223,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	uil := NewUIThreadLoader(tc.Context())
 	rtd := 10 * time.Second
+	uil.cachedThreadDelay = nil
 	uil.remoteThreadDelay = &rtd
 	uil.resolveThreadDelay = &rtd
 	uil.validatedDelay = 0

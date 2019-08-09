@@ -2760,6 +2760,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
 		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
@@ -2939,6 +2940,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
 		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
@@ -3073,6 +3075,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
 		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
@@ -3395,6 +3398,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
 		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
@@ -3485,6 +3489,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
 		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
 		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
