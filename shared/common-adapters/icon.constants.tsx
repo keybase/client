@@ -8,6 +8,11 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
+  'icon-GPG-export': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-GPG-export.png'),
+  },
   'icon-access-denied-266': {
     extension: 'gif',
     isFont: false,
