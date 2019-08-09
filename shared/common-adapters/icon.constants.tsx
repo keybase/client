@@ -688,6 +688,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-illustration-teams-216.png'),
   },
+  'icon-invite-link-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-invite-link-48.png'),
+  },
   'icon-keybase-logo-128': {
     extension: 'png',
     isFont: false,
