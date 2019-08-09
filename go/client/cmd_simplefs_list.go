@@ -122,7 +122,7 @@ func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, e
 	if pathType != keybase1.PathType_KBFS {
 		return false, nil
 	}
-	acc := filepath.Clean(strings.ToLower(path.Kbfs()))
+	acc := filepath.Clean(strings.ToLower(path.Kbfs().Path))
 	acc = filepath.ToSlash(acc)
 	c.G().Log.Debug("fs ls HandleTopLevelKeybaseList: %s -> %s", path.Kbfs(), acc)
 	if acc == "/private" {

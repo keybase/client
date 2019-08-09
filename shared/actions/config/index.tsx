@@ -554,12 +554,45 @@ function* criticalOutOfDateCheck() {
   }
 }
 
+const loadDarkPrefs = async () => {
+  try {
+    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+    const preference = v.s || undefined
+
+    switch (preference) {
+      case undefined:
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'system':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysDark':
+        return ConfigGen.createSetDarkModePreference({preference})
+      case 'alwaysLight':
+        return ConfigGen.createSetDarkModePreference({preference})
+      default:
+        return false
+    }
+  } catch (_) {
+    return false
+  }
+}
+
+const saveDarkPrefs = async (state: Container.TypedState) => {
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.darkMode',
+      value: {isNull: false, s: state.config.darkModePreference},
+    })
+  } catch (_) {}
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield* Saga.chainAction2([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   // When there are no more waiters, we can show the actual app
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  // darkmode
+  yield* Saga.chainAction2(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
     ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
@@ -621,6 +654,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
+  yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
+    ConfigGen.setDarkModePreference,
+    saveDarkPrefs
+  )
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)

@@ -107,6 +107,7 @@ type configGetter interface {
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
 	GetDisableTeamBoxAuditor() (bool, bool)
+	GetDisableEKBackgroundKeygen() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
@@ -1095,5 +1096,6 @@ type StandaloneChatConnector interface {
 type SyncedContactListProvider interface {
 	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
 	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
+	RetrieveAssertionToName(MetaContext) (map[string]string, error)
 	UnresolveContactsWithComponent(MetaContext, *keybase1.PhoneNumber, *keybase1.EmailAddress)
 }

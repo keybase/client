@@ -10,6 +10,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
+import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
 
 const initialState = Constants.makeState()
 
@@ -279,6 +280,12 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
+    case ConfigGen.setDarkModePreference:
+      _setDarkModePreference(action.payload.preference)
+      return state.merge({darkModePreference: action.payload.preference})
+    case ConfigGen.setSystemDarkMode:
+      _setSystemIsDarkMode(action.payload.dark)
+      return state.merge({systemDarkMode: action.payload.dark})
     // Saga only actions
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:

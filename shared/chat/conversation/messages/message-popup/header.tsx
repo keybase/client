@@ -66,7 +66,7 @@ const MessagePopupHeader = (props: {
           by
         </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-          <Kb.Avatar username={author} size={16} clickToProfile="tracker" />
+          <Kb.Avatar username={author} size={16} />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
             colorFollowing={true}

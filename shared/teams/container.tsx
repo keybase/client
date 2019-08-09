@@ -16,19 +16,6 @@ import {memoize} from '../util/memoize'
 
 type OwnProps = Container.PropsWithSafeNavigation<{}>
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _deletedTeams: state.teams.deletedTeams,
-  _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-  _newTeams: state.teams.getIn(['newTeams'], I.Set()),
-  _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-  _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
-  _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
-  _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
-  loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-  sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
-  teamnames: Constants.getSortedTeamnames(state),
-})
-
 // share some between headerRightActions on desktop and component on mobile
 const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onCreateTeam: () => {
@@ -42,24 +29,6 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
     dispatch(ownProps.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   },
 })
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  ...headerActions(dispatch, ownProps),
-  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-  _onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
-  onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
-  onManageChat: (teamname: Teamname) =>
-    dispatch(
-      ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
-  onOpenFolder: (teamname: Teamname) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
-  onReadMore: () => {
-    openURL('https://keybase.io/blog/introducing-keybase-teams')
-  },
-  onViewTeam: (teamname: Teamname) =>
-    dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
-})
-
 const makeTeamToRequest = memoize(tr =>
   tr.reduce((map, team) => {
     map[team] = (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
@@ -67,31 +36,37 @@ const makeTeamToRequest = memoize(tr =>
   }, {})
 )
 
-class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void; _onClearBadges: () => void}> {
-  _onWillBlur = () => {
-    this.props._onClearBadges()
+class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onClearBadges: () => void}> {
+  static navigationOptions = {
+    header: undefined,
+    headerRightActions: () => <ConnectedHeaderRightActions />,
+    title: 'Teams',
   }
-  _onDidFocus = () => {
-    this.props._loadTeams()
+
+  private onWillBlur = () => {
+    this.props.onClearBadges()
+  }
+  private onDidFocus = () => {
+    this.props.loadTeams()
   }
   componentWillUnmount() {
-    this._onWillBlur()
+    this.onWillBlur()
   }
   componentDidMount() {
-    this._onDidFocus()
+    this.onDidFocus()
   }
   render() {
-    const {_loadTeams, ...rest} = this.props
+    const {loadTeams, ...rest} = this.props
     return (
       <Kb.Reloadable
         waitingKeys={Constants.teamsLoadedWaitingKey}
         onBack={Container.isMobile ? this.props.onBack : undefined}
-        onReload={_loadTeams}
+        onReload={loadTeams}
         reloadOnMount={true}
         title={this.props.title}
       >
         {Container.isMobile && (
-          <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+          <Kb.NavigationEvents onDidFocus={this.onDidFocus} onWillBlur={this.onWillBlur} />
         )}
         <Teams {...rest} />
       </Kb.Reloadable>
@@ -99,33 +74,60 @@ class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void; _o
   }
 }
 
-const Connected = Container.compose(
-  Container.withSafeNavigation,
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => ({
-    deletedTeams: stateProps._deletedTeams.toArray(),
-    loaded: stateProps.loaded,
-    newTeams: stateProps._newTeams.toArray(),
-    sawChatBanner: stateProps.sawChatBanner,
-    teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
-    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
-    teammembercounts: stateProps._teammembercounts.toObject(),
-    teamnames: stateProps.teamnames,
-    teamresetusers: stateProps._teamresetusers.toObject(),
-    ...dispatchProps,
-  }))
-)(Reloadable)
+const Connected = Container.withSafeNavigation(
+  Container.connect(
+    (state: Container.TypedState) => ({
+      _deletedTeams: state.teams.deletedTeams,
+      _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
+      _newTeams: state.teams.getIn(['newTeams'], I.Set()),
+      _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
+      _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
+      _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
+      _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
+      loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
+      sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
+      teamnames: Constants.getSortedTeamnames(state),
+    }),
+    (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+      ...headerActions(dispatch, ownProps),
+      loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+      onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
+      onHideChatBanner: () =>
+        dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
+      onManageChat: (teamname: Teamname) =>
+        dispatch(
+          ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+        ),
+      onOpenFolder: (teamname: Teamname) =>
+        dispatch(
+          FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+        ),
+      onReadMore: () => {
+        openURL('https://keybase.io/blog/introducing-keybase-teams')
+      },
+      onViewTeam: (teamname: Teamname) =>
+        dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
+    }),
+
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      deletedTeams: stateProps._deletedTeams.toArray(),
+      loaded: stateProps.loaded,
+      newTeams: stateProps._newTeams.toArray(),
+      sawChatBanner: stateProps.sawChatBanner,
+      teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
+      teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
+      teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
+      teammembercounts: stateProps._teammembercounts.toObject(),
+      teamnames: stateProps.teamnames,
+      teamresetusers: stateProps._teamresetusers.toObject(),
+      ...dispatchProps,
+    })
+  )(Reloadable)
+)
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
   Container.connect(() => ({}), headerActions, (s, d, o) => ({...o, ...s, ...d}))
 )(HeaderRightActions as any)
-
-// @ts-ignore TODO fix
-Connected.navigationOptions = {
-  header: undefined,
-  headerRightActions: () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
-}
 
 export default Connected

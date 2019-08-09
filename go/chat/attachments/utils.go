@@ -187,7 +187,7 @@ func NewKbfsReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
 
 	if err = client.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(kbfsPath[len(kbfsPrefix):]),
+		Dest:  keybase1.NewPathWithKbfsPath(kbfsPath[len(kbfsPrefix):]),
 		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	}); err != nil {
 		return nil, err
@@ -283,7 +283,7 @@ func StatOSOrKbfsFile(ctx context.Context, g *libkb.GlobalContext, p string) (
 	}
 
 	dirent, err := client.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
-		Path: keybase1.NewPathWithKbfs(p[len(kbfsPrefix):]),
+		Path: keybase1.NewPathWithKbfsPath(p[len(kbfsPrefix):]),
 	})
 	if err != nil {
 		return nil, err
