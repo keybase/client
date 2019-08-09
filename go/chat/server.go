@@ -286,7 +286,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				}
 				// If we get a transient failure, add this to the retrier queue
 				if convRes.ConvLocal.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Metadata.IdTriple.Tlfid)
+					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 			} else {
 				pconv := utils.PresentConversationLocal(ctx, convRes.ConvLocal,
@@ -314,10 +314,10 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				if isSuccess {
 					h.G().FetchRetrier.Success(ctx, uid,
 						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
-							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
+							&convRes.Conv.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				} else {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to transmit conv, retrying")
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Metadata.IdTriple.Tlfid)
+					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 				convLocalsCh <- convRes.ConvLocal
 			}
@@ -1113,6 +1113,13 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Clear draft
+	go func(ctx context.Context) {
+		if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, nil); err != nil {
+			h.Debug(ctx, "PostLocalNonblock: failed to clear draft: %s", err)
+		}
+	}(globals.BackgroundChatCtx(ctx, h.G()))
+
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
@@ -1424,6 +1431,15 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
+	}
+
+	// Save draft
+	var draftText *string
+	if len(arg.Text) > 0 {
+		draftText = &arg.Text
+	}
+	if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, draftText); err != nil {
+		h.Debug(ctx, "UpdateUnsentText: failed to save draft: %s", err)
 	}
 
 	// Attempt to prefetch any unfurls in the background that are in the message text

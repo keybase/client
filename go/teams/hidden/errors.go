@@ -83,3 +83,16 @@ func newRepeatPTKGenerationError(q keybase1.PerTeamKeyGeneration, msg string) Re
 func (e RepeatPTKGenerationError) Error() string {
 	return fmt.Sprintf("Repeated PTK Generation found at %d (%s)", e.q, e.msg)
 }
+
+type ParentPointerError struct {
+	q   keybase1.Seqno
+	msg string
+}
+
+func newParentPointerError(q keybase1.Seqno, msg string) ParentPointerError {
+	return ParentPointerError{q, msg}
+}
+
+func (e ParentPointerError) Error() string {
+	return fmt.Sprintf("hidden team parent pointer error (to visible %d): %s", e.q, e.msg)
+}

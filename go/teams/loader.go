@@ -729,6 +729,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
+	// The hidden team has pointers from the hidden chain up to the visible chain; check that they
+	// match the loaded team. We should have a full load of the team, so all parent pointers
+	// better hit their mark.
+	err = hiddenPackage.CheckParentPointersOnFullLoad(mctx, ret)
+	if err != nil {
+		return nil, err
+	}
+
 	preloadCancel()
 	if len(links) > 0 {
 		tbs.Log(ctx, "TeamLoader.verifyLink")

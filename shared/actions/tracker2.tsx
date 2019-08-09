@@ -2,46 +2,59 @@ import * as Tracker2Gen from './tracker2-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
+import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import {formatPhoneNumberInternational} from '../util/phone-numbers'
 
-const identify3Result = (_, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) => {
-  const {guiID, result} = action.payload.params
-  return Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
-}
+const identify3Result = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload
+) =>
+  Tracker2Gen.createUpdateResult({
+    guiID: action.payload.params.guiID,
+    reason: null,
+    result: Constants.rpcResultToStatus(action.payload.params.result),
+  })
 
-const identify3ShowTracker = (_, action: EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload) => {
-  const {guiID, assertion, reason, forceDisplay} = action.payload.params
-  return Tracker2Gen.createLoad({
-    assertion,
-    forceDisplay: !!forceDisplay,
+const identify3ShowTracker = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload
+) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.params.assertion,
+    forceDisplay: !!action.payload.params.forceDisplay,
     fromDaemon: true,
-    guiID,
+    guiID: action.payload.params.guiID,
     ignoreCache: false,
     inTracker: true,
-    reason: reason.reason || '',
+    reason: action.payload.params.reason.reason || '',
   })
-}
 
-const identify3UpdateRow = (_, action: EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload) =>
+const identify3UpdateRow = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload
+) =>
   Tracker2Gen.createUpdateAssertion({
     assertion: Constants.rpcAssertionToAssertion(action.payload.params.row),
     guiID: action.payload.params.row.guiID,
   })
 
-const connected = () =>
-  RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
-    .then(() => {
-      logger.info('Registered identify ui')
-    })
-    .catch(error => {
-      logger.warn('error in registering identify ui: ', error)
-    })
+const connected = async () => {
+  try {
+    await RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
+    logger.info('Registered identify ui')
+  } catch (error) {
+    logger.warn('error in registering identify ui: ', error)
+  }
+}
 
 // only refresh if we have tracked them before
-const refreshChanged = (state, action: EngineGen.Keybase1NotifyTrackingTrackingChangedPayload) =>
+const refreshChanged = (
+  state: Container.TypedState,
+  action: EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
+) =>
   !!state.tracker2.usernameToDetails.get(action.payload.params.username) &&
   Tracker2Gen.createLoad({
     assertion: action.payload.params.username,
@@ -52,7 +65,10 @@ const refreshChanged = (state, action: EngineGen.Keybase1NotifyTrackingTrackingC
     reason: '',
   })
 
-const updateUserCard = (state, action: EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload) => {
+const updateUserCard = (
+  state: Container.TypedState,
+  action: EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
+) => {
   const {guiID, card} = action.payload.params
   const username = Constants.guiIDToUsername(state.tracker2, guiID)
   if (!username) {
@@ -82,47 +98,46 @@ const updateUserCard = (state, action: EngineGen.Keybase1Identify3UiIdentify3Upd
   })
 }
 
-const changeFollow = (_, action: Tracker2Gen.ChangeFollowPayload) =>
-  RPCTypes.identify3Identify3FollowUserRpcPromise(
-    {
-      follow: action.payload.follow,
+const changeFollow = async (_: Container.TypedState, action: Tracker2Gen.ChangeFollowPayload) => {
+  try {
+    await RPCTypes.identify3Identify3FollowUserRpcPromise(
+      {
+        follow: action.payload.follow,
+        guiID: action.payload.guiID,
+      },
+      Constants.waitingKey
+    )
+    return Tracker2Gen.createUpdateResult({
       guiID: action.payload.guiID,
-    },
-    Constants.waitingKey
-  )
-    .then(() =>
-      Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Successfully ${action.payload.follow ? 'followed' : 'unfollowed'}!`,
-        result: 'valid',
-      })
-    )
-    .catch(() =>
-      Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
-        result: 'error',
-      })
-    )
+      reason: `Successfully ${action.payload.follow ? 'followed' : 'unfollowed'}!`,
+      result: 'valid',
+    })
+  } catch (_) {
+    return Tracker2Gen.createUpdateResult({
+      guiID: action.payload.guiID,
+      reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
+      result: 'error',
+    })
+  }
+}
 
-const ignore = (_, action: Tracker2Gen.IgnorePayload) =>
-  RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID: action.payload.guiID}, Constants.waitingKey)
-    .then(() =>
-      Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Successfully ignored`,
-        result: 'valid',
-      })
-    )
-    .catch(() =>
-      Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Failed to ignore`,
-        result: 'error',
-      })
-    )
-
-function* load(state, action: Tracker2Gen.LoadPayload) {
+const ignore = async (_: Container.TypedState, action: Tracker2Gen.IgnorePayload) => {
+  try {
+    await RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID: action.payload.guiID}, Constants.waitingKey)
+    return Tracker2Gen.createUpdateResult({
+      guiID: action.payload.guiID,
+      reason: `Successfully ignored`,
+      result: 'valid',
+    })
+  } catch (_) {
+    return Tracker2Gen.createUpdateResult({
+      guiID: action.payload.guiID,
+      reason: `Failed to ignore`,
+      result: 'error',
+    })
+  }
+}
+function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
   if (action.payload.fromDaemon) {
     return
   }
@@ -153,18 +168,22 @@ function* load(state, action: Tracker2Gen.LoadPayload) {
   }
 }
 
-const loadFollow = (_, action: Tracker2Gen.LoadPayload) => {
+const loadFollow = async (_: Container.TypedState, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convert = fs =>
+  const convert = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackers2RpcPromise>) =>
     (fs.users || []).map(f => ({
       following: f.isFollowee,
       followsYou: f.isFollower,
       fullname: f.fullName,
       username: f.username,
     }))
-  return (
-    !action.payload.inTracker &&
-    Promise.all([
+
+  if (action.payload.inTracker) {
+    return false
+  }
+
+  try {
+    const [followers, following] = await Promise.all([
       RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}, Constants.profileLoadWaitingKey).then(
         convert
       ),
@@ -172,23 +191,29 @@ const loadFollow = (_, action: Tracker2Gen.LoadPayload) => {
         convert
       ),
     ])
-      .then(([followers, following]) =>
-        Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
-      )
-      .catch(err => logger.error(`Error loading follow info: ${err.message}`))
-  )
+    return Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
+  } catch (err) {
+    logger.error(`Error loading follow info: ${err.message}`)
+    return false
+  }
 }
 
-const getProofSuggestions = () =>
-  RPCTypes.userProofSuggestionsRpcPromise(undefined, Constants.profileLoadWaitingKey)
-    .then(({suggestions}) =>
-      Tracker2Gen.createProofSuggestionsUpdated({
-        suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
-      })
+const getProofSuggestions = async () => {
+  try {
+    const {suggestions} = await RPCTypes.userProofSuggestionsRpcPromise(
+      undefined,
+      Constants.profileLoadWaitingKey
     )
-    .catch(e => logger.error(`Error loading proof suggestions: ${e.message}`))
+    return Tracker2Gen.createProofSuggestionsUpdated({
+      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
+    })
+  } catch (e) {
+    logger.error(`Error loading proof suggestions: ${e.message}`)
+    return false
+  }
+}
 
-const showUser = (_, action: Tracker2Gen.ShowUserPayload) => {
+const showUser = (_: Container.TypedState, action: Tracker2Gen.ShowUserPayload) => {
   const load = Tracker2Gen.createLoad({
     assertion: action.payload.username,
     // with new nav we never show trackers from inside the app
@@ -208,7 +233,7 @@ const showUser = (_, action: Tracker2Gen.ShowUserPayload) => {
 }
 
 // if we mutated somehow reload ourselves and reget the suggestions
-const refreshSelf = (state, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
+const refreshSelf = (state: Container.TypedState, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
   state.config.uid === action.payload.params.uid && [
     Tracker2Gen.createLoad({
       assertion: state.config.username,
@@ -222,89 +247,66 @@ const refreshSelf = (state, action: EngineGen.Keybase1NotifyUsersUserChangedPayl
     Tracker2Gen.createGetProofSuggestions(),
   ]
 
-const loadNonUserProfile = (_, action: Tracker2Gen.LoadNonUserProfilePayload) => {
+const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.LoadNonUserProfilePayload) => {
   const {assertion} = action.payload
-  return RPCTypes.userSearchGetNonUserDetailsRpcPromise({assertion}, Constants.nonUserProfileLoadWaitingKey)
-    .then(res => {
-      if (res.isNonUser) {
-        const common = {
-          assertion,
-          assertionKey: res.assertionKey,
-          assertionValue: res.assertionValue,
-          description: res.description,
-          siteIcon: res.siteIcon || [],
-          siteIconFull: res.siteIconFull || [],
-        }
-        if (res.service) {
-          return Tracker2Gen.createLoadedNonUserProfile({
-            ...common,
-            ...res.service,
-          })
-        } else {
-          const formattedName =
-            res.assertionKey === 'phone'
-              ? formatPhoneNumberInternational('+' + res.assertionValue)
-              : undefined
-          const fullName = res.contact ? res.contact.contactName : ''
-          return Tracker2Gen.createLoadedNonUserProfile({
-            ...common,
-            formattedName,
-            fullName,
-          })
-        }
+  try {
+    const res = await RPCTypes.userSearchGetNonUserDetailsRpcPromise(
+      {assertion},
+      Constants.nonUserProfileLoadWaitingKey
+    )
+    if (res.isNonUser) {
+      const common = {
+        assertion,
+        assertionKey: res.assertionKey,
+        assertionValue: res.assertionValue,
+        description: res.description,
+        siteIcon: res.siteIcon || [],
+        siteIconFull: res.siteIconFull || [],
       }
-      return null
-    })
-    .catch(e => {
-      logger.warn(`Error loading non user profile: ${e.message}`)
-    })
+      if (res.service) {
+        return Tracker2Gen.createLoadedNonUserProfile({
+          ...common,
+          ...res.service,
+        })
+      } else {
+        const formattedName =
+          res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
+        const fullName = res.contact ? res.contact.contactName : ''
+        return Tracker2Gen.createLoadedNonUserProfile({
+          ...common,
+          formattedName,
+          fullName,
+        })
+      }
+    }
+    return false
+  } catch (e) {
+    logger.warn(`Error loading non user profile: ${e.message}`)
+    return false
+  }
 }
 
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
-    EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
-    updateUserCard
-  )
-  yield* Saga.chainAction<Tracker2Gen.ChangeFollowPayload>(Tracker2Gen.changeFollow, changeFollow)
-  yield* Saga.chainAction<Tracker2Gen.IgnorePayload>(Tracker2Gen.ignore, ignore)
+  yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
+  yield* Saga.chainAction2(Tracker2Gen.changeFollow, changeFollow)
+  yield* Saga.chainAction2(Tracker2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
-  yield* Saga.chainAction<Tracker2Gen.LoadPayload>(Tracker2Gen.load, loadFollow)
+  yield* Saga.chainAction2(Tracker2Gen.load, loadFollow)
 
-  yield* Saga.chainAction<Tracker2Gen.GetProofSuggestionsPayload>(
-    Tracker2Gen.getProofSuggestions,
-    getProofSuggestions
-  )
+  yield* Saga.chainAction2(Tracker2Gen.getProofSuggestions, getProofSuggestions)
 
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingChangedPayload>(
-    EngineGen.keybase1NotifyTrackingTrackingChanged,
-    refreshChanged
-  )
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
   // TEMP until actions/tracker is deprecated
   // yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
   // end TEMP until actions/tracker is deprecated
   //
-  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ResultPayload>(
-    EngineGen.keybase1Identify3UiIdentify3Result,
-    identify3Result
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload>(
-    EngineGen.keybase1Identify3UiIdentify3ShowTracker,
-    identify3ShowTracker
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload>(
-    EngineGen.keybase1Identify3UiIdentify3UpdateRow,
-    identify3UpdateRow
-  )
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
-  yield* Saga.chainAction<Tracker2Gen.ShowUserPayload>(Tracker2Gen.showUser, showUser)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
-    EngineGen.keybase1NotifyUsersUserChanged,
-    refreshSelf
-  )
-  yield* Saga.chainAction<Tracker2Gen.LoadNonUserProfilePayload>(
-    Tracker2Gen.loadNonUserProfile,
-    loadNonUserProfile
-  )
+  yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)
+  yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3ShowTracker, identify3ShowTracker)
+  yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateRow, identify3UpdateRow)
+  yield* Saga.chainAction2(EngineGen.connected, connected)
+  yield* Saga.chainAction2(Tracker2Gen.showUser, showUser)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
+  yield* Saga.chainAction2(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
 }
 
 export default tracker2Saga
