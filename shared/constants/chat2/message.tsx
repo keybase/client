@@ -330,7 +330,7 @@ const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSim
   type: 'systemSimpleToComplex',
 })
 
-const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
+export const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   text: new HiddenString(''),
