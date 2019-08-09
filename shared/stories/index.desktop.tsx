@@ -58,7 +58,9 @@ const RootWrapper = ({children}) => {
 
   useInterval(
     () => {
-      setDarkMode(!darkMode)
+      const next = !darkMode
+      setDarkMode(next)
+      _setSystemIsDarkMode(next)
     },
     autoSwap ? 1000 : null
   )
@@ -91,8 +93,10 @@ const RootWrapper = ({children}) => {
             if (e.shiftKey) {
               setAutoSwap(!autoSwap)
             } else {
-              setDarkMode(!darkMode)
-              _setSystemIsDarkMode(!darkMode)
+              const next = !darkMode
+              setDarkMode(next)
+              _setSystemIsDarkMode(next)
+              setAutoSwap(false)
             }
           }}
         >
