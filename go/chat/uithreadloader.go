@@ -34,12 +34,14 @@ type UIThreadLoader struct {
 }
 
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
+	cacheDelay := 30 * time.Millisecond
 	return &UIThreadLoader{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
-		convPageStatus: make(map[string]chat1.Pagination),
-		clock:          clockwork.NewRealClock(),
-		validatedDelay: 100 * time.Millisecond,
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
+		convPageStatus:    make(map[string]chat1.Pagination),
+		clock:             clockwork.NewRealClock(),
+		validatedDelay:    100 * time.Millisecond,
+		cachedThreadDelay: &cacheDelay,
 	}
 }
 
@@ -405,7 +407,12 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		go func() {
 			var err error
 			if t.cachedThreadDelay != nil {
-				t.clock.Sleep(*t.cachedThreadDelay)
+				select {
+				case <-t.clock.After(*t.cachedThreadDelay):
+				case <-ctx.Done():
+					ch <- ctx.Err()
+					return
+				}
 			}
 			localThread, err = t.G().ConvSource.PullLocalOnly(ctx, convID,
 				uid, query, pagination, 10)
