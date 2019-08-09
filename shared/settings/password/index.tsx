@@ -72,14 +72,25 @@ class UpdatePassword extends Component<Props, State> {
 
     const hintType = this.state.errorSaving
       ? 'BodySmallError'
-      : this.state.password.length < 8
-      ? 'BodySmall'
-      : 'BodySmallSuccess'
+      : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8
+      ? 'BodySmallSuccess'
+      : 'BodySmall'
     const hintText = this.state.errorSaving
       ? this.state.errorSaving
-      : this.state.password.length < 8
-      ? 'Password must be at least 8 characters.'
-      : 'Ready to change the password!'
+      : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8
+      ? (
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
+          <Kb.Icon
+            type="iconfont-check"
+            color={Styles.globalColors.green}
+            sizeType="Small"
+          />
+          <Kb.Text type="BodySmallSuccess">
+            Passwords match.
+          </Kb.Text>
+        </Kb.Box2>
+      )
+      : 'Password must be at least 8 characters.'
 
     return (
       <Kb.Modal
@@ -166,9 +177,13 @@ class UpdatePassword extends Component<Props, State> {
               }}
             />
           </Kb.RoundedBox>
-          <Kb.Text style={styles.passwordFormat} type={hintType}>
-            {hintText}
-          </Kb.Text>
+          {
+            typeof hintText === 'string'
+            ? (<Kb.Text style={styles.passwordFormat} type={hintType}>
+                {hintText}
+              </Kb.Text>)
+            : hintText
+          }
           <Kb.Checkbox
             boxBackgroundColor={Styles.globalColors.white}
             label="Show typing"
