@@ -239,7 +239,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return team, team.Name(), impTeamName, conflicts, nil
 }
 
-func isDupImplicitTeamError(ctx context.Context, err error) bool {
+func isDupImplicitTeamError(err error) bool {
 	if err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok {
 			code := keybase1.StatusCode(aerr.Code)
@@ -276,7 +276,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 			var teamID keybase1.TeamID
 			teamID, teamName, err = CreateImplicitTeam(ctx, g, impTeamName)
 			if err != nil {
-				if isDupImplicitTeamError(ctx, err) {
+				if isDupImplicitTeamError(err) {
 					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
 					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
 						lookupName, ImplicitTeamOptions{})
