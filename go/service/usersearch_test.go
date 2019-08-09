@@ -519,3 +519,94 @@ func TestContactSearchMixing(t *testing.T) {
 		require.Equal(t, "Isaac Newton", res[5].Contact.DisplayName)
 	}
 }
+
+func TestUserSearchDirectTofu(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 1, name: "Pierre de Fermat", email: "fermatp@keyba.se", username: "pierre"}),
+		makeContact(makeContactArg{index: 2, name: "Gottfried Wilhelm Leibniz", phone: "+1555165432", username: "lwg"}),
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	doSearch := func(query string, tofu keybase1.ImpTofuQuery) []keybase1.APIUserSearchResult {
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           query,
+			ImpTofuQuery:    &tofu,
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	{
+		// Even though we are doing an imp tofu query, we should get our contact back.
+		query := "+1555165432"
+		tofu := keybase1.NewImpTofuQueryWithPhone(keybase1.PhoneNumber(query))
+		res := doSearch(query, tofu)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Imptofu)
+		require.NotNil(t, res[0].Contact)
+		require.Equal(t, "Gottfried Wilhelm Leibniz", res[0].Contact.ContactName)
+		require.Equal(t, "1555165432@phone", res[0].Contact.Assertion)
+	}
+
+	{
+		// Same with e-mail.
+		query := "fermatp@keyba.se"
+		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
+		res := doSearch(query, tofu)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Imptofu)
+		require.NotNil(t, res[0].Contact)
+		require.Equal(t, "Pierre de Fermat", res[0].Contact.ContactName)
+		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Contact.Assertion)
+	}
+
+	{
+		// Ask for a different number and get an imptofu result.
+		query := "+1201555201"
+		tofu := keybase1.NewImpTofuQueryWithPhone(keybase1.PhoneNumber(query))
+		res := doSearch(query, tofu)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "1201555201@phone", res[0].Imptofu.Assertion)
+		require.Equal(t, "+1201555201", res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+	}
+
+	{
+		// Imp tofu email.
+		query := "test@keyba.se"
+		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
+		res := doSearch(query, tofu)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+	}
+
+	{
+		// Email should be lowercased when returning search result.
+		query := "TEST@keyba.se"
+		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
+		res := doSearch(query, tofu)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Equal(t, "TEST@keyba.se", res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+	}
+}
