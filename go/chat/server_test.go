@@ -6864,13 +6864,21 @@ func TestMessageDrafts(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ibres, err = ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
-		chat1.GetInboxAndUnboxLocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{conv.Id},
-			},
-		})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(ibres.Conversations))
-	require.Nil(t, ibres.Conversations[0].Info.Draft)
+	worked := false
+	for i := 0; i < 5; i++ {
+		ibres, err = ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(ibres.Conversations))
+		if ibres.Conversations[0].Info.Draft == nil {
+			worked = true
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	require.True(t, worked)
 }

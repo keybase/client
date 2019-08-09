@@ -462,7 +462,7 @@ const rootReducer = (
         const prevConvIDKey = s.get('selectedConversation')
         // blank out draft so we don't flash old data when switching convs
         s.updateIn(['metaMap', prevConvIDKey], (m: Types.ConversationMeta) => {
-          return m ? m.merge({draft: null}) : m
+          return m ? m.merge({draft: ''}) : m
         })
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.deleteIn(['threadLoadStatus', conversationIDKey])
