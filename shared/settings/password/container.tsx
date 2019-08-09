@@ -1,4 +1,5 @@
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Constants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import UpdatePassword from '.'
 import * as Container from '../../util/container'
@@ -18,7 +19,7 @@ export default Container.connect(
       ? state.settings.password.newPasswordError.stringValue()
       : undefined,
     saveLabel: state.settings.password.randomPW ? 'Create password' : 'Save',
-    waitingForResponse: state.settings.waitingForResponse,
+    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
   }),
   dispatch => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),

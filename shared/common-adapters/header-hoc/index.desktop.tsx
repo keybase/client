@@ -5,6 +5,7 @@ import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
 import {Props, LeftActionProps} from './types'
+import {hoistNonReactStatic} from '../../util/container'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -72,7 +73,9 @@ export const LeftAction = ({
 )
 
 function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => <WrappedComponent {...props as P} />
+  const HH = (props: P & Props) => <WrappedComponent {...props as P} />
+  hoistNonReactStatic(HH, WrappedComponent)
+  return HH
 }
 
 const _headerStyle = {

@@ -141,49 +141,56 @@ const teams = [
   },
 ]
 
-const provider = Sb.createPropProviderWithCommon({
+const Assertion = p => {
+  const a = allAssertions.find(a => a.assertion === p.assertionKey)
+  if (!a) {
+    throw new Error('cant happen')
+  }
+  const parts = a.assertion.split(':')
+  return {
+    color: a.color,
+    metas: a.metas,
+    onClickBadge: Sb.action('onClickBadge'),
+    onShowProof: Sb.action('onShowProof'),
+    onShowSite: Sb.action('onShowSite'),
+    onShowUserOnSite: Sb.action('onShowUserOnSite'),
+    proofURL: a.proofURL,
+    siteIcon: a.siteIcon,
+    siteURL: a.siteURL,
+    state: a.state,
+    type: a.type,
+    value: parts[1],
+    ...p.storyProps,
+  }
+}
+
+const Bio = p => ({
+  ...props,
+  ...p,
+  bio:
+    p.username === 'longbio'
+      ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long bio'
+      : props.bio,
+  followersCount: p.username === 'nofollowcounts' ? null : props.followersCount,
+  followingCount: p.username === 'nofollowcounts' ? null : props.followingCount,
+  fullname:
+    p.username === 'longfullname'
+      ? 'mr longlonlonglonlonglonlonglonlonglonggggglonglonglongnarm squire the third'
+      : p.username === 'nofullname'
+      ? null
+      : props.fullname,
+  location:
+    p.username === 'longlocation'
+      ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long location'
+      : props.location,
+})
+
+const provider = Sb.createPropProviderWithCommon({Assertion, Bio})
+const providerGreenAssertion = Sb.createPropProviderWithCommon({
   Assertion: p => {
-    const a = allAssertions.find(a => a.assertion === p.assertionKey)
-    if (!a) {
-      throw new Error('cant happen')
-    }
-    const parts = a.assertion.split(':')
-    return {
-      color: a.color,
-      metas: a.metas,
-      onClickBadge: Sb.action('onClickBadge'),
-      onShowProof: Sb.action('onShowProof'),
-      onShowSite: Sb.action('onShowSite'),
-      onShowUserOnSite: Sb.action('onShowUserOnSite'),
-      proofURL: a.proofURL,
-      siteIcon: a.siteIcon,
-      siteURL: a.siteURL,
-      state: a.state,
-      type: a.type,
-      value: parts[1],
-      ...p.storyProps,
-    }
+    return {...Assertion(p), color: 'green'}
   },
-  Bio: p => ({
-    ...props,
-    ...p,
-    bio:
-      p.username === 'longbio'
-        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long bio'
-        : props.bio,
-    followersCount: p.username === 'nofollowcounts' ? null : props.followersCount,
-    followingCount: p.username === 'nofollowcounts' ? null : props.followingCount,
-    fullname:
-      p.username === 'longfullname'
-        ? 'mr longlonlonglonlonglonlonglonlonglonggggglonglonglongnarm squire the third'
-        : p.username === 'nofullname'
-        ? null
-        : props.fullname,
-    location:
-      p.username === 'longlocation'
-        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long location'
-        : props.location,
-  }),
+  Bio,
 })
 
 const trackerProps = username => ({
@@ -205,11 +212,7 @@ const trackerProps = username => ({
 const load = () => {
   Sb.storiesOf('Tracker2', module)
     .addDecorator(provider)
-    .addDecorator(story => (
-      <Kb.Box2 direction="vertical" style={wrapper}>
-        {story()}
-      </Kb.Box2>
-    ))
+    .addDecorator(vertical)
     .add('Normal', () => <Tracker {...trackerProps('darksim905')} />)
     .add('Long reason', () => <Tracker {...trackerProps('longreason')} />)
     .add('Long bio', () => <Tracker {...trackerProps('longbio')} />)
@@ -220,11 +223,21 @@ const load = () => {
     .add('No followcounts', () => <Tracker {...trackerProps('nofollowcounts')} />)
     .add('OneProof', () => <Tracker {...trackerProps('oneProof')} />)
     .add('NoProofs', () => <Tracker {...trackerProps('noProofs')} />)
-    .add('Green', () => <Tracker {...trackerProps('green')} />)
     .add('Red', () => <Tracker {...trackerProps('red')} />)
     .add('Teams', () => <Tracker {...trackerProps('teams')} />)
     .add('Your username', () => <Tracker {...trackerProps('yourUsername')} />)
+
+  Sb.storiesOf('Tracker2', module)
+    .addDecorator(providerGreenAssertion)
+    .addDecorator(vertical)
+    .add('Green', () => <Tracker {...trackerProps('green')} />)
 }
+
+const vertical = story => (
+  <Kb.Box2 direction="vertical" style={wrapper}>
+    {story()}
+  </Kb.Box2>
+)
 
 const wrapper = {
   height: 470,

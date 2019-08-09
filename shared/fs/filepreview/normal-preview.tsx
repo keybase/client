@@ -29,7 +29,7 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
           <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
           {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
         </Kb.Box2>
-        <Footer />
+        <Footer path={this.props.path} />
       </Kb.Box2>
     )
   }

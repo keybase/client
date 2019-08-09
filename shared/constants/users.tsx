@@ -12,6 +12,7 @@ export const makeUserInfo = I.Record<Types._UserInfo>({
   broken: false,
   fullname: '',
 })
+export const emptyUserInfo = makeUserInfo()
 
 export const makeState = I.Record<Types._State>({
   infoMap: I.Map(),
