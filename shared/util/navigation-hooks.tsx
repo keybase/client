@@ -1,5 +1,5 @@
 import {useContext} from 'react'
-import {NavigationContext, NavigationScreenProp, NavigationRoute} from 'react-navigation'
+import {NavigationContext, NavigationScreenProp, NavigationRoute} from '@react-navigation/core'
 
 /**
  * Hooks for react-navigation
