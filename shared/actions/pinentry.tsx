@@ -5,7 +5,6 @@ import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Container from '../util/container'
 import {getEngine} from '../engine/require'
 
 // stash response while we show the pinentry. The old code kept a map of this but this likely never worked. it seems like
@@ -13,16 +12,17 @@ import {getEngine} from '../engine/require'
 // its not worth implementing now
 let _response: EngineGen.Keybase1SecretUiGetPassphrasePayload['payload']['response'] | null = null
 
-const onConnect = async () => {
-  try {
-    await RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
-    logger.info('Registered secret ui')
-  } catch (error) {
-    logger.warn('error in registering secret ui: ', error)
-  }
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
+    .then(() => {
+      logger.info('Registered secret ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering secret ui: ', error)
+    })
 }
 
-const onGetPassword = (_: Container.TypedState, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
+const onGetPassword = (_, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
   logger.info('Asked for password')
   const {pinentry} = action.payload.params
   const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
@@ -44,13 +44,13 @@ const onGetPassword = (_: Container.TypedState, action: EngineGen.Keybase1Secret
   })
 }
 
-const onNewPinentry = (_: Container.TypedState, action: PinentryGen.NewPinentryPayload) =>
+const onNewPinentry = (_, action: PinentryGen.NewPinentryPayload) =>
   PinentryGen.createReplaceEntity({
     entities: I.Map([[action.payload.sessionID, action.payload]]),
     keyPath: ['sessionIDToPinentry'],
   })
 
-const onSubmit = (_: Container.TypedState, action: PinentryGen.OnSubmitPayload) => {
+const onSubmit = (_, action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
     // @ts-ignore this seems wrong
@@ -64,7 +64,7 @@ const onSubmit = (_: Container.TypedState, action: PinentryGen.OnSubmitPayload) 
   })
 }
 
-const onCancel = (_: Container.TypedState, action: PinentryGen.OnCancelPayload) => {
+const onCancel = (_, action: PinentryGen.OnCancelPayload) => {
   if (_response) {
     _response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
     _response = null
@@ -76,12 +76,15 @@ const onCancel = (_: Container.TypedState, action: PinentryGen.OnCancelPayload) 
 }
 
 function* pinentrySaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction2(PinentryGen.onSubmit, onSubmit)
-  yield* Saga.chainAction2(PinentryGen.onCancel, onCancel)
-  yield* Saga.chainAction2(PinentryGen.newPinentry, onNewPinentry)
+  yield* Saga.chainAction<PinentryGen.OnSubmitPayload>(PinentryGen.onSubmit, onSubmit)
+  yield* Saga.chainAction<PinentryGen.OnCancelPayload>(PinentryGen.onCancel, onCancel)
+  yield* Saga.chainAction<PinentryGen.NewPinentryPayload>(PinentryGen.newPinentry, onNewPinentry)
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
-  yield* Saga.chainAction2(EngineGen.keybase1SecretUiGetPassphrase, onGetPassword)
-  yield* Saga.chainAction2(EngineGen.connected, onConnect)
+  yield* Saga.chainAction<EngineGen.Keybase1SecretUiGetPassphrasePayload>(
+    EngineGen.keybase1SecretUiGetPassphrase,
+    onGetPassword
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }
 
 export default pinentrySaga

@@ -8,7 +8,7 @@ import * as Constants from '../../constants/fs'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
-import {TypedState, TypedActions} from '../../util/container'
+import {TypedState} from '../../constants/reducer'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
@@ -97,10 +97,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
       : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (
-  _: TypedState,
-  action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) =>
+const openLocalPathInSystemFileManager = (_, action: FsGen.OpenLocalPathInSystemFileManagerPayload) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -214,7 +211,7 @@ const windowsCheckMountFromOtherDokanInstall = status =>
   )
 
 const refreshDriverStatus = (
-  state: TypedState,
+  state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
 ) =>
   (action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
@@ -234,7 +231,7 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload) => {
+const driverEnableFuse = async (_, action: FsGen.DriverEnablePayload) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
   if (fuseInstallResultIsKextPermissionError(result)) {
     return [
@@ -248,8 +245,8 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
   }
 }
 
-const uninstallKBFSConfirm = async () => {
-  const action = await new Promise<TypedActions | false>(resolve =>
+const uninstallKBFSConfirm = () =>
+  new Promise(resolve =>
     SafeElectron.getDialog().showMessageBox(
       {
         buttons: ['Remove & Restart', 'Cancel'],
@@ -258,11 +255,9 @@ const uninstallKBFSConfirm = async () => {
         type: 'question',
       },
       // resp is the index of the button that's clicked
-      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false))
+      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve())
     )
   )
-  return action
-}
 
 const uninstallKBFS = () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
@@ -271,12 +266,12 @@ const uninstallKBFS = () =>
     SafeElectron.getApp().exit(0)
   })
 
-const uninstallDokanConfirm = async (state: TypedState) => {
+const uninstallDokanConfirm = state => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
-    return false
+    return
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    const action = await new Promise<TypedActions>(resolve =>
+    return new Promise(resolve =>
       SafeElectron.getDialog().showMessageBox(
         {
           buttons: ['Got it'],
@@ -288,12 +283,11 @@ const uninstallDokanConfirm = async (state: TypedState) => {
         () => resolve(FsGen.createRefreshDriverStatus())
       )
     )
-    return action
   }
   return FsGen.createDriverDisabling()
 }
 
-const uninstallDokan = (state: TypedState) => {
+const uninstallDokan = state => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
@@ -319,7 +313,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
+const installCachedDokan = (_, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -366,7 +360,7 @@ const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayloa
     )
   )
 
-const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
+const openAndUpload = (state, action: FsGen.OpenAndUploadPayload) =>
   openAndUploadToPromise(state, action).then((localPaths: Array<string>) =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
@@ -379,43 +373,60 @@ const loadUserFileEdits = state =>
     })
   )
 
-const openFilesFromWidget = (_: TypedState, {payload: {path}}) => [
+const openFilesFromWidget = (_, {payload: {path}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
     : [RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})]),
 ]
 
-const changedFocus = (state: TypedState, action: ConfigGen.ChangedFocusPayload) =>
+const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>
   action.payload.appFocused &&
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
   state.fs.sfmi.driverStatus.kextPermissionError &&
   FsGen.createDriverEnable({isRetry: true})
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
-  yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
+  yield* Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
+    FsGen.openLocalPathInSystemFileManager,
+    openLocalPathInSystemFileManager
+  )
+  yield* Saga.chainAction<FsGen.OpenPathInSystemFileManagerPayload>(
+    FsGen.openPathInSystemFileManager,
+    openPathInSystemFileManager
+  )
   if (!isLinux) {
-    yield* Saga.chainAction2(
+    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
       [FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus],
       refreshDriverStatus
     )
   }
-  yield* Saga.chainAction2(FsGen.openAndUpload, openAndUpload)
-  yield* Saga.chainAction2([FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged], loadUserFileEdits)
-  yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
+  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    [FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged],
+    loadUserFileEdits
+  )
+  yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction2(FsGen.driverEnable, installCachedDokan)
-    yield* Saga.chainAction2(FsGen.driverDisable, uninstallDokanConfirm)
-    yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
+    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)
+    // @ts-ignore codemod-issue
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanConfirm)
+    yield* Saga.chainAction<FsGen.DriverDisablingPayload>(FsGen.driverDisabling, uninstallDokan)
   } else {
-    yield* Saga.chainAction2(FsGen.driverEnable, driverEnableFuse)
-    yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
-    yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
+    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, driverEnableFuse)
+    // @ts-ignore codemod-issue
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallKBFSConfirm)
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisabling, uninstallKBFS)
   }
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
-  yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
+  yield* Saga.chainAction<ConfigGen.ChangedFocusPayload>(ConfigGen.changedFocus, changedFocus)
 }
 
 export default platformSpecificSaga
