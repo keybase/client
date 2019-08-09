@@ -64,29 +64,25 @@ const bodyExpanded = (props: Props) => (
     </Kb.Text>
     <Kb.ButtonBar direction="row" align="flex-start" small={true}>
       {!!props.depositButtonText && (
-        <>
-          <Kb.WaitingButton
-            mode="Secondary"
-            label={props.depositButtonText}
-            onClick={stopPropagation(props.onDeposit)}
-            small={true}
-            type="Wallet"
-            waitingKey={props.depositButtonWaitingKey || null}
-          />
-        </>
+        <Kb.WaitingButton
+          mode="Secondary"
+          label={props.depositButtonText}
+          onClick={stopPropagation(props.onDeposit)}
+          small={true}
+          type="Wallet"
+          waitingKey={props.depositButtonWaitingKey || null}
+        />
       )}
 
       {!!props.withdrawButtonText && (
-        <>
-          <Kb.WaitingButton
-            mode="Secondary"
-            label={props.withdrawButtonText}
-            onClick={stopPropagation(props.onWithdraw)}
-            small={true}
-            type="Wallet"
-            waitingKey={props.withdrawButtonWaitingKey || null}
-          />
-        </>
+        <Kb.WaitingButton
+          mode="Secondary"
+          label={props.withdrawButtonText}
+          onClick={stopPropagation(props.onWithdraw)}
+          small={true}
+          type="Wallet"
+          waitingKey={props.withdrawButtonWaitingKey || null}
+        />
       )}
       <Kb.Button
         mode="Secondary"
