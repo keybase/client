@@ -39,6 +39,7 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	payload := make(libkb.JSONPayload)
 	payload["contacts"] = lookups
 	payload["token"] = token
+	payload["supports_tokens"] = 1
 	if !userRegionCode.IsNil() {
 		payload["user_region_code"] = userRegionCode
 	}
