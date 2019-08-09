@@ -2,11 +2,12 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
-import {Box2} from '../box'
+import {Box2, Box} from '../box'
 import BoxGrow from '../box-grow'
 import Text from '../text'
 
 const Kb = {
+  Box,
   Box2,
   BoxGrow,
   ScrollView,
@@ -85,13 +86,15 @@ const Header = (props: HeaderProps) => (
       <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
         {!!props.leftButton && props.leftButton}
       </Kb.Box2>
-      {typeof props.title === 'string' ? (
-        <Kb.Text type="Header" lineClamp={1}>
-          {props.title}
-        </Kb.Text>
-      ) : (
-        props.title
-      )}
+      <Kb.Box style={styles.headerCenter}>
+        {typeof props.title === 'string' ? (
+          <Kb.Text type="Header" lineClamp={1}>
+            {props.title}
+          </Kb.Text>
+        ) : (
+          props.title
+        )}
+      </Kb.Box>
       <Kb.Box2 direction="horizontal" style={styles.headerRight}>
         {!!props.rightButton && props.rightButton}
       </Kb.Box2>
@@ -145,18 +148,22 @@ const styles = Styles.styleSheetCreate({
     ...headerCommon,
     minHeight: 48,
   },
+  headerCenter: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
   headerHideBorder: {
     borderWidth: 0,
   },
   headerLeft: {
-    flex: 1,
+    flexGrow: 0,
     flexShrink: 0,
     justifyContent: 'flex-start',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
   headerRight: {
-    flex: 1,
+    flexGrow: 0,
     flexShrink: 0,
     justifyContent: 'flex-end',
     paddingLeft: Styles.globalMargins.xsmall,
