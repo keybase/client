@@ -11,64 +11,87 @@ import {
 } from 'react-native'
 import {isAndroid} from '../constants/platform'
 
-class KBInputText extends RNTextInput {
-  private nativeTextInput = isAndroid ? requireNativeComponent('KBTextInput') : {}
+let KBInputText = RNTextInput
 
-  render() {
-    // @ts-ignore we added this
-    const {forwardedRef} = this.props
-    if (!isAndroid) {
-      return <RNTextInput {...this.props} ref={forwardedRef} />
-    }
-    const p = {
-      ...this.props,
-    }
-
-    p.style = [this.props.style]
-    // @ts-ignore TS doesn't know about this method
-    p.autoCapitalize = UIManager.getViewManagerConfig('AndroidTextInput').Constants.AutoCapitalizationType[
-      p.autoCapitalize || 'sentences'
-    ]
-
-    let children = p.children
-    let childCount = 0
-    React.Children.forEach(children, () => ++childCount)
-    if (childCount > 1) {
-      children = <Text>{children}</Text>
-    }
-
-    if (p.selection && p.selection.end == null) {
-      p.selection = {
-        end: p.selection.start,
-        start: p.selection.start,
+if (isAndroid) {
+  const NativeTextInput = isAndroid ? requireNativeComponent('KBTextInput') : {}
+  class _KBInputText extends RNTextInput {
+    render() {
+      // @ts-ignore we added this
+      const {forwardedRef} = this.props
+      if (!isAndroid) {
+        return <RNTextInput {...this.props} ref={forwardedRef} />
       }
+      const p = {
+        ...this.props,
+      }
+
+      p.style = [this.props.style]
+      // @ts-ignore TS doesn't know about this method
+      p.autoCapitalize = UIManager.getViewManagerConfig('AndroidTextInput').Constants.AutoCapitalizationType[
+        p.autoCapitalize || 'sentences'
+      ]
+
+      let children = p.children
+      let childCount = 0
+      React.Children.forEach(children, () => ++childCount)
+      if (childCount > 1) {
+        children = <Text>{children}</Text>
+      }
+
+      if (p.selection && p.selection.end == null) {
+        p.selection = {
+          end: p.selection.start,
+          start: p.selection.start,
+        }
+      }
+
+      const textContainer = (
+        <NativeTextInput
+          // @ts-ignore This neets
+          ref={this._setNativeRef}
+          {...p}
+          mostRecentEventCount={0}
+          text={p.value || p.defaultValue || ''}
+          children={children}
+          disableFullscreenUI={p.disableFullscreenUI}
+          textBreakStrategy={p.textBreakStrategy}
+          // @ts-ignore no RN types
+          onFocus={this._onFocus}
+          // @ts-ignore no RN types
+          onBlur={this._onBlur}
+          // @ts-ignore no RN types
+          onChange={this._onChange}
+          // @ts-ignore no RN types
+          onSelectionChange={this._onSelectionChange}
+          // @ts-ignore no RN types
+          onTextInput={this._onTextInput}
+          // @ts-ignore no RN types
+          onScroll={this._onScroll}
+        />
+      )
+
+      return (
+        // @ts-ignore
+        <TouchableWithoutFeedback
+          onLayout={p.onLayout}
+          accessible={p.accessible}
+          accessibilityLabel={p.accessibilityLabel}
+          // @ts-ignore
+          onPress={this._onPress}
+          accessibilityRole={p.accessibilityRole}
+          accessibilityStates={p.accessibilityStates}
+          // @ts-ignore no RN types
+          nativeID={this.props.nativeID}
+          // @ts-ignore no RN types
+          testID={this.props.testID}
+        >
+          {textContainer}
+        </TouchableWithoutFeedback>
+      )
     }
-
-    const textContainer = (
-      <this.nativeTextInput
-        {...p}
-        ref={forwardedRef}
-        mostRecentEventCount={0}
-        text={p.value || p.defaultValue || ''}
-        children={children}
-        disableFullscreenUI={p.disableFullscreenUI}
-        textBreakStrategy={p.textBreakStrategy}
-      />
-    )
-
-    return (
-      <TouchableWithoutFeedback
-        onLayout={p.onLayout}
-        accessible={p.accessible}
-        accessibilityLabel={p.accessibilityLabel}
-        accessibilityRole={p.accessibilityRole}
-        accessibilityStates={p.accessibilityStates}
-        testID={p.testID}
-      >
-        {textContainer}
-      </TouchableWithoutFeedback>
-    )
   }
+  KBInputText = _KBInputText
 }
 
 export default (React.forwardRef<RNTextInput>((props, ref) => (
