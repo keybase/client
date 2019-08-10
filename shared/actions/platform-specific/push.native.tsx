@@ -17,10 +17,10 @@ import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
-import {TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 
 let lastCount = -1
-const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
     0
@@ -151,7 +151,7 @@ function* handleLoudMessage(notification) {
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(_, action: PushGen.NotificationPayload) {
+function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayload) {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -193,7 +193,7 @@ function* handlePush(_, action: PushGen.NotificationPayload) {
   }
 }
 
-const uploadPushToken = state =>
+const uploadPushToken = (state: Container.TypedState) =>
   !!state.config.username &&
   !!state.push.token &&
   !!state.config.deviceID &&
@@ -213,7 +213,7 @@ const uploadPushToken = state =>
       logger.error("[PushToken] Couldn't save a push token", e)
     })
 
-function* deletePushToken(state, action: ConfigGen.LogoutHandshakePayload) {
+function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
   const waitKey = 'push:deleteToken'
   yield Saga.put(
     ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -251,7 +251,7 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
 const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
-function* neverShowMonsterAgain(state) {
+function* neverShowMonsterAgain(state: Container.TypedState) {
   if (!state.push.showPushPrompt) {
     yield Saga.spawn(() =>
       RPCTypes.configGuiSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
@@ -316,7 +316,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* checkPermissions(_, action: ConfigGen.MobileAppStatePayload) {
+function* checkPermissions(_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) {
   yield* _checkPermissions(action)
 }
 // Call when we foreground and on app start, action is null on app start. Returns if you have permissions
@@ -330,7 +330,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
   const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
   if (permissions.alert || permissions.badge) {
-    const state: TypedState = yield* Saga.selectState()
+    const state: Container.TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
@@ -390,16 +390,10 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling
-  yield* Saga.chainAction<PushGen.UpdatePushTokenPayload | ConfigGen.BootstrapStatusLoadedPayload>(
-    [PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded],
-    uploadPushToken
-  )
+  yield* Saga.chainAction2([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
 
-  yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
-    NotificationsGen.receivedBadgeState,
-    updateAppBadge
-  )
+  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)
