@@ -94,7 +94,4 @@ if (isAndroid) {
   KBInputText = _KBInputText
 }
 
-export default (React.forwardRef<RNTextInput>((props, ref) => (
-  // @ts-ignore
-  <KBInputText {...props} forwardedRef={ref} />
-)) as unknown) as typeof RNTextInput
+export default (KBInputText as unknown) as typeof RNTextInput
