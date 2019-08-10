@@ -164,10 +164,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   focusInputCounter: ownProps.focusInputCounter,
 
   getUnsentText: () => {
+    // if we have unsent text in the store, that wins, otherwise take what we have stored locally
     const unsentText = stateProps.unsentText
       ? stateProps.unsentText.stringValue()
       : getUnsentText(stateProps.conversationIDKey)
-    return stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
+    // The store can also have text to prepend, so do that here
+    const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
+    // If we have nothing still, check to see if the service told us about a draft and fill that in
+    if (!ret) {
+      const meta = stateProps._metaMap.get(stateProps.conversationIDKey)
+      if (meta && meta.draft) {
+        return meta.draft
+      }
+    }
+    return ret
   },
 
   isActiveForFocus: stateProps.isActiveForFocus,
@@ -212,6 +222,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
+    // The store text only lasts until we change it, so blow it away now
     if (stateProps.unsentText) {
       dispatchProps._clearUnsentText(stateProps.conversationIDKey)
     }

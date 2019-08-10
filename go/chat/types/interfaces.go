@@ -172,6 +172,7 @@ type InboxSource interface {
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
+	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error

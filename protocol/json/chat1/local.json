@@ -1668,6 +1668,13 @@
           "name": "snippetMsg"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
           "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },

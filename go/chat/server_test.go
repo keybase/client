@@ -6821,3 +6821,64 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		}
 	})
 }
+
+func TestMessageDrafts(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestMessageDrafts", 1)
+	defer ctc.cleanup()
+
+	user := ctc.users()[0]
+	conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	draft := "NEW MESSAAGE"
+	require.NoError(t, ctc.as(t, user).chatLocalHandler().UpdateUnsentText(context.TODO(),
+		chat1.UpdateUnsentTextArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Text:           draft,
+		}))
+	ibres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
+		chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(ibres.Conversations))
+	require.NotNil(t, ibres.Conversations[0].Info.Draft)
+	require.Equal(t, draft, *ibres.Conversations[0].Info.Draft)
+
+	_, err = ctc.as(t, user).chatLocalHandler().PostLocalNonblock(context.TODO(), chat1.PostLocalNonblockArg{
+		ConversationID: conv.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     conv.TlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "HIHIHI",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	worked := false
+	for i := 0; i < 5; i++ {
+		ibres, err = ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(ibres.Conversations))
+		if ibres.Conversations[0].Info.Draft == nil {
+			worked = true
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	require.True(t, worked)
+}

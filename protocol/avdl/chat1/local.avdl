@@ -528,6 +528,7 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;

@@ -1338,6 +1338,10 @@ func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg
 	if err != nil {
 		return err
 	}
+	err = hp.CheckParentPointersOnFastLoad(m, state)
+	if err != nil {
+		return err
+	}
 	err = hp.Commit(m)
 	if err != nil {
 		return err

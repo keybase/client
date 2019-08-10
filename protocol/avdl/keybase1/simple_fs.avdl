@@ -565,9 +565,10 @@ protocol SimpleFS {
     STAT_1
   }
 
-  // returns subscription ID. Notifications are delivered through notify_fs
-  void simpleFSSubscribePath(string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
-  void simpleFSSubscribeNonPath(string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+  // Caller needs to make sure subscriptionID is unique. Notifications are
+  // delivered through notify_fs.
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
 
-  void simpleFSUnsubscribe(string subscriptionID);
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
 }

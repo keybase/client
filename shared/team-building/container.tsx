@@ -12,7 +12,7 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
-import {parseUserId} from '../util/platforms'
+import {parseUserId, ServiceId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
@@ -80,7 +80,17 @@ const deriveSearchResults = memoize(
 
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
   teamSoFar.toArray().map(userInfo => {
-    const {username, serviceId} = parseUserId(userInfo.id)
+    let username = ''
+    let serviceId: ServiceId
+    if (userInfo.contact && userInfo.serviceMap.keybase) {
+      // resolved contact
+      username = userInfo.serviceMap.keybase
+      serviceId = 'keybase'
+    } else {
+      const parsed = parseUserId(userInfo.id)
+      username = parsed.username
+      serviceId = parsed.serviceId
+    }
     return {
       prettyName: userInfo.prettyName,
       service: serviceId,

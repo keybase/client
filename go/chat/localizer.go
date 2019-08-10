@@ -56,8 +56,8 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	return res
 }
 
-func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []chat1.Conversation {
-	convs := utils.PluckConvs(inbox.ConvsUnverified)
+func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []types.RemoteConversation {
+	convs := inbox.ConvsUnverified
 	if maxLocalize == nil || *maxLocalize >= len(convs) {
 		return convs
 	}
@@ -189,7 +189,7 @@ type localizerPipelineJob struct {
 	retCh     chan types.AsyncInboxResult
 	uid       gregor1.UID
 	completed int
-	pending   []chat1.Conversation
+	pending   []types.RemoteConversation
 
 	// testing
 	gateCh chan struct{}
@@ -203,7 +203,7 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	res.retCh = l.retCh
 	res.uid = l.uid
 	res.completed = l.completed
-	res.pending = make([]chat1.Conversation, len(l.pending))
+	res.pending = make([]types.RemoteConversation, len(l.pending))
 	res.gateCh = make(chan struct{})
 	copy(res.pending, l.pending)
 	return res
@@ -219,10 +219,10 @@ func (l *localizerPipelineJob) closeIfDone() bool {
 	return false
 }
 
-func (l *localizerPipelineJob) getPending() (res []chat1.Conversation) {
+func (l *localizerPipelineJob) getPending() (res []types.RemoteConversation) {
 	l.Lock()
 	defer l.Unlock()
-	res = make([]chat1.Conversation, len(l.pending))
+	res = make([]types.RemoteConversation, len(l.pending))
 	copy(res, l.pending)
 	return res
 }
@@ -252,7 +252,7 @@ func (l *localizerPipelineJob) complete(convID chat1.ConversationID) {
 }
 
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convs []chat1.Conversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
+	convs []types.RemoteConversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
 	return &localizerPipelineJob{
 		ctx:     globals.BackgroundChatCtx(ctx, g),
 		retCh:   retCh,
@@ -302,7 +302,7 @@ func (s *localizerPipeline) Disconnected() {
 	s.offline = true
 }
 
-func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
+func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
 	retCh chan types.AsyncInboxResult) error {
 	defer s.Trace(ctx, func() error { return nil }, "queue")()
 	s.Lock()
@@ -508,7 +508,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	if len(pending) == 0 {
 		return nil
 	}
-	convCh := make(chan chat1.Conversation, len(pending))
+	convCh := make(chan types.RemoteConversation, len(pending))
 	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
 		defer close(convCh)
@@ -725,7 +725,7 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 }
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
-	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
+	rc types.RemoteConversation) (conversationLocal chat1.ConversationLocal) {
 	var err error
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
@@ -736,6 +736,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		umapper = s.G().UIDMapper
 	}
 
+	conversationRemote := rc.Conv
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
 		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
@@ -750,6 +751,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		TeamType:     conversationRemote.Metadata.TeamType,
 		Version:      conversationRemote.Metadata.Version,
 		LocalVersion: conversationRemote.Metadata.LocalVersion,
+		Draft:        rc.LocalDraft,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {

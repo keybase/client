@@ -1,10 +1,10 @@
 import * as React from 'react'
 import Measure from 'react-measure'
-import {Props, State} from './video'
+import {Props, VideoState} from './av'
 import * as Styles from '../styles'
-import {getVideoSize, CheckURL} from './video.shared'
+import {getVideoSize, CheckURL} from './av.shared'
 
-export default class extends React.PureComponent<Props, State> {
+export class Video extends React.PureComponent<Props, VideoState> {
   state = {
     containerHeight: 0,
     containerWidth: 0,
@@ -18,9 +18,7 @@ export default class extends React.PureComponent<Props, State> {
   _onContainerResize = ({bounds}) =>
     this._mounted && this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
-  _videoRef: {
-    current: HTMLVideoElement | null
-  } = React.createRef()
+  _videoRef: {current: HTMLVideoElement | null} = React.createRef()
   _onVideoClick = () =>
     this._videoRef.current &&
     (this._videoRef.current.paused ? this._videoRef.current.play() : this._videoRef.current.pause())
@@ -52,11 +50,12 @@ export default class extends React.PureComponent<Props, State> {
                 controlsList="nodownload nofullscreen"
                 onClick={this._onVideoClick}
                 ref={this._videoRef}
-                controls={!this.props.hideControls}
+                controls={!!this.props.controls}
                 src={this.props.url}
                 style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
-                muted={true}
-                autoPlay={true}
+                muted={!!this.props.muted}
+                autoPlay={!!this.props.autoPlay}
+                loop={!!this.props.loop}
                 preload="metadata"
                 onLoadedMetadata={this._onVideoLoadedmetadata}
               />
@@ -67,6 +66,8 @@ export default class extends React.PureComponent<Props, State> {
     )
   }
 }
+
+export const Audio = Video
 
 const styles = Styles.styleSheetCreate({
   container: {
