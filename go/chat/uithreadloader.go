@@ -477,7 +477,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				if ierr != nil {
 					return ierr
 				}
-				if resolved, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, changed,
+				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, changed,
 					query, nil, nil); ierr != nil {
 					return ierr
 				}
