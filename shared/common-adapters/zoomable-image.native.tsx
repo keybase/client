@@ -94,31 +94,31 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
             this.baseScale.setValue(this.lastScale)
             Animated.sequence([
               Animated.timing(this.panX, {
-                duration: 5000,
+                duration: 1000,
                 toValue: -width / 2,
                 useNativeDriver: true,
               }),
               Animated.timing(this.panY, {
-                duration: 5000,
+                duration: 1000,
                 toValue: -height / 2,
                 useNativeDriver: true,
               }),
               Animated.timing(this.pinchScale, {
-                duration: 5000,
+                duration: 1000,
                 toValue: 0.5,
                 useNativeDriver: true,
               }),
               Animated.timing(this.panX, {
-                duration: 5000,
-                toValue: width / 2,
+                duration: 1000,
+                toValue: Styles.dimensionWidth / width / 2,
                 useNativeDriver: true,
               }),
               Animated.timing(this.panY, {
-                duration: 5000,
-                toValue: height / 2,
+                duration: 1000,
+                toValue: Styles.dimensionHeight / height / 2,
                 useNativeDriver: true,
               }),
-            ])
+            ]).start()
           }
 
           this.mounted && this.setState({height, width})
