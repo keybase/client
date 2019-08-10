@@ -1325,6 +1325,13 @@
     "simpleFSSubscribePath": {
       "request": [
         {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1346,6 +1353,13 @@
     "simpleFSSubscribeNonPath": {
       "request": [
         {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1362,6 +1376,13 @@
     },
     "simpleFSUnsubscribe": {
       "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
         {
           "name": "subscriptionID",
           "type": "string"

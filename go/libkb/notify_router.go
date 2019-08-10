@@ -107,6 +107,7 @@ type NotifyListener interface {
 	BoxAuditError(msg string)
 	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
+	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
 }
 
 type NoopNotifyListener struct{}
@@ -228,6 +229,8 @@ func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
 func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
 func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
+func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
+}
 
 type NotifyListenerID string
 
@@ -2501,5 +2504,27 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.HTTPSrvInfoUpdate(info)
+	})
+}
+
+func (n *NotifyRouter) HandleIdentifyUpdate(ctx context.Context, okUsernames []string, brokenUsernames []string) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Users {
+			go func() {
+				_ = (keybase1.NotifyUsersClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).IdentifyUpdate(ctx, keybase1.IdentifyUpdateArg{
+					OkUsernames:     okUsernames,
+					BrokenUsernames: brokenUsernames,
+				})
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.IdentifyUpdate(okUsernames, brokenUsernames)
 	})
 }

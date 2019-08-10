@@ -122,11 +122,15 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
 })
 export const emptyAssetDescription = makeAssetDescription()
 
