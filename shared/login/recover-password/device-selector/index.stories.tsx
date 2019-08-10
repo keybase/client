@@ -39,6 +39,7 @@ const commonProps: Props = {
       type: 'backup',
     }),
   ],
+  onBack: Sb.action('onBack'),
   onResetAccount: Sb.action('onResetAccount'),
   onSelect: Sb.action('onSelect'),
 }

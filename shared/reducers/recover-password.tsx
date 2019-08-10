@@ -35,6 +35,14 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     }
     */
+    case RecoverPasswordGen.showExplainDevice:
+      return state.merge({
+        explainedDevice: {
+          name: action.payload.name,
+          type: action.payload.type,
+        },
+      })
+    case RecoverPasswordGen.submitDeviceSelect:
     default:
       return state
   }

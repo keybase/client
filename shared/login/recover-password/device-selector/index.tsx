@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as ProvisionTypes from '../../../constants/types/provision'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../../styles'
+import {SignupScreen} from '../../../signup/common'
 
 type ItemProps = {
   index: number
@@ -68,6 +69,7 @@ const RecoverMenuItem = (props: ItemProps) => {
 
 export type Props = {
   devices: Array<ProvisionTypes.Device>
+  onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
 }
@@ -81,27 +83,33 @@ const DeviceSelector = (props: Props) => {
     },
   ]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+    <SignupScreen banners={[]} buttons={[]} onBack={props.onBack} title="Recover password">
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true}>
         <Kb.Text type="Body">Which do you have handy?</Kb.Text>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.contentBox}
+          gap={'medium'}
+        >
+          <Kb.List
+            style={styles.list}
+            items={items}
+            renderItem={(index, item) => (
+              <RecoverMenuItem
+                onResetAccount={props.onResetAccount}
+                onSelect={props.onSelect}
+                index={index}
+                item={item}
+              />
+            )}
+            keyProperty="name"
+            fixedHeight={isMobile ? 48 : 40}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
-        <Kb.List
-          style={styles.list}
-          items={items}
-          renderItem={(index, item) => (
-            <RecoverMenuItem
-              onResetAccount={props.onResetAccount}
-              onSelect={props.onSelect}
-              index={index}
-              item={item}
-            />
-          )}
-          keyProperty="name"
-          fixedHeight={isMobile ? 48 : 40}
-        />
-      </Kb.Box2>
-    </Kb.Box2>
+    </SignupScreen>
   )
 }
 

@@ -2,45 +2,28 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
+// import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import DeviceSelector from '.'
 import {InfoIcon} from '../../../signup/common'
 
 type OwnProps = {}
 
 const ConnectedDeviceSelector = Container.connect(
-  state => ({
-    devices: state.recoverPassword.devices.toArray(),
-  }),
-  dispatch => ({
-    _onSelect: (id: string) => {
-      dispatch(
-        RecoverPasswordGen.createSubmitDeviceSelect({
-          id: id,
-        })
-      )
-    },
-    onBack: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onResetAccount: () => {
-      dispatch(
-        RecoverPasswordGen.createSubmitDeviceSelect({
-          id: '',
-        })
-      )
-    },
+  state => {
+    const ed = state.recoverPassword.explainedDevice
+    return {
+      deviceName: ed ? ed.name : '',
+      deviceType: ed ? ed.type : '',
+    }
+  },
+  _ => ({
+    onBack: () => {},
+    onComplete: () => {},
   }),
   (s, d, o: OwnProps) => ({
     ...o,
     ...s,
-    onBack: d.onBack,
-    onResetAccount: d.onResetAccount,
-    onSelect: (name: string) => {
-      const device = s.devices.find(device => device.name === name)
-      d._onSelect(device ? device.id : '')
-    },
+    ...d,
   })
 )(DeviceSelector)
 
