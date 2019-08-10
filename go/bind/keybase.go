@@ -474,7 +474,7 @@ func formatConversationName(info chat1.ConversationInfoLocal) string {
 	if info.TopicName != "" {
 		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
 	}
-	return fmt.Sprintf("%s", info.TlfName)
+	return info.TlfName
 }
 
 func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,

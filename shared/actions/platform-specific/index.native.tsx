@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as FsTypes from '../../constants/types/fs'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
