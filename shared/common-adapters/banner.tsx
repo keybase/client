@@ -106,8 +106,8 @@ export const Banner = (props: BannerProps) => (
           padding="xtiny"
           sizeType="Small"
           type="iconfont-close"
-          color={colorToIconColor[props.color]}
-          hoverColor={colorToIconHoverColor[props.color]}
+          color={colorToIconColor()[props.color]}
+          hoverColor={colorToIconHoverColor()[props.color]}
           onClick={props.onClose}
         />
       </Box>
@@ -115,14 +115,10 @@ export const Banner = (props: BannerProps) => (
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    minHeight: Styles.globalMargins.large,
-  },
+const styles = Styles.styleSheetCreate(() => ({
+  container: {minHeight: Styles.globalMargins.large},
   containerInline: Styles.platformStyles({
-    common: {
-      borderRadius: Styles.borderRadius,
-    },
+    common: {borderRadius: Styles.borderRadius},
     isElectron: {
       maxWidth: '75%',
       minWidth: 352,
@@ -134,16 +130,10 @@ const styles = Styles.styleSheetCreate({
       position: 'absolute',
       right: 0,
     },
-    isElectron: {
-      paddingTop: Styles.globalMargins.tiny + Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
+    isElectron: {paddingTop: Styles.globalMargins.tiny + Styles.globalMargins.xtiny},
+    isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
-  inlineText: {
-    textAlign: 'left',
-  },
+  inlineText: {textAlign: 'left'},
   inlineTextContainer: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
@@ -171,9 +161,7 @@ const styles = Styles.styleSheetCreate({
       maxWidth: '100%',
       textAlign: 'center',
     },
-    isElectron: {
-      overflowWrap: 'break-word',
-    },
+    isElectron: {overflowWrap: 'break-word'},
   }),
   textContainer: Styles.platformStyles({
     common: {
@@ -192,40 +180,38 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   underline: Styles.platformStyles({
-    isMobile: {
-      textDecorationLine: 'underline',
-    },
+    isMobile: {textDecorationLine: 'underline'},
   }),
-})
+}))
 
-const colorToBackgroundColorStyles = Styles.styleSheetCreate({
+const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
   blue: {backgroundColor: Styles.globalColors.blue},
   green: {backgroundColor: Styles.globalColors.green},
   grey: {backgroundColor: Styles.globalColors.grey},
   red: {backgroundColor: Styles.globalColors.red},
   yellow: {backgroundColor: Styles.globalColors.yellow},
-})
+}))
 
-const colorToTextColorStyles = Styles.styleSheetCreate({
+const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
   blue: {color: Styles.globalColors.white},
   green: {color: Styles.globalColors.white},
   grey: {color: Styles.globalColors.black_50},
   red: {color: Styles.globalColors.white},
   yellow: {color: Styles.globalColors.brown_75},
-})
+}))
 
-const colorToIconColor = {
+const colorToIconColor = () => ({
   blue: Styles.globalColors.white_90,
   green: Styles.globalColors.white_90,
   grey: Styles.globalColors.black_50,
   red: Styles.globalColors.white_90,
   yellow: Styles.globalColors.brown_75,
-}
+})
 
-const colorToIconHoverColor = {
+const colorToIconHoverColor = () => ({
   blue: Styles.globalColors.white,
   green: Styles.globalColors.white,
   grey: Styles.globalColors.black,
   red: Styles.globalColors.white,
   yellow: Styles.globalColors.brown,
-}
+})

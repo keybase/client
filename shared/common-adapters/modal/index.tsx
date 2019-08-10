@@ -124,7 +124,7 @@ const headerCommon = {
   borderStyle: 'solid' as const,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   footer: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
@@ -191,6 +191,6 @@ const styles = Styles.styleSheetCreate({
   scrollWide: Styles.platformStyles({
     isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
   }),
-})
+}))
 
 export default Modal

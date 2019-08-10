@@ -113,13 +113,13 @@ const FontLoader = () => (
 
 let store
 
-const DarkContainer = ({children}) => {
-  const className = useSelector(state => isDarkMode(state.config)) ? 'darkMode' : undefined
-  return (
-    <div style={{display: 'flex', flex: 1}} className={className}>
-      {children}
-    </div>
-  )
+const DarkCSSInjector = () => {
+  const className = useSelector(state => isDarkMode(state.config)) ? 'darkMode' : ''
+  React.useEffect(() => {
+    // inject it in body so modals get darkMode also
+    document.body.className = className
+  }, [className])
+  return null
 }
 
 const render = (Component = Main) => {
@@ -130,11 +130,12 @@ const render = (Component = Main) => {
 
   ReactDOM.render(
     <Root store={store}>
+      <DarkCSSInjector />
       <RemoteProxies />
       <FontLoader />
-      <DarkContainer>
+      <div style={{display: 'flex', flex: 1}}>
         <Component />
-      </DarkContainer>
+      </div>
     </Root>,
     root
   )
