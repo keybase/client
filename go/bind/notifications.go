@@ -7,7 +7,7 @@ type Person struct {
 }
 
 type Message struct {
-	Id        int
+	ID        int
 	Kind      string // "Text" | "Reaction"
 	Plaintext string
 	From      *Person

@@ -522,7 +522,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	chatNotification := ChatNotification{
 		IsPlaintext: false,
 		Message: &Message{
-			Id: intMessageID,
+			ID: intMessageID,
 			From: &Person{
 				KeybaseUsername: username,
 				IsBot:           false,
