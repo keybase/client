@@ -54,7 +54,7 @@ export function PopupDialog({
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   clipContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -95,6 +95,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.large,
   },
-})
+}))
 
 export default PopupDialog

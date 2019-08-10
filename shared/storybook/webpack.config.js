@@ -32,6 +32,10 @@ module.exports = (storybookBaseConfig, configType) => {
       path.join(__dirname, '/../__mocks__/electron.js')
     ),
     new webpack.NormalModuleReplacementPlugin(/engine/, path.join(__dirname, '/../__mocks__/engine.js')),
+    new webpack.NormalModuleReplacementPlugin(
+      /dark-mode/,
+      path.join(__dirname, '../styles/__mocks__/dark-mode.tsx')
+    ),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, path.join(__dirname, '/../__mocks__/saga.js')),
     new webpack.NormalModuleReplacementPlugin(/route-tree/, path.join(__dirname, '/../__mocks__/empty.js')),
     new webpack.NormalModuleReplacementPlugin(

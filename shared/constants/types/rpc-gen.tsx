@@ -199,6 +199,10 @@ export type MessageTypes = {
     inParam: {readonly teamName: String}
     outParam: void
   }
+  'keybase.1.NotifyUsers.identifyUpdate': {
+    inParam: {readonly okUsernames?: Array<String> | null; readonly brokenUsernames?: Array<String> | null}
+    outParam: void
+  }
   'keybase.1.NotifyUsers.passwordChanged': {
     inParam: void
     outParam: void
@@ -288,19 +292,19 @@ export type MessageTypes = {
     outParam: FSSettings
   }
   'keybase.1.SimpleFS.simpleFSStat': {
-    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly refreshSubscription: Boolean}
+    inParam: {readonly path: Path; readonly refreshSubscription: Boolean}
     outParam: Dirent
   }
   'keybase.1.SimpleFS.simpleFSSubscribeNonPath': {
-    inParam: {readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSubscribePath': {
-    inParam: {readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus': {
-    inParam: void
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: SyncConfigAndStatusRes
   }
   'keybase.1.SimpleFS.simpleFSSyncStatus': {
@@ -308,7 +312,7 @@ export type MessageTypes = {
     outParam: FSSyncStatus
   }
   'keybase.1.SimpleFS.simpleFSUnsubscribe': {
-    inParam: {readonly subscriptionID: String}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSUserEditHistory': {
@@ -2163,6 +2167,7 @@ export enum TLFIdentifyBehavior {
   resolveAndCheck = 12,
   guiProfile = 13,
   kbfsInit = 14,
+  fsGui = 15,
 }
 
 export enum TLFVisibility {
@@ -2470,7 +2475,8 @@ export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null;
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision | null} | {KBFSArchivedType: KBFSArchivedType.time; time: Time | null} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String | null} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String | null}
-export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam}
+export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSRevision = Int64
 export type KBFSRoot = {readonly treeID: MerkleTreeID; readonly root: KBFSRootHash}
 export type KBFSRootHash = Bytes
@@ -2541,7 +2547,7 @@ export type ParamProofLogoConfig = {readonly svgBlack: String; readonly svgFull:
 export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly logo?: ParamProofLogoConfig | null; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: Array<SelectorEntry> | null; readonly avatarPath?: Array<SelectorEntry> | null}
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
-export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: String | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
+export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: KBFSPath | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
 export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int
@@ -2880,6 +2886,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'?: (params: MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.userChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.passwordChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2997,6 +3004,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyTeambot.teambotKeyNeeded'?: (params: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTracking.trackingInfo'?: (params: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyUsers.passwordChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void}) => IncomingReturn
@@ -3461,6 +3469,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'
 // 'keybase.1.NotifyUsers.userChanged'
 // 'keybase.1.NotifyUsers.passwordChanged'
+// 'keybase.1.NotifyUsers.identifyUpdate'
 // 'keybase.1.paperprovision.paperProvision'
 // 'keybase.1.pgp.pgpSign'
 // 'keybase.1.pgp.pgpPull'

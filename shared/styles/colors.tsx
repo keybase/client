@@ -178,12 +178,14 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowLight: '#000233',
 }
 
-const wrapped = {
-  get: function(_, prop) {
-    const c = isDarkMode() ? darkColors[prop] : colors[prop]
-    return c
-  },
-}
+export const themed = Object.keys(colors).reduce<Object>((obj, name) => {
+  return Object.defineProperty(obj, name, {
+    configurable: false,
+    enumerable: true,
+    get() {
+      return isDarkMode() ? darkColors[name] : colors[name]
+    },
+  })
+}, {})
 
-export const themed = new Proxy(colors, wrapped)
 export default colors

@@ -7126,6 +7126,13 @@ expo-asset@~5.0.0:
     path-browserify "^1.0.0"
     url-parse "^1.4.4"
 
+expo-av@^5.0.1:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-5.0.2.tgz#8f308fc14d7be8b3bc79d6f8dc6c270da07f94d4"
+  integrity sha512-InvEYDinIv5enZR1HM6oIKFrvFoIsXuxAKcbZmgtqeuRzeJpOLJgzEJ5XlqPDfCM9/RX2Fhv4b2mSQsL20T4IQ==
+  dependencies:
+    lodash "^4.17.11"
+
 expo-barcode-scanner@5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/expo-barcode-scanner/-/expo-barcode-scanner-5.0.1.tgz#4b35704e05ab61fa5d203ccc27045739072f84f7"
@@ -8768,6 +8775,11 @@ immer@1.7.2:
   resolved "https://registry.yarnpkg.com/immer/-/immer-1.7.2.tgz#a51e9723c50b27e132f6566facbec1c85fc69547"
   integrity sha512-4Urocwu9+XLDJw4Tc6ZCg7APVjjLInCFvO4TwGsAYV5zT6YYSor14dsZR0+0tHlDIN92cFUOq+i7fC00G5vTxA==
 
+immer@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-3.2.0.tgz#53686471e9dd2b070e0fb5500c6fdecd3a99375f"
+  integrity sha512-+a2R8z9eELHst6aht++nzVzJ8LJ+Hsg49qttfg9Kc/vmoxEdPXw5/rV6+4DYWGgnq+B36KbLr4OTaGtS9mDjtg==
+
 immer@^1.12.0:
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/immer/-/immer-1.12.1.tgz#40c6e5b292c00560836c2993bda3a24379d466f5"
@@ -10209,11 +10221,6 @@ keycode@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.2.0.tgz#3d0af56dc7b8b8e5cba8d0a97f107204eec22b04"
   integrity sha1-PQr1bce4uOXLqNCpfxByBO7CKwQ=
-
-keymirror@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/keymirror/-/keymirror-0.1.1.tgz#918889ea13f8d0a42e7c557250eee713adc95c35"
-  integrity sha1-kYiJ6hP40KQufFVyUO7nE63JXDU=
 
 killable@^1.0.0:
   version "1.0.1"
@@ -13533,15 +13540,6 @@ react-native-tab-view@^2.2.0:
     unimodules-sensors-interface "~2.0.0"
     unimodules-task-manager-interface "~2.0.0"
 
-react-native-video@4.4.1:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-4.4.1.tgz#12c6a8bfbabfa7641338a52db3d857ac3073a4fd"
-  integrity sha512-gTZKRqa4NkEBx6t6iAzTFlgxDY23IZW/8YClR0hMzhOD0/9I/AzOBBaOXDyFeKj4EQF+uZ/LUS3r+oDnz1ks5w==
-  dependencies:
-    keymirror "^0.1.1"
-    prop-types "^15.5.10"
-    shaka-player "^2.4.4"
-
 react-native-webview@5.8.2:
   version "5.8.2"
   resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-5.8.2.tgz#dcc9c802f145183cfc828944350bd43f968aa72c"
@@ -14748,11 +14746,6 @@ sha.js@^2.4.0, sha.js@^2.4.8:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
-
-shaka-player@^2.4.4:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/shaka-player/-/shaka-player-2.5.0.tgz#e479366120c248597f0697d5e4458ebe9f75846d"
-  integrity sha512-MaJ1BbMBiSDpfhctMHG+C/GYspH2D037gcGBAKGrQBWdVc/7loJ50flbvmOhZm2LJsFV8sSg/JjAlH7gei3Ozg==
 
 shallow-clone@^0.1.2:
   version "0.1.2"

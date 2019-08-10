@@ -25,7 +25,7 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import {TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -180,9 +180,9 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
-const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
-  let appFocused
-  let logState
+const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
+  let appFocused: boolean
+  let logState: RPCTypes.MobileAppState
   switch (action.payload.nextAppState) {
     case 'active':
       appFocused = true
@@ -207,7 +207,7 @@ const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
 }
 
 let _lastPersist = ''
-function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
+function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
   const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
   if (!tab) return
@@ -244,7 +244,7 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
-const updateMobileNetState = (_, action) => {
+const updateMobileNetState = (_: Container.TypedState, action) => {
   RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
     console.warn('Error sending mobileNetStateUpdate', err)
   })
@@ -329,7 +329,7 @@ function* loadStartupDetails() {
   )
 }
 
-function* waitForStartupDetails(state, action: ConfigGen.DaemonHandshakePayload) {
+function* waitForStartupDetails(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -352,11 +352,11 @@ function* waitForStartupDetails(state, action: ConfigGen.DaemonHandshakePayload)
   )
 }
 
-const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
-const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
+const handleFilePickerError = (_: Container.TypedState, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
@@ -394,7 +394,7 @@ const loadContactPermissionFromNative = async () => {
 }
 
 const loadContactPermissions = async (
-  state: TypedState,
+  state: Container.TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger: Saga.SagaLogger
 ) => {
@@ -433,7 +433,10 @@ const askForContactPermissions = () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
+function* requestContactPermissions(
+  _: Container.TypedState,
+  action: SettingsGen.RequestContactPermissionsPayload
+) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
@@ -447,7 +450,7 @@ function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestCo
 }
 
 async function manageContactsCache(
-  state: TypedState,
+  state: Container.TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger: Saga.SagaLogger
 ) {
@@ -543,22 +546,19 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
-  yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
-  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
+  yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
+  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
     ConfigGen.daemonHandshake,
     waitForStartupDetails
   )
-  yield* Saga.chainAction<ConfigGen.OpenAppStorePayload>(ConfigGen.openAppStore, openAppStore)
-  yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
-  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
-  yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
-    ConfigGen.osNetworkStatusChanged,
-    updateMobileNetState
-  )
-  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainAction2(ConfigGen.openAppStore, openAppStore)
+  yield* Saga.chainAction2(ConfigGen.filePickerError, handleFilePickerError)
+  yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+  yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
@@ -568,7 +568,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     requestContactPermissions,
     'requestContactPermissions'
   )
-  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     manageContactsCache,
     'manageContactsCache'

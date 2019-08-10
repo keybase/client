@@ -1,6 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as GitGen from '../../actions/git-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export const HeaderTitle = () => (
   <Kb.Box2
@@ -24,43 +27,49 @@ export const HeaderTitle = () => (
   </Kb.Box2>
 )
 
-type HeaderRightActionsProps = {
-  onAddPersonal: () => void
-  onAddTeam: () => void
-}
+export const HeaderRightActions = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<{}>) => {
+  const dispatch = Container.useDispatch()
 
-const _HeaderRightActions = (props: Kb.PropsWithOverlay<HeaderRightActionsProps>) => (
-  <>
-    <Kb.Button
-      label="New repository"
-      onClick={props.toggleShowingMenu}
-      small={true}
-      ref={props.setAttachmentRef}
-      style={styles.newRepoButton}
-    />
-    <Kb.FloatingMenu
-      attachTo={props.getAttachmentRef}
-      closeOnSelect={true}
-      visible={props.showingMenu}
-      onHidden={props.toggleShowingMenu}
-      position="bottom center"
-      positionFallbacks={[]}
-      items={[
-        {
-          onClick: () => props.onAddPersonal(),
-          title: 'New personal repository',
-        },
-        {
-          disabled: Styles.isMobile,
-          onClick: Styles.isMobile ? undefined : () => props.onAddTeam(),
-          style: Styles.isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
-          title: `New team repository${Styles.isMobile ? ' (desktop only)' : ''}`,
-        },
-      ]}
-    />
-  </>
-)
-export const HeaderRightActions = Kb.OverlayParentHOC(_HeaderRightActions)
+  const onAddPersonal = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
+  }
+  const onAddTeam = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+  }
+  return (
+    <>
+      <Kb.Button
+        label="New repository"
+        onClick={props.toggleShowingMenu}
+        small={true}
+        ref={props.setAttachmentRef}
+        style={styles.newRepoButton}
+      />
+      <Kb.FloatingMenu
+        attachTo={props.getAttachmentRef}
+        closeOnSelect={true}
+        visible={props.showingMenu}
+        onHidden={props.toggleShowingMenu}
+        position="bottom center"
+        positionFallbacks={[]}
+        items={[
+          {
+            onClick: onAddPersonal,
+            title: 'New personal repository',
+          },
+          {
+            disabled: Styles.isMobile,
+            onClick: Styles.isMobile ? undefined : onAddTeam,
+            style: Styles.isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
+            title: `New team repository${Styles.isMobile ? ' (desktop only)' : ''}`,
+          },
+        ]}
+      />
+    </>
+  )
+})
 
 const styles = Styles.styleSheetCreate({
   headerTitle: {flex: 1, paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xsmall},

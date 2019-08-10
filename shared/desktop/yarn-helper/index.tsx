@@ -31,6 +31,7 @@ const commands = {
       makeShims()
       fixTypes()
       checkFSEvents()
+      patchExpoAV()
     },
     help: '',
   },
@@ -63,6 +64,17 @@ const fixTypes = () => {
       path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
     )
   } catch (_) {}
+}
+
+function patchExpoAV() {
+  try {
+    const root = path.resolve(__dirname, '..', '..')
+    const src = path.join(root, 'android', 'patched-expo-av-build.gradle')
+    const dst = path.join(root, 'node_modules', 'expo-av', 'android', 'build.gradle')
+    fs.copyFileSync(src, dst)
+  } catch (e) {
+    console.warn('patching expo-av failed', e)
+  }
 }
 
 function makeShims() {

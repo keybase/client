@@ -62,7 +62,7 @@ func makeKbfsPath(
 	keybase1.Path, error) {
 	p := path[len(mountDir):]
 	if rev == 0 && timeString == "" && relTimeString == "" {
-		return keybase1.NewPathWithKbfs(p), nil
+		return keybase1.NewPathWithKbfsPath(p), nil
 	} else if rev != 0 {
 		if timeString != "" || relTimeString != "" {
 			return keybase1.Path{}, errors.New(
@@ -167,7 +167,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 	switch pathType {
 	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
 		if pathType == keybase1.PathType_KBFS {
-			pathString = path.Kbfs()
+			pathString = path.Kbfs().Path
 		} else {
 			pathString = path.KbfsArchived().Path
 		}
@@ -197,7 +197,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 func joinSimpleFSPaths(destType keybase1.PathType, destPathString, srcPathString string) keybase1.Path {
 	newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
 	if destType == keybase1.PathType_KBFS {
-		return keybase1.NewPathWithKbfs(newDestString)
+		return keybase1.NewPathWithKbfsPath(newDestString)
 	}
 	return keybase1.NewPathWithLocal(newDestString)
 }
@@ -343,7 +343,7 @@ func newPathWithSameType(
 	case keybase1.PathType_LOCAL:
 		return keybase1.NewPathWithLocal(pathString), nil
 	case keybase1.PathType_KBFS:
-		return keybase1.NewPathWithKbfs(pathString), nil
+		return keybase1.NewPathWithKbfsPath(pathString), nil
 	case keybase1.PathType_KBFS_ARCHIVED:
 		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
 			Path:          pathString,

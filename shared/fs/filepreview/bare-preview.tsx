@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import Footer from '../footer/footer'
 import View from './view-container'
 import {PathItemAction} from '../common'
 
@@ -41,6 +42,7 @@ export default class extends React.PureComponent<Props, State> {
             mode="screen"
           />
         </Kb.Box>
+        <Footer path={this.props.path} onlyShowProofBroken={true} />
         {this.state.loading && <Kb.ProgressIndicator style={styles.loading} white={true} />}
       </Kb.Box>
     )

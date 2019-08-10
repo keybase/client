@@ -346,7 +346,10 @@ export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   PathType: RPCTypes.PathType.kbfs,
-  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+  kbfs: {
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+    path: Types.pathToString(path).substring('/keybase'.length) || '/',
+  },
 })
 
 export const pathTypeToTextType = (type: Types.PathType) =>
@@ -357,6 +360,11 @@ export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .split(' ')[0]
     .replace(/#/g, ',')
     .split(',')
+
+export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
+  const elems = Types.getPathElements(path)
+  return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2])
+}
 
 export const humanReadableFileSize = (size: number) => {
   const kib = 1024
@@ -467,8 +475,11 @@ export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewTyp
     if (supportedImgMimeTypes.has(mimeType)) {
       return Types.FileViewType.Image
     }
-    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-      return Types.FileViewType.Av
+    if (mimeType.startsWith('audio/')) {
+      return Types.FileViewType.Audio
+    }
+    if (mimeType.startsWith('video/')) {
+      return Types.FileViewType.Video
     }
     if (mimeType === 'application/pdf') {
       return Types.FileViewType.Pdf

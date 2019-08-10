@@ -828,7 +828,8 @@ export type FavoriteFolder = {
 export enum FileViewType {
   Text = 'text',
   Image = 'image',
-  Av = 'av',
+  Audio = 'audio',
+  Video = 'video',
   Pdf = 'pdf',
   Default = 'default',
 }
