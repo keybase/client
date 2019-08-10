@@ -3,11 +3,12 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  error: Error | null
+  error?: Error
   teamname?: string
   name: string
   onDelete: (notifyTeam: boolean) => void
   onClose: () => void
+  title?: string
   waitingKey: string
 }
 
