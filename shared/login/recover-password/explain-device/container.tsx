@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 // import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import DeviceSelector from '.'
 import {InfoIcon} from '../../../signup/common'
@@ -16,9 +17,14 @@ const ConnectedDeviceSelector = Container.connect(
       deviceType: ed ? ed.type : '',
     }
   },
-  _ => ({
+  dispatch => ({
     onBack: () => {},
-    onComplete: () => {},
+    onComplete: () =>
+      dispatch(
+        RouteTreeGen.createNavigateUp({
+          fromKey: 'recoverPasswordDeviceSelector',
+        })
+      ),
   }),
   (s, d, o: OwnProps) => ({
     ...o,
