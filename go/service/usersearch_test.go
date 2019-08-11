@@ -605,6 +605,7 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Nil(t, res[0].Contact)
 		require.NotNil(t, res[0].Imptofu)
 		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		// Assertion should be lowercased for display names.
 		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
 		require.Equal(t, "TEST@keyba.se", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
