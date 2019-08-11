@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {LayoutChangeEvent, View, Animated, Image} from 'react-native'
+import {View, Animated, Image} from 'react-native'
 import {
   // eslint-disable-next-line
   PanGestureHandlerStateChangeEvent,
