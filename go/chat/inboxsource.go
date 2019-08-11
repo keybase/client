@@ -464,6 +464,11 @@ func (s *RemoteInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.
 	return nil
 }
 
+func (s *RemoteInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text *string) error {
+	return nil
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -644,6 +649,14 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		}
 	}
 	return res
+}
+
+func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text *string) error {
+	if err := s.createInbox().Draft(ctx, uid, convID, text); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,

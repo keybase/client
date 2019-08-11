@@ -1279,6 +1279,7 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1296,6 +1297,17 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
+		return true
+	default:
+		return false
+	}
+}
+
+func (b TLFIdentifyBehavior) NotifyGUIAboutBreaks() bool {
+	switch b {
+	case TLFIdentifyBehavior_FS_GUI:
+		// Technically chat needs this too but is done in go/chat by itself and
+		// doesn't use this. So we only put FS_GUI here.
 		return true
 	default:
 		return false

@@ -46,6 +46,7 @@ protocol chatUi {
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
+    union { null, string } draft;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
@@ -85,6 +86,7 @@ protocol chatUi {
     string channel;
     string headline;
     string headlineDecorated;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     array<UIParticipant> participants;
     array<string> resetParticipants;

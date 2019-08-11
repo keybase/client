@@ -95,24 +95,20 @@ const AccountSwitcher = (props: Props) => (
 
 export default Kb.HeaderHoc(AccountSwitcher)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatarSignedOut: {opacity: 0.4},
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
     maxHeight: 170,
     width: 200,
   },
-  divider: {
-    width: '100%',
-  },
+  divider: {width: '100%'},
   nameText: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
+    isElectron: {wordBreak: 'break-all'},
   }),
   row: {
     maxWidth: 200,
     paddingBottom: -Styles.globalMargins.small,
     paddingTop: -Styles.globalMargins.small,
   },
-})
+}))

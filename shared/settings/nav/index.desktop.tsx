@@ -8,7 +8,7 @@ import * as Platform from '../../constants/platform'
 import flags from '../../util/feature-flags'
 import {Props} from './index'
 
-function SettingsNav(props: Props) {
+const SettingsNav = (props: Props) => {
   return (
     <Box style={styles.container}>
       <SettingsItem
@@ -56,7 +56,7 @@ function SettingsNav(props: Props) {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
@@ -68,6 +68,6 @@ const styles = styleSheetCreate({
       borderRight: `1px solid ${globalColors.black_10}`,
     },
   }),
-})
+}))
 
 export default SettingsNav

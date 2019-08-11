@@ -532,3 +532,64 @@ func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctim
 	l.newRatchetSet.Add(typ, ratchet)
 	return nil
 }
+
+func (l *LoaderPackage) checkParentPointer(mctx libkb.MetaContext, getter func(q keybase1.Seqno) (keybase1.LinkID, bool), parentPointer keybase1.LinkTriple, fullLoad bool) (err error) {
+	q := parentPointer.Seqno
+	link, ok := getter(q)
+	switch {
+	case !ok && fullLoad:
+		return newParentPointerError(q, "link wasn't found in parent chain")
+	case !ok && !fullLoad:
+		return nil
+	}
+	if !link.Eq(parentPointer.LinkID) {
+		return newParentPointerError(q, "link ID mismatch")
+	}
+	if parentPointer.SeqType != keybase1.SeqType_SEMIPRIVATE {
+		return newParentPointerError(q, "wrong chain type")
+	}
+	return nil
+}
+
+// CheckParentPointersOnFullLoad looks at all of the new hidden links we got down and makes sure that they
+// the point to loaded links in the visible chain. Because it's a full load, the pointers must land. They
+// can dangle on FTL loads, for instance.
+func (l *LoaderPackage) CheckParentPointersOnFullLoad(mctx libkb.MetaContext, team *keybase1.TeamData) (err error) {
+	if l.newData == nil {
+		return nil
+	}
+	getter := func(q keybase1.Seqno) (ret keybase1.LinkID, found bool) {
+		if team == nil {
+			return ret, false
+		}
+		ret, found = team.Chain.LinkIDs[q]
+		return ret, found
+	}
+	for _, v := range l.newData.Inner {
+		if err := l.checkParentPointer(mctx, getter, v.ParentChain, true /* full load */); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// CheckParentPointersOnFastLoad looks at all of the new hidden links we got down and makes sure that they
+// the point to loaded links in the visible chain. Because it's a fast load, the pointers can dangle.
+func (l *LoaderPackage) CheckParentPointersOnFastLoad(mctx libkb.MetaContext, team *keybase1.FastTeamData) (err error) {
+	if l.newData == nil {
+		return nil
+	}
+	getter := func(q keybase1.Seqno) (ret keybase1.LinkID, found bool) {
+		if team == nil {
+			return ret, false
+		}
+		ret, found = team.Chain.LinkIDs[q]
+		return ret, found
+	}
+	for _, v := range l.newData.Inner {
+		if err := l.checkParentPointer(mctx, getter, v.ParentChain, false /* full load */); err != nil {
+			return err
+		}
+	}
+	return nil
+}

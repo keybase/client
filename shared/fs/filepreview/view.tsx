@@ -96,11 +96,18 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
             <ImageView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
           </>
         )
-      case Types.FileViewType.Av:
+      case Types.FileViewType.Audio:
         return (
           <>
             {reloadBanner}
-            <AVView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
+            <AVView audioOnly={true} url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
+          </>
+        )
+      case Types.FileViewType.Video:
+        return (
+          <>
+            {reloadBanner}
+            <AVView audioOnly={false} url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
           </>
         )
       case Types.FileViewType.Pdf:
