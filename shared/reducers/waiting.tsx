@@ -1,4 +1,5 @@
 import * as Constants from '../constants/waiting'
+import {RPCError} from '../util/errors'
 import * as Types from '../constants/types/waiting'
 import * as Waiting from '../actions/waiting-gen'
 
@@ -32,7 +33,11 @@ const changeHelper = (state, keys, diff, error) => {
   return newState
 }
 
-const initialState = Constants.makeState()
+const initialState: Types.State = {
+  counts: new Map<string, number>(),
+  errors: new Map<string, RPCError>(),
+}
+
 function reducer(state: Types.State = initialState, action: Waiting.Actions): Types.State {
   switch (action.type) {
     case 'common:resetStore': {
