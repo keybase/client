@@ -1554,7 +1554,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	return res, nil
 }
 
-func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.PreviewConversationLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
@@ -1570,9 +1570,11 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 	if err != nil {
 		return res, err
 	}
-	if err = PreviewConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
+	conv, err := PreviewConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
+	if err != nil {
 		return res, err
 	}
+	res.Conv = utils.PresentConversationLocal(ctx, conv, h.G().Env.GetUsername().String())
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
