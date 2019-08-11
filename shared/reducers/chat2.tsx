@@ -908,7 +908,7 @@ const rootReducer = (
       return state.update('messageMap', messageMap =>
         messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
           return map.update(targetOrdinal, message => {
-            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+            if (!Constants.isDecoratedMessage(message)) {
               return message
             }
             const reactions = message.reactions
