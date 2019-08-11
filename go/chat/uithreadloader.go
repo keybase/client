@@ -541,7 +541,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeFull)
 				t.Debug(ctx, "LoadNonblock: resolving message skips: convID: %s num: %d",
 					skip.ConvID, len(messages))
-				resolved, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
+				resolved, modifiedMap, err := NewBoxer(t.G()).ResolveSkippedUnboxeds(ctx, messages)
 				if err != nil {
 					return err
 				}
@@ -552,18 +552,28 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 					// only deliver these updates for the current conv
 					continue
 				}
+				// filter resolved to only update changed messges
+				var changed []chat1.MessageUnboxed
+				for _, rmsg := range resolved {
+					if modifiedMap[rmsg.GetMessageID()] {
+						changed = append(changed, rmsg)
+					}
+				}
+				if len(changed) == 0 {
+					continue
+				}
 				conv, ierr := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
 				if ierr != nil {
 					return ierr
 				}
-				if resolved, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, resolved,
+				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, changed,
 					query, nil, nil); ierr != nil {
 					return ierr
 				}
 				notif := chat1.MessagesUpdated{
 					ConvID: convID,
 				}
-				for _, msg := range resolved {
+				for _, msg := range changed {
 					if t.isConsolidateMsg(msg) {
 						// we don't want to update these, it just messes up consolidation
 						continue

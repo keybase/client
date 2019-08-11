@@ -103,29 +103,25 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.ButtonBar direction="row" align="flex-start" small={true}>
                   {!!this.props.depositButtonText && (
-                    <>
-                      <Kb.WaitingButton
-                        mode="Secondary"
-                        label={this.props.depositButtonText}
-                        onClick={this.props.onDeposit}
-                        small={true}
-                        type="Wallet"
-                        waitingKey={this.props.depositButtonWaitingKey || null}
-                      />
-                    </>
+                    <Kb.WaitingButton
+                      mode="Secondary"
+                      label={this.props.depositButtonText}
+                      onClick={this.props.onDeposit}
+                      small={true}
+                      type="Wallet"
+                      waitingKey={this.props.depositButtonWaitingKey || null}
+                    />
                   )}
 
                   {!!this.props.withdrawButtonText && (
-                    <>
-                      <Kb.WaitingButton
-                        mode="Secondary"
-                        label={this.props.withdrawButtonText}
-                        onClick={this.props.onWithdraw}
-                        small={true}
-                        type="Wallet"
-                        waitingKey={this.props.withdrawButtonWaitingKey || null}
-                      />
-                    </>
+                    <Kb.WaitingButton
+                      mode="Secondary"
+                      label={this.props.withdrawButtonText}
+                      onClick={this.props.onWithdraw}
+                      small={true}
+                      type="Wallet"
+                      waitingKey={this.props.withdrawButtonWaitingKey || null}
+                    />
                   )}
                   {!!this.props.infoUrlText && (
                     <Kb.Button

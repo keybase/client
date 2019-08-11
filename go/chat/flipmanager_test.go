@@ -58,7 +58,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 
 			users := ctc.users()
 			numUsers := 3
-			flip.DefaultCommitmentWindowMsec = 500
+			flip.DefaultCommitmentWindowMsec = 2000
 
 			var ui0, ui1, ui2 *kbtest.ChatUI
 			ui0 = kbtest.NewChatUI()

@@ -320,7 +320,7 @@ func (s SimpleFSMock) SimpleFSSubscribePath(ctx context.Context, arg keybase1.Si
 }
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
 	return nil
 }
 

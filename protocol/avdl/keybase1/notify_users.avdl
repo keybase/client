@@ -7,4 +7,6 @@ protocol NotifyUsers {
   void userChanged(UID uid);
 
   void passwordChanged() oneway;
+
+  void identifyUpdate(array<string> okUsernames, array<string> brokenUsernames) oneway;
 }

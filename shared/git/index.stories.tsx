@@ -1,13 +1,12 @@
 import newRepo from './new-repo/index.stories'
 import deleteRepo from './delete-repo/index.stories'
 import * as Sb from '../stories/storybook'
-import * as I from 'immutable'
 import * as React from 'react'
 import List from '.'
 
 const props = {
   clearBadges: Sb.action('clearBadges'),
-  expandedSet: I.Set(),
+  expandedSet: new Set<string>(),
   loading: false,
   onNewPersonalRepo: Sb.action('onNewPersonalRepo'),
   onNewTeamRepo: Sb.action('onNewTeamRepo'),
@@ -51,7 +50,7 @@ const load = () => {
   Sb.storiesOf('Git/List', module)
     .addDecorator(Sb.createPropProviderWithCommon(Provider))
     .add('Normal', () => <List {...props} />)
-    .add('Expanded', () => <List {...props} expandedSet={I.Set(['personal2', 'team3'])} />)
+    .add('Expanded', () => <List {...props} expandedSet={new Set(['personal2', 'team3'])} />)
 }
 
 export default load

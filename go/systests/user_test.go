@@ -250,6 +250,10 @@ func (h *notifyHandler) PasswordChanged(_ context.Context) error {
 	return nil
 }
 
+func (h *notifyHandler) IdentifyUpdate(_ context.Context, _ keybase1.IdentifyUpdateArg) error {
+	return nil
+}
+
 func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
 	defer tc.Cleanup()

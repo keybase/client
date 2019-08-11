@@ -43,6 +43,7 @@ services:
             - GREGOR_AUTH_SERVER=fmprpc://kbweb.local:13009
             - MYSQL_DSN=root:secret@tcp(mysql.local:3306)/keybase
             - CHAT_MYSQL_DSN=root:secret@tcp(mysql.local:3306)/keybase
+            - CHAT_READER_MYSQL_DSN=root:secret@tcp(mysql.local:3306)/keybase
             - GREGOR_TLF_SERVER=fmprpc+tls://kbweb.local:13010
             - GREGOR_TEAM_SERVER=fmprpc+tls://kbweb.local:7890
             - GREGOR_MACCHECKER_SERVER=fmprpc://kbweb.local:13037

@@ -133,7 +133,7 @@ class AddToChannel extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {...Styles.padding(Styles.globalMargins.small, 0), height: 400, width: 400},
     isMobile: {
@@ -161,6 +161,6 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-})
+}))
 
 export default Kb.HeaderOrPopup(AddToChannel)

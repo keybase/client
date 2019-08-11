@@ -235,7 +235,6 @@ dependencies {
     implementation project(':react-native-webview')
     implementation project(':react-native-community-netinfo')
     implementation project(':react-native-reanimated')
-    implementation project(':react-native-video')
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }

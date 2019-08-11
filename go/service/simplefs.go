@@ -611,12 +611,12 @@ func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase
 	return cli.SimpleFSSubscribePath(ctx, arg)
 }
 
-func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSUnsubscribe(ctx, sid)
+	return cli.SimpleFSUnsubscribe(ctx, arg)
 }
