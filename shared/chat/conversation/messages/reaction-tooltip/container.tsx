@@ -29,8 +29,8 @@ const emptyStateProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const message = Constants.getDecoratedMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-  if (!message) {
+  const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
+  if (!message || !Constants.isDecoratedMessage(message)) {
     return emptyStateProps
   }
   const _reactions = message.reactions

@@ -508,7 +508,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._shouldShowReactionsRow() &&
-                  !!Constants.makeDecoratedMessage(this.props.message) &&
+                  Constants.isDecoratedMessage(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow
                       className={Styles.classNames({

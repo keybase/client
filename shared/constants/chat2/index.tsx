@@ -171,33 +171,13 @@ export const getMessage = (
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
 ): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
-export const getDecoratedMessage = (
-  state: TypedState,
-  id: Types.ConversationIDKey,
-  ordinal: Types.Ordinal
-): Types.DecoratedMessage | null => {
-  const message = state.chat2.messageMap.getIn([id, ordinal])
-  if (!message) {
-    return null
-  }
+export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
     message.type === 'deleted' ||
     message.type === 'systemJoined' ||
     message.type === 'systemLeft'
   )
-    ? message
-    : null
-}
-export const makeDecoratedMessage = (message: Types.Message): Types.DecoratedMessage | null => {
-  return !(
-    message.type === 'placeholder' ||
-    message.type === 'deleted' ||
-    message.type === 'systemJoined' ||
-    message.type === 'systemLeft'
-  )
-    ? message
-    : null
 }
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
