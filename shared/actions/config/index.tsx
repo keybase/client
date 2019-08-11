@@ -654,10 +654,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
-    ConfigGen.setDarkModePreference,
-    saveDarkPrefs
-  )
+  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
