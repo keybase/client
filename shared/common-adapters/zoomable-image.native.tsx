@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {LayoutChangeEvent, View, ImageSourcePropType, Animated, Image} from 'react-native'
+import {LayoutChangeEvent, View, Animated, Image} from 'react-native'
 import {
   // eslint-disable-next-line
   PanGestureHandlerStateChangeEvent,
@@ -26,8 +26,6 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
     width: 0,
   }
 
-  private containerHeight = 0
-  private containerWidth = 0
   private mounted = true
   private panRef = React.createRef<PanGestureHandler>()
   private rotationRef = React.createRef<RotationGestureHandler>()
@@ -85,46 +83,17 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
     }
   }
 
+  private updateImageSize = (width: number, height: number) => {
+    this.mounted && this.setState({height, width})
+    Animated.timing(this.opacity, {
+      duration: 300,
+      toValue: 1,
+      useNativeDriver: true,
+    }).start()
+  }
+
   private getImageSize = () => {
-    this.props.uri &&
-      Image.getSize(
-        this.props.uri,
-        (width, height) => {
-          if (!this.mounted) {
-            return
-          }
-
-          this.setState({height, width})
-
-          // scale to fit
-          // const scaleY = this.containerHeight / height
-          // const scaleX = this.containerWidth / width
-          // if (scaleY > 1 && scaleX > 1) {
-          // return
-          // }
-
-          // if (scaleY < scaleX) {
-          // if (false) {
-          // this.panX.addListener(({value}) => console.log('aaaX', {value}))
-          // this.panY.addListener(({value}) => console.log('aaaY', {value}))
-          // this.pinchScale.addListener(({value}) => console.log('aaaS', {value}))
-          // Animated.parallel([
-          // Animated.timing(this.pinchScale, {
-          // duration: 1000,
-          // toValue: 0.5, //scaleY,
-          // useNativeDriver: true,
-          // }),
-          // // Animated.timing(this.opacity, {
-          // // duration: 200,
-          // // toValue: 1,
-          // // useNativeDriver: true,
-          // // }),
-          // ]).start()
-          // } else {
-          // }
-        },
-        () => {}
-      )
+    this.props.uri && Image.getSize(this.props.uri, this.updateImageSize, () => {})
   }
 
   componentWillUnmount() {
@@ -141,17 +110,9 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
     }
   }
 
-  private onLayout = ({
-    nativeEvent: {
-      layout: {width, height},
-    },
-  }: LayoutChangeEvent) => {
-    this.containerWidth = width
-    this.containerHeight = height
-  }
   render() {
     return (
-      <View onLayout={this.onLayout} style={{flexGrow: 1, position: 'relative'}}>
+      <View style={{flexGrow: 1, position: 'relative'}}>
         <View style={{...Styles.globalStyles.fillAbsolute}}>
           <PanGestureHandler
             ref={this.panRef}
@@ -183,9 +144,7 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
                           {
                             height: '100%',
                             width: '100%',
-                            // height: this.state.height,
-                            // opacity: this.opacity,
-                            // width: this.state.width,
+                            opacity: this.opacity,
                           },
                           {
                             transform: [
