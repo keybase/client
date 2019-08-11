@@ -1,6 +1,7 @@
 import * as Constants from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import * as Types from '../constants/types/waiting'
+import * as Container from '../util/container'
 import * as Waiting from '../actions/waiting-gen'
 
 // set to true to see helpful debug info
@@ -38,14 +39,13 @@ const initialState: Types.State = {
   errors: new Map<string, RPCError>(),
 }
 
-function reducer(state: Types.State = initialState, action: Waiting.Actions): Types.State {
+export default (state: Types.State = initialState, action: Waiting.Actions): Types.State =>
+  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
   switch (action.type) {
-    case 'common:resetStore': {
+    case 'common:resetStore': 
       // Keep the old values else the keys will be all off and confusing
-      const newState = initialState.merge(state)
-      debugWaiting && console.log('DebugWaiting:', '*resetStore*', newState.toJS())
-      return newState
-    }
+      debugWaiting && console.log('DebugWaiting:', '*resetStore*', draftState)
+      return 
     case Waiting.decrementWaiting: {
       const {key, error} = action.payload
       return changeHelper(state, typeof key === 'string' ? [key] : key, -1, error)
