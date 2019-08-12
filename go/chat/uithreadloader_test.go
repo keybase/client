@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -123,21 +122,6 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
-	require.NoError(t, func() error {
-		for i := 0; i < 5; i++ {
-			clock.Advance(5 * time.Second)
-			select {
-			case upd := <-listener0.messagesUpdated:
-				require.Equal(t, 2, len(upd.Updates))
-				return nil
-			case <-time.After(timeout):
-				t.Logf("updated missed: %v", i)
-				clock.Advance(10 * time.Second)
-				time.Sleep(time.Second)
-			}
-		}
-		return errors.New("failed")
-	}())
 }
 
 func TestUIThreadLoaderCache(t *testing.T) {
