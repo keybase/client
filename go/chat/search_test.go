@@ -368,6 +368,52 @@ func TestChatSearchConvRegexp(t *testing.T) {
 	})
 }
 
+func TestChatSearchRemoveMsg(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSearchRemoveMsg", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	chatUI := kbtest.NewChatUI()
+	ctc.as(t, users[0]).h.mockChatUI = chatUI
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	res, err := ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
+		Query: "MIKEM",
+		Opts: chat1.SearchOpts{
+			MaxConvsHit: 5,
+			MaxHits:     5,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, 1, len(res.Res.Hits))
+	require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+
+	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID)
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
+		Query: "MIKEM",
+		Opts: chat1.SearchOpts{
+			MaxConvsHit: 5,
+			MaxHits:     5,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, 1, len(res.Res.Hits))
+	require.Equal(t, 1, len(res.Res.Hits[0].Hits))
+}
+
 func TestChatSearchInbox(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
