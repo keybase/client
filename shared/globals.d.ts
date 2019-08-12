@@ -31,6 +31,7 @@ interface Window {
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
+  KB: typeof KB
 }
 
 interface Console {

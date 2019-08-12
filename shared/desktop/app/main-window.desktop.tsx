@@ -50,9 +50,9 @@ export default function() {
     show: false,
     webPreferences: {
       devTools: showDevTools,
-      nodeIntegration: false,
+      nodeIntegration: true,
       nodeIntegrationInWorker: false,
-      preload: __DEV__ ? resolveRoot('dist', 'preload-main.dev.bundle.js') : undefined,
+      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: appState.state.width,
     x: appState.state.x,
