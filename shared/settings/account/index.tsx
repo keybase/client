@@ -150,8 +150,8 @@ const AccountSettings = (props: Props) => (
           <Kb.Button
             onClick={props.onAddPhone}
             label="Add a new number"
-            mode="Secondary"
             small={true}
+            backgroundColor="yellow"
             style={styles.topButton}
           />
         </Kb.Banner>
