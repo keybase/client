@@ -198,6 +198,15 @@ const config = (_, {mode}) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
+    externals: {
+      ...(isDev
+        ? {
+            // needed by webpack dev server, fulfilled by preload
+            events: 'events',
+            url: 'url',
+          }
+        : {}),
+    },
     module: {rules: makeRules(false)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},

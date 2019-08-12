@@ -42,6 +42,10 @@ interface Console {
 }
 
 declare var KB: {
+  fs: {
+    readServerConfig: () => Object
+    readJsonDebug: () => Object
+  }
   path: {
     join: (...a: Array<string>) => string
   }

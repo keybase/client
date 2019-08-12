@@ -1,18 +1,8 @@
-;(() => {
-  // dev only
-  // needed by dev server
-  // @ts-ignore
-  window.url = require('url')
-
-  // if you change this, also change the .prod version!
-  const path = require('path')
-  window.KB = {
-    path: {
-      join: path.join,
-    },
-    process: {
-      env: process.env,
-      platform: process.platform,
-    },
-  }
-})()
+import url from 'url'
+import events from 'events'
+import './preload-main.shared.desktop'
+// dev only, needed by dev server
+// @ts-ignore
+window.url = url
+// @ts-ignore
+window.events = events

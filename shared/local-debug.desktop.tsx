@@ -47,34 +47,20 @@ if (__DEV__) {
 }
 
 if (!__STORYBOOK__) {
-  const fs = require('fs')
-  // Load overrides from server config
-  if (fs.existsSync(serverConfigFileName)) {
-    try {
-      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
-      if (serverConfig.lastLoggedInUser) {
-        const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-        if (userConfig.printRPCStats) {
-          config.printRPCStats = true
-        }
-      }
-    } catch (e) {
-      console.warn('Invalid server config')
+  const serverConfig = KB.fs.readServerConfig()
+  if (serverConfig && serverConfig.lastLoggedInUser) {
+    const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
+    if (userConfig.printRPCStats) {
+      config.printRPCStats = true
     }
   }
 
   // Load overrides from a local json file
-  if (fs.existsSync(jsonDebugFileName)) {
-    try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
-      console.log('Loaded', jsonDebugFileName, pathJson)
-      config = {...config, ...pathJson}
-      if (Object.prototype.hasOwnProperty.call(pathJson, 'PERF')) {
-        PERF = pathJson.PERF
-      }
-    } catch (e) {
-      console.warn('Invalid local debug file')
-    }
+  const pathJson = KB.fs.readJsonDebug()
+  console.log('Loaded', jsonDebugFileName, pathJson)
+  config = {...config, ...pathJson}
+  if (Object.prototype.hasOwnProperty.call(pathJson, 'PERF')) {
+    PERF = pathJson.PERF
   }
 }
 
