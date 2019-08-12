@@ -638,6 +638,10 @@ func (m *MsgEphemeralMetadata) String() string {
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
 }
 
+func (m MessagePlaintext) SearchableText() string {
+	return m.MessageBody.SearchableText()
+}
+
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }

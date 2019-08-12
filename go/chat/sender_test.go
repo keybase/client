@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
@@ -186,6 +187,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 		teams.ServiceInit(w.G)
 		mctx := libkb.NewMetaContextTODO(w.G)
 		ephemeral.ServiceInit(mctx)
+		teambot.ServiceInit(mctx)
 		contacts.ServiceInit(w.G)
 	}
 	return res
