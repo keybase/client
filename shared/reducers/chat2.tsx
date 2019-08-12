@@ -154,7 +154,7 @@ const metaMapReducer = (
     }
     case Chat2Gen.updateTeamRetentionPolicy: {
       const {convs} = action.payload
-      const newMetas = convs.reduce((updated, conv) => {
+      const newMetas = convs.reduce<{[key: string]: Types.ConversationMeta}>((updated, conv) => {
         const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
         if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
           // only insert if the convo is already in the inbox
@@ -225,7 +225,7 @@ const messageMapReducer = (
       return messageMap.updateIn([conversationIDKey, ordinal], message =>
         !message || message.type !== 'text'
           ? message
-          : message.withMutations(m => {
+          : message.withMutations((m: any) => {
               m.set('text', text)
               m.set('hasBeenEdited', true)
               m.set('submitState', null)
@@ -366,9 +366,9 @@ const messageMapReducer = (
         return messageMap
       }
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
-        return messages.withMutations(msgs => {
+        return messages.withMutations((msgs: any) => {
           ordinals.forEach(ordinal =>
-            msgs.updateIn([ordinal], msg =>
+            msgs.updateIn([ordinal], (msg: any) =>
               msg
                 .set('exploded', true)
                 .set('explodedBy', action.payload.explodedBy || '')
@@ -617,18 +617,23 @@ const rootReducer = (
       const previousMessageMap = state.messageMap
 
       // first group into convoid
-      const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map, m) => {
+      const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map: any, m) => {
         const key = String(m.conversationIDKey)
         map[key] = map[key] || []
         map[key].push(m)
         return map
       }, {})
-      const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
-        const key = String(m.conversationIDKey)
-        map[key] = map[key] || new Set()
-        map[key].add(m.ordinal)
-        return map
-      }, {})
+      const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce(
+        (map: any, m) => {
+          const key = String(m.conversationIDKey)
+          // @ts-ignore
+          map[key] = map[key] || new Set()
+          // @ts-ignore
+          map[key].add(m.ordinal)
+          return map
+        },
+        {}
+      )
 
       if (shouldClearOthers) {
         oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
@@ -1046,6 +1051,7 @@ const rootReducer = (
     case Chat2Gen.updateConvExplodingModes: {
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
+          // @ts-ignore
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
       }, {})
@@ -1251,8 +1257,8 @@ const rootReducer = (
         (info = Constants.initialAttachmentViewInfo) => {
           return info.merge({
             messages:
-              info.messages.findIndex(item => item.id === action.payload.message.id) < 0
-                ? info.messages.push(action.payload.message).sort((l, r) => {
+              info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
+                ? info.messages.push(action.payload.message).sort((l: any, r: any) => {
                     return r.id - l.id
                   })
                 : info.messages,
@@ -1323,8 +1329,8 @@ const rootReducer = (
         (info = Constants.initialAttachmentViewInfo) =>
           info.merge({
             messages: info.messages.update(
-              info.messages.findIndex(item => item.id === action.payload.message.id),
-              item =>
+              info.messages.findIndex((item: any) => item.id === action.payload.message.id),
+              (item: any) =>
                 item
                   ? item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
                   : item
@@ -1356,16 +1362,18 @@ const rootReducer = (
         ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
         (info = Constants.initialAttachmentViewInfo) =>
           info.merge({
-            messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
-              item
-                ? item.merge({
-                    // @ts-ignore we aren't checking for the errors!
-                    downloadPath: action.payload.path,
-                    fileURLCached: true,
-                    transferProgress: 0,
-                    transferState: null,
-                  })
-                : item
+            messages: info.messages.update(
+              info.messages.findIndex((item: any) => item.id === message.id),
+              (item: any) =>
+                item
+                  ? item.merge({
+                      // @ts-ignore we aren't checking for the errors!
+                      downloadPath: action.payload.path,
+                      fileURLCached: true,
+                      transferProgress: 0,
+                      transferState: null,
+                    })
+                  : item
             ),
           })
       )

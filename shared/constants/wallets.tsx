@@ -488,7 +488,14 @@ export const makeAccount = I.Record<Types._Account>({
 })
 export const unknownAccount = makeAccount()
 
-const partyToDescription = (type, username, assertion, name, id): string => {
+const partyToDescription = (
+  // TODO Fix type
+  type: any,
+  username: string,
+  assertion: string,
+  name: string,
+  id: string
+): string => {
   switch (type) {
     case 'keybase':
       return username
