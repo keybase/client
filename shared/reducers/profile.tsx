@@ -5,7 +5,7 @@ import * as Constants from '../constants/profile'
 import * as Validators from '../util/simple-validators'
 import {actionHasError} from '../util/container'
 
-const updateUsername = state => {
+const updateUsername = ( state: Types.State ) => {
   let username = state.username || ''
   let usernameValid = true
 

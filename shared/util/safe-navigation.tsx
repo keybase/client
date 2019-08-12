@@ -22,7 +22,7 @@ function withSafeNavigation<P extends {}>(
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
 
-    _navigateAppend = ({path, replace}) =>
+    _navigateAppend = ({path, replace}: {path: Path; replace?: boolean}) =>
       RouteTreeGen.createNavigateAppend({fromKey: getActiveKey(this.props.navigation.state), path, replace})
 
     _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: getActiveKey(this.props.navigation.state)})

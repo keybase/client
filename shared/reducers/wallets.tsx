@@ -126,7 +126,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-        paymentsMap.filter(p => p.section !== 'pending').merge(newPending)
+        paymentsMap.filter((p: any) => p.section !== 'pending').merge(newPending)
       )
     }
     case WalletsGen.recentPaymentsReceived: {

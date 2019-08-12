@@ -32,7 +32,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       }
 
       const {group, name} = action.payload
-      const updateSubscribe = (setting, storeGroup) => {
+      const updateSubscribe = (setting: Types.NotificationsSettingsState, storeGroup: string) => {
         let subscribed = setting.subscribed
 
         if (!name) {
@@ -102,7 +102,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           ['email', 'emails'],
           emails =>
             emails
-              ? emails.update(action.payload.params.emailAddress, email =>
+            ? emails.update(action.payload.params.emailAddress, ( email: any ) =>
                   email
                     ? email.merge({
                         isVerified: true,

@@ -171,7 +171,7 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
   })
 }
 
-const _scoreAssertionKey = a => {
+const _scoreAssertionKey = ( a: string ) => {
   switch (a) {
     case 'pgp':
       return 110
