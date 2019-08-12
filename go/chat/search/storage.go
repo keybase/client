@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	indexVersion      = 14
+	indexVersion      = 15
 	tokenEntryVersion = 2
-	aliasEntryVersion = 1
+	aliasEntryVersion = 3
 
 	mdDiskVersion    = 4
 	tokenDiskVersion = 1
-	aliasDiskVersion = 2
+	aliasDiskVersion = 1
 )
 
 type tokenEntry struct {
@@ -43,7 +43,7 @@ var refTokenEntry = newTokenEntry()
 
 type aliasEntry struct {
 	Version string         `codec:"v"`
-	Aliases map[string]int `codec:"a"`
+	Aliases map[string]int `codec:"z"`
 }
 
 func newAliasEntry() *aliasEntry {
