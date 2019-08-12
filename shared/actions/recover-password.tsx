@@ -150,14 +150,13 @@ function* startRecoverPassword(_, action: RecoverPasswordGen.StartRecoverPasswor
   }
 }
 
-const restartRecovery = (state: Container.TypedState) => {
-  return [
-    // todo fix blinking
+function* restartRecovery(state: Container.TypedState) {
+  yield Saga.put(
     RecoverPasswordGen.createStartRecoverPassword({
       username: state.recoverPassword.username,
-    }),
-    RouteTreeGen.createNavigateUp(),
-  ]
+    })
+  )
+  yield Saga.put(RouteTreeGen.createNavigateUp())
 }
 
 function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
@@ -165,7 +164,10 @@ function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
     RecoverPasswordGen.startRecoverPassword,
     startRecoverPassword
   )
-  yield Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
+  yield Saga.chainGenerator<RecoverPasswordGen.RestartRecoveryPayload>(
+    RecoverPasswordGen.restartRecovery,
+    restartRecovery
+  )
 }
 
 export default recoverPasswordSaga
