@@ -24,6 +24,8 @@ import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import Wallet from './wallet/container'
 
+import * as Container from '../util/container'
+
 const sharedRoutes = {
   airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
   // TODO connect broken
@@ -64,28 +66,31 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   }
 }
 
+const OnboardingOrWallets = (props: any) => {
+  const acceptedDisclaimer = Container.useSelector(s => s.wallets.acceptedDisclaimer)
+  return acceptedDisclaimer ? <WalletsSubNav {...props} /> : <RoutedOnboarding {...props} />
+}
+
+const WalletsSubNavigator = createNavigator(
+  OnboardingOrWallets,
+  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+  {}
+)
+WalletsSubNavigator.navigationOptions = ({navigation}) => ({
+  header: undefined,
+  headerExpandable: true,
+  headerRightActions: require('./nav-header/container').HeaderRightActions,
+  headerTitle: require('./nav-header/container').HeaderTitle,
+  title: 'Wallet',
+  headerMode: !navigation.getParam('hideHeader') ? undefined : 'none',
+})
+
 export const newRoutes = {
   walletsRoot: {
     getScreen: () => {
       if (isMobile) {
         return require('./wallet/container').default
       } else {
-        const WalletsSubNavigator = createNavigator(
-          WalletsSubNav,
-          StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-          {}
-        )
-
-        const {HeaderTitle, HeaderRightActions} = require('./nav-header/container')
-
-        WalletsSubNavigator.navigationOptions = {
-          header: undefined,
-          headerExpandable: true,
-          headerRightActions: HeaderRightActions,
-          headerTitle: HeaderTitle,
-          title: 'Wallet',
-        }
-
         return WalletsSubNavigator
       }
     },
