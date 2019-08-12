@@ -13,12 +13,6 @@
   "types": [
     {
       "type": "record",
-      "name": "APIUserServiceIDWithContact",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "APIUserKeybaseResult",
       "fields": [
         {
@@ -69,7 +63,7 @@
       "name": "APIUserServiceResult",
       "fields": [
         {
-          "type": "APIUserServiceIDWithContact",
+          "type": "string",
           "name": "serviceName",
           "jsonkey": "service_name"
         },
@@ -109,7 +103,7 @@
       "name": "APIUserServiceSummary",
       "fields": [
         {
-          "type": "APIUserServiceIDWithContact",
+          "type": "string",
           "name": "serviceName",
           "jsonkey": "service_name"
         },
@@ -181,7 +175,7 @@
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
-            "keys": "APIUserServiceIDWithContact"
+            "keys": "string"
           },
           "name": "servicesSummary",
           "jsonkey": "services_summary"
@@ -273,6 +267,97 @@
           "body": "EmailAddress"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UserSearchSourceType",
+      "symbols": [
+        "KEYBASE_0",
+        "SOCIAL_1",
+        "CONTACTS_2",
+        "TOFU_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UserSearchSource",
+      "switch": {
+        "type": "UserSearchSourceType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SOCIAL",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserSearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "serviceName"
+        },
+        {
+          "type": "string",
+          "name": "prettyName"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        },
+        {
+          "type": "string",
+          "name": "keybaseUsername"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "UserSearchSource",
+          "name": "source"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
+        },
+        {
+          "type": "double",
+          "name": "score"
+        },
+        {
+          "type": "double",
+          "name": "rawScore"
+        }
+      ]
     }
   ],
   "messages": {
@@ -321,7 +406,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "APIUserSearchResult"
+        "items": "UserSearchResult"
       }
     }
   },

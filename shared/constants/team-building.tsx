@@ -54,66 +54,15 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
 
 const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
-const parseRawResultToUser = (
-  result: RPCTypes.APIUserSearchResult,
-  service: Types.ServiceIdWithContact
-): Types.User | null => {
-  const serviceMap = Object.keys(result.servicesSummary || {}).reduce((acc, service_name) => {
-    acc[service_name] = result.servicesSummary[service_name].username
-    return acc
-  }, {})
-
-  // Add the keybase service to the service map since it isn't there by default
-  if (result.keybase) {
-    serviceMap['keybase'] = result.keybase.username
-  }
-
-  if (service === 'keybase' && result.keybase) {
-    return {
-      id: result.keybase.username,
-      prettyName: result.keybase.fullName || result.keybase.username,
-      serviceMap,
-    }
-  } else if (service === 'keybase' && result.contact) {
-    return {
-      id: result.contact.assertion,
-      label: result.contact.displayLabel,
-      prettyName: result.contact.displayName,
-      serviceMap: {...serviceMap, keybase: result.contact.username},
-    }
-  } else if (result.imptofu) {
-    return {
-      id: result.imptofu.assertion,
-      label: result.imptofu.label,
-      prettyName: result.imptofu.prettyName,
-      serviceMap: {...serviceMap, keybase: result.imptofu.keybaseUsername},
-    }
-  } else if (result.service) {
-    if (result.service.serviceName !== service) {
-      // This shouldn't happen
-      logger.error(
-        `Search result's service_name is different than given service name. Expected: ${service} received ${
-          result.service.serviceName
-        }`
-      )
-      return null
-    }
-
-    const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
-
-    const prettyName = result.service.fullName || kbPrettyName || ``
-
-    const id = result.keybase
-      ? result.keybase.username
-      : `${result.service.username}@${result.service.serviceName}`
-
-    return {
-      id,
-      prettyName,
-      serviceMap,
-    }
-  } else {
-    return null
+const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => {
+  return {
+    assertion: result.assertion,
+    id: result.id,
+    label: result.label,
+    prettyName: result.prettyName,
+    serviceMap: result.serviceMap,
+    serviceName: result.serviceName,
+    username: result.username,
   }
 }
 

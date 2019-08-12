@@ -3,9 +3,6 @@ protocol userSearch {
     import idl "common.avdl";
     import idl "contacts.avdl";
 
-    @typedef("string")
-    record APIUserServiceIDWithContact {}
-
     record APIUserKeybaseResult {
         string username;
         UID uid;
@@ -22,7 +19,7 @@ protocol userSearch {
 
     record APIUserServiceResult {
         @jsonkey("service_name")
-        APIUserServiceIDWithContact serviceName;
+        string serviceName;
         string username;
         @jsonkey("picture_url")
         string pictureUrl;
@@ -35,7 +32,7 @@ protocol userSearch {
 
     record APIUserServiceSummary {
         @jsonkey("service_name")
-        APIUserServiceIDWithContact serviceName;
+        string serviceName;
         string username;
     }
 
@@ -53,7 +50,7 @@ protocol userSearch {
         union { null, ProcessedContact } contact;
         union { null, ImpTofuSearchResult } imptofu;
         @jsonkey("services_summary")
-        map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
+        map<string, APIUserServiceSummary> servicesSummary;
         double rawScore;
     }
 
@@ -79,7 +76,45 @@ protocol userSearch {
         case EMAIL: EmailAddress;
     }
 
-    array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
+    enum UserSearchSourceType {
+        KEYBASE_0,
+        SOCIAL_1,
+        CONTACTS_2,
+        TOFU_3
+    }
+
+    variant UserSearchSource switch (UserSearchSourceType t) {
+        case SOCIAL: string;
+        default: void;
+    }
+
+    record UserSearchResult {
+        string id; // unique key
+
+        // Assertion, for use in chat / team creation. Warning: this is not necessarily
+        // "${username}@${serviceName}"
+        string assertion;
+
+        string username; // Username on the service
+        string serviceName; // Service which the result comes from
+
+        string prettyName; // "Pretty name" for list of results
+        string label; // "Label" for list of results
+
+        // Username on Keybase, can be empty. E.g. twitter result which is also proven
+        // by a Keybase user will have Keybase username. WARNING: Should not be used for
+        // creating conversations / teams!
+        string keybaseUsername;
+        UID uid; // UID on Keybase if available - see above
+
+        UserSearchSource source;
+        map<string, string> serviceMap;
+
+        double score;
+        double rawScore;
+    }
+
+    array<UserSearchResult> userSearch(string query, string service, int maxResults,
         boolean includeServicesSummary, boolean includeContacts,
         union { null, ImpTofuQuery } impTofuQuery);
 }

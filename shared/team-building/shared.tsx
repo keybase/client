@@ -5,7 +5,7 @@ import {IconType} from '../common-adapters/icon.constants'
 const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; label: string}} = {
   contact: {
     color: '#000',
-    icon: 'iconfont-identity-twitter',
+    icon: 'iconfont-contact-card',
     label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
   },
   email: {

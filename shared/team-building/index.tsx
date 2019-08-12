@@ -79,6 +79,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showServiceResultCount: boolean
   teamSoFar: Array<{
+    assertion: string
     userId: string
     prettyName: string
     service: ServiceIdWithContact
