@@ -2,6 +2,8 @@ import * as I from 'immutable'
 import {TeamRoleType} from './teams'
 import {ServiceId} from '../../util/platforms'
 
+export type UserID = string // unique key for search results
+
 export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
@@ -13,7 +15,7 @@ export type ServiceMap = {[K in ServiceIdWithContact]?: UsernameOnService}
 
 export type User = {
   serviceMap: ServiceMap
-  id: string // unique, key for user lists
+  id: UserID // unique, key for user lists
   // username for given service, keybase username if keybase. e164 (w/o '+')
   // for phone number, email for emails.
   username: string
@@ -28,7 +30,7 @@ export type User = {
 
 // Used in the team-building user bubbles
 export type SelectedUser = {
-  userId: string
+  userId: UserID
   title: string
   description: string // displayed on hover
   usernameForAvatar?: string

@@ -1,4 +1,3 @@
-import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
@@ -15,7 +14,6 @@ const allServices: Array<Types.ServiceIdWithContact> = [
   'pgp',
 ]
 
-// We don't search pgp explicitly, and contact isn't implemented yet
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
 function isKeybaseUserId(userId) {
@@ -67,7 +65,7 @@ const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => 
   }
 }
 
-const userToSelectedUser = (user : Types.User) : Types.SelectedUser => {
+const userToSelectedUser = (user: Types.User): Types.SelectedUser => {
   let technicalName: string
   switch (user.serviceName) {
     case 'keybase':
@@ -88,4 +86,11 @@ const userToSelectedUser = (user : Types.User) : Types.SelectedUser => {
   }
 }
 
-export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser, userToSelectedUser}
+export {
+  followStateHelperWithId,
+  makeSubState,
+  allServices,
+  services,
+  parseRawResultToUser,
+  userToSelectedUser,
+}

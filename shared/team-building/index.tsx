@@ -7,7 +7,7 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
@@ -78,13 +78,7 @@ export type Props = ContactProps & {
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showServiceResultCount: boolean
-  teamSoFar: Array<{
-    assertion: string
-    userId: string
-    prettyName: string
-    service: ServiceIdWithContact
-    username: string
-  }>
+  teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
 }

@@ -36,31 +36,34 @@ function _toSearchQuery(serviceName: string, searchTerm: string): Types.SearchQu
   return `${serviceName}-${searchTerm}`
 }
 
-function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.SearchResult {
-  if (result.keybase && result.service) {
-    const {keybase, service} = result
+function _parseKeybaseRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
+  if (result.keybaseUsername && Object.values(result.serviceMap).length > 1) {
+    const serviceName = Object.keys(result.serviceMap)
+      .sort()
+      .filter(x => x !== 'keybase')[0]
+    const serviceUsername = result.serviceMap[serviceName]
+
     return {
-      id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName || null,
+      id: result.assertion,
+      leftFullname: result.label || null,
       leftIcon: null,
       leftService: 'Keybase',
 
-      leftUsername: keybase.username,
-      rightIcon: serviceIdToIcon(serviceIdFromString(service.serviceName)),
-      rightService: Constants.serviceIdToService(service.serviceName),
-      rightUsername: service.username,
+      leftUsername: result.keybaseUsername,
+      rightIcon: serviceIdToIcon(serviceIdFromString(serviceName)),
+      rightService: Constants.serviceIdToService(serviceName),
+      rightUsername: serviceUsername,
     }
   }
 
-  if (result.keybase) {
-    const {keybase} = result
+  if (result.keybaseUsername) {
     return {
-      id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName || null,
+      id: result.assertion,
+      leftFullname: result.label || null,
       leftIcon: null,
       leftService: 'Keybase',
 
-      leftUsername: keybase.username,
+      leftUsername: result.keybaseUsername,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -70,41 +73,35 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
   throw new Error(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
 }
 
-function _parseThirdPartyRawResult(result: RPCTypes.APIUserSearchResult): Types.SearchResult {
-  if (result.service && result.keybase) {
-    const {service, keybase} = result
+function _parseThirdPartyRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
+  if (result.keybaseUsername) {
     return {
-      id: _rawResultToId(service.serviceName, service.username),
-      leftFullname: keybase.fullName || null,
-      leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
-      leftService: Constants.serviceIdToService(service.serviceName),
+      id: result.assertion,
+      leftFullname: result.label || null,
+      leftIcon: serviceIdToLogo24(serviceIdFromString(result.serviceName)),
+      leftService: Constants.serviceIdToService(result.serviceName),
 
-      leftUsername: service.username,
+      leftUsername: result.username,
       rightIcon: null,
       rightService: 'Keybase',
-      rightUsername: keybase.username,
+      rightUsername: result.keybaseUsername,
     }
   }
 
-  if (result.service) {
-    const service = result.service
-    return {
-      id: _rawResultToId(service.serviceName, service.username),
-      leftFullname: service.fullName,
-      leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
-      leftService: Constants.serviceIdToService(service.serviceName),
+  return {
+    id: result.assertion,
+    leftFullname: result.label,
+    leftIcon: serviceIdToLogo24(serviceIdFromString(result.serviceName)),
+    leftService: Constants.serviceIdToService(result.serviceName),
 
-      leftUsername: service.username,
-      rightIcon: null,
-      rightService: null,
-      rightUsername: null,
-    }
+    leftUsername: result.username,
+    rightIcon: null,
+    rightService: null,
+    rightUsername: null,
   }
-
-  throw new Error(`Invalid raw result for service search. Missing result.service ${JSON.stringify(result)}`)
 }
 
-function _parseRawResultToRow(result: RPCTypes.APIUserSearchResult, service: Types.Service) {
+function _parseRawResultToRow(result: RPCTypes.UserSearchResult, service: Types.Service) {
   // @ts-ignore (old flow issue) shouldn't accept a '' but this logic exists and i don't want to test removing it
   if (service === '' || service === 'Keybase') {
     return _parseKeybaseRawResult(result)
@@ -130,7 +127,7 @@ function callSearch(
   searchTerm: string,
   service: string = '',
   limit: number = 20
-): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
+): Promise<Array<RPCTypes.UserSearchResult> | null> {
   return RPCTypes.userSearchUserSearchRpcPromise({
     includeContacts: false,
     includeServicesSummary: false,
@@ -174,7 +171,7 @@ function* search(state, {payload: {term, service, searchKey}}) {
       term,
       _serviceToApiServiceName(service)
     )
-    const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
+    const rows = (searchResults || []).map((result: RPCTypes.UserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 

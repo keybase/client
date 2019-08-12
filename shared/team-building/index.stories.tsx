@@ -69,19 +69,19 @@ const load = () => {
         teamSoFar={[
           {
             prettyName: 'max (Max Krohn)',
-            service: 'keybase',
+            service: 'keybase' as const,
             userId: 'max',
             username: 'max',
           },
           {
             prettyName: 'marcopolo (GitHub)',
-            service: 'github',
+            service: 'github' as const,
             userId: 'marcopolo@github',
             username: 'marcopolo',
           },
           {
             prettyName: 'chris (Chris Coyne)',
-            service: 'keybase',
+            service: 'keybase' as const,
             userId: 'chris',
             username: 'chris',
           },
@@ -168,19 +168,19 @@ const load = () => {
         teamSoFar={[
           {
             prettyName: 'max (Max Krohn)',
-            service: 'keybase',
+            service: 'keybase' as const,
             userId: 'max',
             username: 'max',
           },
           {
             prettyName: 'marcopolo (GitHub)',
-            service: 'github',
+            service: 'github' as const,
             userId: 'marcopolo@github',
             username: 'marcopolo',
           },
           {
             prettyName: 'chris (Chris Coyne)',
-            service: 'keybase',
+            service: 'keybase' as const,
             userId: 'chris',
             username: 'chris',
           },
@@ -604,16 +604,16 @@ const load = () => {
     .addDecorator(provider)
     .add('Plain', () => (
       <UserBubble
-        username="max"
-        prettyName="max (Max Krohn)"
+        title="max"
+        description="max (Max Krohn)"
         service="keybase"
         onRemove={Sb.action('onRemove')}
       />
     ))
     .add('GitHub', () => (
       <UserBubble
-        username="marcopolo"
-        prettyName="marcopolo (GitHub)"
+        title="marcopolo"
+        description="marcopolo (GitHub)"
         service="github"
         onRemove={Sb.action('onRemove')}
       />

@@ -12,16 +12,9 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
-import {parseUserId, ServiceId} from '../util/platforms'
 import {followStateHelperWithId, userToSelectedUser} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {
-  ServiceIdWithContact,
-  User,
-  SelectedUser,
-  SearchResults,
-  AllowedNamespace,
-} from '../constants/types/team-building'
+import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
