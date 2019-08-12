@@ -2357,6 +2357,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		MemberStatus: []chat1.ConversationMemberStatus{
 			chat1.ConversationMemberStatus_ACTIVE,
 			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
 			chat1.ConversationMemberStatus_NEVER_JOINED,
 		},
 	}, nil)
@@ -2384,6 +2385,7 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			MemberStatus: []chat1.ConversationMemberStatus{
 				chat1.ConversationMemberStatus_ACTIVE,
 				chat1.ConversationMemberStatus_PREVIEW,
+				chat1.ConversationMemberStatus_RESET,
 				chat1.ConversationMemberStatus_NEVER_JOINED,
 			},
 		}, nil)
