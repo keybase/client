@@ -296,10 +296,6 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(Tracker2Gen.getProofSuggestions, getProofSuggestions)
 
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
-  // TEMP until actions/tracker is deprecated
-  // yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
-  // end TEMP until actions/tracker is deprecated
-  //
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3ShowTracker, identify3ShowTracker)
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateRow, identify3UpdateRow)
