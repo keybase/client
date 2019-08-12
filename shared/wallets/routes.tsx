@@ -79,10 +79,10 @@ const WalletsSubNavigator = createNavigator(
 WalletsSubNavigator.navigationOptions = ({navigation}) => ({
   header: undefined,
   headerExpandable: true,
+  headerMode: !navigation.getParam('hideHeader') ? undefined : 'none',
   headerRightActions: require('./nav-header/container').HeaderRightActions,
   headerTitle: require('./nav-header/container').HeaderTitle,
   title: 'Wallet',
-  headerMode: !navigation.getParam('hideHeader') ? undefined : 'none',
 })
 
 export const newRoutes = {

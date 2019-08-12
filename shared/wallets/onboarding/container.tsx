@@ -56,8 +56,10 @@ const ConnectedOnboarding = Container.connect(
 type RoutedOnboardingProps = Container.RouteProps<OwnProps>
 export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => {
   React.useEffect(() => {
+    // @ts-ignore
     if (!ownProps.navigation.getParam('hideHeader')) {
-      ownProps.navigation.setParams({hideHeader: true})
+      // @ts-ignore
+      ownProps.navigation.setParams({hideHeader})
     }
   })
   return <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
