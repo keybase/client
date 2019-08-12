@@ -2,22 +2,24 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
-import DeviceSelector from '.'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import Error from '.'
 import {InfoIcon} from '../../../signup/common'
 
 type OwnProps = {}
 
-const ConnectedPromptReset = Container.connect(
-  _ => ({}),
+const ConnectedError = Container.connect(
+  state => ({
+    error: state.recoverPassword.paperKeyError.stringValue(),
+  }),
   dispatch => ({
-    onContinue: (action: boolean) => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action})),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(DeviceSelector)
+)(Error)
 
 // @ts-ignore fix this
-ConnectedPromptReset.navigationOptions = {
+ConnectedError.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -31,4 +33,4 @@ ConnectedPromptReset.navigationOptions = {
   ),
 }
 
-export default ConnectedPromptReset
+export default ConnectedError

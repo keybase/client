@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import DeviceSelector from '.'
 import {InfoIcon} from '../../../signup/common'
@@ -14,24 +13,9 @@ const ConnectedDeviceSelector = Container.connect(
     devices: state.recoverPassword.devices.toArray(),
   }),
   dispatch => ({
-    _onSelect: (id: string) => {
-      dispatch(
-        RecoverPasswordGen.createSubmitDeviceSelect({
-          id: id,
-        })
-      )
-    },
-    onBack: () => {
-      dispatch(RecoverPasswordGen.createAbortDeviceSelect())
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onResetAccount: () => {
-      dispatch(
-        RecoverPasswordGen.createSubmitDeviceSelect({
-          id: '',
-        })
-      )
-    },
+    _onSelect: (id: string) => dispatch(RecoverPasswordGen.createSubmitDeviceSelect({id})),
+    onBack: () => dispatch(RecoverPasswordGen.createAbortDeviceSelect()),
+    onResetAccount: () => dispatch(RecoverPasswordGen.createSubmitDeviceSelect({id: ''})),
   }),
   (s, d, o: OwnProps) => ({
     ...o,

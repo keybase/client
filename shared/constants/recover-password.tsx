@@ -8,5 +8,6 @@ export const makeState = I.Record<Types._State>({
   devices: I.List(),
   error: new HiddenString(''),
   explainedDevice: undefined,
+  paperKeyError: new HiddenString(''),
   username: '',
 })

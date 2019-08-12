@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
-import DeviceSelector from '.'
+import ExplainDevice from '.'
 import {InfoIcon} from '../../../signup/common'
 
 type OwnProps = {}
@@ -35,7 +35,7 @@ const ConnectedExplainDevice = Container.connect(
     ...d,
     onBack: () => d._onBack(s.username),
   })
-)(DeviceSelector)
+)(ExplainDevice)
 
 // @ts-ignore fix this
 ConnectedExplainDevice.navigationOptions = {

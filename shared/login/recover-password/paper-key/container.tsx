@@ -3,21 +3,24 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
-import DeviceSelector from '.'
+import PaperKey from '.'
 import {InfoIcon} from '../../../signup/common'
 
 type OwnProps = {}
 
-const ConnectedPromptReset = Container.connect(
-  _ => ({}),
+const ConnectedPaperKey = Container.connect(
+  state => ({
+    error: state.recoverPassword.paperKeyError.stringValue(),
+  }),
   dispatch => ({
-    onContinue: (action: boolean) => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action})),
+    onBack: () => dispatch(RecoverPasswordGen.createAbortPaperKey()),
+    onSubmit: (paperKey: string) => dispatch(RecoverPasswordGen.createSubmitPaperKey({paperKey})),
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(DeviceSelector)
+)(PaperKey)
 
 // @ts-ignore fix this
-ConnectedPromptReset.navigationOptions = {
+ConnectedPaperKey.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -31,4 +34,4 @@ ConnectedPromptReset.navigationOptions = {
   ),
 }
 
-export default ConnectedPromptReset
+export default ConnectedPaperKey

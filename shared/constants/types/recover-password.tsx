@@ -9,6 +9,7 @@ export type _State = {
     name: string
     type: string
   }
+  paperKeyError: HiddenString
   username: string
 }
 
