@@ -119,7 +119,7 @@ func TestApplyTeamBotSettings(t *testing.T) {
 
 	g.BotCommandManager = &MockBotCommandManager{}
 	mockCmdOutput = []chat1.UserBotCommandOutput{
-		chat1.UserBotCommandOutput{
+		{
 			Name: "status",
 		},
 	}
