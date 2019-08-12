@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as SignupGen from '../actions/signup-gen'
 import Todo from './todo/container'
 import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
@@ -58,6 +60,11 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 }
 
 const EmailVerificationBanner = ({email}) => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => () =>
+    // Only have a cleanup function
+    dispatch(SignupGen.createClearJustSignedUpEmail())
+  )
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${email}.`}</Kb.Banner>
   )
