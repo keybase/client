@@ -54,7 +54,8 @@ build_one_architecture() {
 
   # Copy the entire filesystem layout, binaries and all, into the debian build
   # folder. TODO: Something less wasteful of disk space?
-  cp -r "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+  # Preserve permissions of the chrome-sandbox setuid
+  cp -rp "$build_root"/binaries/"$debian_arch"/* "$dest/build"
 
   # Copy changelog directly in, since this is a binary package.
   doc_dir="$dest/build/usr/share/doc/keybase"
