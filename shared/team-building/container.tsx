@@ -85,11 +85,7 @@ const deriveSearchResults = memoize(
     })
 )
 
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
+const formatUserBubble = (username: string, service: ServiceIdWithContact, prettyName: string) => {
   let technicalName: string
   switch (service) {
     case 'keybase':
@@ -106,7 +102,7 @@ const formatNameForUserBubble = (
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) => {
   const res = teamSoFar.toArray().map(
     (userInfo): SelectedUser => ({
-      description: formatNameForUserBubble(userInfo.username, userInfo.serviceName, userInfo.prettyName),
+      description: formatUserBubble(userInfo.username, userInfo.serviceName, userInfo.prettyName),
       service: userInfo.serviceName,
       title: userInfo.username,
       userId: userInfo.id,

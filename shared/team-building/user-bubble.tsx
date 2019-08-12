@@ -35,6 +35,7 @@ const DesktopBubble = (props: Props) => {
     .hoverContainer .hoverComponent { visibility: hidden; position: absolute; top: 0; right: 0; }
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
+  const useDefaultIcon = !props.usernameForAvatar
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer">
       <DesktopStyle style={realCSS} />
@@ -43,8 +44,8 @@ const DesktopBubble = (props: Props) => {
           colorFollowing={true}
           hideFollowingOverlay={true}
           horizontal={false}
-          icon={props.usernameForAvatar ? undefined : serviceIdToIconFont(props.service)}
-          iconBoxStyle={props.service !== 'keybase' ? styles.iconBox : undefined}
+          icon={useDefaultIcon ? serviceIdToIconFont(props.service) : undefined}
+          iconBoxStyle={useDefaultIcon ? styles.iconBox : undefined}
           size="smaller"
           username={props.usernameForAvatar}
           title={props.title}
