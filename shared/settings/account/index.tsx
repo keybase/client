@@ -144,6 +144,13 @@ const AccountSettings = (props: Props) => (
               props.supersededPhoneNumber
             } is now associated with another Keybase user.`}
           />
+          <Kb.Button
+            onClick={props.onAddPhone}
+            label="Add a new number"
+            small={true}
+            backgroundColor="yellow"
+            style={styles.topButton}
+          />
         </Kb.Banner>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -193,6 +200,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
     },
   }),
+  topButton: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
 })
 
 export default Kb.HeaderHoc(AccountSettings)
