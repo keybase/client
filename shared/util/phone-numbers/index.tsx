@@ -58,7 +58,7 @@ countries.forEach(curr => {
 export const countryData: {[key: string]: CountryData} = countryDataRaw
 export const codeToCountry: {[key: string]: string} = codeToCountryRaw
 
-const canadianAreaCodes: {[kkey: string]: boolean} = {
+const canadianAreaCodes: {[key: string]: boolean} = {
   '204': true,
   '226': true,
   '236': true,

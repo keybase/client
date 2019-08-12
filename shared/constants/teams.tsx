@@ -418,7 +418,7 @@ const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
-      curr.params && names.push(curr.params.teamname)
+      curr.params && curr.params.teamname && names.push(curr.params.teamname)
     }
     return names
   }, [])
