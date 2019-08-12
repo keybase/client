@@ -2,6 +2,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
+import {capitalize} from 'lodash-es'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
@@ -61,9 +62,30 @@ const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => 
     label: result.label,
     prettyName: result.prettyName,
     serviceMap: result.serviceMap,
-    serviceName: result.serviceName,
+    serviceName: result.serviceName as Types.ServiceIdWithContact,
     username: result.username,
   }
 }
 
-export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser}
+const userToSelectedUser = (user : Types.User) : Types.SelectedUser => {
+  let technicalName: string
+  switch (user.serviceName) {
+    case 'keybase':
+    case 'contact':
+      technicalName = user.username
+      break
+    default:
+      technicalName = `${user.username} on ${capitalize(user.serviceName)}`
+      break
+  }
+  const description = `${technicalName} ${user.prettyName ? `(${user.prettyName})` : ''}`
+  return {
+    description,
+    service: user.serviceName,
+    title: user.username,
+    userId: user.id,
+    usernameForAvatar: user.serviceMap.keybase,
+  }
+}
+
+export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser, userToSelectedUser}

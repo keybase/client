@@ -13,7 +13,7 @@ import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
 import {parseUserId, ServiceId} from '../util/platforms'
-import {followStateHelperWithId} from '../constants/team-building'
+import {followStateHelperWithId, userToSelectedUser} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {
   ServiceIdWithContact,
@@ -27,7 +27,6 @@ import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import {capitalize} from 'lodash-es'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -85,30 +84,8 @@ const deriveSearchResults = memoize(
     })
 )
 
-const formatUserBubble = (username: string, service: ServiceIdWithContact, prettyName: string) => {
-  let technicalName: string
-  switch (service) {
-    case 'keybase':
-    case 'contact':
-      technicalName = username
-      break
-    default:
-      technicalName = `${username} on ${capitalize(service)}`
-      break
-  }
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
-}
-
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) => {
-  const res = teamSoFar.toArray().map(
-    (userInfo): SelectedUser => ({
-      description: formatUserBubble(userInfo.username, userInfo.serviceName, userInfo.prettyName),
-      service: userInfo.serviceName,
-      title: userInfo.username,
-      userId: userInfo.id,
-      usernameForAvatar: userInfo.serviceMap.keybase,
-    })
-  )
+  const res = teamSoFar.toArray().map(userToSelectedUser)
   console.log('zzz', res)
   return res
 })
