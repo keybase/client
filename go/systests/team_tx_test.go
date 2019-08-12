@@ -60,7 +60,7 @@ func testTeamTx1(t *testing.T, byUV bool) {
 		require.NoError(t, err)
 		err = tx.AddMemberByUsername(context.Background(), botua.username, keybase1.TeamRole_BOT, nil)
 		require.NoError(t, err)
-		err = tx.AddMemberByUsername(context.Background(), restrictedBotua.username, keybase1.TeamRole_RESTRICTEDBOT, nil)
+		err = tx.AddMemberByUsername(context.Background(), restrictedBotua.username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 		require.NoError(t, err)
 	}
 
