@@ -19,10 +19,10 @@ const PaperKey = (props: Props) => {
       banners={[]}
       buttons={[
         {
+          disabled: !paperKey,
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
-          disabled: !paperKey,
         },
       ]}
       onBack={props.onBack}

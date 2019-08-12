@@ -12,12 +12,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
   switch (action.type) {
     case RecoverPasswordGen.startRecoverPassword:
       return state.merge({
-        username: action.payload.username,
         paperKeyError: new HiddenString(''),
-      })
-    case RecoverPasswordGen.displayError:
-      return state.merge({
-        error: new HiddenString(action.payload.error),
+        username: action.payload.username,
       })
     case RecoverPasswordGen.showDeviceListPage:
       return state.merge({
