@@ -143,8 +143,8 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
                         style={[
                           {
                             height: '100%',
-                            width: '100%',
                             opacity: this.opacity,
+                            width: '100%',
                           },
                           {
                             transform: [
