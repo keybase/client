@@ -57,23 +57,16 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
   return null
 }
 
-const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
+const EmailVerificationBanner = ({email}) => {
   return (
-    <Kb.Banner color="green" onClose={clearJustSignedUpEmail}>
-      {`Welcome to Keybase! A verification link was sent to ${email}.`}
-    </Kb.Banner>
+    <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${email}.`}</Kb.Banner>
   )
 }
 
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
-    {!!props.signupEmail && (
-      <EmailVerificationBanner
-        email={props.signupEmail}
-        clearJustSignedUpEmail={props.clearJustSignedUpEmail}
-      />
-    )}
+    {!!props.signupEmail && <EmailVerificationBanner email={props.signupEmail} />}
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
