@@ -5,18 +5,24 @@ import * as Types from '../constants/types/provision'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of recover-password but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'recover-password:'
+export const abortDeviceSelect = 'recover-password:abortDeviceSelect'
 export const showDeviceListPage = 'recover-password:showDeviceListPage'
 export const showExplainDevice = 'recover-password:showExplainDevice'
 export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
 
 // Payload Types
+type _AbortDeviceSelectPayload = void
 type _ShowDeviceListPagePayload = {readonly devices: Array<Types.Device>}
 type _ShowExplainDevicePayload = {readonly type: 'desktop' | 'mobile'; readonly name: string}
 type _StartRecoverPasswordPayload = {readonly username: string}
 type _SubmitDeviceSelectPayload = {readonly id: string}
 
 // Action Creators
+export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
+  payload,
+  type: abortDeviceSelect,
+})
 export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload): ShowDeviceListPagePayload => ({
   payload,
   type: showDeviceListPage,
@@ -34,6 +40,10 @@ export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload): S
 })
 
 // Action Payloads
+export type AbortDeviceSelectPayload = {
+  readonly payload: _AbortDeviceSelectPayload
+  readonly type: typeof abortDeviceSelect
+}
 export type ShowDeviceListPagePayload = {
   readonly payload: _ShowDeviceListPagePayload
   readonly type: typeof showDeviceListPage
@@ -54,6 +64,7 @@ export type SubmitDeviceSelectPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AbortDeviceSelectPayload
   | ShowDeviceListPagePayload
   | ShowExplainDevicePayload
   | StartRecoverPasswordPayload

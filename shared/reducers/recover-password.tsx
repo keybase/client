@@ -11,9 +11,7 @@ type Actions = RecoverPasswordGen.Actions
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
     case RecoverPasswordGen.startRecoverPassword:
-      return action.payload && action.payload.username
-        ? initialState.merge({username: action.payload.username})
-        : initialState
+      return state.merge({username: action.payload.username})
     // case ProvisionGen.provisionError:
     case RecoverPasswordGen.showDeviceListPage:
       return state.merge({

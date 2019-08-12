@@ -650,6 +650,7 @@ export type TypedActionsMap = {
   'push:notification': push.NotificationPayload
   'recover-password:startRecoverPassword': recoverpassword.StartRecoverPasswordPayload
   'recover-password:submitDeviceSelect': recoverpassword.SubmitDeviceSelectPayload
+  'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload
   'recover-password:showDeviceListPage': recoverpassword.ShowDeviceListPagePayload
   'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload

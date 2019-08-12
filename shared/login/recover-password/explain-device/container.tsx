@@ -3,38 +3,42 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-// import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
+import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import DeviceSelector from '.'
 import {InfoIcon} from '../../../signup/common'
 
 type OwnProps = {}
 
-const ConnectedDeviceSelector = Container.connect(
+const ConnectedExplainDevice = Container.connect(
   state => {
     const ed = state.recoverPassword.explainedDevice
     return {
       deviceName: ed ? ed.name : '',
       deviceType: ed ? ed.type : '',
+      username: state.recoverPassword.username,
     }
   },
   dispatch => ({
-    onBack: () => {},
-    onComplete: () =>
+    _onBack: username =>
       dispatch(
-        RouteTreeGen.createNavigateUp({
-          fromKey: 'recoverPasswordDeviceSelector',
+        RecoverPasswordGen.createStartRecoverPassword({
+          username: username,
         })
       ),
+    onComplete: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
   }),
   (s, d, o: OwnProps) => ({
     ...o,
     ...s,
     ...d,
+    onBack: () => d._onBack(s.username),
   })
 )(DeviceSelector)
 
 // @ts-ignore fix this
-ConnectedDeviceSelector.navigationOptions = {
+ConnectedExplainDevice.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -48,4 +52,4 @@ ConnectedDeviceSelector.navigationOptions = {
   ),
 }
 
-export default ConnectedDeviceSelector
+export default ConnectedExplainDevice

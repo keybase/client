@@ -22,6 +22,7 @@ const ConnectedDeviceSelector = Container.connect(
       )
     },
     onBack: () => {
+      dispatch(RecoverPasswordGen.createAbortDeviceSelect())
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onResetAccount: () => {

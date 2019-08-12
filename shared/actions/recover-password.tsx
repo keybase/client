@@ -13,17 +13,23 @@ const chooseDevice = (params, response) => {
         devices: devices,
       })
     )
-
+    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordDeviceSelector'],
       })
     )
-
-    const action: RecoverPasswordGen.SubmitDeviceSelectPayload = yield Saga.take(
-      RecoverPasswordGen.submitDeviceSelect
-    )
-    response.result(action.payload.id)
+    const action:
+      | RecoverPasswordGen.SubmitDeviceSelectPayload
+      | RecoverPasswordGen.AbortDeviceSelectPayload = yield Saga.take([
+      RecoverPasswordGen.submitDeviceSelect,
+      RecoverPasswordGen.abortDeviceSelect,
+    ])
+    if (action.payload && action.payload.id) {
+      response.result(action.payload.id)
+    } else {
+      response.error()
+    }
   })
 }
 
@@ -35,6 +41,7 @@ const explainDevice = params => {
         type: params.kind,
       })
     )
+    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordExplainDevice'],
