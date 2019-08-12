@@ -371,7 +371,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 func TestChatSearchRemoveMsg(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestChatSearchRemoveMsg", 1)
+	ctc := makeChatTestContext(t, "TestChatSearchRemoveMsg", 2)
 	defer ctc.cleanup()
 
 	users := ctc.users()
@@ -380,11 +380,16 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	ctc.as(t, users[0]).h.mockChatUI = chatUI
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
 
-	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "MIKEMAXIM",
 	}))
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	msgID := mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "MIKEMAXIM",
 	}))
 	res, err := ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
@@ -396,10 +401,11 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
-	require.Equal(t, 1, len(res.Res.Hits))
-	require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+	require.Equal(t, 2, len(res.Res.Hits))
+	require.Equal(t, 1, len(res.Res.Hits[0].Hits))
+	require.Equal(t, 2, len(res.Res.Hits[1].Hits))
 
-	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID)
+	mustDeleteMsg(ctx, t, ctc, users[0], conv1, msgID)
 
 	res, err = ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
 		Query: "MIKEM",
@@ -411,7 +417,7 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
 	require.Equal(t, 1, len(res.Res.Hits))
-	require.Equal(t, 1, len(res.Res.Hits[0].Hits))
+	require.Equal(t, 2, len(res.Res.Hits[0].Hits))
 }
 
 func TestChatSearchInbox(t *testing.T) {
