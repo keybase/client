@@ -9,12 +9,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type APIUserServiceIDWithContact string
-
-func (o APIUserServiceIDWithContact) DeepCopy() APIUserServiceIDWithContact {
-	return o
-}
-
 type APIUserKeybaseResult struct {
 	Username   string  `codec:"username" json:"username"`
 	Uid        UID     `codec:"uid" json:"uid"`
@@ -56,18 +50,18 @@ func (o APIUserKeybaseResult) DeepCopy() APIUserKeybaseResult {
 }
 
 type APIUserServiceResult struct {
-	ServiceName APIUserServiceIDWithContact `codec:"serviceName" json:"service_name"`
-	Username    string                      `codec:"username" json:"username"`
-	PictureUrl  string                      `codec:"pictureUrl" json:"picture_url"`
-	Bio         string                      `codec:"bio" json:"bio"`
-	Location    string                      `codec:"location" json:"location"`
-	FullName    string                      `codec:"fullName" json:"full_name"`
-	Confirmed   *bool                       `codec:"confirmed,omitempty" json:"confirmed,omitempty"`
+	ServiceName string `codec:"serviceName" json:"service_name"`
+	Username    string `codec:"username" json:"username"`
+	PictureUrl  string `codec:"pictureUrl" json:"picture_url"`
+	Bio         string `codec:"bio" json:"bio"`
+	Location    string `codec:"location" json:"location"`
+	FullName    string `codec:"fullName" json:"full_name"`
+	Confirmed   *bool  `codec:"confirmed,omitempty" json:"confirmed,omitempty"`
 }
 
 func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
 	return APIUserServiceResult{
-		ServiceName: o.ServiceName.DeepCopy(),
+		ServiceName: o.ServiceName,
 		Username:    o.Username,
 		PictureUrl:  o.PictureUrl,
 		Bio:         o.Bio,
@@ -84,13 +78,13 @@ func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
 }
 
 type APIUserServiceSummary struct {
-	ServiceName APIUserServiceIDWithContact `codec:"serviceName" json:"service_name"`
-	Username    string                      `codec:"username" json:"username"`
+	ServiceName string `codec:"serviceName" json:"service_name"`
+	Username    string `codec:"username" json:"username"`
 }
 
 func (o APIUserServiceSummary) DeepCopy() APIUserServiceSummary {
 	return APIUserServiceSummary{
-		ServiceName: o.ServiceName.DeepCopy(),
+		ServiceName: o.ServiceName,
 		Username:    o.Username,
 	}
 }
@@ -112,13 +106,13 @@ func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
 }
 
 type APIUserSearchResult struct {
-	Score           float64                                               `codec:"score" json:"score"`
-	Keybase         *APIUserKeybaseResult                                 `codec:"keybase,omitempty" json:"keybase,omitempty"`
-	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
-	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
-	Imptofu         *ImpTofuSearchResult                                  `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
-	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
-	RawScore        float64                                               `codec:"rawScore" json:"rawScore"`
+	Score           float64                          `codec:"score" json:"score"`
+	Keybase         *APIUserKeybaseResult            `codec:"keybase,omitempty" json:"keybase,omitempty"`
+	Service         *APIUserServiceResult            `codec:"service,omitempty" json:"service,omitempty"`
+	Contact         *ProcessedContact                `codec:"contact,omitempty" json:"contact,omitempty"`
+	Imptofu         *ImpTofuSearchResult             `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
+	ServicesSummary map[string]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
+	RawScore        float64                          `codec:"rawScore" json:"rawScore"`
 }
 
 func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
@@ -152,13 +146,13 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Imptofu),
-		ServicesSummary: (func(x map[APIUserServiceIDWithContact]APIUserServiceSummary) map[APIUserServiceIDWithContact]APIUserServiceSummary {
+		ServicesSummary: (func(x map[string]APIUserServiceSummary) map[string]APIUserServiceSummary {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[APIUserServiceIDWithContact]APIUserServiceSummary, len(x))
+			ret := make(map[string]APIUserServiceSummary, len(x))
 			for k, v := range x {
-				kCopy := k.DeepCopy()
+				kCopy := k
 				vCopy := v.DeepCopy()
 				ret[kCopy] = vCopy
 			}
@@ -326,6 +320,133 @@ func (o ImpTofuQuery) DeepCopy() ImpTofuQuery {
 	}
 }
 
+type UserSearchSourceType int
+
+const (
+	UserSearchSourceType_KEYBASE  UserSearchSourceType = 0
+	UserSearchSourceType_SOCIAL   UserSearchSourceType = 1
+	UserSearchSourceType_CONTACTS UserSearchSourceType = 2
+	UserSearchSourceType_TOFU     UserSearchSourceType = 3
+)
+
+func (o UserSearchSourceType) DeepCopy() UserSearchSourceType { return o }
+
+var UserSearchSourceTypeMap = map[string]UserSearchSourceType{
+	"KEYBASE":  0,
+	"SOCIAL":   1,
+	"CONTACTS": 2,
+	"TOFU":     3,
+}
+
+var UserSearchSourceTypeRevMap = map[UserSearchSourceType]string{
+	0: "KEYBASE",
+	1: "SOCIAL",
+	2: "CONTACTS",
+	3: "TOFU",
+}
+
+func (e UserSearchSourceType) String() string {
+	if v, ok := UserSearchSourceTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UserSearchSource struct {
+	T__      UserSearchSourceType `codec:"t" json:"t"`
+	Social__ *string              `codec:"social,omitempty" json:"social,omitempty"`
+}
+
+func (o *UserSearchSource) T() (ret UserSearchSourceType, err error) {
+	switch o.T__ {
+	case UserSearchSourceType_SOCIAL:
+		if o.Social__ == nil {
+			err = errors.New("unexpected nil value for Social__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o UserSearchSource) Social() (res string) {
+	if o.T__ != UserSearchSourceType_SOCIAL {
+		panic("wrong case accessed")
+	}
+	if o.Social__ == nil {
+		return
+	}
+	return *o.Social__
+}
+
+func NewUserSearchSourceWithSocial(v string) UserSearchSource {
+	return UserSearchSource{
+		T__:      UserSearchSourceType_SOCIAL,
+		Social__: &v,
+	}
+}
+
+func NewUserSearchSourceDefault(t UserSearchSourceType) UserSearchSource {
+	return UserSearchSource{
+		T__: t,
+	}
+}
+
+func (o UserSearchSource) DeepCopy() UserSearchSource {
+	return UserSearchSource{
+		T__: o.T__.DeepCopy(),
+		Social__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Social__),
+	}
+}
+
+type UserSearchResult struct {
+	Id              string            `codec:"id" json:"id"`
+	Assertion       string            `codec:"assertion" json:"assertion"`
+	Username        string            `codec:"username" json:"username"`
+	ServiceName     string            `codec:"serviceName" json:"serviceName"`
+	PrettyName      string            `codec:"prettyName" json:"prettyName"`
+	Label           string            `codec:"label" json:"label"`
+	KeybaseUsername string            `codec:"keybaseUsername" json:"keybaseUsername"`
+	Uid             UID               `codec:"uid" json:"uid"`
+	Source          UserSearchSource  `codec:"source" json:"source"`
+	ServiceMap      map[string]string `codec:"serviceMap" json:"serviceMap"`
+	Score           float64           `codec:"score" json:"score"`
+	RawScore        float64           `codec:"rawScore" json:"rawScore"`
+}
+
+func (o UserSearchResult) DeepCopy() UserSearchResult {
+	return UserSearchResult{
+		Id:              o.Id,
+		Assertion:       o.Assertion,
+		Username:        o.Username,
+		ServiceName:     o.ServiceName,
+		PrettyName:      o.PrettyName,
+		Label:           o.Label,
+		KeybaseUsername: o.KeybaseUsername,
+		Uid:             o.Uid.DeepCopy(),
+		Source:          o.Source.DeepCopy(),
+		ServiceMap: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceMap),
+		Score:    o.Score,
+		RawScore: o.RawScore,
+	}
+}
+
 type GetNonUserDetailsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Assertion string `codec:"assertion" json:"assertion"`
@@ -342,7 +463,7 @@ type UserSearchArg struct {
 
 type UserSearchInterface interface {
 	GetNonUserDetails(context.Context, GetNonUserDetailsArg) (NonUserDetails, error)
-	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
+	UserSearch(context.Context, UserSearchArg) ([]UserSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
@@ -392,7 +513,7 @@ func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUse
 	return
 }
 
-func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
+func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []UserSearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
 	return
 }

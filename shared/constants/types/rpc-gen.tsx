@@ -1293,7 +1293,7 @@ export type MessageTypes = {
   }
   'keybase.1.userSearch.userSearch': {
     inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean; readonly impTofuQuery?: ImpTofuQuery | null}
-    outParam: Array<APIUserSearchResult> | null
+    outParam: Array<UserSearchResult> | null
   }
 }
 
@@ -2288,12 +2288,18 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
+
+export enum UserSearchSourceType {
+  keybase = 0,
+  social = 1,
+  contacts = 2,
+  tofu = 3,
+}
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
-export type APIUserServiceIDWithContact = String
-export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
-export type APIUserServiceSummary = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String}
+export type APIUserServiceResult = {readonly serviceName: String; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
+export type APIUserServiceSummary = {readonly serviceName: String; readonly username: String}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
 export type AnnotatedTeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly uv: UserVersion; readonly inviter: UserVersion; readonly inviterUsername: String; readonly teamName: String; readonly status: TeamMemberStatus}
@@ -2783,6 +2789,8 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
+export type UserSearchResult = {readonly id: String; readonly assertion: String; readonly username: String; readonly serviceName: String; readonly prettyName: String; readonly label: String; readonly keybaseUsername: String; readonly uid: UID; readonly source: UserSearchSource; readonly serviceMap: {[key: string]: String}; readonly score: Double; readonly rawScore: Double}
+export type UserSearchSource = {t: UserSearchSourceType.social; social: String | null} | {t: UserSearchSourceType.keybase} | {t: UserSearchSourceType.contacts} | {t: UserSearchSourceType.tofu}
 export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}

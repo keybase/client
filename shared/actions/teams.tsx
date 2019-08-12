@@ -1389,7 +1389,7 @@ function addThemToTeamFromTeamBuilder(
       role,
       sendChatNotification,
       teamname,
-      username: user.id,
+      username: user.assertion,
     })
   )
 }

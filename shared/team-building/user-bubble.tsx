@@ -6,8 +6,9 @@ import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
-  username: string
-  prettyName: string
+  title: string
+  usernameForAvatar?: string
+  description: string // displayed on hover
   service: ServiceIdWithContact
   onRemove: () => void
 }
@@ -15,7 +16,9 @@ export type Props = {
 const bubbleSize = 32
 const removeSize = 16
 
-const KeybaseUserBubbleMobile = (props: Props) => <Kb.Avatar size={bubbleSize} username={props.username} />
+const KeybaseUserBubbleMobile = (props: Props) => (
+  <Kb.Avatar size={bubbleSize} username={props.usernameForAvatar} />
+)
 
 const GeneralServiceBubble = (props: Props) => (
   <Kb.Icon
@@ -32,6 +35,7 @@ const DesktopBubble = (props: Props) => {
     .hoverContainer .hoverComponent { visibility: hidden; position: absolute; top: 0; right: 0; }
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
+  const useDefaultIcon = !props.usernameForAvatar
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer">
       <DesktopStyle style={realCSS} />
@@ -40,14 +44,15 @@ const DesktopBubble = (props: Props) => {
           colorFollowing={true}
           hideFollowingOverlay={true}
           horizontal={false}
-          icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
-          iconBoxStyle={props.service !== 'keybase' ? styles.iconBox : undefined}
+          icon={useDefaultIcon ? serviceIdToIconFont(props.service) : undefined}
+          iconBoxStyle={useDefaultIcon ? styles.iconBox : undefined}
           size="smaller"
-          username={props.username}
+          username={props.usernameForAvatar}
+          title={props.title}
         />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" className="hoverComponent">
-        <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+        <RemoveBubble prettyName={props.description} onRemove={props.onRemove} />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -120,8 +125,8 @@ function SwapOnClickHoc(
 
 const UserBubble = (props: Props) => {
   const NormalComponent = () =>
-    props.service === 'keybase' ? <KeybaseUserBubbleMobile {...props} /> : <GeneralServiceBubble {...props} />
-  const AlternateComponent = () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+    props.usernameForAvatar ? <KeybaseUserBubbleMobile {...props} /> : <GeneralServiceBubble {...props} />
+  const AlternateComponent = () => <RemoveBubble prettyName={props.description} onRemove={props.onRemove} />
   const Component = SwapOnClickHoc(NormalComponent, AlternateComponent)
 
   return Styles.isMobile ? <Component containerStyle={styles.container} /> : <DesktopBubble {...props} />

@@ -30,7 +30,7 @@ const apiSearch = async (
       service,
     })
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
-      const u = Constants.parseRawResultToUser(r, service)
+      const u = Constants.parseRawResultToUser(r)
       u && arr.push(u)
       return arr
     }, [])
@@ -180,18 +180,25 @@ const fetchUserRecs = async (
     const contactRes = _contactRes || []
     const contacts = contactRes.map(
       (x): TeamBuildingTypes.User => ({
+        assertion: x.assertion,
         contact: true,
         id: x.assertion,
         label: x.displayLabel,
         prettyName: x.displayName,
         serviceMap: {keybase: x.username},
+        serviceName: 'contact',
+        username: x.username || x.component.email || x.component.phoneNumber || '',
       })
     )
     let suggestions = suggestionRes.map(
       ({username, fullname}): TeamBuildingTypes.User => ({
+        assertion: username,
         id: username,
+        label: '',
         prettyName: fullname,
         serviceMap: {keybase: username},
+        serviceName: 'keybase',
+        username: username,
       })
     )
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts

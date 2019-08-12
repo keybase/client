@@ -9,15 +9,30 @@ export type ServiceIdWithContact = ServiceId | 'contact'
 
 export type SearchString = string
 type UsernameOnService = string
-export type UserID = string // for keybase would be `marcopolo` for other services would be `notonkb@reddit`
 export type ServiceMap = {[K in ServiceIdWithContact]?: UsernameOnService}
 
 export type User = {
   serviceMap: ServiceMap
-  id: UserID
+  id: string // unique, key for user lists
+  // username for given service, keybase username if keybase. e164 (w/o '+')
+  // for phone number, email for emails.
+  username: string
+  serviceName: ServiceIdWithContact
+  assertion: string
   prettyName: string
-  label?: string
-  contact?: boolean // not a keybase user, a phone / email from our contacts
+  label: string
+  // a phone / email from our contacts, can also be a keybase user (will have
+  // keybase entry in serviceMap)
+  contact?: boolean
+}
+
+// Used in the team-building user bubbles
+export type SelectedUser = {
+  userId: string
+  title: string
+  description: string // displayed on hover
+  usernameForAvatar?: string
+  service: ServiceIdWithContact // needed for default icons
 }
 
 // Treating this as a tuple
@@ -47,28 +62,3 @@ export type _TeamBuildingSubState = {
 }
 
 export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>
-
-export type RawSearchResult = {
-  score: number
-  keybase: {
-    username: string
-    uid: string
-    picture_url: string
-    full_name: string
-    is_followee: boolean
-  } | null
-  service: {
-    service_name: ServiceIdWithContact
-    username: string
-    picture_url: string
-    bio: string
-    location: string
-    full_name: string
-  } | null
-  services_summary: {
-    [K in ServiceIdWithContact]: {
-      service_name: ServiceIdWithContact
-      username: string
-    }
-  }
-}

@@ -383,7 +383,7 @@ func (h *UserSearchHandler) makeSearchRequest(mctx libkb.MetaContext, arg keybas
 	return res, nil
 }
 
-func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.UserSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH")
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
 		func() error { return err })()
@@ -392,94 +392,155 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 		return nil, nil
 	}
 
-	if arg.Service != "keybase" && arg.Service != "" {
-		// If this is a social search, we just return API results.
-		return h.makeSearchRequest(mctx, arg)
-	}
-
-	res, err = h.makeSearchRequest(mctx, arg)
+	apiRes, err := h.makeSearchRequest(mctx, arg)
 	if err != nil {
-		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
+		return res, err
 	}
-
-	if arg.IncludeContacts {
-		contactsRes, err := contactSearch(mctx, arg)
-		if err != nil {
-			mctx.Warning("Failed to do contacts search: %s", err)
-		} else {
-			// Filter contacts - If we have a username match coming from the
-			// service, prefer it instead of contact result for the same user
-			// but with SBS assertion in it.
-			usernameSet := make(map[string]struct{}) // set of usernames
-			for _, result := range res {
-				if result.Keybase != nil {
-					// All current results should be Keybase but be safe in
-					// case code in this function changes.
-					usernameSet[result.Keybase.Username] = struct{}{}
-				}
-			}
-
-			for _, contact := range contactsRes {
-				if contact.Contact.Resolved {
-					// Do not add this contact result if there already is a
-					// keybase result with username that the contact resolved
-					// to.
-					username := contact.Contact.Username
-					if _, found := usernameSet[username]; found {
-						continue
-					}
-					usernameSet[username] = struct{}{}
-				}
-				res = append(res, contact)
-			}
-
-			sort.Slice(res, func(i, j int) bool {
-				// Float comparasion - we expect exact floats here when multiple
-				// results match in same way and yield identical score thorugh
-				// same scoring operations.
-				if res[i].RawScore == res[j].RawScore {
-					idI := res[i].GetStringIDForCompare()
-					idJ := res[j].GetStringIDForCompare()
-					return idI > idJ
-				}
-				return res[i].RawScore > res[j].RawScore
-			})
-
-			for i := range res {
-				res[i].Score = 1.0 / float64(1+i)
-			}
+	var source keybase1.UserSearchSource
+	if arg.Service == "" || arg.Service == "keybase" || arg.Service == "Keybase" {
+		source = keybase1.NewUserSearchSourceDefault(keybase1.UserSearchSourceType_KEYBASE)
+	} else {
+		source = keybase1.NewUserSearchSourceWithSocial(arg.Service)
+	}
+	for _, v := range apiRes {
+		result := keybase1.UserSearchResult{
+			Score:      v.Score,
+			RawScore:   v.RawScore,
+			Source:     source,
+			ServiceMap: make(map[string]string, len(v.ServicesSummary)),
 		}
-	}
-
-	if arg.ImpTofuQuery != nil {
-		imptofuRes, err := imptofuSearch(mctx, h.contactsProvider, *arg.ImpTofuQuery)
-		if err != nil {
-			mctx.Error("Failed to do phone number / email search: %s", err)
-		} else if imptofuRes != nil {
-			// Check if we have found assertion of this result already in our
-			// contacts.
-			var found bool
-			for _, v := range res {
-				if v.Contact != nil && v.Contact.Assertion == imptofuRes.Imptofu.Assertion {
-					found = true
-					break
+		if v.Service != nil {
+			result.Username = v.Service.Username
+			result.ServiceName = string(v.Service.ServiceName)
+			result.Assertion = strings.ToLower(fmt.Sprintf("%s@%s", v.Service.Username, v.Service.ServiceName))
+			result.PrettyName = v.Service.Username
+			result.Label = v.Service.FullName
+			if v.Keybase != nil {
+				result.KeybaseUsername = v.Keybase.Username
+				result.Uid = v.Keybase.Uid
+				// Make compound assertion because this social user is also on Keybase.
+				result.Assertion = fmt.Sprintf("%s+%s", result.Assertion, strings.ToLower(result.KeybaseUsername))
+				if v.Keybase.FullName != nil {
+					result.Label = *v.Keybase.FullName
 				}
+				result.ServiceMap["keybase"] = result.KeybaseUsername
+			}
+			result.Id = result.Assertion
+		} else if v.Keybase != nil {
+			result.Username = v.Keybase.Username
+			result.ServiceName = "keybase"
+			result.KeybaseUsername = v.Keybase.Username
+			result.Uid = v.Keybase.Uid
+			result.Assertion = v.Keybase.Username
+			result.PrettyName = v.Keybase.Username
+			if v.Keybase.FullName != nil {
+				result.Label = *v.Keybase.FullName
 			}
 
-			if !found {
-				// Prepend *imptofuRes
-				res = append([]keybase1.APIUserSearchResult{*imptofuRes}, res...)
-			}
+			result.ServiceMap["keybase"] = result.KeybaseUsername
+			result.Id = result.KeybaseUsername
 		}
-	}
 
-	// Trim the whole result to MaxResult.
-	maxRes := arg.MaxResults
-	if maxRes > 0 && len(res) > maxRes {
-		res = res[:maxRes]
-	}
+		for key, val := range v.ServicesSummary {
+			result.ServiceMap[key] = val.Username
+		}
 
+		res = append(res, result)
+	}
+	for i := range res {
+		res[i].Score = 1.0 / float64(1+i)
+	}
 	return res, nil
+	/*
+		if arg.Service != "keybase" && arg.Service != "" {
+			// If this is a social search, we just return API results.
+			return h.makeSearchRequest(mctx, arg)
+		}
+
+		res, err = h.makeSearchRequest(mctx, arg)
+		if err != nil {
+			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
+		}
+
+		if arg.IncludeContacts {
+			contactsRes, err := contactSearch(mctx, arg)
+			if err != nil {
+				mctx.Warning("Failed to do contacts search: %s", err)
+			} else {
+				// Filter contacts - If we have a username match coming from the
+				// service, prefer it instead of contact result for the same user
+				// but with SBS assertion in it.
+				usernameSet := make(map[string]struct{}) // set of usernames
+				for _, result := range res {
+					if result.Keybase != nil {
+						// All current results should be Keybase but be safe in
+						// case code in this function changes.
+						usernameSet[result.Keybase.Username] = struct{}{}
+					}
+				}
+
+				for _, contact := range contactsRes {
+					if contact.Contact.Resolved {
+						// Do not add this contact result if there already is a
+						// keybase result with username that the contact resolved
+						// to.
+						username := contact.Contact.Username
+						if _, found := usernameSet[username]; found {
+							continue
+						}
+						usernameSet[username] = struct{}{}
+					}
+					res = append(res, contact)
+				}
+
+				sort.Slice(res, func(i, j int) bool {
+					// Float comparasion - we expect exact floats here when multiple
+					// results match in same way and yield identical score thorugh
+					// same scoring operations.
+					if res[i].RawScore == res[j].RawScore {
+						idI := res[i].GetStringIDForCompare()
+						idJ := res[j].GetStringIDForCompare()
+						return idI > idJ
+					}
+					return res[i].RawScore > res[j].RawScore
+				})
+
+				for i := range res {
+					res[i].Score = 1.0 / float64(1+i)
+				}
+			}
+		}
+
+		if arg.ImpTofuQuery != nil {
+			imptofuRes, err := imptofuSearch(mctx, h.contactsProvider, *arg.ImpTofuQuery)
+			if err != nil {
+				mctx.Error("Failed to do phone number / email search: %s", err)
+			} else if imptofuRes != nil {
+				// Check if we have found assertion of this result already in our
+				// contacts.
+				var found bool
+				for _, v := range res {
+					if v.Contact != nil && v.Contact.Assertion == imptofuRes.Imptofu.Assertion {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					// Prepend *imptofuRes
+					res = append([]keybase1.APIUserSearchResult{*imptofuRes}, res...)
+				}
+			}
+		}
+
+		// Trim the whole result to MaxResult.
+		maxRes := arg.MaxResults
+		if maxRes > 0 && len(res) > maxRes {
+			res = res[:maxRes]
+		}
+
+		return res, nil
+	*/
 }
 
 func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.GetNonUserDetailsArg) (res keybase1.NonUserDetails, err error) {

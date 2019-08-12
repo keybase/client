@@ -4,7 +4,7 @@ import Input from './input'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
@@ -15,26 +15,12 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    username: string
-    service: ServiceIdWithContact
-  }>
+  teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
   onBackspace: () => void
   onFinishTeamBuilding: () => void
   searchString: string
   rolePickerProps?: RolePickerProps
-}
-
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
-  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -46,9 +32,10 @@ class UserBubbleCollection extends React.PureComponent<{
       <UserBubble
         key={u.userId}
         onRemove={() => this.props.onRemove(u.userId)}
-        username={u.username}
+        description={u.description}
+        usernameForAvatar={u.usernameForAvatar}
+        title={u.title}
         service={u.service}
-        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
     ))
   }
