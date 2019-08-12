@@ -675,3 +675,7 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
 	idx.store.ClearMemory()
 	return nil
 }
+
+func (idx *Indexer) GetStore() *store {
+	return idx.store
+}

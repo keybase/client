@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stretchr/testify/require"
@@ -376,21 +377,26 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 
 	users := ctc.users()
 	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
 	chatUI := kbtest.NewChatUI()
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	ctc.as(t, users[0]).h.mockChatUI = chatUI
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
 
-	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+	msgID0 := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	msgID2 := mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "MIKEMAXIM",
 	}))
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "MIKEMAXIM",
-	}))
-	msgID := mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "MIKEMAXIM",
+		Body: "CRICKETS",
 	}))
 	res, err := ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
 		Query: "MIKEM",
@@ -402,10 +408,15 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
 	require.Equal(t, 2, len(res.Res.Hits))
-	require.Equal(t, 1, len(res.Res.Hits[0].Hits))
-	require.Equal(t, 2, len(res.Res.Hits[1].Hits))
+	if res.Res.Hits[0].ConvID.Eq(conv.Id) {
+		require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+		require.Equal(t, 1, len(res.Res.Hits[1].Hits))
+	} else {
+		require.Equal(t, 1, len(res.Res.Hits[0].Hits))
+		require.Equal(t, 2, len(res.Res.Hits[1].Hits))
+	}
 
-	mustDeleteMsg(ctx, t, ctc, users[0], conv1, msgID)
+	mustDeleteMsg(ctx, t, ctc, users[0], conv1, msgID2)
 
 	res, err = ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
 		Query: "MIKEM",
@@ -418,6 +429,13 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	require.NotNil(t, res.Res)
 	require.Equal(t, 1, len(res.Res.Hits))
 	require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+
+	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID0)
+	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID1)
+
+	hres, err := tc.ChatG.Indexer.(*search.Indexer).GetStore().GetHits(ctx, uid, conv.Id, "MIKEM")
+	require.NoError(t, err)
+	require.Zero(t, len(hres))
 }
 
 func TestChatSearchInbox(t *testing.T) {
