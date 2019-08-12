@@ -75,8 +75,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         | undefined,
       followingCount,
       reason: d.reason,
-      serviceIcon: null,
       sbsAvatarUrl: undefined,
+      serviceIcon: null,
       title: username,
     }
   } else {
