@@ -22,7 +22,7 @@ const toIconType = (iconFilename: string): IconType => {
   if (IconUtils.isValidIconType(iconType)) {
     return iconType
   } else {
-    return 'icon-stellar-logo-grey-32'
+    return 'iconfont-identity-stellar'
   }
 }
 
