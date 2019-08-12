@@ -452,8 +452,10 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		if err != nil {
 			return err
 		}
+		removedToken := false
 		delete(te.MsgIDs, msgID)
 		if len(te.MsgIDs) == 0 {
+			removedToken = true
 			s.deleteTokenEntry(ctx, uid, convID, token)
 		} else {
 			// If there are still IDs, just write out the updated version
@@ -461,7 +463,12 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				return err
 			}
 		}
-		// take out aliases
+		if !removedToken {
+			// if we didn't take the token out of the index, then just keep going, we don't need
+			// to do anything with aliases
+			continue
+		}
+		// take out aliases if we removed the token from the index
 		for alias := range aliases {
 			aliasEntry, err := s.getAliasEntry(ctx, alias)
 			if err != nil {
