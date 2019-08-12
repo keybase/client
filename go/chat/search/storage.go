@@ -474,7 +474,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				return err
 			}
 		}
-		// take out aliases if we removed the token from the index
+		// take out aliases
 		for alias := range aliases {
 			aliasEntry, err := s.getAliasEntry(ctx, alias)
 			if err != nil {
