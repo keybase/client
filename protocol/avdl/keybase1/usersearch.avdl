@@ -91,8 +91,8 @@ protocol userSearch {
     record UserSearchResult {
         string id; // unique key
 
-        // Assertion, for use in chat / team creation. Warning: this is not necessarily
-        // "${username}@${serviceName}"
+        // Assertion, for use in chat / team creation. NOTE: this is not
+        // necessarily "${username}@${serviceName}"
         string assertion;
 
         string username; // Username on the service (or phone number, or e-mail, if from contacts)
@@ -105,9 +105,9 @@ protocol userSearch {
         // "Label" for list of results.
         string label;
 
-        // Username on Keybase, can be empty. E.g. twitter result which is also proven
-        // by a Keybase user will have Keybase username. WARNING: Should not be used for
-        // creating conversations / teams!
+        // Username on Keybase, can be empty. E.g. twitter result which is also
+        // proven by a Keybase user will have Keybase username. NOTE: Should not
+        // be used for creating conversations / teams!
         string keybaseUsername;
         UID uid; // UID on Keybase if available - see above
 
