@@ -2894,6 +2894,27 @@
     },
     {
       "type": "record",
+      "name": "PreviewConversationLocalRes",
+      "fields": [
+        {
+          "type": "InboxUIItem",
+          "name": "conv"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeleteConversationLocalRes",
       "fields": [
         {
@@ -4419,15 +4440,6 @@
       ],
       "response": "JoinLeaveConversationLocalRes"
     },
-    "previewConversationByIDLocal": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "JoinLeaveConversationLocalRes"
-    },
     "leaveConversationLocal": {
       "request": [
         {
@@ -4436,6 +4448,15 @@
         }
       ],
       "response": "JoinLeaveConversationLocalRes"
+    },
+    "previewConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PreviewConversationLocalRes"
     },
     "deleteConversationLocal": {
       "request": [

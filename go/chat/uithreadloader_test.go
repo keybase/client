@@ -136,6 +136,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	tc := ctc.world.Tcs[users[0].Username]
 	ctx := ctc.as(t, users[0]).startCtx
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{

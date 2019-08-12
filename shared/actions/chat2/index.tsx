@@ -1845,17 +1845,26 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
             }),
           ]
         } else {
-          return undefined
+          return []
         }
       }
 
       const conversationIDKey = first.conversationIDKey
-      RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+      return RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
-      })
-      return Chat2Gen.createSelectConversation({
-        conversationIDKey,
-        reason: 'previewResolved',
+      }).then(results => {
+        const actions: Array<TypedActions> = []
+        const meta = Constants.inboxUIItemToConversationMeta(results.conv)
+        if (meta) {
+          actions.push(Chat2Gen.createMetasReceived({metas: [meta]}))
+        }
+        actions.push(
+          Chat2Gen.createSelectConversation({
+            conversationIDKey,
+            reason: 'previewResolved',
+          })
+        )
+        return actions
       })
     })
     .catch(err => {

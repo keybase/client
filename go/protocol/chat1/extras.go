@@ -1485,6 +1485,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *PreviewConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1851,6 +1855,14 @@ func (r *JoinLeaveConversationLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PreviewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PreviewConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

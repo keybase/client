@@ -152,9 +152,8 @@ func TestTeamChannelSource(t *testing.T) {
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(ctx1, marg)
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_METADATA)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_METADATA)
 		t.Logf("renamed %v", topicName)
-		// note listener2 will not receive the update since the don't have an
-		// active member status. they will list the channels correctly however
 
 		channel1User1.TopicName = topicName
 		channel1User2.TopicName = topicName
