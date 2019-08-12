@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	indexVersion      = 13
+	indexVersion      = 14
 	tokenEntryVersion = 2
 	aliasEntryVersion = 1
 
@@ -42,34 +42,24 @@ func newTokenEntry() *tokenEntry {
 var refTokenEntry = newTokenEntry()
 
 type aliasEntry struct {
-	Version string                                  `codec:"v"`
-	Aliases map[string]map[string]chat1.EmptyStruct `codec:"a"`
+	Version string         `codec:"v"`
+	Aliases map[string]int `codec:"a"`
 }
 
 func newAliasEntry() *aliasEntry {
 	return &aliasEntry{
 		Version: fmt.Sprintf("%d:%d", indexVersion, aliasEntryVersion),
-		Aliases: make(map[string]map[string]chat1.EmptyStruct),
+		Aliases: make(map[string]int),
 	}
 }
 
-func (a *aliasEntry) add(token string, convID chat1.ConversationID) {
-	convMap := a.Aliases[token]
-	if convMap == nil {
-		convMap = make(map[string]chat1.EmptyStruct)
-	}
-	convMap[convID.String()] = chat1.EmptyStruct{}
-	a.Aliases[token] = convMap
+func (a *aliasEntry) add(token string) {
+	a.Aliases[token]++
 }
 
-func (a *aliasEntry) remove(token string, convID chat1.ConversationID) bool {
-	convMap := a.Aliases[token]
-	if convMap == nil {
-		delete(a.Aliases, token)
-		return true
-	}
-	delete(convMap, convID.String())
-	if len(convMap) == 0 {
+func (a *aliasEntry) remove(token string) bool {
+	a.Aliases[token]--
+	if a.Aliases[token] == 0 {
 		delete(a.Aliases, token)
 		return true
 	}
@@ -442,7 +432,7 @@ func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1
 			if err != nil {
 				return err
 			}
-			aliasEntry.add(token, convID)
+			aliasEntry.add(token)
 		}
 	}
 	return nil
@@ -497,7 +487,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			if err != nil {
 				return err
 			}
-			if aliasEntry.remove(token, convID) {
+			if aliasEntry.remove(token) {
 				s.deleteAliasEntry(ctx, alias)
 			} else {
 				if err := s.putAliasEntry(ctx, alias, aliasEntry); err != nil {
