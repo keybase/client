@@ -25,10 +25,13 @@ const chooseDevice = (params, response) => {
       RecoverPasswordGen.submitDeviceSelect,
       RecoverPasswordGen.abortDeviceSelect,
     ])
-    if (action.payload && action.payload.id) {
+    if (action.payload && typeof action.payload.id === 'string') {
       response.result(action.payload.id)
     } else {
-      response.error()
+      response.error({
+        code: RPCTypes.StatusCode.scinputcanceled,
+        desc: 'Input canceled',
+      })
     }
   })
 }
@@ -50,10 +53,27 @@ const explainDevice = params => {
   })
 }
 
+const promptReset = (_, response) => {
+  return Saga.callUntyped(function*() {
+    yield Saga.put(RouteTreeGen.createNavigateUp())
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: ['recoverPasswordPromptReset'],
+      })
+    )
+    const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
+      RecoverPasswordGen.submitResetPrompt
+    )
+    response.result(action.payload.action)
+    yield Saga.put(RouteTreeGen.createNavigateUp())
+  })
+}
+
 function* startRecoverPassword(_, action: RecoverPasswordGen.StartRecoverPasswordPayload) {
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptResetAccount': promptReset,
         'keybase.1.provisionUi.chooseDevice': chooseDevice,
       },
       incomingCallMap: {

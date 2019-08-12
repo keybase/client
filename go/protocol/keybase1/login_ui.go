@@ -107,7 +107,7 @@ type LoginUiInterface interface {
 	DisplayPaperKeyPhrase(context.Context, DisplayPaperKeyPhraseArg) error
 	DisplayPrimaryPaperKey(context.Context, DisplayPrimaryPaperKeyArg) error
 	// Called during login / provisioning flows to ask the user whether they
-	// would like to either enter the autoreset pipeline or perform the reset
+	// would like to either enter the autoreset pipeline and perform the reset
 	// of the account.
 	PromptResetAccount(context.Context, PromptResetAccountArg) (bool, error)
 	// In some flows the user will get notified of the reset progress
@@ -272,7 +272,7 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 }
 
 // Called during login / provisioning flows to ask the user whether they
-// would like to either enter the autoreset pipeline or perform the reset
+// would like to either enter the autoreset pipeline and perform the reset
 // of the account.
 func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res)

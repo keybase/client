@@ -10,6 +10,7 @@ export const showDeviceListPage = 'recover-password:showDeviceListPage'
 export const showExplainDevice = 'recover-password:showExplainDevice'
 export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
+export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
 // Payload Types
 type _AbortDeviceSelectPayload = void
@@ -17,6 +18,7 @@ type _ShowDeviceListPagePayload = {readonly devices: Array<Types.Device>}
 type _ShowExplainDevicePayload = {readonly type: 'desktop' | 'mobile'; readonly name: string}
 type _StartRecoverPasswordPayload = {readonly username: string}
 type _SubmitDeviceSelectPayload = {readonly id: string}
+type _SubmitResetPromptPayload = {readonly action: boolean}
 
 // Action Creators
 export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
@@ -37,6 +39,10 @@ export const createStartRecoverPassword = (
 export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload): SubmitDeviceSelectPayload => ({
   payload,
   type: submitDeviceSelect,
+})
+export const createSubmitResetPrompt = (payload: _SubmitResetPromptPayload): SubmitResetPromptPayload => ({
+  payload,
+  type: submitResetPrompt,
 })
 
 // Action Payloads
@@ -60,6 +66,10 @@ export type SubmitDeviceSelectPayload = {
   readonly payload: _SubmitDeviceSelectPayload
   readonly type: typeof submitDeviceSelect
 }
+export type SubmitResetPromptPayload = {
+  readonly payload: _SubmitResetPromptPayload
+  readonly type: typeof submitResetPrompt
+}
 
 // All Actions
 // prettier-ignore
@@ -69,4 +79,5 @@ export type Actions =
   | ShowExplainDevicePayload
   | StartRecoverPasswordPayload
   | SubmitDeviceSelectPayload
+  | SubmitResetPromptPayload
   | {type: 'common:resetStore', payload: {}}
