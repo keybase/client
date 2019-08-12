@@ -22,9 +22,6 @@
 .button__border_black:hover {
   border: 1px solid rgba(0, 0, 0, 0.3);
 }
-.button__border_yellow:hover {
-  border: 1px solid rgba(255, 248, 90, 0.3);
-}
 
 .button__underlay {
   position: absolute;
@@ -57,5 +54,5 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 .button__underlay_yellow:hover {
-  background-color: rgba(255, 248, 90, 0.5);
+  background-color: rgba(255, 248, 90, 0.05);
 }
