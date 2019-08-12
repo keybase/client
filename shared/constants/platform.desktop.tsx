@@ -1,5 +1,6 @@
 const platform = KB.process.platform
 const env = KB.process.env
+const pathJoin = KB.path.join
 export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
@@ -12,8 +13,6 @@ export const isLinux = platform === 'linux'
 export const isAndroidNewerThanN = false
 export const isMac = isDarwin && !isIOS
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
-
-const pathSep = isWindows ? '\\' : '/'
 
 export const defaultUseNativeFrame = isDarwin || isLinux
 
@@ -33,7 +32,7 @@ const getLinuxPaths = () => {
   const useXDG = (runMode !== 'devel' || env['KEYBASE_DEVEL_USE_XDG']) && !env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && env['XDG_CONFIG_HOME']) || [homeEnv, '.config'].join(pathSep)
+  const homeConfigDir = (useXDG && env['XDG_CONFIG_HOME']) || pathJoin(homeEnv, '.config')
   const runtimeDir = (useXDG && env['XDG_RUNTIME_DIR']) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
@@ -54,7 +53,7 @@ const getLinuxPaths = () => {
     logDir,
     logFileName: `${logDir}Keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: [socketDir, appName, socketName].join(pathSep),
+    socketPath: pathJoin(socketDir, appName, socketName),
   }
 }
 
@@ -74,7 +73,7 @@ const getWindowsPaths = () => {
     logDir,
     logFileName: `${logDir}keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: [dir, socketName].join(pathSep),
+    socketPath: pathJoin(dir, socketName),
   }
 }
 
@@ -90,9 +89,7 @@ const getDarwinPaths = () => {
     logDir,
     logFileName: `${logDir}${appName}.app.log`,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: [`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName].join(
-      pathSep
-    ),
+    socketPath: pathJoin(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
   }
 }
 

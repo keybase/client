@@ -1,6 +1,12 @@
-window.KB = {
-  process: {
-    env: process.env,
-    platform: process.platform,
-  },
-}
+;(() => {
+  const path = require('path')
+  window.KB = {
+    path: {
+      join: path.join,
+    },
+    process: {
+      env: process.env,
+      platform: process.platform,
+    },
+  }
+})()

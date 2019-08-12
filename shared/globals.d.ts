@@ -42,6 +42,9 @@ interface Console {
 }
 
 declare var KB: {
+  path: {
+    join: (...a: Array<string>) => string
+  }
   process: {
     env: {[key: string]: string | undefined}
     platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'
