@@ -4,12 +4,10 @@ import {
   Box2,
   ConnectedUsernames,
   FloatingMenu,
-  HOCTimers,
   Icon,
   MenuItems,
   ProgressIndicator,
   Text,
-  PropsWithTimer,
   PopupHeaderText,
 } from '../../../../../common-adapters/'
 import * as Styles from '../../../../../styles'
@@ -42,7 +40,7 @@ type State = {
   secondsLeft: number
 }
 
-class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
+class ExplodingPopupHeader extends React.Component<Props, State> {
   timer?: TickerID
   state = {
     secondsLeft: this.secondsLeft(),
@@ -158,7 +156,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   }
 }
 
-const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
+const ExplodingPopupMenu = (props: Props) => {
   const header = {
     style: {
       paddingBottom: 0,
@@ -227,4 +225,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default HOCTimers(ExplodingPopupMenu)
+export default ExplodingPopupMenu
