@@ -466,7 +466,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {/*<PhoneSearch/>*/}
+        <PhoneSearch/>
         {/*{Flags.sbsContacts && Styles.isMobile && (*/}
         {/*  <ContactsBanner*/}
         {/*    {...props}*/}

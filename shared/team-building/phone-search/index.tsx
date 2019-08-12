@@ -7,23 +7,26 @@ type PhoneSearchProps = {
     assertionToUsernameMap: I.Map<string, string>
 }
 
-export default PhoneSearch = (props: PhoneSearchProps) => {
-    // const [validity, setValidity] = React.useState<boolean>(false)
-    // const [phoneNumber, setPhoneNumber] = React.useState<boolean>(false)
+let PhoneSearch = (props: PhoneSearchProps) => {
+    const [validity, setValidity] = React.useState<boolean>(false)
+    const [phoneNumber, setPhoneNumber] = React.useState<string>("")
 
     return (
         <>
-            {/*<PhoneInput*/}
-            {/*    autoFocus={true}*/}
-            {/*    onChangeNumber={(p) => {props.onChangeNumber(p); setPhoneNumber(p)}}*/}
-            {/*    onChangeValidity={setValidity}*/}
-            {/*    // onEnterKeyDown={props.onContinue}*/}
-            {/*/>*/}
-            {/*<Kb.Text>*/}
-            {/*    {"validity: " + JSON.stringify(validity)}*/}
-            {/*    {"username: " + JSON.stringify(props.assertionToUsernameMap[phoneNumber])}*/}
-            {/*</Kb.Text>*/}
+            <PhoneInput
+                autoFocus={true}
+                onChangeNumber={(p) => {props.onChangeNumber(p); setPhoneNumber(p)}}
+                onChangeValidity={setValidity}
+                // onEnterKeyDown={props.onContinue}
+            />
+            <Kb.Text type="Body" selectable={true}>
+                {"validity: " + JSON.stringify(validity)}
+                {"phonenumber: " + JSON.stringify(phoneNumber)}
+                {"map: " + JSON.stringify(props.assertionToUsernameMap)}
+                {"username: " + JSON.stringify(props.assertionToUsernameMap.get(phoneNumber))}
+            </Kb.Text>
         </>
     )
 }
-TOD
+
+export default PhoneSearch

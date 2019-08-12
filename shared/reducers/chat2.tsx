@@ -1378,12 +1378,19 @@ const rootReducer = (
     }
     case Chat2Gen.loadedContactLookup: {
       console.warn("DWORKEN REDUCER")
-      console.warn(action.payload)
-      var d = {}
-      if (action.payload.resolved) {
-        key = action.payload.component.phoneNumber || action.payload.component.email
-        d[key] = action.payload.username
+      console.warn("action: " + JSON.stringify(action))
+      let data = action.payload.payload.data
+      console.warn("data: " + JSON.stringify(data))
+      if (!data) {
+        return state
       }
+      var d = {}
+      if (data.resolved) {
+        let key = data.component.phoneNumber || data.component.email
+        d[key] = data.username
+      }
+      console.warn("Merging in " + JSON.stringify(d))
+      console.warn(state.merge({assertionToUsernameMap: state.assertionToUsernameMap.merge(d)}).assertionToUsernameMap)
       return state.merge({assertionToUsernameMap: state.assertionToUsernameMap.merge(d)})
     }
     // metaMap/messageMap/messageOrdinalsList only actions
