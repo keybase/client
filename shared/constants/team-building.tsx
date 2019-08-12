@@ -57,6 +57,7 @@ const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => 
   return {
     assertion: result.assertion,
     id: result.id,
+    keybaseUsername: result.keybaseUsername,
     label: result.label,
     prettyName: result.prettyName,
     serviceMap: result.serviceMap,
@@ -82,9 +83,21 @@ const userToSelectedUser = (user: Types.User): Types.SelectedUser => {
     service: user.serviceName,
     title: user.username,
     userId: user.id,
-    usernameForAvatar: user.serviceMap.keybase,
+    usernameForAvatar: user.keybaseUsername,
   }
 }
+
+// Used whenever something wants to launch team-building dialog with current
+// user in it.
+const selfToUser = (you: string): Types.User => ({
+  assertion: you,
+  id: you,
+  label: '',
+  prettyName: you,
+  serviceMap: {},
+  serviceName: 'keybase' as const,
+  username: you,
+})
 
 export {
   followStateHelperWithId,
@@ -93,4 +106,5 @@ export {
   services,
   parseRawResultToUser,
   userToSelectedUser,
+  selfToUser,
 }

@@ -184,9 +184,10 @@ const fetchUserRecs = async (
         assertion: x.assertion,
         contact: true,
         id: x.assertion,
+        keybaseUsername: x.username,
         label: x.displayLabel,
         prettyName: x.displayName,
-        serviceMap: {keybase: x.username},
+        serviceMap: {},
         serviceName: 'contact',
         username: x.username || x.component.email || x.component.phoneNumber || '',
       })
@@ -195,9 +196,10 @@ const fetchUserRecs = async (
       ({username, fullname}): TeamBuildingTypes.User => ({
         assertion: username,
         id: username,
+        keybaseUsername: username,
         label: '',
         prettyName: fullname,
-        serviceMap: {keybase: username},
+        serviceMap: {},
         serviceName: 'keybase',
         username: username,
       })

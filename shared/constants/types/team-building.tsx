@@ -23,9 +23,8 @@ export type User = {
   assertion: string
   prettyName: string
   label: string
-  // a phone / email from our contacts, can also be a keybase user (will have
-  // keybase entry in serviceMap)
-  contact?: boolean
+  contact?: boolean // is a phone / email from our contacts
+  keybaseUsername?: string // if that user is also on keybase, their username
 }
 
 // Used in the team-building user bubbles

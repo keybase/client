@@ -60,21 +60,23 @@ const deriveSearchResults = memoize(
     preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&
-    searchResults.map(info => {
-      const label = info.label || ''
-      return {
-        contact: !!info.contact,
-        displayLabel: formatAnyPhoneNumbers(label),
-        followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-        inTeam: teamSoFar.some(u => u.id === info.id),
-        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-        key: info.id,
-        prettyName: formatAnyPhoneNumbers(info.prettyName),
-        services: info.serviceMap,
-        userId: info.id,
-        username: info.username,
+    searchResults.map(
+      (info): SearchResult => {
+        const label = info.label || ''
+        return {
+          contact: info.contact,
+          displayLabel: formatAnyPhoneNumbers(label),
+          followingState: followStateHelperWithId(myUsername, followingState, info.keybaseUsername),
+          inTeam: teamSoFar.some(u => u.id === info.id),
+          isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+          keybaseUsername: info.keybaseUsername,
+          prettyName: formatAnyPhoneNumbers(info.prettyName),
+          services: info.serviceMap,
+          userId: info.id,
+          username: info.username,
+        }
       }
-    })
+    )
 )
 
 const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) => {

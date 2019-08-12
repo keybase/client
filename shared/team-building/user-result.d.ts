@@ -9,6 +9,7 @@ export type Props = {
   prettyName: string
   displayLabel: string
   services: {[K in Types.ServiceIdWithContact]?: string}
+  keybaseUsername?: string
   inTeam: boolean
   followingState: Types.FollowingState
   highlight: boolean

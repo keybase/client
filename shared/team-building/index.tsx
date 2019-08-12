@@ -7,7 +7,12 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
+import {
+  ServiceIdWithContact,
+  FollowingState,
+  SelectedUser,
+  ServiceMap,
+} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
@@ -20,10 +25,12 @@ export type SearchResult = {
   username: string
   prettyName: string
   displayLabel: string
-  services: {[K in ServiceIdWithContact]?: string}
+  keybaseUsername?: string
+  services: ServiceMap
   inTeam: boolean
   isPreExistingTeamMember: boolean
   followingState: FollowingState
+  contact?: boolean
 }
 
 export type ImportContactsEntry = {
@@ -360,6 +367,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   inTeam={result.inTeam}
                   isPreExistingTeamMember={result.isPreExistingTeamMember}
                   followingState={result.followingState}
+                  keybaseUsername={result.keybaseUsername}
                   highlight={
                     !Styles.isMobile &&
                     !!highlightDetails &&
@@ -389,6 +397,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
           <UserResult
+            keybaseUsername={result.keybaseUsername}
             resultForService={this.props.selectedService}
             username={result.username}
             prettyName={result.prettyName}

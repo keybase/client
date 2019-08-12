@@ -3366,17 +3366,8 @@ func (k TeambotKey) Material() Bytes32 {
 	return k.Seed
 }
 
-func (r APIUserSearchResult) GetStringIDForCompare() string {
-	switch {
-	case r.Contact != nil:
-		return fmt.Sprintf("%s%s", r.Contact.DisplayName, r.Contact.DisplayLabel)
-	case r.Imptofu != nil:
-		return fmt.Sprintf("%s%s", r.Imptofu.PrettyName, r.Imptofu.Label)
-	case r.Keybase != nil:
-		return r.Keybase.Username
-	default:
-		return ""
-	}
+func (r UserSearchResult) GetStringIDForCompare() string {
+	return strings.Join([]string{r.PrettyName, r.Label, r.KeybaseUsername}, "")
 }
 
 func NewPathWithKbfsPath(path string) Path {

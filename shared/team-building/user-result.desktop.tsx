@@ -29,8 +29,8 @@ class Row extends React.Component<Props, LocalState> {
 
   render = () => {
     const keybaseResult = this.props.resultForService === 'keybase'
-    const keybaseUsername: string | null = this.props.services['keybase'] || null
-    const serviceUsername = this.props.services[this.props.resultForService]
+    const keybaseUsername: string | null = this.props.keybaseUsername || null
+    const serviceUsername = keybaseResult ? keybaseUsername : this.props.services[this.props.resultForService]
     const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : undefined
     const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : undefined
 
@@ -162,16 +162,14 @@ const Services = ({
   if (keybaseResult) {
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
-        {Object.keys(services)
-          .filter(s => s !== 'keybase')
-          .map(service => (
-            <Kb.WithTooltip key={service} text={services[service]} position="top center">
-              <Kb.Icon
-                type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
-                style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
-              />
-            </Kb.WithTooltip>
-          ))}
+        {Object.keys(services).map(service => (
+          <Kb.WithTooltip key={service} text={services[service]} position="top center">
+            <Kb.Icon
+              type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
+              style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
+            />
+          </Kb.WithTooltip>
+        ))}
       </Kb.Box2>
     )
   } else if (keybaseUsername) {

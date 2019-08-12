@@ -38,14 +38,15 @@ function _toSearchQuery(serviceName: string, searchTerm: string): Types.SearchQu
 
 function _parseKeybaseRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
   if (!result.keybaseUsername) {
-    throw new Error(`Invalid raw result for keybase. Missing result.keybaseUsername ${JSON.stringify(result)}`)
+    throw new Error(
+      `Invalid raw result for keybase. Missing result.keybaseUsername ${JSON.stringify(result)}`
+    )
   }
 
   const getRightSide = () => {
     // Are there any services to display on the right side of the result row?
     if (Object.values(result.serviceMap).length > 0) {
-      const serviceName = Object.keys(result.serviceMap)
-        .sort()[0]
+      const serviceName = Object.keys(result.serviceMap).sort()[0]
       const serviceUsername = result.serviceMap[serviceName]
 
       return {
