@@ -872,44 +872,20 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		if err == utils.ErrGetVerifiedConvNotFound {
-			// If we didn't find it, then just attempt to join it and see what happens
-			switch msg.ClientHeader.MessageType {
-			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-				return nil, nil, err
-			default:
-				s.Debug(ctx,
-					"Send: conversation not found, attempting to join the conversation and try again")
-				if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
-					convID); err != nil {
-					return nil, nil, err
-				}
-				// Force hit the remote here, so there is no race condition against the local
-				// inbox
-				conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
-					types.InboxSourceDataSourceRemoteOnly)
-				if err != nil {
-					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
-					return nil, nil, err
-				}
-			}
-		} else {
-			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
-			return nil, nil, err
-		}
-	} else {
-		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
-			conv.GetConvID(), conv.ReaderInfo.Status)
+		s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
+		return nil, nil, err
 	}
+	s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
+		conv.GetConvID(), conv.ReaderInfo.Status)
 
 	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
-	case chat1.ConversationMemberStatus_PREVIEW:
+	case chat1.ConversationMemberStatus_PREVIEW, chat1.ConversationMemberStatus_NEVER_JOINED:
 		switch msg.ClientHeader.MessageType {
 		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 			// pass so we don't loop between Send and Join/Leave.
 		default:
-			s.Debug(ctx, "Send: user is in preview mode, joining conversation")
+			s.Debug(ctx, "Send: user is in mode: %v, joining conversation", conv.ReaderInfo.Status)
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
 				return nil, nil, err
 			}
