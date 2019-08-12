@@ -20,6 +20,7 @@ module.exports = {
     },
   },
   globals: {
+    KB: 'readonly',
     requestAnimationFrame: 'readonly',
     cancelAnimationFrame: 'readonly',
     __DEV__: false,

@@ -1,0 +1,1 @@
+window.url = require('url')

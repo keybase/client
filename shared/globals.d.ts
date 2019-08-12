@@ -40,6 +40,13 @@ interface Console {
   _info: any
 }
 
+declare var KB: {
+  process: {
+    env: {[key: string]: string | undefined}
+    platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'
+  }
+}
+
 declare namespace NodeJS {
   interface Global {
     DEBUGActionLoop: () => void
@@ -53,5 +60,6 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
+    KB: typeof KB
   }
 }

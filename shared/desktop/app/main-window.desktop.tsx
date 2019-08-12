@@ -6,7 +6,7 @@ import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
 import {isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -37,6 +37,7 @@ export default function() {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(htmlFile, {
+    backgroundColor: '#fff',
     backgroundThrottling: false,
     // Auto generated from flowToTs. Please clean me!
     frame:
@@ -49,8 +50,9 @@ export default function() {
     show: false,
     webPreferences: {
       devTools: showDevTools,
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
+      preload: __DEV__ ? resolveRoot('dist', 'preload-main.dev.bundle.js') : undefined,
     },
     width: appState.state.width,
     x: appState.state.x,

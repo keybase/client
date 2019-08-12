@@ -1,6 +1,4 @@
-import path from 'path'
-
-const platform = process.platform
+const platform = KB.process.platform
 export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
@@ -14,13 +12,15 @@ export const isAndroidNewerThanN = false
 export const isMac = isDarwin && !isIOS
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 
+const pathSep = isWindows ? '\\' : '/'
+
 export const defaultUseNativeFrame = isDarwin || isLinux
 
 // For storyshots, we only want to test macOS
 export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
-const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
-const homeEnv = process.env['HOME'] || ''
+const runMode = KB.process.env['KEYBASE_RUN_MODE'] || 'prod'
+const homeEnv = KB.process.env['HOME'] || ''
 
 if (__DEV__ && !__STORYBOOK__) {
   console.log(`Run mode: ${runMode}`)
@@ -33,7 +33,7 @@ const getLinuxPaths = () => {
     (runMode !== 'devel' || process.env['KEYBASE_DEVEL_USE_XDG']) && !process.env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
+  const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || [homeEnv, '.config'].join(pathSep)
   const runtimeDir = (useXDG && process.env['XDG_RUNTIME_DIR']) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
@@ -54,7 +54,7 @@ const getLinuxPaths = () => {
     logDir,
     logFileName: `${logDir}Keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: path.join(socketDir, appName, socketName),
+    socketPath: [socketDir, appName, socketName].join(pathSep),
   }
 }
 
@@ -74,7 +74,7 @@ const getWindowsPaths = () => {
     logDir,
     logFileName: `${logDir}keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: path.join(dir, socketName),
+    socketPath: [dir, socketName].join(pathSep),
   }
 }
 
@@ -90,7 +90,9 @@ const getDarwinPaths = () => {
     logDir,
     logFileName: `${logDir}${appName}.app.log`,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: path.join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
+    socketPath: [`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName].join(
+      pathSep
+    ),
   }
 }
 
