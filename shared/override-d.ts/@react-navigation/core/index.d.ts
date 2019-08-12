@@ -5,6 +5,8 @@ declare module '@react-navigation/core' {
     NavigationEvents,
     NavigationInjectedProps,
     NavigationParams,
+    NavigationRoute,
+    NavigationScreenProp,
     NavigationViewProps,
     SceneView,
     StackActions,
