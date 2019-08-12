@@ -37,67 +37,70 @@ function _toSearchQuery(serviceName: string, searchTerm: string): Types.SearchQu
 }
 
 function _parseKeybaseRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
-  if (result.keybaseUsername && Object.values(result.serviceMap).length > 1) {
-    const serviceName = Object.keys(result.serviceMap)
-      .sort()
-      .filter(x => x !== 'keybase')[0]
-    const serviceUsername = result.serviceMap[serviceName]
-
-    return {
-      id: result.assertion,
-      leftFullname: result.label || null,
-      leftIcon: null,
-      leftService: 'Keybase',
-
-      leftUsername: result.keybaseUsername,
-      rightIcon: serviceIdToIcon(serviceIdFromString(serviceName)),
-      rightService: Constants.serviceIdToService(serviceName),
-      rightUsername: serviceUsername,
-    }
+  if (!result.keybaseUsername) {
+    throw new Error(`Invalid raw result for keybase. Missing result.keybaseUsername ${JSON.stringify(result)}`)
   }
 
-  if (result.keybaseUsername) {
-    return {
-      id: result.assertion,
-      leftFullname: result.label || null,
-      leftIcon: null,
-      leftService: 'Keybase',
+  const getRightSide = () => {
+    // Are there any services to display on the right side of the result row?
+    if (Object.values(result.serviceMap).length > 0) {
+      const serviceName = Object.keys(result.serviceMap)
+        .sort()[0]
+      const serviceUsername = result.serviceMap[serviceName]
 
-      leftUsername: result.keybaseUsername,
-      rightIcon: null,
-      rightService: null,
-      rightUsername: null,
-    }
-  }
-
-  throw new Error(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
-}
-
-function _parseThirdPartyRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
-  if (result.keybaseUsername) {
-    return {
-      id: result.assertion,
-      leftFullname: result.label || null,
-      leftIcon: serviceIdToLogo24(serviceIdFromString(result.serviceName)),
-      leftService: Constants.serviceIdToService(result.serviceName),
-
-      leftUsername: result.username,
-      rightIcon: null,
-      rightService: 'Keybase',
-      rightUsername: result.keybaseUsername,
+      return {
+        rightIcon: serviceIdToIcon(serviceIdFromString(serviceName)),
+        rightService: Constants.serviceIdToService(serviceName),
+        rightUsername: serviceUsername,
+      }
+    } else {
+      return {
+        rightIcon: null,
+        rightService: null,
+        rightUsername: null,
+      }
     }
   }
 
   return {
     id: result.assertion,
+    leftFullname: result.label || null,
+    leftIcon: null,
+    leftService: 'Keybase' as const,
+    leftUsername: result.keybaseUsername,
+
+    ...getRightSide(),
+  }
+}
+
+function _parseThirdPartyRawResult(result: RPCTypes.UserSearchResult): Types.SearchResult {
+  const getRightSide = () => {
+    // Is this also a Keybase user to display on the right side of search
+    // result row?
+    if (result.keybaseUsername) {
+      return {
+        rightIcon: null,
+        rightService: 'Keybase' as const,
+        rightUsername: result.keybaseUsername,
+      }
+    } else {
+      return {
+        rightIcon: null,
+        rightService: null,
+        rightUsername: null,
+      }
+    }
+  }
+
+  return {
+    id: result.assertion,
+
     leftFullname: result.label,
     leftIcon: serviceIdToLogo24(serviceIdFromString(result.serviceName)),
     leftService: Constants.serviceIdToService(result.serviceName),
-
     leftUsername: result.username,
-    rightIcon: null,
-    rightService: null,
-    rightUsername: null,
+
+    ...getRightSide(),
   }
 }
 

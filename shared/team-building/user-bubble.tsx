@@ -36,6 +36,7 @@ const DesktopBubble = (props: Props) => {
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
   const useDefaultIcon = !props.usernameForAvatar
+  const isKeybase = props.service === 'keybase'
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer">
       <DesktopStyle style={realCSS} />
@@ -47,8 +48,10 @@ const DesktopBubble = (props: Props) => {
           icon={useDefaultIcon ? serviceIdToIconFont(props.service) : undefined}
           iconBoxStyle={useDefaultIcon ? styles.iconBox : undefined}
           size="smaller"
-          username={props.usernameForAvatar}
-          title={props.title}
+          // We need usernames (not titles) for keybase bubbles to properly
+          // display green/blue username depending on follow state.
+          username={isKeybase ? props.title : props.usernameForAvatar}
+          title={!isKeybase ? props.title : undefined}
         />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" className="hoverComponent">

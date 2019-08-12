@@ -404,10 +404,9 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	}
 	for _, v := range apiRes {
 		result := keybase1.UserSearchResult{
-			Score:      v.Score,
-			RawScore:   v.RawScore,
-			Source:     source,
-			ServiceMap: make(map[string]string, len(v.ServicesSummary)),
+			Score:    v.Score,
+			RawScore: v.RawScore,
+			Source:   source,
 		}
 		if v.Service != nil {
 			result.Username = v.Service.Username
@@ -423,7 +422,6 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 				if v.Keybase.FullName != nil {
 					result.Label = *v.Keybase.FullName
 				}
-				result.ServiceMap["keybase"] = result.KeybaseUsername
 			}
 			result.Id = result.Assertion
 		} else if v.Keybase != nil {
@@ -437,12 +435,14 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 				result.Label = *v.Keybase.FullName
 			}
 
-			result.ServiceMap["keybase"] = result.KeybaseUsername
 			result.Id = result.KeybaseUsername
 		}
 
-		for key, val := range v.ServicesSummary {
-			result.ServiceMap[key] = val.Username
+		if len(v.ServicesSummary) > 0 {
+			result.ServiceMap = make(map[string]string, len(v.ServicesSummary))
+			for key, val := range v.ServicesSummary {
+				result.ServiceMap[key] = val.Username
+			}
 		}
 
 		res = append(res, result)

@@ -95,11 +95,15 @@ protocol userSearch {
         // "${username}@${serviceName}"
         string assertion;
 
-        string username; // Username on the service
+        string username; // Username on the service (or phone number, or e-mail, if from contacts)
         string serviceName; // Service which the result comes from
 
-        string prettyName; // "Pretty name" for list of results
-        string label; // "Label" for list of results
+        // "Pretty name" for list of results. For services and Keybase it's always
+        // service username. For contacts it depends on whether the contact is on
+        // Keybase, and if we follow them or not.
+        string prettyName;
+        // "Label" for list of results.
+        string label;
 
         // Username on Keybase, can be empty. E.g. twitter result which is also proven
         // by a Keybase user will have Keybase username. WARNING: Should not be used for
