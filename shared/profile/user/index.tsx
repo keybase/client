@@ -34,7 +34,7 @@ export type Props = {
   onBack: () => void
   onReload: () => void
   onSearch: () => void
-  onEditAvatar: ((e?: React.SyntheticEvent) => void) | null
+  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   reason: string
   sbsAvatarUrl?: string
   showAirdropBanner: boolean
@@ -224,7 +224,7 @@ export type BioTeamProofsProps = {
   onAddIdentity: (() => void) | null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: ((e?: React.SyntheticEvent) => void) | null
+  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
