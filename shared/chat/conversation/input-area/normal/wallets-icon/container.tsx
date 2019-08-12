@@ -30,6 +30,7 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
+  loadContact: () => dispatch(Chat2Gen.createLoadContactLookup({contact: {name: "david", components: [{label: "david email", email: "david@daviddworken.com"}]}}))
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -40,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const to = otherParticipants.first()
   return {
     isNew: stateProps.isNew,
-    onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
+    onRequest: dispatchProps.loadContact,
     onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
     size: ownProps.size,
     style: ownProps.style,

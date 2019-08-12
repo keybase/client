@@ -1376,6 +1376,16 @@ const rootReducer = (
       }
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
+    case Chat2Gen.loadedContactLookup: {
+      console.warn("DWORKEN REDUCER")
+      console.warn(action.payload)
+      var d = {}
+      if (action.payload.resolved) {
+        key = action.payload.component.phoneNumber || action.payload.component.email
+        d[key] = action.payload.username
+      }
+      return state.merge({assertionToUsernameMap: state.assertionToUsernameMap.merge(d)})
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

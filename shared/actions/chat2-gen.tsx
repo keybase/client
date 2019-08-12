@@ -53,9 +53,11 @@ export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
+export const loadContactLookup = 'chat2:loadContactLookup'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const loadedContactLookup = 'chat2:loadedContactLookup'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -261,6 +263,7 @@ type _LoadAttachmentViewPayload = {
   readonly viewType: RPCChatTypes.GalleryItemTyp
   readonly fromMsgID?: Types.MessageID
 }
+type _LoadContactLookupPayload = {readonly contact: RPCTypes.Contact}
 type _LoadMessagesCenteredPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -268,6 +271,7 @@ type _LoadMessagesCenteredPayload = {
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LoadedContactLookupPayload = {readonly data: RPCTypes.ProcessedContact | null}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly updateType: RPCChatTypes.StaleUpdateType
@@ -744,6 +748,13 @@ export const createInboxSearchTextResult = (
   payload: _InboxSearchTextResultPayload
 ): InboxSearchTextResultPayload => ({payload, type: inboxSearchTextResult})
 /**
+ * Initiate a search for a phone number or email
+ */
+export const createLoadContactLookup = (payload: _LoadContactLookupPayload): LoadContactLookupPayload => ({
+  payload,
+  type: loadContactLookup,
+})
+/**
  * Jump to a replied to message
  */
 export const createReplyJump = (payload: _ReplyJumpPayload): ReplyJumpPayload => ({payload, type: replyJump})
@@ -761,6 +772,12 @@ export const createLoadAttachmentView = (payload: _LoadAttachmentViewPayload): L
   payload,
   type: loadAttachmentView,
 })
+/**
+ * Loaded data for a search for a phone number or email
+ */
+export const createLoadedContactLookup = (
+  payload: _LoadedContactLookupPayload
+): LoadedContactLookupPayload => ({payload, type: loadedContactLookup})
 /**
  * Perform a search in a thread
  */
@@ -1462,6 +1479,10 @@ export type LoadAttachmentViewPayload = {
   readonly payload: _LoadAttachmentViewPayload
   readonly type: typeof loadAttachmentView
 }
+export type LoadContactLookupPayload = {
+  readonly payload: _LoadContactLookupPayload
+  readonly type: typeof loadContactLookup
+}
 export type LoadMessagesCenteredPayload = {
   readonly payload: _LoadMessagesCenteredPayload
   readonly type: typeof loadMessagesCentered
@@ -1473,6 +1494,10 @@ export type LoadNewerMessagesDueToScrollPayload = {
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
+}
+export type LoadedContactLookupPayload = {
+  readonly payload: _LoadedContactLookupPayload
+  readonly type: typeof loadedContactLookup
 }
 export type MarkConversationsStalePayload = {
   readonly payload: _MarkConversationsStalePayload
@@ -1846,9 +1871,11 @@ export type Actions =
   | JumpToRecentPayload
   | LeaveConversationPayload
   | LoadAttachmentViewPayload
+  | LoadContactLookupPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
+  | LoadedContactLookupPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload

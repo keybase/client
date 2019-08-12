@@ -41,6 +41,7 @@ import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from 'util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
+import * as SettingsGen from "../settings-gen";
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -3269,6 +3270,11 @@ const createConversationFromTeamBuilder = (
   }),
 ]
 
+const loadContactLookup = (state: TypedState, action: Chat2Gen.LoadContactLookupPayload) =>
+    RPCTypes.contactsLookupContactListRpcPromise({contacts: [action.payload.contact], userRegionCode: 'us'})
+        .then((result: Array<RPCTypes.ProcessedContact> | null) => Chat2Gen.createLoadedContactLookup({payload: {data: result === null ? null : result[0]}}))
+        .catch(err => logger.warn('Error in looking up contact', err))
+
 export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   yield* commonTeamBuildingSaga('chat2')
   yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
@@ -3853,6 +3859,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.loadAttachmentView,
     loadAttachmentView
   )
+
+  yield* Saga.chainAction<Chat2Gen.LoadContactLookupPayload>(Chat2Gen.loadContactLookup, loadContactLookup)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 

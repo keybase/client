@@ -725,6 +725,14 @@
       "_description": "Set thread load status",
       "conversationIDKey": "Types.ConversationIDKey",
       "status": "RPCChatTypes.UIChatThreadStatus"
+    },
+    "loadContactLookup": {
+      "_description": "Initiate a search for a phone number or email",
+      "contact": "RPCTypes.Contact"
+    },
+    "loadedContactLookup": {
+      "_description": "Loaded data for a search for a phone number or email",
+      "data": "RPCTypes.ProcessedContact | null"
     }
   }
 }
