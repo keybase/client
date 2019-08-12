@@ -153,7 +153,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 as a reader")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and is a reader")
@@ -215,7 +215,7 @@ func TestGetTeamIDByName(t *testing.T) {
 	require.Error(t, err)
 
 	// Add user 1 as a reader to root team
-	_, err = AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err = AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	res, err = GetTeamIDByNameRPC(mctx, teamName.String())

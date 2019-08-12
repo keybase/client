@@ -69,7 +69,7 @@ func TestRotateWithBots(t *testing.T) {
 	err := SetRoleBot(context.TODO(), tc.G, name, otherA.Username)
 	require.NoError(t, err)
 
-	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, otherB.Username)
+	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
 	tc.G.Logout(context.TODO())
@@ -288,7 +288,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	require.NoError(t, otherA.Login(tc.G))
 
 	// otherA has the power to add otherB to the subteam
-	res, err := AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_WRITER)
+	res, err := AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	require.Equal(t, res.User.Username, otherB.Username)
 	// otherB should now be a writer
@@ -668,7 +668,7 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 	require.NoError(t, err)
 	oldGeneration := team.Generation()
 
-	res, err := AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_WRITER)
+	res, err := AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	require.Equal(t, res.User.Username, otherB.Username)
 	// otherB should now be a writer
@@ -694,7 +694,7 @@ func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
 	tc, owner, otherA, otherB, root, sub := memberSetupSubteam(t)
 	defer tc.Cleanup()
 
-	_, err := AddMember(context.TODO(), tc.G, sub, otherA.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tc.G, sub, otherA.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// Reset and reprovision implicit admin
@@ -709,15 +709,15 @@ func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
 	_, err = GetForTestByStringName(context.Background(), tc.G, root)
 	require.NoError(t, err)
 
-	_, err = AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
-	err = EditMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// This fails if a box incorrectly remains live for otherA after the downgrade due
 	// to bad team key coverage.
-	_, err = AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 }
 

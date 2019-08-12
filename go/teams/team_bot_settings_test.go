@@ -25,13 +25,15 @@ func TestTeamBotSettings(t *testing.T) {
 	rBotua1UV, rBotua2UV, botuaUV := rBotua1.GetUserVersion(), rBotua2.GetUserVersion(), botua.GetUserVersion()
 
 	t.Logf("empty bot state")
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), rBotua1.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	botSettings1 := keybase1.TeamBotSettings{Cmds: true}
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), rBotua1.Username, keybase1.TeamRole_RESTRICTEDBOT, &botSettings1)
 	require.NoError(t, err)
 
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), rBotua2.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	botSettings2 := keybase1.TeamBotSettings{Cmds: true}
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), rBotua2.Username, keybase1.TeamRole_RESTRICTEDBOT, &botSettings2)
 	require.NoError(t, err)
 
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), botua.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), botua.Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
@@ -43,20 +45,20 @@ func TestTeamBotSettings(t *testing.T) {
 	require.NoError(t, err)
 	// Defaults without a bot settings link
 	expectedBots := map[keybase1.UserVersion]keybase1.TeamBotSettings{
-		rBotua1UV: keybase1.TeamBotSettings{},
-		rBotua2UV: keybase1.TeamBotSettings{},
+		rBotua1UV: botSettings1,
+		rBotua2UV: botSettings2,
 	}
 	require.Len(t, teamBotSettings, 2)
 
 	// happy paths
-	settings1 := keybase1.TeamBotSettings{
+	botSettings1 = keybase1.TeamBotSettings{
 		Cmds:     true,
 		Mentions: true,
 		Triggers: []string{"shipit"},
 		Convs:    []string{chat1.ConversationID([]byte("convo")).String()},
 	}
 	err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
-		rBotua1UV: settings1,
+		rBotua1UV: botSettings1,
 	})
 	require.NoError(t, err)
 
@@ -67,12 +69,12 @@ func TestTeamBotSettings(t *testing.T) {
 	require.NoError(t, err)
 	teamBotSettings, err = team.TeamBotSettings()
 	require.NoError(t, err)
-	expectedBots[rBotua1UV] = settings1
+	expectedBots[rBotua1UV] = botSettings1
 	require.Equal(t, expectedBots, teamBotSettings)
 
 	// update settings
-	settings1 = keybase1.TeamBotSettings{Cmds: true}
-	expectedBots[rBotua1UV] = settings1
+	botSettings1 = keybase1.TeamBotSettings{Cmds: true}
+	expectedBots[rBotua1UV] = botSettings1
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.NoError(t, err)
 
@@ -100,7 +102,7 @@ func TestTeamBotSettings(t *testing.T) {
 	require.NoError(t, err)
 	teamBotSettings, err = team.TeamBotSettings()
 	require.NoError(t, err)
-	expectedBots[rBotua1UV] = settings1
+	expectedBots[rBotua1UV] = botSettings1
 	require.Equal(t, expectedBots, teamBotSettings)
 
 	// Role change for rBotua1, they get nuked from the bot settings

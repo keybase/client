@@ -97,36 +97,38 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 
 	t.Logf("adding new reader...")
 	// Adding a new reader is not a high link, so the lastest high seq won't change.
-	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
-	// Adding a new bot is not a high link, so the lastest high seq won't change.
-	_, err = AddMember(ctx, tc.G, teamName, u4.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	// Adding a new bot is not a high link, so the latest high seq won't
+	// change. Note adding a RESTRICTEDBOT results in two sigs being added, one
+	// for the membership addition and a second for bot_settings.
+	_, err = AddMember(ctx, tc.G, teamName, u4.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
-	_, err = AddMember(ctx, tc.G, teamName, u5.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(ctx, tc.G, teamName, u5.Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
 	t.Logf("adding new admin...")
-	// Adding a new admin IS a high link, so we should jump to 5.
-	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
-	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 5)
-
-	t.Logf("promoting from admin to owner...")
-	// Promoting from admin to owner is a high link.
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_OWNER)
+	// Adding a new admin IS a high link, so we should jump to 6.
+	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 6)
 
-	t.Logf("demoting from owner to admin...")
-	// Demoting from owner to admin is a high link.
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+	t.Logf("promoting from admin to owner...")
+	// Promoting from admin to owner is a high link.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_OWNER, nil)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 7)
+
+	t.Logf("demoting from owner to admin...")
+	// Demoting from owner to admin is a high link.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 8)
 
 	t.Logf("adding new subteam...")
 	// Creating a subteam is not a high link for the parent team
@@ -136,7 +138,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	subteamID, err := CreateSubteam(ctx, tc.G, sub, teamNameObj, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, subteamID, 1)
-	assertHighSeqForTeam(t, tc, teamID, 7)
+	assertHighSeqForTeam(t, tc, teamID, 8)
 
 	t.Logf("adding new admin to subteam...")
 	// Adding an admin to the subteam is a high link for the subteam but not
@@ -144,34 +146,34 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	// the same way on subteams (since there are places that default to a
 	// value of 1 for sequence number). It's overkill to test any more than
 	// just this on the subteam since it should work the same way.
-	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
-	assertHighSeqForTeam(t, tc, teamID, 7)
+	assertHighSeqForTeam(t, tc, teamID, 8)
 
 	t.Logf("demoting admin to writer...")
 	// Back to the root team... downgrading an admin IS a high link for the root team
 	// but it is not one for the subteam, because the subteam needs to care about it's
 	// parent's high links anyway.
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 9)
+	assertHighSeqForTeam(t, tc, teamID, 10)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 
 	t.Logf("demoting admin...")
 	// Back to the root team... downgrading an admin IS a high link for the root team
 	// but it is not one for the subteam, because the subteam needs to care about it's
 	// parent's high links anyway.
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 9)
+	assertHighSeqForTeam(t, tc, teamID, 10)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 
 	t.Logf("rotating keys...")
 	// Rotated keys do not create high links.
 	err = RotateKeyVisible(ctx, tc.G, *teamID)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 9)
+	assertHighSeqForTeam(t, tc, teamID, 10)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 
 	t.Logf("deleting subteam...")
@@ -179,7 +181,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	subteamName := teamName + "." + sub
 	err = Delete(ctx, tc.G, &teamsUI{}, subteamName)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 9)
+	assertHighSeqForTeam(t, tc, teamID, 10)
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {
