@@ -405,7 +405,7 @@ export type MessageTypes = {
   }
   'chat.1.local.previewConversationByIDLocal': {
     inParam: {readonly convID: ConversationID}
-    outParam: JoinLeaveConversationLocalRes
+    outParam: PreviewConversationLocalRes
   }
   'chat.1.local.profileChatSearch': {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
@@ -1094,6 +1094,7 @@ export type PostFileAttachmentArg = {readonly conversationID: ConversationID; re
 export type PostLocalNonblockRes = {readonly rateLimits?: Array<RateLimit> | null; readonly outboxID: OutboxID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type PostLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly messageID: MessageID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type PostRemoteRes = {readonly msgHeader: MessageServerHeader; readonly rateLimit?: RateLimit | null}
+export type PreviewConversationLocalRes = {readonly conv: InboxUIItem; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type PreviewLocation = {ltyp: PreviewLocationTyp.url; url: String | null} | {ltyp: PreviewLocationTyp.file; file: String | null} | {ltyp: PreviewLocationTyp.bytes; bytes: Bytes | null}
 export type ProfileSearchConvStats = {readonly err: String; readonly convName: String; readonly minConvID: MessageID; readonly maxConvID: MessageID; readonly numMissing: Int; readonly numMessages: Int; readonly indexSizeDisk: Int; readonly indexSizeMem: Int64; readonly durationMsec: Gregor1.DurationMsec; readonly percentIndexed: Int}
 export type RateLimit = {readonly name: String; readonly callsRemaining: Int; readonly windowReset: Int; readonly maxCalls: Int}

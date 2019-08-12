@@ -947,8 +947,13 @@ protocol local {
   }
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
-  JoinLeaveConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  record PreviewConversationLocalRes {
+    InboxUIItem conv;  
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  PreviewConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   record DeleteConversationLocalRes {
     boolean offline;
     array<RateLimit> rateLimits;

@@ -349,16 +349,6 @@ const deleteAccountForever = async (state: TypedState) => {
   return ConfigGen.createSetDeletedSelf({deletedUsername: username})
 }
 
-const comparePhoneRows = (
-  row1: ChatTypes.Keybase1.UserPhoneNumber,
-  row2: ChatTypes.Keybase1.UserPhoneNumber
-) => {
-  if (row1.superseded !== row2.superseded) {
-    return row1.superseded ? -1 : 1
-  }
-  return row1.phoneNumber.localeCompare(row2.phoneNumber)
-}
-
 const loadSettings = async (
   state: TypedState,
   _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload,
@@ -373,12 +363,16 @@ const loadSettings = async (
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
     )
     const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      // Sort the superseded numbers first, so that if a number exxists in both
-      // superseded and non-superseded form, the non-superseded version ends up
-      // in the map.
-      (settings.phoneNumbers || [])
-        .sort(comparePhoneRows)
-        .map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
+      (settings.phoneNumbers || []).reduce(
+        (map, row) => {
+          if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
+            return map
+          }
+          map[row.phoneNumber] = Constants.toPhoneRow(row)
+          return map
+        },
+        {} as {[key: string]: Types.PhoneRow}
+      )
     )
     return SettingsGen.createLoadedSettings({
       emails: emailMap,

@@ -59,6 +59,51 @@ func TestSetPhoneNumber(t *testing.T) {
 	require.Len(t, resp, 0)
 }
 
+func TestDeleteSupersededNumber(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
+	defer tc.Cleanup()
+
+	mctx := libkb.NewMetaContextForTest(tc)
+
+	user1, err := kbtest.CreateAndSignupFakeUser("user1", tc.G)
+	require.NoError(t, err)
+
+	phoneNumber := keybase1.PhoneNumber("+15550123456")
+
+	err = AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+
+	// Verify phone on another user
+	_, err = kbtest.CreateAndSignupFakeUser("user2", tc.G)
+	require.NoError(t, err)
+	err = AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+
+	code, err := kbtest.GetPhoneVerificationCode(mctx, phoneNumber)
+	require.NoError(t, err)
+	t.Logf("Got verification code: %q", code)
+	err = VerifyPhoneNumber(mctx, phoneNumber, code)
+	require.NoError(t, err)
+
+	// Check it's superseded on user1
+	kbtest.Logout(tc)
+	err = user1.Login(tc.G)
+	require.NoError(t, err)
+
+	numbers, err := GetPhoneNumbers(mctx)
+	require.NoError(t, err)
+	require.Len(t, numbers, 1)
+	require.True(t, numbers[0].Superseded)
+
+	// Try adding again; superseded one should be deleted
+	err = AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+	numbers, err = GetPhoneNumbers(mctx)
+	require.NoError(t, err)
+	require.Len(t, numbers, 1)
+	require.False(t, numbers[0].Superseded)
+}
+
 func TestBadPhoneNumbers(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
 	defer tc.Cleanup()
