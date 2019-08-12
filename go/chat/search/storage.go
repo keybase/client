@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	indexVersion      = 12
+	indexVersion      = 13
 	tokenEntryVersion = 2
 	aliasEntryVersion = 1
 
 	mdDiskVersion    = 4
 	tokenDiskVersion = 1
-	aliasDiskVersion = 1
+	aliasDiskVersion = 2
 )
 
 type tokenEntry struct {
