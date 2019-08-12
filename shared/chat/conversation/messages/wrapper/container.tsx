@@ -102,11 +102,11 @@ const getUsernameToShow = (
       return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'systemAddedToTeam':
       return message.addee === you ? '' : message.addee
+    case 'systemLeft':
     case 'systemJoined':
-      return message.author === you ? '' : message.author
+      return ''
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
-    case 'systemLeft':
     case 'setDescription':
       return message.author
     case 'systemUsersAddedToConversation':
@@ -184,6 +184,7 @@ export default Container.namedConnect(
       failureDescription,
       forceAsh,
       hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+      isJoinLeave: message.type === 'systemJoined' || message.type === 'systemLeft',
       isLastInThread: stateProps.isLastInThread,
       isPendingPayment: stateProps.isPendingPayment,
       isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,

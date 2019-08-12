@@ -47,6 +47,7 @@ export type Props = {
   failureDescription: string
   forceAsh: boolean
   hasUnfurlPrompts: boolean
+  isJoinLeave: boolean
   isLastInThread: boolean
   isPendingPayment: boolean
   isRevoked: boolean
@@ -287,8 +288,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemChangeRetention' ||
       this.props.message.type === 'systemGitPush' ||
       this.props.message.type === 'systemInviteAccepted' ||
-      this.props.message.type === 'systemJoined' ||
-      this.props.message.type === 'systemLeft' ||
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemText' ||
       this.props.message.type === 'systemUsersAddedToConversation') &&
@@ -312,6 +311,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
@@ -342,6 +342,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
+        style: Styles.collapseStyles([this.props.isJoinLeave && styles.containerJoinLeave]),
       }
     }
   }
@@ -506,20 +507,22 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                {!this._shouldShowReactionsRow() && !this.props.showingMenu && (
-                  <EmojiRow
-                    className={Styles.classNames({
-                      'WrapperMessage-emojiRow': !this.props.isLastInThread,
-                    })}
-                    conversationIDKey={this.props.conversationIDKey}
-                    onShowingEmojiPicker={this._setShowingPicker}
-                    ordinal={message.ordinal}
-                    style={Styles.collapseStyles([
-                      styles.emojiRow,
-                      this.props.isLastInThread && styles.emojiRowLast,
-                    ])}
-                  />
-                )}
+                {!this._shouldShowReactionsRow() &&
+                  Constants.isDecoratedMessage(this.props.message) &&
+                  !this.props.showingMenu && (
+                    <EmojiRow
+                      className={Styles.classNames({
+                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
+                      })}
+                      conversationIDKey={this.props.conversationIDKey}
+                      onShowingEmojiPicker={this._setShowingPicker}
+                      ordinal={message.ordinal}
+                      style={Styles.collapseStyles([
+                        styles.emojiRow,
+                        this.props.isLastInThread && styles.emojiRowLast,
+                      ])}
+                    />
+                  )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
@@ -604,6 +607,11 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.yellow,
   },
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+  containerJoinLeave: Styles.platformStyles({
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+  }),
   containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {

@@ -967,10 +967,35 @@ func (o MessageAttachmentUploaded) DeepCopy() MessageAttachmentUploaded {
 }
 
 type MessageJoin struct {
+	Joiners []string `codec:"joiners" json:"joiners"`
+	Leavers []string `codec:"leavers" json:"leavers"`
 }
 
 func (o MessageJoin) DeepCopy() MessageJoin {
-	return MessageJoin{}
+	return MessageJoin{
+		Joiners: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Joiners),
+		Leavers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Leavers),
+	}
 }
 
 type MessageLeave struct {
