@@ -29,8 +29,11 @@ type Props = {
   negative?: boolean
   onChange: (text: string) => void
   placeholderText: string
+  placeholderCentered?: boolean
   style?: Styles.StylesCrossPlatform | null
+  value?: string // controlled if provided
   waiting?: boolean
+  mobileCancelButton?: boolean
   onBlur?: (() => void) | null
   onCancel?: (() => void) | null
   // If onClick is provided, this component won't focus on click. User is
@@ -42,6 +45,11 @@ type Props = {
   hotkey?: 'f' | 'k' | null // desktop only,
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyPress?: (event: {
+    nativeEvent: {
+      key: 'Enter' | 'Backspace' | string
+    }
+  }) => void
 }
 
 type State = {
@@ -67,6 +75,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onFocus && this.props.onFocus()
   }
 
+  _text = () => this.props.value || this.state.text
   _focus = () => {
     if (this.state.focused) {
       return
@@ -98,7 +107,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     e.key === 'Escape' && !isComposingIME && this._cancel(e)
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
-  _typing = () => this.state.focused || !!this.state.text
+  _typing = () => this.state.focused || !!this._text()
 
   componentDidMount() {
     this.props.focusOnMount && this._focus()
@@ -146,13 +155,14 @@ class SearchFilter extends React.PureComponent<Props, State> {
         : ''
     return (
       <Kb.NewInput
-        value={this.state.text}
+        value={this._text()}
         placeholder={this.props.placeholderText + hotkeyText}
         onChangeText={this._update}
         onBlur={this._onBlur}
         onFocus={this._onFocus}
         onKeyDown={this._onKeyDown}
         onKeyUp={this.props.onKeyUp}
+        onKeyPress={this.props.onKeyPress}
         ref={this._inputRef}
         hideBorder={true}
         containerStyle={Styles.collapseStyles([
@@ -183,11 +193,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   _rightCancelIcon() {
     return Styles.isMobile
-      ? !!this.state.text && (
+      ? !!this._text() && (
           <Kb.Icon
             type="iconfont-remove"
             sizeType={this._iconSizeType()}
-            onClick={this._clear}
+            onClick={this.props.mobileCancelButton ? this._clear : this._cancel}
             color={this._iconColor()}
             style={styles.removeIconNonFullWidth}
           />
@@ -206,6 +216,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       <Kb.ClickableBox
         style={Styles.collapseStyles([
           styles.container,
+          this.props.placeholderCentered && styles.containerCenter,
           !Styles.isMobile && !this.props.fullWidth && styles.containerSmall,
           (Styles.isMobile || this.props.fullWidth) && styles.containerNonSmall,
           !this.props.negative && (this.state.focused || this.state.hover ? styles.light : styles.dark),
@@ -239,7 +250,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         alignItems="center"
         gap="xsmall"
       >
-        {this._typing() && (
+        {!!this.props.mobileCancelButton && this._typing() && (
           <Kb.Text
             type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
             onClick={this._cancel}
@@ -266,13 +277,15 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       borderRadius: Styles.borderRadius,
       flexShrink: 1,
-      justifyContent: 'center',
     },
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       cursor: 'text',
     },
   }),
+  containerCenter: {
+    justifyContent: 'center',
+  },
   containerMobile: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,

@@ -2,8 +2,6 @@ import * as React from 'react'
 import {noop} from 'lodash-es'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {getStyle as getTextStyle} from '../common-adapters/text'
-import {useFocus} from './hooks'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -50,34 +48,15 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
 }
 
 const Input = (props: Props) => {
-  const autofocus = true
-  const [focused, onFocus, onBlur] = useFocus(autofocus)
-  const visualFocused = focused || !!props.searchString
   return (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.collapseStyles([styles.container, visualFocused && styles.containerFocused])}
-    >
-      {!visualFocused && (
-        <Kb.Icon
-          color={Styles.globalColors.black_50}
-          type="iconfont-search"
-          fontSize={getTextStyle('BodySemibold').fontSize}
-          style={styles.iconSearch}
-        />
-      )}
-      <Kb.PlainInput
-        autoFocus={autofocus}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        style={styles.input}
-        placeholder={props.placeholder}
-        placeholderColor={visualFocused ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
-        onChangeText={props.onChangeText}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.SearchFilter
         value={props.searchString}
-        textType={visualFocused ? (Styles.isMobile ? 'BodySmall' : 'BodySmallSemibold') : 'BodySmallSemibold'}
-        maxLength={50}
-        onEnterKeyDown={props.onEnterKeyDown}
+        icon="iconfont-search"
+        focusOnMount={true}
+        fullWidth={true}
+        onChange={props.onChangeText}
+        placeholderText={props.placeholder}
         onKeyDown={e => {
           handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
         }}
@@ -85,23 +64,17 @@ const Input = (props: Props) => {
           handleKeyDown(noop, false, e.nativeEvent.key, props)
         }}
       />
-      <Kb.Box2 direction="vertical" style={{marginLeft: 'auto'}}>
-        {!!props.searchString && (
-          <Kb.Icon
-            color={Styles.globalColors.black_50}
-            type="iconfont-remove"
-            onClick={props.onClear}
-            fontSize={getTextStyle('BodySemibold').fontSize}
-            style={styles.iconX}
-          />
-        )}
-      </Kb.Box2>
     </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
+  container: Styles.platformStyles({
+    isElectron: {
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    },
+  }),
+  containerOld: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.black_10,
     borderRadius: 4,
@@ -112,7 +85,7 @@ const styles = Styles.styleSheetCreate({
     minHeight: 32,
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
   },
-  containerFocused: {
+  containerOldFocused: {
     backgroundColor: Styles.globalColors.black_05,
   },
   iconSearch: Styles.platformStyles({
