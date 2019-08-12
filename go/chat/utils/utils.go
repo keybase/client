@@ -2390,7 +2390,7 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			},
 		}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.Convs) == 0 {
 		return res, ErrGetVerifiedConvNotFound
