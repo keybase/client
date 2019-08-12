@@ -6,7 +6,6 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
-import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
@@ -71,7 +70,7 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
   if (!action.payload.openWebsite) {
     return ProfileGen.createShowUserProfile({username: action.payload.username})
   } else {
-    openURL(`${keybaseUrl}/${action.payload.username}`)
+    openURL(`https://keybase.io/${action.payload.username}`)
     return undefined
   }
 }
