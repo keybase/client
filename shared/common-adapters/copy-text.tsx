@@ -20,7 +20,7 @@ type Props = {
   text: string
 }
 
-export const CopyText = (props: Props) => {
+const CopyText = (props: Props) => {
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
 
