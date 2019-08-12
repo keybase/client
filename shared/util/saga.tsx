@@ -200,4 +200,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, chainAction, chainGenerator, callPromise, callRPCs}
+export {selectState, put, sequentially, chainGenerator, callPromise, callRPCs}
