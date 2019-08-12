@@ -6,7 +6,6 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
-import flags from '../util/feature-flags'
 import {validateNumber} from '../util/phone-numbers'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
@@ -24,7 +23,7 @@ const apiSearch = async (
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
-      includeContacts: flags.sbsContacts && service === 'keybase' && includeContacts,
+      includeContacts: service === 'keybase' && includeContacts,
       includeServicesSummary,
       maxResults,
       query,
@@ -145,7 +144,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
 
   const query = teamBuildingSearchQuery
   let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
-  if (flags.sbsContacts && teamBuildingSelectedService === 'keybase') {
+  if (teamBuildingSelectedService === 'keybase') {
     const userRegion = state.settings.contacts.userCountryCode
     impTofuQuery = makeImpTofuQuery(query, userRegion)
   }
@@ -173,7 +172,7 @@ const fetchUserRecs = async (
   try {
     const [_suggestionRes, _contactRes] = await Promise.all([
       RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
-      flags.sbsContacts && includeContacts
+      includeContacts
         ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
         : Promise.resolve([] as RPCTypes.ProcessedContact[]),
     ])
@@ -195,7 +194,7 @@ const fetchUserRecs = async (
         serviceMap: {keybase: username},
       })
     )
-    const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts
+    const expectingContacts = state.settings.contacts.importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)
     }
