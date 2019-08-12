@@ -3,6 +3,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import {RPCError} from '../util/errors'
 
 const chooseDevice = (params, response) => {
   return Saga.callUntyped(function*() {
@@ -13,7 +15,6 @@ const chooseDevice = (params, response) => {
         devices: devices,
       })
     )
-    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordDeviceSelector'],
@@ -45,10 +46,10 @@ const explainDevice = params => {
         type: params.kind,
       })
     )
-    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordExplainDevice'],
+        replace: true,
       })
     )
   })
@@ -56,17 +57,22 @@ const explainDevice = params => {
 
 const promptReset = (_, response) => {
   return Saga.callUntyped(function*() {
-    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordPromptReset'],
+        replace: true,
       })
     )
     const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
       RecoverPasswordGen.submitResetPrompt
     )
     response.result(action.payload.action)
-    yield Saga.put(RouteTreeGen.createNavigateUp())
+    if (action.payload.action) {
+      // todo new screen?
+      yield Saga.put(RouteTreeGen.createNavigateUp())
+    } else {
+      yield Saga.put(RecoverPasswordGen.createRestartRecovery())
+    }
   })
 }
 
@@ -79,10 +85,10 @@ const paperKey = (params, response) => {
         })
       )
     }
-    yield Saga.put(RouteTreeGen.createNavigateUp())
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: ['recoverPasswordPaperKey'],
+        replace: true,
       })
     )
     const action:
@@ -102,12 +108,7 @@ const paperKey = (params, response) => {
         code: RPCTypes.StatusCode.scinputcanceled,
         desc: 'Input canceled',
       })
-      yield Saga.put(RouteTreeGen.createNavigateUp())
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: ['recoverPasswordError'],
-        })
-      )
+      yield Saga.put(RecoverPasswordGen.createRestartRecovery())
     }
   })
 }
@@ -128,18 +129,35 @@ function* startRecoverPassword(_, action: RecoverPasswordGen.StartRecoverPasswor
       },
     })
   } catch (e) {
-    yield Saga.put(
-      RecoverPasswordGen.createDisplayError({
-        error: e.toString(),
-      })
-    )
-    yield Saga.put(RouteTreeGen.createNavigateUp())
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordError'],
-      })
-    )
+    if (
+      !(
+        e instanceof RPCError &&
+        (e.code === RPCTypes.StatusCode.sccanceled || e.code === RPCTypes.StatusCode.scinputcanceled)
+      )
+    ) {
+      yield Saga.put(
+        RecoverPasswordGen.createDisplayError({
+          error: e.toString(),
+        })
+      )
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: ['recoverPasswordError'],
+          replace: true,
+        })
+      )
+    }
   }
+}
+
+const restartRecovery = (state: Container.TypedState) => {
+  return [
+    // todo fix blinking
+    RecoverPasswordGen.createStartRecoverPassword({
+      username: state.recoverPassword.username,
+    }),
+    RouteTreeGen.createNavigateUp(),
+  ]
 }
 
 function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
@@ -147,6 +165,7 @@ function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
     RecoverPasswordGen.startRecoverPassword,
     startRecoverPassword
   )
+  yield Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
 }
 
 export default recoverPasswordSaga

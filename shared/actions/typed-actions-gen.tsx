@@ -649,6 +649,7 @@ export type TypedActionsMap = {
   'push:updateHasPermissions': push.UpdateHasPermissionsPayload
   'push:notification': push.NotificationPayload
   'recover-password:startRecoverPassword': recoverpassword.StartRecoverPasswordPayload
+  'recover-password:restartRecovery': recoverpassword.RestartRecoveryPayload
   'recover-password:showDeviceListPage': recoverpassword.ShowDeviceListPagePayload
   'recover-password:submitDeviceSelect': recoverpassword.SubmitDeviceSelectPayload
   'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload

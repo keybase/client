@@ -9,6 +9,7 @@ export const abortDeviceSelect = 'recover-password:abortDeviceSelect'
 export const abortPaperKey = 'recover-password:abortPaperKey'
 export const displayError = 'recover-password:displayError'
 export const displayPaperKeyError = 'recover-password:displayPaperKeyError'
+export const restartRecovery = 'recover-password:restartRecovery'
 export const showDeviceListPage = 'recover-password:showDeviceListPage'
 export const showExplainDevice = 'recover-password:showExplainDevice'
 export const showPaperKey = 'recover-password:showPaperKey'
@@ -22,6 +23,7 @@ type _AbortDeviceSelectPayload = void
 type _AbortPaperKeyPayload = void
 type _DisplayErrorPayload = {readonly error: string}
 type _DisplayPaperKeyErrorPayload = {readonly error: string}
+type _RestartRecoveryPayload = void
 type _ShowDeviceListPagePayload = {readonly devices: Array<Types.Device>}
 type _ShowExplainDevicePayload = {readonly type: 'desktop' | 'mobile'; readonly name: string}
 type _ShowPaperKeyPayload = void
@@ -46,6 +48,10 @@ export const createDisplayError = (payload: _DisplayErrorPayload): DisplayErrorP
 export const createDisplayPaperKeyError = (
   payload: _DisplayPaperKeyErrorPayload
 ): DisplayPaperKeyErrorPayload => ({payload, type: displayPaperKeyError})
+export const createRestartRecovery = (payload: _RestartRecoveryPayload): RestartRecoveryPayload => ({
+  payload,
+  type: restartRecovery,
+})
 export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload): ShowDeviceListPagePayload => ({
   payload,
   type: showDeviceListPage,
@@ -88,6 +94,10 @@ export type DisplayPaperKeyErrorPayload = {
   readonly payload: _DisplayPaperKeyErrorPayload
   readonly type: typeof displayPaperKeyError
 }
+export type RestartRecoveryPayload = {
+  readonly payload: _RestartRecoveryPayload
+  readonly type: typeof restartRecovery
+}
 export type ShowDeviceListPagePayload = {
   readonly payload: _ShowDeviceListPagePayload
   readonly type: typeof showDeviceListPage
@@ -121,6 +131,7 @@ export type Actions =
   | AbortPaperKeyPayload
   | DisplayErrorPayload
   | DisplayPaperKeyErrorPayload
+  | RestartRecoveryPayload
   | ShowDeviceListPagePayload
   | ShowExplainDevicePayload
   | ShowPaperKeyPayload

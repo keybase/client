@@ -19,21 +19,13 @@ const ConnectedExplainDevice = Container.connect(
     }
   },
   dispatch => ({
-    _onBack: username =>
-      dispatch(
-        RecoverPasswordGen.createStartRecoverPassword({
-          username: username,
-        })
-      ),
-    onComplete: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
+    onBack: () => dispatch(RecoverPasswordGen.createRestartRecovery()),
+    onComplete: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (s, d, o: OwnProps) => ({
     ...o,
     ...s,
     ...d,
-    onBack: () => d._onBack(s.username),
   })
 )(ExplainDevice)
 
