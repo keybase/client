@@ -904,7 +904,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
 		return res, err
 	}
-	return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
+	return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceRemoteOnly)
 }
 
 type NewConvFindExistingMode int
