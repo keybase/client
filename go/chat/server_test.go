@@ -6905,8 +6905,7 @@ func TestMessageDrafts(t *testing.T) {
 func TestTeamBotSettings(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-			switch mt {
-			case chat1.ConversationMembersType_KBFS:
+			if mt == chat1.ConversationMembersType_KBFS {
 				return
 			}
 			ctc := makeChatTestContext(t, "TeamBotSettings", 3)

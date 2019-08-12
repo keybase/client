@@ -825,8 +825,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	}
 
 	// no bots in KBFS convs
-	switch conv.GetMembersType() {
-	case chat1.ConversationMembersType_KBFS:
+	if conv.GetMembersType() == chat1.ConversationMembersType_KBFS {
 		return nil, nil
 	}
 
