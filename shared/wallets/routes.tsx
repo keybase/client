@@ -85,7 +85,9 @@ const OnboardingOrWalletsNavigator = createSwitchNavigator(
   {initialRouteName: 'onboarding'}
 )
 
-class _OnboardingOrWallets extends React.Component<any> {
+type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
+
+class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
   static router = OnboardingOrWalletsNavigator.router
   static navigationOptions = ({navigation}) => {
     return {
@@ -109,12 +111,13 @@ class _OnboardingOrWallets extends React.Component<any> {
     return <OnboardingOrWalletsNavigator {...this.props} />
   }
 }
-const OnboardingOrWallets = Container.connect(
+const OnboardingOrWallets = Container.namedConnect(
   state => ({
     acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   }),
   undefined,
-  (s, _, o) => ({...s, ...o})
+  stateProps => ({...stateProps}),
+  'OnboardingOrWallets'
 )(_OnboardingOrWallets)
 
 export const newRoutes = {
