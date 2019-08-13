@@ -31,7 +31,8 @@ type Props = {
   placeholderText: string
   placeholderCentered?: boolean
   style?: Styles.StylesCrossPlatform | null
-  value?: string // controlled if provided
+  valueControlled?: boolean
+  value?: string
   waiting?: boolean
   mobileCancelButton?: boolean
   onBlur?: (() => void) | null
@@ -75,7 +76,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onFocus && this.props.onFocus()
   }
 
-  _text = () => this.props.value || this.state.text
+  _text = () => (this.props.valueControlled ? this.props.value : this.state.text)
   _focus = () => {
     if (this.state.focused) {
       return
