@@ -51,14 +51,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   if (isMobile && hasRecentVerifyEmail) {
     subtitle = 'Check your inbox'
   } else {
+    if (hasRecentVerifyEmail) {
+      subtitle = addSpacer(subtitle, 'Check your inbox')
+    }
     if (props.type === 'email' && props.primary) {
       subtitle = addSpacer(subtitle, 'Primary')
     }
     if (!props.searchable) {
       subtitle = addSpacer(subtitle, 'Not searchable')
-    }
-    if (hasRecentVerifyEmail) {
-      subtitle = addSpacer(subtitle, 'Check your inbox')
     }
   }
 

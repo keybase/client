@@ -273,7 +273,7 @@ const VerifyAllEmailConnector = connect(
 
     // Has the user received a verification email less than 30 minutes ago?
     const hasRecentVerifyEmail =
-      meta && meta.lastVerifyEmailDate && new Date().getTime() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+      meta && meta.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
 
     return {
       ...o,
