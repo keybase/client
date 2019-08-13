@@ -42,6 +42,11 @@ interface Console {
 }
 
 declare var KB: {
+  electron: {
+    systemPreferences: {
+      isDarkMode: () => boolean
+    }
+  }
   fs: {
     readServerConfig: () => Object
     readJsonDebug: () => Object
