@@ -7,7 +7,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mapStateToProps = (state: TypedState) => ({
-    assertionToUsernameMap: state.chat2.assertionToUsernameMap
+    assertionToContactMap: state.chat2.assertionToContactMap
 })
 
 export default connect(

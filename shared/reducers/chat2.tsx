@@ -1387,11 +1387,11 @@ const rootReducer = (
       var d = {}
       if (data.resolved) {
         let key = data.component.phoneNumber || data.component.email
-        d[key] = data.username
+        d[key] = data
       }
       console.warn("Merging in " + JSON.stringify(d))
-      console.warn(state.merge({assertionToUsernameMap: state.assertionToUsernameMap.merge(d)}).assertionToUsernameMap)
-      return state.merge({assertionToUsernameMap: state.assertionToUsernameMap.merge(d)})
+      console.warn(state.merge({assertionToContactMap: state.assertionToContactMap.merge(d)}).assertionToContactMap)
+      return state.merge({assertionToContactMap: state.assertionToContactMap.merge(d)})
     }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:

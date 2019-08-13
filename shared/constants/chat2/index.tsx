@@ -27,7 +27,7 @@ export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
-  assertionToUsernameMap: I.Map(),
+  assertionToContactMap: I.Map(),
   badgeMap: I.Map(),
   botCommandsUpdateStatusMap: I.Map(),
   commandMarkdownMap: I.Map(),

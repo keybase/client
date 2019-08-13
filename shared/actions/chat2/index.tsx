@@ -41,7 +41,6 @@ import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from 'util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
-import * as SettingsGen from "../settings-gen";
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()

@@ -12,7 +12,7 @@ import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
-import PhoneSearch from "./phone-search/container";
+// import PhoneSearch from "./phone-search/container";
 
 export const numSectionLabel = '0-9'
 
@@ -466,20 +466,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        <PhoneSearch/>
-        {/*{Flags.sbsContacts && Styles.isMobile && (*/}
-        {/*  <ContactsBanner*/}
-        {/*    {...props}*/}
-        {/*    onRedoSearch={() => props.onChangeText(props.searchString)}*/}
-        {/*    onRedoRecs={props.fetchUserRecs}*/}
-        {/*  />*/}
-        {/*)}*/}
-        {/*{this._listBody()}*/}
-        {/*{props.waitingForCreate && (*/}
-        {/*  <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">*/}
-        {/*    <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />*/}
-        {/*  </Kb.Box2>*/}
-        {/*)}*/}
+        {/*<PhoneSearch/>*/}
+        {Flags.sbsContacts && Styles.isMobile && (
+          <ContactsBanner
+            {...props}
+            onRedoSearch={() => props.onChangeText(props.searchString)}
+            onRedoRecs={props.fetchUserRecs}
+          />
+        )}
+        {this._listBody()}
+        {props.waitingForCreate && (
+          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     )
   }
