@@ -398,46 +398,50 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
           {isMobile && (
+              <Kb.Box2 direction="vertical" alignItems="flex-start" fullHeight={true} >
+                <Kb.Box2
+                  alignItems="center"
+                  direction="horizontal"
+                  style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
+                >
+                  <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+                    {'+'}
+                  </Kb.Text>
+                  <Kb.PlainInput
+                    style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                    flexable={true}
+                    keyboardType={isIOS ? 'number-pad' : 'numeric'}
+                    onChangeText={x => this._reformatPrefix(x, false)}
+                    maxLength={3}
+                    onEnterKeyDown={this._onPrefixEnter}
+                    returnKeyType="next"
+                    value={this.state.prefix}
+                  />
+                </Kb.Box2>
+              </Kb.Box2>
+          )}
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" >
             <Kb.Box2
               alignItems="center"
               direction="horizontal"
-              style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
+              style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
             >
-              <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
-                {'+'}
-              </Kb.Text>
               <Kb.PlainInput
-                style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                autoFocus={this.props.autoFocus}
+                style={Styles.collapseStyles([styles.plainInput])}
                 flexable={true}
                 keyboardType={isIOS ? 'number-pad' : 'numeric'}
-                onChangeText={x => this._reformatPrefix(x, false)}
-                maxLength={3}
-                onEnterKeyDown={this._onPrefixEnter}
-                returnKeyType="next"
-                value={this.state.prefix}
+                placeholder={getPlaceholder(this.state.country)}
+                onChangeText={x => this._reformatPhoneNumber(x, false)}
+                onEnterKeyDown={this.props.onEnterKeyDown}
+                value={this.state.formatted}
+                disabled={this.state.country === ''}
+                ref={this._phoneInputRef}
+                maxLength={17}
+                textContentType="telephoneNumber"
               />
             </Kb.Box2>
-          )}
-          <Kb.Box2
-            alignItems="center"
-            direction="vertical"
-            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
-          >
-            <Kb.PlainInput
-              autoFocus={this.props.autoFocus}
-              style={Styles.collapseStyles([styles.plainInput])}
-              flexable={true}
-              keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              placeholder={getPlaceholder(this.state.country)}
-              onChangeText={x => this._reformatPhoneNumber(x, false)}
-              onEnterKeyDown={this.props.onEnterKeyDown}
-              value={this.state.formatted}
-              disabled={this.state.country === ''}
-              ref={this._phoneInputRef}
-              maxLength={17}
-              textContentType="telephoneNumber"
-            />
-            {props.result}
+            {this.props.result}
           </Kb.Box2>
         </Kb.Box2>
         <CountrySelector
