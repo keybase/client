@@ -972,7 +972,7 @@ func (m *ChatRemoteMock) GetBotInfo(ctx context.Context, arg chat1.GetBotInfoArg
 	return res, errors.New("GetBotInfo not mocked")
 }
 
-func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res keybase1.TeamID, err error) {
+func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
 }
 

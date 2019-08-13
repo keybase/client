@@ -8,6 +8,7 @@ export type Props = {
   balance: string
   code: string // The same as `name` except for XLM
   depositButtonText?: string // SEP6 link
+  depositButtonWaitingKey?: string // SEP6 waiting key
   equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string // non-empty only if native currency
   expanded?: boolean // for testing
@@ -22,6 +23,7 @@ export type Props = {
   openStellarURL: () => void
   reserves: Array<Types.Reserve> // non-empty only if native currency
   withdrawButtonText?: string // SEP6 link
+  withdrawButtonWaitingKey?: string // SEP6 waiting key
 }
 
 type State = {
@@ -101,27 +103,25 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.ButtonBar direction="row" align="flex-start" small={true}>
                   {!!this.props.depositButtonText && (
-                    <>
-                      <Kb.Button
-                        mode="Secondary"
-                        label={this.props.depositButtonText}
-                        onClick={this.props.onDeposit}
-                        small={true}
-                        type="Wallet"
-                      />
-                    </>
+                    <Kb.WaitingButton
+                      mode="Secondary"
+                      label={this.props.depositButtonText}
+                      onClick={this.props.onDeposit}
+                      small={true}
+                      type="Wallet"
+                      waitingKey={this.props.depositButtonWaitingKey || null}
+                    />
                   )}
 
                   {!!this.props.withdrawButtonText && (
-                    <>
-                      <Kb.Button
-                        mode="Secondary"
-                        label={this.props.withdrawButtonText}
-                        onClick={this.props.onWithdraw}
-                        small={true}
-                        type="Wallet"
-                      />
-                    </>
+                    <Kb.WaitingButton
+                      mode="Secondary"
+                      label={this.props.withdrawButtonText}
+                      onClick={this.props.onWithdraw}
+                      small={true}
+                      type="Wallet"
+                      waitingKey={this.props.withdrawButtonWaitingKey || null}
+                    />
                   )}
                   {!!this.props.infoUrlText && (
                     <Kb.Button

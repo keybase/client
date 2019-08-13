@@ -82,6 +82,30 @@
         {
           "type": "KBFSArchivedParam",
           "name": "archivedParam"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -114,7 +138,7 @@
             "name": "KBFS",
             "def": false
           },
-          "body": "string"
+          "body": "KBFSPath"
         },
         {
           "label": {
@@ -1024,13 +1048,6 @@
           "type": "Path"
         },
         {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
-        },
-        {
           "name": "refreshSubscription",
           "type": "boolean"
         }
@@ -1239,7 +1256,15 @@
       "response": null
     },
     "simpleFSSyncConfigAndStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        }
+      ],
       "response": "SyncConfigAndStatusRes"
     },
     "simpleFSAreWeConnectedToMDServer": {
@@ -1300,6 +1325,13 @@
     "simpleFSSubscribePath": {
       "request": [
         {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1321,6 +1353,13 @@
     "simpleFSSubscribeNonPath": {
       "request": [
         {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1337,6 +1376,13 @@
     },
     "simpleFSUnsubscribe": {
       "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
         {
           "name": "subscriptionID",
           "type": "string"

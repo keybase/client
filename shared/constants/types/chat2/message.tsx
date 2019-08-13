@@ -329,7 +329,8 @@ export type _MessageSystemJoined = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
+  joiners: Array<string>
+  leavers: Array<string>
   timestamp: number
   type: 'systemJoined'
 } & _MessageCommon
@@ -343,7 +344,6 @@ export type _MessageSystemLeft = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
   timestamp: number
   type: 'systemLeft'
 } & _MessageCommon
@@ -437,8 +437,6 @@ export type MessageWithReactionPopup =
   | MessageSystemChangeRetention
   | MessageSystemGitPush
   | MessageSystemInviteAccepted
-  | MessageSystemJoined
-  | MessageSystemLeft
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation

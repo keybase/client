@@ -754,9 +754,11 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		unboxed, ierr := boxer.unbox(ctx, boxed, convInfo, key, nil)
 		require.NoError(t, ierr)
 		require.NotNil(t, unboxed)
-		resolved, err := boxer.ResolveSkippedUnboxed(ctx, chat1.NewMessageUnboxedWithValid(*unboxed))
+		resolved, modified, err := boxer.ResolveSkippedUnboxed(ctx,
+			chat1.NewMessageUnboxedWithValid(*unboxed))
 		require.NoError(t, err)
 		require.True(t, resolved.IsError())
+		require.True(t, modified)
 	})
 }
 
@@ -824,10 +826,12 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		unboxed, ierr = boxer.unbox(ctx, boxed, convInfo, key, nil)
 		require.NoError(t, ierr)
 		require.Nil(t, unboxed.SenderDeviceRevokedAt)
-		resolved, err := boxer.ResolveSkippedUnboxed(ctx, chat1.NewMessageUnboxedWithValid(*unboxed))
+		resolved, modified, err := boxer.ResolveSkippedUnboxed(ctx,
+			chat1.NewMessageUnboxedWithValid(*unboxed))
 		require.NoError(t, err)
 		require.True(t, resolved.IsValid())
 		require.NotNil(t, resolved.Valid().SenderDeviceRevokedAt)
+		require.True(t, modified)
 	})
 }
 

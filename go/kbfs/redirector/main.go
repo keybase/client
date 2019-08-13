@@ -336,7 +336,10 @@ func main() {
 			mountAsUser, err)
 		os.Exit(1)
 	}
-	mountAsUID, err := strconv.ParseUint(u.Uid, 10, 32)
+	// Refuse to accept uids with high bits set for now. They could overflow
+	// int on 32-bit platforms. However the underlying C type is unsigned, so
+	// no permanent harm was done (expect perhaps for -1/0xFFFFFFFF).
+	mountAsUID, err := strconv.ParseUint(u.Uid, 10, 31)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: can't convert %s's UID %s: %v",
 			mountAsUser, u.Uid, err)
@@ -348,7 +351,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "ERROR: can't get the current user: %v", err)
 		os.Exit(1)
 	}
-	currUID, err := strconv.ParseUint(currUser.Uid, 10, 32)
+	currUID, err := strconv.ParseUint(currUser.Uid, 10, 31)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: can't convert %s's UID %s: %v",
 			currUser.Username, currUser.Uid, err)

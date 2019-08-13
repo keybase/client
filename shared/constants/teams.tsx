@@ -73,7 +73,8 @@ export const rpcDetailsToMemberInfos = (
   }
   types.forEach(type => {
     const key = typeToKey[type]
-    const members: Array<RPCTypes.TeamMemberDetails> = allRoleMembers[key] || []
+    // @ts-ignore
+    const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
     members.forEach(({fullName, status, username}) => {
       infos.push([
         username,
@@ -230,7 +231,7 @@ const baseRetentionPolicies = [
   policyThirtySeconds,
 ]
 
-const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce((map, p) => {
+const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce<{[key: number]: string}>((map, p) => {
   map[p.seconds] = p.title
   return map
 }, {})
@@ -394,10 +395,7 @@ const getDisabledReasonsForRolePicker = (
 
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamNameToMembers.get(
-    teamname,
-    I.Map<string, I.RecordOf<Types.MemberInfo>>()
-  )
+  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map<string, Types.MemberInfo>())
   const moreThanOneOwner = allTeamMembers.some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
@@ -418,9 +416,9 @@ const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): Re
 
 const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
-  return path.reduce((names, curr) => {
-    if (curr.routeName === 'team' && (curr.params ? curr.params.teamname : undefined)) {
-      names.push(curr.params.teamname)
+  return path.reduce<Array<string>>((names, curr) => {
+    if (curr.routeName === 'team') {
+      curr.params && curr.params.teamname && names.push(curr.params.teamname)
     }
     return names
   }, [])

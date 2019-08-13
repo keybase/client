@@ -11,6 +11,21 @@ import (
 
 // AddPhoneNumber calls API to add phone number to currently logged in account.
 func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
+	// First try to delete if we have a superseded item for this phone number already
+	nums, err := GetPhoneNumbers(mctx)
+	if err == nil {
+		for _, num := range nums {
+			if num.Superseded && num.PhoneNumber == phoneNumber {
+				err = DeletePhoneNumber(mctx, num.PhoneNumber)
+				if err != nil {
+					mctx.Warning("error deleting superseded number on add: %s", err)
+				}
+			}
+		}
+	} else {
+		mctx.Warning("error fetching numbers on add: %s", err)
+	}
+
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
 	payload["visibility"] = visibility
@@ -21,7 +36,7 @@ func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, vi
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(mctx, arg)
+	_, err = mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 

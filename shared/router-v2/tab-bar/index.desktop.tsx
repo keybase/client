@@ -45,23 +45,23 @@ type State = {
 class TabBar extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
 
-  _attachmentRef = React.createRef<Kb.Box2>()
-  _getAttachmentRef = () => this._attachmentRef.current
-  _showMenu = () => this.setState({showingMenu: true})
-  _hideMenu = () => this.setState({showingMenu: false})
-  _onClickWrapper = () => {
-    this._hideMenu()
+  private attachmentRef = React.createRef<Kb.Box2>()
+  private getAttachmentRef = () => this.attachmentRef.current
+  private showMenu = () => this.setState({showingMenu: true})
+  private hideMenu = () => this.setState({showingMenu: false})
+  private onClickWrapper = () => {
+    this.hideMenu()
     this.props.onProfileClick()
   }
-  _menuHeader = () => ({
+  private menuHeader = () => ({
     onClick: this.props.onProfileClick,
     title: '',
     view: (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
+        <Kb.ClickableBox onClick={this.onClickWrapper} style={styles.headerBox}>
           <Kb.ConnectedNameWithIcon
             username={this.props.username}
-            onClick={this._onClickWrapper}
+            onClick={this.onClickWrapper}
             metaTwo={
               <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
                 {this.props.fullname}
@@ -73,7 +73,7 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = (): Kb.MenuItems => [
+  private menuItems = (): Kb.MenuItems => [
     ...(flags.fastAccountSwitch
       ? [
           {onClick: this.props.onAddAccount, title: 'Log in as another user'},
@@ -93,7 +93,7 @@ class TabBar extends React.PureComponent<Props, State> {
         <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
           <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
             <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-            <Kb.ClickableBox onClick={this._showMenu}>
+            <Kb.ClickableBox onClick={this.showMenu}>
               <Kb.Box2
                 direction="horizontal"
                 gap="tiny"
@@ -101,7 +101,7 @@ class TabBar extends React.PureComponent<Props, State> {
                 fullWidth={true}
                 style={styles.nameContainer}
                 alignItems="center"
-                ref={this._attachmentRef}
+                ref={this.attachmentRef}
               >
                 <Kb.Avatar
                   size={24}
@@ -126,12 +126,12 @@ class TabBar extends React.PureComponent<Props, State> {
             <Kb.FloatingMenu
               position="bottom left"
               containerStyle={styles.menu}
-              header={this._menuHeader()}
+              header={this.menuHeader()}
               closeOnSelect={true}
               visible={this.state.showingMenu}
-              attachTo={this._getAttachmentRef}
-              items={this._menuItems()}
-              onHidden={this._hideMenu}
+              attachTo={this.getAttachmentRef}
+              items={this.menuItems()}
+              onHidden={this.hideMenu}
             />
           </Kb.Box2>
           {tabs.map((t, i) => (
@@ -172,7 +172,7 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {marginLeft: 14},
   badgeIcon: {
     bottom: -4,
@@ -207,7 +207,7 @@ const styles = Styles.styleSheetCreate({
   username: Styles.platformStyles({
     isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
   }),
-})
+}))
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
   map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
@@ -218,7 +218,7 @@ const hotkeys = Object.keys(keysMap)
 const InsideHotKeyTabBar = KeyHandler(TabBar)
 
 class HotKeyTabBar extends React.Component<Props> {
-  _onHotkey = cmd => {
+  _onHotkey = (cmd: string) => {
     this.props.onTabClick(keysMap[cmd])
   }
   render() {

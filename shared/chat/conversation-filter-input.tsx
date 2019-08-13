@@ -120,7 +120,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                   sizeType="Small"
                 />
                 <Kb.Text type="BodySemibold" style={styles.text}>
-                  Search
+                  {Styles.isMobile ? 'Search your chats' : 'Search'}
                 </Kb.Text>
                 {!Styles.isMobile && !this.props.noShortcut && (
                   <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -139,7 +139,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
               </Kb.ClickableBox>
             </Kb.WithTooltip>
           </Kb.Box2>
-          {!!this.props.onNewChat && (
+          {!!this.props.onNewChat && !Styles.isMobile && (
             <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
               <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
@@ -162,11 +162,9 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   containerFiltering: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
+    common: {position: 'relative'},
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
@@ -209,7 +207,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       height: 32,
-      paddingLeft: 16,
+      paddingLeft: 10,
     },
   }),
   flexOne: {flex: 1},
@@ -224,10 +222,10 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   loadingContainer: {
-    bottom: 0,
     left: 0,
     position: 'absolute',
     right: 0,
+    top: 0,
   },
   newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   newIcon: {
@@ -237,19 +235,20 @@ const styles = Styles.styleSheetCreate({
   searchBox: Styles.platformStyles({
     common: {flex: 1},
     isElectron: Styles.desktopStyles.windowDraggingClickable,
-    isMobile: {...Styles.padding(6, 0)},
+    isMobile: {...Styles.padding(10, 0)},
   }),
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
-      marginLeft: Styles.globalMargins.xtiny,
       marginRight: Styles.globalMargins.xtiny,
       position: 'relative',
     },
     isElectron: {
+      marginLeft: Styles.globalMargins.xtiny,
       top: 0,
     },
     isMobile: {
+      marginLeft: Styles.globalMargins.tiny,
       top: 1,
     },
   }),
@@ -257,9 +256,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_35,
     position: 'relative',
   },
-  whiteBg: {
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+  whiteBg: {backgroundColor: Styles.globalColors.white},
+}))
 
 export default ConversationFilterInput

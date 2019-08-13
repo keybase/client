@@ -60,7 +60,7 @@ const Browser = (props: Props) =>
       ) : (
         <WithContent {...props} />
       )}
-      <Footer />
+      <Footer path={props.path} />
     </Kb.Box2>
   )
 

@@ -188,9 +188,12 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
-  record MessageJoin {}
+  record MessageJoin {
+    array<string> joiners;
+    array<string> leavers;
+  }
 
-  record MessageLeave {}
+  record MessageLeave { }
 
   record MessageReaction {
      @mpackkey("m") @jsonkey("m")
@@ -528,6 +531,7 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -943,8 +947,13 @@ protocol local {
   }
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
-  JoinLeaveConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  record PreviewConversationLocalRes {
+    InboxUIItem conv;  
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  PreviewConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   record DeleteConversationLocalRes {
     boolean offline;
     array<RateLimit> rateLimits;

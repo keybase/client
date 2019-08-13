@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
+  darkMode: false,
   dbCleanEnabled: false,
   fastAccountSwitch: false,
   foldersInProfileTab: false,
@@ -24,7 +25,6 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: true,
   stellarExternalPartners: true,
 }
 
@@ -36,7 +36,6 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  sbsContacts: true,
 }
 
 // load overrides

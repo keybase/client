@@ -192,14 +192,40 @@ func (o KBFSArchivedParam) DeepCopy() KBFSArchivedParam {
 }
 
 type KBFSArchivedPath struct {
-	Path          string            `codec:"path" json:"path"`
-	ArchivedParam KBFSArchivedParam `codec:"archivedParam" json:"archivedParam"`
+	Path             string               `codec:"path" json:"path"`
+	ArchivedParam    KBFSArchivedParam    `codec:"archivedParam" json:"archivedParam"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 func (o KBFSArchivedPath) DeepCopy() KBFSArchivedPath {
 	return KBFSArchivedPath{
 		Path:          o.Path,
 		ArchivedParam: o.ArchivedParam.DeepCopy(),
+		IdentifyBehavior: (func(x *TLFIdentifyBehavior) *TLFIdentifyBehavior {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.IdentifyBehavior),
+	}
+}
+
+type KBFSPath struct {
+	Path             string               `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+}
+
+func (o KBFSPath) DeepCopy() KBFSPath {
+	return KBFSPath{
+		Path: o.Path,
+		IdentifyBehavior: (func(x *TLFIdentifyBehavior) *TLFIdentifyBehavior {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.IdentifyBehavior),
 	}
 }
 
@@ -235,7 +261,7 @@ func (e PathType) String() string {
 type Path struct {
 	PathType__     PathType          `codec:"PathType" json:"PathType"`
 	Local__        *string           `codec:"local,omitempty" json:"local,omitempty"`
-	Kbfs__         *string           `codec:"kbfs,omitempty" json:"kbfs,omitempty"`
+	Kbfs__         *KBFSPath         `codec:"kbfs,omitempty" json:"kbfs,omitempty"`
 	KbfsArchived__ *KBFSArchivedPath `codec:"kbfsArchived,omitempty" json:"kbfsArchived,omitempty"`
 }
 
@@ -270,7 +296,7 @@ func (o Path) Local() (res string) {
 	return *o.Local__
 }
 
-func (o Path) Kbfs() (res string) {
+func (o Path) Kbfs() (res KBFSPath) {
 	if o.PathType__ != PathType_KBFS {
 		panic("wrong case accessed")
 	}
@@ -297,7 +323,7 @@ func NewPathWithLocal(v string) Path {
 	}
 }
 
-func NewPathWithKbfs(v string) Path {
+func NewPathWithKbfs(v KBFSPath) Path {
 	return Path{
 		PathType__: PathType_KBFS,
 		Kbfs__:     &v,
@@ -321,11 +347,11 @@ func (o Path) DeepCopy() Path {
 			tmp := (*x)
 			return &tmp
 		})(o.Local__),
-		Kbfs__: (func(x *string) *string {
+		Kbfs__: (func(x *KBFSPath) *KBFSPath {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Kbfs__),
 		KbfsArchived__: (func(x *KBFSArchivedPath) *KBFSArchivedPath {
@@ -1418,9 +1444,8 @@ type SimpleFSRemoveArg struct {
 }
 
 type SimpleFSStatArg struct {
-	Path                Path                 `codec:"path" json:"path"`
-	IdentifyBehavior    *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
-	RefreshSubscription bool                 `codec:"refreshSubscription" json:"refreshSubscription"`
+	Path                Path `codec:"path" json:"path"`
+	RefreshSubscription bool `codec:"refreshSubscription" json:"refreshSubscription"`
 }
 
 type SimpleFSGetRevisionsArg struct {
@@ -1508,6 +1533,7 @@ type SimpleFSSetFolderSyncConfigArg struct {
 }
 
 type SimpleFSSyncConfigAndStatusArg struct {
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSAreWeConnectedToMDServerArg struct {
@@ -1539,6 +1565,7 @@ type SimpleFSGetStatsArg struct {
 }
 
 type SimpleFSSubscribePathArg struct {
+	IdentifyBehavior          *TLFIdentifyBehavior  `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 	SubscriptionID            string                `codec:"subscriptionID" json:"subscriptionID"`
 	KbfsPath                  string                `codec:"kbfsPath" json:"kbfsPath"`
 	Topic                     PathSubscriptionTopic `codec:"topic" json:"topic"`
@@ -1546,13 +1573,15 @@ type SimpleFSSubscribePathArg struct {
 }
 
 type SimpleFSSubscribeNonPathArg struct {
-	SubscriptionID            string            `codec:"subscriptionID" json:"subscriptionID"`
-	Topic                     SubscriptionTopic `codec:"topic" json:"topic"`
-	DeduplicateIntervalSecond int               `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
+	IdentifyBehavior          *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	SubscriptionID            string               `codec:"subscriptionID" json:"subscriptionID"`
+	Topic                     SubscriptionTopic    `codec:"topic" json:"topic"`
+	DeduplicateIntervalSecond int                  `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
 }
 
 type SimpleFSUnsubscribeArg struct {
-	SubscriptionID string `codec:"subscriptionID" json:"subscriptionID"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	SubscriptionID   string               `codec:"subscriptionID" json:"subscriptionID"`
 }
 
 type SimpleFSInterface interface {
@@ -1665,7 +1694,7 @@ type SimpleFSInterface interface {
 	SimpleFSReset(context.Context, Path) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
-	SimpleFSSyncConfigAndStatus(context.Context) (SyncConfigAndStatusRes, error)
+	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
@@ -1676,7 +1705,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
 	SimpleFSSubscribePath(context.Context, SimpleFSSubscribePathArg) error
 	SimpleFSSubscribeNonPath(context.Context, SimpleFSSubscribeNonPathArg) error
-	SimpleFSUnsubscribe(context.Context, string) error
+	SimpleFSUnsubscribe(context.Context, SimpleFSUnsubscribeArg) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2209,7 +2238,12 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSSyncConfigAndStatus(ctx)
+					typedArgs, ok := args.(*[1]SimpleFSSyncConfigAndStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSyncConfigAndStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSyncConfigAndStatus(ctx, typedArgs[0].IdentifyBehavior)
 					return
 				},
 			},
@@ -2354,7 +2388,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSUnsubscribeArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSUnsubscribe(ctx, typedArgs[0].SubscriptionID)
+					err = i.SimpleFSUnsubscribe(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2637,8 +2671,9 @@ func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg S
 	return
 }
 
-func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context) (res SyncConfigAndStatusRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{SimpleFSSyncConfigAndStatusArg{}}, &res)
+func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context, identifyBehavior *TLFIdentifyBehavior) (res SyncConfigAndStatusRes, err error) {
+	__arg := SimpleFSSyncConfigAndStatusArg{IdentifyBehavior: identifyBehavior}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2696,8 +2731,7 @@ func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg Simp
 	return
 }
 
-func (c SimpleFSClient) SimpleFSUnsubscribe(ctx context.Context, subscriptionID string) (err error) {
-	__arg := SimpleFSUnsubscribeArg{SubscriptionID: subscriptionID}
+func (c SimpleFSClient) SimpleFSUnsubscribe(ctx context.Context, __arg SimpleFSUnsubscribeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUnsubscribe", []interface{}{__arg}, nil)
 	return
 }

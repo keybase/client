@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen, errorBanner} from '../common'
-import flags from '../../util/feature-flags'
+import {InfoIcon, SignupScreen, errorBanner} from '../common'
 
 type Props = {
   error: string
@@ -43,6 +42,20 @@ const EnterEmail = (props: Props) => {
   )
 }
 
+EnterEmail.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
+}
+
 type BodyProps = {
   onChangeEmail: (email: string) => void
   onContinue: () => void
@@ -72,7 +85,7 @@ export const EnterEmailBody = (props: BodyProps) => (
         textContentType="emailAddress"
         value={props.email}
       />
-      {props.showAllowSearch && flags.sbsContacts && (
+      {props.showAllowSearch && (
         <Kb.Checkbox
           label="Allow friends to find you by this email address"
           checked={props.allowSearch}

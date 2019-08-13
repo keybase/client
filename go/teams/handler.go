@@ -503,7 +503,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		tx := CreateAddMemberTx(team)
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
-			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
+			err := tx.AddMemberByUV(ctx, uv, joinAsRole, nil)
 			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
@@ -564,7 +564,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			continue
 		}
 
-		err = tx.AddMemberByUV(ctx, uv, invite.Role)
+		err = tx.AddMemberByUV(ctx, uv, invite.Role, nil)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to add %v to transaction: %v", uv, err)
 			continue

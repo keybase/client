@@ -186,3 +186,10 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		l.inner.IgnoreIfUnsupported,
 		nil)
 }
+
+func (l *ChainLinkUnpacked) PTKGeneration() (ret keybase1.PerTeamKeyGeneration) {
+	if l.isStubbed() || l.inner.Body.Team == nil || l.inner.Body.Team.PerTeamKey == nil {
+		return ret
+	}
+	return l.inner.Body.Team.PerTeamKey.Generation
+}

@@ -209,6 +209,9 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
                       }
+                      dir("go/fuzz") {
+                        sh "go build -tags gofuzz ./..."
+                      }
                       testGo("test_linux_go_", packagesToTest)
                     }
                   }},
@@ -469,6 +472,7 @@ def testGo(prefix, packagesToTest) {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
           // Ignore the `dokan` directory since it contains lots of c code.
+          // Ignore the `protocol` directory, autogeneration has some critques
           sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
           }
         }

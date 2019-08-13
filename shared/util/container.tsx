@@ -1,4 +1,6 @@
 import * as React from 'react'
+// eslint-disable-next-line
+import {Draft as _Draft} from 'immer'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
@@ -68,7 +70,7 @@ export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export {default as withSafeNavigation} from './safe-navigation'
+export {default as withSafeNavigation, useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = TypedActions
 export type TypedState = TypedState
@@ -76,3 +78,5 @@ export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
 export {flowRight as compose} from 'lodash-es'
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
+export {produce} from 'immer'
+export type Draft<T> = _Draft<T>

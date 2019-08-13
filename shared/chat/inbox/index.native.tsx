@@ -15,20 +15,28 @@ import InboxSearch from '../inbox-search/container'
 import * as T from './index.types.d'
 import * as Types from '../../constants/types/chat2'
 
-const NoChats = () => (
+const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box
     style={{
       ...Styles.globalStyles.flexBoxColumn,
       ...Styles.globalStyles.fillAbsolute,
       alignItems: 'center',
       justifyContent: 'center',
-      top: 48,
     }}
   >
-    <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
-    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
-      All conversations are end-to-end encrypted.
+    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
+      All conversations are
     </Kb.Text>
+    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
+      end-to-end encrypted.
+    </Kb.Text>
+    <Kb.Button
+      onClick={props.onNewChat}
+      type="Success"
+      mode="Primary"
+      label="Start a new chat"
+      style={{marginTop: Styles.globalMargins.small}}
+    />
   </Kb.Box>
 )
 
@@ -87,7 +95,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  _keyExtractor = (item) => {
+  _keyExtractor = item => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
@@ -227,12 +235,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
     })
 
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
-      <NoChats />
+      <NoChats onNewChat={this.props.onNewChat} />
     )
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
+    const HeadComponent = <ChatInboxHeader />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -270,6 +278,9 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
     flex: 1,
     position: 'relative',
+  },
+  text: {
+    color: Styles.globalColors.black_50,
   },
 })
 

@@ -5,8 +5,17 @@ import {TypedState} from '../util/container'
 import {peopleTab} from '../constants/tabs'
 import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
-import {searchResultSelector} from './selectors'
 
+const searchResultSelector = (
+  {
+    entities: {
+      search: {searchResults},
+    },
+  }: TypedState,
+  username: string
+) => {
+  return searchResults.get(username)
+}
 export const makeInitialState = I.Record<Types._State>({
   blockUserModal: null,
   errorCode: null,

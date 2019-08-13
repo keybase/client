@@ -294,10 +294,12 @@
         {
             "loads": [
                 {
-                    "error": true
+                    "error": true,
+                    "error_type_full": "hidden.ParentPointerError",
+                    "error_substr": "hidden team parent pointer error (to visible 2): link ID mismatch"
                 }
             ]
         }
     ],
-    "skip": true
+    "skip": false
 }

@@ -17,7 +17,7 @@ const allServices: Array<Types.ServiceIdWithContact> = [
 // We don't search pgp explicitly, and contact isn't implemented yet
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
-function isKeybaseUserId(userId) {
+function isKeybaseUserId(userId: string) {
   // Only keybase user id's do not have
   return userId.indexOf('@') < 0
 }
@@ -58,10 +58,13 @@ const parseRawResultToUser = (
   result: RPCTypes.APIUserSearchResult,
   service: Types.ServiceIdWithContact
 ): Types.User | null => {
-  const serviceMap = Object.keys(result.servicesSummary || {}).reduce((acc, service_name) => {
-    acc[service_name] = result.servicesSummary[service_name].username
-    return acc
-  }, {})
+  const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
+    (acc, service_name) => {
+      acc[service_name] = result.servicesSummary[service_name].username
+      return acc
+    },
+    {}
+  )
 
   // Add the keybase service to the service map since it isn't there by default
   if (result.keybase) {

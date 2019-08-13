@@ -11,3 +11,4 @@ export * from './native-wrappers.native'
 export * from './zoomable-box'
 export {default as QRScanner} from './qr-scanner.native'
 export {ReAnimated, ReAnimatedEasing, RectButton, Swipeable}
+export {default as ZoomableImage} from './zoomable-image.native'

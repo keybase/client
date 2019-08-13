@@ -199,39 +199,27 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 		mctx.Debug("AttachContactNames: SyncedContactList is nil")
 		return
 	}
-	var contacts []keybase1.ProcessedContact
+	var assertionToContactName map[string]string
 	var err error
 	contactsFetched := false
 	for i, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
 			if !contactsFetched {
-				contacts, err = syncedContacts.RetrieveContacts(mctx)
+				assertionToContactName, err = syncedContacts.RetrieveAssertionToName(mctx)
 				if err != nil {
 					mctx.Debug("AttachContactNames: error fetching contacts: %s", err)
 					return
 				}
 				contactsFetched = true
 			}
-			participant.ContactName = findContactName(contacts, participant.Username)
+			if contactName, ok := assertionToContactName[participant.Username]; ok {
+				participant.ContactName = &contactName
+			} else {
+				participant.ContactName = nil
+			}
 			participants[i] = participant
 		}
 	}
-}
-
-func findContactName(contacts []keybase1.ProcessedContact, assertion string) *string {
-	var result *string
-	for _, contact := range contacts {
-		if contact.Assertion == assertion {
-			if result != nil {
-				// Found multiple contacts for one phone or email value, return
-				// nil rather than potentially chosing wrong name.
-				return nil
-			}
-			contactName := contact.ContactName
-			result = &contactName
-		}
-	}
-	return result
 }
 
 func isPhoneOrEmail(username string) bool {
@@ -1154,6 +1142,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	}
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.Draft = rc.LocalDraft
 	return res
 }
 
@@ -1258,6 +1247,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.Draft = rawConv.Info.Draft
 	return res
 }
 
@@ -2364,6 +2354,12 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+			chat1.ConversationMemberStatus_NEVER_JOINED,
+		},
 	}, nil)
 	if err != nil {
 		return res, err
@@ -2380,13 +2376,21 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
-
+	// in case we are being called from within some cancelable context, remove it for the purposes
+	// of this call, since whatever this is is likely a side effect we don't want to get stuck
+	ctx = globals.CtxRemoveLocalizerCancelable(ctx)
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
+			MemberStatus: []chat1.ConversationMemberStatus{
+				chat1.ConversationMemberStatus_ACTIVE,
+				chat1.ConversationMemberStatus_PREVIEW,
+				chat1.ConversationMemberStatus_RESET,
+				chat1.ConversationMemberStatus_NEVER_JOINED,
+			},
 		}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.Convs) == 0 {
 		return res, ErrGetVerifiedConvNotFound

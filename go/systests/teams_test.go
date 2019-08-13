@@ -369,15 +369,28 @@ func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	return res
 }
 
+func (u *userPlusDevice) addRestrictedBotTeamMember(team, username string, botSettings keybase1.TeamBotSettings) {
+	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
+	add.Team = team
+	add.Username = username
+	add.Role = keybase1.TeamRole_RESTRICTEDBOT
+	add.BotSettings = &botSettings
+	add.SkipChatNotification = u.suppressTeamChatAnnounce
+	err := add.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
+	if role.IsRestrictedBot() {
+		require.Fail(u.tc.T, "use addRestrictedBotTeamMember instead")
+	}
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
 	add.Username = username
 	add.Role = role
 	add.SkipChatNotification = u.suppressTeamChatAnnounce
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) removeTeamMember(team, username string) {
@@ -385,9 +398,8 @@ func (u *userPlusDevice) removeTeamMember(team, username string) {
 	rm.Team = team
 	rm.Username = username
 	rm.Force = true
-	if err := rm.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := rm.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) leave(team string) {
@@ -402,9 +414,8 @@ func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.T
 	change.Team = team
 	change.Username = username
 	change.Role = keybase1.TeamRole_OWNER
-	if err := change.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := change.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
@@ -412,9 +423,8 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	add.Team = team
 	add.Email = email
 	add.Role = role
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
@@ -1606,7 +1616,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
 		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
-		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT},
+		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
 	require.NoError(t, err)

@@ -230,6 +230,10 @@ body {
   overflow: hidden;
 }
 
+.darkMode input {
+  background-color: black;
+}
+
 #root {
   position: absolute;
   display: flex;
@@ -336,4 +340,8 @@ body {
 .growFadeInBig {
   max-height: 999px;
   opacity: 1;
+}
+
+.darkMode {
+  background-color: black;
 }

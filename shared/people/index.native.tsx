@@ -41,10 +41,10 @@ const People = (props: Props) => (
   </>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   scrollView: {
     ...globalStyles.fullHeight,
   },
-})
+}))
 
 export default People

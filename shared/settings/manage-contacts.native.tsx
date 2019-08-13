@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
+import * as Tabs from '../constants/tabs'
 import * as SettingsGen from '../actions/settings-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {appendNewChatBuilder} from '../actions/typed-routes'
 import {SettingsSection} from './account/'
 
 type Props = {
@@ -18,6 +20,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 
 const ManageContacts = (_: Props) => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
@@ -28,7 +31,7 @@ const ManageContacts = (_: Props) => {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
 
-  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onToggle = React.useCallback(
     () =>
       dispatch(
@@ -39,13 +42,23 @@ const ManageContacts = (_: Props) => {
     [dispatch, contactsImported, status]
   )
   const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
+  const onStartChat = React.useCallback(() => {
+    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    dispatch(appendNewChatBuilder())
+  }, [dispatch])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
         {importedCount !== null && (
-          <Kb.Banner color="green">{`You imported ${importedCount} contacts.`}</Kb.Banner>
+          <Kb.Banner color="green">
+            <Kb.BannerParagraph bannerColor="green" content={[`You imported ${importedCount} contacts.`]} />
+            <Kb.BannerParagraph
+              bannerColor="green"
+              content={[{onClick: onStartChat, text: 'Start a chat'}]}
+            />
+          </Kb.Banner>
         )}
         {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
           <Kb.Banner color="red">

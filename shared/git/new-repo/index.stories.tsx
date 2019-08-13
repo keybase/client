@@ -4,7 +4,6 @@ import {Box} from '../../common-adapters'
 import NewRepo from '.'
 
 const props = {
-  error: null,
   loadTeams: Sb.action('loadTeams'),
   onClose: Sb.action('onClose'),
   onCreate: Sb.action('onCreate'),

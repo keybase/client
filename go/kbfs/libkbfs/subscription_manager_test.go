@@ -17,8 +17,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func delayedFinish(t *testing.T, ctl *gomock.Controller, timeout time.Duration) (
-	finish func(), done func(args ...interface{})) {
+func waitForCall(t *testing.T, timeout time.Duration) (
+	waiter func(), done func(args ...interface{})) {
 	ch := make(chan struct{})
 	return func() {
 			select {
@@ -26,7 +26,6 @@ func delayedFinish(t *testing.T, ctl *gomock.Controller, timeout time.Duration) 
 				t.Fatalf("waiting on lastMockDone timeout")
 			case <-ch:
 			}
-			ctl.Finish()
 		}, func(args ...interface{}) {
 			ch <- struct{}{}
 		}
@@ -34,19 +33,24 @@ func delayedFinish(t *testing.T, ctl *gomock.Controller, timeout time.Duration) 
 
 func initSubscriptionMagagerTest(t *testing.T) (config Config,
 	subscriber Subscriber, notifier *MockSubscriptionNotifier,
-	finish func(), lastMockDone func(args ...interface{})) {
+	finish func()) {
 	ctl := gomock.NewController(t)
-	finish, lastMockDone = delayedFinish(t, ctl, 4*time.Second)
+	finish = ctl.Finish
 	config = MakeTestConfigOrBust(t, "jdoe")
 	notifier = NewMockSubscriptionNotifier(ctl)
 	subscriber = config.SubscriptionManager().Subscriber(notifier)
-	return config, subscriber, notifier, finish, lastMockDone
+	return config, subscriber, notifier, finish
 }
 
 func TestSubscriptionManagerSubscribePath(t *testing.T) {
-	config, subscriber, notifier, finish, lastMockDone := initSubscriptionMagagerTest(t)
+	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
 	defer finish()
+
 	ctx := context.Background()
+
+	waiter1, done1 := waitForCall(t, 4*time.Second)
+	waiter2, done2 := waitForCall(t, 4*time.Second)
+	waiter3, done3 := waitForCall(t, 4*time.Second)
 
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
@@ -78,39 +82,51 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN)
 	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
-		keybase1.PathSubscriptionTopic_STAT)
+		keybase1.PathSubscriptionTopic_STAT).Do(done1)
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir1"))
 	require.NoError(t, err)
 
+	// These waits are needed to avoid races.
+	t.Logf("Waiting for last notification (done1) before unsubscribing.")
+	waiter1()
+
 	t.Logf("Unsubscribe sid1, and make another dir. We should only get a notification for STAT.")
 	subscriber.Unsubscribe(ctx, sid1)
 	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
-		keybase1.PathSubscriptionTopic_STAT)
+		keybase1.PathSubscriptionTopic_STAT).Do(done2)
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir2"))
 	require.NoError(t, err)
+
+	t.Logf("Waiting for last notification (done2) before unsubscribing.")
+	waiter2()
 
 	t.Logf("Unsubscribe sid2 as well. Then subscribe to STAT on the file using sid1 (which we unsubscribed earlier), and write to it. We should get STAT notification.")
 	subscriber.Unsubscribe(ctx, sid2)
 	err = subscriber.SubscribePath(ctx, sid1, "/keybase/private/jdoe/dir1/../file", keybase1.PathSubscriptionTopic_STAT, nil)
 	require.NoError(t, err)
 	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe/dir1/../file",
-		keybase1.PathSubscriptionTopic_STAT).Do(lastMockDone)
+		keybase1.PathSubscriptionTopic_STAT).Do(done3)
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
 	require.NoError(t, err)
+
+	t.Logf("Waiting for last notification (done3) before finishing the test.")
+	waiter3()
 }
 
 func TestSubscriptionManagerFavoritesChange(t *testing.T) {
-	config, subscriber, notifier, finish, lastMockDone := initSubscriptionMagagerTest(t)
+	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
 	defer finish()
 	ctx := context.Background()
+
+	waiter1, done1 := waitForCall(t, 4*time.Second)
 
 	sid1 := SubscriptionID("sid1")
 	err := subscriber.SubscribeNonPath(ctx, sid1, keybase1.SubscriptionTopic_FAVORITES, nil)
 	require.NoError(t, err)
 	notifier.EXPECT().OnNonPathChange(
-		sid1, keybase1.SubscriptionTopic_FAVORITES).Do(lastMockDone)
+		sid1, keybase1.SubscriptionTopic_FAVORITES).Do(done1)
 	err = config.KBFSOps().AddFavorite(ctx,
 		favorites.Folder{
 			Name: "test",
@@ -119,4 +135,7 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 		favorites.Data{},
 	)
 	require.NoError(t, err)
+
+	t.Logf("Waiting for last notification (done1) before finishing the test.")
+	waiter1()
 }

@@ -33,6 +33,7 @@ export type BaseUsernamesProps = {
   showAnd?: boolean
   style?: StylesTextCrossPlatform
   suffix?: string | null
+  suffixType?: TextType
   title?: string
   type: TextType
   underline?: boolean
@@ -180,7 +181,11 @@ class Usernames extends React.Component<Props> {
         )}
         <UsernameText {...this.props} users={readers} />
         {!!this.props.suffix && (
-          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
+          <Text
+            type={this.props.suffixType || this.props.type}
+            negative={isNegative}
+            style={Styles.collapseStyles([this.props.style, {marginLeft: Styles.globalMargins.xtiny}])}
+          >
             {this.props.suffix}
           </Text>
         )}
@@ -237,7 +242,7 @@ export const assertionToDisplay = (assertion: string): string => {
   return assertion
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
@@ -263,6 +268,6 @@ const styles = Styles.styleSheetCreate({
       textDecoration: 'inherit',
     },
   }),
-})
+}))
 
 export {UsernameText, Usernames, PlaintextUsernames}

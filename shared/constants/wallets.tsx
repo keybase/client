@@ -122,11 +122,15 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
 })
 export const emptyAssetDescription = makeAssetDescription()
 
@@ -484,7 +488,14 @@ export const makeAccount = I.Record<Types._Account>({
 })
 export const unknownAccount = makeAccount()
 
-const partyToDescription = (type, username, assertion, name, id): string => {
+const partyToDescription = (
+  // TODO Fix type
+  type: any,
+  username: string,
+  assertion: string,
+  name: string,
+  id: string
+): string => {
   switch (type) {
     case 'keybase':
       return username
@@ -706,6 +717,10 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
 }
 
 export const airdropWaitingKey = 'wallets:airdrop'
+export const assetDepositWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
+  `wallets:assetDeposit:${Types.makeAssetID(issuerAccountID, assetCode)}`
+export const assetWithdrawWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
+  `wallets:assetWithdraw:${Types.makeAssetID(issuerAccountID, assetCode)}`
 export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 export const createNewAccountWaitingKey = 'wallets:createNewAccount'

@@ -5,13 +5,11 @@ import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
-import flags from '../../util/feature-flags'
 
 export type Props = {
   addedEmail: string | null
   contactKeys: I.List<string>
   hasPassword: boolean
-  supersededPhoneNumber?: string
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
@@ -19,6 +17,9 @@ export type Props = {
   onDeleteAccount: () => void
   onSetPassword: () => void
   onReload: () => void
+  supersededPhoneNumber?: string
+  tooManyEmails: boolean
+  tooManyPhones: boolean
   waiting: boolean
 } & HeaderHocProps
 
@@ -27,7 +28,24 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-
+const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
+  const btn = (
+    <Kb.Button
+      mode="Secondary"
+      onClick={props.onClick}
+      label={`Add ${props.kind}`}
+      small={true}
+      disabled={props.disabled}
+    />
+  )
+  return props.disabled ? (
+    <Kb.WithTooltip text={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}>
+      {btn}
+    </Kb.WithTooltip>
+  ) : (
+    btn
+  )
+}
 const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -48,10 +66,8 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-      <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
-      {flags.sbsContacts && (
-        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone number" small={true} />
-      )}
+      <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
+      <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
     </Kb.ButtonBar>
   </SettingsSection>
 )
@@ -124,9 +140,16 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your unverified phone number ${
+            content={`Your phone number ${
               props.supersededPhoneNumber
             } is now associated with another Keybase user.`}
+          />
+          <Kb.Button
+            onClick={props.onAddPhone}
+            label="Add a new number"
+            small={true}
+            backgroundColor="yellow"
+            style={styles.topButton}
           />
         </Kb.Banner>
       )}
@@ -177,6 +200,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
     },
   }),
+  topButton: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
 })
 
 export default Kb.HeaderHoc(AccountSettings)

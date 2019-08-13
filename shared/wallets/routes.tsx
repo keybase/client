@@ -1,7 +1,7 @@
 import {isMobile} from '../constants/platform'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import AirdropQualify from './airdrop/qualify/container'
 import CreateNewAccount from './create-account/container'
@@ -40,8 +40,8 @@ const walletsSubRoutes = isMobile
       ...sharedRoutes,
       wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
     }
-
-class WalletsSubNav extends React.PureComponent<any> {
+const noScreenProps = {}
+class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -56,7 +56,7 @@ class WalletsSubNav extends React.PureComponent<any> {
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
+            screenProps={this.props.screenProps || noScreenProps}
           />
         </WalletsAndDetails>
       </Kb.Box2>

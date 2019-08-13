@@ -40,7 +40,7 @@ export default (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: Styles.globalMargins.xtiny,
   },
@@ -82,4 +82,4 @@ const styles = Styles.styleSheetCreate({
   timestampContainerMulti: {
     alignSelf: 'flex-start',
   },
-})
+}))
