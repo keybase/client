@@ -200,11 +200,7 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
-      this._scrollHeight = 0
       this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
-      if (list) {
-        this._onResize({scroll: {height: list.scrollHeight}})
-      }
       this._scrollToBottom('componentDidUpdate-change-convo')
       return
     }
