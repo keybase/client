@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
@@ -777,13 +779,22 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
-	// on the client header in case this conversation gets upgrade to impteam.
+	// on the client header in case this conversation gets upgraded to impteam.
 	msg.ClientHeader.KbfsCryptKeysUsed = new(bool)
 	if membersType == chat1.ConversationMembersType_KBFS {
 		s.Debug(ctx, "setting KBFS crypt keys used flag")
 		*msg.ClientHeader.KbfsCryptKeysUsed = true
 	} else {
 		*msg.ClientHeader.KbfsCryptKeysUsed = false
+	}
+
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, conv, atMentions)
+	if err != nil {
+		return res, err
+	}
+	if len(botUIDs) > 0 {
+		// TODO HOTPOT-330 Add support for "hidden" messages for multiple bots
+		msg.ClientHeader.BotUID = &botUIDs[0]
 	}
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
@@ -802,6 +813,88 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		ChannelMention:      chanMention,
 		TopicNameState:      topicNameState,
 	}, nil
+}
+
+func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
+	conv *chat1.ConversationLocal, atMentions []gregor1.UID) ([]gregor1.UID, error) {
+	if conv == nil {
+		return nil, nil
+	}
+	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
+		return nil, nil
+	}
+
+	// no bots in KBFS convs
+	if conv.GetMembersType() == chat1.ConversationMembersType_KBFS {
+		return nil, nil
+	}
+
+	// Skip checks if botUID already set
+	if msg.ClientHeader.BotUID != nil {
+		return nil, nil
+	}
+
+	// Check if we are superseding a bot message. If so just take what the
+	// superseded has.
+	if msg.ClientHeader.Supersedes > 0 {
+		target, err := s.getMessage(ctx, uid, conv.GetConvID(), msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
+		if err != nil {
+			return nil, err
+		}
+		botUID := target.ClientHeader.BotUID
+		if botUID == nil {
+			return nil, nil
+		}
+		return []gregor1.UID{*botUID}, nil
+	}
+
+	// TODO HOTPOT-117 short circuit check if no RESTRICTEDBOT members are in
+	// the conv.
+
+	// Fetch the bot settings, if any
+	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+	if err != nil {
+		// If we fail here the conversation could be a IMPTEAMUPGRADE conv that
+		// used the old KBFS tlfID, so we short circuit.
+		return nil, nil
+	}
+	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: msg.ClientHeader.TlfPublic,
+	})
+	if err != nil {
+		return nil, err
+	}
+	teamBotSettings, err := team.TeamBotSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	mentionMap := make(map[string]struct{})
+	for _, uid := range atMentions {
+		mentionMap[uid.String()] = struct{}{}
+	}
+
+	var botUIDs []gregor1.UID
+	for uv, botSettings := range teamBotSettings {
+		botUID := gregor1.UID(uv.Uid.ToBytes())
+		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, msg,
+			conv, mentionMap, s.DebugLabeler)
+		if err != nil {
+			return nil, err
+		}
+		// If the bot is the sender encrypt only for them.
+		if msg.ClientHeader.Sender.Eq(botUID) {
+			if !isMatch {
+				return nil, fmt.Errorf("Unable to send, bot restricted from this channel")
+			}
+			return []gregor1.UID{botUID}, nil
+		}
+		if isMatch {
+			botUIDs = append(botUIDs, botUID)
+		}
+	}
+	return botUIDs, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
