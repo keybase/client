@@ -195,7 +195,6 @@ class Thread extends React.PureComponent<Props, State> {
       // don't do any of the below if just state changes
       return
     }
-    const list = this._listRef.current
 
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
@@ -228,6 +227,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     // Adjust scrolling if locked to the bottom
+    const list = this._listRef.current
     // if locked to the bottom, and we have the most recent message, then scroll to the bottom
     if (this._isLockedToBottom() && this.props.conversationIDKey === prevProps.conversationIDKey) {
       // maintain scroll to bottom?
