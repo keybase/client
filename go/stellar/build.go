@@ -287,16 +287,20 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 				if recipient.AccountID != nil {
 					tracer.Stage("offer advanced send")
-					offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, stellar1.AccountID(*recipient.AccountID))
-					if err == nil {
-						if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
-							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-								Level:                 "info",
-								OfferAdvancedSendForm: offerAdvancedForm,
-							})
+					if fromInfo.available {
+						offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, fromInfo.from, stellar1.AccountID(*recipient.AccountID))
+						if err == nil {
+							if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
+								res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+									Level:                 "info",
+									OfferAdvancedSendForm: offerAdvancedForm,
+								})
+							}
+						} else {
+							log("error determining whether to offer the advanced send page: %v", err)
 						}
 					} else {
-						log("error determining whether to offer the advanced send page: %v", err)
+						log("failed to determine from address while determining whether to offer the advanced send page")
 					}
 				}
 			}
