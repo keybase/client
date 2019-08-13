@@ -218,6 +218,7 @@ type Props = {
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
   onEnterKeyDown?: () => void
+  result?: React.ReactNode
   style?: Styles.StylesCrossPlatform
 }
 
@@ -419,7 +420,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           )}
           <Kb.Box2
             alignItems="center"
-            direction="horizontal"
+            direction="vertical"
             style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
           >
             <Kb.PlainInput
@@ -436,6 +437,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               maxLength={17}
               textContentType="telephoneNumber"
             />
+            {props.result}
           </Kb.Box2>
         </Kb.Box2>
         <CountrySelector

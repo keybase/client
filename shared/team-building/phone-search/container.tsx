@@ -3,7 +3,8 @@ import PhoneSearch from "./index";
 import {createLoadContactLookup} from "../../actions/chat2-gen";
 
 const mapDispatchToProps = dispatch => ({
-    onChangeNumber: (phoneNumber: string) => dispatch(createLoadContactLookup({contact: {name: "", components: [{label: "", phoneNumber: phoneNumber}]}}))
+    onChangeNumber: (phoneNumber: string) => dispatch(createLoadContactLookup({contact: {name: "", components: [{label: "", phoneNumber: phoneNumber}]}})),
+    onContinue: (phoneNumberOrUsername: string) => alert("Hit continue with data: " + JSON.stringify(phoneNumberOrUsername)),
 })
 
 const mapStateToProps = (state: TypedState) => ({

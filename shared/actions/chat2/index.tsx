@@ -3662,7 +3662,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     loadAttachmentView
   )
 
-  yield* Saga.chainAction<Chat2Gen.LoadContactLookupPayload>(Chat2Gen.loadContactLookup, loadContactLookup)
+  yield* Saga.chainAction2(Chat2Gen.loadContactLookup, loadContactLookup)
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
 

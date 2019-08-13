@@ -1391,10 +1391,7 @@ const rootReducer = (
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
     case Chat2Gen.loadedContactLookup: {
-      console.warn("DWORKEN REDUCER")
-      console.warn("action: " + JSON.stringify(action))
       let data = action.payload.payload.data
-      console.warn("data: " + JSON.stringify(data))
       if (!data) {
         return state
       }
@@ -1403,8 +1400,6 @@ const rootReducer = (
         let key = data.component.phoneNumber || data.component.email
         d[key] = data
       }
-      console.warn("Merging in " + JSON.stringify(d))
-      console.warn(state.merge({assertionToContactMap: state.assertionToContactMap.merge(d)}).assertionToContactMap)
       return state.merge({assertionToContactMap: state.assertionToContactMap.merge(d)})
     }
     // metaMap/messageMap/messageOrdinalsList only actions
