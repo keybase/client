@@ -5,7 +5,7 @@ import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 import {Props} from './popup-dialog'
 
-function stopBubbling(ev) {
+function stopBubbling(ev: React.MouseEvent) {
   ev.stopPropagation()
 }
 
@@ -23,13 +23,31 @@ export function PopupDialog({
   styleClipContainer,
   allowClipBubbling,
 }: Props) {
+  let sourceElem, targetElem
   return (
     <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
       <Box
+        id="clickCatcher"
         style={Styles.collapseStyles([styles.cover, styleCover])}
-        onClick={onClose}
-        onMouseUp={onMouseUp}
-        onMouseDown={onMouseDown}
+        onMouseUp={(ev: React.MouseEvent) => {
+          targetElem = ev.target
+          onMouseUp && onMouseUp(ev)
+          if (
+            sourceElem &&
+            targetElem &&
+            sourceElem.id === 'clickCatcher' &&
+            targetElem.id === 'clickCatcher' &&
+            onClose
+          ) {
+            onClose()
+          }
+          sourceElem = null
+          targetElem = null
+        }}
+        onMouseDown={(ev: React.MouseEvent) => {
+          sourceElem = ev.target
+          onMouseDown && onMouseDown(ev)
+        }}
         onMouseMove={onMouseMove}
       >
         <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
