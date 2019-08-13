@@ -91,6 +91,7 @@ class _OnboardingOrWallets extends React.Component<any> {
     return {
       header: undefined,
       headerExpandable: true,
+      // index 0 means we're on the onboarding page, so hide the header
       headerMode: navigation.state.index === 0 ? 'none' : undefined,
       headerRightActions: require('./nav-header/container').HeaderRightActions,
       headerTitle: require('./nav-header/container').HeaderTitle,

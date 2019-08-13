@@ -1027,6 +1027,8 @@ const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayloa
           } else {
             actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
           }
+        } else {
+          actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab, 'wallet']}))
         }
       }
       return actions
