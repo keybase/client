@@ -27,6 +27,8 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	listener0 := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	listener1 := newServerChatListener()
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
 	baseconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, users[1], users[2])
 	topicName := "MKMK"
@@ -62,6 +64,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx, conv.Id)
 	require.NoError(t, err)
 	lastLeave := consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
+	consumeLeaveConv(t, listener1)
 	_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx, conv.Id)
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
