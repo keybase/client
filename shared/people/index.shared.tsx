@@ -61,9 +61,11 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 
 const EmailVerificationBanner = ({email}) => {
   const dispatch = Container.useDispatch()
-  React.useEffect(() => () =>
-    // Only have a cleanup function
-    dispatch(SignupGen.createClearJustSignedUpEmail())
+  React.useEffect(
+    () =>
+      // Only have a cleanup function
+      () => dispatch(SignupGen.createClearJustSignedUpEmail()),
+    []
   )
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${email}.`}</Kb.Banner>
