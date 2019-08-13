@@ -964,11 +964,6 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 	if len(explodedMsgs) > 0 {
 		// Blast out an EphemeralPurgeNotifInfo since it's time sensitive for the UI
 		// to update.
-		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
-			return
-		}
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
 			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
@@ -977,7 +972,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			ConvID: convID,
 			Msgs:   purgedMsgs,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &conv, &act,
+		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, nil, &act,
 			chat1.ChatActivitySource_LOCAL)
 
 		// Send an additional notification to refresh the thread after we bump
