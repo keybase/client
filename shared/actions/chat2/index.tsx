@@ -985,6 +985,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
       case 'attachmentuploaded':
       case 'reaction':
       case 'unfurl':
+      case 'tlfname':
         break
       default:
         arr.push(RPCChatTypes.MessageType[key])
