@@ -48,8 +48,9 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
 }
 
 const Input = (props: Props) => {
+  const [color] = React.useState(`rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`)
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([{backgroundColor: color}, styles.container])}>
       <Kb.SearchFilter
         value={props.searchString}
         icon="iconfont-search"

@@ -318,6 +318,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 
   _listBody = () => {
+    // xxx todo try using sectionlist for everything. To avoid re-mounting Input.
+    // xxx alternatively, why does sectionlist insist on owning the scrollview.
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
