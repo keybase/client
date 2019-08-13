@@ -2297,7 +2297,7 @@ export enum UserSearchSourceType {
 }
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
-export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
+export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
 export type APIUserServiceResult = {readonly serviceName: String; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: String; readonly username: String}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
@@ -2789,7 +2789,7 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
-export type UserSearchResult = {readonly id: String; readonly assertion: String; readonly username: String; readonly serviceName: String; readonly prettyName: String; readonly label: String; readonly keybaseUsername: String; readonly uid: UID; readonly source: UserSearchSource; readonly serviceMap: {[key: string]: String}; readonly score: Double; readonly rawScore: Double}
+export type UserSearchResult = {readonly id: String; readonly assertion: String; readonly username: String; readonly serviceName: String; readonly prettyName: String; readonly label: String; readonly bubbleText: String; readonly keybaseUsername: String; readonly uid: UID; readonly source: UserSearchSource; readonly serviceMap: {[key: string]: String}; readonly score: Double; readonly rawScore: Double}
 export type UserSearchSource = {t: UserSearchSourceType.social; social: String | null} | {t: UserSearchSourceType.keybase} | {t: UserSearchSourceType.contacts} | {t: UserSearchSourceType.tofu}
 export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}

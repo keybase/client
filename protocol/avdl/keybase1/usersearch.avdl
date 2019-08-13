@@ -47,8 +47,6 @@ protocol userSearch {
         double score;
         union { null, APIUserKeybaseResult } keybase;
         union { null, APIUserServiceResult } service;
-        union { null, ProcessedContact } contact;
-        union { null, ImpTofuSearchResult } imptofu;
         @jsonkey("services_summary")
         map<string, APIUserServiceSummary> servicesSummary;
         double rawScore;
@@ -104,6 +102,10 @@ protocol userSearch {
         string prettyName;
         // "Label" for list of results.
         string label;
+
+        // Popup text when this user is selected to chat/team. Should be a
+        // description of username and service, e.g. "michal on Hacker News"
+        string bubbleText;
 
         // Username on Keybase, can be empty. E.g. twitter result which is also
         // proven by a Keybase user will have Keybase username. NOTE: Should not

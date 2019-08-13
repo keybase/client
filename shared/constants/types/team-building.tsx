@@ -25,6 +25,7 @@ export type User = {
   label: string
   contact?: boolean // is a phone / email from our contacts
   keybaseUsername?: string // if that user is also on keybase, their username
+  bubbleText: string // Text for description for SelectedUser
 }
 
 // Used in the team-building user bubbles

@@ -158,20 +158,6 @@
           "name": "service"
         },
         {
-          "type": [
-            null,
-            "ProcessedContact"
-          ],
-          "name": "contact"
-        },
-        {
-          "type": [
-            null,
-            "ImpTofuSearchResult"
-          ],
-          "name": "imptofu"
-        },
-        {
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
@@ -328,6 +314,10 @@
         {
           "type": "string",
           "name": "label"
+        },
+        {
+          "type": "string",
+          "name": "bubbleText"
         },
         {
           "type": "string",

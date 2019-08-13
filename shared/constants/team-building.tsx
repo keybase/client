@@ -50,32 +50,26 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
 const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
 const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => {
+  const serviceName: Types.ServiceIdWithContact =
+    result.serviceName === 'phone' || result.serviceName === 'email'
+      ? 'contact'
+      : (result.serviceName as Types.ServiceIdWithContact)
   return {
     assertion: result.assertion,
+    bubbleText: result.bubbleText,
     id: result.id,
     keybaseUsername: result.keybaseUsername,
     label: result.label,
     prettyName: result.prettyName,
     serviceMap: result.serviceMap || {},
-    serviceName: result.serviceName as Types.ServiceIdWithContact,
+    serviceName,
     username: result.username,
   }
 }
 
 const userToSelectedUser = (user: Types.User): Types.SelectedUser => {
-  let technicalName: string
-  switch (user.serviceName) {
-    case 'keybase':
-    case 'contact':
-      technicalName = user.username
-      break
-    default:
-      technicalName = `${user.username} on ${capitalize(user.serviceName)}`
-      break
-  }
-  const description = `${technicalName} ${user.prettyName ? `(${user.prettyName})` : ''}`
   return {
-    description,
+    description: user.bubbleText,
     service: user.serviceName,
     title: user.username,
     userId: user.id,
@@ -87,6 +81,7 @@ const userToSelectedUser = (user: Types.User): Types.SelectedUser => {
 // user in it.
 const selfToUser = (you: string): Types.User => ({
   assertion: you,
+  bubbleText: `You, ${you}`,
   id: you,
   label: '',
   prettyName: you,

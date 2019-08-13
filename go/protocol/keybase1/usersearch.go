@@ -109,8 +109,6 @@ type APIUserSearchResult struct {
 	Score           float64                          `codec:"score" json:"score"`
 	Keybase         *APIUserKeybaseResult            `codec:"keybase,omitempty" json:"keybase,omitempty"`
 	Service         *APIUserServiceResult            `codec:"service,omitempty" json:"service,omitempty"`
-	Contact         *ProcessedContact                `codec:"contact,omitempty" json:"contact,omitempty"`
-	Imptofu         *ImpTofuSearchResult             `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
 	ServicesSummary map[string]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
 	RawScore        float64                          `codec:"rawScore" json:"rawScore"`
 }
@@ -132,20 +130,6 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Service),
-		Contact: (func(x *ProcessedContact) *ProcessedContact {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Contact),
-		Imptofu: (func(x *ImpTofuSearchResult) *ImpTofuSearchResult {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Imptofu),
 		ServicesSummary: (func(x map[string]APIUserServiceSummary) map[string]APIUserServiceSummary {
 			if x == nil {
 				return nil
@@ -411,6 +395,7 @@ type UserSearchResult struct {
 	ServiceName     string            `codec:"serviceName" json:"serviceName"`
 	PrettyName      string            `codec:"prettyName" json:"prettyName"`
 	Label           string            `codec:"label" json:"label"`
+	BubbleText      string            `codec:"bubbleText" json:"bubbleText"`
 	KeybaseUsername string            `codec:"keybaseUsername" json:"keybaseUsername"`
 	Uid             UID               `codec:"uid" json:"uid"`
 	Source          UserSearchSource  `codec:"source" json:"source"`
@@ -427,6 +412,7 @@ func (o UserSearchResult) DeepCopy() UserSearchResult {
 		ServiceName:     o.ServiceName,
 		PrettyName:      o.PrettyName,
 		Label:           o.Label,
+		BubbleText:      o.BubbleText,
 		KeybaseUsername: o.KeybaseUsername,
 		Uid:             o.Uid.DeepCopy(),
 		Source:          o.Source.DeepCopy(),
