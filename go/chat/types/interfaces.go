@@ -289,8 +289,8 @@ type TeamChannelSource interface {
 }
 
 type ActivityNotifier interface {
-	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity,
-		source chat1.ChatActivitySource)
+	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, conv *chat1.ConversationLocal,
+		activity *chat1.ChatActivity, source chat1.ChatActivitySource)
 	TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate)
 	JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)

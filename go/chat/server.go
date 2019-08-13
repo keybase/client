@@ -2469,7 +2469,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, arg.ConvID)},
 		}
 		act := chat1.NewChatActivityWithMessagesUpdated(notif)
-		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, nil,
 			&act, chat1.ChatActivitySource_LOCAL)
 	} else if msg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
 		notif := chat1.MessagesUpdated{
@@ -2477,7 +2477,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, arg.ConvID)},
 		}
 		act := chat1.NewChatActivityWithMessagesUpdated(notif)
-		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, nil,
 			&act, chat1.ChatActivitySource_LOCAL)
 	}
 	return nil

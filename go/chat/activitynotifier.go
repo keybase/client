@@ -50,12 +50,32 @@ func (n *NotifyRouterActivityRouter) kuid(uid gregor1.UID) keybase1.UID {
 	return keybase1.UID(uid.String())
 }
 
+func (n *NotifyRouterActivityRouter) ignoreConv(conv *chat1.ConversationLocal) bool {
+	if conv == nil {
+		return false
+	}
+	switch conv.Info.Status {
+	case chat1.ConversationStatus_REPORTED, chat1.ConversationStatus_BLOCKED:
+		return true
+	}
+	switch conv.Info.MemberStatus {
+	case chat1.ConversationMemberStatus_NEVER_JOINED, chat1.ConversationMemberStatus_LEFT,
+		chat1.ConversationMemberStatus_REMOVED:
+		return true
+	}
+	return false
+}
+
 func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
-	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", topicType, source)()
+	topicType chat1.TopicType, conv *chat1.ConversationLocal, activity *chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", conv.GetTopicType(), source)()
 	ctx = globals.BackgroundChatCtx(ctx, n.G())
+	if n.ignoreConv(conv) {
+		return
+	}
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
+		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), conv.GetTopicType(), activity, source)
 	}
 }
 

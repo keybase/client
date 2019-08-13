@@ -426,7 +426,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 	act := chat1.NewChatActivityWithConvsUpdated(chat1.ConvsUpdated{
 		Items: []chat1.InboxUIItem{utils.PresentConversationLocal(ctx, conv, username)},
 	})
-	b.G().ActivityNotifier.Activity(ctx, b.uid, chat1.TopicType_CHAT, &act,
+	b.G().ActivityNotifier.Activity(ctx, b.uid, conv.GetTopicType(), &conv, &act,
 		chat1.ChatActivitySource_LOCAL)
 	return nil
 }

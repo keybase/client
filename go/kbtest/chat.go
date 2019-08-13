@@ -657,7 +657,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 				}), uid, arg.ConversationID),
 		})
 		m.world.TcsByID[uid.String()].ChatG.ActivityNotifier.Activity(context.Background(),
-			uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_REMOTE)
+			uid, conv.GetTopicType(), nil, &activity, chat1.ChatActivitySource_REMOTE)
 	}
 
 	return

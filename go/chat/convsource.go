@@ -867,20 +867,24 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
+		var conv *chat1.ConversationLocal
+		var err error
 		topicType := chat1.TopicType_NONE
-		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		retconv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
+			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
 			topicType = conv.GetTopicType()
+			conv = &retconv
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, conv, &act,
+			chat1.ChatActivitySource_LOCAL)
 	}
 }
 
@@ -891,18 +895,18 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: notifying %d messages", len(msgs))
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
-	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs); err != nil {
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv, updatedMsgs); err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
 		return
 	}
@@ -913,8 +917,8 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
-	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
-		&act, chat1.ChatActivitySource_LOCAL)
+	s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &conv, &act,
+		chat1.ChatActivitySource_LOCAL)
 }
 
 // notifyReactionUpdates notifies the GUI after reactions are received
@@ -948,7 +952,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})
-			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity,
+			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &conv, &activity,
 				chat1.ChatActivitySource_LOCAL)
 		}
 	}
@@ -960,6 +964,11 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 	if len(explodedMsgs) > 0 {
 		// Blast out an EphemeralPurgeNotifInfo since it's time sensitive for the UI
 		// to update.
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
+			return
+		}
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
 			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
@@ -968,7 +977,8 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			ConvID: convID,
 			Msgs:   purgedMsgs,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, &act, chat1.ChatActivitySource_LOCAL)
+		s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &conv, &act,
+			chat1.ChatActivitySource_LOCAL)
 
 		// Send an additional notification to refresh the thread after we bump
 		// the local inbox version

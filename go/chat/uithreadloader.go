@@ -585,7 +585,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 						convID))
 				}
 				act := chat1.NewChatActivityWithMessagesUpdated(notif)
-				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, nil,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
 			return nil

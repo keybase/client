@@ -680,7 +680,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.ConvID, len(nm.Settings.Settings))
 
 			uid := m.UID().Bytes()
-			if _, err = g.G().InboxSource.SetAppNotificationSettings(ctx, uid, nm.InboxVers,
+			if conv, err = g.G().InboxSource.SetAppNotificationSettings(ctx, uid, nm.InboxVers,
 				nm.ConvID, nm.Settings); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
@@ -739,7 +739,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_NEVER_JOINED:
 				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
 			default:
-				var conv *chat1.ConversationLocal
 				if len(inbox.Convs) == 1 {
 					conv = &inbox.Convs[0]
 				}
@@ -779,7 +778,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
 				g.Debug(ctx, "chat activity: unable to update conv: %v", err)
 			}
-			if _, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
+			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge,
+				nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 		default:
@@ -790,7 +790,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.badger.PushChatUpdate(ctx, *gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
-			g.notifyNewChatActivity(ctx, m.UID().(gregor1.UID), gm.TopicType, activity)
+			g.notifyNewChatActivity(ctx, m.UID().(gregor1.UID), gm.TopicType, conv, activity)
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
@@ -799,8 +799,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity) {
-	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity, chat1.ChatActivitySource_REMOTE)
+	topicType chat1.TopicType, conv *chat1.ConversationLocal, activity *chat1.ChatActivity) {
+	g.G().ActivityNotifier.Activity(ctx, uid, topicType, conv, activity, chat1.ChatActivitySource_REMOTE)
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
@@ -862,7 +862,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 			ConvID:  convID,
 			Members: memberInfo,
 		})
-		g.notifyNewChatActivity(ctx, uid, chat1.TopicType_CHAT, &activity)
+		g.notifyNewChatActivity(ctx, uid, chat1.TopicType_CHAT, nil, &activity)
 	}
 }
 

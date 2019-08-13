@@ -1107,7 +1107,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			DisplayDesktopNotification: false,
 			Conv:                       s.presentUIItem(ctx, convLocal),
 		})
-		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
+		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &conv, &activity,
 			chat1.ChatActivitySource_LOCAL)
 	}
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
@@ -1230,7 +1230,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 					uid, convID),
 				ConvID: convID,
 			})
-			s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,
+			s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, nil, &act,
 				chat1.ChatActivitySource_LOCAL)
 		}))
 	s.outbox.SetClock(s.clock)
@@ -1425,8 +1425,8 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
 		})
-		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
-			chat1.ChatActivitySource_LOCAL)
+		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE,
+			nil, &act, chat1.ChatActivitySource_LOCAL)
 		s.alertFailureChannels(marked)
 	}
 	return nil
