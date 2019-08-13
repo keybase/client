@@ -55,7 +55,8 @@ func (n *NotifyRouterActivityRouter) ignoreConv(conv *chat1.ConversationLocal) b
 		return false
 	}
 	switch conv.Info.Status {
-	case chat1.ConversationStatus_REPORTED, chat1.ConversationStatus_BLOCKED:
+	case chat1.ConversationStatus_REPORTED, chat1.ConversationStatus_BLOCKED,
+		chat1.ConversationStatus_IGNORED:
 		return true
 	}
 	switch conv.Info.MemberStatus {
@@ -69,13 +70,13 @@ func (n *NotifyRouterActivityRouter) ignoreConv(conv *chat1.ConversationLocal) b
 func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID,
 	topicType chat1.TopicType, conv *chat1.ConversationLocal, activity *chat1.ChatActivity,
 	source chat1.ChatActivitySource) {
-	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", conv.GetTopicType(), source)()
+	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", topicType, source)()
 	ctx = globals.BackgroundChatCtx(ctx, n.G())
 	if n.ignoreConv(conv) {
 		return
 	}
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), conv.GetTopicType(), activity, source)
+		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
 	}
 }
 

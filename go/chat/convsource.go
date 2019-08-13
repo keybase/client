@@ -874,9 +874,9 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
+			conv = &retconv
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
 			topicType = conv.GetTopicType()
-			conv = &retconv
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
