@@ -98,7 +98,7 @@ export const backgroundURL = (...to: Array<string>) => {
 
   if (goodPath && goodPath.length) {
     const last = goodPath[goodPath.length - 1]
-    const ext = path.extname(last)
+    const ext = KB.path.extname(last)
     goodPath[goodPath.length - 1] = KB.path.basename(last, ext)
 
     const images = [1, 2, 3].map(

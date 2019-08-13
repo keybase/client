@@ -46,6 +46,7 @@ target.KB = {
   path: {
     basename: path.basename,
     dirname: path.dirname,
+      extname: path.extname,
     isAbsolute: path.isAbsolute,
     join: path.join,
     resolve: path.resolve,

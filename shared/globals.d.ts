@@ -65,6 +65,7 @@ declare var KB: {
   path: {
     basename: (p: string, ext?: string | undefined) => string
     dirname: (p: string) => string
+    extname: (p: string) => string
     isAbsolute: (p: string) => boolean
     join: (...pathSegments: Array<string>) => string
     resolve: (...pathSegments: Array<string>) => string
