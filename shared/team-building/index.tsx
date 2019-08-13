@@ -177,6 +177,19 @@ const ContactsImportButton = (props: ContactProps) => {
   )
 }
 
+const PassthroughSectionList = (props: {
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
+  children?: React.ReactNode
+}) => (
+  <Kb.SectionList
+    ListHeaderComponent={props.ListHeaderComponent}
+    keyboardDismissMode="on-drag"
+    keyboardShouldPersistTaps="handled"
+    sections={[{ data: ['sentinel'] }]}
+    renderItem={() => (props.children) }
+  />
+)
+
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
@@ -319,12 +332,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 
   _listBody = () => {
-    // xxx todo try using sectionlist for everything. To avoid re-mounting Input.
-    // xxx alternatively, why does sectionlist insist on owning the scrollview.
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
       return (
+        <>
+        <PassthroughSectionList ListHeaderComponent={this._searchInput()} >
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
@@ -346,53 +359,56 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </>
           )}
         </Kb.Box2>
+        </PassthroughSectionList>
+        </>
       )
     }
-    if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return (
-        <Kb.Box2
-          alignSelf="center"
-          centerChildren={true}
-          direction="vertical"
-          fullHeight={true}
-          fullWidth={true}
-          gap="tiny"
-          style={styles.emptyContainer}
-        >
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {/* {this._searchInput()} */}
-          </Kb.Box2>
-          <Kb.Icon
-            fontSize={Styles.isMobile ? 48 : 64}
-            type={serviceIdToIconFont(this.props.selectedService)}
-            style={Styles.collapseStyles([
-              !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
-            ])}
-          />
-          <Kb.Text center={true} type="BodyBig">
-            Enter a {serviceIdToLabel(this.props.selectedService)} username above.
-          </Kb.Text>
-          <Kb.Text center={true} type="BodySmall">
-            Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
-            don’t have a Keybase account.
-          </Kb.Text>
-        </Kb.Box2>
-      )
-    }
+    // if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
+    //   return (
+    //     <Kb.Box2
+    //       alignSelf="center"
+    //       centerChildren={true}
+    //       direction="vertical"
+    //       fullHeight={true}
+    //       fullWidth={true}
+    //       gap="tiny"
+    //       style={styles.emptyContainer}
+    //     >
+    //       <Kb.Box2 direction="horizontal" fullWidth={true}>
+    //         {/* {this._searchInput()} */}
+    //       </Kb.Box2>
+    //       <Kb.Icon
+    //         fontSize={Styles.isMobile ? 48 : 64}
+    //         type={serviceIdToIconFont(this.props.selectedService)}
+    //         style={Styles.collapseStyles([
+    //           !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
+    //         ])}
+    //       />
+    //       <Kb.Text center={true} type="BodyBig">
+    //         Enter a {serviceIdToLabel(this.props.selectedService)} username above.
+    //       </Kb.Text>
+    //       <Kb.Text center={true} type="BodySmall">
+    //         Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
+    //         don’t have a Keybase account.
+    //       </Kb.Text>
+    //     </Kb.Box2>
+    //   )
+    // }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
         this.props.highlightedIndex,
         this.props.recommendations
       )
       return (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
-        >
+        // <Kb.Box2
+        //   direction="vertical"
+        //   fullWidth={true}
+        //   style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
+        // >
+        <>
           <Kb.SectionList
             ref={this.sectionListRef}
-            // ListHeaderComponent={this._searchInput()}
+            ListHeaderComponent={this._searchInput()}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
@@ -424,11 +440,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             }
             renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
           />
-          {Styles.isMobile && this._alphabetIndex()}
-        </Kb.Box2>
+          {/* {Styles.isMobile && this._alphabetIndex()} */}
+        {/* </Kb.Box2> */}
+        </>
       )
     }
     return (
+      <>
+      <PassthroughSectionList ListHeaderComponent={this._searchInput()} >
       <Kb.List
         // ListHeaderComponent={this._searchInput()}
         items={this.props.searchResults || []}
@@ -455,7 +474,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           />
         )}
       />
-    )
+      </PassthroughSectionList>
+      </>)
   }
 
   _onEndReached = throttle(() => {
@@ -527,7 +547,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
+        {/* {this._searchInput()} */}
         {this._listBody()}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
