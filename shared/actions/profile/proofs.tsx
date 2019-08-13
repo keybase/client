@@ -284,7 +284,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
 }
 
 const submitCryptoAddress = (
-  state,
+  state: TypedState,
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) => {
   if (!state.profile.usernameValid) {
@@ -320,13 +320,10 @@ const submitCryptoAddress = (
 }
 
 function* proofsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload>(
-    [ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress],
-    submitCryptoAddress
-  )
+  yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
-  yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
+  yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)
+  yield* Saga.chainAction2(ProfileGen.recheckProof, recheckProof)
 }
 
 export {proofsSaga}

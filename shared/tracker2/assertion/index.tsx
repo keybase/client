@@ -90,6 +90,25 @@ const stateToValueTextStyle = state => {
   }
 }
 
+const assertionColorToTextColor = (c: Types.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Styles.globalColors.blueDark
+    case 'red':
+      return Styles.globalColors.redDark
+    case 'black':
+      return Styles.globalColors.black
+    case 'green':
+      return Styles.globalColors.greenDark
+    case 'gray':
+      return Styles.globalColors.black_50
+    case 'yellow': // fallthrough
+    case 'orange':
+    default:
+      return Styles.globalColors.redDark
+  }
+}
+
 const assertionColorToColor = (c: Types.AssertionColor) => {
   switch (c) {
     case 'blue':
@@ -132,7 +151,7 @@ class _StellarValue extends React.PureComponent<
     return Styles.isMobile ? (
       <Kb.Text
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+        style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(this.props.color)}])}
       >
         {this.props.value}
       </Kb.Text>
@@ -142,7 +161,10 @@ class _StellarValue extends React.PureComponent<
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}
-            style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+            style={Styles.collapseStyles([
+              styles.username,
+              {color: assertionColorToTextColor(this.props.color)},
+            ])}
           >
             {this.props.value}
           </Kb.Text>
@@ -191,7 +213,7 @@ const Value = (p: Props) => {
         style={Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
-          {color: assertionColorToColor(p.color)},
+          {color: assertionColorToTextColor(p.color)},
         ])}
       >
         {str}

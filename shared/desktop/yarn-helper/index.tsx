@@ -30,9 +30,21 @@ const commands = {
       // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
       makeShims()
       fixTypes()
+      checkFSEvents()
+      patchExpoAV()
     },
     help: '',
   },
+}
+
+const checkFSEvents = () => {
+  if (process.platform === 'darwin') {
+    if (!fs.existsSync(path.resolve(__dirname, '..', '..', 'node_modules', 'fsevents'))) {
+      console.log(
+        `⚠️: You seem to be running OSX and don't have fsevents installed. This can make your hot server slow. Run 'yarn --check-files' once to fix this`
+      )
+    }
+  }
 }
 
 const fixTypes = () => {
@@ -54,6 +66,17 @@ const fixTypes = () => {
   } catch (_) {}
 }
 
+function patchExpoAV() {
+  try {
+    const root = path.resolve(__dirname, '..', '..')
+    const src = path.join(root, 'android', 'patched-expo-av-build.gradle')
+    const dst = path.join(root, 'node_modules', 'expo-av', 'android', 'build.gradle')
+    fs.copyFileSync(src, dst)
+  } catch (e) {
+    console.warn('patching expo-av failed', e)
+  }
+}
+
 function makeShims() {
   const root = path.resolve(__dirname, '..', '..', 'node_modules', 'babel-plugin-react-docgen')
 
@@ -68,7 +91,14 @@ function makeShims() {
 }
 
 function exec(command, env, options) {
-  console.log(execSync(command, {encoding: 'utf8', env: env || process.env, stdio: 'inherit', ...options}))
+  console.log(
+    execSync(command, {
+      encoding: 'utf8',
+      env: env || process.env,
+      stdio: 'inherit',
+      ...options,
+    })
+  )
 }
 
 const decorateInfo = info => {

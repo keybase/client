@@ -3,6 +3,7 @@ export type FeatureFlags = {
   airdrop: boolean
   chatIndexProfilingEnabled: boolean
   conflictResolution: boolean
+  darkMode: boolean
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean
@@ -13,7 +14,6 @@ export type FeatureFlags = {
   plansEnabled: boolean
   proofProviders: boolean
   resetPipeline: boolean
-  sbsContacts: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
 }

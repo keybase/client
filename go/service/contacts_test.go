@@ -2,11 +2,13 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -61,9 +63,10 @@ func TestContactSyncAndSearch(t *testing.T) {
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
-	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+	clock := clockwork.NewFakeClock()
+	tc.G.SetClock(clock)
 
-	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	all.searchMock.addUser(testAddUserArg{username: "alice2"})
 
 	rawContacts := []keybase1.Contact{
 		contacts.MakeContact("Alice A",
@@ -76,10 +79,22 @@ func TestContactSyncAndSearch(t *testing.T) {
 	// will not. We are expecting to be able to search for both, but not see
 	// both in user recommendations.
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
+
+	// bust cache, new resolution should be returned
+	clock.Advance(72 * time.Hour)
+	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+	require.Len(t, newlyResolved, 1)
+	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
+	require.Equal(t, newlyResolved[0].Username, "alice")
+	require.Equal(t, newlyResolved[0].Assertion, "48111222333@phone")
 
 	{
 		// Try raw contact list lookup.
@@ -177,7 +192,7 @@ func TestContactShouldFilterOutSelf(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -206,7 +221,7 @@ func TestRecommendationsPreferEmail(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -232,7 +247,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -261,7 +276,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "A. Alice")
 
 		require.NoError(t, all.clearCache(tc.MetaContext()))
-		err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 			Contacts: rawContacts,
 		})
 		require.NoError(t, err)

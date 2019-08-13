@@ -79,7 +79,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	msg := "this message will be encrypted for a team"
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{

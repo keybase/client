@@ -3,12 +3,15 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import SystemMessageTimestamp from '../system-message-timestamp'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 type Props = {
   author: string
   authorIsYou: boolean
   channelname: string
   isBigTeam: boolean
+  joiners: Array<string>
+  leavers: Array<string>
   onManageChannels: () => void
   onManageNotifications: () => void
   teamname: string
@@ -22,20 +25,31 @@ const Joined = (props: Props) =>
   props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <Kb.Text type="BodySmall" style={styles.text}>
-      joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
-      {'. '}
-      {props.authorIsYou && props.isBigTeam && (
-        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-          <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
-            Manage phone and computer notifications
-          </Kb.Text>
-          <Kb.Text onClick={props.onManageChannels} type={textType}>
-            Browse other channels
-          </Kb.Text>
-        </Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+      {props.joiners.length > 0 && (
+        <Kb.ConnectedUsernames
+          type="BodySmallSemibold"
+          suffixType="BodySmall"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={props.joiners}
+          suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        />
       )}
-    </Kb.Text>
+      {props.leavers.length > 0 && (
+        <Kb.ConnectedUsernames
+          type="BodySmallSemibold"
+          suffixType="BodySmall"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={props.leavers}
+          suffix={` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        />
+      )}
+    </Kb.Box2>
   )
 
 const JoinedUserNotice = (props: Props) => (
@@ -80,9 +94,5 @@ const JoinedUserNotice = (props: Props) => (
     )}
   </UserNotice>
 )
-
-const styles = Styles.styleSheetCreate({
-  text: {flexGrow: 1},
-})
 
 export default Joined

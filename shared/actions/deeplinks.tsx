@@ -95,15 +95,12 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
       ]
     }
   }
-  return undefined
+  return false
 }
 
 function* deeplinksSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<DeeplinksGen.LinkPayload>(DeeplinksGen.link, handleAppLink)
-  yield* Saga.chainAction<DeeplinksGen.HandleKeybaseLinkPayload>(
-    DeeplinksGen.handleKeybaseLink,
-    handleKeybaseLink
-  )
+  yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
+  yield* Saga.chainAction2(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
 }
 
 export default deeplinksSaga

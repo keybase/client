@@ -35,12 +35,14 @@ type memberSet struct {
 	// the per-user-keys of everyone in the lists above
 	recipients              MemberMap
 	restrictedBotRecipients MemberMap
+	restrictedBotSettings   map[keybase1.UserVersion]keybase1.TeamBotSettings
 }
 
 func newMemberSet() *memberSet {
 	return &memberSet{
 		recipients:              make(MemberMap),
 		restrictedBotRecipients: make(MemberMap),
+		restrictedBotSettings:   make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 	}
 }
 
@@ -67,6 +69,7 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
 	}
+	set.restrictedBotSettings = req.RestrictedBots
 	return set, nil
 }
 
@@ -100,6 +103,9 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	}
 	for k, v := range other.restrictedBotRecipients {
 		m.restrictedBotRecipients[k] = v
+	}
+	for k, v := range other.restrictedBotSettings {
+		m.restrictedBotSettings[k] = v
 	}
 }
 
@@ -147,7 +153,7 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	// restricted bots are not recipients of of the PTK
-	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBots, storeMemberKindRestrictedBotRecipient, forcePoll)
+	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBotUVs(), storeMemberKindRestrictedBotRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
@@ -271,6 +277,7 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 	for k := range m.restrictedBotRecipients {
 		if checker.IsMember(ctx, k) {
 			delete(m.restrictedBotRecipients, k)
+			delete(m.restrictedBotSettings, k)
 		}
 	}
 }

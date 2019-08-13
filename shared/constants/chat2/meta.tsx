@@ -73,6 +73,7 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: (i.localMetadata && i.localMetadata.headline) || '',
     descriptionDecorated: (i.localMetadata && i.localMetadata.headlineDecorated) || '',
+    draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
@@ -289,6 +290,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
     descriptionDecorated: i.headlineDecorated,
+    draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
@@ -334,6 +336,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   conversationIDKey: noConversationIDKey,
   description: '',
   descriptionDecorated: '',
+  draft: '',
   inboxLocalVersion: -1,
   inboxVersion: -1,
   isMuted: false,
@@ -446,7 +449,6 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
   }
 }
 
-const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
@@ -462,7 +464,11 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
 
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
-  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
+  const backgroundColor = isSelected
+    ? globalColors.blue
+    : isMobile
+    ? globalColors.fastBlank
+    : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isError
     ? globalColors.redDark

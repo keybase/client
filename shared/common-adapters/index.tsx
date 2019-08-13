@@ -81,6 +81,7 @@ export {default as PopupDialogHoc} from './popup-dialog-hoc'
 export {default as PopupHeaderText} from './popup-header-text'
 export {default as ProgressBar} from './progress-bar'
 export {default as ProgressIndicator} from './progress-indicator'
+export {default as ProofBrokenBanner} from './proof-broken-banner'
 export {default as RadioButton} from './radio-button'
 export {default as Reloadable} from './reload'
 export {default as RoundedBox} from './rounded-box'
@@ -104,7 +105,7 @@ export {default as WaitingButton} from './waiting-button'
 export {default as HOCTimers} from './hoc-timers'
 export type PropsWithTimer<P> = PropsWithTimer<P>
 export type IconType = IconType
-export {default as Video} from './video'
+export {Audio, Video} from './av'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections

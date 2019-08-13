@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // props exported for stories
@@ -46,7 +45,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     subtitle = addSpacer(subtitle, 'Primary')
     // TODO 'Check your inbox' if verification email was just sent
   }
-  if (!props.searchable && flags.sbsContacts) {
+  if (!props.searchable) {
     subtitle = addSpacer(subtitle, 'Not searchable')
   }
 
@@ -65,7 +64,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Make primary',
     })
   }
-  if (props.verified && flags.sbsContacts) {
+  if (props.verified) {
     const copyType = props.type === 'email' ? 'email' : 'number'
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
@@ -92,7 +91,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
-  } else if (!props.searchable && flags.sbsContacts) {
+  } else if (!props.searchable) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 

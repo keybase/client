@@ -450,14 +450,14 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
-	ctx context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.SyncConfigAndStatusRes{}, err
 	}
-	return cli.SimpleFSSyncConfigAndStatus(ctx)
+	return cli.SimpleFSSyncConfigAndStatus(ctx, identifyBehavior)
 }
 
 // SimpleFSClearConflictState implements the SimpleFSInterface.
@@ -611,12 +611,12 @@ func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase
 	return cli.SimpleFSSubscribePath(ctx, arg)
 }
 
-func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSUnsubscribe(ctx, sid)
+	return cli.SimpleFSUnsubscribe(ctx, arg)
 }

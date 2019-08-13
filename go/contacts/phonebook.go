@@ -56,22 +56,86 @@ type savedContactsCache struct {
 
 const savedContactsCurrentVer = 1
 
-func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
-	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
-	if err != nil {
-		return err
+func assertionToNameDbKey(uid keybase1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBSavedContacts,
+		Key: fmt.Sprintf("lookup:%v", uid),
 	}
+}
+
+type assertionToNameCache struct {
+	AssertionToName map[string]string
+	Version         int
+}
+
+const assertionToNameCurrentVer = 1
+
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
+	resolveResults, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+	if err != nil {
+		return nil, err
+	}
+
+	// find newly resolved
 	s := mctx.G().SyncedContactList
-	return s.SaveProcessedContacts(mctx, results)
+	currentContacts, err := s.RetrieveContacts(mctx)
+	if err == nil {
+		unres := make(map[string]struct{})
+		for _, contact := range currentContacts {
+			if !contact.Resolved {
+				unres[contact.Assertion] = struct{}{}
+			}
+		}
+
+		for _, result := range resolveResults {
+			if _, ok := unres[result.Assertion]; ok && result.Resolved {
+				newlyResolved = append(newlyResolved, result)
+			}
+		}
+	} else {
+		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
+	}
+
+	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
+}
+
+func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {
+	res = make(map[string]string)
+	toRemove := make(map[string]struct{})
+	for _, contact := range contacts {
+		if _, ok := res[contact.Assertion]; ok {
+			// multiple contacts match this assertion, remove once we're done
+			toRemove[contact.Assertion] = struct{}{}
+			continue
+		}
+		res[contact.Assertion] = contact.ContactName
+	}
+	for remove := range toRemove {
+		delete(res, remove)
+	}
+	return res
 }
 
 func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, contacts []keybase1.ProcessedContact) (err error) {
 	val := savedContactsCache{
 		Contacts: contacts,
+		Version:  savedContactsCurrentVer,
 	}
-	val.Version = savedContactsCurrentVer
+
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())
 	err = s.encryptedDB.Put(mctx.Ctx(), cacheKey, val)
+	if err != nil {
+		return err
+	}
+
+	assertionToName := makeAssertionToName(contacts)
+	lookupVal := assertionToNameCache{
+		AssertionToName: assertionToName,
+		Version:         assertionToNameCurrentVer,
+	}
+
+	cacheKey = assertionToNameDbKey(mctx.CurrentUID())
+	err = s.encryptedDB.Put(mctx.Ctx(), cacheKey, lookupVal)
 	return err
 }
 
@@ -91,6 +155,24 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 		return ret, nil
 	}
 	return cache.Contacts, nil
+}
+
+func (s *SavedContactsStore) RetrieveAssertionToName(mctx libkb.MetaContext) (ret map[string]string, err error) {
+	cacheKey := assertionToNameDbKey(mctx.CurrentUID())
+	var cache assertionToNameCache
+	found, err := s.encryptedDB.Get(mctx.Ctx(), cacheKey, &cache)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return ret, nil
+	}
+	if cache.Version != assertionToNameCurrentVer {
+		mctx.Warning("assertion to name found but had an old version (found: %d, need: %d), returning empty map",
+			cache.Version, assertionToNameCurrentVer)
+		return ret, nil
+	}
+	return cache.AssertionToName, nil
 }
 
 func (s *SavedContactsStore) UnresolveContactsWithComponent(mctx libkb.MetaContext,

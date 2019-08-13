@@ -60,14 +60,10 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
             },
-            ...(flags.sbsContacts
-              ? [
-                  {
-                    onClick: () => props.onTabChange(Constants.contactsTab),
-                    text: props.contactsLabel,
-                  },
-                ]
-              : []),
+            {
+              onClick: () => props.onTabChange(Constants.contactsTab),
+              text: props.contactsLabel,
+            },
             ...(flags.kbfsOfflineMode
               ? [
                   {

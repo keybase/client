@@ -1,7 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
-import {amIFollowing} from './selectors'
 import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
 import {TypedState} from './reducer'
 
@@ -18,6 +17,7 @@ export const makeSearchResult = I.Record<Types.SearchResult>({
 })
 
 function serviceIdToService(serviceId: string): Types.Service {
+    // @ts-ignore
   return {
     facebook: 'Facebook',
     github: 'GitHub',
@@ -36,7 +36,7 @@ function followStateHelper(state: TypedState, _username: string | null, _service
     if (username === me) {
       return 'You'
     } else {
-      return amIFollowing(state, username) ? 'Following' : 'NotFollowing'
+      return state.config.following.has(username) ? 'Following' : 'NotFollowing'
     }
   }
   return 'NoState'

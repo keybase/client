@@ -47,6 +47,9 @@ type ActionTypes = keyof TypedActionsMap
 type ChainActionReturnInner = void | false | TypedActions | null
 type ChainActionReturnInPromise = ChainActionReturnInner | Array<ChainActionReturnInner>
 export type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
+//
+// Get the values of an Array. i.e. ValuesOf<["FOO", "BAR"]> => "FOO" | "BAR"
+type ValuesOf<T extends any[]> = T[number]
 
 interface ChainAction {
   <AT extends ActionTypes>(
@@ -54,58 +57,21 @@ interface ChainAction {
     handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn,
     loggerTag?: string
   ): IterableIterator<any>
-  <AT extends [ActionTypes]>(
-    actions: AT,
-    handler: (state: TypedState, action: TypedActionsMap[AT[0]], logger: SagaLogger) => ChainActionReturn,
-    loggerTag?: string
-  ): IterableIterator<any>
-  <AT extends [ActionTypes, ActionTypes]>(
+
+  <AT extends ActionTypes[]>(
     actions: AT,
     handler: (
       state: TypedState,
-      action: TypedActionsMap[AT[0]] | TypedActionsMap[AT[1]],
-      logger: SagaLogger
-    ) => ChainActionReturn,
-    loggerTag?: string
-  ): IterableIterator<any>
-  <AT extends [ActionTypes, ActionTypes, ActionTypes]>(
-    actions: AT,
-    handler: (
-      state: TypedState,
-      action: TypedActionsMap[AT[0]] | TypedActionsMap[AT[1]] | TypedActionsMap[AT[2]],
-      logger: SagaLogger
-    ) => ChainActionReturn,
-    loggerTag?: string
-  ): IterableIterator<any>
-  <AT extends [ActionTypes, ActionTypes, ActionTypes, ActionTypes]>(
-    actions: AT,
-    handler: (
-      state: TypedState,
-      action:
-        | TypedActionsMap[AT[0]]
-        | TypedActionsMap[AT[1]]
-        | TypedActionsMap[AT[2]]
-        | TypedActionsMap[AT[3]],
-      logger: SagaLogger
-    ) => ChainActionReturn,
-    loggerTag?: string
-  ): IterableIterator<any>
-  <AT extends [ActionTypes, ActionTypes, ActionTypes, ActionTypes, ActionTypes]>(
-    actions: AT,
-    handler: (
-      state: TypedState,
-      action:
-        | TypedActionsMap[AT[0]]
-        | TypedActionsMap[AT[1]]
-        | TypedActionsMap[AT[2]]
-        | TypedActionsMap[AT[3]]
-        | TypedActionsMap[AT[4]],
+      action: TypedActionsMap[ValuesOf<AT>],
       logger: SagaLogger
     ) => ChainActionReturn,
     loggerTag?: string
   ): IterableIterator<any>
 }
 
+/**
+ * TODO deprecated less typed version. Use chainAction2 instead
+ */
 function* chainAction<Actions extends {readonly type: string}>(
   pattern: RS.Pattern,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn,
@@ -146,10 +112,6 @@ function* chainAction<Actions extends {readonly type: string}>(
     }
   })
 }
-
-/**
- * TODO deprecated less typed version. Use chainAction2 instead
- */
 
 export const chainAction2: ChainAction = (chainAction as unknown) as any
 
@@ -238,4 +200,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, chainAction, chainGenerator, callPromise, callRPCs}
+export {selectState, put, sequentially, chainGenerator, callPromise, callRPCs}

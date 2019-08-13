@@ -1027,3 +1027,11 @@ func consumeRatchets(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage
 	err = hiddenPackage.AddRatchets(mctx, link.inner.Ratchets(), link.inner.Ctime, keybase1.RatchetType_MAIN)
 	return err
 }
+
+func checkPTKGenerationNotOnHiddenChain(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked) (err error) {
+	gen := link.PTKGeneration()
+	if gen == keybase1.PerTeamKeyGeneration(0) {
+		return nil
+	}
+	return hiddenPackage.CheckNoPTK(mctx, gen)
+}

@@ -90,6 +90,7 @@ type UnverifiedInboxUIItem struct {
 	MaxVisibleMsgID MessageID                      `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID       MessageID                      `codec:"readMsgID" json:"readMsgID"`
 	LocalMetadata   *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
+	Draft           *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
 	FinalizeInfo    *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes      []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
 	SupersededBy    []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
@@ -141,6 +142,13 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LocalMetadata),
+		Draft: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Draft),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -275,6 +283,7 @@ type InboxUIItem struct {
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
 	HeadlineDecorated string                        `codec:"headlineDecorated" json:"headlineDecorated"`
+	Draft             *string                       `codec:"draft,omitempty" json:"draft,omitempty"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []UIParticipant               `codec:"participants" json:"participants"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
@@ -312,7 +321,14 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Channel:           o.Channel,
 		Headline:          o.Headline,
 		HeadlineDecorated: o.HeadlineDecorated,
-		Visibility:        o.Visibility.DeepCopy(),
+		Draft: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Draft),
+		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []UIParticipant) []UIParticipant {
 			if x == nil {
 				return nil

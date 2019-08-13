@@ -888,7 +888,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
@@ -897,14 +897,14 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	}
 	if alreadyIn {
 		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
-		return nil
+		return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
 	}
 
 	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
-		return err
+		return res, err
 	}
-	return nil
+	return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceRemoteOnly)
 }
 
 type NewConvFindExistingMode int

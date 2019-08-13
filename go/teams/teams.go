@@ -46,6 +46,12 @@ type Team struct {
 	rotated bool
 }
 
+// Used to order multiple signatures to post
+type teamSectionWithLinkType struct {
+	linkType libkb.LinkType
+	section  SCTeamSection
+}
+
 func (t *Team) MainChain() *keybase1.TeamData          { return t.Data }
 func (t *Team) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
 
@@ -844,7 +850,27 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
 	}
 
-	payload, latestSeqno, err := t.changeItemPayload(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs)
+	// Add a ChangeMembership section and possibly a BotSettings section.
+	sections := []teamSectionWithLinkType{
+		{
+			linkType: libkb.LinkTypeChangeMembership,
+			section:  section,
+		},
+	}
+
+	// If we are adding any restricted bots add a bot_settings link
+	if len(req.RestrictedBots) > 0 {
+		section, err := t.botSettingsSection(ctx, req.RestrictedBots, merkleRoot)
+		if err != nil {
+			return err
+		}
+		sections = append(sections, teamSectionWithLinkType{
+			linkType: libkb.LinkTypeTeamBotSettings,
+			section:  section,
+		})
+	}
+
+	payload, latestSeqno, err := t.changeItemsPayload(ctx, sections, merkleRoot, sigPayloadArgs)
 	if err != nil {
 		return err
 	}
@@ -1577,7 +1603,34 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, ratchet, nil
 }
 
-func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
+func (t *Team) changeItemsPayload(ctx context.Context, sections []teamSectionWithLinkType,
+	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
+
+	var readySigs []libkb.SigMultiItem
+	nextSeqno := t.NextSeqno()
+	latestLinkID := t.chain().GetLatestLinkID()
+
+	for _, section := range sections {
+		sigMultiItem, linkID, err := t.sigTeamItemRaw(ctx, section.section,
+			section.linkType, nextSeqno, latestLinkID, merkleRoot)
+		if err != nil {
+			return nil, keybase1.Seqno(0), err
+		}
+		nextSeqno++
+		latestLinkID = linkID
+		readySigs = append(readySigs, sigMultiItem)
+	}
+
+	if err := t.precheckLinksToPost(ctx, readySigs); err != nil {
+		return nil, keybase1.Seqno(0), err
+	}
+
+	payload := t.sigPayload(readySigs, sigPayloadArgs)
+	return payload, nextSeqno - 1, nil
+}
+
+func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType,
+	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
 	// create the change item
 	sigMultiItem, latestSeqno, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -2146,39 +2199,47 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	return nil
 }
 
-func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
+func (t *Team) botSettingsSection(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings,
+	merkleRoot *libkb.MerkleRoot) (SCTeamSection, error) {
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return err
+		return SCTeamSection{}, err
 	}
 
 	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
-		return err
+		return SCTeamSection{}, err
 	}
+
+	scBotSettings, err := CreateTeamBotSettings(bots)
+	if err != nil {
+		return SCTeamSection{}, err
+	}
+
+	section := SCTeamSection{
+		ID:          SCTeamID(t.ID),
+		Implicit:    t.IsImplicit(),
+		Public:      t.IsPublic(),
+		Admin:       admin,
+		BotSettings: &scBotSettings,
+	}
+	return section, nil
+}
+
+func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
 
-	scBotSettings, err := CreateTeamBotSettings(bots)
+	section, err := t.botSettingsSection(ctx, bots, mr)
 	if err != nil {
 		return err
-	}
-
-	section := SCTeamSection{
-		ID:          SCTeamID(t.ID),
-		Admin:       admin,
-		BotSettings: &scBotSettings,
 	}
 
 	var payloadArgs sigPayloadArgs
 	_, err = t.postChangeItem(ctx, section, libkb.LinkTypeTeamBotSettings, mr, payloadArgs)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.SigMultiItem) (err error) {

@@ -90,6 +90,7 @@ type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
+	LocalDraft     *string                     `codec:"d"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -216,7 +217,7 @@ func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
 }
 
 type AsyncInboxResult struct {
-	Conv      chat1.Conversation
+	Conv      RemoteConversation
 	ConvLocal chat1.ConversationLocal
 	InboxRes  *Inbox // set if we are returning the whole inbox
 }

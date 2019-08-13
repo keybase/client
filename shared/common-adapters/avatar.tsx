@@ -19,7 +19,7 @@ export type OwnProps = {
   editable?: boolean
   isTeam?: boolean
   loadingColor?: string
-  onClick?: (e?: React.BaseSyntheticEvent) => void
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
@@ -92,15 +92,20 @@ const ConnectedAvatar = Container.connect(
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
   }),
-  (dispatch, ownProps: OwnProps) => ({
+  dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {username} = ownProps
     const isTeam = ownProps.isTeam || !!ownProps.teamname
-    const onClick =
-      dispatchProps.onClick || (username ? () => dispatchProps._goToProfile(username) : undefined)
+
+    const opClick =
+      ownProps.onClick === 'profile'
+        ? username
+          ? () => dispatchProps._goToProfile(username)
+          : undefined
+        : ownProps.onClick
+    const onClick = ownProps.onEditAvatarClick || opClick
     const name = isTeam ? ownProps.teamname : username
     const urlMap = [960, 256, 192].reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
@@ -143,7 +148,11 @@ const mockOwnToViewProps = (
   const following = username && follows.includes(username)
   const followsYou = username && followers.includes(username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
-  const onClick = ownProps.onClick || (username ? () => action('onClickToProfile') : undefined)
+
+  const opClick =
+    ownProps.onClick === 'profile' ? (username ? action('onClickToProfile') : undefined) : ownProps.onClick
+  const onClick = ownProps.onEditAvatarClick || opClick
+
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   const name = isTeam ? ownProps.teamname : username
   const iconInfo = followIconHelper(

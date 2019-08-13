@@ -2,14 +2,7 @@ import * as React from 'react'
 import {Box2, Button, Text} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
-import {intersperseFn} from '../../../util/arrays'
-import flags from '../../../util/feature-flags'
 import {isMobile} from '../../../constants/platform'
-
-export type BrokenTrackerProps = {
-  users: Array<string>
-  onClick: (user: string) => void
-}
 
 export type InviteProps = {
   openShareSheet: () => void
@@ -35,57 +28,7 @@ const BannerBox = (props: {
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
-function brokenSeparator(idx, _, arr) {
-  if (idx === arr.length) {
-    return null
-  } else if (idx === arr.length - 1) {
-    return (
-      <BannerText key={idx}>
-        {arr.length === 1 ? '' : ','}
-        &nbsp;and&nbsp;
-      </BannerText>
-    )
-  } else {
-    return <BannerText key={idx}>,&nbsp;</BannerText>
-  }
-}
-
-const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
-  users.length === 1 ? (
-    <BannerBox color={Styles.globalColors.red}>
-      <BannerText>
-        <BannerText>Some of&nbsp;</BannerText>
-        <BannerText type="BodySmallSemiboldPrimaryLink" onClick={() => onClick(users[0])}>
-          {users[0]}
-        </BannerText>
-        <BannerText>'s proofs have changed since you last followed them.</BannerText>
-      </BannerText>
-    </BannerBox>
-  ) : (
-    <BannerBox color={Styles.globalColors.red}>
-      <BannerText>
-        {intersperseFn(
-          brokenSeparator,
-          users.map(user => (
-            <BannerText type="BodySmallSemiboldPrimaryLink" key={user} onClick={() => onClick(user)}>
-              {user}
-            </BannerText>
-          ))
-        )}
-        <BannerText>&nbsp;have changed their proofs since you last followed them.</BannerText>
-      </BannerText>
-    </BannerBox>
-  )
-
 const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: InviteProps) => {
-  if (!flags.sbsContacts) {
-    return (
-      <BannerBox color={Styles.globalColors.blue}>
-        <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
-      </BannerBox>
-    )
-  }
-
   const theirName =
     users.length === 1
       ? usernameToContactName[users[0]] || assertionToDisplay(users[0])
@@ -161,4 +104,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {BrokenTrackerBanner, InviteBanner}
+export {InviteBanner}

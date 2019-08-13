@@ -1266,6 +1266,7 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_KBFS_CHAT,
 		TLFIdentifyBehavior_GUI_PROFILE:
@@ -1278,6 +1279,7 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1290,7 +1292,8 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI:
 		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
@@ -1300,9 +1303,22 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	}
 }
 
+func (b TLFIdentifyBehavior) NotifyGUIAboutBreaks() bool {
+	switch b {
+	case TLFIdentifyBehavior_FS_GUI:
+		// Technically chat needs this too but is done in go/chat by itself and
+		// doesn't use this. So we only put FS_GUI here.
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) SkipUserCard() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		// We don't need to bother loading a user card in these cases.
 		return true
 	default:
@@ -1334,6 +1350,7 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
@@ -2585,10 +2602,20 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	return res, fmt.Errorf("git repo unknown error")
 }
 
-func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
+	botSettings *TeamBotSettings) error {
+	if !role.IsRestrictedBot() && botSettings != nil {
+		return fmt.Errorf("Unexpected botSettings for role %v", role)
+	}
 	switch role {
 	case TeamRole_RESTRICTEDBOT:
-		req.RestrictedBots = append(req.RestrictedBots, uv)
+		if botSettings == nil {
+			return fmt.Errorf("Cannot add a RESTRICTEDBOT with nil TeamBotSettings")
+		}
+		if req.RestrictedBots == nil {
+			req.RestrictedBots = make(map[UserVersion]TeamBotSettings)
+		}
+		req.RestrictedBots[uv] = *botSettings
 	case TeamRole_BOT:
 		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
@@ -2605,6 +2632,13 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
+	for uv := range req.RestrictedBots {
+		ret = append(ret, uv)
+	}
+	return ret
+}
+
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2613,7 +2647,7 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
-	ret = append(ret, req.RestrictedBots...)
+	ret = append(ret, req.RestrictedBotUVs()...)
 	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
@@ -2698,7 +2732,7 @@ func (path Path) String() string {
 	}
 	switch pathType {
 	case PathType_KBFS:
-		return path.Kbfs()
+		return path.Kbfs().Path
 	case PathType_KBFS_ARCHIVED:
 		return path.KbfsArchived().Path
 	case PathType_LOCAL:
@@ -3360,4 +3394,8 @@ func (r APIUserSearchResult) GetStringIDForCompare() string {
 	default:
 		return ""
 	}
+}
+
+func NewPathWithKbfsPath(path string) Path {
+	return NewPathWithKbfs(KBFSPath{Path: path})
 }

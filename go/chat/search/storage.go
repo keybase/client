@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	indexVersion      = 10
+	indexVersion      = 15
 	tokenEntryVersion = 2
-	aliasEntryVersion = 1
+	aliasEntryVersion = 3
 
 	mdDiskVersion    = 4
 	tokenDiskVersion = 1
@@ -42,15 +42,28 @@ func newTokenEntry() *tokenEntry {
 var refTokenEntry = newTokenEntry()
 
 type aliasEntry struct {
-	Version string                       `codec:"v"`
-	Aliases map[string]chat1.EmptyStruct `codec:"a"`
+	Version string         `codec:"v"`
+	Aliases map[string]int `codec:"z"`
 }
 
 func newAliasEntry() *aliasEntry {
 	return &aliasEntry{
 		Version: fmt.Sprintf("%d:%d", indexVersion, aliasEntryVersion),
-		Aliases: make(map[string]chat1.EmptyStruct),
+		Aliases: make(map[string]int),
 	}
+}
+
+func (a *aliasEntry) add(token string) {
+	a.Aliases[token]++
+}
+
+func (a *aliasEntry) remove(token string) bool {
+	a.Aliases[token]--
+	if a.Aliases[token] == 0 {
+		delete(a.Aliases, token)
+		return true
+	}
+	return false
 }
 
 var refAliasEntry = newAliasEntry()
@@ -419,7 +432,7 @@ func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1
 			if err != nil {
 				return err
 			}
-			aliasEntry.Aliases[token] = chat1.EmptyStruct{}
+			aliasEntry.add(token)
 		}
 	}
 	return nil
@@ -467,8 +480,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			if err != nil {
 				return err
 			}
-			delete(aliasEntry.Aliases, token)
-			if len(aliasEntry.Aliases) == 0 {
+			if aliasEntry.remove(token) {
 				s.deleteAliasEntry(ctx, alias)
 			} else {
 				if err := s.putAliasEntry(ctx, alias, aliasEntry); err != nil {

@@ -675,3 +675,8 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
 	idx.store.ClearMemory()
 	return nil
 }
+
+func (idx *Indexer) GetStoreHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	query string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+	return idx.store.GetHits(ctx, uid, convID, query)
+}

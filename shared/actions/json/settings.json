@@ -174,9 +174,6 @@
     "processorProfile": {
       "durationSeconds": "number"
     },
-    "waitingForResponse": {
-      "waiting": "boolean"
-    },
     "unfurlSettingsSaved": {
       "_description": "Update unfurl settings from settings screen",
       "mode": "RPCChatTypes.UnfurlMode",

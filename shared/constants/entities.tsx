@@ -1,5 +1,4 @@
 import * as I from 'immutable'
-import * as Git from './git'
 import * as Types from './types/entities'
 
 const makeSearchSubState = I.Record<Types._SearchSubState>({
@@ -15,7 +14,6 @@ const makeSearchSubState = I.Record<Types._SearchSubState>({
 })
 
 export const makeState = I.Record<Types._State>({
-  git: Git.makeState(),
   search: makeSearchSubState(),
   searchQueryToResult: I.Map(),
   searchResults: I.Map(),

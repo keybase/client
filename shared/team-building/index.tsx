@@ -465,7 +465,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {Flags.sbsContacts && Styles.isMobile && (
+        {Styles.isMobile && (
           <ContactsBanner
             {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
