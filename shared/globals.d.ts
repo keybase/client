@@ -43,9 +43,23 @@ interface Console {
 
 declare var KB: {
   __dirname: string
+  crypto: {
+    randomBytes: (size: number, callback: (err: Error | null, buf: Buffer) => void) => void
+  }
+  DEV?: any
   electron: {
     app: {
+      emitCloseWindows: () => void
       getAppPath: () => string
+    }
+    currentWindow: {
+      hide: () => void
+    }
+    ipcRenderer: {
+      sendExecuteActions: (actions: Array<'closePopups' | 'quitMainWindow' | 'quitApp'>) => void
+    }
+    ipcMain: {
+      on: (name: string, cb: (...a: Array<any>) => void) => void
     }
     shell: {
       openExternal: (url: string) => Promise<void>
@@ -55,9 +69,24 @@ declare var KB: {
     }
   }
   fs: {
+    __: any
+    access: (path: string, mode: number | undefined, cb: (err: NodeJS.ErrnoException) => void) => void
+    constants: {F_OK: number}
     isDirectory: (path: string) => boolean
-    readServerConfig: () => Object
+    readdir: (path: string, cb: (err: NodeJS.ErrnoException, files: Array<string>) => void) => void
     readJsonDebug: () => Object
+    readServerConfig: () => Object
+    realpath: (path: string, callback: (err: NodeJS.ErrnoException, resolvedPath: string) => void) => void
+    stat: (
+      path: string,
+      cb: (
+        err: NodeJS.ErrnoException,
+        stats: {
+          isFile: () => boolean
+          isDirectory: () => boolean
+        }
+      ) => void
+    ) => void
   }
   os: {
     homedir: () => string
@@ -72,9 +101,12 @@ declare var KB: {
     sep: string
   }
   process: {
+    argv: Array<string>
     env: {[key: string]: string | undefined}
+    pid: number
     platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'
   }
+  punycode: any
 }
 
 declare namespace NodeJS {

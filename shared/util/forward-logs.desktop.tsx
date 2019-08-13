@@ -1,7 +1,9 @@
+// TODO move to rpc
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isWindows, logFileName} from '../constants/platform.desktop'
-import fs from 'fs'
 import {mkdirp} from '../util/file.desktop'
+
+const fs = KB.fs.__
 
 type Log = (...args: Array<any>) => void
 

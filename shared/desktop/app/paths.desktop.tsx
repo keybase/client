@@ -7,7 +7,7 @@ function appPath() {
   // return '/Applications/Keybase.app/Contents/Resources/app/'
   // For testing running from DMG
   // return '/Volumes/Keybase/Keybase.app/Contents/Resources/app/'
-  const appPath = process.env['KEYBASE_GET_APP_PATH'] || ''
+  const appPath = KB.process.env['KEYBASE_GET_APP_PATH'] || ''
   if (appPath !== '') {
     return appPath
   }
@@ -41,7 +41,7 @@ export function keybaseBinPath() {
       .getPath('appData')
       .replace('Roaming', 'Local')
     if (!kbPath) {
-      kbPath = process.env.LOCALAPPDATA || ''
+      kbPath = KB.process.env.LOCALAPPDATA || ''
     }
     if (!kbPath) {
       console.log('No keybase bin path')

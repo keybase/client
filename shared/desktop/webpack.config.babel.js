@@ -202,10 +202,13 @@ const config = (_, {mode}) => {
       ...(isDev
         ? {
             // needed by webpack dev server, fulfilled by preload
-            events: 'events',
-            url: 'url',
+            events: 'KB.DEV.events',
+            punycode: 'KB.punycode',
+            url: 'KB.DEV.url',
           }
-        : {}),
+        : {
+            punycode: 'KB.punycode',
+          }),
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',

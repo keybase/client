@@ -153,7 +153,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
+    const localAppData = String(KB.process.env.LOCALAPPDATA)
     var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
@@ -242,10 +242,10 @@ const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: process.argv,
+      argv: KB.process.argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
-      pid: SafeElectron.getRemote().process.pid,
+      pid: KB.process.pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})

@@ -1,4 +1,3 @@
-import * as SafeElectron from '../util/safe-electron.desktop'
 import {quit} from '../desktop/app/ctl.desktop'
 import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
 
@@ -31,7 +30,7 @@ function _executeActions(actions: Array<Action>) {
         hideDockIcon()
         break
       case 'closePopups':
-        SafeElectron.getApp().emit('close-windows')
+        KB.app.emitCloseWindows()
         break
       case 'quitApp':
         quit()
@@ -42,7 +41,7 @@ function _executeActions(actions: Array<Action>) {
 
 // Takes an array of actions, but makes an ipc call to have the main thread execute the actions
 function _executeActionsFromRenderer(actions: Array<Action>) {
-  SafeElectron.getIpcRenderer().send('executeActions', actions)
+  KB.electron.ipcRenderer.sendExecuteActions(actions)
 }
 
 export function executeActionsForContext(context: Context) {
@@ -55,7 +54,7 @@ export function executeActionsForContext(context: Context) {
 }
 
 export function setupExecuteActionsListener() {
-  SafeElectron.getIpcMain().on('executeActions', (_, actions) => {
+  KB.electron.ipcMain.on('executeActions', (_, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
   })
@@ -68,7 +67,5 @@ const crossplatformQuit = (reason: Context) => {
 export {crossplatformQuit as quit}
 
 export function hideWindow() {
-  SafeElectron.getRemote()
-    .getCurrentWindow()
-    .hide()
+  KB.currentWindow.hide()
 }

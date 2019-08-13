@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import menuHelper from '../app/menu-helper.desktop'
-import {resolveRootAsURL} from '../app/resolve-root.desktop'
+import {resolveRoot, resolveRootAsURL} from '../app/resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 type Props = {
@@ -21,8 +21,9 @@ const defaultWindowOpts = {
   show: false, // Start hidden and show when we actually get props
   titleBarStyle: 'customButtonsOnHover' as const,
   webPreferences: {
-    nodeIntegration: true,
+    nodeIntegration: false,
     nodeIntegrationInWorker: false,
+    preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
   },
   width: 500,
 }

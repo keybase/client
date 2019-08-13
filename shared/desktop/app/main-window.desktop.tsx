@@ -50,7 +50,7 @@ export default function() {
     show: false,
     webPreferences: {
       devTools: showDevTools,
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
@@ -76,11 +76,11 @@ export default function() {
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    !!process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
+    !!KB.process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = KB.process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
+  logger.info('KEYBASE_AUTOSTART =', KB.process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', KB.process.env['KEYBASE_START_UI'])
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)

@@ -1,10 +1,11 @@
+// TODO move to rpc
 // This is modified from https://github.com/mawie81/electron-window-state
 import * as SafeElectron from '../util/safe-electron.desktop'
-import fs from 'fs'
-import path from 'path'
 import {isEqual} from 'lodash-es'
 import logger from '../logger'
 import {State} from './app-state'
+
+const fs = KB.fs.__
 
 export type Config = {
   path: string
@@ -50,7 +51,7 @@ export default class AppState {
 
     this.config = {
       eventHandlingDelay: 1000,
-      path: path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
+      path: KB.path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
     }
 
     this.managed = {
@@ -113,7 +114,7 @@ export default class AppState {
       return
     }
 
-    if (process.platform === 'darwin' || process.platform === 'win32') {
+    if (KB.process.platform === 'darwin' || KB.process.platform === 'win32') {
       logger.info('Setting login item state', this.state.openAtLogin)
       SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
     }

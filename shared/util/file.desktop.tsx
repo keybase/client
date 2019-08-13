@@ -1,8 +1,7 @@
-import crypto from 'crypto'
-import fs from 'fs'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 import {StatResult, WriteStream, Encoding} from './file'
+const fs = KB.fs.__
 
 export function tmpDir(): string {
   return cacheRoot
@@ -14,7 +13,7 @@ export function tmpFile(suffix: string): string {
 
 export function tmpRandFile(suffix: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    crypto.randomBytes(16, (err, buf) => {
+    KB.crypto.randomBytes(16, (err, buf) => {
       if (err) {
         reject(err)
         return
@@ -26,7 +25,7 @@ export function tmpRandFile(suffix: string): Promise<string> {
 
 export const downloadFolder = __STORYBOOK__
   ? ''
-  : process.env.XDG_DOWNLOAD_DIR || KB.path.join(KB.os.homedir(), 'Downloads')
+  : KB.process.env.XDG_DOWNLOAD_DIR || KB.path.join(KB.os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
   return KB.path.join(downloadFolder, filename)
