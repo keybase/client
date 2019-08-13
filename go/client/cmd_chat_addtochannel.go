@@ -120,7 +120,7 @@ Add a single keybase user:
 
     keybase chat add-to-channel acme announcements alice
 
-Add a multiple keybase users:
+Add multiple keybase users:
 
     keybase chat add-to-channel acme announcements alice,bob,charlie
 `
