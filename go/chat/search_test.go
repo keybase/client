@@ -433,7 +433,7 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID0)
 	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID1)
 
-	hres, err := tc.ChatG.Indexer.(*search.Indexer).GetStore().GetHits(ctx, uid, conv.Id, "MIKEM")
+	hres, err := tc.ChatG.Indexer.(*search.Indexer).GetStoreHits(ctx, uid, conv.Id, "MIKEM")
 	require.NoError(t, err)
 	require.Zero(t, len(hres))
 }
