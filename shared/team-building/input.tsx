@@ -64,6 +64,7 @@ const Input = (props: Props) => {
         onKeyPress={e => {
           handleKeyDown(noop, false, e.nativeEvent.key, props)
         }}
+        onEnterKeyDown={props.onEnterKeyDown}
       />
     </Kb.Box2>
   )

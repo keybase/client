@@ -44,6 +44,8 @@ type Props = {
   onFocus?: (() => void) | null
   // following props are ignored when onClick is provided
   hotkey?: 'f' | 'k' | null // desktop only,
+  // Maps to onSubmitEditing on native
+  onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyPress?: (event: {
@@ -164,6 +166,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         onKeyDown={this._onKeyDown}
         onKeyUp={this.props.onKeyUp}
         onKeyPress={this.props.onKeyPress}
+        onEnterKeyDown={this.props.onEnterKeyDown}
         ref={this._inputRef}
         hideBorder={true}
         containerStyle={Styles.collapseStyles([
