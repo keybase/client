@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
@@ -48,13 +47,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     props.lastVerifyEmailDate && new Date().getTime() / 1000 - props.lastVerifyEmailDate < 30 * 60
 
   let subtitle = ''
+
   if (isMobile && hasRecentVerifyEmail) {
     subtitle = 'Check your inbox'
   } else {
     if (props.type === 'email' && props.primary) {
       subtitle = addSpacer(subtitle, 'Primary')
     }
-    if (!props.searchable && flags.sbsContacts) {
+    if (!props.searchable) {
       subtitle = addSpacer(subtitle, 'Not searchable')
     }
     if (hasRecentVerifyEmail) {
@@ -77,7 +77,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Make primary',
     })
   }
-  if (props.verified && flags.sbsContacts) {
+  if (props.verified) {
     const copyType = props.type === 'email' ? 'email' : 'number'
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
@@ -104,7 +104,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
-  } else if (!props.searchable && flags.sbsContacts) {
+  } else if (!props.searchable) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 

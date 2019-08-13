@@ -702,7 +702,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -836,7 +836,7 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 	require.NoError(t, err)
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// u2 is part of the team, keyfinding should succeed.

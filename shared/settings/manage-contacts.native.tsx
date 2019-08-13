@@ -20,6 +20,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 
 const ManageContacts = (_: Props) => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
@@ -30,7 +31,7 @@ const ManageContacts = (_: Props) => {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
 
-  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onToggle = React.useCallback(
     () =>
       dispatch(

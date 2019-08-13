@@ -56,6 +56,7 @@ module.exports = {
     'jsx-quotes': 'off',
     'no-duplicate-imports': 'off',
     'no-empty': 'off',
+    'no-useless-return': 'off',
     'no-mixed-operators': 'off',
     'no-unused-expressions': 'off',
     'no-extra-semi': 'off',

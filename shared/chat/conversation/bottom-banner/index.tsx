@@ -2,7 +2,6 @@ import * as React from 'react'
 import {Box2, Button, Text} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
-import flags from '../../../util/feature-flags'
 import {isMobile} from '../../../constants/platform'
 
 export type InviteProps = {
@@ -30,14 +29,6 @@ const BannerBox = (props: {
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
 const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: InviteProps) => {
-  if (!flags.sbsContacts) {
-    return (
-      <BannerBox color={Styles.globalColors.blue}>
-        <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
-      </BannerBox>
-    )
-  }
-
   const theirName =
     users.length === 1
       ? usernameToContactName[users[0]] || assertionToDisplay(users[0])

@@ -1142,6 +1142,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	}
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.Draft = rc.LocalDraft
 	return res
 }
 
@@ -1246,6 +1247,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.Draft = rawConv.Info.Draft
 	return res
 }
 
@@ -2352,6 +2354,12 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+			chat1.ConversationMemberStatus_NEVER_JOINED,
+		},
 	}, nil)
 	if err != nil {
 		return res, err
@@ -2374,9 +2382,15 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
+			MemberStatus: []chat1.ConversationMemberStatus{
+				chat1.ConversationMemberStatus_ACTIVE,
+				chat1.ConversationMemberStatus_PREVIEW,
+				chat1.ConversationMemberStatus_RESET,
+				chat1.ConversationMemberStatus_NEVER_JOINED,
+			},
 		}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.Convs) == 0 {
 		return res, ErrGetVerifiedConvNotFound

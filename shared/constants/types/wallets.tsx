@@ -236,11 +236,15 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  depositButtonText: string
   infoUrl: string
   infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
+  showDepositButton: boolean
+  showWithdrawButton: boolean
+  withdrawButtonText: string
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>

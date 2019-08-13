@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
@@ -171,7 +172,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 					Body: "HI",
 				}), ephemeralLifetime)
 			require.Error(t, err)
-			require.IsType(t, libkb.ChatNotInTeamError{}, err)
+			require.IsType(t, utils.ErrGetVerifiedConvNotFound, err)
 
 			t.Logf("running sbsVerify now")
 

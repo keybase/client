@@ -6,11 +6,20 @@ import * as EntitiesGen from './entities-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
+
+const cachedSearchResults = (
+  {
+    entities: {
+      search: {searchQueryToResult},
+    },
+  }: TypedState,
+  searchQuery: Types.SearchQuery
+) => searchQueryToResult.get(searchQuery)
+const searchResultMapSelector = (state: TypedState) => state.entities.search.searchResults
 
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
@@ -142,7 +151,7 @@ function callSearch(
 
 function* search(state, {payload: {term, service, searchKey}}) {
   const searchQuery = _toSearchQuery(service, term)
-  const cachedResults = Selectors.cachedSearchResults(state, searchQuery)
+  const cachedResults = cachedSearchResults(state, searchQuery)
   if (cachedResults) {
     yield Saga.put(
       SearchGen.createFinishedSearch({
@@ -281,7 +290,7 @@ const updateSelectedSearchResult = (_, {payload: {searchKey, id}}) =>
 
 function* addResultsToUserInput(state, {payload: {searchKey, searchResults}}) {
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
-  const searchResultMap = Selectors.searchResultMapSelector(state)
+  const searchResultMap = searchResultMapSelector(state)
   const maybeUpgradedUsers = searchResults.map(u =>
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )

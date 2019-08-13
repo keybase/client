@@ -6,7 +6,6 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
-import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
@@ -71,8 +70,8 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
   if (!action.payload.openWebsite) {
     return ProfileGen.createShowUserProfile({username: action.payload.username})
   } else {
-    openURL(`${keybaseUrl}/${action.payload.username}`)
-      return undefined
+    openURL(`https://keybase.io/${action.payload.username}`)
+    return undefined
   }
 }
 
@@ -152,22 +151,16 @@ const backToProfile = (state: TypedState) => [
 ]
 
 function* _profileSaga() {
-  yield* Saga.chainAction<ProfileGen.SubmitRevokeProofPayload>(
-    ProfileGen.submitRevokeProof,
-    submitRevokeProof
-  )
-  yield* Saga.chainAction<ProfileGen.SubmitBlockUserPayload>(ProfileGen.submitBlockUser, submitBlockUser)
-  yield* Saga.chainAction<ProfileGen.SubmitUnblockUserPayload>(
-    ProfileGen.submitUnblockUser,
-    submitUnblockUser
-  )
-  yield* Saga.chainAction<ProfileGen.BackToProfilePayload>(ProfileGen.backToProfile, backToProfile)
-  yield* Saga.chainAction<ProfileGen.EditProfilePayload>(ProfileGen.editProfile, editProfile)
-  yield* Saga.chainAction<ProfileGen.UploadAvatarPayload>(ProfileGen.uploadAvatar, uploadAvatar)
-  yield* Saga.chainAction<ProfileGen.FinishRevokingPayload>(ProfileGen.finishRevoking, finishRevoking)
-  yield* Saga.chainAction<ProfileGen.OnClickAvatarPayload>(ProfileGen.onClickAvatar, onClickAvatar)
-  yield* Saga.chainAction<ProfileGen.ShowUserProfilePayload>(ProfileGen.showUserProfile, showUserProfile)
-  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
+  yield* Saga.chainAction2(ProfileGen.submitRevokeProof, submitRevokeProof)
+  yield* Saga.chainAction2(ProfileGen.submitBlockUser, submitBlockUser)
+  yield* Saga.chainAction2(ProfileGen.submitUnblockUser, submitUnblockUser)
+  yield* Saga.chainAction2(ProfileGen.backToProfile, backToProfile)
+  yield* Saga.chainAction2(ProfileGen.editProfile, editProfile)
+  yield* Saga.chainAction2(ProfileGen.uploadAvatar, uploadAvatar)
+  yield* Saga.chainAction2(ProfileGen.finishRevoking, finishRevoking)
+  yield* Saga.chainAction2(ProfileGen.onClickAvatar, onClickAvatar)
+  yield* Saga.chainAction2(ProfileGen.showUserProfile, showUserProfile)
+  yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {

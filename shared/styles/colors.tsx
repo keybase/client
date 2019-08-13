@@ -178,12 +178,20 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowLight: '#000233',
 }
 
-const wrapped = {
-  get: function(_, prop) {
-    const c = isDarkMode() ? darkColors[prop] : colors[prop]
-    return c
-  },
-}
+type Color = typeof colors
+type Names = keyof Color
 
-export const themed = new Proxy(colors, wrapped)
+const names: Array<Names> = Object.keys(colors) as any
+export const themed = names.reduce<Color>(
+  (obj, name) =>
+    Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
+    }),
+  {} as Color
+)
+
 export default colors

@@ -1,4 +1,3 @@
-import * as Selectors from '../constants/selectors'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import Mention, {OwnProps} from './mention'
@@ -15,7 +14,7 @@ export default Container.namedConnect(
       return {theme: 'highlight' as const}
     }
 
-    if (Selectors.amIFollowing(state, username)) {
+    if (state.config.following.has(username)) {
       return {theme: 'follow' as const}
     }
 
