@@ -277,6 +277,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      borderStyle: 'solid',
       justifyContent: 'flex-start',
       width: '100%',
     },
