@@ -3824,12 +3824,15 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		}
 		g := ctc.world.Tcs[users[0].Username].Context()
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {

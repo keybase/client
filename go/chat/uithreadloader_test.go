@@ -137,11 +137,14 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	ctx := ctc.as(t, users[0]).startCtx
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "HI",
 	}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
 	require.Error(t, err)
