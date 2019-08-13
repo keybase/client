@@ -16,21 +16,17 @@ const allServices: Array<Types.ServiceIdWithContact> = [
 
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
-function isKeybaseUserId(userId) {
-  // Only keybase user id's do not have
-  return userId.indexOf('@') < 0
-}
-
 function followStateHelperWithId(
   me: string,
   followingState: I.Set<string>,
-  userId: string = ''
+  user: Types.User
 ): Types.FollowingState {
-  if (isKeybaseUserId(userId)) {
-    if (userId === me) {
+  const {keybaseUsername} = user
+  if (keybaseUsername) {
+    if (keybaseUsername === me) {
       return 'You'
     } else {
-      return followingState.has(userId) ? 'Following' : 'NotFollowing'
+      return followingState.has(keybaseUsername) ? 'Following' : 'NotFollowing'
     }
   }
   return 'NoState'
@@ -60,7 +56,7 @@ const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => 
     keybaseUsername: result.keybaseUsername,
     label: result.label,
     prettyName: result.prettyName,
-    serviceMap: result.serviceMap,
+    serviceMap: result.serviceMap || {},
     serviceName: result.serviceName as Types.ServiceIdWithContact,
     username: result.username,
   }

@@ -354,8 +354,16 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result, section}) =>
-              result.isImportButton ? (
+            renderItem={({
+              index,
+              item: result,
+              section,
+            }: {
+              index: number
+              item: SearchResult | ImportContactsEntry
+              section: SearchRecSection
+            }) =>
+              'isImportButton' in result ? (
                 <ContactsImportButton {...this.props} />
               ) : (
                 <UserResult
