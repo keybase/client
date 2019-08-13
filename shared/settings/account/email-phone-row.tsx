@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {isMobile} from '../../constants/platform'
 
 // props exported for stories
 export type Props = {
@@ -18,6 +19,7 @@ export type Props = {
   superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
+  lastVerifyEmailDate?: number
 }
 
 const addSpacer = (into: string, add: string) => {
@@ -40,13 +42,24 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     return null
   }
 
+  // less than 30 minutes ago
+  const hasRecentVerifyEmail =
+    props.lastVerifyEmailDate && new Date().getTime() / 1000 - props.lastVerifyEmailDate < 30 * 60
+
   let subtitle = ''
-  if (props.type === 'email' && props.primary) {
-    subtitle = addSpacer(subtitle, 'Primary')
-    // TODO 'Check your inbox' if verification email was just sent
-  }
-  if (!props.searchable) {
-    subtitle = addSpacer(subtitle, 'Not searchable')
+
+  if (isMobile && hasRecentVerifyEmail) {
+    subtitle = 'Check your inbox'
+  } else {
+    if (hasRecentVerifyEmail) {
+      subtitle = addSpacer(subtitle, 'Check your inbox')
+    }
+    if (props.type === 'email' && props.primary) {
+      subtitle = addSpacer(subtitle, 'Primary')
+    }
+    if (!props.searchable) {
+      subtitle = addSpacer(subtitle, 'Not searchable')
+    }
   }
 
   const menuItems: Kb.MenuItems = []
@@ -268,6 +281,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        lastVerifyEmailDate: stateProps._emailRow.lastVerifyEmailDate || undefined,
         onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
         onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
