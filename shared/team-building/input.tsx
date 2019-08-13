@@ -74,44 +74,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
   }),
-  containerOld: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_10,
-    borderRadius: 4,
-    flex: 1,
-    margin: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.xsmall,
-    marginRight: Styles.globalMargins.xsmall,
-    minHeight: 32,
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
-  },
-  containerOldFocused: {
-    backgroundColor: Styles.globalColors.black_05,
-  },
-  iconSearch: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      marginRight: 0,
-    },
-    isMobile: {
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
-  iconX: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  input: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.transparent,
-      marginLeft: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      height: 14,
-    },
-  }),
 })
 
 export default Input

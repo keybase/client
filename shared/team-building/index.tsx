@@ -330,9 +330,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           centerChildren={true}
           style={styles.loadingContainer}
         >
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {this._searchInput()}
-          </Kb.Box2>
           {showLoading && (
             <>
               <Kb.Icon
@@ -356,9 +353,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           gap="tiny"
           style={styles.emptyContainer}
         >
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {this._searchInput()}
-          </Kb.Box2>
           <Kb.Icon
             fontSize={Styles.isMobile ? 48 : 64}
             type={serviceIdToIconFont(this.props.selectedService)}
@@ -389,7 +383,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
-            ListHeaderComponent={this._searchInput()}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
@@ -427,7 +420,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     }
     return (
       <Kb.List
-        ListHeaderComponent={this._searchInput()}
         items={this.props.searchResults || []}
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
@@ -524,6 +516,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
+        {this._searchInput()}
         {this._listBody()}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -608,9 +601,6 @@ const styles = Styles.styleSheetCreate({
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginTop: -4,
     },
   }),
   listContentContainer: Styles.platformStyles({
