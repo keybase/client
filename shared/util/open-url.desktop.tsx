@@ -3,7 +3,7 @@ const openURL = (url: string | null) => {
     console.warn('openURL received empty url')
     return
   }
-  KB.shell.openExternal(url)
+  KB.electron.shell.openExternal(url)
 }
 
 export default openURL

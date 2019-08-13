@@ -1,4 +1,3 @@
-import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
@@ -47,7 +46,7 @@ if (__DEV__) {
 }
 
 if (!__STORYBOOK__) {
-  const serverConfig = KB.fs.readServerConfig()
+  const serverConfig: any = KB.fs.readServerConfig()
   if (serverConfig && serverConfig.lastLoggedInUser) {
     const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
     if (userConfig.printRPCStats) {
@@ -56,8 +55,8 @@ if (!__STORYBOOK__) {
   }
 
   // Load overrides from a local json file
-  const pathJson = KB.fs.readJsonDebug()
-  console.log('Loaded', jsonDebugFileName, pathJson)
+  const pathJson: any = KB.fs.readJsonDebug()
+  console.log('Loaded debug json', pathJson)
   config = {...config, ...pathJson}
   if (Object.prototype.hasOwnProperty.call(pathJson, 'PERF')) {
     PERF = pathJson.PERF
