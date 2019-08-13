@@ -54,15 +54,8 @@ const ConnectedOnboarding = Container.connect(
 // A wrapper to harmonize the type of OwnProps between the
 // routed case and <Onboarding /> case.
 type RoutedOnboardingProps = Container.RouteProps<OwnProps>
-export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => {
-  React.useEffect(() => {
-    // @ts-ignore
-    if (!ownProps.navigation.getParam('hideHeader')) {
-      // @ts-ignore
-      ownProps.navigation.setParams({hideHeader})
-    }
-  })
-  return <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
-}
+export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
+  <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
+)
 
 export default ConnectedOnboarding
