@@ -530,6 +530,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				getDelay())
+			defer func() {
+				setDisplayedStatus(cancelUIStatus)
+			}()
 			if t.resolveThreadDelay != nil {
 				t.clock.Sleep(*t.resolveThreadDelay)
 			}
@@ -585,7 +588,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
-			setDisplayedStatus(cancelUIStatus)
 			return nil
 		}()
 	}
