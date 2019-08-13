@@ -854,7 +854,9 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	// Fetch the bot settings, if any
 	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
 	if err != nil {
-		return nil, err
+		// If we fail here the conversation could be a IMPTEAMUPGRADE conv that
+		// used the old KBFS tlfID, so we short circuit.
+		return nil, nil
 	}
 	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
 		ID:     teamID,
