@@ -42,17 +42,33 @@ interface Console {
 }
 
 declare var KB: {
+  __dirname: string
   electron: {
+    app: {
+      getAppPath: () => string
+    }
+    shell: {
+      openExternal: (url: string) => Promise<void>
+    }
     systemPreferences: {
       isDarkMode: () => boolean
     }
   }
   fs: {
+    isDirectory: (path: string) => boolean
     readServerConfig: () => Object
     readJsonDebug: () => Object
   }
+  os: {
+    homedir: () => string
+  }
   path: {
-    join: (...a: Array<string>) => string
+    basename: (p: string, ext?: string | undefined) => string
+    dirname: (p: string) => string
+    isAbsolute: (p: string) => boolean
+    join: (...pathSegments: Array<string>) => string
+    resolve: (...pathSegments: Array<string>) => string
+    sep: string
   }
   process: {
     env: {[key: string]: string | undefined}

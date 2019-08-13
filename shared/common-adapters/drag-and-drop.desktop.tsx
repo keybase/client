@@ -1,5 +1,4 @@
 import * as React from 'react'
-import fs from 'fs'
 import * as Styles from '../styles'
 import {Box2} from './box'
 import Icon from './icon'
@@ -47,11 +46,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
         for (let path of paths) {
           // Check if any file is a directory and bail out if not
           try {
-            // We do this synchronously
-            // in testing, this is instantaneous
-            // even when dragging many files
-            const stat = fs.lstatSync(path)
-            if (stat.isDirectory()) {
+            if (KB.fs.isDirectory(path)) {
               // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
               this.setState({showDropOverlay: false})
               return
