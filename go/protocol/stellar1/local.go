@@ -1607,6 +1607,11 @@ type SendPathCLILocalArg struct {
 	PublicNote string      `codec:"publicNote" json:"publicNote"`
 }
 
+type AccountMergeCLILocalArg struct {
+	From AccountID `codec:"from" json:"from"`
+	To   string    `codec:"to" json:"to"`
+}
+
 type ClaimCLILocalArg struct {
 	TxID string     `codec:"txID" json:"txID"`
 	Into *AccountID `codec:"into,omitempty" json:"into,omitempty"`
@@ -1774,6 +1779,7 @@ type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	SendPathCLILocal(context.Context, SendPathCLILocalArg) (SendResultCLILocal, error)
+	AccountMergeCLILocal(context.Context, AccountMergeCLILocalArg) (TransactionID, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
@@ -2658,6 +2664,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"accountMergeCLILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AccountMergeCLILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AccountMergeCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AccountMergeCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.AccountMergeCLILocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"claimCLILocal": {
 				MakeArg: func() interface{} {
 					var ret [1]ClaimCLILocalArg
@@ -3278,6 +3299,11 @@ func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (r
 
 func (c LocalClient) SendPathCLILocal(ctx context.Context, __arg SendPathCLILocalArg) (res SendResultCLILocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) AccountMergeCLILocal(ctx context.Context, __arg AccountMergeCLILocalArg) (res TransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.accountMergeCLILocal", []interface{}{__arg}, &res)
 	return
 }
 

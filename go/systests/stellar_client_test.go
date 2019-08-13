@@ -604,6 +604,16 @@ func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchL
 	return res, err
 }
 
+func (s *stellarRetryClient) AccountMergeCLILocal(ctx context.Context, arg stellar1.AccountMergeCLILocalArg) (res stellar1.TransactionID, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.AccountMergeCLILocal(ctx, arg)
+		if err == nil {
+			return res, nil
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res stellar1.AirdropDetails, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.AirdropDetailsLocal(ctx, sessionID)
