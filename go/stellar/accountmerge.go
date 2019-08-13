@@ -29,10 +29,10 @@ func AccountMerge(mctx libkb.MetaContext, walletState *WalletState, arg stellar1
 	if err != nil {
 		return res, from, fmt.Errorf("account merge error looking up <to>: %v", err)
 	}
-	toAddr := stellarnet.AddressStr(*recipient.AccountID)
+	toAddr := recipient.AccountID
 	mctx.Debug("account merge <to> lookup complete: %s -> %s", arg.To, toAddr)
 
-	signedTx, err := stellarnet.AccountMergeTransaction(fromSeed, toAddr, sp, tb, baseFee)
+	signedTx, err := stellarnet.AccountMergeTransaction(fromSeed, *toAddr, sp, tb, baseFee)
 	if err != nil {
 		return res, from, err
 	}

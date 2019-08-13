@@ -416,9 +416,12 @@ func TestAccountMerge(t *testing.T) {
 	}
 	require.NoError(t, err)
 
-	walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
-	walletState.Refresh(alice.tc.MetaContext(), secondAccountID, "test")
+	err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
+	require.NoError(t, err)
+	err = walletState.Refresh(alice.tc.MetaContext(), secondAccountID, "test")
+	require.NoError(t, err)
 	secondAcctBalances, err := walletState.Balances(ctx, secondAccountID)
+	require.NoError(t, err)
 	require.Equal(t, secondAcctBalances[0].Amount, "50.0000000")
 	t.Logf("10k lumens split into two accounts: ~99,949.999 and 50")
 
@@ -434,6 +437,7 @@ func TestAccountMerge(t *testing.T) {
 	err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
 	require.NoError(t, err)
 	endingBalances, err := walletState.Balances(ctx, firstAccountID)
+	require.NoError(t, err)
 	require.Len(t, endingBalances, 1)
 	actualFinalAmount, err := stellarnet.ParseStellarAmount(endingBalances[0].Amount)
 	require.NoError(t, err)
