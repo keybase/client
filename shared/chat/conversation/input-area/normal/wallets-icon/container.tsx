@@ -32,10 +32,10 @@ const mapDispatchToProps = dispatch => ({
     }
     dispatch(
       WalletsGen.createOpenSendRequestForm({
-        from,
         isRequest,
         recipientType: 'keybaseUser',
         to,
+        from,
       })
     )
   },
