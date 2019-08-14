@@ -41,12 +41,11 @@ const sharedRoutes = {
   },
 }
 
-const walletsSubRoutes = isMobile
-  ? {}
-  : {
-      ...sharedRoutes,
-      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
-    }
+// walletsSubRoutes should only be used on desktop
+const walletsSubRoutes = {
+  ...sharedRoutes,
+  wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
+}
 const noScreenProps = {}
 
 class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
@@ -72,7 +71,59 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   }
 }
 
+const WalletsSubNavigator = createNavigator(
+  WalletsSubNav,
+  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+  {}
+)
+const OnboardingOrWalletsNavigator = createSwitchNavigator(
+  {
+    onboarding: RoutedOnboarding,
+    walletsubnav: WalletsSubNavigator,
+  },
+  {initialRouteName: 'onboarding'}
+)
+
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
+
+class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
+  static router = OnboardingOrWalletsNavigator.router
+  static navigationOptions = ({navigation}) => {
+    return {
+      header: undefined,
+      headerExpandable: true,
+      // index 0 means we're on the onboarding page, so hide the header
+      headerMode: navigation.state.index === 0 ? 'none' : undefined,
+      headerRightActions: require('./nav-header/container').HeaderRightActions,
+      headerTitle: require('./nav-header/container').HeaderTitle,
+      title: 'Wallet',
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.acceptedDisclaimer) {
+      this.props.navigation.navigate('walletsubnav')
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.acceptedDisclaimer === false && this.props.acceptedDisclaimer === true) {
+      this.props.navigation.navigate('walletsubnav')
+    }
+  }
+
+  render() {
+    return <OnboardingOrWalletsNavigator {...this.props} />
+  }
+}
+const OnboardingOrWallets = Container.namedConnect(
+  state => ({
+    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
+  }),
+  undefined,
+  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
+  'OnboardingOrWallets'
+)(_OnboardingOrWallets)
 
 export const newRoutes = {
   walletsRoot: {
@@ -80,58 +131,6 @@ export const newRoutes = {
       if (isMobile) {
         return require('./wallet/container').default
       } else {
-        const WalletsSubNavigator = createNavigator(
-          WalletsSubNav,
-          StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-          {}
-        )
-        const OnboardingOrWalletsNavigator = createSwitchNavigator(
-          Shim.shim({
-            onboarding: RoutedOnboarding,
-            walletsubnav: WalletsSubNavigator,
-          }),
-          {initialRouteName: 'onboarding'}
-        )
-
-        class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
-          static router = OnboardingOrWalletsNavigator.router
-          static navigationOptions = ({navigation}) => {
-            return {
-              header: undefined,
-              headerExpandable: true,
-              // index 0 means we're on the onboarding page, so hide the header
-              headerMode: navigation.state.index === 0 ? 'none' : undefined,
-              headerRightActions: require('./nav-header/container').HeaderRightActions,
-              headerTitle: require('./nav-header/container').HeaderTitle,
-              title: 'Wallet',
-            }
-          }
-
-          componentDidMount() {
-            if (this.props.acceptedDisclaimer) {
-              this.props.navigation.navigate('walletsubnav')
-            }
-          }
-
-          componentDidUpdate(prevProps) {
-            if (prevProps.acceptedDisclaimer === false && this.props.acceptedDisclaimer === true) {
-              this.props.navigation.navigate('walletsubnav')
-            }
-          }
-
-          render() {
-            return <OnboardingOrWalletsNavigator {...this.props} />
-          }
-        }
-        const OnboardingOrWallets = Container.namedConnect(
-          state => ({
-            acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-          }),
-          undefined,
-          (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
-          'OnboardingOrWallets'
-        )(_OnboardingOrWallets)
-
         return OnboardingOrWallets
       }
     },
