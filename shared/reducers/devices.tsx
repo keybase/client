@@ -37,8 +37,10 @@ export default (
         draftState.selectedDeviceID = action.payload.deviceID
         return
       case DevicesGen.showPaperKeyPage:
-      case DevicesGen.paperKeyCreated: // fallthrough
         draftState.newPaperkey = initialState.newPaperkey
+        return
+      case DevicesGen.paperKeyCreated:
+        draftState.newPaperkey = action.payload.paperKey
         return
       case DevicesGen.revoked:
         if (action.payload.wasCurrentDevice) {
