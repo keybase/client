@@ -268,18 +268,25 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv k
 
 type MemberChecker interface {
 	IsMember(context.Context, keybase1.UserVersion) bool
+	MemberRole(context.Context, keybase1.UserVersion) (keybase1.TeamRole, error)
 }
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
-	for k := range m.recipients {
-		if checker.IsMember(ctx, k) {
-			delete(m.recipients, k)
+	for uv := range m.recipients {
+		if checker.IsMember(ctx, uv) {
+			existingRole, err := checker.MemberRole(ctx, uv)
+			// If we were previously a RESTRICTEDBOT, we now need to be boxed
+			// for the PTK so we skip removal.
+			if err == nil && existingRole.IsRestrictedBot() {
+				continue
+			}
+			delete(m.recipients, uv)
 		}
 	}
-	for k := range m.restrictedBotRecipients {
-		if checker.IsMember(ctx, k) {
-			delete(m.restrictedBotRecipients, k)
-			delete(m.restrictedBotSettings, k)
+	for uv := range m.restrictedBotRecipients {
+		if checker.IsMember(ctx, uv) {
+			delete(m.restrictedBotRecipients, uv)
+			delete(m.restrictedBotSettings, uv)
 		}
 	}
 }
