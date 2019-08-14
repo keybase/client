@@ -368,6 +368,7 @@ type _MetaReceivedErrorPayload = {
 }
 type _MetaRequestTrustedPayload = {
   readonly force?: boolean
+  readonly noWaiting?: boolean
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}
