@@ -255,12 +255,11 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 		displayLabel := entry.contact.DisplayLabel
 
 		userSearchResult := keybase1.UserSearchResult{
-			Id:          fmt.Sprintf("%s+%s", entry.contact.Assertion, entry.contact.Username),
-			Assertion:   entry.contact.Assertion,
-			Username:    entry.contact.Component.ValueString(),
-			ServiceName: entry.contact.Component.AssertionType(),
-			PrettyName:  displayName,
-			Label:       displayLabel,
+			Id:         fmt.Sprintf("%s+%s", entry.contact.Assertion, entry.contact.Username),
+			Assertion:  entry.contact.Assertion,
+			Username:   entry.contact.Component.ValueString(),
+			PrettyName: displayName,
+			Label:      displayLabel,
 
 			KeybaseUsername: entry.contact.Username,
 			Uid:             entry.contact.Uid,
@@ -357,13 +356,12 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 				return nil, err
 			}
 			res = &keybase1.UserSearchResult{
-				Score:       1.0,
-				Assertion:   assertion,
-				PrettyName:  queryString,
-				Username:    assertionValue,
-				ServiceName: "contact",
-				BubbleText:  assertionValue,
-				Source:      source,
+				Score:      1.0,
+				Assertion:  assertion,
+				PrettyName: queryString,
+				Username:   assertionValue,
+				BubbleText: assertionValue,
+				Source:     source,
 			}
 			if usernames != nil {
 				if uname, found := usernames[v.UID]; found {
@@ -385,13 +383,12 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		return nil, err
 	}
 	res = &keybase1.UserSearchResult{
-		Score:       1.0,
-		Assertion:   assertion,
-		PrettyName:  queryString,
-		Username:    queryString,
-		ServiceName: "contact",
-		BubbleText:  queryString,
-		Source:      source,
+		Score:      1.0,
+		Assertion:  assertion,
+		PrettyName: queryString,
+		Username:   queryString,
+		BubbleText: queryString,
+		Source:     source,
 	}
 	return res, nil
 }
@@ -432,7 +429,7 @@ func makeUserSearchResult(input keybase1.APIUserSearchResult, serviceName string
 
 	if input.Service != nil {
 		result.Username = input.Service.Username
-		result.ServiceName = string(input.Service.ServiceName)
+		serviceName := input.Service.ServiceName
 		result.Assertion = strings.ToLower(fmt.Sprintf("%s@%s", input.Service.Username, input.Service.ServiceName))
 		result.PrettyName = input.Service.Username
 		result.Label = input.Service.FullName
@@ -445,14 +442,13 @@ func makeUserSearchResult(input keybase1.APIUserSearchResult, serviceName string
 				result.Label = *input.Keybase.FullName
 			}
 			result.BubbleText = fmt.Sprintf("%s on %s, also %s on Keybase",
-				result.Username, strings.Title(result.ServiceName), result.KeybaseUsername)
+				result.Username, strings.Title(serviceName), result.KeybaseUsername)
 		} else {
-			result.BubbleText = fmt.Sprintf("%s on %s", result.Username, strings.Title(result.ServiceName))
+			result.BubbleText = fmt.Sprintf("%s on %s", result.Username, strings.Title(serviceName))
 		}
 	} else if input.Keybase != nil {
 		result.Username = input.Keybase.Username
 		result.KeybaseUsername = result.Username
-		result.ServiceName = "keybase"
 		result.Uid = input.Keybase.Uid
 		result.Assertion = input.Keybase.Username
 		result.PrettyName = input.Keybase.Username

@@ -1,7 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
-import {capitalize} from 'lodash-es'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
@@ -106,4 +105,5 @@ export {
   parseRawResultToUser,
   userToSelectedUser,
   selfToUser,
+  resultSourceToService,
 }

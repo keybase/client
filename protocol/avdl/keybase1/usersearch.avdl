@@ -100,8 +100,8 @@ protocol userSearch {
         // necessarily "${username}@${serviceName}"
         string assertion;
 
-        string username; // Username on the service (or phone number, or e-mail, if from contacts)
-        string serviceName; // Service which the result comes from
+        // Username on the service (or phone number, or e-mail, if from contacts).
+        string username;
 
         // "Pretty name" for result rows and userboxes. For services and Keybase
         // it's always username. For contacts it depends on whether the contact is

@@ -418,7 +418,6 @@ type UserSearchResult struct {
 	Id              string            `codec:"id" json:"id"`
 	Assertion       string            `codec:"assertion" json:"assertion"`
 	Username        string            `codec:"username" json:"username"`
-	ServiceName     string            `codec:"serviceName" json:"serviceName"`
 	PrettyName      string            `codec:"prettyName" json:"prettyName"`
 	Label           string            `codec:"label" json:"label"`
 	BubbleText      string            `codec:"bubbleText" json:"bubbleText"`
@@ -435,7 +434,6 @@ func (o UserSearchResult) DeepCopy() UserSearchResult {
 		Id:              o.Id,
 		Assertion:       o.Assertion,
 		Username:        o.Username,
-		ServiceName:     o.ServiceName,
 		PrettyName:      o.PrettyName,
 		Label:           o.Label,
 		BubbleText:      o.BubbleText,

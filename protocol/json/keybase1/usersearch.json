@@ -313,10 +313,6 @@
         },
         {
           "type": "string",
-          "name": "serviceName"
-        },
-        {
-          "type": "string",
           "name": "prettyName"
         },
         {

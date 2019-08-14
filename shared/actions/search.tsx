@@ -11,6 +11,7 @@ import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
+import {resultSourceToService} from '../constants/team-building'
 
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
@@ -93,12 +94,14 @@ function _parseThirdPartyRawResult(result: RPCTypes.UserSearchResult): Types.Sea
     }
   }
 
+  const serviceName = resultSourceToService(result.source)
+
   return {
     id: result.assertion,
 
     leftFullname: result.label,
-    leftIcon: serviceIdToLogo24(serviceIdFromString(result.serviceName)),
-    leftService: Constants.serviceIdToService(result.serviceName),
+    leftIcon: serviceIdToLogo24(serviceIdFromString(serviceName)),
+    leftService: Constants.serviceIdToService(serviceName),
     leftUsername: result.username,
 
     ...getRightSide(),
