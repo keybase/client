@@ -625,12 +625,16 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	if getDisplayedStatus() {
 		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
 		t.clock.Sleep(t.validatedDelay)
+		// use a background context here in case our context has been canceled, we don't want to not
+		// get this banner off the screen.
 		if fullErr == nil {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithValidated()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		} else {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithNone()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithNone()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		}
