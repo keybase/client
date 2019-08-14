@@ -513,7 +513,15 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return false
+  }
   let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
