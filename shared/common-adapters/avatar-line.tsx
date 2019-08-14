@@ -39,7 +39,7 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor="white"
+            borderColor={Styles.globalColors.white}
             style={styles.avatar}
           />
         ))
