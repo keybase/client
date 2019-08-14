@@ -77,7 +77,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
     // Allow both argv1 and argv2 to be the link to support "/usr/lib/electron/electron path-to-app"-style
     // invocations (used in the Arch community packages).
     for (let link of commandLine.slice(1, 3)) {
-      if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
+      if (isRelevantDeepLink(link)) {
         sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
         return
       }
@@ -146,6 +146,10 @@ const handleCrashes = () => {
   }
 }
 
+const isRelevantDeepLink = x => {
+  return x.startsWith('web+stellar:') || x.startsWith('keybase://')
+}
+
 const createMainWindow = () => {
   mainWindow = MainWindow()
   tellMainWindowAboutMenubar()
@@ -165,9 +169,17 @@ const createMainWindow = () => {
       // stash a startupURL to be dispatched when we're ready for it.
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: DeeplinksGen.link})
       startupURL = null
-    } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
+    } else if (!isDarwin) {
       // Windows and Linux instead store a launch URL in argv.
-      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: DeeplinksGen.link})
+      let link: string | null = null
+      if (process.argv.length > 1 && isRelevantDeepLink(process.argv[1])) {
+        link = process.argv[1]
+      } else if (process.argv.length > 2 && isRelevantDeepLink(process.argv[2])) {
+        link = process.argv[2]
+      }
+      if (link) {
+        sendToMainWindow('dispatchAction', {payload: {link: link}, type: DeeplinksGen.link})
+      }
     }
   })
 }
