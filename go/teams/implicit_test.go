@@ -666,6 +666,25 @@ func TestBotMember(t *testing.T) {
 	require.Len(t, members.RestrictedBots, 1)
 	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
 
+	// we can change bot memberships, but cannot have a non-bot like role
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	require.NoError(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_BOT, nil)
+	require.NoError(t, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, botua.User.GetUID(), members.RestrictedBots[0].Uid)
+
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
 	require.NoError(t, err)
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
