@@ -12,28 +12,30 @@ const changeHelper = (
   diff: 1 | -1,
   error?: RPCError
 ) => {
-  draftState.counts = new Map(draftState.counts)
-  draftState.errors = new Map(draftState.errors)
+  const counts = new Map(draftState.counts)
+  const errors = new Map(draftState.errors)
 
   getKeys(keys).forEach(k => {
     const oldCount = draftState.counts.get(k) || 0
     // going from 0 => 1, clear errors
     if (oldCount === 0 && diff === 1) {
-      draftState.errors.delete(k)
+      errors.delete(k)
     } else {
       if (error) {
-        draftState.errors.set(k, error)
+        errors.set(k, error)
       }
     }
     const newCount = oldCount + diff
     if (newCount === 0) {
-      draftState.counts.delete(k)
+      counts.delete(k)
     } else {
-      draftState.counts.set(k, newCount)
+      counts.set(k, newCount)
     }
   })
 
   debugWaiting && console.log('DebugWaiting:', keys, draftState)
+  draftState.counts = counts
+  draftState.errors = errors
 }
 
 const initialState: Types.State = {
@@ -52,25 +54,28 @@ export default (state: Types.State = initialState, action: Waiting.Actions): Typ
       case 'common:resetStore':
         // Keep the old values else the keys will be all off and confusing
         debugWaiting && console.log('DebugWaiting:', '*resetStore*', draftState)
-        break
+        return
       case Waiting.decrementWaiting:
         changeHelper(draftState, action.payload.key, -1, action.payload.error)
-        break
+        return
       case Waiting.incrementWaiting:
         changeHelper(draftState, action.payload.key, 1)
-        break
-      case Waiting.clearWaiting:
-        draftState.counts = new Map(draftState.counts)
-        draftState.errors = new Map(draftState.errors)
+        return
+      case Waiting.clearWaiting: {
+        const counts = new Map(draftState.counts)
+        const errors = new Map(draftState.errors)
         getKeys(action.payload.key).forEach(key => {
           draftState.counts.delete(key)
           draftState.errors.delete(key)
         })
-        break
+        draftState.counts = counts
+        draftState.errors = errors
+        return
+      }
       case Waiting.batchChangeWaiting:
         action.payload.changes.forEach(({key, increment, error}) => {
           changeHelper(draftState, key, increment ? 1 : -1, error)
         })
-        break
+        return
     }
   })

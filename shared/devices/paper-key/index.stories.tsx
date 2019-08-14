@@ -25,8 +25,9 @@ const waitingStore = {
     })
   ),
   waiting: produce(store.waiting, draftState => {
-    draftState.counts = new Map(draftState.counts)
-    draftState.counts.set(Constants.waitingKey, 1)
+    const counts = new Map(draftState.counts)
+    counts.set(Constants.waitingKey, 1)
+    draftState.counts = counts
   }),
 }
 const load = () => {
