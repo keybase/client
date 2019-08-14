@@ -106,13 +106,10 @@ const ManageContactsBanner = () => {
       )}
       {!!error && (
         <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content="There was an error importing your contacts." />
           <Kb.BannerParagraph
             bannerColor="red"
-            content={[
-              'There was an error importing your contacts. ',
-              {onClick: onSendFeedback, text: 'Send feedback'},
-              ' if the problem continues.',
-            ]}
+            content={[{onClick: onSendFeedback, text: 'Send us feedback.'}]}
           />
         </Kb.Banner>
       )}
