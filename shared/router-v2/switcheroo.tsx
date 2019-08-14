@@ -29,7 +29,7 @@ class RouterSwitcheroo extends React.PureComponent<Props> {
 export default connect(
   state => ({isDarkMode: Constants.isDarkMode(state.config)}),
   dispatch => ({
-      persistRoute: (path: Array<any>) => dispatch(ConfigGen.createPersistRoute({path})),
+    persistRoute: (path: Array<any>) => dispatch(ConfigGen.createPersistRoute({path})),
     updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})

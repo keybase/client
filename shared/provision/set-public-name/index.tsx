@@ -15,9 +15,7 @@ const SetPublicName = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" gapStart={true}>
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-      {props.error ? (
-        <Kb.Banner color="red">{props.error}</Kb.Banner>
-      ) : ([])}
+        {props.error ? <Kb.Banner color="red">{props.error}</Kb.Banner> : []}
         <Kb.Text type={isMobile ? 'Body' : 'Header'}>
           Set a public name for this new {isMobile ? 'phone' : 'computer'}:
         </Kb.Text>
