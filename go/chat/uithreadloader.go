@@ -46,12 +46,8 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 }
 
 func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
-	typs []chat1.MessageType, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	matches func(msg chat1.MessageUnboxed) bool, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	var grouped []chat1.MessageUnboxed
-	typMap := make(map[chat1.MessageType]bool)
-	for _, t := range typs {
-		typMap[t] = true
-	}
 	addGrouped := func() {
 		if len(grouped) == 0 {
 			return
@@ -61,28 +57,29 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 	}
 	for _, msg := range msgs {
 		if msg.IsValid() {
-			body := msg.Valid().MessageBody
-			mtyp, err := body.MessageType()
-			if err == nil && typMap[mtyp] && !msg.Valid().ClientHeader.Sender.Eq(uid) {
+			if matches(msg) {
 				grouped = append(grouped, msg)
-			} else {
-				addGrouped()
-				res = append(res, msg)
+				continue
 			}
-		} else {
-			addGrouped()
-			res = append(res, msg)
 		}
+		addGrouped()
+		res = append(res, msg)
 	}
 	addGrouped()
 	return res
 }
 
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
+
+	// group JOIN/LEAVE messages
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
-		[]chat1.MessageType{chat1.MessageType_JOIN, chat1.MessageType_LEAVE},
+		func(msg chat1.MessageUnboxed) bool {
+			body := msg.Valid().MessageBody
+			mtyp, err := body.MessageType()
+			return (err == nil && (mtyp == chat1.MessageType_JOIN ||
+				mtyp == chat1.MessageType_LEAVE) && !msg.Valid().ClientHeader.Sender.Eq(uid))
+		},
 		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
-			mvalid := grouped[0].Valid()
 			var joiners, leavers []string
 			for _, j := range grouped {
 				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
@@ -91,6 +88,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 					leavers = append(leavers, j.Valid().SenderUsername)
 				}
 			}
+			mvalid := grouped[0].Valid()
 			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
 			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
 				Joiners: joiners,
@@ -98,6 +96,37 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			})
 			return chat1.NewMessageUnboxedWithValid(mvalid)
 		})
+
+	// group BULKADDTOCONV system messages
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs, func(msg chat1.MessageUnboxed) bool {
+		body := msg.Valid().MessageBody
+		mtyp, err := body.MessageType()
+		if err == nil && mtyp == chat1.MessageType_SYSTEM {
+			body := msg.Valid().MessageBody.System()
+			typ, err := body.SystemType()
+			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
+		}
+		return false
+	},
+		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
+			var usernames []string
+			for _, j := range grouped {
+				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
+					body := j.Valid().MessageBody.System()
+					typ, err := body.SystemType()
+					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
+						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
+					}
+				}
+			}
+			mvalid := grouped[0].Valid()
+			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
+			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+				Usernames: usernames,
+			}))
+			return chat1.NewMessageUnboxedWithValid(mvalid)
+		})
+
 	tv.Messages = newMsgs
 	return tv
 }
@@ -179,7 +208,7 @@ func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
 		return false
 	}
 	switch typ {
-	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE, chat1.MessageType_SYSTEM:
 		return true
 	default:
 		return false
