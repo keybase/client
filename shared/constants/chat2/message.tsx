@@ -1266,3 +1266,16 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
+
+export const messageAttachmentTransferStateToProgressLabel = (
+  transferState: Types.MessageAttachmentTransferState
+): string =>
+  transferState === 'downloading'
+    ? 'Downloading'
+    : transferState === 'uploading'
+    ? 'Uploading'
+    : transferState === 'mobileSaving'
+    ? 'Saving...'
+    : transferState === 'remoteUploading'
+    ? 'waiting...'
+    : ''
