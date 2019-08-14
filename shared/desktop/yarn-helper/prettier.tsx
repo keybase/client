@@ -13,7 +13,7 @@ const prettierWriteAll = () => {
 
   console.log('Using blacklist:', blackReg)
 
-  const files = execSync('git ls-files', {encoding: 'utf8', env: process.env})
+  const files = execSync('git ls-files', {encoding: 'utf8', env: process.env, maxBuffer: 50 * 1024 * 1024})
     .split('\n')
     .filter(a => {
       return jsFileReg.test(a) && !blackReg.test(`shared/${a}`)
