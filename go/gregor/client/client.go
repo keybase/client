@@ -165,7 +165,10 @@ func (c *Client) Stop() chan struct{} {
 	ch := make(chan struct{})
 	close(c.stopCh)
 	go func() {
-		_ = c.eg.Wait()
+		err := c.eg.Wait()
+		if err != nil {
+			c.Log.CDebugf(context.TODO(), "Error waiting during Stop: %+v", err)
+		}
 		close(ch)
 	}()
 	return ch
