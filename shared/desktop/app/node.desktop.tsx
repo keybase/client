@@ -74,9 +74,13 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
   if (commandLine.length > 1 && commandLine[1]) {
-    const link = commandLine[1]
-    if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
-      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+    // Allow both argv1 and argv2 to be the link to support "/usr/lib/electron/electron path-to-app"-style
+    // invocations (used in the Arch community packages).
+    for (let link of commandLine.slice(1, 3)) {
+      if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
+        sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+        return
+      }
     }
   }
 }
