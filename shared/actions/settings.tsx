@@ -15,6 +15,7 @@ import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
+import {RPCError} from 'util/errors'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -753,14 +754,16 @@ const addEmail = async (state: TypedState, action: SettingsGen.AddEmailPayload, 
     return SettingsGen.createAddedEmail({email})
   } catch (err) {
     logger.warn(`error: ${err.message}`)
-
-    const message =
-      err.code === RPCTypes.StatusCode.scratelimit
-        ? "Sorry, you've added too many email addresses lately. Please try again later."
-        : err.message
-    err.message = message
-    return SettingsGen.createAddedEmail({email, error: err})
+    return SettingsGen.createAddedEmail({email, error: transformEmailError(err)})
   }
+}
+
+const transformEmailError = (err: RPCError): string => {
+  switch (err.code) {
+    case RPCTypes.StatusCode.scratelimit:
+      return "Sorry, you've added too many email addresses lately. Please try again later."
+  }
+  return err.message
 }
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
