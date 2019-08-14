@@ -1,7 +1,8 @@
 import * as React from 'react'
 import {Box, Text, Icon, IconType} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import * as Styles from '../styles'
 import {Props} from './choice-list'
+import { darkColors } from '../styles/colors';
 
 const ChoiceList = ({options}: Props) => {
   return (
@@ -11,17 +12,17 @@ const ChoiceList = ({options}: Props) => {
         // TODO is this okay?
         const iconType: IconType = op.icon as IconType
         return (
-          <Box style={styleEntry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
-            <Box style={styleIconContainer} className="cl-icon-container">
+          <Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, Styles.desktopStyles.clickable, styles.entry])} key={idx} className="cl-entry" onClick={() => op.onClick()}>
+            <Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.iconContainer])} className="cl-icon-container">
               {typeof op.icon === 'string' ? (
-                <Icon style={styleIcon} type={iconType} className="cl-icon" />
+                <Icon style={styles.icon} type={iconType} className="cl-icon" />
               ) : (
-                <Box style={styleIcon} className="cl-icon">
+                <Box style={styles.icon} className="cl-icon">
                   {op.icon}
                 </Box>
               )}
             </Box>
-            <Box style={styleInfoContainer}>
+            <Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.infoContainer])}>
               <Text type="BodyBigLink">{op.title}</Text>
               <Text type="Body">{op.description}</Text>
             </Box>
@@ -37,7 +38,10 @@ const rawCSS = `
     background-color: transparent;
   }
   .cl-entry:hover {
-    background-color: ${globalColors.blueLighter2};
+    background-color: ${Styles.globalColors.blueLighter2};
+  }
+  .darkMode .cl-entry:hover {
+    background-color: ${darkColors.blueLighter2}
   }
 
   .cl-icon {
@@ -50,7 +54,6 @@ const rawCSS = `
 
   .cl-icon-container {
     transition: 0.5s background;
-    background: ${globalColors.greyLight};
     border-radius: 50%;
   }
   .cl-entry:hover .cl-icon-container {
@@ -58,33 +61,29 @@ const rawCSS = `
   }
 `
 
-const styleEntry = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  padding: `${globalMargins.tiny}px ${globalMargins.small}px`,
-  width: '100%',
-}
-
-const styleIconContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height: 80,
-  justifyContent: 'center',
-  width: 80,
-}
-
-const styleIcon = {
-  height: 48,
-  width: 48,
-}
-
-const styleInfoContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  flex: 1,
-  justifyContent: 'center',
-  marginLeft: globalMargins.small,
-  textAlign: 'left',
-}
+const styles = Styles.styleSheetCreate(() => ({
+  entry: {
+    padding: `${Styles.globalMargins.tiny}px ${Styles.globalMargins.small}px`,
+    width: '100%'
+  },
+  iconContainer: {
+    alignItems: 'center', 
+    justifyContent: 'center',
+    height: 80,
+    width: 80,
+    background: Styles.globalColors.greyLight,
+  },
+  icon: {
+    height: 48,
+    width: 48
+  },
+  infoContainer: {
+    alignItems: 'flex-start',
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.small,
+    textAlign: 'left', 
+  }
+}))
 
 export default ChoiceList
