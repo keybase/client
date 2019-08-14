@@ -82,7 +82,6 @@ protocol NotifyChat {
   record ExpungeInfo {
     ConversationID convID;
     Expunge expunge;
-    union { null, InboxUIItem } conv;
   }
 
   record EphemeralPurgeNotifInfo {

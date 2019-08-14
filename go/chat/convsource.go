@@ -866,21 +866,29 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
-		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
 		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
-			Conv:    inboxItem,
 		})
 		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+
+		// update inbox info as well
+		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "notifyExpunge: unable to IncrementLocalConvVersion, err", err)
+		}
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+			chat1.ConversationStaleUpdate{
+				ConvID:     convID,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+			},
+		})
 	}
 }
 
