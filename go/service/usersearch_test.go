@@ -253,6 +253,11 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 
 type errorContactsProvider struct{}
 
+func (c *errorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ contacts.Token) (res contacts.ContactLookupResults, err error) {
+	return res, errors.New("error contacts provider")
+}
+
 func (*errorContactsProvider) LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber,
 	keybase1.RegionCode) (res contacts.ContactLookupResults, err error) {
 	return res, errors.New("unexpected errorContactsProvider call")
