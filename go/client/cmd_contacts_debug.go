@@ -70,18 +70,6 @@ func (c *CmdContactLookup) Run() error {
 		return err
 	}
 
-	// echo '[{"name": "david", "components": [{"label": "", "email": "max@keyba.se"}]}]' | dk contacts lookup
-
-	//var email = "david@daviddworken.com"
-	//var email2 = keybase1.EmailAddress(email)
-	//t := keybase1.Contact{Name:"david", Components:[]keybase1.ContactComponent{{Label:"", Email:&email2}}}
-	//t2 := []keybase1.Contact{t}
-	//bytes, err = json.Marshal(t2)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(bytes))
-
 	var contacts []keybase1.Contact
 	err = json.Unmarshal(bytes, &contacts)
 	if err != nil {

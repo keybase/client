@@ -3289,10 +3289,13 @@ const createConversationFromTeamBuilder = (
   }),
 ]
 
-const loadContactLookup = (state: TypedState, action: Chat2Gen.LoadContactLookupPayload) =>
-    RPCTypes.contactsLookupContactListRpcPromise({contacts: [action.payload.contact], userRegionCode: 'us'})
-        .then((result: Array<RPCTypes.ProcessedContact> | null) => Chat2Gen.createLoadedContactLookup({payload: {data: result === null ? null : result[0]}}))
-        .catch(err => logger.warn('Error in looking up contact', err))
+const loadContactLookup = (_, action: Chat2Gen.LoadContactLookupPayload) =>
+  // userRegionCode is optional and is only used if a country code is not supplied. We always supply a country code here.
+  RPCTypes.contactsLookupContactListRpcPromise({contacts: [action.payload.contact], userRegionCode: ''})
+    .then((result: Array<RPCTypes.ProcessedContact> | null) =>
+      Chat2Gen.createLoadedContactLookup({data: result === null ? null : result[0]})
+    )
+    .catch(err => logger.warn('Error in looking up contact', err))
 
 export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   yield* commonTeamBuildingSaga('chat2')

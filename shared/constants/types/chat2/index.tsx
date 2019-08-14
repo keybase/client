@@ -120,7 +120,7 @@ export type _State = {
     Common.ConversationIDKey,
     I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  assertionToContactMap: I.Map<string, RPCTypes.ProcessedContact>, // cache for looking up phone/emails  // TODO(ddworken)
+  assertionToContactMap: I.Map<string, RPCTypes.ProcessedContact> // cache for looking up phone/emails
   badgeMap: ConversationCountMap // id to the badge count,
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
   focus: Focus

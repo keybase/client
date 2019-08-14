@@ -25,9 +25,9 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
+  assertionToContactMap: I.Map(),
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
-  assertionToContactMap: I.Map(),
   badgeMap: I.Map(),
   botCommandsUpdateStatusMap: I.Map(),
   commandMarkdownMap: I.Map(),

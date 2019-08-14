@@ -1051,7 +1051,7 @@ const rootReducer = (
     case Chat2Gen.updateConvExplodingModes: {
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
-          // @ts-ignore
+        // @ts-ignore
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
       }, {})
@@ -1391,15 +1391,16 @@ const rootReducer = (
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
     case Chat2Gen.loadedContactLookup: {
-      let data = action.payload.payload.data
-      if (!data) {
+      let data = action.payload.data
+      if (!data || !data.resolved) {
         return state
       }
       var d = {}
-      if (data.resolved) {
-        let key = data.component.phoneNumber || data.component.email
-        d[key] = data
+      let key = data.component.phoneNumber || data.component.email
+      if (!key) {
+        return state
       }
+      d[key] = data
       return state.merge({assertionToContactMap: state.assertionToContactMap.merge(d)})
     }
     // metaMap/messageMap/messageOrdinalsList only actions
@@ -1451,6 +1452,7 @@ const rootReducer = (
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
+    case Chat2Gen.loadContactLookup:
     case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.loadNewerMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
