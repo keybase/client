@@ -7,8 +7,6 @@ import platformPaths from '../../constants/platform-paths.desktop'
 // eslint-disable-next-line
 import punycode from 'punycode'
 
-const _process = process
-
 const safeReadJSONFile = (name: string) => {
   try {
     return (fs.existsSync(name) && JSON.parse(fs.readFileSync(name, 'utf8'))) || {}
@@ -26,6 +24,7 @@ const ipcMain = isRenderer ? Electron.remote.ipcMain : Electron.ipcMain
 const getCurrentWindow = isRenderer ? Electron.remote.getCurrentWindow : undefined
 const BrowserWindow = isRenderer ? Electron.remote.BrowserWindow : Electron.BrowserWindow
 const clipboard = isRenderer ? Electron.remote.clipboard : Electron.clipboard
+const Menu = Electron.Menu
 
 const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
 const paths = platformPaths(process.platform, runMode, process.env, path.join)
@@ -51,7 +50,16 @@ target.KB = {
       readImage: () => clipboard.readImage(),
     },
     currentWindow: {
+      close: () => getCurrentWindow && getCurrentWindow().close(),
       hide: () => getCurrentWindow && getCurrentWindow().hide(),
+      onShow: (cb: () => void) => getCurrentWindow && getCurrentWindow().on('show', cb),
+      popup: (m: Electron.Menu) => getCurrentWindow && m.popup({window: getCurrentWindow()}),
+      removeListenerShow: (cb: () => void) =>
+        getCurrentWindow && getCurrentWindow().removeListener('show', cb),
+      webContents: {
+        onContextMenu: (cb: (event: Electron.Event, params: Electron.ContextMenuParams) => void) =>
+          getCurrentWindow && getCurrentWindow().webContents.on('context-menu', cb),
+      },
     },
     ipcMain: {
       onExecuteActions: (cb: (...a: Array<any>) => void) => {
@@ -63,6 +71,11 @@ target.KB = {
         ipcRenderer && ipcRenderer.send('executeActions', actions),
       sendShowTray: (icon: string, iconSelected: string, badgeCount: number) =>
         ipcRenderer && ipcRenderer.send('showTray', icon, iconSelected, badgeCount),
+    },
+    menu: {
+      setApplicationMenu: (menu: Electron.Menu) => Electron.Menu.setApplicationMenu(menu),
+      buildFromTemplate: (template: Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)>) =>
+        Menu.buildFromTemplate(template),
     },
     shell: {
       openExternal: (url: string): Promise<void> => shell.openExternal(url),
@@ -103,10 +116,11 @@ target.KB = {
     sep: path.sep,
   },
   process: {
-    argv: _process.argv,
-    env: _process.env,
-    pid: _process.pid,
-    platform: _process.platform,
+    argv: process.argv,
+    env: process.env,
+    pid: process.pid,
+    platform: process.platform,
+    type: process.type,
   },
   punycode, // used by a dep
 }

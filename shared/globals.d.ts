@@ -61,7 +61,14 @@ declare var KB: {
       readImage: () => Electron.NativeImage
     }
     currentWindow: {
+      close: () => void
       hide: () => void
+      onShow: (cb: () => void) => void
+      popup: (m: Electron.Menu) => void
+      removeListenerShow: (cb: () => void) => void
+      webContents: {
+        onContextMenu: (cb: (event: Electron.Event, params: Electron.ContextMenuParams) => void) => void
+      }
     }
     ipcRenderer: {
       sendExecuteActions: (actions: Array<'closePopups' | 'quitMainWindow' | 'quitApp'>) => void
@@ -69,6 +76,12 @@ declare var KB: {
     }
     ipcMain: {
       onExecuteActions: (cb: (...a: Array<any>) => void) => void
+    }
+    menu: {
+      setApplicationMenu: (menu: Electron.Menu) => void
+      buildFromTemplate: (
+        template: Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)>
+      ) => Electron.Menu
     }
     shell: {
       openExternal: (url: string) => Promise<void>
@@ -116,6 +129,7 @@ declare var KB: {
     env: {[key: string]: string | undefined}
     pid: number
     platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'
+    type: string | undefined
   }
   punycode: any
 }

@@ -1,4 +1,3 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {executeActionsForContext} from '../../util/quit-helper.desktop'
 import {isDarwin} from '../../constants/platform'
 
@@ -41,11 +40,7 @@ export default function makeMenu(window: any) {
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
               click: () => {
                 devToolsState = !devToolsState
-                SafeElectron.BrowserWindow.getAllWindows().map(bw =>
-                  devToolsState
-                    ? bw.webContents.openDevTools({mode: 'detach'})
-                    : bw.webContents.closeDevTools()
-                )
+                KB.DEV.toggleDevTools(devToolsState)
               },
               label: 'Toggle Developer Tools',
             },
@@ -58,7 +53,7 @@ export default function makeMenu(window: any) {
     submenu: [
       {
         click() {
-          SafeElectron.getShell().openExternal('https://keybase.io')
+          KB.electron.shell.openExternal('https://keybase.io')
         },
         label: 'Learn More',
       },
@@ -95,8 +90,8 @@ export default function makeMenu(window: any) {
         ...helpMenu,
       },
     ]
-    const menu = SafeElectron.Menu.buildFromTemplate(template)
-    SafeElectron.Menu.setApplicationMenu(menu)
+    const menu = KB.electron.menu.buildFromTemplate(template)
+    KB.electron.menu.setApplicationMenu(menu)
   } else {
     const template = [
       {
@@ -125,17 +120,17 @@ export default function makeMenu(window: any) {
         label: '&Help',
       },
     ]
-    const menu = SafeElectron.Menu.buildFromTemplate(template)
+    const menu = KB.electron.menu.buildFromTemplate(template)
     window.setAutoHideMenuBar(true)
     window.setMenuBarVisibility(false)
     window.setMenu(menu)
   }
 }
 
-export function setupContextMenu(window: any) {
-  const selectionMenu = SafeElectron.Menu.buildFromTemplate([{role: 'copy'}])
+export function setupContextMenu() {
+  const selectionMenu = KB.electron.menu.buildFromTemplate([{role: 'copy'}])
 
-  const inputMenu = SafeElectron.Menu.buildFromTemplate([
+  const inputMenu = KB.electron.menu.buildFromTemplate([
     {role: 'undo'},
     {role: 'redo'},
     {type: 'separator'},
@@ -146,12 +141,12 @@ export function setupContextMenu(window: any) {
     {role: 'selectall'},
   ])
 
-  window.webContents.on('context-menu', (_, props) => {
+  KB.electron.currentWindow.webContents.onContextMenu((_, props) => {
     const {selectionText, isEditable} = props
     if (isEditable) {
-      inputMenu.popup(window)
+      KB.electron.currentWindow.popup(inputMenu)
     } else if (selectionText && selectionText.trim() !== '') {
-      selectionMenu.popup(window)
+      KB.electron.currentWindow.popup(selectionMenu)
     }
   })
 }

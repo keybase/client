@@ -30,7 +30,7 @@ function _executeActions(actions: Array<Action>) {
         hideDockIcon()
         break
       case 'closePopups':
-        KB.app.emitCloseWindows()
+        KB.electron.app.emitCloseWindows()
         break
       case 'quitApp':
         quit()
@@ -67,5 +67,5 @@ const crossplatformQuit = (reason: Context) => {
 export {crossplatformQuit as quit}
 
 export function hideWindow() {
-  KB.currentWindow.hide()
+  KB.electron.currentWindow.hide()
 }

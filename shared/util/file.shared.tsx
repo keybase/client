@@ -3,8 +3,8 @@
 // TEMP
 
 function findAvailableFilename(
-  checkExists: (arg0: string) => Promise<boolean>,
-  filepath: string
+  _checkExists: (arg0: string) => Promise<boolean>,
+  _filepath: string
 ): Promise<string> {
   return Promise.reject(new Error('TEMP'))
   // const {name, ext, dir} = pathParse(filepath)
