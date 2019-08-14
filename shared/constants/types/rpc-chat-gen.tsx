@@ -529,7 +529,6 @@ export enum ChatActivityType {
   ephemeralPurge = 10,
   reactionUpdate = 11,
   messagesUpdated = 12,
-  convsUpdated = 13,
 }
 
 export enum ConversationBuiltinCommandTyp {
@@ -906,7 +905,7 @@ export type BotInfoHash = Bytes
 export type BotInfoResponse = {typ: BotInfoResponseTyp.uptodate} | {typ: BotInfoResponseTyp.info; info: BotInfo | null}
 export type BuiltinCommandGroup = {readonly typ: ConversationBuiltinCommandTyp; readonly commands?: Array<ConversationCommand> | null}
 export type ChannelNameMention = {readonly convID: ConversationID; readonly topicName: String}
-export type ChatActivity = {activityType: ChatActivityType.incomingMessage; incomingMessage: IncomingMessage | null} | {activityType: ChatActivityType.readMessage; readMessage: ReadMessageInfo | null} | {activityType: ChatActivityType.newConversation; newConversation: NewConversationInfo | null} | {activityType: ChatActivityType.setStatus; setStatus: SetStatusInfo | null} | {activityType: ChatActivityType.failedMessage; failedMessage: FailedMessageInfo | null} | {activityType: ChatActivityType.membersUpdate; membersUpdate: MembersUpdateInfo | null} | {activityType: ChatActivityType.setAppNotificationSettings; setAppNotificationSettings: SetAppNotificationSettingsInfo | null} | {activityType: ChatActivityType.teamtype; teamtype: TeamTypeInfo | null} | {activityType: ChatActivityType.expunge; expunge: ExpungeInfo | null} | {activityType: ChatActivityType.ephemeralPurge; ephemeralPurge: EphemeralPurgeNotifInfo | null} | {activityType: ChatActivityType.reactionUpdate; reactionUpdate: ReactionUpdateNotif | null} | {activityType: ChatActivityType.messagesUpdated; messagesUpdated: MessagesUpdated | null} | {activityType: ChatActivityType.convsUpdated; convsUpdated: ConvsUpdated | null} | {activityType: ChatActivityType.reserved}
+export type ChatActivity = {activityType: ChatActivityType.incomingMessage; incomingMessage: IncomingMessage | null} | {activityType: ChatActivityType.readMessage; readMessage: ReadMessageInfo | null} | {activityType: ChatActivityType.newConversation; newConversation: NewConversationInfo | null} | {activityType: ChatActivityType.setStatus; setStatus: SetStatusInfo | null} | {activityType: ChatActivityType.failedMessage; failedMessage: FailedMessageInfo | null} | {activityType: ChatActivityType.membersUpdate; membersUpdate: MembersUpdateInfo | null} | {activityType: ChatActivityType.setAppNotificationSettings; setAppNotificationSettings: SetAppNotificationSettingsInfo | null} | {activityType: ChatActivityType.teamtype; teamtype: TeamTypeInfo | null} | {activityType: ChatActivityType.expunge; expunge: ExpungeInfo | null} | {activityType: ChatActivityType.ephemeralPurge; ephemeralPurge: EphemeralPurgeNotifInfo | null} | {activityType: ChatActivityType.reactionUpdate; reactionUpdate: ReactionUpdateNotif | null} | {activityType: ChatActivityType.messagesUpdated; messagesUpdated: MessagesUpdated | null} | {activityType: ChatActivityType.reserved}
 export type ChatChannel = {readonly name: String; readonly public: Boolean; readonly membersType: String; readonly topicType: String; readonly topicName: String}
 export type ChatList = {readonly conversations?: Array<ConvSummary> | null; readonly offline: Boolean; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly pagination?: Pagination | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type ChatMessage = {readonly body: String}
@@ -952,7 +951,6 @@ export type ConversationSettingsLocal = {readonly minWriterRoleInfo?: Conversati
 export type ConversationStaleUpdate = {readonly convID: ConversationID; readonly updateType: StaleUpdateType}
 export type ConversationUpdate = {readonly convID: ConversationID; readonly existence: ConversationExistence}
 export type ConversationVers = Uint64
-export type ConvsUpdated = {readonly items?: Array<InboxUIItem> | null}
 export type Coordinate = {readonly lat: Double; readonly lon: Double; readonly accuracy: Double}
 export type DeleteConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type DeleteConversationRemoteRes = {readonly rateLimit?: RateLimit | null}

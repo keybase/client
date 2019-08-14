@@ -2017,7 +2017,6 @@ type serverChatListener struct {
 	reactionUpdate          chan chat1.ReactionUpdateNotif
 	messagesUpdated         chan chat1.MessagesUpdated
 	readMessage             chan chat1.ReadMessageInfo
-	convsUpdated            chan []chat1.InboxUIItem
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -2086,8 +2085,6 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.messagesUpdated <- activity.MessagesUpdated()
 	case chat1.ChatActivityType_SET_STATUS:
 		n.setStatus <- activity.SetStatus()
-	case chat1.ChatActivityType_CONVS_UPDATED:
-		n.convsUpdated <- activity.ConvsUpdated().Items
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2149,7 +2146,6 @@ func newServerChatListener() *serverChatListener {
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
-		convsUpdated:            make(chan []chat1.InboxUIItem, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),

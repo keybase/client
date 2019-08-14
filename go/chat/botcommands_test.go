@@ -84,12 +84,9 @@ func TestBotCommandManager(t *testing.T) {
 		}
 	}
 	select {
-	case items := <-listener0.convsUpdated:
+	case items := <-listener0.threadsStale:
 		require.Equal(t, 1, len(items))
-		require.Equal(t, impConv.Id.String(), items[0].ConvID)
-		typ, err := items[0].BotCommands.Typ()
-		require.NoError(t, err)
-		require.Equal(t, chat1.ConversationCommandGroupsTyp_CUSTOM, typ)
+		require.Equal(t, impConv.Id, items[0].ConvID)
 	case <-time.After(timeout):
 		require.Fail(t, "no stale")
 	}
