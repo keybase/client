@@ -279,7 +279,7 @@ export const waitingKeyConvStatusChange = (conversationIDKey: Types.Conversation
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
-  state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
+  [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))
 
 /**
  * Gregor key for exploding conversations
