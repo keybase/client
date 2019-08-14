@@ -6935,8 +6935,16 @@ func TestTeamBotSettings(t *testing.T) {
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
 			botua := users[1]
 			botua2 := users[2]
+
+			botuaListener := newServerChatListener()
+			ctc.as(t, botua).h.G().NotifyRouter.AddListener(botuaListener)
+			ctc.world.Tcs[botua.Username].ChatG.Syncer.(*Syncer).isConnected = true
+			botuaListener2 := newServerChatListener()
+			ctc.as(t, botua2).h.G().NotifyRouter.AddListener(botuaListener2)
+			ctc.world.Tcs[botua2.Username].ChatG.Syncer.(*Syncer).isConnected = true
 			ctx := context.TODO()
 
 			var err error
@@ -6958,33 +6966,37 @@ func TestTeamBotSettings(t *testing.T) {
 				keybase1.TeamRole_RESTRICTEDBOT, &botSettings)
 			require.NoError(t, err)
 
-			// TODO remove
-			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
-				keybase1.TeamRole_BOT, nil)
-			require.NoError(t, err)
-
 			botSettings2 := keybase1.TeamBotSettings{
 				Mentions: true,
 			}
-			err = teams.EditMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
+			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
 				keybase1.TeamRole_RESTRICTEDBOT, &botSettings2)
 			require.NoError(t, err)
 
 			var unboxed chat1.UIMessage
-			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType) {
+			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType, l *serverChatListener) {
 				select {
-				case info := <-listener.newMessageRemote:
+				case info := <-l.newMessageRemote:
 					unboxed = info.Message
 					require.True(t, unboxed.IsValid(), "invalid message")
+					require.Equal(t, msgTyp, unboxed.GetMessageType(), "invalid type")
 					if botUID == nil {
 						require.Nil(t, unboxed.Valid().BotUID)
 					} else {
 						require.NotNil(t, unboxed.Valid().BotUID)
 						require.EqualValues(t, *botUID, *unboxed.Valid().BotUID)
 					}
-					require.Equal(t, msgTyp, unboxed.GetMessageType(), "invalid type")
 				case <-time.After(20 * time.Second):
 					require.Fail(t, "no event received")
+				}
+			}
+
+			assertNoMessage := func(l *serverChatListener) {
+				select {
+				case info := <-l.newMessageRemote:
+					unboxed = info.Message
+					require.Fail(t, "unexpected message received type %v", unboxed.GetMessageType())
+				default:
 				}
 			}
 
@@ -6999,7 +7011,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT)
+			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			t.Logf("send ephemeral message")
@@ -7007,7 +7021,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT)
+			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_TEXT, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			textUnboxed := unboxed
@@ -7026,7 +7042,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_REACTION)
+			consumeBotMessage(&botuaUID, chat1.MessageType_REACTION, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_REACTION, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_REACTION)
 
 			t.Logf("edit the message")
@@ -7045,7 +7063,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_EDIT)
+			consumeBotMessage(&botuaUID, chat1.MessageType_EDIT, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_EDIT, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
 
 			// Repost a reaction and ensure it is deleted
@@ -7053,7 +7073,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE)
+			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 
 			t.Logf("delete the message")
@@ -7067,7 +7089,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE)
+			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE, listener)
+			consumeBotMessage(&botuaUID, chat1.MessageType_DELETE, botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 
 			t.Logf("post headline")
@@ -7082,7 +7106,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(nil, chat1.MessageType_HEADLINE)
+			consumeBotMessage(nil, chat1.MessageType_HEADLINE, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
 
 			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
@@ -7102,7 +7128,7 @@ func TestTeamBotSettings(t *testing.T) {
 				select {
 				case teamChange := <-listener.teamChangedByID:
 					if teamChange.TeamID == team.ID &&
-						teamChange.LatestSeqno == 7 &&
+						teamChange.LatestSeqno == 6 &&
 						teamChange.Changes.Misc &&
 						teamChange.ImplicitTeam == (mt != chat1.ConversationMembersType_TEAM) {
 						found = true
@@ -7122,7 +7148,9 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT)
+			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT, botuaListener2)
+			assertNoMessage(botuaListener)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			// send as a bot
@@ -7142,7 +7170,9 @@ func TestTeamBotSettings(t *testing.T) {
 
 			_, err = ctc.as(t, botua2).chatLocalHandler().PostLocal(ctc.as(t, botua2).startCtx, larg)
 			require.NoError(t, err)
-			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT)
+			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(&botuaUID2, chat1.MessageType_TEXT, botuaListener2)
+			assertNoMessage(botuaListener)
 
 			// ensure gregor withholds messages for restricted bot members
 			// unless it is specifically keyed for them.
@@ -7198,12 +7228,16 @@ func TestTeamBotSettings(t *testing.T) {
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
 			consumeNewPendingMsg(t, listener)
-			consumeBotMessage(nil, chat1.MessageType_TEXT)
+			consumeBotMessage(nil, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(nil, chat1.MessageType_TEXT, botuaListener2)
+			assertNoMessage(botuaListener)
 
 			// botua2 can send without issue
 			_, err = ctc.as(t, botua2).chatLocalHandler().PostLocal(ctc.as(t, botua2).startCtx, larg)
 			require.NoError(t, err)
-			consumeBotMessage(nil, chat1.MessageType_TEXT)
+			consumeBotMessage(nil, chat1.MessageType_TEXT, listener)
+			consumeBotMessage(nil, chat1.MessageType_TEXT, botuaListener2)
+			assertNoMessage(botuaListener)
 		})
 	})
 }
