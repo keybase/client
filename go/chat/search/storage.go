@@ -490,9 +490,11 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		delete(te.MsgIDs, msgID)
 		if len(te.MsgIDs) == 0 {
 			s.deleteTokenEntry(ctx, uid, convID, token)
+		} else {
 			// If there are still IDs, just write out the updated version
-		} else if err := s.putTokenEntry(ctx, uid, convID, token, te); err != nil {
-			return err
+			if err := s.putTokenEntry(ctx, uid, convID, token, te); err != nil {
+				return err
+			}
 		}
 		// take out aliases
 		for alias := range aliases {
@@ -502,8 +504,10 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			}
 			if aliasEntry.remove(token) {
 				s.deleteAliasEntry(ctx, alias)
-			} else if err := s.putAliasEntry(ctx, alias, aliasEntry); err != nil {
-				return err
+			} else {
+				if err := s.putAliasEntry(ctx, alias, aliasEntry); err != nil {
+					return err
+				}
 			}
 		}
 	}

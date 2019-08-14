@@ -411,10 +411,12 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{reactionMsgID},
 		})
+	} else {
 		// bookkeep the reaction used so we can keep track of the user's
 		// popular reactions in the UI
-	} else if err := storage.NewReacjiStore(s.G()).PutReacji(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
-		s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
+		if err := storage.NewReacjiStore(s.G()).PutReacji(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
+			s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
+		}
 	}
 
 	return msg.ClientHeader, msg.MessageBody, nil
@@ -1082,9 +1084,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	unboxedMsg, err := s.boxer.UnboxMessage(ctx, *boxed, conv, &prepareRes.EncryptionInfo)
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
-	} else if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
-		[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
-		s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
+	} else {
+		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
+			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
+		}
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
 		*boxed, nil); err != nil {
@@ -1741,10 +1745,12 @@ func (s *Deliverer) deliverLoop() {
 				if s.shouldBreakLoop(bctx, obr) {
 					break
 				}
+			} else {
 				// BlockingSender actually does this too, so this will likely fail, but to maintain
 				// the types.Sender abstraction we will do it here too and likely fail.
-			} else if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
-				s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
+				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
+				}
 			}
 		}
 	}

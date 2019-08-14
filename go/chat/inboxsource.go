@@ -204,8 +204,10 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 		}, nil)
 	if err != nil {
 		b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
-	} else if len(ib.Convs) > 0 {
-		tlfname = ib.Convs[0].Info.TLFNameExpanded()
+	} else {
+		if len(ib.Convs) > 0 {
+			tlfname = ib.Convs[0].Info.TLFNameExpanded()
+		}
 	}
 	args := libkb.NewHTTPArgs()
 	args.Add("tlfname", libkb.S{Val: tlfname})
@@ -854,9 +856,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 				ConvsUnverified: convs,
 				Pagination:      pagination,
 			}
-		} else if dataSource == types.InboxSourceDataSourceLocalOnly {
-			s.Debug(ctx, "ReadUnverified: missed local storage, and in local only mode: %s", cerr)
-			return res, cerr
+		} else {
+			if dataSource == types.InboxSourceDataSourceLocalOnly {
+				s.Debug(ctx, "ReadUnverified: missed local storage, and in local only mode: %s", cerr)
+				return res, cerr
+			}
 		}
 	default:
 		cerr = storage.MissError{}

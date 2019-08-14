@@ -213,9 +213,11 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.Respons
 			return
 		}
 		http.ServeContent(w, req, ua.asset.Filename, time.Time{}, rs)
-	} else if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-		return
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
 }
 
@@ -487,9 +489,11 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 			return
 		}
 		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
-	} else if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-		return
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
 }
 
