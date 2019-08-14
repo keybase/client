@@ -570,6 +570,7 @@ async function manageContactsCache(
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
 }
