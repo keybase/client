@@ -1,3 +1,4 @@
+// TODO so convoluted, entirely remove this thing
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {quit} from '../desktop/app/ctl.desktop'
 import {hideDockIcon} from '../desktop/app/dock-icon.desktop'

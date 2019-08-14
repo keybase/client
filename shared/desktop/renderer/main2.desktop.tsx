@@ -54,18 +54,21 @@ const setupApp = (store, runSagas) => {
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
-  SafeElectron.getIpcRenderer().on('dispatchAction', (_: string, action: TypedActions) => {
-    // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
-    // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
-    setImmediate(() => {
-      try {
-        store.dispatch({
-          payload: action.payload,
-          type: action.type,
-        })
-      } catch (_) {}
+  SafeElectron.getRemote()
+    .getCurrentWindow()
+    // @ts-ignore custom action
+    .on('dispatchAction', (action: TypedActions) => {
+      // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
+      // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
+      setImmediate(() => {
+        try {
+          store.dispatch({
+            payload: action.payload,
+            type: action.type,
+          })
+        } catch (_) {}
+      })
     })
-  })
 
   // See if we're connected, and try starting keybase if not
   setImmediate(() => {

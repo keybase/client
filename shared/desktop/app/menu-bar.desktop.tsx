@@ -45,15 +45,15 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     updateIcon(false)
   }
 
-  SafeElectron.getIpcMain().on('showTray', (_, regular, selected, count) => {
-    setIcons(regular, selected)
-    const dock = SafeElectron.getApp().dock
-    if (dock && dock.isVisible()) {
-      SafeElectron.getApp().setBadgeCount(count)
-    }
-  })
-
   mb.on('ready', () => {
+    mb.window.on('showTray', ({icon, iconSelected, desktopAppBadgeCount}) => {
+      setIcons(icon, iconSelected)
+      const dock = SafeElectron.getApp().dock
+      if (dock && dock.isVisible()) {
+        SafeElectron.getApp().setBadgeCount(desktopAppBadgeCount)
+      }
+    })
+
     menubarWindowIDCallback(mb.window.id)
 
     if (showDevTools && !skipSecondaryDevtools) {

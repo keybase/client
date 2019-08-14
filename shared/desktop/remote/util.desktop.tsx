@@ -64,5 +64,5 @@ export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
 
 export const mainWindowDispatch = (action: TypedActions): void => {
   const mw = getMainWindow()
-  mw && mw.webContents.send('dispatchAction', action)
+  mw && mw.emit('dispatchAction', action)
 }
