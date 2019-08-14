@@ -904,8 +904,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			[]chat1.MessageUnboxed{*conversationLocal.Info.SnippetMsg}); err != nil {
 			s.Debug(ctx, "failed to transform message: id: %d err: %s",
 				conversationLocal.Info.SnippetMsg.GetMessageID(), err)
-		} else if len(newMsg) > 0 {
-			conversationLocal.Info.SnippetMsg = &newMsg[0]
+		} else {
+			if len(newMsg) > 0 {
+				conversationLocal.Info.SnippetMsg = &newMsg[0]
+			}
 		}
 	}
 

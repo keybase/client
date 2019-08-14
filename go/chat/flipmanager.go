@@ -959,8 +959,10 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	var outboxID chat1.OutboxID
 	if inOutboxID != nil {
 		outboxID = *inOutboxID
-	} else if outboxID, err = storage.NewOutboxID(); err != nil {
-		return err
+	} else {
+		if outboxID, err = storage.NewOutboxID(); err != nil {
+			return err
+		}
 	}
 
 	// Generate dev channel for game message
