@@ -648,22 +648,35 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
 	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamname,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+	return EditMemberByID(ctx, g, team.ID, username, role, botSettings)
+}
+
+func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
+
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err == errInviteRequired {
-		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
-		return editMemberInvite(ctx, g, teamname, username, role, uv, botSettings)
+		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamID, username)
+		return editMemberInvite(ctx, g, teamID, username, role, uv, botSettings)
 	}
 	if err != nil {
 		return err
 	}
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
 		if !t.IsMember(ctx, uv) {
-			return fmt.Errorf("user %q is not a member of team %q", username, teamname)
+			return fmt.Errorf("user %q is not a member of team %q", username, teamID)
 		}
 		existingRole, err := t.MemberRole(ctx, uv)
 		if err != nil {
@@ -683,9 +696,10 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	})
 }
 
-func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole,
+func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string, role keybase1.TeamRole,
 	uv keybase1.UserVersion, botSettings *keybase1.TeamBotSettings) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	if err != nil {
 		return err
 	}
@@ -698,7 +712,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 		return err
 	}
 	// use AddMember in case it's possible to add them directly now
-	if _, err := AddMember(ctx, g, teamname, username, role, nil); err != nil {
+	if _, err := AddMemberByID(ctx, g, teamID, username, role, nil); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
 		return err
 	}
@@ -1561,9 +1575,9 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:                      teamname,
-		StaleOK:                   true,
-		Public:                    false, // assume private team
+		Name:    teamname,
+		StaleOK: true,
+		Public:  false, // assume private team
 		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
