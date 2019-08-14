@@ -310,7 +310,10 @@ function* unboxRows(
       query: Constants.makeInboxQuery(conversationIDKeys),
       skipUnverified: true,
     },
-    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+    waitingKey:
+      action.type === Chat2Gen.metaRequestTrusted && action.payload.noWaiting
+        ? undefined
+        : Constants.waitingKeyUnboxing(conversationIDKeys[0]),
   })
 }
 
@@ -2423,6 +2426,7 @@ const refreshPreviousSelected = (state: TypedState) => {
     return Chat2Gen.createMetaRequestTrusted({
       conversationIDKeys: [state.chat2.previousSelectedConversation],
       force: true,
+      noWaiting: true,
     })
   }
   return undefined

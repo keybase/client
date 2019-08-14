@@ -117,6 +117,7 @@
     // Actually unboxing
     "metaRequestTrusted": {
       "force?": "boolean",
+      "noWaiting?": "boolean",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     // Got some new inbox rows
