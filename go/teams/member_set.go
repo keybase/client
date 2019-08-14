@@ -69,7 +69,9 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
 	}
-	set.restrictedBotSettings = req.RestrictedBots
+	for uv, settings := range req.RestrictedBots {
+		set.restrictedBotSettings[uv] = settings
+	}
 	return set, nil
 }
 
