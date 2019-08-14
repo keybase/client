@@ -65,7 +65,10 @@ func (r *Runner) Stop(ctx context.Context) chan struct{} {
 		close(r.stopCh)
 		r.started = false
 		go func() {
-			_ = r.eg.Wait()
+			err := r.eg.Wait()
+			if err != nil {
+				r.debug(ctx, "Couldn't wait while stopping stats: %+v", err)
+			}
 			close(ch)
 		}()
 	} else {
