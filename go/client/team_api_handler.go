@@ -204,22 +204,14 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 		return t.encodeErr(c, err, w)
 	}
 
-	type createResExportT struct {
-		ChatSent     bool `codec:"chatSent" json:"chatSent"`
-		CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
-	}
 	createRes, err := t.cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name: name.String(),
 	})
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}
-	createResExport := createResExportT{
-		ChatSent:     createRes.ChatSent,
-		CreatorAdded: createRes.CreatorAdded,
-	}
 
-	return t.encodeResult(c, createResExport, w)
+	return t.encodeResult(c, createRes, w)
 }
 
 type editMemberOptions struct {
