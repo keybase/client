@@ -107,6 +107,12 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
     }
   }
 
+  componentDidUpdate() {
+    if (this.props.acceptedDisclaimer) {
+      this.props.navigation.navigate('wallet')
+    }
+  }
+
   render() {
     return <OnboardingOrWalletsNavigator {...this.props} />
   }
@@ -116,7 +122,7 @@ const OnboardingOrWallets = Container.namedConnect(
     acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   }),
   undefined,
-  stateProps => ({...stateProps}),
+  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
   'OnboardingOrWallets'
 )(_OnboardingOrWallets)
 
