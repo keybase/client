@@ -62,6 +62,8 @@ type ContactUsernameAndFullName struct {
 
 type Token string
 
+const NoneToken Token = ""
+
 type ContactsProvider interface {
 	LookupAllWithToken(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode, Token) (ContactLookupResults, error)
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupResults, error)

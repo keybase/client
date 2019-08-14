@@ -31,7 +31,7 @@ func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
-	return c.LookupAllWithToken(mctx, emails, numbers, userRegion, "")
+	return c.LookupAllWithToken(mctx, emails, numbers, userRegion, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,

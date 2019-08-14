@@ -198,7 +198,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			randomNumber,
 		},
 		keybase1.RegionCode("US"),
-		"",
+		contacts.NoneToken,
 	)
 	require.NoError(t, err)
 
