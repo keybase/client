@@ -41,7 +41,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionButtons: {
     alignItems: 'stretch',
     height: 56,
@@ -82,6 +82,6 @@ const styles = Styles.styleSheetCreate({
   safeArea: {
     backgroundColor: Styles.globalColors.white,
   },
-})
+}))
 
 export default FloatingPicker

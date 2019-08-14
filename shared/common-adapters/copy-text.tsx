@@ -139,7 +139,7 @@ const CopyText: React.ComponentClass<OwnProps> = compose(
 )(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'stretch',
@@ -218,6 +218,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 5,
     },
   }),
-})
+}))
 
 export default CopyText

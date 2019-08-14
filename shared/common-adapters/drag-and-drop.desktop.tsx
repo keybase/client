@@ -98,7 +98,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   containerStyle: {
     position: 'relative',
   },
@@ -118,6 +118,6 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     width: 48,
   },
-})
+}))
 
 export default DragAndDrop

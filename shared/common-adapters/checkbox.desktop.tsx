@@ -55,7 +55,7 @@ class Checkbox extends Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.transition('background'),
@@ -103,6 +103,6 @@ const styles = Styles.styleSheetCreate({
   transparent: {
     opacity: 0,
   },
-})
+}))
 
 export default Checkbox
