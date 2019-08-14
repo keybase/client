@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
@@ -16,36 +15,23 @@ export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     lastUsed: d.device.lastUsedTime,
     name: d.device.name,
     provisionedAt: d.provisionedAt,
-    provisionerName: d.provisioner ? d.provisioner.name : '',
+    provisionerName: d.provisioner ? d.provisioner.name : undefined,
     revokedAt: d.revokedAt,
-    revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
+    revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
     type: Types.stringToDeviceType(d.device.type),
   })
 
-export const makeDevice = I.Record<Types._Device>({
+const emptyDevice = {
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),
   lastUsed: 0,
   name: '',
-  provisionedAt: 0,
-  provisionerName: null,
-  revokedAt: null,
-  revokedByName: null,
   type: Types.stringToDeviceType('desktop'),
-})
+}
 
-export const makeState = I.Record<Types._State>({
-  deviceMap: I.Map(),
-  endangeredTLFMap: I.Map(),
-  isNew: I.Set(),
-  justRevokedSelf: '',
-  newPaperkey: new HiddenString(''),
-  selectedDeviceID: null,
-})
-
-const emptyDevice = makeDevice()
-const emptySet = I.Set()
+export const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
+  d ? Object.assign({...emptyDevice}, d) : emptyDevice
 
 export const devicesTabLocation = isMobile
   ? [Tabs.settingsTab, SettingsConstants.devicesTab]

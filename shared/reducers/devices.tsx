@@ -1,47 +1,66 @@
-import * as I from 'immutable'
-import * as Constants from '../constants/devices'
-import * as Types from '../constants/types/devices'
+import * as Container from '../util/container'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
+import * as Types from '../constants/types/devices'
+import HiddenString from '../util/hidden-string'
 
-const initialState: Types.State = Constants.makeState()
+const initialState: Types.State = {
+  deviceMap: new Map(),
+  endangeredTLFMap: new Map(),
+  isNew: new Set(),
+  justRevokedSelf: '',
+  newPaperkey: new HiddenString(''),
+}
 
-export default function(
+export default (
   state: Types.State = initialState,
   action: DevicesGen.Actions | ProvisionGen.StartProvisionPayload
-): Types.State {
-  switch (action.type) {
-    case DevicesGen.resetStore:
-      return initialState
-    case DevicesGen.loaded:
-      return state.merge({deviceMap: I.Map(action.payload.devices.map(d => [d.deviceID, d]))})
-    case DevicesGen.endangeredTLFsLoaded:
-      return state.setIn(['endangeredTLFMap', action.payload.deviceID], I.Set(action.payload.tlfs))
-    case DevicesGen.showRevokePage:
-    case DevicesGen.showDevicePage: // fallthrough
-      return state.merge({selectedDeviceID: action.payload.deviceID})
-    case DevicesGen.showPaperKeyPage:
-      return state.merge({newPaperkey: initialState.newPaperkey})
-    case DevicesGen.paperKeyCreated:
-      return state.merge({newPaperkey: action.payload.paperKey})
-    case DevicesGen.revoked:
-      return action.payload.wasCurrentDevice
-        ? state.merge({justRevokedSelf: action.payload.deviceName})
-        : state
-    case DevicesGen.badgeAppForDevices: {
-      const newSet = I.Set<string>(action.payload.ids)
-      // We show our badges until we clear with the clearBadges call.
-      return state.merge({isNew: newSet.merge(state.isNew)})
+): Types.State =>
+  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
+    switch (action.type) {
+      case DevicesGen.resetStore:
+        return initialState
+      case DevicesGen.loaded: {
+        const deviceMap = new Map()
+        action.payload.devices.forEach(d => deviceMap.set(d.deviceID, d))
+        draftState.deviceMap = deviceMap
+        return
+      }
+      case DevicesGen.endangeredTLFsLoaded: {
+        const endangeredTLFMap = new Map(draftState.endangeredTLFMap)
+        endangeredTLFMap.set(action.payload.deviceID, new Set(action.payload.tlfs))
+        draftState.endangeredTLFMap = endangeredTLFMap
+        return
+      }
+      case DevicesGen.showRevokePage:
+      case DevicesGen.showDevicePage: // fallthrough
+        draftState.selectedDeviceID = action.payload.deviceID
+        return
+      case DevicesGen.showPaperKeyPage:
+      case DevicesGen.paperKeyCreated: // fallthrough
+        draftState.newPaperkey = initialState.newPaperkey
+        return
+      case DevicesGen.revoked:
+        if (action.payload.wasCurrentDevice) {
+          draftState.justRevokedSelf = action.payload.deviceName
+        }
+        return
+      case DevicesGen.badgeAppForDevices: {
+        const isNew = new Set(state.isNew)
+        // We show our badges until we clear with the clearBadges call.
+        action.payload.ids.forEach(id => isNew.add(id))
+        draftState.isNew = isNew
+        return
+      }
+      case DevicesGen.clearBadges:
+        draftState.isNew = initialState.isNew
+        return
+      case ProvisionGen.startProvision:
+        draftState.justRevokedSelf = ''
+        return
+      // Saga only actions
+      case DevicesGen.revoke:
+      case DevicesGen.load:
+        return
     }
-    case DevicesGen.clearBadges:
-      return state.merge({isNew: I.Set()})
-    case ProvisionGen.startProvision:
-      return state.merge({justRevokedSelf: ''})
-    // Saga only actions
-    case DevicesGen.revoke:
-    case DevicesGen.load:
-      return state
-    default:
-      return state
-  }
-}
+  })
