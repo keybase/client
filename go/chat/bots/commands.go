@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -415,19 +414,12 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 	if err := storage.NewInbox(b.G()).IncrementLocalConvVersion(ctx, b.uid, job.convID); err != nil {
 		b.Debug(ctx, "commandUpdate: unable to IncrementLocalConvVersion, err", err)
 	}
-	conv, err := utils.GetVerifiedConv(ctx, b.G(), b.uid, job.convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
-	username, err := b.getMyUsername(ctx)
-	if err != nil {
-		return err
-	}
-	act := chat1.NewChatActivityWithConvsUpdated(chat1.ConvsUpdated{
-		Items: []chat1.InboxUIItem{utils.PresentConversationLocal(ctx, conv, username)},
+	b.G().ActivityNotifier.ThreadsStale(ctx, b.uid, []chat1.ConversationStaleUpdate{
+		{
+			ConvID:     job.convID,
+			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+		},
 	})
-	b.G().ActivityNotifier.Activity(ctx, b.uid, chat1.TopicType_CHAT, &act,
-		chat1.ChatActivitySource_LOCAL)
 	return nil
 }
 

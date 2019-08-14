@@ -515,10 +515,6 @@ const onChatIdentifyUpdate = (_: TypedState, action: EngineGen.Chat1NotifyChatCh
 // Get actions to update messagemap / metamap when retention policy expunge happens
 const expungeToActions = (state: TypedState, expunge: RPCChatTypes.ExpungeInfo) => {
   const actions: Array<TypedActions> = []
-  const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
-  if (meta) {
-    actions.push(Chat2Gen.createMetasReceived({fromExpunge: true, metas: [meta]}))
-  }
   const conversationIDKey = Types.conversationIDToKey(expunge.convID)
   actions.push(
     Chat2Gen.createMessagesWereDeleted({
@@ -956,22 +952,7 @@ const onNewChatActivity = (
       }
       break
     }
-    case RPCChatTypes.ChatActivityType.convsUpdated: {
-      if (activity.convsUpdated) {
-        const inboxUIItems = activity.convsUpdated.items
-        const metas = (inboxUIItems || []).reduce<Array<Types.ConversationMeta>>((l, i) => {
-          const meta = Constants.inboxUIItemToConversationMeta(i)
-          if (meta) {
-            l.push(meta)
-          }
-          return l
-        }, [])
-        actions = [Chat2Gen.createMetasReceived({metas})]
-      }
-      break
-    }
   }
-
   return actions
 }
 

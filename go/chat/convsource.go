@@ -866,21 +866,29 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
-		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
 		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
-			Conv:    inboxItem,
 		})
 		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+
+		// update inbox info as well
+		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "notifyExpunge: unable to IncrementLocalConvVersion, err", err)
+		}
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+			{
+				ConvID:     convID,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+			},
+		})
 	}
 }
 
@@ -891,18 +899,18 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: notifying %d messages", len(msgs))
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
-	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs); err != nil {
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv, updatedMsgs); err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
 		return
 	}
@@ -913,7 +921,7 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
-	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+	s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(),
 		&act, chat1.ChatActivitySource_LOCAL)
 }
 
