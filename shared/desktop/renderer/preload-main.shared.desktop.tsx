@@ -24,6 +24,8 @@ const shell = isRenderer ? Electron.remote.shell : Electron.shell
 const ipcRenderer = isRenderer ? Electron.ipcRenderer : undefined
 const ipcMain = isRenderer ? Electron.remote.ipcMain : Electron.ipcMain
 const getCurrentWindow = isRenderer ? Electron.remote.getCurrentWindow : undefined
+const BrowserWindow = isRenderer ? Electron.remote.BrowserWindow : Electron.BrowserWindow
+const clipboard = isRenderer ? Electron.remote.clipboard : Electron.clipboard
 
 const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
 const paths = platformPaths(process.platform, runMode, process.env, path.join)
@@ -38,25 +40,38 @@ target.KB = {
   electron: {
     app: {
       emitCloseWindows: () => app.emit('close-windows'),
+      exit: (code: number) => app.exit(code),
       getAppPath: () => app.getAppPath(),
+    },
+    browserWindow: {
+      fromId: (id: number) => BrowserWindow.fromId(id),
+    },
+    clipboard: {
+      availableFormats: () => clipboard.availableFormats(),
+      readImage: () => clipboard.readImage(),
     },
     currentWindow: {
       hide: () => getCurrentWindow && getCurrentWindow().hide(),
     },
     ipcMain: {
-      on: (name: string, cb: (...a: Array<any>) => void) => {
-        ipcMain.on(name, cb)
+      onExecuteActions: (cb: (...a: Array<any>) => void) => {
+        ipcMain.on('executeActions', cb)
       },
     },
     ipcRenderer: {
       sendExecuteActions: (actions: Array<'closePopups' | 'quitMainWindow' | 'quitApp'>) =>
         ipcRenderer && ipcRenderer.send('executeActions', actions),
+      sendShowTray: (icon: string, iconSelected: string, badgeCount: number) =>
+        ipcRenderer && ipcRenderer.send('showTray', icon, iconSelected, badgeCount),
     },
     shell: {
       openExternal: (url: string): Promise<void> => shell.openExternal(url),
     },
     systemPreferences: {
       isDarkMode: () => systemPreferences.isDarkMode(),
+      subscribeNotification: (event: string, cb: (event: string, userInfo: any) => void) =>
+        systemPreferences.subscribeNotification(event, cb),
+      unsubscribeNotification: (id: number) => systemPreferences.unsubscribeNotification(id),
     },
   },
   fs: {

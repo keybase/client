@@ -50,22 +50,33 @@ declare var KB: {
   electron: {
     app: {
       emitCloseWindows: () => void
+      exit: (code: number) => void
       getAppPath: () => string
+    }
+    browserWindow: {
+      fromId: (id: number) => Electron.BrowserWindow | undefined
+    }
+    clipboard: {
+      availableFormats: () => Array<string>
+      readImage: () => Electron.NativeImage
     }
     currentWindow: {
       hide: () => void
     }
     ipcRenderer: {
       sendExecuteActions: (actions: Array<'closePopups' | 'quitMainWindow' | 'quitApp'>) => void
+      sendShowTray: (icon: string, iconSelected: string, badgeCount: number) => void
     }
     ipcMain: {
-      on: (name: string, cb: (...a: Array<any>) => void) => void
+      onExecuteActions: (cb: (...a: Array<any>) => void) => void
     }
     shell: {
       openExternal: (url: string) => Promise<void>
     }
     systemPreferences: {
       isDarkMode: () => boolean
+      subscribeNotification: (event: string, callback: (event: string, userInfo: any) => void) => number
+      unsubscribeNotification: (id: number) => void
     }
   }
   fs: {

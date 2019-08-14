@@ -3,7 +3,7 @@ import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import * as Container from '../util/container'
-import * as SafeElectron from '../util/safe-electron.desktop'
+import {BrowserWindow} from 'electron'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
@@ -16,7 +16,7 @@ const windowOpts = {}
 
 type Props = {
   desktopAppBadgeCount: number
-  externalRemoteWindow: SafeElectron.BrowserWindowType
+  externalRemoteWindow: BrowserWindow
   widgetBadge: BadgeType
   windowComponent: string
   windowOpts?: Object
@@ -25,7 +25,7 @@ type Props = {
   windowTitle: string
 }
 
-const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+const isDarkMode = () => isDarwin && KB.electron.systemPreferences.isDarkMode()
 
 const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -54,7 +54,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     subscriptionId: number | null = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
-      SafeElectron.getIpcRenderer().send('showTray', icon, iconSelected, this.props.desktopAppBadgeCount)
+      KB.electron.ipcRenderer.sendShowTray(icon, iconSelected, this.props.desktopAppBadgeCount)
       // Windows just lets us set (or unset, with null) a single 16x16 icon
       // to be used as an overlay in the bottom right of the taskbar icon.
       if (isWindows) {
@@ -78,8 +78,8 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     componentDidMount() {
       this._updateBadges()
 
-      if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-        this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+      if (isDarwin && KB.electron.systemPreferences.subscribeNotification) {
+        this.subscriptionId = KB.electron.systemPreferences.subscribeNotification(
           'AppleInterfaceThemeChangedNotification',
           () => {
             this._updateBadges()
@@ -88,8 +88,8 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       }
     }
     componentWillUnmount() {
-      if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-        SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
+      if (this.subscriptionId && KB.electron.systemPreferences.unsubscribeNotification) {
+        KB.electron.systemPreferences.unsubscribeNotification(this.subscriptionId || -1)
       }
     }
     render() {
@@ -137,7 +137,7 @@ let _lastClearCacheTrigger = 0
 // TODO better type
 const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{
-    externalRemoteWindow?: SafeElectron.BrowserWindowType
+    externalRemoteWindow?: BrowserWindow
   }> {
     render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }
@@ -162,7 +162,7 @@ export default Container.namedConnect(
       desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
       diskSpaceStatus: stateProps.diskSpaceStatus,
       externalRemoteWindow: stateProps._externalRemoteWindowID
-        ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
+        ? KB.electron.browserWindow.fromId(stateProps._externalRemoteWindowID)
         : null,
       fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
       following: stateProps._following,

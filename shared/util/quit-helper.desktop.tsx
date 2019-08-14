@@ -54,7 +54,7 @@ export function executeActionsForContext(context: Context) {
 }
 
 export function setupExecuteActionsListener() {
-  KB.electron.ipcMain.on('executeActions', (_, actions) => {
+  KB.electron.ipcMain.onExecuteActions((_, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
   })
