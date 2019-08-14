@@ -884,7 +884,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 			s.Debug(ctx, "notifyExpunge: unable to IncrementLocalConvVersion, err", err)
 		}
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-			chat1.ConversationStaleUpdate{
+			{
 				ConvID:     convID,
 				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
