@@ -1,12 +1,21 @@
 // This is a helper for remote windows.
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
-// We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
+// We start up and send an action to the main window which then sends us 'props'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {sendToMainWindow} from './util.desktop'
+import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
+import {TypedActions} from '../../actions/typed-actions-gen'
+import * as ConfigGen from '../../actions/config-gen'
 
 const updateStore = 'remoteStore:update'
+// Special action that's not sent
+type UpdateStoreAction = {
+  type: typeof updateStore
+  payload: {
+    propsStr: string
+  }
+}
 
 class RemoteStore {
   _window: SafeElectron.BrowserWindowType | null = null
@@ -37,11 +46,6 @@ class RemoteStore {
     this._window.on('props', this._onPropsUpdated)
   }
 
-  // Search for the main window and ask it directly for our props
-  _askMainWindowForOurProps = props => {
-    sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
-  }
-
   _reducer = (state: any, action: any) => {
     switch (action.type) {
       case updateStore: {
@@ -61,24 +65,32 @@ class RemoteStore {
     this._store = createStore(
       this._reducer,
       props.deserialize(undefined, undefined),
-      applyMiddleware(sendToRemoteMiddleware)
+      applyMiddleware(sendToRemoteMiddleware as any)
     )
     this._deserialize = props.deserialize
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
-    this._askMainWindowForOurProps(props)
+
+    // Search for the main window and ask it directly for our props
+    mainWindowDispatch(
+      ConfigGen.createRemoteWindowWantsProps({
+        component: props.windowComponent,
+        param: props.windowParam,
+      })
+    )
   }
 }
 
-const sendToRemoteMiddleware = ({getState}) => next => action => {
+const sendToRemoteMiddleware = () => (next: (action: TypedActions | UpdateStoreAction) => void) => (
+  action: TypedActions | UpdateStoreAction
+) => {
   if (action.constructor === Function) {
     throw new Error('pure actions only allowed in remote store2')
   } else if (action.type === updateStore) {
     // Don't forward our internal updateStore call
     return next(action)
   } else {
-    const {windowComponent, windowParam} = getState()
-    sendToMainWindow('dispatchAction', action, windowComponent, windowParam)
+    mainWindowDispatch(action)
   }
   return next(action)
 }

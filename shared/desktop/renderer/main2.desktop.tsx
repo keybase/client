@@ -12,7 +12,6 @@ import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {merge} from 'lodash-es'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
@@ -20,6 +19,7 @@ import {initDesktopStyles} from '../../styles/index.desktop'
 import {isDarwin} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
+import {TypedActions} from '../../actions/typed-actions-gen'
 
 // Top level HMR accept
 if (module.hot) {
@@ -54,23 +54,18 @@ const setupApp = (store, runSagas) => {
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
-  // Listen for the menubarWindowID
-  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (_, id) => {
-    store.dispatch(ConfigGen.createUpdateMenubarWindowID({id}))
-  })
-
-  SafeElectron.getIpcRenderer().on('dispatchAction', (_, action) => {
+  SafeElectron.getIpcRenderer().on('dispatchAction', (_: string, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
-    // _.merge() to get a plain object back out which we can send
     setImmediate(() => {
       try {
-        store.dispatch(merge({}, action))
+        store.dispatch({
+          payload: action.payload,
+          type: action.type,
+        })
       } catch (_) {}
     })
   })
-
-  SafeElectron.getIpcRenderer().send('mainWindowWantsMenubarWindowID')
 
   // See if we're connected, and try starting keybase if not
   setImmediate(() => {
@@ -93,8 +88,7 @@ const setupApp = (store, runSagas) => {
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  // Check for a startup URL
-  SafeElectron.getIpcRenderer().send('reduxLaunched')
+  SafeElectron.getIpcRenderer().send('keybase', {type: 'appStartedUp'})
 }
 
 const FontLoader = () => (

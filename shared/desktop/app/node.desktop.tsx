@@ -1,20 +1,22 @@
 // Entry point for the node part of the electron app
 import MainWindow from './main-window.desktop'
+import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import os from 'os'
+import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
-import {sendToMainWindow} from '../remote/util.desktop'
+import {mainWindowDispatch} from '../remote/util.desktop'
 import logger from '../../logger'
 
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
-let reduxLaunched = false
+let appStartedUp = false
 let startupURL: string | null = null
 
 const installCrashReporter = () => {
@@ -61,7 +63,7 @@ const appShouldDieOnStartup = () => {
   return false
 }
 
-const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
+const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
   if (!mainWindow) {
     return
   }
@@ -76,7 +78,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   if (commandLine.length > 1 && commandLine[1]) {
     const link = commandLine[1]
     if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
-      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+      mainWindowDispatch(DeeplinksGen.createLink({link}))
     }
   }
 }
@@ -98,72 +100,34 @@ const fixWindowsNotifications = () => {
   SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
 }
 
-let menubarWindowID = 0
-
-const tellMainWindowAboutMenubar = () => {
-  if (mainWindow && menubarWindowID) {
-    mainWindow.window.webContents.send('updateMenubarWindowID', menubarWindowID)
-  }
-}
-
-const setupMenubar = () => {
-  menuBar(id => {
-    menubarWindowID = id
-  })
-}
-
 const handleCrashes = () => {
   process.on('uncaughtException', e => {
     console.log('Uncaught exception on main thread:', e)
   })
 
-  if (!__DEV__) {
-    SafeElectron.getApp().on('browser-window-created', (_, win) => {
-      if (!win) {
-        return
-      }
+  if (__DEV__) {
+    return
+  }
 
-      win.on('unresponsive', e => {
-        console.log('Browser window unresponsive: ', e)
+  SafeElectron.getApp().on('browser-window-created', (_, win) => {
+    if (!win) {
+      return
+    }
+
+    win.on('unresponsive', e => {
+      console.log('Browser window unresponsive: ', e)
+      win.reload()
+    })
+
+    if (win.webContents) {
+      win.webContents.on('crashed', (_, killed) => {
+        if (killed) {
+          console.log('browser window killed')
+        } else {
+          console.log('browser window crashed')
+        }
         win.reload()
       })
-
-      if (win.webContents) {
-        win.webContents.on('crashed', (_, killed) => {
-          if (killed) {
-            console.log('browser window killed')
-          } else {
-            console.log('browser window crashed')
-          }
-          win.reload()
-        })
-      }
-    })
-  }
-}
-
-const createMainWindow = () => {
-  mainWindow = MainWindow()
-  tellMainWindowAboutMenubar()
-  SafeElectron.getIpcMain().on('mainWindowWantsMenubarWindowID', () => {
-    tellMainWindowAboutMenubar()
-  })
-
-  // A remote window wants props
-  SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
-    mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
-  })
-
-  SafeElectron.getIpcMain().on('reduxLaunched', () => {
-    reduxLaunched = true
-    if (startupURL) {
-      // Mac calls open-url for a launch URL before redux is up, so we
-      // stash a startupURL to be dispatched when we're ready for it.
-      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: DeeplinksGen.link})
-      startupURL = null
-    } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
-      // Windows and Linux instead store a launch URL in argv.
-      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: DeeplinksGen.link})
     }
   })
 }
@@ -195,7 +159,7 @@ const handleCloseWindows = () => {
   })
 }
 
-const handleQuitting = event => {
+const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
   executeActionsForContext('beforeQuit')
@@ -204,10 +168,38 @@ const handleQuitting = event => {
 const willFinishLaunching = () => {
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
-    if (!reduxLaunched) {
+    if (!appStartedUp) {
       startupURL = link
     } else {
-      sendToMainWindow('dispatchAction', {payload: {link}, type: DeeplinksGen.link})
+      mainWindowDispatch(DeeplinksGen.createLink({link}))
+    }
+  })
+}
+
+let menubarWindowID = 0
+
+type IPCPayload = {
+  type: 'appStartedUp'
+}
+
+const plumbEvents = () => {
+  Electron.ipcMain.on('keybase', (_: string, payload: IPCPayload) => {
+    switch (payload.type) {
+      case 'appStartedUp':
+        appStartedUp = true
+        if (menubarWindowID) {
+          mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
+        }
+        if (startupURL) {
+          // Mac calls open-url for a launch URL before redux is up, so we
+          // stash a startupURL to be dispatched when we're ready for it.
+          mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
+          startupURL = null
+        } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
+          // Windows and Linux instead store a launch URL in argv.
+          mainWindowDispatch(DeeplinksGen.createLink({link: process.argv[1]}))
+        }
+        break
     }
   })
 }
@@ -224,29 +216,38 @@ const start = () => {
   console.log('Version:', SafeElectron.getApp().getVersion())
 
   // Foreground if another instance tries to launch, look for SEP7 link
-  SafeElectron.getApp().on('second-instance', focusSelfOnAnotherInstanceLaunching)
+  SafeElectron.getApp().on('second-instance', (_, commandLine) =>
+    focusSelfOnAnotherInstanceLaunching(commandLine)
+  )
 
   fixWindowsNotifications()
   changeCommandLineSwitches()
 
   devTools()
-  // Load menubar and get its browser window id so we can tell the main window
-  setupMenubar()
 
-  SafeElectron.getApp().once('will-finish-launching', willFinishLaunching)
-  SafeElectron.getApp().once('ready', createMainWindow)
-  SafeElectron.getIpcMain().on('install-check', handleInstallCheck)
-  SafeElectron.getIpcMain().on('kb-service-check', handleKBServiceCheck)
+  plumbEvents()
+
+  // Load menubar and get its browser window id so we can tell the main window
+  menuBar(id => {
+    menubarWindowID = id
+  })
+
+  Electron.app.once('will-finish-launching', willFinishLaunching)
+  Electron.app.once('ready', () => {
+    mainWindow = MainWindow()
+  })
+  Electron.ipcMain.on('install-check', handleInstallCheck)
+  Electron.ipcMain.on('kb-service-check', handleKBServiceCheck)
 
   // Called when the user clicks the dock icon
-  SafeElectron.getApp().on('activate', handleActivate)
+  Electron.app.on('activate', handleActivate)
 
   // Don't quit the app, instead try to close all windows
   // @ts-ignore not in the docs so maybe it doesn't exist anymore? scared to change it now
-  SafeElectron.getApp().on('close-windows', handleCloseWindows)
+  Electron.app.on('close-windows', handleCloseWindows)
 
   // quit through dock. only listen once
-  SafeElectron.getApp().once('before-quit', handleQuitting)
+  Electron.app.once('before-quit', handleQuitting)
 
   setupExecuteActionsListener()
 }

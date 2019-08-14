@@ -1,6 +1,7 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import {TypedActions} from '../../actions/typed-actions-gen'
 
-function autoResize() {
+export const autoResize = () => {
   if (__STORYBOOK__) {
     return
   }
@@ -54,20 +55,14 @@ function autoResize() {
   }, 1)
 }
 
-const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
+export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
   const w = SafeElectron.BrowserWindow.getAllWindows().find(
     w => w.webContents.getURL().indexOf('/main.') !== -1
   )
   return w || null
 }
 
-const sendToMainWindow = (channel: string, ...args: Array<any>): boolean => {
+export const mainWindowDispatch = (action: TypedActions): void => {
   const mw = getMainWindow()
-  if (mw) {
-    mw.webContents.send(channel, ...args)
-    return true
-  }
-  return false
+  mw && mw.webContents.send('dispatchAction', action)
 }
-
-export {autoResize, getMainWindow, sendToMainWindow}
