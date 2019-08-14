@@ -71,11 +71,15 @@ const ManageContactsBanner = () => {
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
   const importedCount = Container.useSelector(s => s.settings.contacts.importedCount)
+  const error = Container.useSelector(s => s.settings.contacts.importError)
 
   const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
   const onStartChat = React.useCallback(() => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
     dispatch(appendNewChatBuilder())
+  }, [dispatch])
+  const onSendFeedback = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.feedbackTab]}))
   }, [dispatch])
 
   return (
@@ -96,6 +100,18 @@ const ManageContactsBanner = () => {
                 : "Keybase doesn't have permission to access your contacts. ",
               {onClick: onOpenAppSettings, text: 'Enable in settings'},
               '.',
+            ]}
+          />
+        </Kb.Banner>
+      )}
+      {!!error && (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph
+            bannerColor="red"
+            content={[
+              'There was an error importing your contacts. ',
+              {onClick: onSendFeedback, text: 'Send feedback'},
+              ' if the problem continues.',
             ]}
           />
         </Kb.Banner>
