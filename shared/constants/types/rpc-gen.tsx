@@ -1385,6 +1385,11 @@ export enum ConflictStateType {
   manualresolvinglocalview = 2,
 }
 
+export enum ContactSourceType {
+  phone = 0,
+  email = 1,
+}
+
 export enum DbType {
   main = 0,
   chat = 1,

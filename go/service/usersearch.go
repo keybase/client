@@ -251,16 +251,21 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 			}
 		}
 
+		displayName := entry.contact.DisplayName
+		displayLabel := entry.contact.DisplayLabel
+
 		userSearchResult := keybase1.UserSearchResult{
 			Id:          fmt.Sprintf("%s+%s", entry.contact.Assertion, entry.contact.Username),
 			Assertion:   entry.contact.Assertion,
 			Username:    entry.contact.Component.ValueString(),
 			ServiceName: entry.contact.Component.AssertionType(),
-			PrettyName:  entry.contact.DisplayName,
-			Label:       entry.contact.DisplayLabel,
+			PrettyName:  displayName,
+			Label:       displayLabel,
 
 			KeybaseUsername: entry.contact.Username,
 			Uid:             entry.contact.Uid,
+
+			BubbleText: fmt.Sprintf("%s %s (%s in contacts)", displayName, displayLabel, entry.contact.Component.ValueString()),
 
 			Source:   source,
 			RawScore: entry.rawScore,
@@ -321,6 +326,8 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		return nil, err
 	}
 
+	source := keybase1.NewUserSearchSourceDefault(keybase1.UserSearchSourceType_TOFU)
+
 	if len(lookupRes.Results) > 0 {
 		var uids []keybase1.UID
 		for _, v := range lookupRes.Results {
@@ -355,13 +362,17 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 				PrettyName:  queryString,
 				Username:    assertionValue,
 				ServiceName: "contact",
+				BubbleText:  assertionValue,
+				Source:      source,
 			}
 			if usernames != nil {
 				if uname, found := usernames[v.UID]; found {
 					res.KeybaseUsername = uname.Username
 					// Ignore full-name here, force queryString as `prettyName`
 					// part in order for it to be displayed in the list.
-					res.PrettyName = queryString
+					res.PrettyName = res.KeybaseUsername
+					res.Label = assertionValue
+					res.BubbleText = fmt.Sprintf("%s, %s on Keybase", assertionValue, res.KeybaseUsername)
 				}
 			}
 			return res, nil // return here - we only want one result
@@ -379,6 +390,8 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		PrettyName:  queryString,
 		Username:    queryString,
 		ServiceName: "contact",
+		BubbleText:  queryString,
+		Source:      source,
 	}
 	return res, nil
 }
@@ -444,9 +457,12 @@ func makeUserSearchResult(input keybase1.APIUserSearchResult, serviceName string
 		result.Assertion = input.Keybase.Username
 		result.PrettyName = input.Keybase.Username
 		if input.Keybase.FullName != nil {
-			result.Label = *input.Keybase.FullName
+			fullName := *input.Keybase.FullName
+			result.Label = fullName
+			result.BubbleText = fmt.Sprintf("%s on Keybase (%s)", result.Username, fullName)
+		} else {
+			result.BubbleText = fmt.Sprintf("%s on Keybase", result.Username)
 		}
-		result.BubbleText = fmt.Sprintf("%s on Keybase", result.Username)
 	}
 
 	result.Id = result.Assertion

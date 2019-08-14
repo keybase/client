@@ -74,6 +74,11 @@ protocol userSearch {
         case EMAIL: EmailAddress;
     }
 
+    enum ContactSourceType {
+        PHONE_0,
+        EMAIL_1
+    }
+
     enum UserSearchSourceType {
         KEYBASE_0,
         SOCIAL_1,
@@ -83,6 +88,8 @@ protocol userSearch {
 
     variant UserSearchSource switch (UserSearchSourceType t) {
         case SOCIAL: string;
+        // case CONTACTS: ContactSourceType;
+        // case TOFU: ContactSourceType;
         default: void;
     }
 
@@ -96,11 +103,11 @@ protocol userSearch {
         string username; // Username on the service (or phone number, or e-mail, if from contacts)
         string serviceName; // Service which the result comes from
 
-        // "Pretty name" for list of results. For services and Keybase it's always
-        // service username. For contacts it depends on whether the contact is on
-        // Keybase, and if we follow them or not.
+        // "Pretty name" for result rows and userboxes. For services and Keybase
+        // it's always username. For contacts it depends on whether the contact is
+        // on Keybase, and if we follow them or not.
         string prettyName;
-        // "Label" for list of results.
+        // "Label" / "subtitle" for result rows.
         string label;
 
         // Popup text when this user is selected to chat/team. Should be a
@@ -114,6 +121,7 @@ protocol userSearch {
         UID uid; // UID on Keybase if available - see above
 
         UserSearchSource source;
+        // Map (serviceName -> username) of social account this user has.
         map<string, string> serviceMap;
 
         double score;

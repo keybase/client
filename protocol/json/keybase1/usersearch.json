@@ -256,6 +256,14 @@
     },
     {
       "type": "enum",
+      "name": "ContactSourceType",
+      "symbols": [
+        "PHONE_0",
+        "EMAIL_1"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "UserSearchSourceType",
       "symbols": [
         "KEYBASE_0",

@@ -190,6 +190,9 @@ const fetchUserRecs = async (
         serviceMap: {},
         serviceName: 'contact',
         username: x.username || x.component.email || x.component.phoneNumber || '',
+        bubbleText: x.username
+          ? `${x.username} on Keybase, ${x.component.email || x.component.phoneNumber || ''}`
+          : `${x.displayName} ${x.displayLabel}`,
       })
     )
     let suggestions = suggestionRes.map(
@@ -197,11 +200,12 @@ const fetchUserRecs = async (
         assertion: username,
         id: username,
         keybaseUsername: username,
-        label: '',
-        prettyName: fullname,
+        label: fullname,
+        prettyName: username,
         serviceMap: {},
         serviceName: 'keybase',
         username: username,
+        bubbleText: `${username} on Keybase`,
       })
     )
     const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled && includeContacts

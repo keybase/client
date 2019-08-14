@@ -49,11 +49,19 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
 
 const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
+const resultSourceToService = (source: RPCTypes.UserSearchSource): Types.ServiceIdWithContact => {
+  switch (source.t) {
+    case RPCTypes.UserSearchSourceType.contacts:
+    case RPCTypes.UserSearchSourceType.tofu:
+      return 'contact'
+    case RPCTypes.UserSearchSourceType.social:
+      return source.social as Types.ServiceIdWithContact
+    case RPCTypes.UserSearchSourceType.keybase:
+      return 'keybase'
+  }
+}
+
 const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => {
-  const serviceName: Types.ServiceIdWithContact =
-    result.serviceName === 'phone' || result.serviceName === 'email'
-      ? 'contact'
-      : (result.serviceName as Types.ServiceIdWithContact)
   return {
     assertion: result.assertion,
     bubbleText: result.bubbleText,
@@ -62,7 +70,7 @@ const parseRawResultToUser = (result: RPCTypes.UserSearchResult): Types.User => 
     label: result.label,
     prettyName: result.prettyName,
     serviceMap: result.serviceMap || {},
-    serviceName,
+    serviceName: resultSourceToService(result.source),
     username: result.username,
   }
 }
@@ -71,7 +79,7 @@ const userToSelectedUser = (user: Types.User): Types.SelectedUser => {
   return {
     description: user.bubbleText,
     service: user.serviceName,
-    title: user.username,
+    title: user.prettyName,
     userId: user.id,
     usernameForAvatar: user.keybaseUsername,
   }

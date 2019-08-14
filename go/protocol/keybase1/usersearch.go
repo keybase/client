@@ -304,6 +304,32 @@ func (o ImpTofuQuery) DeepCopy() ImpTofuQuery {
 	}
 }
 
+type ContactSourceType int
+
+const (
+	ContactSourceType_PHONE ContactSourceType = 0
+	ContactSourceType_EMAIL ContactSourceType = 1
+)
+
+func (o ContactSourceType) DeepCopy() ContactSourceType { return o }
+
+var ContactSourceTypeMap = map[string]ContactSourceType{
+	"PHONE": 0,
+	"EMAIL": 1,
+}
+
+var ContactSourceTypeRevMap = map[ContactSourceType]string{
+	0: "PHONE",
+	1: "EMAIL",
+}
+
+func (e ContactSourceType) String() string {
+	if v, ok := ContactSourceTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UserSearchSourceType int
 
 const (
