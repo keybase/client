@@ -434,7 +434,7 @@ func TestAccountMerge(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("merged the second into the first")
 
-	err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
+	err = walletState.RefreshAll(alice.tc.MetaContext(), "test")
 	require.NoError(t, err)
 	endingBalances, err := walletState.Balances(ctx, firstAccountID)
 	require.NoError(t, err)
@@ -444,10 +444,4 @@ func TestAccountMerge(t *testing.T) {
 	lowerBoundFinalExpectedAmount := int64(stellarnet.StroopsPerLumen * 9999.999)
 	require.True(t, actualFinalAmount > lowerBoundFinalExpectedAmount)
 	t.Logf("value of the second account was merged into the first account")
-
-	accts, err := alice.stellarClient.GetWalletAccountsLocal(ctx, 0)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(accts))
-	require.Equal(t, firstAccountID, accts[0].AccountID)
-	t.Logf("the merged away account is no longer in the wallet bundle")
 }

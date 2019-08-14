@@ -1590,21 +1590,6 @@ func SetAccountAsPrimary(m libkb.MetaContext, walletState *WalletState, accountI
 	return walletState.UpdateAccountEntriesWithBundle(m, "set account as primary", &nextBundle)
 }
 
-func DeleteAccountIfEmpty(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) error {
-	funded, err := isAccountFunded(mctx.Ctx(), remoter, accountID)
-	if err != nil {
-		return err
-	}
-	if funded {
-		return fmt.Errorf("not deleting this account because it has lumens")
-	}
-	err = DeleteAccount(mctx, accountID)
-	if err != nil {
-		return fmt.Errorf("error deleting account: %+v", err)
-	}
-	return nil
-}
-
 func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")

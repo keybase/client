@@ -80,11 +80,10 @@ func (c *CmdWalletMerge) Run() (err error) {
 	if c.To == "" {
 		// if unspecified, default the target account to the user's primary
 		c.To = primary.AccountID.String()
-		ui.Printf("defaulting target to your primary account (%s): %v\n", primary.Name, ColorString(c.G(), "green", c.To))
+		ui.Printf("defaulting target to your primary account (%s: %v)\n", primary.Name, ColorString(c.G(), "green", c.To))
 	}
 
-	confirmationMsg := fmt.Sprintf("%s the secret key for %s\nand merge its assets into %s?", ColorString(c.G(), "red", "PERMANENTLY DELETE"),
-		ColorString(c.G(), "yellow", c.FromAccountID.String()), ColorString(c.G(), "green", c.To))
+	confirmationMsg := fmt.Sprintf("Merge all of the assets from %s into %s?", ColorString(c.G(), "yellow", c.FromAccountID.String()), ColorString(c.G(), "green", c.To))
 	if err := ui.PromptForConfirmation(confirmationMsg); err != nil {
 		return err
 	}
