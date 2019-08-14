@@ -520,7 +520,7 @@ async function manageContactsCache(
     })
   } catch (e) {
     logger.error(`error loading contacts: ${e.message}`)
-    return false
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
   }
   let defaultCountryCode: string = ''
   try {

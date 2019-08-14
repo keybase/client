@@ -116,6 +116,7 @@ export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
 export type _ContactsState = {
   importEnabled: boolean | null
+  importError: string
   importPromptDismissed: boolean
   importedCount: number | null
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
