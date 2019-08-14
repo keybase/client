@@ -166,3 +166,11 @@ In order to update the list of countries supported by Amazon SNS, run
 the [update-data.sh](https://github.com/keybase/client/blob/master/shared/util/phone-numbers/sms-support/update-data.sh)
 script. It will first fetch the JSON from Amazon's public S3 bucket and
 transform it for use in our internal country filtering code.
+
+### ESLint in VSCode
+
+VSCode's ESLint extension needs to know where to look for .eslintrc. Add this to `REPO/.vscode/settings.json`.
+
+```
+{ "eslint.workingDirectories": ["shared"] }
+```
