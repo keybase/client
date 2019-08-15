@@ -223,6 +223,7 @@ export type MessageSystemGitPush = Message.MessageSystemGitPush
 export type MessageSystemInviteAccepted = Message.MessageSystemInviteAccepted
 export type MessageSystemJoined = Message.MessageSystemJoined
 export type MessageSystemLeft = Message.MessageSystemLeft
+export type MessageSystemSBSResolbed = Message.MessageSystemSBSResolved
 export type MessageSystemSimpleToComplex = Message.MessageSystemSimpleToComplex
 export type MessageSystemText = Message.MessageSystemText
 export type MessageSystemUsersAddedToConversation = Message.MessageSystemUsersAddedToConversation

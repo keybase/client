@@ -326,7 +326,8 @@
         "GITPUSH_4",
         "CHANGEAVATAR_5",
         "CHANGERETENTION_6",
-        "BULKADDTOCONV_7"
+        "BULKADDTOCONV_7",
+        "SBSRESOLVE_8"
       ]
     },
     {
@@ -530,6 +531,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemSbsResolve",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "prover"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -592,6 +607,13 @@
             "def": false
           },
           "body": "MessageSystemBulkAddToConv"
+        },
+        {
+          "label": {
+            "name": "SBSRESOLVE",
+            "def": false
+          },
+          "body": "MessageSystemSbsResolve"
         }
       ]
     },
