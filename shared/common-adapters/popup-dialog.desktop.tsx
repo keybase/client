@@ -23,16 +23,31 @@ export function PopupDialog({
   styleClipContainer,
   allowClipBubbling,
 }: Props) {
+  const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
     <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
       <Box
         style={Styles.collapseStyles([styles.cover, styleCover])}
-        onClick={onClose}
-        onMouseUp={onMouseUp}
-        onMouseDown={onMouseDown}
+        onMouseUp={(e: React.MouseEvent) => {
+          if (mouseDownOnCover) {
+            onClose && onClose()
+          }
+          onMouseUp && onMouseUp(e)
+        }}
+        onMouseDown={(e: React.MouseEvent) => {
+          setMouseDownOnCover(true)
+          onMouseDown && onMouseDown(e)
+        }}
         onMouseMove={onMouseMove}
       >
-        <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
+        <Box
+          style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
+          onMouseDown={(e: React.BaseSyntheticEvent) => {
+            setMouseDownOnCover(false)
+            e.stopPropagation()
+          }}
+          onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
+        >
           {onClose && (
             <Icon
               type="iconfont-close"
