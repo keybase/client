@@ -132,7 +132,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
-  remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['menubar', ''], 0),
+  remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['menubar', ''], -1),
   showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,

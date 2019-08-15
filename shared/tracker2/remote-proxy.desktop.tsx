@@ -33,7 +33,7 @@ const trackerMapStateToProps = (state, ownProps) => {
     loggedIn: state.config.loggedIn,
     reason: d.reason,
     registeredForAirdrop: d.registeredForAirdrop,
-    remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['tracker2', ownProps.username], 0),
+    remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['tracker2', ownProps.username], -1),
     state: d.state,
     teamShowcase: d.teamShowcase,
     waiting: state.waiting.counts.get(Constants.waitingKey) || 0,

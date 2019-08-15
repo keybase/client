@@ -228,10 +228,11 @@ const start = () => {
     menubarWindowID = id
   })
 
+  plumbEvents()
+
   Electron.app.once('will-finish-launching', willFinishLaunching)
   Electron.app.once('ready', () => {
     mainWindow = MainWindow()
-    plumbEvents()
   })
 
   // Called when the user clicks the dock icon
