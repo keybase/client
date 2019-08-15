@@ -165,6 +165,7 @@ var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 	MessageType_TLFNAME,
 	MessageType_HEADLINE,
 	MessageType_DELETEHISTORY,
+	MessageType_PIN,
 }
 
 func DeletableMessageTypesByDelete() []MessageType {
@@ -178,6 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
+	MessageType_PIN,
+	MessageType_HEADLINE,
 }
 
 func VisibleChatMessageTypes() []MessageType {

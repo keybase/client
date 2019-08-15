@@ -1907,6 +1907,13 @@
           "name": "maxMessages"
         },
         {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "pinnedMsg"
+        },
+        {
           "type": "boolean",
           "name": "isEmpty"
         },

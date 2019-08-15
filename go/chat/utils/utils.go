@@ -998,6 +998,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 		return msg.Valid().MessageBody.Edit().Body
 	case chat1.MessageType_FLIP:
 		return msg.Valid().MessageBody.Flip().Text
+	case chat1.MessageType_PIN:
+		return "new pinned message"
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title

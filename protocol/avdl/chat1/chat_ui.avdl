@@ -114,6 +114,9 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+
+    // Pinned message
+    union { null, UIMessage } pinnedMsg;
   }
 
   record InboxUIItemError {

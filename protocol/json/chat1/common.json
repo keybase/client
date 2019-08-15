@@ -160,7 +160,8 @@
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
         "UNFURL_16",
-        "FLIP_17"
+        "FLIP_17",
+        "PIN_18"
       ],
       "go": "nostring"
     },
@@ -758,6 +759,13 @@
             "ConversationCreatorInfo"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": "Expunge",

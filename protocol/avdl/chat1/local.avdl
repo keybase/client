@@ -90,6 +90,10 @@ protocol local {
     array<KnownTeamMention> teamMentions;
   }
 
+  record MessagePin {
+    MessageID msgID;
+  }
+
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
@@ -603,6 +607,7 @@ protocol local {
     array<ConversationMetadata> supersededBy;
 
     array<MessageSummary> maxMessages; // the latest message for each message type
+    union { null, MessageUnboxed } pinnedMsg;
 
     // Whether this conversation has no content-ful messages.
     boolean isEmpty;
@@ -949,7 +954,7 @@ protocol local {
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
   record PreviewConversationLocalRes {
-    InboxUIItem conv;  
+    InboxUIItem conv;
     boolean offline;
     array<RateLimit> rateLimits;
   }

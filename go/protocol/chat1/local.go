@@ -3312,6 +3312,7 @@ type ConversationLocal struct {
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageSummary              `codec:"maxMessages" json:"maxMessages"`
+	PinnedMsg        *MessageUnboxed               `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
@@ -3380,6 +3381,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.MaxMessages),
+		PinnedMsg: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMsg),
 		IsEmpty: o.IsEmpty,
 		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
 			if x == nil {

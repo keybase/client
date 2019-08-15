@@ -452,6 +452,13 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "pinnedMsg"
         }
       ]
     },
