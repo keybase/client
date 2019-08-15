@@ -237,6 +237,7 @@ protocol local {
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
     case FLIP: MessageFlip;
+    case PIN: MessagePin;
   }
 
   record SenderPrepareOptions {
@@ -535,6 +536,7 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, MessageUnboxed } pinnedMsg;
     union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -607,7 +609,6 @@ protocol local {
     array<ConversationMetadata> supersededBy;
 
     array<MessageSummary> maxMessages; // the latest message for each message type
-    union { null, MessageUnboxed } pinnedMsg;
 
     // Whether this conversation has no content-ful messages.
     boolean isEmpty;

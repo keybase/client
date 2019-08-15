@@ -306,6 +306,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -852,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -1685,6 +1702,13 @@
         {
           "type": [
             null,
+            "MessageUnboxed"
+          ],
+          "name": "pinnedMsg"
+        },
+        {
+          "type": [
+            null,
             "string"
           ],
           "name": "draft"
@@ -1905,13 +1929,6 @@
             "items": "MessageSummary"
           },
           "name": "maxMessages"
-        },
-        {
-          "type": [
-            null,
-            "MessageUnboxed"
-          ],
-          "name": "pinnedMsg"
         },
         {
           "type": "boolean",

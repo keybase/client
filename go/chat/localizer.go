@@ -724,6 +724,25 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 	return res, nil
 }
 
+func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, valid bool, err error) {
+	s.Debug(ctx, "getPinnedMsg: resolving %v", pinMessage.GetMessageID())
+	if !pinMessage.IsValidFull() {
+		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
+		return pinnedMsg, false, nil
+	}
+	body := pinMessage.Valid().MessageBody
+	pinnedMsgID := body.Pin().MsgID
+	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, true, nil); err != nil {
+		return pinnedMsg, false, err
+	}
+	if !pinnedMsg.IsValidFull() {
+		s.Debug(ctx, "getPinnedMsg: not a valid pinned message")
+		return pinnedMsg, false, nil
+	}
+	return pinnedMsg, true, nil
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	rc types.RemoteConversation) (conversationLocal chat1.ConversationLocal) {
 	var err error
@@ -818,6 +837,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err == nil {
 			summaries = append(summaries, headlineSummary)
 		}
+		pinSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_PIN)
+		if err == nil {
+			summaries = append(summaries, pinSummary)
+		}
 		if len(summaries) == 0 {
 			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
 			if err == nil {
@@ -889,6 +912,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
 			case chat1.MessageType_HEADLINE:
 				conversationLocal.Info.Headline = body.Headline().Headline
+			case chat1.MessageType_PIN:
+				pinnedMsg, valid, err := s.getPinnedMsg(ctx, uid, conversationRemote.GetConvID(), mm)
+				if err != nil {
+					conversationLocal.Error = chat1.NewConversationErrorLocal(
+						fmt.Sprintf("unable to get pinned message: %s", err),
+						conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+					return conversationLocal
+				}
+				if valid {
+					conversationLocal.Info.PinnedMsg = &pinnedMsg
+				}
 			}
 			if mm.GetMessageID() >= maxValidID {
 				conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
