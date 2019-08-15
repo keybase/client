@@ -578,6 +578,7 @@ export type TypedActionsMap = {
   'people:dismissAnnouncement': people.DismissAnnouncementPayload
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
+  'people:setResentEmail': people.SetResentEmailPayload
   'pinentry:deleteEntity': pinentry.DeleteEntityPayload
   'pinentry:mergeEntity': pinentry.MergeEntityPayload
   'pinentry:replaceEntity': pinentry.ReplaceEntityPayload

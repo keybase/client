@@ -262,6 +262,7 @@ const VerifyAllEmailConnector = connect(
   dispatch => ({
     _onConfirm: email => {
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
+      dispatch(PeopleGen.createSetResentEmail({email}))
     },
     onManage: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
@@ -281,7 +282,7 @@ const VerifyAllEmailConnector = connect(
         ...(meta
           ? [
               {
-                label: hasRecentVerifyEmail ? `Resend the verification email` : 'Verify',
+                label: hasRecentVerifyEmail ? `Send the verification email again` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
                 waiting: s._addingEmail && s._addingEmail === meta.email,
@@ -289,7 +290,7 @@ const VerifyAllEmailConnector = connect(
             ]
           : []),
         {
-          label: 'Manage email',
+          label: 'Manage emails',
           mode: 'Secondary',
           onClick: d.onManage,
         },

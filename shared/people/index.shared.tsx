@@ -3,6 +3,7 @@ import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import * as PeopleGen from '../actions/people-gen'
 import * as SignupGen from '../actions/signup-gen'
 import Todo from './todo/container'
 import FollowNotification from './follow-notification'
@@ -75,10 +76,35 @@ const EmailVerificationBanner = ({email}) => {
   )
 }
 
+const ResentEmailVerificationBanner = ({email}) => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(
+    () =>
+      // Only have a cleanup function
+      () =>
+        dispatch(
+          PeopleGen.createSetResentEmail({
+            email: '',
+          })
+        ),
+    []
+  )
+
+  return (
+    <Kb.Banner color="yellow">
+      <Kb.BannerParagraph
+        bannerColor="yellow"
+        content={`Check your inbox! A verification link was sent to ${email}.`}
+      />
+    </Kb.Banner>
+  )
+}
+
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     {!!props.signupEmail && <EmailVerificationBanner email={props.signupEmail} />}
+    {!!props.resentEmail && <ResentEmailVerificationBanner email={props.resentEmail} />}
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}

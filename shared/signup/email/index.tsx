@@ -4,29 +4,38 @@ import * as Styles from '../../styles'
 import {SignupScreen, errorBanner} from '../common'
 import {ButtonType} from '../../common-adapters/button'
 
-type Props = {
-  error: string
-  initialEmail?: string
-  onFinish: (email: string, searchable: boolean) => void
+export type Props = {
+  error: Error | null
+  initialEmail: string
+  onCreate: (email: string, searchable: boolean) => void
   onSkip?: () => void
+  waiting: boolean
 }
 
 const EnterEmail = (props: Props) => {
   const [email, onChangeEmail] = React.useState(props.initialEmail || '')
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !email
-  const onContinue = () => (disabled ? {} : props.onFinish(email, searchable))
+  const onContinue = () => (disabled ? {} : props.onCreate(email, searchable))
+
   return (
     <SignupScreen
-      banners={errorBanner(props.error)}
+      banners={errorBanner(props.error ? props.error.message : '')}
       buttons={[
-        {disabled, label: 'Finish', onClick: onContinue, type: 'Success'},
+        {
+          disabled,
+          label: 'Finish',
+          onClick: onContinue,
+          type: 'Success',
+          waiting: props.waiting,
+        },
         ...(!Styles.isMobile && props.onSkip
           ? [
               {
                 label: 'Skip for now',
                 onClick: props.onSkip,
                 type: 'Dim' as ButtonType,
+                waiting: props.waiting,
               },
             ]
           : []),

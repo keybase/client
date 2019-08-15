@@ -10,6 +10,7 @@ export type Props = {
   onOpenAccountSwitcher?: () => void
   signupEmail: string
   showAirdrop: boolean
+  resentEmail: string
   myUsername: string
   waiting: boolean
 }
