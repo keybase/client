@@ -67,6 +67,9 @@ const EmailVerificationBanner = ({email}) => {
       () => dispatch(SignupGen.createClearJustSignedUpEmail()),
     []
   )
+  if (email === 'none') {
+    return <Kb.Banner color="green">{`Welcome to Keybase!`}</Kb.Banner>
+  }
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${email}.`}</Kb.Banner>
   )

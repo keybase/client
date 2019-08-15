@@ -258,7 +258,7 @@ const TeamShowcaseConnector = connect(
 )(Task)
 
 const VerifyAllEmailConnector = connect(
-  state => ({...mapStateToProps(state), _addedEmail: state.settings.email.addedEmail}),
+  state => ({...mapStateToProps(state), _addingEmail: state.settings.email.addingEmail}),
   dispatch => ({
     _onConfirm: email => {
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
@@ -284,7 +284,7 @@ const VerifyAllEmailConnector = connect(
                 label: hasRecentVerifyEmail ? `Resend the verification email` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
-                waiting: s._addedEmail && s._addedEmail === meta.email,
+                waiting: s._addingEmail && s._addingEmail === meta.email,
               },
             ]
           : []),

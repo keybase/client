@@ -35,6 +35,7 @@ type Props = {
   rememberPassword: boolean
   onChangeRememberPassword: (checked: boolean) => void
   onToggleRuntimeStats: () => void
+  onEnterPhoneFlow: () => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame

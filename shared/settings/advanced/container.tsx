@@ -53,6 +53,7 @@ const mapDispatchToProps = dispatch => ({
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
   onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false})),
+  onEnterPhoneFlow: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})),
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetDarkModePreference: (preference: DarkModePreference) =>
