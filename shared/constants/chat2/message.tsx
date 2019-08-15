@@ -1269,13 +1269,17 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
 
 export const messageAttachmentTransferStateToProgressLabel = (
   transferState: Types.MessageAttachmentTransferState
-): string =>
-  transferState === 'downloading'
-    ? 'Downloading'
-    : transferState === 'uploading'
-    ? 'Uploading'
-    : transferState === 'mobileSaving'
-    ? 'Saving...'
-    : transferState === 'remoteUploading'
-    ? 'waiting...'
-    : ''
+): string => {
+  switch (transferState) {
+    case 'downloading':
+      return 'Downloading'
+    case 'uploading':
+      return 'Uploading'
+    case 'mobileSaving':
+      return 'Saving...'
+    case 'remoteUploading':
+      return 'waiting...'
+    default:
+      return ''
+  }
+}
