@@ -79,8 +79,12 @@ const ManageContactsBanner = () => {
     dispatch(appendNewChatBuilder())
   }, [dispatch])
   const onSendFeedback = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.feedbackTab]}))
-  }, [dispatch])
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {feedback: `Contact import failed\n${error}\n\n`}, selected: Constants.feedbackTab}],
+      })
+    )
+  }, [dispatch, error])
 
   return (
     <>

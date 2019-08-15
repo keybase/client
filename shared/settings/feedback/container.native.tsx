@@ -19,6 +19,7 @@ export type State = {
 }
 export type Props = Kb.PropsWithTimer<{
   chat: Object
+  feedback: string
   loggedOut: boolean
   push: Object
   onBack: () => void
@@ -115,6 +116,7 @@ class FeedbackContainer extends React.Component<Props, State> {
           loggedOut={this.props.loggedOut}
           showInternalSuccessBanner={true}
           onFeedbackDone={() => null}
+          feedback={this.props.feedback}
         />
       </Kb.Box2>
     )
