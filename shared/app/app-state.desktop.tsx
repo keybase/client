@@ -1,3 +1,4 @@
+// TODO entirely remove this file
 // This is modified from https://github.com/mawie81/electron-window-state
 import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
@@ -64,11 +65,11 @@ export default class AppState {
     }
 
     // Listen to the main window asking for this value
-    SafeElectron.getIpcMain().on('getAppState', event => {
+    Electron.ipcMain.on('getAppState', event => {
       event.sender.send('getAppStateReply', this.state)
     })
 
-    SafeElectron.getIpcMain().on('setAppState', (_, data) => {
+    Electron.ipcMain.on('setAppState', (_, data) => {
       this.state = {
         ...this.state,
         ...data,
