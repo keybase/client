@@ -68,13 +68,27 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_: Container.TypedState, action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (
+  _: Container.TypedState,
+  action: ConfigGen.SetOpenAtLoginPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      type: 'set',
+      payload: {data: {openAtLogin: action.payload.open}},
+    })
+}
 
-const writeElectronSettingsNotifySound = (_: Container.TypedState, action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (
+  _: Container.TypedState,
+  action: ConfigGen.SetNotifySoundPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      type: 'set',
+      payload: {data: {notifySound: action.payload.sound}},
+    })
+}
 
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
@@ -120,8 +134,11 @@ function* initializeInputMonitor(): Iterable<any> {
 function* initializeAppSettingsState(): Iterable<any> {
   const getAppState = () =>
     new Promise(resolve => {
-      SafeElectron.getIpcRenderer().once('getAppStateReply', (_, data) => resolve(data))
-      SafeElectron.getIpcRenderer().send('getAppState')
+      SafeElectron.getApp().once(
+        'KBappState' as any,
+        (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
+      )
+      SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
     })
 
   const state = yield* Saga.callPromise(getAppState)
@@ -280,7 +297,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getIpcRenderer().send('keybase', {type: 'requestStartService'})
+    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
   }
 }
 
@@ -340,8 +357,16 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state: Container.TypedState) =>
-  SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
+const setUseNativeFrame = (state: Container.TypedState) => {
+  SafeElectron.getApp().emit('KBappState' as any, '', {
+    payload: {
+      data: {
+        useNativeFrame: state.settings.useNativeFrame,
+      },
+    },
+    type: 'set',
+  })
+}
 
 function* initializeUseNativeFrame() {
   const useNativeFrame = new AppState().state.useNativeFrame

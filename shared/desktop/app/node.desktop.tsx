@@ -166,7 +166,7 @@ let menubarWindowID = 0
 type IPCPayload = {type: 'appStartedUp'} | {type: 'requestStartService'} | {type: 'requestShowDockIcon'}
 
 const plumbEvents = () => {
-  Electron.ipcMain.on('keybase', (_: string, payload: IPCPayload) => {
+  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
     switch (payload.type) {
       case 'appStartedUp':
         appStartedUp = true
@@ -223,8 +223,6 @@ const start = () => {
 
   devTools()
 
-  plumbEvents()
-
   // Load menubar and get its browser window id so we can tell the main window
   menuBar(id => {
     menubarWindowID = id
@@ -233,6 +231,7 @@ const start = () => {
   Electron.app.once('will-finish-launching', willFinishLaunching)
   Electron.app.once('ready', () => {
     mainWindow = MainWindow()
+    plumbEvents()
   })
 
   // Called when the user clicks the dock icon

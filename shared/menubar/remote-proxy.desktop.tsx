@@ -54,10 +54,13 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     subscriptionId: number | null = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
-      this.props.externalRemoteWindow.emit('showTray', {
-        icon,
-        iconSelected,
-        desktopAppBadgeCount: this.props.desktopAppBadgeCount,
+      SafeElectron.getApp().emit('KBmenu', '', {
+        payload: {
+          desktopAppBadgeCount: this.props.desktopAppBadgeCount,
+          icon,
+          iconSelected,
+        },
+        type: 'showTray',
       })
       // Windows just lets us set (or unset, with null) a single 16x16 icon
       // to be used as an overlay in the bottom right of the taskbar icon.

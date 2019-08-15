@@ -34,7 +34,7 @@ function SyncPropsFactory(serializer: Serializer) {
             // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
             // the data a lot
             if (this.props.remoteWindow && Object.keys(props).length) {
-              this.props.remoteWindow.emit('props', JSON.stringify(props))
+              this.props.remoteWindow.emit('KBprops', JSON.stringify(props))
             }
           } catch (e) {
             console.error(e)

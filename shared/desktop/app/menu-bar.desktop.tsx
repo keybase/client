@@ -45,12 +45,26 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     updateIcon(false)
   }
 
+  type Action = {
+    type: 'showTray'
+    payload: {
+      icon: string
+      iconSelected: string
+      desktopAppBadgeCount: number
+    }
+  }
+
   mb.on('ready', () => {
-    mb.window.on('showTray', ({icon, iconSelected, desktopAppBadgeCount}) => {
-      setIcons(icon, iconSelected)
-      const dock = SafeElectron.getApp().dock
-      if (dock && dock.isVisible()) {
-        SafeElectron.getApp().setBadgeCount(desktopAppBadgeCount)
+    SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
+      switch (action.type) {
+        case 'showTray': {
+          setIcons(action.payload.icon, action.payload.iconSelected)
+          const dock = SafeElectron.getApp().dock
+          if (dock && dock.isVisible()) {
+            SafeElectron.getApp().setBadgeCount(action.payload.desktopAppBadgeCount)
+          }
+          break
+        }
       }
     })
 
