@@ -235,17 +235,17 @@ func (s *Server) AccountMergeCLILocal(ctx context.Context, arg stellar1.AccountM
 	}
 	mctx = mctx.WithUIs(uis)
 
-	signRes, _, err := stellar.AccountMerge(mctx, s.walletState, arg)
+	signRes, err := stellar.AccountMerge(mctx, s.walletState, arg)
 	if err != nil {
-		mctx.Debug("error building account-merge transaction for %s into %s: %v", arg.From, arg.To, err)
+		mctx.Debug("error building account-merge transaction for %s into %s: %v", arg.FromAccountID, arg.To, err)
 		return res, err
 	}
 	err = s.remoter.PostAnyTransaction(mctx, signRes.Signed)
 	if err != nil {
-		mctx.Debug("error posting account-merge transaction for %s into %s: %v", arg.From, arg.To, err)
+		mctx.Debug("error posting account-merge transaction for %s into %s: %v", arg.FromAccountID, arg.To, err)
 		return res, err
 	}
-	mctx.Debug("posted account merge transaction for %s into %s", arg.From, arg.To)
+	mctx.Debug("posted account merge transaction for %s into %s", arg.FromAccountID, arg.To)
 	err = s.walletState.RefreshAll(mctx, "account merge")
 	if err != nil {
 		mctx.Debug("error refreshing accounts after successfully processing a merge")

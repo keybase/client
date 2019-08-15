@@ -1608,8 +1608,9 @@ type SendPathCLILocalArg struct {
 }
 
 type AccountMergeCLILocalArg struct {
-	From AccountID `codec:"from" json:"from"`
-	To   string    `codec:"to" json:"to"`
+	FromAccountID AccountID  `codec:"fromAccountID" json:"fromAccountID"`
+	FromSecretKey *SecretKey `codec:"fromSecretKey,omitempty" json:"fromSecretKey,omitempty"`
+	To            string     `codec:"to" json:"to"`
 }
 
 type ClaimCLILocalArg struct {

@@ -2485,8 +2485,15 @@
     "accountMergeCLILocal": {
       "request": [
         {
-          "name": "from",
+          "name": "fromAccountID",
           "type": "AccountID"
+        },
+        {
+          "name": "fromSecretKey",
+          "type": [
+            null,
+            "SecretKey"
+          ]
         },
         {
           "name": "to",

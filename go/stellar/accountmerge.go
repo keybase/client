@@ -9,32 +9,46 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
-func AccountMerge(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.AccountMergeCLILocalArg) (res stellarnet.SignResult, from stellar1.AccountID, err error) {
+func AccountMerge(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.AccountMergeCLILocalArg) (res stellarnet.SignResult, err error) {
 	baseFee := walletState.BaseFee(mctx)
 	sp, unlock := NewClaimSeqnoProvider(mctx, walletState)
 	defer unlock()
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
-		return res, from, err
+		return res, err
 	}
 
-	bundleEntry, accountBundle, err := LookupSender(mctx, arg.From)
-	if err != nil {
-		return res, from, fmt.Errorf("account merge error looking up <from>: %v", err)
+	if arg.FromSecretKey == nil {
+		bundleEntry, accountBundle, err := LookupSender(mctx, arg.FromAccountID)
+		if err != nil {
+			return res, fmt.Errorf("account merge error looking up <from>: %v", err)
+		}
+		if len(accountBundle.Signers) == 0 {
+			return res, fmt.Errorf("secret key not found for %s", arg.FromAccountID)
+		}
+		if len(accountBundle.Signers) > 1 {
+			return res, fmt.Errorf("do not know how to handle multiple secret keys found for %s", arg.FromAccountID)
+		}
+		arg.FromSecretKey = &accountBundle.Signers[0]
+		arg.FromAccountID = bundleEntry.AccountID
+		mctx.Debug("account merge <from> lookup complete: %s", arg.FromAccountID)
 	}
-	fromSeed := stellarnet.SeedStr(accountBundle.Signers[0].SecureNoLogString())
-	mctx.Debug("account merge <from> lookup complete: %s -> %s", arg.From, bundleEntry.AccountID)
+	fromSeed := stellarnet.SeedStr(arg.FromSecretKey.SecureNoLogString())
+	mctx.Debug("account merge <from> seed lookup complete")
 
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), true /* isCLI */)
 	if err != nil {
-		return res, from, fmt.Errorf("account merge error looking up <to>: %v", err)
+		return res, fmt.Errorf("account merge error looking up <to>: %v", err)
 	}
 	toAddr := recipient.AccountID
-	mctx.Debug("account merge <to> lookup complete: %s -> %s", arg.To, toAddr)
+	if toAddr == nil {
+		return res, fmt.Errorf("cannot merge into a non-existing account")
+	}
+	mctx.Debug("account merge <to> lookup complete: %s", toAddr)
 
 	signedTx, err := stellarnet.AccountMergeTransaction(fromSeed, *toAddr, sp, tb, baseFee)
 	if err != nil {
-		return res, from, err
+		return res, err
 	}
-	return signedTx, bundleEntry.AccountID, nil
+	return signedTx, nil
 }
