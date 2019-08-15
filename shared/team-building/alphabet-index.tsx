@@ -31,7 +31,7 @@ const AlphabetIndex = (props: Props) => {
   }, 200)
   React.useEffect(storeMeasure, [])
 
-  const {labels, onScroll} = props
+  const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(
     (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
       if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
@@ -42,12 +42,13 @@ const AlphabetIndex = (props: Props) => {
           currIndex.current = index
           onScroll(labels[index])
         }
-        if (props.showNumSection && index >= labels.length && index < labels.length + 3) {
+        if (showNumSection && index >= labels.length && index < labels.length + 3) {
+          // last three are the '0 • 9'
           onScroll('numSection')
         }
       }
     },
-    [labels, onScroll, props.showNumSection]
+    [labels, onScroll, showNumSection]
   )
 
   const clearTouch = React.useCallback(() => {
