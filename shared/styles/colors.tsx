@@ -178,14 +178,20 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowLight: '#000233',
 }
 
-export const themed = Object.keys(colors).reduce<Object>((obj, name) => {
-  return Object.defineProperty(obj, name, {
-    configurable: false,
-    enumerable: true,
-    get() {
-      return isDarkMode() ? darkColors[name] : colors[name]
-    },
-  })
-}, {})
+type Color = typeof colors
+type Names = keyof Color
+
+const names: Array<Names> = Object.keys(colors) as any
+export const themed = names.reduce<Color>(
+  (obj, name) =>
+    Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
+    }),
+  {} as Color
+)
 
 export default colors

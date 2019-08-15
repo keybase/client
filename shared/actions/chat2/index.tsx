@@ -310,7 +310,10 @@ function* unboxRows(
       query: Constants.makeInboxQuery(conversationIDKeys),
       skipUnverified: true,
     },
-    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+    waitingKey:
+      action.type === Chat2Gen.metaRequestTrusted && action.payload.noWaiting
+        ? undefined
+        : Constants.waitingKeyUnboxing(conversationIDKeys[0]),
   })
 }
 
@@ -515,10 +518,6 @@ const onChatIdentifyUpdate = (_: TypedState, action: EngineGen.Chat1NotifyChatCh
 // Get actions to update messagemap / metamap when retention policy expunge happens
 const expungeToActions = (state: TypedState, expunge: RPCChatTypes.ExpungeInfo) => {
   const actions: Array<TypedActions> = []
-  const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
-  if (meta) {
-    actions.push(Chat2Gen.createMetasReceived({fromExpunge: true, metas: [meta]}))
-  }
   const conversationIDKey = Types.conversationIDToKey(expunge.convID)
   actions.push(
     Chat2Gen.createMessagesWereDeleted({
@@ -956,22 +955,7 @@ const onNewChatActivity = (
       }
       break
     }
-    case RPCChatTypes.ChatActivityType.convsUpdated: {
-      if (activity.convsUpdated) {
-        const inboxUIItems = activity.convsUpdated.items
-        const metas = (inboxUIItems || []).reduce<Array<Types.ConversationMeta>>((l, i) => {
-          const meta = Constants.inboxUIItemToConversationMeta(i)
-          if (meta) {
-            l.push(meta)
-          }
-          return l
-        }, [])
-        actions = [Chat2Gen.createMetasReceived({metas})]
-      }
-      break
-    }
   }
-
   return actions
 }
 
@@ -985,6 +969,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
       case 'attachmentuploaded':
       case 'reaction':
       case 'unfurl':
+      case 'tlfname':
         break
       default:
         arr.push(RPCChatTypes.MessageType[key])
@@ -1845,17 +1830,26 @@ const previewConversationTeam = (_: TypedState, action: Chat2Gen.PreviewConversa
             }),
           ]
         } else {
-          return undefined
+          return []
         }
       }
 
       const conversationIDKey = first.conversationIDKey
-      RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+      return RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
-      })
-      return Chat2Gen.createSelectConversation({
-        conversationIDKey,
-        reason: 'previewResolved',
+      }).then(results => {
+        const actions: Array<TypedActions> = []
+        const meta = Constants.inboxUIItemToConversationMeta(results.conv)
+        if (meta) {
+          actions.push(Chat2Gen.createMetasReceived({metas: [meta]}))
+        }
+        actions.push(
+          Chat2Gen.createSelectConversation({
+            conversationIDKey,
+            reason: 'previewResolved',
+          })
+        )
+        return actions
       })
     })
     .catch(err => {
@@ -2432,6 +2426,7 @@ const refreshPreviousSelected = (state: TypedState) => {
     return Chat2Gen.createMetaRequestTrusted({
       conversationIDKeys: [state.chat2.previousSelectedConversation],
       force: true,
+      noWaiting: true,
     })
   }
   return undefined

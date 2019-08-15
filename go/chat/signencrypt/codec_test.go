@@ -556,12 +556,12 @@ func TestCoverageHacks(t *testing.T) {
 	decoder.ChangePlaintextChunkLenForTesting(42)
 	// Try to open a packet longer than the internal buffer.
 	shouldPanic(t, func() {
-		decoder.openOnePacket(999)
+		_, _ = decoder.openOnePacket(999)
 	})
 	// Try to Finish with too much data in the buffer.
 	decoder.buf = bytes.Repeat([]byte{0}, 999)
 	shouldPanic(t, func() {
-		decoder.Finish()
+		_, _ = decoder.Finish()
 	})
 }
 
@@ -634,7 +634,8 @@ func TestVectors(t *testing.T) {
 
 		// Test open
 		decoder := zeroDecoder()
-		decoder.Write(sealedRef)
+		_, err = decoder.Write(sealedRef)
+		require.NoError(t, err)
 		opened, err := decoder.Finish()
 		if err != nil {
 			t.Fatalf("i:%d error opening: %v", i, err)

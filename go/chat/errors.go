@@ -159,7 +159,7 @@ func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
 
 //=============================================================================
 
-type EphemeralAlreadyExpiredError struct{ inner error }
+type EphemeralAlreadyExpiredError struct{}
 
 func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
 	return EphemeralAlreadyExpiredError{}

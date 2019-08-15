@@ -41,28 +41,35 @@ const contactProps = {
   onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
 }
 
+const eventHandlers = {
+  onBackspace: Sb.action('onBackspace'),
+  onChangeService: Sb.action('onChangeService'),
+  onChangeText: Sb.action('onChangeText'),
+  onClear: Sb.action('onClear'),
+  onDownArrowKeyDown: Sb.action('onDownArrowKeyDown'),
+  onEnterKeyDown: Sb.action('onEnterKeyDown'),
+  onFinishTeamBuilding: Sb.action('onFinishTeamBuilding'),
+  onMakeItATeam: Sb.action('onMakeItATeam'),
+  onRemove: Sb.action('onRemove'),
+  onUpArrowKeyDown: Sb.action('onUpArrowKeyDown'),
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
+        fetchUserRecs={() => {}}
         includeContacts={true}
+        recommendations={[]}
         searchString="chris"
         selectedService="keybase"
-        waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
+        showResults={false}
+        waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -146,22 +153,16 @@ const load = () => {
     .add('Team Building - No search string', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
         includeContacts={true}
+        title="The Title"
+        fetchUserRecs={() => {}}
+        recommendations={[]}
         searchString=""
         selectedService="keybase"
-        waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
+        showResults={false}
+        waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -244,8 +245,10 @@ const load = () => {
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
-        includeContacts={true}
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
+        includeContacts={true}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
@@ -258,16 +261,8 @@ const load = () => {
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
+        showResults={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -291,20 +286,14 @@ const load = () => {
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
         includeContacts={true}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
+        showResults={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -321,20 +310,14 @@ const load = () => {
     .add('Team Building - One line of users', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
+        showResults={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -401,20 +384,14 @@ const load = () => {
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
+        showResults={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -481,20 +458,14 @@ const load = () => {
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
         {...contactProps}
+        {...eventHandlers}
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
         showRecs={false}
+        showResults={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -561,14 +532,14 @@ const load = () => {
 
     .add('Input', () => (
       <Input
-        hasMembers={false}
         placeholder="Type in some input inside"
         searchString=""
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onBackspace={Sb.action('onBackspace')}
+        onChangeText={Sb.action('onChangeText')}
+        onClear={Sb.action('onClear')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
       />
     ))
     .add('TeamBox', () => (
@@ -598,7 +569,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Start" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)

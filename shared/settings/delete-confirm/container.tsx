@@ -1,27 +1,19 @@
+import * as Kb from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import DeleteConfirm, {Props} from '.'
-import React, {Component} from 'react'
+import React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
-  componentDidMount() {
-    this.props.setAllowDeleteAccount(false)
-    this.props.setTimeout(() => {
-      this.props.setAllowDeleteAccount(true)
-    }, 2000)
-  }
-
-  componentWillUnmount() {
-    this.props.setAllowDeleteAccount(false)
-  }
-
-  render() {
-    return <DeleteConfirm {...this.props} />
-  }
+const DeleteConfirmContainer = (props: Props) => {
+  const enableDeleteLater = Kb.useTimeout(() => props.setAllowDeleteAccount(true), 2000)
+  React.useEffect(() => {
+    props.setAllowDeleteAccount(false)
+    enableDeleteLater()
+  }, [])
+  return <DeleteConfirm {...props} />
 }
 
 export default Container.connect(
@@ -42,4 +34,4 @@ export default Container.connect(
   }),
 
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(HOCTimers(DeleteConfirmContainer))
+)(DeleteConfirmContainer)

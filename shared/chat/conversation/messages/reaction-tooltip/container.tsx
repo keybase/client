@@ -30,7 +30,7 @@ const emptyStateProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-  if (!message || message.type === 'placeholder' || message.type === 'deleted') {
+  if (!message || !Constants.isDecoratedMessage(message)) {
     return emptyStateProps
   }
   const _reactions = message.reactions

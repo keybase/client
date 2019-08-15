@@ -103,21 +103,20 @@ export default function(
         usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
           old.updateIn(
             ['assertions', action.payload.assertion.assertionKey],
-            (old = Constants.makeAssertion()) => old.merge(action.payload.assertion)
+            (old: any = Constants.makeAssertion()) => old.merge(action.payload.assertion)
           )
         ),
       })
     }
 
     case Tracker2Gen.updateFollowers: {
-      const convert = f => f.username
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn(
           [action.payload.username],
           (old = Constants.makeDetails()) =>
             old.merge({
-              followers: I.OrderedSet(action.payload.followers.map(convert)),
-              following: I.OrderedSet(action.payload.following.map(convert)),
+              followers: I.OrderedSet(action.payload.followers.map(f => f.username)),
+              following: I.OrderedSet(action.payload.following.map(f => f.username)),
             })
         ),
       })

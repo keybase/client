@@ -29,7 +29,7 @@ func (s *Headline) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	}
 	defer func() {
 		if err != nil {
-			s.getChatUI().ChatCommandStatus(ctx, convID, "Failed to set channel headline",
+			_ = s.getChatUI().ChatCommandStatus(ctx, convID, "Failed to set channel headline",
 				chat1.UICommandStatusDisplayTyp_ERROR, nil)
 		}
 	}()

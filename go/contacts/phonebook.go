@@ -70,13 +70,33 @@ type assertionToNameCache struct {
 
 const assertionToNameCurrentVer = 1
 
-func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
-	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
+	resolveResults, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	// find newly resolved
 	s := mctx.G().SyncedContactList
-	return s.SaveProcessedContacts(mctx, results)
+	currentContacts, err := s.RetrieveContacts(mctx)
+	if err == nil {
+		unres := make(map[string]struct{})
+		for _, contact := range currentContacts {
+			if !contact.Resolved {
+				unres[contact.Assertion] = struct{}{}
+			}
+		}
+
+		for _, result := range resolveResults {
+			if _, ok := unres[result.Assertion]; ok && result.Resolved {
+				newlyResolved = append(newlyResolved, result)
+			}
+		}
+	} else {
+		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
+	}
+
+	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
 }
 
 func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {

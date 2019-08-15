@@ -5,7 +5,6 @@ import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
-import flags from '../../util/feature-flags'
 
 export type Props = {
   addedEmail: string | null
@@ -68,9 +67,7 @@ const EmailPhone = (props: Props) => (
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
-      {flags.sbsContacts && (
-        <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
-      )}
+      <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
     </Kb.ButtonBar>
   </SettingsSection>
 )
@@ -143,9 +140,16 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your unverified phone number ${
+            content={`Your phone number ${
               props.supersededPhoneNumber
             } is now associated with another Keybase user.`}
+          />
+          <Kb.Button
+            onClick={props.onAddPhone}
+            label="Add a new number"
+            small={true}
+            backgroundColor="yellow"
+            style={styles.topButton}
           />
         </Kb.Banner>
       )}
@@ -196,6 +200,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
     },
   }),
+  topButton: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
 })
 
 export default Kb.HeaderHoc(AccountSettings)

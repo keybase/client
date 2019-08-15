@@ -282,14 +282,12 @@ func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
 		defer tc.Cleanup()
 		ctx := context.TODO()
 
-		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
 		for i := 0; i < 5; i++ {
-			obr, err := ob.PushMessage(ctx, conv.GetConvID(),
+			_, err := ob.PushMessage(ctx, conv.GetConvID(),
 				makeMsgPlaintext(fmt.Sprintf("hi%d", i), uid),
 				nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 			require.NoError(t, err)
-			obrs = append(obrs, obr)
 			cl.Advance(time.Millisecond)
 		}
 

@@ -58,12 +58,6 @@ func (s *sourceOfflinable) Disconnected(ctx context.Context) {
 	s.connected = makeConnectedChan()
 }
 
-func (s *sourceOfflinable) getOfflineInfo() (offline bool, connectedCh chan bool) {
-	s.Lock()
-	defer s.Unlock()
-	return s.offline, s.connected
-}
-
 func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 	s.Lock()
 	offline := s.offline

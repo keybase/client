@@ -32,7 +32,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       }
 
       const {group, name} = action.payload
-      const updateSubscribe = (setting, storeGroup) => {
+      const updateSubscribe = (setting: Types.NotificationsSettingsState, storeGroup: string) => {
         let subscribed = setting.subscribed
 
         if (!name) {
@@ -102,7 +102,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           ['email', 'emails'],
           emails =>
             emails
-              ? emails.update(action.payload.params.emailAddress, email =>
+              ? emails.update(action.payload.params.emailAddress, (email: any) =>
                   email
                     ? email.merge({
                         isVerified: true,
@@ -230,11 +230,19 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     }
     case SettingsGen.sentVerificationEmail: {
-      return state.update('email', emailState =>
-        emailState.merge({
-          addedEmail: action.payload.email,
+      return state
+        .update('email', emailState =>
+          emailState.merge({
+            addedEmail: action.payload.email,
+          })
+        )
+        .updateIn(['email', 'emails'], emails => {
+          return emails.update(action.payload.email, email =>
+            email.merge({
+              lastVerifyEmailDate: new Date().getTime() / 1000,
+            })
+          )
         })
-      )
     }
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))

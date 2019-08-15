@@ -1,61 +1,61 @@
 import * as React from 'react'
 import FloatingBox from './floating-box'
 import Box from './box'
-import HOCTimers, {PropsWithTimer} from './hoc-timers'
+import {useTimeout} from './use-timers'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import {Props} from './toast'
 
-type State = {
-  opacity: NativeAnimated.Value
-  visible: boolean
-}
+const noop = () => {}
 
-class _Toast extends React.Component<PropsWithTimer<Props>, State> {
-  state = {opacity: new NativeAnimated.Value(0), visible: false}
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.visible && !prevProps.visible) {
-      this.setState({visible: true}, () =>
-        NativeAnimated.timing(this.state.opacity, {
+const Toast = (props: Props) => {
+  const {visible} = props
+  const [shouldRender, setShouldRender] = React.useState(false)
+  const opacityRef = React.useRef(new NativeAnimated.Value(0))
+  const setShouldRenderFalseLater = useTimeout(() => {
+    setShouldRender(false)
+  }, 100)
+  React.useEffect(() => {
+    if (visible) {
+      setShouldRender(true)
+      const opacity = opacityRef.current
+      return () => {
+        NativeAnimated.timing(opacity, {
           duration: 100,
           easing: NativeEasing.linear,
-          toValue: 1,
+          toValue: 0,
         }).start()
-      )
+        setShouldRenderFalseLater()
+      }
     }
-    if (!this.props.visible && prevProps.visible) {
-      NativeAnimated.timing(this.state.opacity, {
+    return noop
+  }, [visible, setShouldRenderFalseLater, opacityRef])
+  React.useEffect(() => {
+    if (shouldRender) {
+      const animation = NativeAnimated.timing(opacityRef.current, {
         duration: 100,
         easing: NativeEasing.linear,
-        toValue: 0,
-      }).start()
-      this.props.setTimeout(() => this.setState({visible: false}), 100)
+        toValue: 1,
+      })
+      animation.start()
+      return () => {
+        animation.stop()
+      }
     }
-  }
-
-  render() {
-    if (!this.state.visible) {
-      return null
-    }
-    return (
-      <FloatingBox>
-        <Box pointerEvents="none" style={styles.wrapper}>
-          <NativeAnimated.View
-            style={collapseStyles([
-              styles.container,
-              this.props.containerStyle,
-              {opacity: this.state.opacity},
-            ])}
-          >
-            {this.props.children}
-          </NativeAnimated.View>
-        </Box>
-      </FloatingBox>
-    )
-  }
+    return noop
+  }, [shouldRender])
+  return shouldRender ? (
+    <FloatingBox>
+      <Box pointerEvents="none" style={styles.wrapper}>
+        <NativeAnimated.View
+          style={collapseStyles([styles.container, props.containerStyle, {opacity: opacityRef.current}])}
+        >
+          {props.children}
+        </NativeAnimated.View>
+      </Box>
+    </FloatingBox>
+  ) : null
 }
-const Toast = HOCTimers(_Toast)
 
 const styles = styleSheetCreate({
   container: {

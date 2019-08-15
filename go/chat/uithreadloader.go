@@ -34,13 +34,101 @@ type UIThreadLoader struct {
 }
 
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
+	cacheDelay := 30 * time.Millisecond
 	return &UIThreadLoader{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
-		convPageStatus: make(map[string]chat1.Pagination),
-		clock:          clockwork.NewRealClock(),
-		validatedDelay: 100 * time.Millisecond,
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
+		convPageStatus:    make(map[string]chat1.Pagination),
+		clock:             clockwork.NewRealClock(),
+		validatedDelay:    100 * time.Millisecond,
+		cachedThreadDelay: &cacheDelay,
 	}
+}
+
+func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+	matches func(msg chat1.MessageUnboxed) bool, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	var grouped []chat1.MessageUnboxed
+	addGrouped := func() {
+		if len(grouped) == 0 {
+			return
+		}
+		res = append(res, makeCombined(grouped))
+		grouped = nil
+	}
+	for _, msg := range msgs {
+		if msg.IsValid() {
+			if matches(msg) {
+				grouped = append(grouped, msg)
+				continue
+			}
+		}
+		addGrouped()
+		res = append(res, msg)
+	}
+	addGrouped()
+	return res
+}
+
+func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
+
+	// group JOIN/LEAVE messages
+	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
+		func(msg chat1.MessageUnboxed) bool {
+			body := msg.Valid().MessageBody
+			mtyp, err := body.MessageType()
+			return (err == nil && (mtyp == chat1.MessageType_JOIN ||
+				mtyp == chat1.MessageType_LEAVE) && !msg.Valid().ClientHeader.Sender.Eq(uid))
+		},
+		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
+			var joiners, leavers []string
+			for _, j := range grouped {
+				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
+					joiners = append(joiners, j.Valid().SenderUsername)
+				} else {
+					leavers = append(leavers, j.Valid().SenderUsername)
+				}
+			}
+			mvalid := grouped[0].Valid()
+			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
+			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
+				Joiners: joiners,
+				Leavers: leavers,
+			})
+			return chat1.NewMessageUnboxedWithValid(mvalid)
+		})
+
+	// group BULKADDTOCONV system messages
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs, func(msg chat1.MessageUnboxed) bool {
+		body := msg.Valid().MessageBody
+		mtyp, err := body.MessageType()
+		if err == nil && mtyp == chat1.MessageType_SYSTEM {
+			body := msg.Valid().MessageBody.System()
+			typ, err := body.SystemType()
+			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
+		}
+		return false
+	},
+		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
+			var usernames []string
+			for _, j := range grouped {
+				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
+					body := j.Valid().MessageBody.System()
+					typ, err := body.SystemType()
+					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
+						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
+					}
+				}
+			}
+			mvalid := grouped[0].Valid()
+			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
+			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+				Usernames: usernames,
+			}))
+			return chat1.NewMessageUnboxedWithValid(mvalid)
+		})
+
+	tv.Messages = newMsgs
+	return tv
 }
 
 func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat1.ConversationID,
@@ -67,6 +155,8 @@ func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat
 				Previous: oldStored.Previous,
 			}
 		}
+	default:
+		// Nothing to do for other modes.
 	}
 	return pagination
 }
@@ -95,6 +185,8 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 			oldStored.Last = pagination.Last
 			t.convPageStatus[convID.String()] = oldStored
 		}
+	default:
+		// Nothing to do for other modes.
 	}
 }
 
@@ -108,6 +200,23 @@ func (t *UIThreadLoader) messageIDControlToPagination(ctx context.Context, uid g
 		mcconv = &conv
 	}
 	return utils.MessageIDControlToPagination(ctx, t.DebugLabeler, &msgIDControl, mcconv)
+}
+
+func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return false
+	}
+	switch typ {
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE, chat1.MessageType_SYSTEM:
+		return true
+	default:
+		return false
+	}
 }
 
 func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThread,
@@ -127,7 +236,8 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 			if err != nil {
 				continue
 			}
-			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
+			if (state == chat1.MessageUnboxedState_PLACEHOLDER || t.isConsolidateMsg(m)) &&
+				!rm[m.GetMessageID()] {
 				t.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
 				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
@@ -143,6 +253,11 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 		}
 		// If either message is not valid, return the new one, something weird might be going on
 		if !oldMsg.IsValid() || !newMsg.IsValid() {
+			return true
+		}
+		// If this is a join message (or any other message that can get consolidated, then always
+		// transmit
+		if t.isConsolidateMsg(newMsg) {
 			return true
 		}
 		// If newMsg is now superseded by something different than what we sent, then let's include it
@@ -331,7 +446,12 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		go func() {
 			var err error
 			if t.cachedThreadDelay != nil {
-				t.clock.Sleep(*t.cachedThreadDelay)
+				select {
+				case <-t.clock.After(*t.cachedThreadDelay):
+				case <-ctx.Done():
+					ch <- ctx.Err()
+					return
+				}
 			}
 			localThread, err = t.G().ConvSource.PullLocalOnly(ctx, convID,
 				uid, query, pagination, 10)
@@ -360,6 +480,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		var pthread *string
 		if resThread != nil {
+			*resThread = t.groupThreadView(ctx, uid, *resThread)
 			t.Debug(ctx, "LoadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
 			localSentThread = resThread
@@ -408,6 +529,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		uilock.Lock()
 		defer uilock.Unlock()
 		var rthread chat1.ThreadView
+		remoteThread = t.groupThreadView(ctx, uid, remoteThread)
 		if rthread, fullErr =
 			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return
@@ -441,6 +563,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				getDelay())
+			defer func() {
+				setDisplayedStatus(cancelUIStatus)
+			}()
 			if t.resolveThreadDelay != nil {
 				t.clock.Sleep(*t.resolveThreadDelay)
 			}
@@ -485,6 +610,10 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 					ConvID: convID,
 				}
 				for _, msg := range changed {
+					if t.isConsolidateMsg(msg) {
+						// we don't want to update these, it just messes up consolidation
+						continue
+					}
 					notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
 						convID))
 				}
@@ -492,7 +621,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
-			setDisplayedStatus(cancelUIStatus)
 			return nil
 		}()
 	}
@@ -501,12 +629,16 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	if getDisplayedStatus() {
 		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
 		t.clock.Sleep(t.validatedDelay)
+		// use a background context here in case our context has been canceled, we don't want to not
+		// get this banner off the screen.
 		if fullErr == nil {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithValidated()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		} else {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithNone()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithNone()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		}

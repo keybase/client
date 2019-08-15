@@ -81,5 +81,6 @@ func TestUploadAvatar(t *testing.T) {
 	}
 
 	mctx := libkb.NewMetaContextBackground(tc.G)
-	UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	err = UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	require.NoError(t, err)
 }

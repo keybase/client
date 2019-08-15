@@ -242,10 +242,8 @@ func TestAttachmentUploader(t *testing.T) {
 	require.NoError(t, uploader.Cancel(context.TODO(), outboxID))
 	_, _, err = uploader.Status(context.TODO(), outboxID)
 	require.Error(t, err)
-	select {
-	case res := <-resChan.Wait():
-		require.NotNil(t, res.Error)
-	}
+	res := <-resChan.Wait()
+	require.NotNil(t, res.Error)
 
 	// verify uploadedPreviewsDir respects the cache size
 	baseDir := uploader.getBaseDir()
@@ -260,7 +258,8 @@ func TestAttachmentUploader(t *testing.T) {
 	mctx := kbtest.NewMetaContextForTest(*tc)
 
 	// verify db nuke
-	g.LocalDb.Nuke()
+	_, err = g.LocalDb.Nuke()
+	require.NoError(t, err)
 	err = uploader.OnDbNuke(mctx)
 	require.NoError(t, err)
 

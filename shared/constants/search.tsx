@@ -17,6 +17,7 @@ export const makeSearchResult = I.Record<Types.SearchResult>({
 })
 
 function serviceIdToService(serviceId: string): Types.Service {
+    // @ts-ignore
   return {
     facebook: 'Facebook',
     github: 'GitHub',

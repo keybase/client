@@ -967,10 +967,35 @@ func (o MessageAttachmentUploaded) DeepCopy() MessageAttachmentUploaded {
 }
 
 type MessageJoin struct {
+	Joiners []string `codec:"joiners" json:"joiners"`
+	Leavers []string `codec:"leavers" json:"leavers"`
 }
 
 func (o MessageJoin) DeepCopy() MessageJoin {
-	return MessageJoin{}
+	return MessageJoin{
+		Joiners: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Joiners),
+		Leavers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Leavers),
+	}
 }
 
 type MessageLeave struct {
@@ -4711,6 +4736,30 @@ func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes 
 	}
 }
 
+type PreviewConversationLocalRes struct {
+	Conv       InboxUIItem `codec:"conv" json:"conv"`
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o PreviewConversationLocalRes) DeepCopy() PreviewConversationLocalRes {
+	return PreviewConversationLocalRes{
+		Conv:    o.Conv.DeepCopy(),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type DeleteConversationLocalRes struct {
 	Offline    bool        `codec:"offline" json:"offline"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
@@ -5683,11 +5732,11 @@ type JoinConversationByIDLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type PreviewConversationByIDLocalArg struct {
+type LeaveConversationLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type LeaveConversationLocalArg struct {
+type PreviewConversationByIDLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
@@ -5894,8 +5943,8 @@ type LocalInterface interface {
 	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
-	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	PreviewConversationByIDLocal(context.Context, ConversationID) (PreviewConversationLocalRes, error)
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
@@ -6559,21 +6608,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"previewConversationByIDLocal": {
-				MakeArg: func() interface{} {
-					var ret [1]PreviewConversationByIDLocalArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PreviewConversationByIDLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]PreviewConversationByIDLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.PreviewConversationByIDLocal(ctx, typedArgs[0].ConvID)
-					return
-				},
-			},
 			"leaveConversationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]LeaveConversationLocalArg
@@ -6586,6 +6620,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LeaveConversationLocal(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"previewConversationByIDLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]PreviewConversationByIDLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PreviewConversationByIDLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PreviewConversationByIDLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PreviewConversationByIDLocal(ctx, typedArgs[0].ConvID)
 					return
 				},
 			},
@@ -7261,15 +7310,15 @@ func (c LocalClient) JoinConversationByIDLocal(ctx context.Context, convID Conve
 	return
 }
 
-func (c LocalClient) PreviewConversationByIDLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
-	__arg := PreviewConversationByIDLocalArg{ConvID: convID}
-	err = c.Cli.Call(ctx, "chat.1.local.previewConversationByIDLocal", []interface{}{__arg}, &res)
-	return
-}
-
 func (c LocalClient) LeaveConversationLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
 	__arg := LeaveConversationLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.leaveConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PreviewConversationByIDLocal(ctx context.Context, convID ConversationID) (res PreviewConversationLocalRes, err error) {
+	__arg := PreviewConversationByIDLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.previewConversationByIDLocal", []interface{}{__arg}, &res)
 	return
 }
 

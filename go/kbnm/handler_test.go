@@ -57,8 +57,8 @@ func TestHandlerQueryError(t *testing.T) {
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
 		_ = ranCmd
-		io.WriteString(cmd.Stderr, queryResponseErr)
-		return nil
+		_, err := io.WriteString(cmd.Stderr, queryResponseErr)
+		return err
 	}
 	h.FindKeybaseBinary = func() (string, error) {
 		return "/mocked/test/path/keybase", nil
@@ -86,8 +86,8 @@ func TestHandlerQueryErrorUnexpected(t *testing.T) {
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
 		_ = ranCmd
-		io.WriteString(cmd.Stderr, queryResponseErrUnexpected)
-		return nil
+		_, err := io.WriteString(cmd.Stderr, queryResponseErrUnexpected)
+		return err
 	}
 	h.FindKeybaseBinary = func() (string, error) {
 		return "/mocked/test/path/keybase", nil
@@ -114,8 +114,8 @@ func TestHandlerQuery(t *testing.T) {
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
-		io.WriteString(cmd.Stderr, queryResponse)
-		return nil
+		_, err := io.WriteString(cmd.Stderr, queryResponse)
+		return err
 	}
 	h.FindKeybaseBinary = func() (string, error) {
 		return "/mocked/test/path/keybase", nil

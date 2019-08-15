@@ -345,6 +345,8 @@ func (s *searchSession) preSearch(ctx context.Context) (err error) {
 				}
 				s.reindexConvs = append(s.reindexConvs, conv.GetConvID())
 			}
+		default:
+			// Nothing to do for other modes.
 		}
 	}
 
@@ -368,6 +370,8 @@ func (s *searchSession) preSearch(ctx context.Context) (err error) {
 				continue
 			}
 			s.updateInboxIndex(ctx, conv.Conv)
+		default:
+			// Nothing to do for other modes.
 		}
 	}
 	return nil

@@ -1,59 +1,44 @@
 import * as React from 'react'
 import {Props as PropsCommon} from './copyable-text'
-import HOCTimers, {PropsWithTimer} from './hoc-timers'
+import {useTimeout} from './use-timers'
 import Text from './text'
 import Box from './box'
 import {NativeClipboard, NativeTouchableHighlight} from './native-wrappers.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-export type Props = PropsWithTimer<
-  {
-    textStyle: Object
-  } & PropsCommon
->
+export type Props = {
+  textStyle: Object
+} & PropsCommon
 
-type State = {
-  hasCopied: boolean
-}
-
-class CopyableText extends React.Component<Props, State> {
-  state = {hasCopied: false}
-  lastCopyTimeoutId?: NodeJS.Timeout
-
-  _handleCopy() {
-    NativeClipboard.setString(this.props.value)
-    this.setState({hasCopied: true})
-    this.lastCopyTimeoutId && this.props.clearTimeout(this.lastCopyTimeoutId)
-    this.lastCopyTimeoutId =
-      this.props.setTimeout(() => {
-        this.setState({hasCopied: false})
-      }, 5000) || undefined
+const CopyableText = (props: Props) => {
+  const [hasCopied, setHasCopied] = React.useState(false)
+  const setHasCopiedFalseLater = useTimeout(() => setHasCopied(false), 5000)
+  const handleCopy = () => {
+    NativeClipboard.setString(props.value)
+    setHasCopied(true)
+    setHasCopiedFalseLater()
   }
-
-  render() {
-    const {value, style, textStyle} = this.props
-    return (
-      <NativeTouchableHighlight
-        activeOpacity={0.6}
-        underlayColor={globalColors.white}
-        onPress={() => this._handleCopy()}
-        style={style}
-      >
-        <Box style={styleBase}>
-          <Text style={{...styleText, ...textStyle}} type="BodySmall">
-            {value}
-          </Text>
-          <Box style={styleCopyToastContainer}>
-            <Box style={styleCopyToast}>
-              <Text style={styleCopyToastText} type="Body">
-                {this.state.hasCopied ? 'Copied!' : 'Tap to copy'}
-              </Text>
-            </Box>
+  return (
+    <NativeTouchableHighlight
+      activeOpacity={0.6}
+      underlayColor={globalColors.white}
+      onPress={() => handleCopy()}
+      style={props.style}
+    >
+      <Box style={styleBase}>
+        <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
+          {props.value}
+        </Text>
+        <Box style={styleCopyToastContainer}>
+          <Box style={styleCopyToast}>
+            <Text style={styleCopyToastText} type="Body">
+              {hasCopied ? 'Copied!' : 'Tap to copy'}
+            </Text>
           </Box>
         </Box>
-      </NativeTouchableHighlight>
-    )
-  }
+      </Box>
+    </NativeTouchableHighlight>
+  )
 }
 
 const styleBase = {
@@ -97,4 +82,4 @@ const styleCopyToastText = {
   color: globalColors.white,
 }
 
-export default HOCTimers(CopyableText)
+export default CopyableText

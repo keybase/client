@@ -85,7 +85,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A.B1 as a writer")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName1.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName1.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 renames A.B1 -> A.B2")
@@ -100,7 +100,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err, "load subsubteam")
 
 	t.Logf("U0 adds U1 to A.B2.C as a writer")
-	_, err = AddMember(context.TODO(), tcs[0].G, subsubteamName2.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subsubteamName2.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B2.C which will cause it to inflate the new_subteam link in A.B2")
@@ -129,7 +129,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to R as a WRITER")
-	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	subteamNameB := createTeamName(t, parentName.String(), "bbb")
@@ -141,7 +141,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	_ = subteamID1
 
 	t.Logf("U0 adds U1 to R.B (1) as a WRITER")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")
@@ -165,7 +165,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	_ = subteamID2
 
 	t.Logf("U0 adds U1 to R.B (2) as a WRITER")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")

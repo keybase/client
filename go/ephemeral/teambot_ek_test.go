@@ -32,7 +32,7 @@ func TestNewTeambotEK(t *testing.T) {
 	})
 	require.NoError(t, err)
 	res, err := teams.AddMember(context.TODO(), mctx.G(), team.Name().String(),
-		botua.Username, keybase1.TeamRole_RESTRICTEDBOT)
+		botua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 	require.Equal(t, botua.Username, res.User.Username)
 

@@ -12,6 +12,7 @@ import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
@@ -38,7 +39,7 @@ export const Email = () => {
     }
   }, [addEmailInProgress, dispatch, email, emailError])
 
-  const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
@@ -101,6 +102,7 @@ export const Email = () => {
 }
 export const Phone = () => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
@@ -116,14 +118,14 @@ export const Phone = () => {
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+      dispatch(nav.safeNavigateAppendPayload({path: ['settingsVerifyPhone']}))
     }
-  }, [dispatch, error, pendingVerification])
+  }, [dispatch, error, nav, pendingVerification])
 
   const onClose = React.useCallback(() => {
     dispatch(SettingsGen.createClearPhoneNumberAdd())
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
+    dispatch(nav.safeNavigateUpPayload())
+  }, [dispatch, nav])
 
   const onContinue = React.useCallback(
     () =>

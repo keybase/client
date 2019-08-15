@@ -171,6 +171,14 @@ export const getMessage = (
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
 ): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
+  return !(
+    message.type === 'placeholder' ||
+    message.type === 'deleted' ||
+    message.type === 'systemJoined' ||
+    message.type === 'systemLeft'
+  )
+}
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>

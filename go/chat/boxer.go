@@ -126,6 +126,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		switch keybase1.StatusCode(aerr.Code) {
 		case keybase1.StatusCode_SCTeamNotFound:
 			return NewPermanentUnboxingError(err)
+		default:
+			// Nothing to do.
 		}
 	}
 	// Check if we have a permanent or tranissent team read error. Transient
@@ -267,6 +269,8 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
 			return chat1.ConversationMembersType_KBFS
 		}
+	default:
+		// Nothing to do for other conv types.
 	}
 	return convMembersType
 }
@@ -1635,7 +1639,7 @@ func makeOnePairwiseMAC(private libkb.NaclDHKeyPrivate, public libkb.NaclDHKeyPu
 		panic(err) // key derivation should never fail
 	}
 	hmacState := hmac.New(sha256.New, derivedShared[:])
-	hmacState.Write(input)
+	_, _ = hmacState.Write(input)
 	return hmacState.Sum(nil)
 }
 
@@ -1771,7 +1775,7 @@ func (b *Boxer) seal(data interface{}, key libkb.NaclSecretBoxKey) (*chat1.Encry
 
 	var encKey [libkb.NaclSecretBoxKeySize]byte = key
 
-	sealed := secretbox.Seal(nil, []byte(s), &nonce, &encKey)
+	sealed := secretbox.Seal(nil, s, &nonce, &encKey)
 	enc := &chat1.EncryptedData{
 		V: 1,
 		E: sealed,
@@ -1941,6 +1945,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		if ierr != nil {
 			return verifyMessageRes{}, ierr
 		}
+	default:
+		// Nothing to do.
 	}
 
 	// check signature

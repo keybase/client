@@ -11,6 +11,7 @@ import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
 import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
+import copyableText from './copyable-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
@@ -56,6 +57,7 @@ const load = () => {
     choiceList,
     confirmModal,
     copyText,
+    copyableText,
     dropdown,
     formWithCheckbox,
     floatingMenu,

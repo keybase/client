@@ -24,7 +24,6 @@ import URL from 'url-parse'
 import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -291,7 +290,7 @@ const switchRouteDef = (
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        ...(action.payload.causedBySignup && flags.sbsContacts
+        ...(action.payload.causedBySignup
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
@@ -654,10 +653,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  yield* Saga.chainAction<ConfigGen.SetDarkModePreferencePayload>(
-    ConfigGen.setDarkModePreference,
-    saveDarkPrefs
-  )
+  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
