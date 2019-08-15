@@ -42,9 +42,12 @@ const AlphabetIndex = (props: Props) => {
           currIndex.current = index
           onScroll(labels[index])
         }
+        if (props.showNumSection && index >= labels.length && index < labels.length + 3) {
+          onScroll('numSection')
+        }
       }
     },
-    [labels, onScroll]
+    [labels, onScroll, props.showNumSection]
   )
 
   const clearTouch = React.useCallback(() => {

@@ -186,17 +186,17 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   _alphabetIndex = () => {
     let showNumSection = false
+    let labels: Array<string> = []
     if (this.props.recommendations && this.props.recommendations.length > 0) {
       showNumSection =
         this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+      labels = this.props.recommendations
+        .map(r => r.label)
+        .slice(1, this.props.recommendations.length - (showNumSection ? 1 : 0))
     }
     return (
       <AlphabetIndex
-        labels={
-          (this.props.recommendations &&
-            this.props.recommendations.map(r => (r.label.length === 1 ? r.label : '')).filter(Boolean)) ||
-          []
-        }
+        labels={labels}
         showNumSection={showNumSection}
         onScroll={this._onScrollToSection}
         style={styles.alphabetIndex}
@@ -209,7 +209,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       const ref = this.sectionListRef.current
       const sectionIndex =
         (this.props.recommendations &&
-          this.props.recommendations.findIndex(section => section.label === label)) ||
+          (label === 'numSection'
+            ? this.props.recommendations.length - 1
+            : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore RN type not plumbed. see section-list.d.ts
