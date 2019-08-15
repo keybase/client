@@ -999,7 +999,6 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), func() error { return err })()
 
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-	mctx.Debug("FUCK %d %+v", latestChainGen, state.PerTeamKeySeedsUnverified)
 	err = computeSeedChecks(
 		ctx,
 		state.ID(),
