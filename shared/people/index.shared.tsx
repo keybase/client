@@ -76,7 +76,9 @@ export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     {!!props.signupEmail && <EmailVerificationBanner email={props.signupEmail} />}
-    {props.newItems.map(item => itemToComponent(item, props))}
+    {props.newItems
+      .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
+      .map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>
