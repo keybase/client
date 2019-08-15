@@ -17,6 +17,7 @@ export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
   editable?: boolean
+  imageOverrideUrl?: string
   isTeam?: boolean
   loadingColor?: string
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
@@ -37,6 +38,7 @@ type Props = {
   followIconSize: number
   followIconType?: IconType
   followIconStyle: IconStyle
+  imageOverride?: string
   isTeam: boolean
   loadingColor?: string
   name: string
@@ -113,9 +115,10 @@ const ConnectedAvatar = Container.connect(
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
-    const url = stateProps._httpSrvAddress
-      ? urlsToImgSet(urlMap, ownProps.size)
-      : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
+    const url =
+      `url(${ownProps.imageOverrideUrl})` || stateProps._httpSrvAddress
+        ? urlsToImgSet(urlMap, ownProps.size)
+        : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
       borderColor: ownProps.borderColor,
