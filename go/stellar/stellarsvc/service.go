@@ -220,6 +220,19 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}, nil
 }
 
+func getPrimaryAccount(mctx libkb.MetaContext, remoter remote.Remoter) (acct stellar1.WalletAccountLocal, err error) {
+	accounts, err := stellar.AllWalletAccounts(mctx, remoter)
+	if err != nil {
+		return acct, err
+	}
+	for _, account := range accounts {
+		if account.IsDefault {
+			return account, nil
+		}
+	}
+	return acct, fmt.Errorf("couldn't find your primary account")
+}
+
 func (s *Server) AccountMergeCLILocal(ctx context.Context, arg stellar1.AccountMergeCLILocalArg) (res stellar1.TransactionID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "AccountMergeCLILocal",
@@ -234,6 +247,18 @@ func (s *Server) AccountMergeCLILocal(ctx context.Context, arg stellar1.AccountM
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
 	mctx = mctx.WithUIs(uis)
+
+	primary, err := getPrimaryAccount(mctx, s.walletState)
+	if err != nil {
+		return res, err
+	}
+	if arg.FromAccountID == primary.AccountID {
+		return res, fmt.Errorf("cannot merge away your primary account")
+	}
+	if arg.To == "" {
+		// if unspecified, default the target account to the user's primary
+		arg.To = primary.AccountID.String()
+	}
 
 	signRes, err := stellar.AccountMerge(mctx, s.walletState, arg)
 	if err != nil {

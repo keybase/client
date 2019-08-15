@@ -78,24 +78,13 @@ func (c *CmdWalletMerge) Run() (err error) {
 	}
 	ui := c.G().UI.GetTerminalUI()
 
-	primary, err := getPrimaryAccount(cli)
-	if err != nil {
-		return err
-	}
-	if c.FromAccountID == primary.AccountID {
-		// this works on the stellar level, but the primary account won't be removed from the bundle,
-		// so that step will error and the account will stick around with no funds. we could easily
-		// bypass this check and catch that specific error if there's ever a usecase for this.
-		return fmt.Errorf("cannot merge away your primary account")
-	}
-	if c.To == "" {
-		// if unspecified, default the target account to the user's primary
-		c.To = primary.AccountID.String()
-		ui.Printf("defaulting target to your primary account (%s: %v)\n", primary.Name, ColorString(c.G(), "green", c.To))
+	confirmationTo := c.To
+	if confirmationTo == "" {
+		confirmationTo = "your primary account"
 	}
 
 	confirmationMsg := fmt.Sprintf("Merge all of the assets from %s into %s?",
-		ColorString(c.G(), "yellow", c.FromAccountID.String()), ColorString(c.G(), "green", c.To))
+		ColorString(c.G(), "yellow", c.FromAccountID.String()), ColorString(c.G(), "green", confirmationTo))
 	if err := ui.PromptForConfirmation(confirmationMsg); err != nil {
 		return err
 	}
@@ -121,17 +110,4 @@ func (c *CmdWalletMerge) GetUsage() libkb.Usage {
 		API:       true,
 		KbKeyring: true,
 	}
-}
-
-func getPrimaryAccount(cli stellar1.LocalClient) (acct stellar1.WalletAccountLocal, err error) {
-	accounts, err := cli.GetWalletAccountsLocal(context.Background(), 0)
-	if err != nil {
-		return acct, err
-	}
-	for _, account := range accounts {
-		if account.IsDefault {
-			return account, nil
-		}
-	}
-	return acct, fmt.Errorf("couldn't find your primary account")
 }
