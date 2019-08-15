@@ -104,7 +104,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       menuHelper(remoteWindow)
 
-      SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
+      SafeElectron.getIpcRenderer().send('keybase', {type: 'requestShowDockIcon'})
 
       const htmlFile = resolveRootAsURL(
         'dist',

@@ -280,7 +280,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getIpcRenderer().send('kb-service-check')
+    SafeElectron.getIpcRenderer().send('keybase', {type: 'requestStartService'})
   }
 }
 

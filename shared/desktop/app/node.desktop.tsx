@@ -1,5 +1,6 @@
 // Entry point for the node part of the electron app
 import MainWindow from './main-window.desktop'
+import {showDockIcon} from './dock-icon.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -132,13 +133,6 @@ const handleCrashes = () => {
   })
 }
 
-const handleKBServiceCheck = () => {
-  if (isWindows) {
-    console.log('kb-service-check: starting keybase.exe')
-    startWinService()
-  }
-}
-
 const handleActivate = () => mainWindow && mainWindow.show()
 
 const handleCloseWindows = () => {
@@ -169,9 +163,7 @@ const willFinishLaunching = () => {
 
 let menubarWindowID = 0
 
-type IPCPayload = {
-  type: 'appStartedUp'
-}
+type IPCPayload = {type: 'appStartedUp'} | {type: 'requestStartService'} | {type: 'requestShowDockIcon'}
 
 const plumbEvents = () => {
   Electron.ipcMain.on('keybase', (_: string, payload: IPCPayload) => {
@@ -196,6 +188,15 @@ const plumbEvents = () => {
           err && console.log('Error: ', err)
           mainWindowDispatch(ConfigGen.createInstallerRan())
         })
+        break
+      case 'requestStartService':
+        if (isWindows) {
+          console.log('requestStartService: starting keybase.exe')
+          startWinService()
+        }
+        break
+      case 'requestShowDockIcon':
+        showDockIcon()
         break
     }
   })
@@ -233,7 +234,6 @@ const start = () => {
   Electron.app.once('ready', () => {
     mainWindow = MainWindow()
   })
-  Electron.ipcMain.on('kb-service-check', handleKBServiceCheck)
 
   // Called when the user clicks the dock icon
   Electron.app.on('activate', handleActivate)

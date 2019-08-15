@@ -58,10 +58,10 @@ export default function() {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
 
-  const webContents = mainWindow.window.webContents
+  const webContents = mainWindow.window && mainWindow.window.webContents
 
   if (showDevTools) {
-    webContents.openDevTools({mode: 'detach'})
+    webContents && webContents.openDevTools({mode: 'detach'})
   }
 
   appState.manageWindow(mainWindow.window)
@@ -93,12 +93,13 @@ export default function() {
   ) {
     // DPI scaling issues
     // https://github.com/electron/electron/issues/10862
-    mainWindow.window.setBounds({
-      height: appState.state.height,
-      width: appState.state.width,
-      x: appState.state.x,
-      y: appState.state.y,
-    })
+    mainWindow.window &&
+      mainWindow.window.setBounds({
+        height: appState.state.height,
+        width: appState.state.width,
+        x: appState.state.x,
+        y: appState.state.y,
+      })
   }
 
   // Don't show main window:
@@ -119,9 +120,10 @@ export default function() {
     // We add a listener to `did-finish-load` so we can show it when
     // Windows is ready.
     mainWindow.show()
-    mainWindow.window.webContents.once('did-finish-load', () => {
-      mainWindow.show()
-    })
+    mainWindow.window &&
+      mainWindow.window.webContents.once('did-finish-load', () => {
+        mainWindow.show()
+      })
   }
 
   // Don't show dock:

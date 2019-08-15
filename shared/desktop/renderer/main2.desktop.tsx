@@ -73,7 +73,7 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   setImmediate(() => {
     if (!eng.hasEverConnected()) {
-      SafeElectron.getIpcRenderer().send('kb-service-check')
+      SafeElectron.getIpcRenderer().send('keybase', {type: 'requestStartService'})
     }
   })
 
