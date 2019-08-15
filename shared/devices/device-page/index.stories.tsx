@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
@@ -37,7 +38,7 @@ const storeNOPW = Container.produce(common, draftState => {
   const deviceMap = new Map(draftState.devices.deviceMap)
   deviceMap.set('desktop last nopw', makeDevice({type: 'desktop'}))
   draftState.devices.deviceMap = deviceMap
-  draftState.settings.password.randomPW = true
+  draftState.settings = draftState.settings.mergeDeep(I.Map({password: {randomPW: true}}))
 })
 
 const load = () => {
