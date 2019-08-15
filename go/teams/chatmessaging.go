@@ -106,7 +106,7 @@ func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
 
 	proverName, err := g.GetUPAKLoader().LookupUsername(ctx, prover)
 	if err != nil {
-		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to lookup invitee username: %s", err)
+		g.Log.CDebugf(ctx, "SendChatSBSResolutionMessage: failed to lookup invitee username: %s", err)
 		return false
 	}
 
@@ -121,7 +121,7 @@ func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
 		chat1.ConversationMembersType_IMPTEAMNATIVE,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
 		chat1.MessageType_SYSTEM); err != nil {
-		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to send message: %s", err)
+		g.Log.CDebugf(ctx, "SendChatSBSResolutionMessage: failed to send message: %s", err)
 		return false
 	}
 	return true
