@@ -74,8 +74,8 @@ const writeElectronSettingsOpenAtLogin = (
 ) => {
   action.payload.writeFile &&
     SafeElectron.getApp().emit('KBappState' as any, '', {
-      type: 'set',
       payload: {data: {openAtLogin: action.payload.open}},
+      type: 'set',
     })
 }
 
@@ -85,8 +85,8 @@ const writeElectronSettingsNotifySound = (
 ) => {
   action.payload.writeFile &&
     SafeElectron.getApp().emit('KBappState' as any, '', {
-      type: 'set',
       payload: {data: {notifySound: action.payload.sound}},
+      type: 'set',
     })
 }
 
