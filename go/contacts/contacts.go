@@ -26,7 +26,7 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 		// the assertion.
 		value = keybase1.PhoneNumberToAssertionValue(value)
 	} else {
-		value = strings.TrimSpace(strings.ToLower(value))
+		value = strings.ToLower(strings.TrimSpace(value))
 	}
 	if key == "" || value == "" {
 		return "", errors.New("invalid variant value in contact component")

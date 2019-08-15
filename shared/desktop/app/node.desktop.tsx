@@ -77,9 +77,13 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
   if (commandLine.length > 1 && commandLine[1]) {
-    const link = commandLine[1]
-    if (link.startsWith('web+stellar:') || link.startsWith('keybase://')) {
-      mainWindowDispatch(DeeplinksGen.createLink({link}))
+    // Allow both argv1 and argv2 to be the link to support "/usr/lib/electron/electron path-to-app"-style
+    // invocations (used in the Arch community packages).
+    for (let link of commandLine.slice(1, 3)) {
+      if (isRelevantDeepLink(link)) {
+        mainWindowDispatch(DeeplinksGen.createLink({link}))
+        return
+      }
     }
   }
 }
@@ -99,6 +103,10 @@ const fixWindowsNotifications = () => {
   // Windows needs this for notifications to show on certain versions
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
   SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
+}
+
+const isRelevantDeepLink = x => {
+  return x.startsWith('web+stellar:') || x.startsWith('keybase://')
 }
 
 const handleCrashes = () => {

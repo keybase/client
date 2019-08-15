@@ -16,7 +16,7 @@ import (
 )
 
 // Split on whitespace, punctuation, code and quote markdown separators
-var splitExpr = regexp.MustCompile("[\\s\\.,\\?!]")
+var splitExpr = regexp.MustCompile(`[\s\.,\?!]`)
 
 // Strip the following separators to create tokens
 var stripSeps = []string{

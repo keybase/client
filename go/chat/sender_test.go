@@ -119,9 +119,7 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 			}
 		case chat1.ChatActivityType_FAILED_MESSAGE:
 			var rmsg []chat1.OutboxRecord
-			for _, obr := range activity.FailedMessage().OutboxRecords {
-				rmsg = append(rmsg, obr)
-			}
+			rmsg = append(rmsg, activity.FailedMessage().OutboxRecords...)
 			select {
 			case n.failing <- rmsg:
 			case <-time.After(5 * time.Second):
@@ -1419,7 +1417,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.Error(t, err)
 		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
 		merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-		require.Equal(t, []keybase1.UID{keybase1.UID(uid2)}, merr.UIDs)
+		require.Equal(t, []keybase1.UID{uid2}, merr.UIDs)
 
 		// Bogus recipients, both uids are missing
 		pairwiseMACRecipients = []keybase1.KID{"012141487209e42c6b39f7d9bcbda02a8e8045e4bcab10b571a5fa250ae72012bd3f0a"}
@@ -1434,7 +1432,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
 		merr = err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
 		sortUIDs := func(uids []keybase1.UID) { sort.Slice(uids, func(i, j int) bool { return uids[i] < uids[j] }) }
-		expectedUIDs := []keybase1.UID{keybase1.UID(uid1), keybase1.UID(uid2)}
+		expectedUIDs := []keybase1.UID{uid1, uid2}
 		sortUIDs(expectedUIDs)
 		sortUIDs(merr.UIDs)
 		require.Equal(t, expectedUIDs, merr.UIDs)
@@ -1479,8 +1477,10 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.NoError(t, users[0].Login(tc1.G))
 
 		// Nuke caches so we're forced to reload the deleted user
-		tc1.G.LocalDb.Nuke()
-		tc1.G.LocalChatDb.Nuke()
+		_, err = tc1.G.LocalDb.Nuke()
+		require.NoError(t, err)
+		_, err = tc1.G.LocalChatDb.Nuke()
+		require.NoError(t, err)
 
 		text3 := "hi3"
 		msg3 := textMsgWithSender(t, text3, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
@@ -1490,8 +1490,10 @@ func TestPairwiseMACChecker(t *testing.T) {
 		_, _, err = blockingSender1.Send(ctx1, conv.Id, msg3, 0, nil, nil, nil)
 		require.NoError(t, err)
 
-		tc1.G.LocalDb.Nuke()
-		tc1.G.LocalChatDb.Nuke()
+		_, err = tc1.G.LocalDb.Nuke()
+		require.NoError(t, err)
+		_, err = tc1.G.LocalChatDb.Nuke()
+		require.NoError(t, err)
 
 		tv, err = tc1.Context().ConvSource.Pull(ctx1, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
 		require.NoError(t, err)
@@ -1577,8 +1579,8 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	txtMsg := texts[0]
 	expectedReactionMap := chat1.ReactionMap{
 		Reactions: map[string]map[string]chat1.Reaction{
-			":+1:": map[string]chat1.Reaction{
-				u.Username: chat1.Reaction{
+			":+1:": {
+				u.Username: {
 					ReactionMsgID: *sentRef[len(sentRef)-1].msgID,
 				},
 			},
@@ -1627,7 +1629,6 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
-		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 		obids = append(obids, obid)
 	}
 

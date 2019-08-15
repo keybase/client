@@ -239,7 +239,10 @@ func (d *DiskLRU) Get(ctx context.Context, lctx libkb.LRUContext, key string) (f
 	defer func() {
 		// Commit the index
 		if err == nil && index != nil && index.IsDirty() {
-			d.writeIndex(ctx, lctx, index, false)
+			err := d.writeIndex(ctx, lctx, index, false)
+			if err != nil {
+				d.debug(ctx, lctx, "Get: error writing index: %+v", err)
+			}
 		}
 	}()
 
@@ -324,7 +327,7 @@ func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, va
 	defer func() {
 		// Commit the index
 		if err == nil && index != nil && index.IsDirty() {
-			d.writeIndex(ctx, lctx, index, true)
+			err = d.writeIndex(ctx, lctx, index, true)
 		}
 	}()
 
@@ -349,7 +352,11 @@ func (d *DiskLRU) Remove(ctx context.Context, lctx libkb.LRUContext, key string)
 	defer func() {
 		// Commit the index
 		if err == nil && index != nil && index.IsDirty() {
-			d.writeIndex(ctx, lctx, index, false)
+			err := d.writeIndex(ctx, lctx, index, false)
+			if err != nil {
+				d.debug(ctx, lctx, "Get: error writing index: %+v", err)
+			}
+
 		}
 	}()
 	// Grab entry index
@@ -395,7 +402,10 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 	defer func() {
 		// Commit the index
 		if err == nil && index != nil && index.IsDirty() {
-			d.writeIndex(ctx, lctx, index, false)
+			err := d.writeIndex(ctx, lctx, index, false)
+			if err != nil {
+				d.debug(ctx, lctx, "Get: error writing index: %+v", err)
+			}
 		}
 	}()
 
@@ -405,11 +415,13 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 		return nil, err
 	}
 	for key := range index.entryKeyMap {
-		if found, res, err := d.readEntry(ctx, lctx, key); err != nil {
+		found, res, err := d.readEntry(ctx, lctx, key)
+		switch {
+		case err != nil:
 			return nil, err
-		} else if !found {
+		case !found:
 			index.Remove(key)
-		} else {
+		default:
 			entries = append(entries, res)
 		}
 	}

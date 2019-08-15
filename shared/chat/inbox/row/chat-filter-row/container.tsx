@@ -24,7 +24,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(appendNewChatBuilder())

@@ -45,6 +45,11 @@ func MakeMockProvider(t libkb.TestingTB) *MockContactsProvider {
 	}
 }
 
+func (c *MockContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ContactLookupResults, error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
+}
+
 func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
 
@@ -103,6 +108,13 @@ func (c *MockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keyb
 
 type ErrorContactsProvider struct {
 	t libkb.TestingTB
+}
+
+func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ret ContactLookupResults, err error) {
+	c.t.Errorf("Call to ErrorContactsProvider.LookupAllWithToken")
+	err = errors.New("error contacts provider")
+	return
 }
 
 func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,

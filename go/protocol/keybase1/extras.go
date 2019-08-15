@@ -1266,7 +1266,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_KBFS_CHAT,
 		TLFIdentifyBehavior_GUI_PROFILE:

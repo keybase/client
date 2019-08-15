@@ -513,7 +513,15 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+  }
   let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
@@ -562,6 +570,7 @@ async function manageContactsCache(
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
 }

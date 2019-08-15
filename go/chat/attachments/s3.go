@@ -197,7 +197,10 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 		return nil
 	})
 	go func() {
-		eg.Wait()
+		err := eg.Wait()
+		if err != nil {
+			a.Debug(ctx, "putMultiPipeline: error waiting: %+v", err)
+		}
 		close(retCh)
 	}()
 

@@ -54,6 +54,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 onLoad={this._setLoaded}
                 shouldPlay={false}
                 useNativeControls={true}
+                resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
                 style={{
                   height: this.props.previewHeight,
                   width: this.props.previewWidth,

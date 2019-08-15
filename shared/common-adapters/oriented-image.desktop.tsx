@@ -139,7 +139,7 @@ class OrientedImage extends React.Component<Props, State> {
       if (p.srcTransformed === imageData) return undefined
       return {srcTransformed: imageData}
     })
-      return undefined
+    return undefined
   }
 
   _canvasImageTransform = (orientation: number) => {

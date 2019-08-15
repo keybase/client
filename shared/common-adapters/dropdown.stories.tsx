@@ -113,7 +113,7 @@ const load = () => {
     ))
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxCenter,
     ...Styles.globalStyles.flexBoxColumn,
@@ -133,6 +133,6 @@ const styles = Styles.styleSheetCreate({
   space: {
     height: 200,
   },
-})
+}))
 
 export default load

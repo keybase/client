@@ -2861,6 +2861,34 @@
           "name": "disabledReason"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MemberEmail",
+      "fields": [
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberUsername",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
     }
   ],
   "messages": {

@@ -132,7 +132,7 @@ const metaMapReducer = (
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromExpunge ? meta : Constants.updateMeta(old, meta)
+              return Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
@@ -1051,7 +1051,7 @@ const rootReducer = (
     case Chat2Gen.updateConvExplodingModes: {
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
-          // @ts-ignore
+        // @ts-ignore
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
       }, {})

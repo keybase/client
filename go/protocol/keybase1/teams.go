@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"errors"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -3237,6 +3238,30 @@ func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
 		TeamName:       o.TeamName.DeepCopy(),
 		Open:           o.Open,
 		DisabledReason: o.DisabledReason,
+	}
+}
+
+type MemberEmail struct {
+	Email string `codec:"email" json:"email"`
+	Role  string `codec:"role" json:"role"`
+}
+
+func (o MemberEmail) DeepCopy() MemberEmail {
+	return MemberEmail{
+		Email: o.Email,
+		Role:  o.Role,
+	}
+}
+
+type MemberUsername struct {
+	Username string `codec:"username" json:"username"`
+	Role     string `codec:"role" json:"role"`
+}
+
+func (o MemberUsername) DeepCopy() MemberUsername {
+	return MemberUsername{
+		Username: o.Username,
+		Role:     o.Role,
 	}
 }
 

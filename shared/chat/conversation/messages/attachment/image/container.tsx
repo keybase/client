@@ -55,16 +55,6 @@ export default Container.connect(() => ({}), mapDispatchToProps, (_, dispatchPro
       ? globalColors.blue
       : ''
     : ''
-  const progressLabel =
-    message.transferState === 'downloading'
-      ? 'Downloading'
-      : message.transferState === 'uploading'
-      ? 'Uploading'
-      : message.transferState === 'mobileSaving'
-      ? 'Saving...'
-      : message.transferState === 'remoteUploading'
-      ? 'waiting...'
-      : ''
   const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress =
     !!message.transferState &&
@@ -93,10 +83,10 @@ export default Container.connect(() => ({}), mapDispatchToProps, (_, dispatchPro
         : null,
     path: message.previewURL,
     progress: message.transferProgress,
-    progressLabel,
     showButton: buttonType,
     title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
+    transferState: message.transferState,
     videoDuration: message.videoDuration || '',
     width,
   }

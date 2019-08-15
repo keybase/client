@@ -737,3 +737,22 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 		require.Contains(t, err.Error(), "Invalid phone number")
 	}
 }
+
+func TestCaseSensitiveDisplayNames(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	upEmail := strings.ToUpper(fus[0].Email)
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, upEmail)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), upEmail)
+
+	rooter := fmt.Sprintf("%s@hackernews", strings.ToUpper(fus[0].Username))
+	displayNameInput = fmt.Sprintf("%s,%s", fus[0].Username, rooter)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), rooter)
+}

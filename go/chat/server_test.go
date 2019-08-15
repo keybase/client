@@ -122,14 +122,20 @@ func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.M
 					g.G().Log.CDebugf(ctx, "error unmarshaling team.sbs item: %s", err)
 					return err
 				}
-				teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+				err := teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+				if err != nil {
+					return err
+				}
 			case "team.change":
 				var msg []keybase1.TeamChangeRow
 				if err := json.Unmarshal(creation.Body().Bytes(), &msg); err != nil {
 					g.G().Log.CDebugf(ctx, "error unmarshaling team.change items: %s", err)
 					return err
 				}
-				teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
+				err := teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -156,7 +162,7 @@ func (g *gregorTestConnection) UpdateCategory(ctx context.Context, cat string, b
 	}
 	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		Ranges_: []gregor1.MsgRange{
-			gregor1.MsgRange{
+			{
 				Category_:   gregor1.Category(cat),
 				SkipMsgIDs_: []gregor1.MsgID{msgID},
 			}},
@@ -280,14 +286,14 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Team Stage Begin")
 	start := time.Now()
 	f(chat1.ConversationMembersType_TEAM)
-	t.Logf("Team Stage End: %v", time.Now().Sub(start))
+	t.Logf("Team Stage End: %v", time.Since(start))
 
 	t.Logf("Implicit Team Stage Begin")
 	os.Setenv("KEYBASE_FEATURES", "admin")
 	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
 	f(chat1.ConversationMembersType_IMPTEAMNATIVE)
-	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+	t.Logf("Implicit Team Stage End: %v", time.Since(start))
 }
 
 func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(ephemeralLifetime *gregor1.DurationSec)) {
@@ -2017,7 +2023,6 @@ type serverChatListener struct {
 	reactionUpdate          chan chat1.ReactionUpdateNotif
 	messagesUpdated         chan chat1.MessagesUpdated
 	readMessage             chan chat1.ReadMessageInfo
-	convsUpdated            chan []chat1.InboxUIItem
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -2086,8 +2091,6 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.messagesUpdated <- activity.MessagesUpdated()
 	case chat1.ChatActivityType_SET_STATUS:
 		n.setStatus <- activity.SetStatus()
-	case chat1.ChatActivityType_CONVS_UPDATED:
-		n.convsUpdated <- activity.ConvsUpdated().Items
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2149,7 +2152,6 @@ func newServerChatListener() *serverChatListener {
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
-		convsUpdated:            make(chan []chat1.InboxUIItem, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2341,8 +2343,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			reactionUnboxed := unboxed
 			expectedReactionMap := chat1.ReactionMap{
 				Reactions: map[string]map[string]chat1.Reaction{
-					":+1:": map[string]chat1.Reaction{
-						users[0].Username: chat1.Reaction{
+					":+1:": {
+						users[0].Username: {
 							ReactionMsgID: reactionUnboxed.GetMessageID(),
 						},
 					},
@@ -2444,6 +2446,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+				default:
+					// Nothing to do for other member types.
 				}
 				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
@@ -2473,6 +2477,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
+				default:
+					// Nothing to do for other member types.
 				}
 				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
@@ -2497,6 +2503,8 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			return
+		default:
+			// Fall through for other member types.
 		}
 		ctc := makeChatTestContext(t, "TestChatSrvPostEditNonblock", 1)
 		defer ctc.cleanup()
@@ -4137,16 +4145,6 @@ func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInf
 	}
 }
 
-func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.EphemeralPurgeNotifInfo {
-	select {
-	case x := <-listener.ephemeralPurge:
-		return x
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get ephemeralPurge notification")
-		return chat1.EphemeralPurgeNotifInfo{}
-	}
-}
-
 func consumeReactionUpdate(t *testing.T, listener *serverChatListener) chat1.ReactionUpdateNotif {
 	select {
 	case x := <-listener.reactionUpdate:
@@ -4707,6 +4705,8 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			t.Logf("skipping kbfs stage")
 			return
+		default:
+			// Fall through for other member types.
 		}
 		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
 
@@ -4897,6 +4897,8 @@ func TestChatSrvEphemeralConvRetention(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			t.Logf("skipping kbfs stage")
 			return
+		default:
+			// Fall through for other member types.
 		}
 
 		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
@@ -6533,6 +6535,8 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			switch mt {
 			case chat1.ConversationMembersType_KBFS:
 				return
+			default:
+				// Fall through for other member types.
 			}
 
 			ctc := makeChatTestContext(t, "SrvStellarMessages", 2)

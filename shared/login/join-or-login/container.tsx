@@ -4,7 +4,6 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
 import * as Container from '../../util/container'
-import {HOCTimers} from '../../common-adapters'
 
 type OwnProps = {}
 
@@ -39,4 +38,4 @@ export default Container.connect(
     onSignup: dispatchProps.onSignup,
     showProxySettings: dispatchProps.showProxySettings,
   })
-)(HOCTimers(Intro))
+)(Intro)

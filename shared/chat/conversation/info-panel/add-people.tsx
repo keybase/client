@@ -35,7 +35,7 @@ const _AddPeople = (props: Props) => {
     )
   } else {
     directAction = props.onAddPeople
-    directLabel = 'Add members to team'
+    directLabel = 'Add people to team'
   }
   if (!props.isAdmin) {
     directAction = props.onAddToChannel
@@ -48,7 +48,7 @@ const _AddPeople = (props: Props) => {
         mode="Primary"
         type="Default"
         onClick={directAction || props.toggleShowingMenu}
-        label={directLabel || 'Add someone...'}
+        label={directLabel || 'Add people...'}
         ref={props.setAttachmentRef}
         style={styles.addButtonContainer}
       />
@@ -92,7 +92,11 @@ const AddPeople = compose(
 )(_AddPeople) as any
 
 const styles = Styles.styleSheetCreate({
-  addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},
+  addButtonContainer: {
+    marginBottom: Styles.globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
 })
 
 export default AddPeople

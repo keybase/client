@@ -6,6 +6,7 @@ import ScrollView from './scroll-view'
 import {Props} from './section-list'
 import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
+import {renderElementOrComponentOrNot} from '../util/util'
 
 /*
  * How this works: We take in the same data structure as RN does Array<Section> and flatten it into an array (this._flat)
@@ -229,6 +230,7 @@ class SectionList extends React.Component<Props, State> {
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
+          {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           {/*
           // @ts-ignore */}
           <ReactList

@@ -322,7 +322,8 @@ func TestQueueState(t *testing.T) {
 		IsActive:        true,
 	}
 
-	purger.Queue(ctx, purgeInfo)
+	err := purger.Queue(ctx, purgeInfo)
+	require.NoError(t, err)
 	require.Equal(t, 1, pq.Len())
 	queueItem := pq.Peek()
 	require.NotNil(t, queueItem)
@@ -336,7 +337,8 @@ func TestQueueState(t *testing.T) {
 		NextPurgeTime:   gregor1.ToTime(now.Add(time.Hour).Add(time.Minute)),
 		IsActive:        true,
 	}
-	purger.Queue(ctx, purgeInfo2)
+	err = purger.Queue(ctx, purgeInfo2)
+	require.NoError(t, err)
 	require.Equal(t, 1, pq.Len())
 	queueItem = pq.Peek()
 	require.NotNil(t, queueItem)
@@ -350,7 +352,8 @@ func TestQueueState(t *testing.T) {
 		NextPurgeTime:   gregor1.ToTime(now.Add(30 * time.Minute)),
 		IsActive:        true,
 	}
-	purger.Queue(ctx, purgeInfo3)
+	err = purger.Queue(ctx, purgeInfo3)
+	require.NoError(t, err)
 	require.Equal(t, 2, pq.Len())
 	queueItem = pq.Peek()
 	require.NotNil(t, queueItem)
