@@ -165,7 +165,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
-type _SetContactImportedCountPayload = {readonly count: number | null}
+type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
