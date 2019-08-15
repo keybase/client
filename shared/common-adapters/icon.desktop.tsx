@@ -202,10 +202,10 @@ export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   // Needed because otherwise the containing box doesn't calculate the size of
   // the inner span (incl padding) properly
   flex: {display: 'flex'},
-})
+}))
 
 export default Icon

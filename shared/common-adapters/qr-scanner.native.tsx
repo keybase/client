@@ -52,10 +52,10 @@ const QRScanner = (p: Props): React.ReactElement<any> | null => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   gettingPermissions: {
     backgroundColor: Styles.globalColors.greyLight,
   },
-})
+}))
 
 export default QRScanner
