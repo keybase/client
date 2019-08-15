@@ -96,6 +96,37 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 	return true
 }
 
+func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
+	team, assertion string, prover keybase1.UID) (res bool) {
+
+	if !g.Env.SendSystemChatMessages() {
+		g.Log.CDebugf(ctx, "Skipping SentChatInviteWelcomeMessage via environment flag")
+		return false
+	}
+
+	proverName, err := g.GetUPAKLoader().LookupUsername(ctx, prover)
+	if err != nil {
+		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to lookup invitee username: %s", err)
+		return false
+	}
+
+	subBody := chat1.NewMessageSystemWithSbsresolve(chat1.
+		MessageSystemSbsResolve{
+		Prover:    proverName.String(),
+		Assertion: assertion,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	if err = g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+		chat1.ConversationMembersType_IMPTEAMNATIVE,
+		keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM); err != nil {
+		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to send message: %s", err)
+		return false
+	}
+	return true
+}
+
 func SendTeamChatCreateMessage(ctx context.Context, g *libkb.GlobalContext, team, creator string) bool {
 	var err error
 

@@ -385,10 +385,11 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if err != nil {
 			return err
 		}
+		var ityp string
 		switch category {
 		case keybase1.TeamInviteCategory_SBS:
 			//  resolve assertion in link (with uid in invite msg)
-			ityp, err := invite.Type.String()
+			ityp, err = invite.Type.String()
 			if err != nil {
 				return err
 			}
@@ -454,7 +455,13 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		// Send chat welcome message
-		if !team.IsImplicit() {
+		if team.IsImplicit() {
+			assertion := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+			g.Log.CDebugf(ctx,
+				"sending resolution message for successful SBS handle")
+			SendChatSBSResolutionMessage(ctx, g, team.Name().String(), assertion, verifiedInvitee.Uid)
+
+		} else {
 			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
 			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
 				verifiedInvitee.Uid)
