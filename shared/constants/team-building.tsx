@@ -75,21 +75,27 @@ const parseRawResultToUser = (
     return {
       id: result.keybase.username,
       prettyName: result.keybase.fullName || result.keybase.username,
+      serviceId: 'keybase' as const,
       serviceMap,
+      username: result.keybase.username,
     }
   } else if (service === 'keybase' && result.contact) {
     return {
       id: result.contact.assertion,
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
+      serviceId: 'contact' as const,
       serviceMap: {...serviceMap, keybase: result.contact.username},
+      username: result.contact.component.email || result.contact.component.phoneNumber || '',
     }
   } else if (result.imptofu) {
     return {
       id: result.imptofu.assertion,
       label: result.imptofu.label,
       prettyName: result.imptofu.prettyName,
+      serviceId: 'contact' as const,
       serviceMap: {...serviceMap, keybase: result.imptofu.keybaseUsername},
+      username: result.imptofu.assertionValue,
     }
   } else if (result.service) {
     if (result.service.serviceName !== service) {
@@ -104,20 +110,32 @@ const parseRawResultToUser = (
 
     const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
 
-    const prettyName = result.service.fullName || kbPrettyName || ``
+    const prettyName = result.service.fullName || kbPrettyName || ''
 
-    const id = result.keybase
-      ? result.keybase.username
-      : `${result.service.username}@${result.service.serviceName}`
+    let id = `${result.service.username}@${result.service.serviceName}`
+    if (result.keybase) {
+      // If it's also a keybase user, make a compound assertion.
+      id += `+${result.keybase.username}`
+    }
 
     return {
       id,
       prettyName,
+      serviceId: service,
       serviceMap,
+      username: result.service.username,
     }
   } else {
     return null
   }
 }
 
-export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser}
+const selfToUser = (you: string): Types.User => ({
+  id: you,
+  prettyName: you,
+  serviceId: 'keybase' as const,
+  serviceMap: {},
+  username: you,
+})
+
+export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser, selfToUser}

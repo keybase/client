@@ -184,14 +184,18 @@ const fetchUserRecs = async (
         id: x.assertion,
         label: x.displayLabel,
         prettyName: x.displayName,
+        serviceId: 'contact' as const,
         serviceMap: {keybase: x.username},
+        username: x.component.email || x.component.phoneNumber || '',
       })
     )
     let suggestions = suggestionRes.map(
       ({username, fullname}): TeamBuildingTypes.User => ({
         id: username,
         prettyName: fullname,
+        serviceId: 'keybase' as const,
         serviceMap: {keybase: username},
+        username: username,
       })
     )
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts
