@@ -8,11 +8,11 @@ import os from 'os'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
+import {quit} from './ctl.desktop'
 import logger from '../../logger'
 
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
@@ -162,7 +162,7 @@ const handleCloseWindows = () => {
 const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
-  executeActionsForContext('beforeQuit')
+  quit()
 }
 
 const willFinishLaunching = () => {
@@ -248,8 +248,6 @@ const start = () => {
 
   // quit through dock. only listen once
   Electron.app.once('before-quit', handleQuitting)
-
-  setupExecuteActionsListener()
 }
 
 start()

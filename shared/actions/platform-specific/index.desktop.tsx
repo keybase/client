@@ -13,7 +13,7 @@ import {getEngine} from '../../engine'
 import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../util/quit-helper'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
@@ -141,7 +141,7 @@ export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPa
     .then(() => {
       // quit as soon as possible
       if (action && action.payload.reason === 'quitting through menu') {
-        quit('quitButton')
+        quit()
       }
     })
 
