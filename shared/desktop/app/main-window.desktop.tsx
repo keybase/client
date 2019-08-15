@@ -135,17 +135,5 @@ export default function() {
     hideDockIcon()
   }
 
-  SafeElectron.getIpcMain().on('showMain', () => {
-    logger.info('Show main window (requested)')
-    mainWindow.show()
-    const window = mainWindow.window
-    if (window) {
-      window.focus()
-      logger.info('...showMain: visible=', window.isVisible(), window.getBounds())
-    } else {
-      logger.info('...showMain: no mainWindow!')
-    }
-  })
-
   return mainWindow
 }
