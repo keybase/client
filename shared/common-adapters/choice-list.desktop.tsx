@@ -2,6 +2,7 @@ import * as React from 'react'
 import {Box, Text, Icon, IconType} from '../common-adapters'
 import * as Styles from '../styles'
 import {Props} from './choice-list'
+import './choice-list.css'
 
 const ChoiceList = ({options}: Props) => {
   return (
@@ -48,16 +49,16 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
     width: '100%',
   },
-  iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 80,
-    width: 80,
-    background: Styles.globalColors.greyLight,
-  },
   icon: {
     height: 48,
     width: 48,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    background: Styles.globalColors.greyLight,
+    height: 80,
+    justifyContent: 'center',
+    width: 80,
   },
   infoContainer: {
     alignItems: 'flex-start',
