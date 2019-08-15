@@ -63,6 +63,5 @@ export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
 }
 
 export const mainWindowDispatch = (action: TypedActions): void => {
-// TODO KBkeybase
   SafeElectron.getApp().emit('KBdispatchAction', '', action)
 }
