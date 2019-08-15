@@ -216,6 +216,7 @@ func (l *LoaderPackage) CheckNoPTK(mctx libkb.MetaContext, g keybase1.PerTeamKey
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
+	mctx.Debug("LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
 
 	var data *keybase1.HiddenTeamChain
 	data, err = l.updatePrecheck(mctx, update)
@@ -226,6 +227,8 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 	if err != nil {
 		return err
 	}
+
+	mctx.Debug("LoaderPackage#Update post: %s", l.data.LinkAndKeySummary())
 	return nil
 }
 
@@ -406,6 +409,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // enforces equality and will error out if not. Through this check, a client can convince itself that the
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
+	defer mctx.Trace("LoaderPackage#CheckUpdatesAgainstSeeds", func() error { return err })()
 	// BOTs are excluded since they do not have any seed access
 	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil

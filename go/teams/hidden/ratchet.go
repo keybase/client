@@ -86,6 +86,14 @@ type RatchetBlindingKeySet struct {
 	m map[SCTeamRatchet]RatchetObj
 }
 
+func (r *RatchetBlindingKeySet) Add(ratchet Ratchet) {
+	if r.m == nil {
+		r.m = make(map[SCTeamRatchet]RatchetObj)
+	}
+	o := ratchet.decoded
+	r.m[o.RatchetBlind.Hash] = o
+}
+
 func (r SCTeamRatchet) String() string {
 	return hex.EncodeToString(r[:])
 }
@@ -235,13 +243,25 @@ func (r *RatchetObj) generate(mctx libkb.MetaContext) (err error) {
 }
 
 func (r *Ratchet) encode(mctx libkb.MetaContext) (err error) {
-	arr := []RatchetObj{r.decoded}
-	b, err := msgpack.Encode(arr)
+	var rbk RatchetBlindingKeySet
+	rbk.Add(*r)
+	r.encoded, err = rbk.encode()
 	if err != nil {
 		return err
 	}
-	r.encoded = EncodedRatchetBlindingKeySet(base64.StdEncoding.EncodeToString(b))
 	return nil
+}
+
+func (r RatchetBlindingKeySet) encode() (ret EncodedRatchetBlindingKeySet, err error) {
+	var arr []RatchetObj
+	for _, v := range r.m {
+		arr = append(arr, v)
+	}
+	b, err := msgpack.Encode(arr)
+	if err != nil {
+		return ret, err
+	}
+	return EncodedRatchetBlindingKeySet(base64.StdEncoding.EncodeToString(b)), nil
 }
 
 // generateRatchet, cooking up a new blinding key, and computing the encoding and blinding of
@@ -298,12 +318,26 @@ func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *
 	return ret, nil
 }
 
+const jsonPayloadKey = "ratchet_blinding_keys"
+
 // AddToJSONPayload is used to add the ratching blinding information to an API POST
 func (e EncodedRatchetBlindingKeySet) AddToJSONPayload(p libkb.JSONPayload) {
 	if e.IsNil() {
 		return
 	}
-	p["ratchet_blinding_keys"] = e.String()
+	p[jsonPayloadKey] = e.String()
+}
+
+func (r RatchetBlindingKeySet) AddToJSONPayload(p libkb.JSONPayload) error {
+	if len(r.m) == 0 {
+		return nil
+	}
+	encoded, err := r.encode()
+	if err != nil {
+		return err
+	}
+	encoded.AddToJSONPayload(p)
+	return nil
 }
 
 // AddToJSONPayload is used to add the ratching blinding information to an API POST
