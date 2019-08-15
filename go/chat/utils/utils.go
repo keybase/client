@@ -1216,12 +1216,13 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 	return participants
 }
 
-func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
+func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
-	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
+	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
@@ -1250,12 +1251,17 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
 	res.Draft = rawConv.Info.Draft
+	if rawConv.Info.PinnedMsg != nil {
+		res.PinnedMsg = new(chat1.UIMessage)
+		*res.PinnedMsg = PresentMessageUnboxed(ctx, g, *rawConv.Info.PinnedMsg, uid, rawConv.GetConvID())
+	}
 	return res
 }
 
-func PresentConversationLocals(ctx context.Context, convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
+func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(ctx, conv, currentUsername))
+		res = append(res, PresentConversationLocal(ctx, g, uid, conv))
 	}
 	return res
 }

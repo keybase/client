@@ -942,9 +942,9 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	return s.getRi().S3Sign(context.Background(), arg)
 }
 
-func (s *BlockingSender) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, *conv, s.G().Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
 		res = &pc
 	}
 	return res
@@ -1108,7 +1108,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				convID),
 			ConvID:                     convID,
 			DisplayDesktopNotification: false,
-			Conv:                       s.presentUIItem(ctx, convLocal),
+			Conv:                       s.presentUIItem(ctx, boxed.ClientHeader.Sender, convLocal),
 		})
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)

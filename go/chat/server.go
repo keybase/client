@@ -291,8 +291,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 			} else {
-				pconv := utils.PresentConversationLocal(ctx, convRes.ConvLocal,
-					h.G().Env.GetUsername().String())
+				pconv := utils.PresentConversationLocal(ctx, h.G(), uid, convRes.ConvLocal)
 				jbody, err := json.Marshal(pconv)
 				isSuccess := true
 				if err != nil {
@@ -434,7 +433,7 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
-		Conversations:    utils.PresentConversationLocals(ctx, ib.Convs, h.G().Env.GetUsername().String()),
+		Conversations:    utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs),
 		Pagination:       ib.Pagination,
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -545,7 +544,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	res.Conv = conv
-	res.UiConv = utils.PresentConversationLocal(ctx, conv, h.G().GetEnv().GetUsername().String())
+	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
@@ -1420,8 +1419,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	res.UiConversations = utils.PresentConversationLocals(ctx, res.Conversations,
-		h.G().Env.GetUsername().String())
+	res.UiConversations = utils.PresentConversationLocals(ctx, h.G(), uid, res.Conversations)
 	return res, nil
 }
 
@@ -1575,7 +1573,7 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 	if err != nil {
 		return res, err
 	}
-	res.Conv = utils.PresentConversationLocal(ctx, conv, h.G().Env.GetUsername().String())
+	res.Conv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
@@ -1656,7 +1654,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(ctx, convs, h.G().Env.GetUsername().String())
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
