@@ -186,9 +186,17 @@ const plumbEvents = () => {
           // stash a startupURL to be dispatched when we're ready for it.
           mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
           startupURL = null
-        } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
+        } else if (!isDarwin) {
           // Windows and Linux instead store a launch URL in argv.
-          mainWindowDispatch(DeeplinksGen.createLink({link: process.argv[1]}))
+          let link: string | undefined
+          if (process.argv.length > 1 && isRelevantDeepLink(process.argv[1])) {
+            link = process.argv[1]
+          } else if (process.argv.length > 2 && isRelevantDeepLink(process.argv[2])) {
+            link = process.argv[2]
+          }
+          if (link) {
+            mainWindowDispatch(DeeplinksGen.createLink({link}))
+          }
         }
 
         // run installer
