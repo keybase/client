@@ -261,10 +261,10 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 	return res, nil
 }
 
-func imptofuQueryToAssertion(typ keybase1.ImpTofuSearchType, val string) (ret libkb.AssertionURL, err error) {
+func imptofuQueryToAssertion(ctx context.Context, typ keybase1.ImpTofuSearchType, val string) (ret libkb.AssertionURL, err error) {
 	parsef := func(key, val string) (libkb.AssertionURL, error) {
-		return libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(
-			context.TODO()), key, val, true)
+		return libkb.ParseAssertionURLKeyValue(
+			externals.MakeStaticAssertionContext(ctx), key, val, true)
 	}
 	switch typ {
 	case keybase1.ImpTofuSearchType_PHONE:
@@ -328,7 +328,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 				// Server corrected our assertion - take this instead.
 				assertionValue = v.Coerced
 			}
-			assertion, err := imptofuQueryToAssertion(imptofuType, assertionValue)
+			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), imptofuType, assertionValue)
 			if err != nil {
 				return nil, err
 			}
@@ -355,7 +355,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 	}
 
 	// Not resolved - add SBS result.
-	assertion, err := imptofuQueryToAssertion(imptofuType, queryString)
+	assertion, err := imptofuQueryToAssertion(mctx.Ctx(), imptofuType, queryString)
 	if err != nil {
 		return nil, err
 	}
