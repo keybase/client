@@ -11,13 +11,13 @@ const load = () => {
   ))
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.red,
     height: 20,
     position: 'relative',
     width: 20,
   },
-})
+}))
 
 export default load

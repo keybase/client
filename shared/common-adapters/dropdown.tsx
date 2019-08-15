@@ -136,7 +136,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inlineDropdown: {
     paddingRight: Styles.globalMargins.tiny,
   },
@@ -192,7 +192,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {minHeight: 32},
     isMobile: {minHeight: 48},
   }),
-})
+}))
 
 const ItemBox = Styles.styled(Box)({
   ...Styles.globalStyles.flexBoxRow,

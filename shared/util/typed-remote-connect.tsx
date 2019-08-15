@@ -8,7 +8,7 @@ const connect = <RemoteState, TOwnProps, TStateProps, TDispatchProps, TMergedPro
   mergeProps: RR.MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
   options?: RR.Options<RemoteState, TStateProps, TOwnProps, TMergedProps>
 ): RR.InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
-    // @ts-ignore
-    RR.connect(mapStateToProps, mapDispatchToProps, mergeProps, options)
+  // @ts-ignore
+  RR.connect(mapStateToProps, mapDispatchToProps, mergeProps, options)
 
 export default connect

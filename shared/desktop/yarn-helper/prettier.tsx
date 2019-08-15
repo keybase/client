@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import {execSync} from 'child_process'
 
-const prettierWriteAll = () => {
+const getFilesToTest = () => {
   const blacklist = fs
     .readFileSync(path.join(__dirname, '..', '..', '..', '.prettierignore'), 'utf8')
     .split('\n')
@@ -13,16 +13,34 @@ const prettierWriteAll = () => {
 
   console.log('Using blacklist:', blackReg)
 
-  const files = execSync('git ls-files', {encoding: 'utf8', env: process.env})
+  const files = execSync('git ls-files', {encoding: 'utf8', env: process.env, maxBuffer: 50 * 1024 * 1024})
     .split('\n')
     .filter(a => {
       return jsFileReg.test(a) && !blackReg.test(`shared/${a}`)
     })
 
-  execSync(`yarn prettier --write ${files.join(' ')}`, {encoding: 'utf8', env: process.env, stdio: 'inherit'})
+  return files
 }
 
+const prettierCheck = () =>
+  execSync(`yarn prettier-bare --check ${getFilesToTest().join(' ')}`, {
+    encoding: 'utf8',
+    env: process.env,
+    stdio: 'inherit',
+  })
+
+const prettierWriteAll = () =>
+  execSync(`yarn prettier --write ${getFilesToTest().join(' ')}`, {
+    encoding: 'utf8',
+    env: process.env,
+    stdio: 'inherit',
+  })
+
 export default {
+  'prettier-check': {
+    code: prettierCheck,
+    help: 'Test for any misformatted files',
+  },
   'prettier-write-all': {
     code: prettierWriteAll,
     help: 'Prettier all files',

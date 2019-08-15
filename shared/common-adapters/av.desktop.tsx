@@ -69,7 +69,7 @@ export class Video extends React.PureComponent<Props, VideoState> {
 
 export const Audio = Video
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
@@ -87,4 +87,4 @@ const styles = Styles.styleSheetCreate({
       position: 'absolute',
     },
   }),
-})
+}))

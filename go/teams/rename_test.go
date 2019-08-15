@@ -177,3 +177,51 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 
 	// TODO check the subteam list
 }
+
+func testHiddenRotateRename(t *testing.T, rotateParent bool, rotateChild bool) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
+	require.NoError(t, err)
+	parentTeamID, err := CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
+	require.NoError(t, err)
+
+	subteamBasename := "bb1"
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+	desiredName, err := parentTeamName.Append("bb2")
+	require.NoError(t, err)
+
+	if rotateParent {
+		parentTeam, err := GetForTestByID(context.TODO(), tc.G, *parentTeamID)
+		require.NoError(t, err)
+		err = parentTeam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+	}
+
+	if rotateChild {
+		subteam, err := GetForTestByID(context.TODO(), tc.G, *subteamID)
+		require.NoError(t, err)
+		err = subteam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+	}
+
+	err = RenameSubteam(context.TODO(), tc.G, subteamName, desiredName)
+	require.NoError(t, err)
+}
+
+func TestHiddenRotateRenameChild(t *testing.T) {
+	testHiddenRotateRename(t, false, true)
+}
+func TestHiddenRotateRenameParent(t *testing.T) {
+	testHiddenRotateRename(t, true, false)
+}
+func TestHiddenRotateRenameParentAndChild(t *testing.T) {
+	testHiddenRotateRename(t, true, true)
+}

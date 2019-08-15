@@ -445,6 +445,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,

@@ -84,12 +84,7 @@ const Header = (props: Props) => {
           label="Receive"
           disabled={!props.walletName}
         />
-        <Kb.Button
-          onClick={props.onSettings}
-          mode="Secondary"
-          style={styles.settingsButton}
-          type="Wallet"
-        >
+        <Kb.Button onClick={props.onSettings} mode="Secondary" style={styles.settingsButton} type="Wallet">
           <Kb.Icon type="iconfont-gear" style={styles.gear} />
         </Kb.Button>
       </Kb.Box2>

@@ -39,9 +39,10 @@ class FilteredTopLine extends PureComponent<Props> {
             title={this.props.participants.join(', ')}
           />
           {!!this.props.numSearchHits && (
-            <Kb.Text type="BodySmall" style={Styles.collapseStyles([
-              this.props.isSelected && styles.selectedText,
-            ])}>
+            <Kb.Text
+              type="BodySmall"
+              style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+            >
               {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
             </Kb.Text>
           )}

@@ -48,7 +48,7 @@ const mapDispatchToProps = dispatch => ({
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-    (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     const {_built, _sentPaymentError} = stateProps
     const exchangeRateChanged = _sentPaymentError && _sentPaymentError.toLowerCase().includes('exchange rate')
     const banners = (_sentPaymentError

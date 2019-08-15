@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any>| null
+  attachTo?: () => React.Component<any> | null
   onHidden: () => void
   teamname: string
   visible: boolean

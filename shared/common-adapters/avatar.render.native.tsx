@@ -98,7 +98,7 @@ const imageStyles = sizes.reduce((map, size) => {
   return map
 }, {})
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   ...boxStyles,
   ...iconStyles,
   ...imageStyles,
@@ -128,6 +128,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: -28,
   },
-})
+}))
 
 export default Avatar

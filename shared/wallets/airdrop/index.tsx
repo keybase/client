@@ -132,8 +132,12 @@ class Airdrop extends React.Component<Props> {
                 <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
-                <Kb.Markdown selectable={true} styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
-                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={headerOverride}>
+                  {p.headerTitle}
+                </Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>
+                  {p.headerBody}
+                </Kb.Markdown>
                 <Kb.Button
                   backgroundColor="purple"
                   label="See if you qualify"
@@ -167,7 +171,9 @@ class Airdrop extends React.Component<Props> {
                           style={styles.bullet}
                         />
                       )}
-                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
+                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>
+                        {l.text}
+                      </Kb.Markdown>
                     </Kb.Box2>
                   ))}
                 </Kb.Box2>
