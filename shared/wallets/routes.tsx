@@ -55,7 +55,7 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     const activeKey = navigation.state.routes[index].key
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
-    const WalletsAndDetails = require('./wallets-and-details/container').default
+    const WalletsAndDetails = require('./wallets-and-details').default
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
