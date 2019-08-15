@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {stubTrue} from 'lodash-es'
 
 const initMeasureRef = {height: -1, pageY: -1}
+const isValidMeasure = (m: typeof initMeasureRef) => m.height >= 0 && m.pageY >= 0
 
 type Props = {
   labels: Array<string>
@@ -18,21 +19,22 @@ const AlphabetIndex = (props: Props) => {
   const sectionMeasureRef = React.useRef<{height: number; pageY: number}>(initMeasureRef)
   const currIndex = React.useRef<number>(-1)
 
-  // set sectionHeight
-  React.useEffect(() => {
-    if (topSectionRef && topSectionRef.current && Styles.isMobile) {
-      const r = topSectionRef.current
+  // This timeout is long because our ref is set before the screen transition
+  // finishes. Transition must be finished so we get accurate coords.
+  const storeMeasure = Kb.useTimeout(() => {
+    if (topSectionRef.current && Styles.isMobile) {
       // @ts-ignore measure exists on mobile
-      r.measure(
-        (_, __, ___, height: number, ____, pageY: number) => (sectionMeasureRef.current = {height, pageY})
+      topSectionRef.current.measure(
+        (_1, _2, _3, height: number, _4, pageY: number) => (sectionMeasureRef.current = {height, pageY})
       )
     }
-  })
+  }, 200)
+  React.useEffect(storeMeasure, [])
 
   const {labels, onScroll} = props
   const handleTouch = React.useCallback(
     (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
-      if (sectionMeasureRef.current) {
+      if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
         const index = Math.floor((touch.pageY - measure.pageY) / measure.height)
@@ -46,7 +48,7 @@ const AlphabetIndex = (props: Props) => {
   )
 
   const clearTouch = React.useCallback(() => {
-    sectionMeasureRef.current = initMeasureRef
+    currIndex.current = -1
   }, [])
 
   return (
@@ -55,9 +57,10 @@ const AlphabetIndex = (props: Props) => {
       onStartShouldSetResponder={stubTrue}
       onMoveShouldSetResponder={stubTrue}
       onResponderGrant={handleTouch}
-      oonResponderMove={handleTouch}
+      onResponderMove={handleTouch}
       onResponderRelease={clearTouch}
     >
+      {/* It's assumed that every row is the same height */}
       {labels.map((label, index) => (
         <Kb.Box key={label} style={styles.gap} {...(index === 0 ? {ref: topSectionRef} : {})}>
           <Kb.Text type="BodyTiny">{label}</Kb.Text>
