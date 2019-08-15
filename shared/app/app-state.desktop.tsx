@@ -1,11 +1,20 @@
 // TODO entirely remove this file
 // This is modified from https://github.com/mawie81/electron-window-state
 import * as SafeElectron from '../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import fs from 'fs'
 import path from 'path'
 import {isEqual} from 'lodash-es'
 import logger from '../logger'
 import {State} from './app-state'
+
+const getIpcMain = () => {
+  const ipcMain = Electron.ipcMain || Electron.remote.ipcMain
+  if (!ipcMain) {
+    throw new Error('Should be impossible')
+  }
+  return ipcMain
+}
 
 export type Config = {
   path: string
@@ -65,11 +74,11 @@ export default class AppState {
     }
 
     // Listen to the main window asking for this value
-    Electron.ipcMain.on('getAppState', event => {
+    getIpcMain().on('getAppState', event => {
       event.sender.send('getAppStateReply', this.state)
     })
 
-    Electron.ipcMain.on('setAppState', (_, data) => {
+    getIpcMain().on('setAppState', (_, data) => {
       this.state = {
         ...this.state,
         ...data,
