@@ -130,7 +130,7 @@ const teamAddMembersBulkDoc = `"keybase team add-members-bulk" allows you to add
 
 EXAMPLES:
 
-Add existing keybase users as writiers:
+Add existing keybase users as writers:
 
     keybase team add-members-bulk acme --writers=alice,bob,charlie
 

@@ -427,6 +427,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
 			ChannelNameMentions: utils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
 		}
+		if mv.ClientHeader.BotUID != nil {
+			botUID := mv.ClientHeader.BotUID.String()
+			msg.BotUID = &botUID
+		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions
 		}

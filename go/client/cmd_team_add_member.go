@@ -20,18 +20,16 @@ type CmdTeamAddMember struct {
 	Username             string
 	Role                 keybase1.TeamRole
 	SkipChatNotification bool
-	// TODO HOTPOT-227 expose in CLI flags
-	BotSettings *keybase1.TeamBotSettings
+	BotSettings          *keybase1.TeamBotSettings
 }
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "add-member",
 		ArgumentHelp: "<team name>",
 		Usage:        "Add a user to a team.",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdTeamAddMemberRunner(g)
-			cl.ChooseCommand(cmd, "add-member", c)
+			cl.ChooseCommand(NewCmdTeamAddMemberRunner(g), "add-member", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -43,7 +41,8 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Usage: "email address to invite",
 			},
 			cli.StringFlag{
-				Name:  "r, role",
+				Name: "r, role",
+				// TODO HOTPOT-599 add bot roles
 				Usage: "team role (owner, admin, writer, reader) [required]",
 			},
 			cli.BoolFlag{
@@ -53,6 +52,12 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		},
 		Description: teamAddMemberDoc,
 	}
+
+	// TODO HOTPOT-599 expose publicly
+	if g.Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(g.GetMyUID()) {
+		cmd.Flags = append(cmd.Flags, botSettingsFlags...)
+	}
+	return cmd
 }
 
 func NewCmdTeamAddMemberRunner(g *libkb.GlobalContext) *CmdTeamAddMember {
@@ -86,6 +91,10 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 
 	c.SkipChatNotification = ctx.Bool("skip-chat-message")
 
+	if c.Role.IsRestrictedBot() {
+		c.BotSettings = ParseBotSettings(ctx)
+	}
+
 	return nil
 }
 
@@ -94,6 +103,8 @@ func (c *CmdTeamAddMember) Run() error {
 	if err != nil {
 		return err
 	}
+
+	ValidateBotSettingsConvs(c.G(), c.Team, c.BotSettings)
 
 	arg := keybase1.TeamAddMemberArg{
 		Name:                 c.Team,
