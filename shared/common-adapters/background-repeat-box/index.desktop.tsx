@@ -28,12 +28,12 @@ const BackgroundRepeatBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backgroundRepeat: Styles.platformStyles({
     isElectron: {
       backgroundRepeat: 'repeat',
     },
   }),
-})
+}))
 
 export default BackgroundRepeatBox

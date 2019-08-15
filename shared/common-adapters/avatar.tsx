@@ -5,6 +5,7 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
+import './avatar.css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 type URLType = string

@@ -32,7 +32,7 @@ export default class BackButton extends Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   arrow: {marginRight: -3, marginTop: 2},
   container: {
     ...Styles.globalStyles.flexBoxRow,
@@ -42,6 +42,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small - 4,
     paddingRight: Styles.globalMargins.small,
   },
-})
+}))
 
 const iconFontSize = 24
