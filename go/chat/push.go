@@ -481,8 +481,9 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 		}
 		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
 		return &uiMsg
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
@@ -628,7 +629,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if pushErr != nil {
 					g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 				}
-				supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+				supdate := []chat1.ConversationStaleUpdate{{
 					ConvID:     nm.ConvID,
 					UpdateType: chat1.StaleUpdateType_CLEAR,
 				}}
@@ -933,7 +934,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	go func(ctx context.Context) (err error) {
+	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam(goroutine)")()
 		<-cb
 		g.Lock()
@@ -953,7 +954,8 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 		}
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
-	}(globals.BackgroundChatCtx(ctx, g.G()))
+	}
+	go func() { _ = f(globals.BackgroundChatCtx(ctx, g.G())) }()
 
 	return nil
 }
@@ -977,7 +979,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	go func(ctx context.Context) (err error) {
+	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "MembershipUpdate(goroutine)")()
 		<-cb
 		g.Lock()
@@ -1015,7 +1017,8 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 
 		return nil
-	}(globals.BackgroundChatCtx(ctx, g.G()))
+	}
+	go func() { _ = f(globals.BackgroundChatCtx(ctx, g.G())) }()
 
 	return nil
 }
@@ -1039,7 +1042,7 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	go func(ctx context.Context) (err error) {
+	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate(goroutine)")()
 		<-cb
 		g.Lock()
@@ -1055,7 +1058,8 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 		// Send out notifications
 		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
 		return nil
-	}(globals.BackgroundChatCtx(ctx, g.G()))
+	}
+	go func() { _ = f(globals.BackgroundChatCtx(ctx, g.G())) }()
 
 	return nil
 }

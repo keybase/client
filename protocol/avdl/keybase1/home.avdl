@@ -17,6 +17,10 @@ protocol home {
     case ANNOUNCEMENT: HomeScreenAnnouncement;
     default: void; // Note, if badged, we should urge an upgrade here.
   }
+  variant HomeScreenItemDataExt switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodoExt;
+    default: void;
+  }
 
   enum AppLinkType {
     NONE_0,
@@ -80,13 +84,24 @@ protocol home {
     item to tell user to verify their email address will carry that email
     address.
 
-    This data does not come from the server.
+    All new TODO data bundle types should be records rather than single fields
+    to support adding new data to existing TODOs. If a legacy TODO (such as
+    VERIFY_ALL_EMAIL) uses a single field, the "TodoExt" field should be used to
+    introduce more data to the payload.
   */
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
     case VERIFY_ALL_PHONE_NUMBER: PhoneNumber;
     case VERIFY_ALL_EMAIL: EmailAddress;
     case LEGACY_EMAIL_VISIBILITY: EmailAddress;
     default: void;
+  }
+  variant HomeScreenTodoExt switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_EMAIL: VerifyAllEmailTodoExt;
+    default: void;
+  }
+
+  record VerifyAllEmailTodoExt {
+    UnixTime lastVerifyEmailDate;
   }
 
   enum HomeScreenPeopleNotificationType {
@@ -113,6 +128,7 @@ protocol home {
   record HomeScreenItem {
     boolean badged;
     HomeScreenItemData data;
+    HomeScreenItemDataExt dataExt;
   }
 
   record Pics {

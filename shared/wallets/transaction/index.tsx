@@ -529,7 +529,7 @@ export const Transaction = (props: Props) => {
               <MarkdownMemo
                 memo={props.memo}
                 hideDivider={props.fromAirdrop}
-                style={styles.marginTopXTiny}
+                style={styles.memoStyle}
                 styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
               />
             )}
@@ -591,6 +591,10 @@ const styles = styleSheetCreate({
   marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
+  },
+  memoStyle: {
+    marginTop: globalMargins.xtiny,
+    paddingRight: globalMargins.small,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
   rightContainer: {

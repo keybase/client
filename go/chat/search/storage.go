@@ -142,11 +142,25 @@ func (s *store) tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
 			return res, err
 		}
 		hasher := hmac.New(sha256.New, material[:])
-		hasher.Write([]byte(dat))
-		hasher.Write(convID.DbShortForm())
-		hasher.Write(uid.Bytes())
-		hasher.Write([]byte(libkb.EncryptionReasonChatIndexerTokenKey))
+		_, err = hasher.Write([]byte(dat))
+		if err != nil {
+			return res, err
+		}
+		_, err = hasher.Write(convID.DbShortForm())
+		if err != nil {
+			return res, err
+		}
+		_, err = hasher.Write(uid.Bytes())
+		if err != nil {
+			return res, err
+		}
+		_, err = hasher.Write([]byte(libkb.EncryptionReasonChatIndexerTokenKey))
+		if err != nil {
+			return res, err
+		}
 		key = fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil))
+	default:
+		s.Debug(ctx, "unexpected token version %d", version)
 	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
@@ -167,9 +181,17 @@ func (s *store) aliasKeyWithVersion(ctx context.Context, dat string, version int
 			return res, err
 		}
 		hasher := hmac.New(sha256.New, material[:])
-		hasher.Write([]byte(dat))
-		hasher.Write([]byte(libkb.EncryptionReasonChatIndexerAliasKey))
+		_, err = hasher.Write([]byte(dat))
+		if err != nil {
+			return res, err
+		}
+		_, err = hasher.Write([]byte(libkb.EncryptionReasonChatIndexerAliasKey))
+		if err != nil {
+			return res, err
+		}
 		key = fmt.Sprintf("al:%s", hasher.Sum(nil))
+	default:
+		s.Debug(ctx, "unexpected token version %d", version)
 	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
@@ -522,7 +544,10 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 	batch := newAddTokenBatch()
 	defer func() {
 		if err == nil {
-			s.commitAddTokenBatch(ctx, uid, convID, batch)
+			commitErr := s.commitAddTokenBatch(ctx, uid, convID, batch)
+			if commitErr != nil {
+				s.Debug(ctx, "unable to commit batch: %+v", commitErr)
+			}
 		}
 	}()
 	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
@@ -562,7 +587,10 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			supersededMsgs := fetchSupersededMsgs(msg)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.addMsg(ctx, batch, uid, convID, sm)
+				err := s.addMsg(ctx, batch, uid, convID, sm)
+				if err != nil {
+					return err
+				}
 			}
 		case chat1.MessageType_EDIT:
 			tokens := tokensFromMsg(msg)
@@ -571,11 +599,20 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			// contents (using the original id in the index)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.removeMsg(ctx, uid, convID, sm)
-				s.addTokens(ctx, batch, uid, convID, tokens, sm.GetMessageID())
+				err := s.removeMsg(ctx, uid, convID, sm)
+				if err != nil {
+					return err
+				}
+				err = s.addTokens(ctx, batch, uid, convID, tokens, sm.GetMessageID())
+				if err != nil {
+					return err
+				}
 			}
 		default:
-			s.addMsg(ctx, batch, uid, convID, msg)
+			err := s.addMsg(ctx, batch, uid, convID, msg)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -600,7 +637,10 @@ func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 			continue
 		}
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
-		s.removeMsg(ctx, uid, convID, msg)
+		err := s.removeMsg(ctx, uid, convID, msg)
+		if err != nil {
+			return err
+		}
 	}
 	err = s.putMetadata(ctx, uid, convID, md)
 	return err

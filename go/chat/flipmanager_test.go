@@ -419,7 +419,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			}
 		}
 		testLoadFlip()
-		tc.Context().ConvSource.Clear(ctx, conv.Id, uid)
+		err = tc.Context().ConvSource.Clear(ctx, conv.Id, uid)
+		require.NoError(t, err)
 		tc.Context().CoinFlipManager.(*FlipManager).clearGameCache()
 		testLoadFlip()
 	})

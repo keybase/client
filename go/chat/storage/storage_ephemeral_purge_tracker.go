@@ -45,7 +45,7 @@ func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (info all
 	dbKey := t.makeDbKey(uid)
 	raw, found, lerr := t.G().LocalChatDb.GetRaw(dbKey)
 
-	if err != nil {
+	if lerr != nil {
 		return nil, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", lerr.Error())
 	}
 	if !found {

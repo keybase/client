@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -119,8 +118,6 @@ func NewIdentifyChangedHandler(g *globals.Context) *IdentifyChangedHandler {
 	}
 }
 
-var errNoConvForUser = errors.New("user not found in inbox")
-
 func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.UID) (string, error) {
 	u, err := h.G().GetUPAKLoader().LookupUsername(ctx, uid)
 	return u.String(), err
@@ -220,7 +217,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 	}
 
 	go func() {
-		group.Wait()
+		_ = group.Wait()
 		close(fails)
 	}()
 	for f := range fails {

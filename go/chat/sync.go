@@ -133,16 +133,6 @@ func (s *Syncer) sendNotificationLoop() {
 	}
 }
 
-func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {
-	for _, conv := range convs {
-		res = append(res, chat1.ConversationStaleUpdate{
-			ConvID:     conv.GetConvID(),
-			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
-		})
-	}
-	return res
-}
-
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	updates []chat1.ConversationStaleUpdate, immediate bool) {
 	if len(updates) == 0 {
@@ -195,9 +185,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	}
 
 	// Run sync against the server
-	s.sync(ctx, cli, uid, syncRes)
-
-	return nil
+	return s.sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
@@ -250,7 +238,10 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
 		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
-		s.G().ConvSource.Clear(ctx, convID, uid)
+		err := s.G().ConvSource.Clear(ctx, convID, uid)
+		if err != nil {
+			s.Debug(ctx, "handleMembersTypeChanged: erroring clearing conv: %+v", err)
+		}
 	}
 }
 
@@ -265,7 +256,10 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 		if !fmap[sconv.GetConvID().String()] {
 			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
 				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
-			s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			err := s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			if err != nil {
+				s.Debug(ctx, "handleFilteredCovs: erroring clearing conv: %+v", err)
+			}
 		}
 	}
 }

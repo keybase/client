@@ -182,6 +182,8 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
               <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
                 <Kb.SearchFilter
                   icon="iconfont-search"
+                  placeholderCentered={true}
+                  mobileCancelButton={true}
                   fullWidth={true}
                   onChange={this._onChangeFilter}
                   placeholderText="Search"

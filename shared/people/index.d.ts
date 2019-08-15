@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../constants/types/people'
 
 export type Props = {
-  clearJustSignedUpEmail: () => void
   oldItems: Array<Types.PeopleScreenItem>
   newItems: Array<Types.PeopleScreenItem>
   followSuggestions: Array<Types.FollowSuggestion>

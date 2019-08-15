@@ -6,7 +6,6 @@ import * as Kb from '../common-adapters'
 import People, {Header} from './index'
 import * as PeopleGen from '../actions/people-gen'
 import * as Container from '../util/container'
-import {createClearJustSignedUpEmail} from '../actions/signup-gen'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -29,7 +28,6 @@ const ConnectedHeader = Container.connect(
 )(Header)
 
 type Props = {
-  clearJustSignedUpEmail: () => void
   oldItems: I.List<Types.PeopleScreenItem>
   newItems: I.List<Types.PeopleScreenItem>
   followSuggestions: I.List<Types.FollowSuggestion>
@@ -71,7 +69,6 @@ class LoadOnMount extends React.PureComponent<Props> {
           onClickUser={this._onClickUser}
           showAirdrop={this.props.showAirdrop}
           signupEmail={this.props.signupEmail}
-          clearJustSignedUpEmail={this.props.clearJustSignedUpEmail}
         />
       </Kb.Reloadable>
     )
@@ -89,7 +86,6 @@ export default Container.connect(
     waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
   }),
   dispatch => ({
-    clearJustSignedUpEmail: () => dispatch(createClearJustSignedUpEmail()),
     getData: (markViewed = true) =>
       dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
     onClickUser: (username: string) => dispatch(createShowUserProfile({username})),

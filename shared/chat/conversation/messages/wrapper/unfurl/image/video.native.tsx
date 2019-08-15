@@ -48,7 +48,7 @@ export class Video extends React.Component<Props, State> {
           onError={e => {
             logger.error(`Error loading vid: ${JSON.stringify(e)}`)
           }}
-          resizeMode={ExpoVideo.RESIZE_MODE_COVER}
+          resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
           style={Styles.collapseStyles([styles.player, this.props.style])}
           isLooping={true}
           isMuted={true}

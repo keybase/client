@@ -107,7 +107,7 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 		m.unfurlCh <- unfurlData{
 			done: true,
 			coords: []chat1.Coordinate{
-				chat1.Coordinate{
+				{
 					Lat: lat,
 					Lon: lon,
 				},
@@ -190,15 +190,15 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 	}
 
 	coords := []chat1.Coordinate{
-		chat1.Coordinate{
+		{
 			Lat: 40.800348,
 			Lon: -73.968784,
 		},
-		chat1.Coordinate{
+		{
 			Lat: 40.798688,
 			Lon: -73.973716,
 		},
-		chat1.Coordinate{
+		{
 			Lat: 40.795234,
 			Lon: -73.976237,
 		},
@@ -255,7 +255,7 @@ func TestChatSrvLiveLocation(t *testing.T) {
 	}
 	// First update always comes through
 	var allCoords []chat1.Coordinate
-	coords := []chat1.Coordinate{chat1.Coordinate{
+	coords := []chat1.Coordinate{{
 		Lat: 40.800348,
 		Lon: -73.968784,
 	}}
@@ -264,11 +264,11 @@ func TestChatSrvLiveLocation(t *testing.T) {
 
 	// Throw some updates in
 	coords = []chat1.Coordinate{
-		chat1.Coordinate{
+		{
 			Lat: 40.798688,
 			Lon: -73.973716,
 		},
-		chat1.Coordinate{
+		{
 			Lat: 40.795234,
 			Lon: -73.976237,
 		},
@@ -338,7 +338,7 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	}
 
 	var allCoords []chat1.Coordinate
-	coords := []chat1.Coordinate{chat1.Coordinate{
+	coords := []chat1.Coordinate{{
 		Lat: 40.800348,
 		Lon: -73.968784,
 	}}
@@ -371,11 +371,11 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	}
 
 	coords = []chat1.Coordinate{
-		chat1.Coordinate{
+		{
 			Lat: 40.798688,
 			Lon: -73.973716,
 		},
-		chat1.Coordinate{
+		{
 			Lat: 40.795234,
 			Lon: -73.976237,
 		},
@@ -428,7 +428,7 @@ func TestChatSrvLiveLocationStopTracking(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/location live 1h",
 	}))
-	coords := []chat1.Coordinate{chat1.Coordinate{
+	coords := []chat1.Coordinate{{
 		Lat: 40.800348,
 		Lon: -73.968784,
 	}}

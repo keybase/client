@@ -39,6 +39,7 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   email: '',
   isPrimary: false,
   isVerified: false,
+  lastVerifyEmailDate: 0,
   visibility: 0,
 })
 
