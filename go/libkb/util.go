@@ -130,6 +130,10 @@ func NameCmp(n1, n2 string) bool {
 	return NameTrim(n1) == NameTrim(n2)
 }
 
+func IsLowercase(s string) bool {
+	return strings.ToLower(s) == s
+}
+
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {

@@ -56,7 +56,7 @@ func (d *dummyHTTPSrv) Start() string {
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
 	}
-	go d.srv.Serve(listener)
+	go func() { _ = d.srv.Serve(listener) }()
 	return d.srv.Addr
 }
 
@@ -111,6 +111,8 @@ func TestChatSrvUnfurl(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			return
+		default:
+			// Fall through for other member types.
 		}
 
 		etc := externalstest.SetupTest(t, "unfurl", 1)
@@ -361,7 +363,8 @@ func TestChatSrvUnfurl(t *testing.T) {
 		t.Logf("exploding unfurl: %v", ctc.world.Fc.Now())
 		dur := gregor1.ToDurationSec(120 * time.Minute)
 		g := ctc.as(t, users[0]).h.G()
-		g.GetEKLib().KeygenIfNeeded(g.MetaContext(context.Background()))
+		err = g.GetEKLib().KeygenIfNeeded(g.MetaContext(context.Background()))
+		require.NoError(t, err)
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		recvAndCheckUnfurlMsg(origExplodeID)

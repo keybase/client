@@ -41,7 +41,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
 
-	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A")
-	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A")

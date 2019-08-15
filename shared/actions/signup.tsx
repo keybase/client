@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import * as SettingsGen from './settings-gen'
-import flags from '../util/feature-flags'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -49,7 +48,6 @@ const showErrorOrCleanupAfterSignup = (state: Container.TypedState) =>
 
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
 const setEmailVisibilityAfterSignup = (state: Container.TypedState) =>
-  flags.sbsContacts &&
   noErrors(state) &&
   state.signup.emailVisible &&
   SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})

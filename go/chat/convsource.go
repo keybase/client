@@ -58,13 +58,16 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
+	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
 				s.Debug(ctx, "Error purging ephemeral attachments %v", err)
 			}
 		}))
+	if err != nil {
+		s.Debug(ctx, "Error queuing conv job: %+v", err)
+	}
 }
 
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
@@ -866,21 +869,29 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
-		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
 		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
-			Conv:    inboxItem,
 		})
 		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+
+		// update inbox info as well
+		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "notifyExpunge: unable to IncrementLocalConvVersion, err", err)
+		}
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+			{
+				ConvID:     convID,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+			},
+		})
 	}
 }
 
@@ -891,18 +902,18 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: notifying %d messages", len(msgs))
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
-	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs); err != nil {
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv, updatedMsgs); err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
 		return
 	}
@@ -913,7 +924,7 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
-	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+	s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(),
 		&act, chat1.ChatActivitySource_LOCAL)
 }
 
@@ -976,7 +987,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			s.Debug(ctx, "notifyEphemeralPurge: unable to IncrementLocalConvVersion, err", err)
 		}
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-			chat1.ConversationStaleUpdate{
+			{
 				ConvID:     convID,
 				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
@@ -995,7 +1006,10 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return nil
 	}
 
-	s.lockTab.Acquire(ctx, uid, convID)
+	_, err = s.lockTab.Acquire(ctx, uid, convID)
+	if err != nil {
+		return err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
 	if err != nil {
@@ -1060,7 +1074,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
+	qErr := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			if len(tv.Messages) == 0 {
 				return
@@ -1070,6 +1084,9 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
+	if qErr != nil {
+		s.Debug(ctx, "ClearFromDelete: failed error queuing conv job: %+v", err)
+	}
 	return true
 }
 

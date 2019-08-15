@@ -95,7 +95,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ephemeralPurgeHelper convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))()
 
-	if msgs == nil || len(msgs) == 0 {
+	if len(msgs) == 0 {
 		return nil, nil, nil
 	}
 
@@ -144,7 +144,12 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	go func() {
+		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		if err != nil {
+			s.Debug(ctx, "Error removing from indexer: %+v", err)
+		}
+	}()
 
 	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
 	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {

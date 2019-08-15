@@ -35,11 +35,11 @@ func (d *testGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.Ex
 		return nil, mctx.Ctx().Err()
 	}
 	if query != nil && *query == "miketown" {
-		return []chat1.GiphySearchResult{chat1.GiphySearchResult{
+		return []chat1.GiphySearchResult{{
 			TargetUrl: "https://www.miketown.com",
 		}}, nil
 	}
-	return []chat1.GiphySearchResult{chat1.GiphySearchResult{
+	return []chat1.GiphySearchResult{{
 		TargetUrl: "https://www.notmiketown.com",
 	}}, nil
 }

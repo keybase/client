@@ -24,7 +24,10 @@ func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Stora
 
 func randBytes(n int) []byte {
 	ret := make([]byte, n)
-	rand.Read(ret)
+	_, err := rand.Read(ret)
+	if err != nil {
+		panic(err)
+	}
 	return ret
 }
 
@@ -92,23 +95,6 @@ func makeEphemeralText(id chat1.MessageID, text string, ephemeralMetadata *chat1
 	mvalid.ClientHeader.Rtime = now
 	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
 	return chat1.NewMessageUnboxedWithValid(mvalid)
-}
-
-func makeSystemMessage(id chat1.MessageID) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_SYSTEM,
-		},
-		MessageBody: chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithComplexteam(
-			chat1.MessageSystemComplexTeam{
-				Team: "wutang",
-			},
-		)),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
 func makeHeadlineMessage(id chat1.MessageID) chat1.MessageUnboxed {
@@ -191,10 +177,8 @@ func makeConversationAt(convID chat1.ConversationID, maxID chat1.MessageID) chat
 
 // Sort messages by ID descending
 func sortMessagesDesc(msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
-	var res []chat1.MessageUnboxed
-	for _, m := range msgs {
-		res = append(res, m)
-	}
+	res := make([]chat1.MessageUnboxed, len(msgs))
+	copy(res, msgs)
 	sort.SliceStable(res, func(i, j int) bool {
 		return res[j].GetMessageID() < res[i].GetMessageID()
 	})
@@ -217,7 +201,8 @@ func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
 		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 		require.NoError(b, err)
-		storage.ClearAll(context.TODO(), conv.Metadata.ConversationID, uid)
+		err = storage.ClearAll(context.TODO(), conv.Metadata.ConversationID, uid)
+		require.NoError(b, err)
 	}
 }
 
@@ -237,7 +222,8 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 		b.StartTimer()
 
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, newmsgs)
-		storage.Fetch(context.TODO(), newconv, uid, nil, nil, nil)
+		_, err = storage.Fetch(context.TODO(), newconv, uid, nil, nil, nil)
+		require.NoError(b, err)
 	}
 }
 

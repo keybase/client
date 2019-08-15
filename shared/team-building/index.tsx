@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
+import Input from './input'
 import ServiceTabBar from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
@@ -71,12 +72,14 @@ export type Props = ContactProps & {
   onRemove: (userId: string) => void
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
+  onClear: () => void
   recommendations: Array<SearchRecSection> | null
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
+  showResults: boolean
   showServiceResultCount: boolean
   teamSoFar: Array<{
     userId: string
@@ -86,6 +89,7 @@ export type Props = ContactProps & {
   }>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
+  title: string
 }
 
 const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoRecs: () => void}) => {
@@ -180,9 +184,11 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 
   _alphabetIndex = () => {
-    const showNumSection =
-      this.props.recommendations &&
-      this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+    let showNumSection = false
+    if (this.props.recommendations && this.props.recommendations.length > 0) {
+      showNumSection =
+        this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+    }
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
         {this.props.recommendations &&
@@ -295,18 +301,48 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     }
   )
 
+  _searchInput = () => {
+    const props = this.props
+    return (
+      <Input
+        onChangeText={props.onChangeText}
+        onClear={props.onClear}
+        onDownArrowKeyDown={props.onDownArrowKeyDown}
+        onUpArrowKeyDown={props.onUpArrowKeyDown}
+        onEnterKeyDown={props.onEnterKeyDown}
+        onBackspace={props.onBackspace}
+        placeholder="Search"
+        searchString={props.searchString}
+      />
+    )
+  }
+
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
     const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
-          <Kb.Icon style={Kb.iconCastPlatformStyles(styles.loadingIcon)} type="icon-progress-grey-animated" />
-          <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          gap="xtiny"
+          centerChildren={true}
+          style={styles.loadingContainer}
+        >
+          {showLoading && (
+            <>
+              <Kb.Icon
+                style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
+                type="icon-progress-grey-animated"
+              />
+              <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+            </>
+          )}
         </Kb.Box2>
       )
     }
-    if (!this.props.showRecs && !this.props.showServiceResultCount && !!this.props.selectedService) {
+    if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
       return (
         <Kb.Box2
           alignSelf="center"
@@ -419,8 +455,31 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     const props = this.props
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {Styles.isMobile ? (
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
+        {Styles.isMobile ? null : (
+          <Kb.Box2 direction="horizontal" alignItems="center">
+            <Kb.Text type="Header" style={{margin: Styles.globalMargins.xsmall}}>
+              {props.title}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+        {!!props.teamSoFar.length &&
+          (Styles.isMobile ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <TeamBox
+                allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
+                onChangeText={props.onChangeText}
+                onDownArrowKeyDown={props.onDownArrowKeyDown}
+                onUpArrowKeyDown={props.onUpArrowKeyDown}
+                onEnterKeyDown={props.onEnterKeyDown}
+                onFinishTeamBuilding={props.onFinishTeamBuilding}
+                onRemove={props.onRemove}
+                teamSoFar={props.teamSoFar}
+                onBackspace={props.onBackspace}
+                searchString={props.searchString}
+                rolePickerProps={props.rolePickerProps}
+              />
+            </Kb.Box2>
+          ) : (
             <TeamBox
               allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
               onChangeText={props.onChangeText}
@@ -434,22 +493,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
               searchString={props.searchString}
               rolePickerProps={props.rolePickerProps}
             />
-          </Kb.Box2>
-        ) : (
-          <TeamBox
-            allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-            onChangeText={props.onChangeText}
-            onDownArrowKeyDown={props.onDownArrowKeyDown}
-            onUpArrowKeyDown={props.onUpArrowKeyDown}
-            onEnterKeyDown={props.onEnterKeyDown}
-            onFinishTeamBuilding={props.onFinishTeamBuilding}
-            onRemove={props.onRemove}
-            teamSoFar={props.teamSoFar}
-            onBackspace={props.onBackspace}
-            searchString={props.searchString}
-            rolePickerProps={props.rolePickerProps}
-          />
-        )}
+          ))}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
@@ -465,13 +509,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {Flags.sbsContacts && Styles.isMobile && (
+        {Styles.isMobile && (
           <ContactsBanner
             {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
             onRedoRecs={props.fetchUserRecs}
           />
         )}
+        {this._searchInput()}
         {this._listBody()}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -557,10 +602,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       paddingBottom: Styles.globalMargins.small,
     },
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-    },
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {
@@ -568,9 +609,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   loadingContainer: {
-    alignItems: 'center',
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   loadingIcon: Styles.platformStyles({
     isElectron: {

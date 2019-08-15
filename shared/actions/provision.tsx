@@ -549,9 +549,6 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
   yield* Saga.chainAction2(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
   yield* Saga.chainAction2(ProvisionGen.forgotUsername, forgotUsername)
-
-  // TODo fix
-  // yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeCancelProvision)
 }
 
 export const _testing = {

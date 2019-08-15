@@ -1,6 +1,10 @@
 // RPC stats. Not keeping this in redux so we don't get any thrashing
 
-const _stats = {
+const _stats: {
+  eof: number
+  in: {[method: string]: {count: number}}
+  out: {[method: string]: {count: number}}
+} = {
   eof: 0,
   in: {},
   out: {},

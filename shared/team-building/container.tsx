@@ -21,6 +21,7 @@ import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
+import {isMobile} from '../constants/platform'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -111,7 +112,7 @@ const deriveServiceResultCount: (
     .toObject()
 )
 
-const deriveShowServiceResultCount = memoize(searchString => !!searchString)
+const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
   (searchResults: Array<User> | null, recommendations: Array<User> | null) => (userId: string): User | null =>
@@ -167,7 +168,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       teamBuildingState.teamBuildingSearchResults,
       ownProps.searchString
     ),
-    showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
+    showResults: deriveShowResults(ownProps.searchString),
+    showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
@@ -457,6 +459,8 @@ const mergeProps = (
     ownProps.resetHighlightIndex
   )
 
+  const onClear = () => onChangeText('')
+
   const onSearchForMore = deriveOnSearchForMore({
     search: dispatchProps._search,
     searchResults,
@@ -505,6 +509,7 @@ const mergeProps = (
     teamSoFar,
   })
 
+  const title = rolePickerProps ? 'Add people' : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         leftAction: 'cancel',
@@ -524,7 +529,7 @@ const mergeProps = (
               : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
             : null,
         ],
-        title: rolePickerProps ? 'Add people' : 'New chat',
+        title,
       }
     : {}
 
@@ -538,6 +543,7 @@ const mergeProps = (
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
+    onClear,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
     onDownArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
@@ -559,8 +565,10 @@ const mergeProps = (
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showRecs,
+    showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamSoFar,
+    title,
     waitingForCreate,
   }
 }

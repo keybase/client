@@ -100,7 +100,7 @@ func (lfw *LogFileWriter) Open(at time.Time) error {
 	}
 	lfw.currentSize = fi.Size()
 	if !lfw.config.SkipRedirectStdErr {
-		tryRedirectStderrTo(lfw.file)
+		_ = tryRedirectStderrTo(lfw.file)
 	}
 	return nil
 }

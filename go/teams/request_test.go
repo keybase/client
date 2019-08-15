@@ -46,7 +46,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	require.Equal(t, u1.Username, reqs[0].Username)
 
 	// owner add u1 to team
-	_, err = AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// owner lists requests, sees no requests

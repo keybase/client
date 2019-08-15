@@ -14,7 +14,7 @@ const Kb = {
 }
 
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim'
-export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black'
+export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yellow'
 // Either type or backgroundColor must be set
 export type Props = {
   children?: React.ReactNode
@@ -279,6 +279,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
   Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
+  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75},
   Secondary: {...commonLabel(), color: Styles.globalColors.white},
 }))
 

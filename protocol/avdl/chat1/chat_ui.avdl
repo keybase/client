@@ -214,6 +214,8 @@ protocol chatUi {
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
+    // TODO HOTPOT-330 convert to bot username
+    union { null, gregor1.UID } botUID;
   }
 
   record UIMessageOutbox {

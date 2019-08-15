@@ -634,7 +634,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	if err != nil {
 		return res, err
 	}
-	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
+	res.DurationMsec = gregor1.ToDurationMsec(time.Since(startT))
 	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
@@ -674,4 +674,9 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
 	idx.store.ClearMemory()
 	return nil
+}
+
+func (idx *Indexer) GetStoreHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	query string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+	return idx.store.GetHits(ctx, uid, convID, query)
 }

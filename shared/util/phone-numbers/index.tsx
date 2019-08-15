@@ -1,9 +1,10 @@
 import {isMobile} from '../../constants/platform'
 import libphonenumber from 'google-libphonenumber'
 import countries from './country-data/countries.json'
-import supportedCodes from './sms-support/data.json'
+import _supportedCodes from './sms-support/data.json'
 import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
 
+const supportedCodes: {[key: string]: boolean} = _supportedCodes
 const PNF = libphonenumber.PhoneNumberFormat
 export const PhoneNumberFormat = PNF
 
@@ -32,13 +33,15 @@ countries.forEach(curr => {
     curr.countryCallingCodes.length &&
     supported.includes(curr.alpha2)
   ) {
+    // @ts-ignore
+    const emojiText: string = emojiIndexByChar[curr.emoji || -1] || ''
     // see here for why we check status is 'assigned'
     // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes
     countryDataRaw[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji || '',
-      emojiText: emojiIndexByChar[curr.emoji || -1] || '',
+      emojiText,
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
       pickerText:
@@ -55,7 +58,7 @@ countries.forEach(curr => {
 export const countryData: {[key: string]: CountryData} = countryDataRaw
 export const codeToCountry: {[key: string]: string} = codeToCountryRaw
 
-const canadianAreaCodes = {
+const canadianAreaCodes: {[key: string]: boolean} = {
   '204': true,
   '226': true,
   '236': true,

@@ -137,7 +137,10 @@
           }
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
     },
     "lookupSavedContactsList": {
       "request": [

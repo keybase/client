@@ -42,6 +42,9 @@ const defaultNavigationOptions: any = {
     ),
   headerStyle: {
     backgroundColor: Styles.globalColors.white,
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
   headerTitle: hp => (

@@ -27,7 +27,7 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return <Icon type="icon-stellar-logo-grey-48" style={{height: size, width: size}} />
+    return <Icon type="iconfont-identity-stellar" fontSize={size} />
   }
   switch (props.counterpartyType) {
     case 'airdrop':
@@ -529,7 +529,7 @@ export const Transaction = (props: Props) => {
               <MarkdownMemo
                 memo={props.memo}
                 hideDivider={props.fromAirdrop}
-                style={styles.marginTopXTiny}
+                style={styles.memoStyle}
                 styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
               />
             )}
@@ -591,6 +591,10 @@ const styles = styleSheetCreate({
   marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
+  },
+  memoStyle: {
+    marginTop: globalMargins.xtiny,
+    paddingRight: globalMargins.small,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
   rightContainer: {

@@ -4,8 +4,8 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
 type Props = {
-  hasMembers: boolean
   onChangeText: (newText: string) => void
+  onClear: () => void
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
@@ -47,44 +47,33 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
   }
 }
 
-const Input = (props: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
-    <Kb.PlainInput
-      autoFocus={true}
-      globalCaptureKeypress={true}
-      style={styles.input}
-      placeholder={props.placeholder}
-      onChangeText={props.onChangeText}
-      value={props.searchString}
-      maxLength={50}
-      onEnterKeyDown={props.onEnterKeyDown}
-      onKeyDown={e => {
-        handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
-      }}
-      onKeyPress={e => {
-        handleKeyDown(noop, false, e.nativeEvent.key, props)
-      }}
-    />
-  </Kb.Box2>
-)
+const Input = (props: Props) => {
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.SearchFilter
+        valueControlled={true}
+        value={props.searchString}
+        icon="iconfont-search"
+        focusOnMount={true}
+        fullWidth={true}
+        onChange={props.onChangeText}
+        placeholderText={props.placeholder}
+        onKeyDown={e => {
+          handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
+        }}
+        onKeyPress={e => {
+          handleKeyDown(noop, false, e.nativeEvent.key, props)
+        }}
+        onEnterKeyDown={props.onEnterKeyDown}
+      />
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: {
-      flex: 1,
-      marginLeft: Styles.globalMargins.xsmall,
-    },
     isElectron: {
-      minHeight: 32,
-    },
-    isMobile: {
-      height: '100%',
-      minWidth: 50,
-    },
-  }),
-  input: Styles.platformStyles({
-    common: {
-      flex: 1,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
   }),
 })
