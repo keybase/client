@@ -132,15 +132,6 @@ const handleCrashes = () => {
   })
 }
 
-const handleInstallCheck = event => {
-  installer(err => {
-    if (err) {
-      console.log('Error: ', err)
-    }
-    event.sender.send('installed')
-  })
-}
-
 const handleKBServiceCheck = () => {
   if (isWindows) {
     console.log('kb-service-check: starting keybase.exe')
@@ -199,6 +190,12 @@ const plumbEvents = () => {
           // Windows and Linux instead store a launch URL in argv.
           mainWindowDispatch(DeeplinksGen.createLink({link: process.argv[1]}))
         }
+
+        // run installer
+        installer(err => {
+          err && console.log('Error: ', err)
+          mainWindowDispatch(ConfigGen.createInstallerRan())
+        })
         break
     }
   })
@@ -236,7 +233,6 @@ const start = () => {
   Electron.app.once('ready', () => {
     mainWindow = MainWindow()
   })
-  Electron.ipcMain.on('install-check', handleInstallCheck)
   Electron.ipcMain.on('kb-service-check', handleKBServiceCheck)
 
   // Called when the user clicks the dock icon

@@ -82,12 +82,6 @@ const setupApp = (store, runSagas) => {
     dumpLogs()
   }, 5 * 1000)
 
-  // Run installer
-  SafeElectron.getIpcRenderer().on('installed', () => {
-    store.dispatch(ConfigGen.createInstallerRan())
-  })
-  SafeElectron.getIpcRenderer().send('install-check')
-
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
