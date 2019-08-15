@@ -71,6 +71,10 @@ js_tests() {
     echo 'yarn test'
     yarn test
     check_rc $? 'yarn test fail' 1
+
+    echo 'yarn prettier-check'
+    yarn prettier-check
+    check_rc $? 'yarn prettier-check fail' 1
 }
 
 js_tests

@@ -37,7 +37,7 @@ const mapDispatchToProps = dispatch => ({
 export default namedConnect(
   () => ({}),
   mapDispatchToProps,
-    (_, dispatchProps, __: OwnProps) => ({
+  (_, dispatchProps, __: OwnProps) => ({
     ...dispatchProps,
   }),
   'QRScanNotAuthorized'
