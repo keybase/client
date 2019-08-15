@@ -69,7 +69,6 @@ Modal.defaultProps = {
   mode: 'Default',
 }
 
-// TODO centering title on mobile, maybe make a separate component? might be hard to do cross platform.
 const Header = (props: HeaderProps) => (
   <Kb.Box2
     direction="vertical"
@@ -88,7 +87,7 @@ const Header = (props: HeaderProps) => (
       </Kb.Box2>
       <Kb.Box style={styles.headerCenter}>
         {typeof props.title === 'string' ? (
-          <Kb.Text type="Header" lineClamp={1}>
+          <Kb.Text type="Header" lineClamp={1} style={styles.centerHeader}>
             {props.title}
           </Kb.Text>
         ) : (
@@ -125,6 +124,9 @@ const headerCommon = {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  centerHeader: {
+    textAlign: 'center',
+  },
   footer: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
