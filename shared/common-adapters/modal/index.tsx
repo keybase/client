@@ -87,7 +87,7 @@ const Header = (props: HeaderProps) => (
       </Kb.Box2>
       <Kb.Box style={styles.headerCenter}>
         {typeof props.title === 'string' ? (
-          <Kb.Text type="Header" lineClamp={1} style={styles.centerHeader}>
+          <Kb.Text type="Header" lineClamp={1} center={true}>
             {props.title}
           </Kb.Text>
         ) : (
@@ -124,9 +124,6 @@ const headerCommon = {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  centerHeader: {
-    textAlign: 'center',
-  },
   footer: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
