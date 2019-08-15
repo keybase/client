@@ -81,7 +81,7 @@ const OnboardingOrWalletsNavigator = createSwitchNavigator(
     onboarding: RoutedOnboarding,
     walletsubnav: WalletsSubNavigator,
   },
-  {initialRouteName: 'onboarding'}
+  {initialRouteName: 'walletsubnav'}
 )
 
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
@@ -101,8 +101,8 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
   }
 
   componentDidMount() {
-    if (this.props.acceptedDisclaimer) {
-      this.props.navigation.navigate('walletsubnav')
+    if (!this.props.acceptedDisclaimer) {
+      this.props.navigation.navigate('onboarding')
     }
   }
 
