@@ -34,7 +34,7 @@ func TestCheckPassphrase(t *testing.T) {
 
 	// Other errors should come back as errors.
 	kbtest.Logout(tc)
-	ret, err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
+	_, err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
 		Passphrase: fu.Passphrase + " ",
 	})
 	require.Error(t, err)
