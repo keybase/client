@@ -140,12 +140,8 @@ const metaMapReducer = (
         })
       })
     case Chat2Gen.updateConvRetentionPolicy: {
-      const {conv} = action.payload
-      const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
-      if (!newMeta) {
-        logger.warn('Invalid inboxUIItem received in conv retention policy update')
-        return metaMap
-      }
+      const {meta} = action.payload
+      const newMeta = meta
       if (metaMap.has(newMeta.conversationIDKey)) {
         // only insert if the convo is already in the inbox
         return metaMap.set(newMeta.conversationIDKey, newMeta)
@@ -153,9 +149,9 @@ const metaMapReducer = (
       return metaMap
     }
     case Chat2Gen.updateTeamRetentionPolicy: {
-      const {convs} = action.payload
-      const newMetas = convs.reduce<{[key: string]: Types.ConversationMeta}>((updated, conv) => {
-        const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
+      const {metas} = action.payload
+      const newMetas = metas.reduce<{[key: string]: Types.ConversationMeta}>((updated, meta) => {
+        const newMeta = meta
         if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
           // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
@@ -1479,6 +1475,7 @@ const rootReducer = (
     case Chat2Gen.loadMessagesCentered:
     case Chat2Gen.tabSelected:
     case Chat2Gen.resolveMaybeMention:
+    case Chat2Gen.pinMessage:
       return state
     default:
       ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

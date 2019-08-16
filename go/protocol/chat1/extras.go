@@ -2105,6 +2105,14 @@ func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *PinMessageRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PinMessageRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }

@@ -1107,13 +1107,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, err
 	}
 
-	// Sanity check that we have a TLF name here
-	if len(arg.Msg.ClientHeader.TlfName) == 0 {
-		h.Debug(ctx, "PostLocalNonblock: no TLF name specified: convID: %s uid: %s",
-			arg.ConversationID, uid)
-		return res, fmt.Errorf("no TLF name specified")
-	}
-
 	// Clear draft
 	go func(ctx context.Context) {
 		if err := h.G().InboxSource.Draft(ctx, uid, arg.ConversationID, nil); err != nil {
@@ -2737,4 +2730,52 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	}
 	res.Commands = lres
 	return res, nil
+}
+
+func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res chat1.PinMessageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PinMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if _, err := h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+		ConversationID: arg.ConvID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				MessageType: chat1.MessageType_PIN,
+			},
+			MessageBody: chat1.NewMessageBodyWithPin(chat1.MessagePin{
+				MsgID: arg.MsgID,
+			}),
+		},
+	}); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) UnpinMessage(ctx context.Context, convID chat1.ConversationID) (res chat1.PinMessageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "UnpinMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.ConversationID) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "IgnorePinnedMessage")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return nil
 }

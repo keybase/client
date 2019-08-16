@@ -32,6 +32,7 @@ const commonProps = {
     listFirst: true,
     manageMembers: true,
     manageSubteams: true,
+    pinMessage: true,
     renameChannel: true,
     renameTeam: true,
     setMemberShowcase: true,

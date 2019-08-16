@@ -31,6 +31,7 @@
   "chat.1.local.makeUploadTempFile": {"promise": true},
   "chat.1.local.markAsReadLocal": {"promise": true},
   "chat.1.local.newConversationLocal": {"promise": true},
+  "chat.1.local.pinMessage": {"promise": true},
   "chat.1.local.postDeleteHistoryByAge": {"promise": true},
   "chat.1.local.postDeleteNonblock": {"promise": true},
   "chat.1.local.postEditNonblock": {"promise": true},

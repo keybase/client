@@ -686,6 +686,10 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	if conv != nil {
 		convID := conv.GetConvID()
 		msg.ClientHeader.Conv = conv.Info.Triple
+		if len(msg.ClientHeader.TlfName) == 0 {
+			msg.ClientHeader.TlfName = conv.Info.TlfName
+			msg.ClientHeader.TlfPublic = conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+		}
 		s.Debug(ctx, "Prepare: performing convID based checks")
 
 		// Check for outboxID based edits

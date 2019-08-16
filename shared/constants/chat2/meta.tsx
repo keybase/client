@@ -5,6 +5,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
+import * as Message from './message'
 import {memoize} from '../../util/memoize'
 import {_ConversationMeta} from '../types/chat2/meta'
 import {TypedState} from '../reducer'
@@ -236,7 +237,11 @@ const UIItemToRetentionPolicies = (
   return {retentionPolicy, teamRetentionPolicy}
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
+export const inboxUIItemToConversationMeta = (
+  state: TypedState,
+  i: RPCChatTypes.InboxUIItem,
+  allowEmpty?: boolean
+) => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
@@ -281,13 +286,13 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
-
+  const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   return makeConversationMeta({
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
-    conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    conversationIDKey,
     description: i.headline,
     descriptionDecorated: i.headlineDecorated,
     draft: i.draft || '',
@@ -310,6 +315,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
       }, {})
     ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
+    pinnedMsg: i.pinnedMsg ? Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg) : null,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -350,6 +356,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   offline: false,
   participantToContactName: I.Map(),
   participants: I.List<string>(),
+  pinnedMsg: null,
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

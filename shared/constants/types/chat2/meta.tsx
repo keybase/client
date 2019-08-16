@@ -1,6 +1,7 @@
 // Metadata about a conversation.
 import * as I from 'immutable'
 import * as Common from './common'
+import * as Message from './message'
 import * as RPCChatTypes from '../rpc-chat-gen'
 import {RetentionPolicy} from '../retention-policy'
 
@@ -33,6 +34,7 @@ export type _ConversationMeta = {
   offline: boolean
   participantToContactName: I.Map<string, string>
   participants: I.List<string> // was OrderedSet but is quite slow,
+  pinnedMsg: Message.Message | null
   readMsgID: number
   rekeyers: I.Set<string>
   resetParticipants: I.Set<string>

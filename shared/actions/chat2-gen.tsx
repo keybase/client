@@ -89,6 +89,7 @@ export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
+export const pinMessage = 'chat2:pinMessage'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const replyJump = 'chat2:replyJump'
@@ -403,6 +404,10 @@ type _PendingMessageWasEditedPayload = {
   readonly ordinal: Types.Ordinal
   readonly text: HiddenString
 }
+type _PinMessagePayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly messageID: Types.MessageID
+}
 type _PrepareFulfillRequestFormPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
@@ -602,7 +607,7 @@ type _UpdateCoinFlipStatusPayload = {readonly statuses: Array<RPCChatTypes.UICoi
 type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
 }
-type _UpdateConvRetentionPolicyPayload = {readonly conv: RPCChatTypes.InboxUIItem}
+type _UpdateConvRetentionPolicyPayload = {readonly meta: Types.ConversationMeta}
 type _UpdateMessagesPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
@@ -621,7 +626,7 @@ type _UpdateReactionsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
 }
-type _UpdateTeamRetentionPolicyPayload = {readonly convs: Array<RPCChatTypes.InboxUIItem>}
+type _UpdateTeamRetentionPolicyPayload = {readonly metas: Array<Types.ConversationMeta>}
 type _UpdateUnreadlinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -774,6 +779,13 @@ export const createThreadSearch = (payload: _ThreadSearchPayload): ThreadSearchP
 export const createInboxSearch = (payload: _InboxSearchPayload): InboxSearchPayload => ({
   payload,
   type: inboxSearch,
+})
+/**
+ * Pin a message
+ */
+export const createPinMessage = (payload: _PinMessagePayload): PinMessagePayload => ({
+  payload,
+  type: pinMessage,
 })
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
@@ -1588,6 +1600,7 @@ export type PendingMessageWasEditedPayload = {
   readonly payload: _PendingMessageWasEditedPayload
   readonly type: typeof pendingMessageWasEdited
 }
+export type PinMessagePayload = {readonly payload: _PinMessagePayload; readonly type: typeof pinMessage}
 export type PrepareFulfillRequestFormPayload = {
   readonly payload: _PrepareFulfillRequestFormPayload
   readonly type: typeof prepareFulfillRequestForm
@@ -1882,6 +1895,7 @@ export type Actions =
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
   | PendingMessageWasEditedPayload
+  | PinMessagePayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | ReplyJumpPayload

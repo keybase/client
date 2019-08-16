@@ -367,6 +367,10 @@ export type MessageTypes = {
     inParam: {readonly tlfName: String; readonly topicType: TopicType; readonly tlfVisibility: Keybase1.TLFVisibility; readonly topicName?: String | null; readonly membersType: ConversationMembersType; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: NewConversationLocalRes
   }
+  'chat.1.local.pinMessage': {
+    inParam: {readonly convID: ConversationID; readonly msgID: MessageID}
+    outParam: PinMessageRes
+  }
   'chat.1.local.postDeleteHistoryByAge': {
     inParam: {readonly conversationID: ConversationID; readonly tlfName: String; readonly tlfPublic: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior; readonly age: Gregor1.DurationSec}
     outParam: PostLocalRes
@@ -1090,6 +1094,7 @@ export type OutboxRecord = {readonly state: OutboxState; readonly outboxID: Outb
 export type OutboxState = {state: OutboxStateType.sending; sending: Int | null} | {state: OutboxStateType.error; error: OutboxStateError | null}
 export type OutboxStateError = {readonly message: String; readonly typ: OutboxErrorType}
 export type Pagination = {readonly next: Bytes; readonly previous: Bytes; readonly num: Int; readonly last: Boolean; readonly forceFirstPage: Boolean}
+export type PinMessageRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type PostFileAttachmentArg = {readonly conversationID: ConversationID; readonly tlfName: String; readonly visibility: Keybase1.TLFVisibility; readonly filename: String; readonly title: String; readonly metadata: Bytes; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior; readonly callerPreview?: MakePreviewRes | null; readonly outboxID?: OutboxID | null; readonly ephemeralLifetime?: Gregor1.DurationSec | null}
 export type PostLocalNonblockRes = {readonly rateLimits?: Array<RateLimit> | null; readonly outboxID: OutboxID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type PostLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly messageID: MessageID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1346,6 +1351,7 @@ export const localMakePreviewRpcPromise = (params: MessageTypes['chat.1.local.ma
 export const localMakeUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.makeUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.makeUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makeUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMarkAsReadLocalRpcPromise = (params: MessageTypes['chat.1.local.markAsReadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.markAsReadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.markAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localNewConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.newConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.newConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.newConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localPinMessageRpcPromise = (params: MessageTypes['chat.1.local.pinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.pinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.pinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostDeleteHistoryByAgeRpcPromise = (params: MessageTypes['chat.1.local.postDeleteHistoryByAge']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.postDeleteHistoryByAge']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postDeleteHistoryByAge', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostDeleteNonblockRpcPromise = (params: MessageTypes['chat.1.local.postDeleteNonblock']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.postDeleteNonblock']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postDeleteNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostEditNonblockRpcPromise = (params: MessageTypes['chat.1.local.postEditNonblock']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.postEditNonblock']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postEditNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1427,6 +1433,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
+// 'chat.1.local.unpinMessage'
+// 'chat.1.local.ignorePinnedMessage'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

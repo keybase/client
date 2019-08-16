@@ -3423,6 +3423,19 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PinMessageRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4923,6 +4936,37 @@
     "clearBotCommandsLocal": {
       "request": [],
       "response": "ClearBotCommandsLocalRes"
+    },
+    "pinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "unpinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "ignorePinnedMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

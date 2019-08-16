@@ -193,6 +193,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
+  pinMessage: false,
   renameChannel: false,
   renameTeam: false,
   setMemberShowcase: false,

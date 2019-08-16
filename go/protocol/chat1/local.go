@@ -5470,6 +5470,26 @@ func (o ClearBotCommandsLocalRes) DeepCopy() ClearBotCommandsLocalRes {
 	}
 }
 
+type PinMessageRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o PinMessageRes) DeepCopy() PinMessageRes {
+	return PinMessageRes{
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5948,6 +5968,19 @@ type ListBotCommandsLocalArg struct {
 type ClearBotCommandsLocalArg struct {
 }
 
+type PinMessageArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
+type UnpinMessageArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type IgnorePinnedMessageArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -6025,6 +6058,9 @@ type LocalInterface interface {
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
 	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
+	PinMessage(context.Context, PinMessageArg) (PinMessageRes, error)
+	UnpinMessage(context.Context, ConversationID) (PinMessageRes, error)
+	IgnorePinnedMessage(context.Context, ConversationID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7136,6 +7172,51 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"pinMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]PinMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PinMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PinMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.PinMessage(ctx, typedArgs[0])
+					return
+				},
+			},
+			"unpinMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]UnpinMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UnpinMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UnpinMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.UnpinMessage(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"ignorePinnedMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]IgnorePinnedMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IgnorePinnedMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IgnorePinnedMessageArg)(nil), args)
+						return
+					}
+					err = i.IgnorePinnedMessage(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -7536,5 +7617,22 @@ func (c LocalClient) ListBotCommandsLocal(ctx context.Context, convID Conversati
 
 func (c LocalClient) ClearBotCommandsLocal(ctx context.Context) (res ClearBotCommandsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.clearBotCommandsLocal", []interface{}{ClearBotCommandsLocalArg{}}, &res)
+	return
+}
+
+func (c LocalClient) PinMessage(ctx context.Context, __arg PinMessageArg) (res PinMessageRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.pinMessage", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) UnpinMessage(ctx context.Context, convID ConversationID) (res PinMessageRes, err error) {
+	__arg := UnpinMessageArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.unpinMessage", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) IgnorePinnedMessage(ctx context.Context, convID ConversationID) (err error) {
+	__arg := IgnorePinnedMessageArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.ignorePinnedMessage", []interface{}{__arg}, nil)
 	return
 }

@@ -1717,6 +1717,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.SetMinWriterRole = isAdmin
 	ret.DeleteChatHistory = isAdmin
 	ret.DeleteOtherMessages = isAdmin
+	ret.PinMessage = isWriter
 
 	return ret, err
 }

@@ -194,6 +194,7 @@ export type TypedActionsMap = {
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
   'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
+  'chat2:pinMessage': chat2.PinMessagePayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

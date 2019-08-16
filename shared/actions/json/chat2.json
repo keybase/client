@@ -431,11 +431,11 @@
     },
     "updateConvRetentionPolicy": {
       "_description": "Consume a service notification that a conversation's retention policy has been updated",
-      "conv": "RPCChatTypes.InboxUIItem"
+      "meta": "Types.ConversationMeta"
     },
     "updateTeamRetentionPolicy": {
       "_description": "Consume a service notification that a team retention policy was updated",
-      "convs": "Array<RPCChatTypes.InboxUIItem>"
+      "metas": "Array<Types.ConversationMeta>"
     },
     "setConvExplodingMode": {
       "_description": "Set the remote exploding mode for a conversation.",
@@ -725,6 +725,11 @@
       "_description": "Set thread load status",
       "conversationIDKey": "Types.ConversationIDKey",
       "status": "RPCChatTypes.UIChatThreadStatus"
+    },
+    "pinMessage": {
+      "_description": "Pin a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     }
   }
 }

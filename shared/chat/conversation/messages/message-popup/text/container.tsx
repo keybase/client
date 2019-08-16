@@ -26,10 +26,15 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+  let _canPinMessage = true
+  if (meta.teamname) {
+    _canPinMessage = yourOperations && yourOperations.pinMessage
+  }
   const _participantsCount = meta.participants.count()
   return {
     _canAdminDelete,
     _canDeleteHistory,
+    _canPinMessage,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
     _participantsCount,
@@ -72,6 +77,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       Chat2Gen.createMessageSetEditing({
         conversationIDKey: message.conversationIDKey,
         ordinal: message.ordinal,
+      })
+    )
+  },
+  _onPinMessage: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createPinMessage({
+        conversationIDKey: message.conversationIDKey,
+        messageID: message.id,
       })
     )
   },
@@ -118,6 +131,7 @@ export default Container.namedConnect(
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
       onHidden: () => ownProps.onHidden(),
+      onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
         message.type === 'text' && !yourMessage && stateProps._participantsCount > 2

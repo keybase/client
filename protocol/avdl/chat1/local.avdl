@@ -1153,4 +1153,12 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ClearBotCommandsLocalRes clearBotCommandsLocal();
+
+  // Pinning
+  record PinMessageRes {
+    array<RateLimit> rateLimits;
+  }
+  PinMessageRes pinMessage(ConversationID convID, MessageID msgID);
+  PinMessageRes unpinMessage(ConversationID convID);
+  void ignorePinnedMessage(ConversationID convID);
 }
