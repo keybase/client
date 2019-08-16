@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import {StyleOverride} from '../../common-adapters/markdown'
 import {isMobile} from '../../constants/platform'
 
-const styleOverride = Styles.styleSheetCreate({
+const styleOverride: StyleOverride = {
   del: {
     color: Styles.globalColors.black,
   },
@@ -20,7 +20,7 @@ const styleOverride = Styles.styleSheetCreate({
   strong: {
     color: Styles.globalColors.black,
   },
-})
+}
 
 type Props = {
   memo: string
@@ -40,7 +40,7 @@ const MarkdownMemo = (props: Props) =>
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Markdown
         style={styles.memo}
-        styleOverride={Styles.collapseStyles([isMobile ? styleOverride : undefined, props.styleOverride])}
+        styleOverride={{...(isMobile ? styleOverride : undefined), ...props.styleOverride}}
         allowFontScaling={true}
       >
         {props.memo}

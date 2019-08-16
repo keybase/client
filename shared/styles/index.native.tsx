@@ -1,6 +1,5 @@
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
-import {isEmpty} from 'lodash-es'
 import {isIOS} from '../constants/platform'
 import globalColors from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
@@ -58,25 +57,10 @@ export const hairlineWidth = StyleSheet.hairlineWidth
 // @ts-ignore TODO fix native styles
 export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
 export {isDarkMode} from './dark-mode'
-
-export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined | null => {
-  // fast path for a single style that passes. Often we do stuff like
-  // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
-  // case we can just take styles.myStyle and not render thrash
-  const valid = styles.filter(Boolean)
-  if (valid.length === 1) {
-    const s = valid[0]
-    if (typeof s === 'object') {
-      return s as Object
-    }
-  }
-
-  const flattenedStyles = styles.reduce(
-    (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
-    []
-  ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
-  return isEmpty(style) ? undefined : style
+export const collapseStyles = (
+  styles: ReadonlyArray<CollapsibleStyle>
+): ReadonlyArray<Object | null | false | void> => {
+  return styles
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})
