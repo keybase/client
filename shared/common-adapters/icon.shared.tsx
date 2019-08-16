@@ -1,6 +1,7 @@
 import * as Styles from '../styles'
 import {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants'
+import './icon.css'
 
 export function defaultColor(type: IconType): string | null {
   switch (type) {
