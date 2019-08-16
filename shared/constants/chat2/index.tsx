@@ -332,6 +332,12 @@ export const makeInboxQuery = (
       .map(k => RPCChatTypes.ConversationStatus[k as any]) as unknown) as Array<
       RPCChatTypes.ConversationStatus
     >,
+    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+      .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
+      .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
+      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
+      RPCChatTypes.ConversationMemberStatus
+    >,
     tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,
