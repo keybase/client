@@ -7114,16 +7114,10 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
 
-			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
-				ID: teamID,
-			})
-			require.NoError(t, err)
-
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
-			err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
-				botua.GetUserVersion(): botSettings,
-			})
+			err = teams.SetBotSettings(ctx, tc.m.G(), team.Name().String(),
+				botua.Username, botSettings)
 			require.NoError(t, err)
 			// wait for the teamchange to propagate
 			found := false
