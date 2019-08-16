@@ -22,10 +22,11 @@ const EnterEmail = (props: Props) => {
       banners={errorBanner(props.error)}
       buttons={[
         {
-          disabled: disabled || props.waiting,
+          disabled,
           label: 'Finish',
           onClick: onContinue,
           type: 'Success',
+          waiting: props.waiting,
         },
         ...(!Styles.isMobile && props.onSkip
           ? [
