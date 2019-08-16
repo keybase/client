@@ -478,9 +478,9 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 			smsName = sms.N
 		}
 		return keybase1.TeamInviteName(smsName), nil
+	default:
+		return "", nil
 	}
-
-	return "", nil
 }
 
 type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite

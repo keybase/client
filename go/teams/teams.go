@@ -95,7 +95,7 @@ func (t *Team) CanSkipKeyRotation() bool {
 
 	now := t.G().Clock().Now()
 	duration := now.Sub(time.Unix(int64(t.chain().GetLatestPerTeamKeyCTime()), 0))
-	if duration > KeyRotateInterval {
+	if duration > KeyRotateInterval { //nolint
 		// Last key rotation was more than predefined interval.
 		return false
 	}
@@ -625,8 +625,7 @@ func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr 
 	if err != nil {
 		return err
 	}
-	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true}, latestSeqno)
-	return nil
+	return t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true}, latestSeqno)
 }
 
 func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
@@ -662,9 +661,7 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	}
 
 	// We rotated the key but didn't change the visibile chain
-	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
-
-	return err
+	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 }
 
 func teamAdminToSig3ChainLocation(admin *SCTeamAdmin) (*sig3.ChainLocation, error) {
@@ -682,7 +679,7 @@ func teamAdminToSig3ChainLocation(admin *SCTeamAdmin) (*sig3.ChainLocation, erro
 	return &sig3.ChainLocation{
 		TeamID:    *s3id,
 		Seqno:     admin.Seqno,
-		ChainType: sig3.ChainType(admin.SeqType),
+		ChainType: admin.SeqType,
 	}, nil
 
 }
@@ -900,7 +897,10 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
+	err = t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
+	if err != nil {
+		return err
+	}
 	t.storeTeamEKPayload(ctx, teamEKPayload)
 	createTeambotKeys(t.G(), t.ID, memberSet.restrictedBotRecipientUids())
 
@@ -992,8 +992,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
-	return nil
+	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
 func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
@@ -1025,6 +1024,9 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	}
 
 	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
@@ -1054,8 +1056,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	if err != nil {
 		return err
 	}
-	t.HintLatestSeqno(m, latestSeqno)
-	return nil
+	return t.HintLatestSeqno(m, latestSeqno)
 }
 
 func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
@@ -1123,7 +1124,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		return errors.New("No merkle root available for team delete subteam")
 	}
 
-	sigParent, latestSeqno, err := parentTeam.sigTeamItem(ctx, parentSection, libkb.LinkTypeDeleteSubteam, mr)
+	sigParent, _, err := parentTeam.sigTeamItem(ctx, parentSection, libkb.LinkTypeDeleteSubteam, mr)
 	if err != nil {
 		return err
 	}
@@ -1151,8 +1152,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 	if err != nil {
 		return err
 	}
-	t.HintLatestSeqno(m, latestSeqno)
-	return nil
+	return t.HintLatestSeqno(m, latestSeqno)
 }
 
 func (t *Team) NumActiveInvites() int {
@@ -1482,8 +1482,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
-	return nil
+	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
 // NOTE since this function uses `Load` and not `load2`, readSubteamID cannot
@@ -1730,12 +1729,18 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 			// need a reverse sig
 
 			// set a nil value (not empty) for reverse_sig (fails without this)
-			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+			err := sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+			if err != nil {
+				return libkb.SigMultiItem{}, "", err
+			}
 			reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
 			if err != nil {
 				return libkb.SigMultiItem{}, "", err
 			}
-			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+			err = sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+			if err != nil {
+				return libkb.SigMultiItem{}, "", err
+			}
 		}
 	}
 
@@ -2190,11 +2195,17 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	}
 
 	if rotate {
-		t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true, Misc: true}, latestSeqno)
+		err := t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true, Misc: true}, latestSeqno)
+		if err != nil {
+			return err
+		}
 		t.storeTeamEKPayload(ctx, maybeEKPayload)
 		createTeambotKeys(t.G(), t.ID, botMembers)
 	} else {
-		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
+		err := t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2290,10 +2301,7 @@ func isHiddenAppendPrecheckError(err error) bool {
 		return false
 	}
 	_, ok = perr.Inner.(hidden.LoaderError)
-	if !ok {
-		return false
-	}
-	return true
+	return ok
 }
 
 func isSigOldSeqnoError(err error) bool {
@@ -2423,8 +2431,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return err
 	}
 
-	t.HintLatestSeqno(m, latestSeqno)
-	return nil
+	return t.HintLatestSeqno(m, latestSeqno)
 }
 
 func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
@@ -2474,8 +2481,7 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 	if err != nil {
 		return err
 	}
-	t.HintLatestSeqno(m, latestSeqno)
-	return nil
+	return t.HintLatestSeqno(m, latestSeqno)
 }
 
 func (t *Team) notifyNoChainChange(ctx context.Context, changes keybase1.TeamChangeSet) error {
@@ -2527,7 +2533,10 @@ func HintLatestHiddenSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.S
 
 func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 	for uv := range t.chain().inner.UserLog {
-		g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+		_, err := g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Error informing eldest seqno: %+v", err.Error())
+		}
 	}
 	for id, invite := range t.chain().inner.ActiveInvites {
 		invtype, err := invite.Type.C()
@@ -2540,7 +2549,10 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 			if err != nil {
 				g.Log.CDebugf(ctx, "Error in parsing invite %s: %s", id, err.Error())
 			}
-			g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+			_, err = g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+			if err != nil {
+				g.Log.CDebugf(ctx, "Error informing eldest seqno: %+v", err.Error())
+			}
 		}
 	}
 }

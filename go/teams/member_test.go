@@ -34,11 +34,13 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 
 	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
@@ -93,7 +95,7 @@ func TestMemberOwner(t *testing.T) {
 }
 
 type setRoleTest struct {
-	name        string
+	name        string //nolint
 	setRoleFunc func(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error
 	afterRole   keybase1.TeamRole
 }
@@ -103,12 +105,12 @@ func setRestrictedBotRole(ctx context.Context, g *libkb.GlobalContext, teamname,
 }
 
 var setRoleTests = []setRoleTest{
-	setRoleTest{name: "owner", setRoleFunc: SetRoleOwner, afterRole: keybase1.TeamRole_OWNER},
-	setRoleTest{name: "admin", setRoleFunc: SetRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
-	setRoleTest{name: "writer", setRoleFunc: SetRoleWriter, afterRole: keybase1.TeamRole_WRITER},
-	setRoleTest{name: "reader", setRoleFunc: SetRoleReader, afterRole: keybase1.TeamRole_READER},
-	setRoleTest{name: "bot", setRoleFunc: SetRoleBot, afterRole: keybase1.TeamRole_BOT},
-	setRoleTest{name: "restricted_bot", setRoleFunc: setRestrictedBotRole, afterRole: keybase1.TeamRole_RESTRICTEDBOT},
+	{name: "owner", setRoleFunc: SetRoleOwner, afterRole: keybase1.TeamRole_OWNER},
+	{name: "admin", setRoleFunc: SetRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
+	{name: "writer", setRoleFunc: SetRoleWriter, afterRole: keybase1.TeamRole_WRITER},
+	{name: "reader", setRoleFunc: SetRoleReader, afterRole: keybase1.TeamRole_READER},
+	{name: "bot", setRoleFunc: SetRoleBot, afterRole: keybase1.TeamRole_BOT},
+	{name: "restricted_bot", setRoleFunc: setRestrictedBotRole, afterRole: keybase1.TeamRole_RESTRICTEDBOT},
 }
 
 func TestMemberSetRole(t *testing.T) {
@@ -604,13 +606,16 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 	// Logout owner
 	kbtest.Logout(tc)
 
-	otherA.Login(tc.G)
+	err = otherA.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.ResetAccount(tc, otherA)
 
-	otherB.Login(tc.G)
+	err = otherB.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.DeleteAccount(tc, otherB)
 
-	owner.Login(tc.G)
+	err = owner.Login(tc.G)
+	require.NoError(t, err)
 
 	details, err = Details(context.TODO(), tc.G, name)
 	require.NoError(t, err)
@@ -710,10 +715,11 @@ func TestMemberListInviteUsername(t *testing.T) {
 
 	// List can return stale results for invites, so do a force load of the team to refresh the cache.
 	// In the real world, hopefully gregor would cause this.
-	Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+	_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
 	})
+	require.NoError(t, err)
 
 	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	require.NoError(t, err)
@@ -740,8 +746,9 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	// (all of that tested in memberSetupSubteam)
 
 	switchTo := func(to *kbtest.FakeUser) {
-		tc.G.Logout(context.TODO())
-		err := to.Login(tc.G)
+		err := tc.G.Logout(context.TODO())
+		require.NoError(t, err)
+		err = to.Login(tc.G)
 		require.NoError(t, err)
 	}
 
@@ -785,13 +792,15 @@ func TestLeave(t *testing.T) {
 
 	botua, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
 	restrictedBotua, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
@@ -804,31 +813,36 @@ func TestLeave(t *testing.T) {
 	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, restrictedBotua.Username, keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	err = otherA.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	err = otherB.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	err = botua.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	err = restrictedBotua.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -866,7 +880,8 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	if err := otherA.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -874,7 +889,8 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	if err := otherB.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -882,7 +898,8 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -902,7 +919,8 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	// They are now an implicit admin and not an explicit member.
 	// So this should fail, but with a reasonable error.
 	t.Logf("try to leave again")
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	err = otherA.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, subteamName, false)
@@ -1440,18 +1458,22 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 	team := createTeam(tc)
 	t.Logf("Created team %q", team)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	// alice tracks bob and charlie
-	alice.Login(tc.G)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
 	_, err = kbtest.RunTrack(tc, alice, bob.Username)
 	require.NoError(t, err)
 	_, err = kbtest.RunTrack(tc, alice, charlie.Username)
@@ -1462,16 +1484,22 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 
 	// bob and charlie reset
-	tc.G.Logout(context.TODO())
-	bob.Login(tc.G)
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
+	err = bob.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.ResetAccount(tc, bob)
-	tc.G.Logout(context.TODO())
-	charlie.Login(tc.G)
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
+	err = charlie.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.ResetAccount(tc, charlie)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	// alice fails to invite bob into the team since her tracking statement of him is broken
-	alice.Login(tc.G)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
 	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_ADMIN, nil)
 	require.Error(t, err)
 	require.True(t, libkb.IsIdentifyProofError(err))
@@ -1487,5 +1515,4 @@ func TestFollowResetAdd(t *testing.T) {
 	// is ignored for a team removal.
 	err = RemoveMember(context.TODO(), tc.G, team, charlie.Username)
 	require.NoError(t, err)
-
 }

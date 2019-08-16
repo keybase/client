@@ -211,7 +211,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 
 	t.Logf("D loads with NeedKeyGeneration and errors out")
-	team, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedKeyGeneration: 3,
@@ -266,9 +266,9 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	require.NoError(t, err)
 
 	tlfID := newImplicitTLFID(false)
-	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+	cryptKeys := []keybase1.CryptKey{{
 		KeyGeneration: 1,
-	}, keybase1.CryptKey{
+	}, {
 		KeyGeneration: 2,
 	}}
 	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
@@ -305,10 +305,10 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 	tlfID := newImplicitTLFID(false)
 	key1 := [32]byte{0, 1}
 	key2 := [32]byte{0, 2}
-	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+	cryptKeys := []keybase1.CryptKey{{
 		KeyGeneration: 1,
 		Key:           key1,
-	}, keybase1.CryptKey{
+	}, {
 		KeyGeneration: 2,
 		Key:           key2,
 	}}
@@ -331,7 +331,7 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				3: []keybase1.TeamApplication{keybase1.TeamApplication_KBFS},
+				3: {keybase1.TeamApplication_KBFS},
 			},
 		},
 	})
@@ -615,7 +615,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 		team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
-				WantMembers: []keybase1.UserVersion{keybase1.UserVersion{
+				WantMembers: []keybase1.UserVersion{{
 					Uid:         fus[2].GetUID(),
 					EldestSeqno: 0,
 				}},
@@ -1065,7 +1065,7 @@ func TestLoaderCORE_8445(t *testing.T) {
 		ID: subBID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+				keybase1.PerTeamKeyGeneration(1): {keybase1.TeamApplication_CHAT},
 			},
 		},
 	})
@@ -1209,7 +1209,7 @@ func TestLoaderCORE_10487(t *testing.T) {
 	_, err = LoadTeamPlusApplicationKeys(context.Background(), tcs[1].G, subBID,
 		keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(1): {
 					keybase1.TeamApplication_KBFS,
 				},
 			}}, true)
@@ -1292,7 +1292,7 @@ func freezeTest(t *testing.T, freezeAction freezeF, unfreezeAction freezeF) {
 	})
 	require.NoError(t, err)
 
-	td, frozen, tombstoned = st.Get(mctx, rootID, rootID.IsPublic())
+	td, _, _ = st.Get(mctx, rootID, rootID.IsPublic())
 	require.NotNil(t, td)
 	require.NotNil(t, td.ReaderKeyMasks)
 	require.NotNil(t, td.Chain.UserLog)

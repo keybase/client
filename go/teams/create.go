@@ -216,7 +216,10 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	sigBodyAfterReverse := sigBodyBeforeReverse
-	sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return err
+	}
 
 	sigJSONAfterReverse, err := sigBodyAfterReverse.Marshal()
 	if err != nil {
@@ -545,7 +548,10 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		case keybase1.TeamRole_RESTRICTEDBOT:
 			return nil, nil, errors.New("Cannot add self as restricted bot to a subteam")
 		}
-		memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
+		_, err := memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -598,7 +604,10 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	subteamHeadSigBodyAfterReverse := subteamHeadSigBodyBeforeReverse
-	subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	subteamHeadSigJSON, err := subteamHeadSigBodyAfterReverse.Marshal()
 	if err != nil {
