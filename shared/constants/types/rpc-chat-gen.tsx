@@ -331,6 +331,10 @@ export type MessageTypes = {
     inParam: {readonly outboxID: OutboxID; readonly filename: String}
     outParam: String
   }
+  'chat.1.local.ignorePinnedMessage': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
+  }
   'chat.1.local.joinConversationByIDLocal': {
     inParam: {readonly convID: ConversationID}
     outParam: JoinLeaveConversationLocalRes
@@ -462,6 +466,10 @@ export type MessageTypes = {
   'chat.1.local.unboxMobilePushNotification': {
     inParam: {readonly payload: String; readonly convID: String; readonly membersType: ConversationMembersType; readonly pushIDs?: Array<String> | null; readonly shouldAck: Boolean}
     outParam: String
+  }
+  'chat.1.local.unpinMessage': {
+    inParam: {readonly convID: ConversationID}
+    outParam: PinMessageRes
   }
   'chat.1.local.updateTyping': {
     inParam: {readonly conversationID: ConversationID; readonly typing: Boolean}
@@ -1342,6 +1350,7 @@ export const localGetThreadNonblockRpcSaga = (p: {params: MessageTypes['chat.1.l
 export const localGetUnfurlSettingsRpcPromise = (params: MessageTypes['chat.1.local.getUnfurlSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnfurlSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnfurlSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetUnreadlineRpcPromise = (params: MessageTypes['chat.1.local.getUnreadline']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnreadline']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnreadline', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.getUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localIgnorePinnedMessageRpcPromise = (params: MessageTypes['chat.1.local.ignorePinnedMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.ignorePinnedMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.ignorePinnedMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localJoinConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.joinConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.joinConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.joinConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localLeaveConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.leaveConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.leaveConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.leaveConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localLoadGalleryRpcSaga = (p: {params: MessageTypes['chat.1.local.loadGallery']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.loadGallery', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
@@ -1378,6 +1387,7 @@ export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: Mes
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleMessageCollapseRpcPromise = (params: MessageTypes['chat.1.local.toggleMessageCollapse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleMessageCollapse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnboxMobilePushNotificationRpcPromise = (params: MessageTypes['chat.1.local.unboxMobilePushNotification']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unboxMobilePushNotification', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.unpinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unpinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unpinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUpdateTypingRpcPromise = (params: MessageTypes['chat.1.local.updateTyping']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.updateTyping']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.updateTyping', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.local.updateUnsentText']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.updateUnsentText']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.updateUnsentText', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
@@ -1433,8 +1443,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
-// 'chat.1.local.unpinMessage'
-// 'chat.1.local.ignorePinnedMessage'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

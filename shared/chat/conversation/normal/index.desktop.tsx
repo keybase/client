@@ -8,6 +8,7 @@ import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import {Props} from './index.types'
 import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
+import PinnedMessage from '../pinned-message/container'
 
 type State = {
   showDropOverlay: boolean
@@ -58,6 +59,7 @@ class Conversation extends React.PureComponent<Props, State> {
               conversationIDKey={this.props.conversationIDKey}
             />
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+            <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
           <Banner conversationIDKey={this.props.conversationIDKey} />

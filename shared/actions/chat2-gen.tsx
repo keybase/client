@@ -40,6 +40,7 @@ export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
+export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
@@ -134,6 +135,7 @@ export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
+export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
@@ -225,6 +227,7 @@ type _GiphyToggleWindowPayload = {
 }
 type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _IgnorePinnedMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _InboxRefreshPayload = {
   readonly reason:
     | 'bootstrap'
@@ -599,6 +602,7 @@ type _UnfurlTogglePromptPayload = {
   readonly show: boolean
 }
 type _UnhideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _UnpinMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _UnsentTextChangedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
@@ -729,6 +733,12 @@ export const createGiphyGotSearchResult = (
 export const createUpdateConvExplodingModes = (
   payload: _UpdateConvExplodingModesPayload
 ): UpdateConvExplodingModesPayload => ({payload, type: updateConvExplodingModes})
+/**
+ * Ignore pinned message
+ */
+export const createIgnorePinnedMessage = (
+  payload: _IgnorePinnedMessagePayload
+): IgnorePinnedMessagePayload => ({payload, type: ignorePinnedMessage})
 /**
  * Inbox search has started
  */
@@ -998,6 +1008,13 @@ export const createToggleInboxSearch = (payload: _ToggleInboxSearchPayload): Tog
 export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload): ToggleThreadSearchPayload => ({
   payload,
   type: toggleThreadSearch,
+})
+/**
+ * Unpin a message
+ */
+export const createUnpinMessage = (payload: _UnpinMessagePayload): UnpinMessagePayload => ({
+  payload,
+  type: unpinMessage,
 })
 /**
  * Unsent text changed
@@ -1431,6 +1448,10 @@ export type HideConversationPayload = {
   readonly payload: _HideConversationPayload
   readonly type: typeof hideConversation
 }
+export type IgnorePinnedMessagePayload = {
+  readonly payload: _IgnorePinnedMessagePayload
+  readonly type: typeof ignorePinnedMessage
+}
 export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
 export type InboxSearchMoveSelectedIndexPayload = {
   readonly payload: _InboxSearchMoveSelectedIndexPayload
@@ -1767,6 +1788,7 @@ export type UnhideConversationPayload = {
   readonly payload: _UnhideConversationPayload
   readonly type: typeof unhideConversation
 }
+export type UnpinMessagePayload = {readonly payload: _UnpinMessagePayload; readonly type: typeof unpinMessage}
 export type UnsentTextChangedPayload = {
   readonly payload: _UnsentTextChangedPayload
   readonly type: typeof unsentTextChanged
@@ -1846,6 +1868,7 @@ export type Actions =
   | GiphyToggleWindowPayload
   | HandleSeeingWalletsPayload
   | HideConversationPayload
+  | IgnorePinnedMessagePayload
   | InboxRefreshPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
@@ -1941,6 +1964,7 @@ export type Actions =
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
   | UnhideConversationPayload
+  | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload

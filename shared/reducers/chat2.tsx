@@ -1476,6 +1476,8 @@ const rootReducer = (
     case Chat2Gen.tabSelected:
     case Chat2Gen.resolveMaybeMention:
     case Chat2Gen.pinMessage:
+    case Chat2Gen.unpinMessage:
+    case Chat2Gen.ignorePinnedMessage:
       return state
     default:
       ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

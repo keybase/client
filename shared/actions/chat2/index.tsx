@@ -3171,6 +3171,21 @@ const pinMessage = async (_: TypedState, action: Chat2Gen.PinMessagePayload) => 
   }
 }
 
+const unpinMessage = async (_: TypedState, action: Chat2Gen.UnpinMessagePayload) => {
+  try {
+    await RPCChatTypes.localUnpinMessageRpcPromise({
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    })
+  } catch (err) {
+    logger.error(`unpinMessage: ${err.message}`)
+  }
+}
+
+const ignorePinnedMessage = (_: TypedState, action: Chat2Gen.IgnorePinnedMessagePayload) =>
+  RPCChatTypes.localIgnorePinnedMessageRpcPromise({
+    conversationIDKey: action.payload.conversationIDKey,
+  })
+
 const openChatFromWidget = (
   _: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -3666,6 +3681,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   yield* Saga.chainAction2(Chat2Gen.pinMessage, pinMessage)
+  yield* Saga.chainAction2(Chat2Gen.unpinMessage, unpinMessage)
+  yield* Saga.chainAction2(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
 
   yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
     Chat2Gen.loadAttachmentView,
