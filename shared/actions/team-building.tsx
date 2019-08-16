@@ -20,6 +20,10 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
+  if (service === 'phone') {
+    // Phone searching is implemented by the phone-search component
+    return []
+  }
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,

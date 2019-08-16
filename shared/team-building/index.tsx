@@ -14,6 +14,7 @@ import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search/container'
+import {User} from 'constants/types/team-building'
 
 export const numSectionLabel = '0-9'
 
@@ -63,6 +64,7 @@ export type Props = ContactProps & {
   includeContacts: boolean
   highlightedIndex: number | null
   onAdd: (userId: string) => void
+  onAddFromPhone: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -510,21 +512,26 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        <PhoneSearch />
-        {/*{Styles.isMobile && (*/}
-        {/*  <ContactsBanner*/}
-        {/*    {...props}*/}
-        {/*    onRedoSearch={() => props.onChangeText(props.searchString)}*/}
-        {/*    onRedoRecs={props.fetchUserRecs}*/}
-        {/*  />*/}
-        {/*)}*/}
-        {/*{this._searchInput()}*/}
-        {/*{this._listBody()}*/}
-        {/*{props.waitingForCreate && (*/}
-        {/*  <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">*/}
-        {/*    <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />*/}
-        {/*  </Kb.Box2>*/}
-        {/*)}*/}
+        {Styles.isMobile && (
+          <ContactsBanner
+            {...props}
+            onRedoSearch={() => props.onChangeText(props.searchString)}
+            onRedoRecs={props.fetchUserRecs}
+          />
+        )}
+        {props.selectedService === 'phone' ? (
+          <PhoneSearch onContinue={props.onAddFromPhone} />
+        ) : (
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )}
       </Kb.Box2>
     )
   }

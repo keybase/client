@@ -1,14 +1,17 @@
 import {connect, TypedState} from '../../util/container'
 import PhoneSearch from './index'
 import {createLoadContactLookup} from '../../actions/chat2-gen'
+import {User} from 'constants/types/team-building'
+
+type OwnProps = {
+  onContinue: (user: User) => void
+}
 
 const mapDispatchToProps = dispatch => ({
   onChangeNumber: (phoneNumber: string) =>
     dispatch(
       createLoadContactLookup({contact: {components: [{label: '', phoneNumber: phoneNumber}], name: ''}})
     ),
-  onContinue: (phoneNumberOrUsername: string) =>
-    alert('Hit continue with data: ' + JSON.stringify(phoneNumberOrUsername)),
 })
 
 const mapStateToProps = (state: TypedState) => ({
@@ -18,5 +21,5 @@ const mapStateToProps = (state: TypedState) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, _: {}) => ({...s, ...d})
+  (s, d, o: OwnProps) => ({...s, ...d, ...o})
 )(PhoneSearch)

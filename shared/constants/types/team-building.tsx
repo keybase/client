@@ -5,7 +5,7 @@ import {ServiceId} from '../../util/platforms'
 export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-export type ServiceIdWithContact = ServiceId | 'contact'
+export type ServiceIdWithContact = ServiceId | 'contact' | 'phone'
 
 export type SearchString = string
 type UsernameOnService = string

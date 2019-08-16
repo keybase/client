@@ -276,6 +276,7 @@ const deriveOnSearchForMore = memoizeShallow(
 const deriveOnAdd = memoize(
   (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
     const user = userFromUserId(userId)
+    console.warn(JSON.stringify(user))
     if (!user) {
       logger.error(`Couldn't find User to add for ${userId}`)
       changeText('')
@@ -474,6 +475,7 @@ const mergeProps = (
     ownProps.onChangeText,
     ownProps.resetHighlightIndex
   )
+  const onAddFromPhone = dispatchProps._onAdd
 
   const rolePickerProps: RolePickerProps | null =
     ownProps.namespace === 'teams'
@@ -540,6 +542,7 @@ const mergeProps = (
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     onAdd,
+    onAddFromPhone,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,

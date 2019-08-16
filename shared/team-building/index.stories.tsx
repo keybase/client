@@ -96,6 +96,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[
           {
@@ -189,6 +190,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[
           {
@@ -279,6 +281,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[]}
       />
@@ -304,6 +307,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
       />
     ))
@@ -327,6 +331,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[
           {
@@ -401,6 +406,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[
           {
@@ -475,6 +481,7 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddFromPhone={Sb.action('onAddFromPhone')}
         highlightedIndex={1}
         searchResults={[
           {
