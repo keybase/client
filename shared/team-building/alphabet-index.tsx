@@ -66,9 +66,7 @@ const AlphabetIndex = (props: Props) => {
       onResponderGrant={handleTouch}
       onResponderMove={handleTouch}
       onResponderRelease={clearTouch}
-      onLayout={(...args) => {
-        debugger
-      }}
+      collapsable={false}
     >
       {/* It's assumed that every row is the same height */}
       {labels.map((label, index) => (
