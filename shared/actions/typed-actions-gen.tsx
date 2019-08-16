@@ -578,6 +578,7 @@ export type TypedActionsMap = {
   'people:dismissAnnouncement': people.DismissAnnouncementPayload
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
+  'people:setResentEmail': people.SetResentEmailPayload
   'pinentry:deleteEntity': pinentry.DeleteEntityPayload
   'pinentry:mergeEntity': pinentry.MergeEntityPayload
   'pinentry:replaceEntity': pinentry.ReplaceEntityPayload
@@ -746,13 +747,13 @@ export type TypedActionsMap = {
   'signup:checkPassword': signup.CheckPasswordPayload
   'signup:checkUsername': signup.CheckUsernamePayload
   'signup:checkedUsername': signup.CheckedUsernamePayload
-  'signup:checkEmail': signup.CheckEmailPayload
   'signup:requestInvite': signup.RequestInvitePayload
   'signup:requestedInvite': signup.RequestedInvitePayload
   'signup:restartSignup': signup.RestartSignupPayload
   'signup:signedup': signup.SignedupPayload
   'signup:checkDevicename': signup.CheckDevicenamePayload
   'signup:checkedDevicename': signup.CheckedDevicenamePayload
+  'signup:setJustSignedUpEmail': signup.SetJustSignedUpEmailPayload
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload

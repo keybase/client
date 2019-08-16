@@ -621,22 +621,22 @@ const addPhoneNumber = async (
   logger: Saga.SagaLogger
 ) => {
   logger.info('adding phone number')
-  const {phoneNumber, allowSearch} = action.payload
-  const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
+  const {phoneNumber, searchable} = action.payload
+  const visibility = searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
   try {
     await RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
       {phoneNumber, visibility},
       Constants.addPhoneNumberWaitingKey
     )
     logger.info('success')
-    return SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})
+    return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
   } catch (err) {
     logger.warn('error ', err.message)
     const message =
       err.code === RPCTypes.StatusCode.scratelimit
         ? 'Sorry, added a few too many phone numbers recently. Please try again later.'
         : err.message
-    return SettingsGen.createAddedPhoneNumber({allowSearch, error: message, phoneNumber})
+    return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
   }
 }
 

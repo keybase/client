@@ -288,6 +288,7 @@ export const makeState = I.Record<Types._State>({
   lastViewed: new Date(),
   newItems: I.List(),
   oldItems: I.List(),
+  resentEmail: '',
   version: -1,
 })
 
