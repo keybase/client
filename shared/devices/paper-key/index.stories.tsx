@@ -2,6 +2,7 @@ import * as Constants from '../../constants/devices'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import {produce} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import PaperKey from '.'
 
@@ -23,8 +24,10 @@ const waitingStore = {
       newPaperkey: new HiddenString(''),
     })
   ),
-  waiting: store.waiting.mergeDeep({
-    counts: I.Map([[Constants.waitingKey, 1]]),
+  waiting: produce(store.waiting, draftState => {
+    const counts = new Map(draftState.counts)
+    counts.set(Constants.waitingKey, 1)
+    draftState.counts = counts
   }),
 }
 const load = () => {

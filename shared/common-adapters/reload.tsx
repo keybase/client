@@ -134,7 +134,7 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   let error = Constants.anyErrors(state, ownProps.waitingKeys)
   if (error && ownProps.errorFilter) {
-    error = ownProps.errorFilter(error) ? error : null
+    error = ownProps.errorFilter(error) ? error : undefined
   }
   return {
     needsReload: !!error,
