@@ -46,11 +46,12 @@ type DbNukeHook interface {
 }
 
 type GlobalContext struct {
-	Log              logger.Logger // Handles all logging
-	VDL              *VDebugLog    // verbose debug log
-	Env              *Env          // Env variables, cmdline args & config
-	SKBKeyringMu     *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings         *Keyrings     // Gpg Keychains holding keys
+	Log              logger.Logger         // Handles all logging
+	VDL              *VDebugLog            // verbose debug log
+	GUILogFile       *logger.LogFileWriter // GUI logs
+	Env              *Env                  // Env variables, cmdline args & config
+	SKBKeyringMu     *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings         *Keyrings             // Gpg Keychains holding keys
 	perUserKeyringMu *sync.Mutex
 	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
 	API              API                  // How to make a REST call to the server
@@ -172,6 +173,7 @@ type GlobalTestOptions struct {
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetGUILogWriter() io.Writer                    { return g.GUILogFile }
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
@@ -230,6 +232,17 @@ func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBot
 
 func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
 
+func (g *GlobalContext) initGUILogFile() {
+	config := g.Env.GetLogFileConfig(g.Env.GetGUILogFile())
+	config.SkipRedirectStdErr = true
+	fileWriter := logger.NewLogFileWriter(*config)
+	if err := fileWriter.Open(g.GetClock().Now()); err != nil {
+		g.GetLog().Debug("Unable to init GUI log file %v", err)
+		return
+	}
+	g.GUILogFile = fileWriter
+}
+
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
@@ -254,6 +267,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.GregorState = newNullGregorState()
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
+
+	g.initGUILogFile()
 
 	return g
 }
@@ -836,6 +851,9 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.LocalChatDb != nil {
 			epick.Push(g.LocalChatDb.Close())
+		}
+		if g.GUILogFile != nil {
+			epick.Push(g.GUILogFile.Close())
 		}
 		<-g.Identify3State.Shutdown()
 

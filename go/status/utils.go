@@ -103,7 +103,7 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 	}
 
 	return Logs{
-		Desktop:  filepath.Join(logDir, libkb.DesktopLogFileName),
+		Desktop:  filepath.Join(logDir, libkb.GUILogFileName),
 		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
 		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
 		EK:       filepath.Join(logDir, libkb.EKLogFileName),
