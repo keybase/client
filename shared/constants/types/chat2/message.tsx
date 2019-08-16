@@ -83,6 +83,7 @@ export type _MessageDeleted = {
   deviceType: DeviceType
   hasBeenEdited: boolean
   errorReason: string | null
+  errorTyp: number | null
   outboxID: OutboxID | null
   timestamp: number
   type: 'deleted'
@@ -97,6 +98,7 @@ export type _MessageText = {
   deviceRevokedAt: number | null
   deviceType: DeviceType
   errorReason: string | null
+  errorTyp: number | null
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
@@ -154,6 +156,7 @@ export type _MessageAttachment = {
   deviceType: DeviceType
   downloadPath: string | null // string if downloaded,
   errorReason: string | null
+  errorTyp: number | null
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
@@ -202,6 +205,7 @@ export type _MessageRequestPayment = {
   deviceRevokedAt: number | null
   deviceType: DeviceType
   errorReason: string | null
+  errorTyp: number | null
   hasBeenEdited: boolean
   note: HiddenString
   outboxID: OutboxID | null
@@ -242,6 +246,7 @@ export type _MessageSendPayment = {
   deviceRevokedAt: number | null
   deviceType: DeviceType
   errorReason: string | null
+  errorTyp: number | null
   hasBeenEdited: boolean
   outboxID: OutboxID | null
   reactions: Reactions

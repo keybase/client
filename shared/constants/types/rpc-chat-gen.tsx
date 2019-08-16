@@ -727,6 +727,7 @@ export enum OutboxErrorType {
   toomanyattempts = 6,
   alreadyDeleted = 7,
   uploadfailed = 8,
+  restrictedbot = 9,
 }
 
 export enum OutboxStateType {

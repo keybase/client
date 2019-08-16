@@ -7,6 +7,7 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -117,23 +118,28 @@ const getUsernameToShow = (
 
 const getFailureDescriptionAllowCancel = (message, you) => {
   let failureDescription = ''
-  let allowCancelRetry = false
+  let allowCancel = false
+  let allowRetry = false
   let resolveByEdit = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
     if (you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix, but
       // for flip messages, don't allow retry/cancel
-      allowCancelRetry = message.type === 'attachment' || !message.flipGameID
+      allowCancel = allowRetry = message.type === 'attachment' || !message.flipGameID
       const messageType = message.type === 'attachment' ? 'attachment' : 'message'
       failureDescription = `This ${messageType} failed to send`
-      resolveByEdit = !!message.outboxID && !!you && message.errorReason === 'message is too long'
+      resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
       if (resolveByEdit) {
         failureDescription += `, ${message.errorReason}`
       }
+      if (!!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.restrictedbot) {
+        failureDescription = `Unable to send, ${message.errorReason}`
+        allowRetry = false
+      }
     }
   }
-  return {allowCancelRetry, failureDescription, resolveByEdit}
+  return {allowCancel, allowRetry, failureDescription, resolveByEdit}
 }
 
 const getDecorate = message => {
@@ -155,7 +161,7 @@ export default Container.namedConnect(
     let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
-    let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
+    let {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
       message,
       _you
     )
@@ -163,11 +169,11 @@ export default Container.namedConnect(
     // show send only if its possible we sent while you're looking at it
     const showSendIndicator = _you === message.author && message.ordinal !== message.id
     const decorate = getDecorate(message)
-    const onCancel = allowCancelRetry
+    const onCancel = allowCancel
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : undefined
     const onRetry =
-      allowCancelRetry && !resolveByEdit && outboxID
+      allowRetry && !resolveByEdit && outboxID
         ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
         : undefined
 
