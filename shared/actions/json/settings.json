@@ -48,7 +48,7 @@
     "editPhone": {
       "phone": "string",
       "delete?": "boolean",
-      "setSearchable?": "boolean",
+      "setSearchable?": "boolean"
     },
     "sentVerificationEmail": {
       "email": "string"
@@ -70,7 +70,8 @@
     },
     "importContactsLater": {},
     "setContactImportedCount": {
-      "count": "number | null"
+      "count": "number | null",
+      "error?": "string"
     },
     "loadedUserCountryCode": {
       "code": "string | null"

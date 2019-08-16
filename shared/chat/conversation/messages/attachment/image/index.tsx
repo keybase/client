@@ -3,6 +3,9 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
+import * as Types from '../../../../../constants/types/chat2'
+import * as Constants from '../../../../../constants/chat2'
+import {ShowToastAfterSaving} from '../shared'
 
 type Props = {
   arrowColor: string
@@ -11,13 +14,13 @@ type Props = {
   isCollapsed: boolean
   onClick: () => void
   onCollapse: () => void
-  onShowInFinder?: ((e: React.BaseSyntheticEvent) => void)
+  onShowInFinder?: (e: React.BaseSyntheticEvent) => void
   onDoubleClick: () => void
   path: string
   fullPath: string
   fileName: string
   progress: number
-  progressLabel: string
+  transferState: Types.MessageAttachmentTransferState
   showButton: null | 'play' | 'film'
   title: string
   toggleMessageMenu: () => void
@@ -64,136 +67,140 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
-          <Kb.Icon
-            boxStyle={styles.collapseBox}
-            style={styles.collapse}
-            onClick={this.props.onCollapse}
-            sizeType="Tiny"
-            type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-          />
-        </Kb.Box2>
-        {!this.props.isCollapsed && (
-          <Kb.ClickableBox
-            style={styles.imageContainer}
-            onClick={this._onClick}
-            onDoubleClick={this._onDoubleClick}
-            onLongPress={this.props.toggleMessageMenu}
-          >
-            <Kb.Box
-              style={Styles.collapseStyles([
-                styles.backgroundContainer,
-                {
-                  // Add 6 extra width+height to the background container to create the background
-                  // for the image. We use this in conjunction with the margin to reliably
-                  // center the image in the background container.
-                  minHeight: this.props.height + 6,
-                  minWidth: this.props.width + 6,
-                },
-              ])}
+      <>
+        <ShowToastAfterSaving transferState={this.props.transferState} />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+            <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
+            <Kb.Icon
+              boxStyle={styles.collapseBox}
+              style={styles.collapse}
+              onClick={this.props.onCollapse}
+              sizeType="Tiny"
+              type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+            />
+          </Kb.Box2>
+          {!this.props.isCollapsed && (
+            <Kb.ClickableBox
+              style={styles.imageContainer}
+              onClick={this._onClick}
+              onDoubleClick={this._onDoubleClick}
+              onLongPress={this.props.toggleMessageMenu}
             >
-              {!!this.props.path && (
-                <Kb.Box>
-                  <ImageRender
-                    ref={ref => {
-                      this.imageRef = ref
-                    }}
-                    src={this.props.path}
-                    videoSrc={this.props.fullPath}
-                    onLoad={this._setLoaded}
-                    onLoadedVideo={this._setVideoLoaded}
-                    loaded={this.state.loaded}
-                    inlineVideoPlayable={this.props.inlineVideoPlayable}
-                    height={this.props.height}
-                    width={this.props.width}
+              <Kb.Box
+                style={Styles.collapseStyles([
+                  styles.backgroundContainer,
+                  {
+                    // Add 6 extra width+height to the background container to create the background
+                    // for the image. We use this in conjunction with the margin to reliably
+                    // center the image in the background container.
+                    minHeight: this.props.height + 6,
+                    minWidth: this.props.width + 6,
+                  },
+                ])}
+              >
+                {!!this.props.path && (
+                  <Kb.Box>
+                    <ImageRender
+                      ref={ref => {
+                        this.imageRef = ref
+                      }}
+                      src={this.props.path}
+                      videoSrc={this.props.fullPath}
+                      onLoad={this._setLoaded}
+                      onLoadedVideo={this._setVideoLoaded}
+                      loaded={this.state.loaded}
+                      inlineVideoPlayable={this.props.inlineVideoPlayable}
+                      height={this.props.height}
+                      width={this.props.width}
+                      style={Styles.collapseStyles([
+                        styles.image,
+                        {
+                          backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
+                          height: this.props.height,
+                          width: this.props.width,
+                        },
+                      ])}
+                    />
+                    {this.props.title.length > 0 && (
+                      <Kb.Text
+                        type="Body"
+                        style={Styles.collapseStyles([
+                          styles.title,
+                          {
+                            marginTop: !this.state.loaded && !isMobile ? this.props.height : undefined,
+                          },
+                        ])}
+                      >
+                        {this.props.title}
+                      </Kb.Text>
+                    )}
+                    {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
+                  </Kb.Box>
+                )}
+                {!this.state.playingVideo && (
+                  <Kb.Box
                     style={Styles.collapseStyles([
-                      styles.image,
+                      styles.absoluteContainer,
                       {
-                        backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                         height: this.props.height,
                         width: this.props.width,
                       },
                     ])}
-                  />
-                  {this.props.title.length > 0 && (
-                    <Kb.Text
-                      type="Body"
-                      style={Styles.collapseStyles([
-                        styles.title,
-                        {
-                          marginTop: !this.state.loaded && !isMobile ? this.props.height : undefined,
-                        },
-                      ])}
-                    >
-                      {this.props.title}
-                    </Kb.Text>
-                  )}
-                  {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
-                </Kb.Box>
-              )}
-              {!this.state.playingVideo && (
-                <Kb.Box
-                  style={Styles.collapseStyles([
-                    styles.absoluteContainer,
-                    {
-                      height: this.props.height,
-                      width: this.props.width,
-                    },
-                  ])}
-                >
-                  {!!this.props.showButton && (
-                    <Kb.Icon
-                      type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                      style={Kb.iconCastPlatformStyles(styles.playButton)}
-                    />
-                  )}
-                  {this.props.videoDuration.length > 0 && this.state.loaded && (
-                    <Kb.Box style={styles.durationContainer}>
-                      <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                        {this.props.videoDuration}
-                      </Kb.Text>
-                    </Kb.Box>
-                  )}
-                  {!!this.props.arrowColor && (
-                    <Kb.Box style={styles.downloadedIconWrapper}>
+                  >
+                    {!!this.props.showButton && (
                       <Kb.Icon
-                        type="iconfont-download"
-                        style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                        color={this.props.arrowColor}
+                        type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                        style={Kb.iconCastPlatformStyles(styles.playButton)}
                       />
-                    </Kb.Box>
-                  )}
-                </Kb.Box>
-              )}
-              {Styles.isMobile && this.state.loadingVideo === 'loading' && (
-                <Kb.ProgressIndicator style={styles.progress} />
-              )}
-            </Kb.Box>
-            <Kb.Box style={styles.progressContainer}>
-              {!this.props.onShowInFinder && (
-                <Kb.Text type={'BodySmall'} style={styles.progressLabel}>
-                  {this.props.progressLabel ||
-                    '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
-                </Kb.Text>
-              )}
-              {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
-            </Kb.Box>
-          </Kb.ClickableBox>
-        )}
-        {this.props.onShowInFinder && (
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            onClick={this.props.onShowInFinder}
-            style={styles.link}
-            className={Styles.classNames({'hover-underline': !isMobile})}
-          >
-            Show in {Styles.fileUIName}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
+                    )}
+                    {this.props.videoDuration.length > 0 && this.state.loaded && (
+                      <Kb.Box style={styles.durationContainer}>
+                        <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                          {this.props.videoDuration}
+                        </Kb.Text>
+                      </Kb.Box>
+                    )}
+                    {!!this.props.arrowColor && (
+                      <Kb.Box style={styles.downloadedIconWrapper}>
+                        <Kb.Icon
+                          type="iconfont-download"
+                          style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                          color={this.props.arrowColor}
+                        />
+                      </Kb.Box>
+                    )}
+                  </Kb.Box>
+                )}
+                {Styles.isMobile && this.state.loadingVideo === 'loading' && (
+                  <Kb.ProgressIndicator style={styles.progress} />
+                )}
+              </Kb.Box>
+              <Kb.Box style={styles.progressContainer}>
+                {!this.props.onShowInFinder && (
+                  <Kb.Text type={'BodySmall'} style={styles.progressLabel}>
+                    {progressLabel ||
+                      '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
+                  </Kb.Text>
+                )}
+                {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+              </Kb.Box>
+            </Kb.ClickableBox>
+          )}
+          {this.props.onShowInFinder && (
+            <Kb.Text
+              type="BodySmallPrimaryLink"
+              onClick={this.props.onShowInFinder}
+              style={styles.link}
+              className={Styles.classNames({'hover-underline': !isMobile})}
+            >
+              Show in {Styles.fileUIName}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      </>
     )
   }
 }

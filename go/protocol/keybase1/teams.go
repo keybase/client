@@ -3240,6 +3240,30 @@ func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
 	}
 }
 
+type MemberEmail struct {
+	Email string `codec:"email" json:"email"`
+	Role  string `codec:"role" json:"role"`
+}
+
+func (o MemberEmail) DeepCopy() MemberEmail {
+	return MemberEmail{
+		Email: o.Email,
+		Role:  o.Role,
+	}
+}
+
+type MemberUsername struct {
+	Username string `codec:"username" json:"username"`
+	Role     string `codec:"role" json:"role"`
+}
+
+func (o MemberUsername) DeepCopy() MemberUsername {
+	return MemberUsername{
+		Username: o.Username,
+		Role:     o.Role,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	Name        string `codec:"name" json:"name"`

@@ -117,7 +117,9 @@ export const PeoplePageList = (props: Props) => (
     {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     <EmailVerificationBanner />
     <ResentEmailVerificationBanner />
-    {props.newItems.map(item => itemToComponent(item, props))}
+    {props.newItems
+      .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
+      .map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>

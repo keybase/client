@@ -70,7 +70,7 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 		t.Stop()
 	}
 	go func() {
-		l.eg.Wait()
+		_ = l.eg.Wait()
 		close(ch)
 	}()
 	return ch
@@ -281,7 +281,10 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	}
 	defer func() {
 		// drop everything when our live location ends
-		l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
+		err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
+		if err != nil {
+			l.Debug(ctx, "tracker[%v]: error clearing watch: %+v", watchID, err)
+		}
 		l.Lock()
 		defer l.Unlock()
 		delete(l.trackers, t.Key())
@@ -308,7 +311,10 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				l.Debug(ctx, "tracker[%v]: got coords", watchID)
 				if firstUpdate {
 					l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
-					l.updateMapUnfurl(ctx, t, false)
+					err := l.updateMapUnfurl(ctx, t, false)
+					if err != nil {
+						return err
+					}
 				}
 				firstUpdate = false
 			} else {
@@ -330,19 +336,20 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
 				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
-				l.updateMapUnfurl(ctx, t, false)
+				err := l.updateMapUnfurl(ctx, t, false)
+				if err != nil {
+					return err
+				}
 				shouldUpdate = false
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
 			l.Debug(ctx, "tracker[%v]: live location complete, updating", watchID)
 			t.Drain(chat1.Coordinate{})
-			l.updateMapUnfurl(ctx, t, true)
-			return nil
+			return l.updateMapUnfurl(ctx, t, true)
 		case <-t.stopCh:
 			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
-			l.updateMapUnfurl(ctx, t, true)
-			return nil
+			return l.updateMapUnfurl(ctx, t, true)
 		}
 	}
 }

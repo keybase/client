@@ -80,7 +80,7 @@ export const Audio = (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   audio: {
     ...Styles.globalStyles.fullWidth,
     backgroundColor: Styles.globalColors.black,
@@ -93,4 +93,4 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: '100%',
   },
-})
+}))

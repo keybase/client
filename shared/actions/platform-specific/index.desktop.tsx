@@ -353,6 +353,8 @@ function* initializeUseNativeFrame() {
   )
 }
 
+export const requestLocationPermission = () => Promise.resolve()
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)

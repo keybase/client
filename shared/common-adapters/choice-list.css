@@ -1,0 +1,26 @@
+.cl-entry {
+  background-color: transparent;
+}
+.cl-entry:hover {
+  /* blueLighter2 */
+  background-color: #ebf2fc;
+}
+.darkMode .cl-entry:hover {
+  background-color: #140d03;
+}
+
+.cl-icon {
+  transform-origin: center center;
+  transition: 0.5s transform;
+}
+.cl-entry:hover .cl-icon {
+  transform: translateX(25%);
+}
+
+.cl-icon-container {
+  transition: 0.5s background;
+  border-radius: 50%;
+}
+.cl-entry:hover .cl-icon-container {
+  background: transparent;
+}

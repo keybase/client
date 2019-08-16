@@ -45,7 +45,7 @@ const Avatar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   border: Styles.platformStyles({
     isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
   }),
@@ -63,6 +63,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: -18,
   },
-})
+}))
 
 export default Avatar

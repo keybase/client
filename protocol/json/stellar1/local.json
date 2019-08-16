@@ -2482,6 +2482,26 @@
       ],
       "response": "SendResultCLILocal"
     },
+    "accountMergeCLILocal": {
+      "request": [
+        {
+          "name": "fromAccountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "fromSecretKey",
+          "type": [
+            null,
+            "SecretKey"
+          ]
+        },
+        {
+          "name": "to",
+          "type": "string"
+        }
+      ],
+      "response": "TransactionID"
+    },
     "claimCLILocal": {
       "request": [
         {

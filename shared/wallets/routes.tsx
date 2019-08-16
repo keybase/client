@@ -55,7 +55,7 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     const activeKey = navigation.state.routes[index].key
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
-    const WalletsAndDetails = require('./wallets-and-details/container').default
+    const WalletsAndDetails = require('./wallets-and-details').default
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
@@ -81,7 +81,7 @@ const OnboardingOrWalletsNavigator = createSwitchNavigator(
     onboarding: RoutedOnboarding,
     walletsubnav: WalletsSubNavigator,
   },
-  {initialRouteName: 'onboarding'}
+  {initialRouteName: 'walletsubnav'}
 )
 
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
@@ -101,8 +101,8 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
   }
 
   componentDidMount() {
-    if (this.props.acceptedDisclaimer) {
-      this.props.navigation.navigate('walletsubnav')
+    if (!this.props.acceptedDisclaimer) {
+      this.props.navigation.navigate('onboarding')
     }
   }
 

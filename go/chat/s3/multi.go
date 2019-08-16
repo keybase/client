@@ -390,7 +390,7 @@ func (m *Multi) Complete(ctx context.Context, parts []Part) error {
 			params:  params,
 			payload: bytes.NewReader(data),
 			headers: map[string][]string{
-				"Content-Length": []string{strconv.Itoa(len(data))},
+				"Content-Length": {strconv.Itoa(len(data))},
 			},
 		}
 

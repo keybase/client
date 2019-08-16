@@ -55,10 +55,10 @@ func TestBotCommandManager(t *testing.T) {
 	// test public
 	alias := "MIKE BOT"
 	commands := []chat1.AdvertiseCommandsParam{
-		chat1.AdvertiseCommandsParam{
+		{
 			Typ: chat1.BotCommandsAdvertisementTyp_PUBLIC,
 			Commands: []chat1.UserBotCommandInput{
-				chat1.UserBotCommandInput{
+				{
 					Name:        "status",
 					Description: "get status",
 					Usage:       "just type it",
@@ -112,13 +112,13 @@ func TestBotCommandManager(t *testing.T) {
 	// test team
 	commands = append(commands, chat1.AdvertiseCommandsParam{
 		Typ: chat1.BotCommandsAdvertisementTyp_TLFID_CONVS,
-		Commands: []chat1.UserBotCommandInput{chat1.UserBotCommandInput{
+		Commands: []chat1.UserBotCommandInput{{
 			Name: "teamconvonly",
 		}},
 		TeamName: &teamConv.TlfName,
 	}, chat1.AdvertiseCommandsParam{
 		Typ: chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS,
-		Commands: []chat1.UserBotCommandInput{chat1.UserBotCommandInput{
+		Commands: []chat1.UserBotCommandInput{{
 			Name: "teammembsonly",
 		}},
 		TeamName: &teamConv.TlfName,

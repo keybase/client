@@ -19,71 +19,66 @@ const Prompt = () => (
   </Kb.Box2>
 )
 
-type State = {
-  selected: Types.CurrencyCode
-  showingMenu: boolean
-  showingToast: boolean
-}
+const DisplayCurrencyDropdown = (props: Props) => {
+  const selectedFromProps = props.selected.code
+  const [selected, setSelected] = React.useState(selectedFromProps)
+  const [showingMenu, setShowingMenu] = React.useState(false)
+  const [showingToast, setShowingToast] = React.useState(false)
+  const onceRef = React.useRef(false)
+  const setShowingToastFalseLater = Kb.useTimeout(() => setShowingToast(false), 1000)
 
-class _DisplayCurrencyDropdown extends React.Component<Kb.PropsWithTimer<Props>, State> {
-  state = {selected: this.props.selected.code, showingMenu: false, showingToast: false}
-  _toggleShowingMenu = () =>
-    this.setState(s => ({
-      showingMenu: !s.showingMenu,
-    }))
-  _close = () => this.setState({selected: this.props.selected.code, showingMenu: false})
-  _onDone = () => {
-    this.props.onCurrencyChange(this.state.selected)
-    this.setState({showingMenu: false})
-  }
-  componentDidUpdate(prevProps: Kb.PropsWithTimer<Props>) {
-    if (this.props.selected.code === this.state.selected && prevProps.selected.code !== this.state.selected) {
-      this.setState({showingToast: true})
-      this.props.setTimeout(() => this.setState({showingToast: false}), 1000)
-    } else if (this.props.selected.code !== prevProps.selected.code) {
-      this.setState({selected: this.props.selected.code})
+  React.useEffect(() => {
+    const justSaved = selectedFromProps === selected && onceRef.current
+    if (justSaved) {
+      setShowingToast(true)
+      setShowingToastFalseLater()
     }
+    onceRef.current = true
+  }, [selected, selectedFromProps, onceRef, setShowingToast, setShowingToastFalseLater])
+
+  React.useEffect(() => {
+    setSelected(selectedFromProps)
+  }, [selectedFromProps])
+
+  const onDone = () => {
+    props.onCurrencyChange(selected)
+    setShowingMenu(false)
   }
-  render() {
-    return (
-      <>
-        <Kb.DropdownButton
-          disabled={this.props.waiting}
-          selected={
-            this.props.selected.description && !this.props.waiting ? (
-              <Kb.Text center={true} type="BodyBig">
-                {this.props.selected.description}
-              </Kb.Text>
-            ) : (
-              <Kb.ProgressIndicator type="Small" style={styles.progressIndicator} />
-            )
-          }
-          toggleOpen={this._toggleShowingMenu}
-        />
-        <Kb.FloatingPicker
-          items={makePickerItems(this.props.currencies)}
-          selectedValue={this.state.selected}
-          onSelect={selected => this.setState({selected})}
-          prompt={<Prompt />}
-          promptString="Pick a display currency"
-          onHidden={this._close}
-          onCancel={this._close}
-          onDone={this._onDone}
-          visible={this.state.showingMenu}
-        />
-        <Kb.Toast visible={this.state.showingToast}>
-          <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-            <Kb.Icon type="iconfont-check" color={Styles.globalColors.white} fontSize={22} />
-            <Kb.Text type="BodySemibold" style={styles.toastText}>
-              Saved
+  const onClose = () => {
+    setShowingMenu(false)
+    setSelected(props.selected.code)
+  }
+  const toggleShowingMenu = () => setShowingMenu(s => !s)
+  return (
+    <>
+      <Kb.DropdownButton
+        disabled={props.waiting}
+        selected={
+          props.selected.description && !props.waiting ? (
+            <Kb.Text center={true} type="BodyBig">
+              {props.selected.description}
             </Kb.Text>
-          </Kb.Box2>
-        </Kb.Toast>
-      </>
-    )
-  }
+          ) : (
+            <Kb.ProgressIndicator type="Small" style={styles.progressIndicator} />
+          )
+        }
+        toggleOpen={toggleShowingMenu}
+      />
+      <Kb.FloatingPicker
+        items={makePickerItems(props.currencies)}
+        selectedValue={selected}
+        onSelect={setSelected}
+        prompt={<Prompt />}
+        promptString="Pick a display currency"
+        onHidden={onClose}
+        onCancel={onClose}
+        onDone={onDone}
+        visible={showingMenu}
+      />
+      <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
+    </>
+  )
 }
-const DisplayCurrencyDropdown = Kb.HOCTimers(_DisplayCurrencyDropdown)
 
 const styles = Styles.styleSheetCreate({
   progressIndicator: {

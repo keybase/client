@@ -5,6 +5,7 @@ import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
+import './button.css'
 
 const Kb = {
   Box,

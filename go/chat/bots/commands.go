@@ -43,8 +43,6 @@ type commandsStorage struct {
 	Advertisements []storageCommandAdvertisement `codec:"A"`
 }
 
-const commandsStorageVersion = 1
-
 var commandsPublicTopicName = "___keybase_botcommands_public"
 
 type CachingBotCommandManager struct {
@@ -103,7 +101,10 @@ func (b *CachingBotCommandManager) Stop(ctx context.Context) chan struct{} {
 		close(b.stopCh)
 		b.started = false
 		go func() {
-			b.eg.Wait()
+			err := b.eg.Wait()
+			if err != nil {
+				b.Debug(ctx, "CachingBotCommandManager: error waiting: %+v", err)
+			}
 			close(ch)
 		}()
 	} else {
@@ -271,8 +272,11 @@ func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
 }
 
 func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job commandUpdaterJob) {
-	b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+	err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
 		chat1.UIBotCommandsUpdateStatus_BLANK)
+	if err != nil {
+		b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
+	}
 	sentUpdating := false
 	for {
 		select {
@@ -282,12 +286,18 @@ func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job c
 				if err != nil {
 					updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
 				}
-				b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
+				err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
+				if err != nil {
+					b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
+				}
 			}
 			return
 		case <-time.After(800 * time.Millisecond):
-			b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+			err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
 				chat1.UIBotCommandsUpdateStatus_UPDATING)
+			if err != nil {
+				b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
+			}
 			sentUpdating = true
 		}
 	}
@@ -331,6 +341,9 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUp
 		return botInfo, false, err
 	}
 	rtyp, err := res.Response.Typ()
+	if err != nil {
+		return botInfo, false, err
+	}
 	switch rtyp {
 	case chat1.BotInfoResponseTyp_UPTODATE:
 		return botInfo, false, nil

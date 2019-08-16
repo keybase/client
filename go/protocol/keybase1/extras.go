@@ -3228,6 +3228,14 @@ func (h *HiddenTeamChain) KeySummary() string {
 	return fmt.Sprintf("{last:%d, lastPerTeamKeys:%+v, readerPerTeamKeys: %+v}", h.Last, h.LastPerTeamKeys, h.ReaderPerTeamKeys)
 }
 
+func (h *HiddenTeamChain) LinkAndKeySummary() string {
+	if h == nil {
+		return "empty"
+	}
+	ks := h.KeySummary()
+	return fmt.Sprintf("{nOuterlinks: %d, nInnerLinks:%d, keys:%s}", len(h.Outer), len(h.Inner), ks)
+}
+
 func (h *TeamData) KeySummary() string {
 	if h == nil {
 		return "Ø"

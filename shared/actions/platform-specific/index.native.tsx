@@ -51,7 +51,7 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
-const requestLocationPermission = (): Promise<void> => {
+export const requestLocationPermission = (): Promise<void> => {
   if (isAndroid) {
     return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
       buttonNegative: 'Cancel',
@@ -67,13 +67,13 @@ const requestLocationPermission = (): Promise<void> => {
   return Promise.resolve()
 }
 
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
@@ -95,7 +95,7 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-function showShareActionSheetFromURL(options: {
+export function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
@@ -120,7 +120,7 @@ function showShareActionSheetFromURL(options: {
 }
 
 // Shows the shareactionsheet for a file, and deletes the file afterwards
-function showShareActionSheetFromFile(filePath: string): Promise<void> {
+export function showShareActionSheetFromFile(filePath: string): Promise<void> {
   return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
@@ -139,7 +139,7 @@ const openAppSettings = () => {
   }
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
 ) =>
@@ -513,7 +513,15 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+  }
   let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
@@ -562,6 +570,7 @@ async function manageContactsCache(
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
 }
@@ -599,7 +608,7 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
@@ -632,14 +641,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-}
-
-export {
-  showShareActionSheetFromFile,
-  showShareActionSheetFromURL,
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  getContentTypeFromURL,
-  platformConfigSaga,
-  requestLocationPermission,
 }

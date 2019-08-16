@@ -66,40 +66,29 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void; prettyName:
   </Kb.WithTooltip>
 )
 
-type SwapOnClickProps = Kb.PropsWithTimer<
-  React.PropsWithChildren<{
-    clickedLayerComponent: React.ComponentType<{}>
-    clickedLayerTimeout: number
-    containerStyle?: Styles.StylesCrossPlatform
-  }>
->
+type SwapOnClickProps = React.PropsWithChildren<{
+  clickedLayerComponent: React.ComponentType<{}>
+  clickedLayerTimeout: number
+  containerStyle?: Styles.StylesCrossPlatform
+}>
 
-class _SwapOnClick extends React.PureComponent<
-  SwapOnClickProps,
-  {
-    showClickedLayer: boolean
+const SwapOnClick = (props: SwapOnClickProps) => {
+  const [showClickedLayer, setShowClickedLayer] = React.useState(false)
+  const setShowClickedLayerFalseLater = Kb.useTimeout(
+    () => setShowClickedLayer(false),
+    props.clickedLayerTimeout
+  )
+  const onClick = () => {
+    setShowClickedLayer(true)
+    props.clickedLayerTimeout && setShowClickedLayerFalseLater()
   }
-> {
-  state = {showClickedLayer: false}
-  _onClick = () => {
-    if (!this.state.showClickedLayer) {
-      this.setState({showClickedLayer: true})
-      if (this.props.clickedLayerTimeout) {
-        this.props.setTimeout(() => this.setState({showClickedLayer: false}), this.props.clickedLayerTimeout)
-      }
-    }
-  }
-
-  render() {
-    const ClickedLayerComponent = this.props.clickedLayerComponent
-    return (
-      <Kb.ClickableBox onClick={this._onClick} style={this.props.containerStyle}>
-        {this.state.showClickedLayer ? <ClickedLayerComponent /> : this.props.children}
-      </Kb.ClickableBox>
-    )
-  }
+  const ClickedLayerComponent = props.clickedLayerComponent
+  return (
+    <Kb.ClickableBox onClick={onClick} style={props.containerStyle}>
+      {showClickedLayer ? <ClickedLayerComponent /> : props.children}
+    </Kb.ClickableBox>
+  )
 }
-const SwapOnClick = Kb.HOCTimers(_SwapOnClick)
 
 function SwapOnClickHoc(
   Component: React.ComponentType<{}>,

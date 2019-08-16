@@ -9,6 +9,7 @@ export type Props = {
   onClickUser: (username: string) => void
   onOpenAccountSwitcher?: () => void
   showAirdrop: boolean
+  signupEmail: string
   myUsername: string
   waiting: boolean
 }

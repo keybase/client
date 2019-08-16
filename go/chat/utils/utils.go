@@ -160,7 +160,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 		if !ok {
 			continue
 		}
-		if allowed, _ := allowedWriters[p.Username]; allowed {
+		if allowed := allowedWriters[p.Username]; allowed {
 			writerNames = append(writerNames, p)
 			// Allow only one occurrence.
 			allowedWriters[p.Username] = false
@@ -169,7 +169,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 	// Include participants even if they weren't in the active list, in stable order.
 	for _, user := range srcWriterNames {
-		if allowed, _ := allowedWriters[user]; allowed {
+		if allowed := allowedWriters[user]; allowed {
 			writerNames = append(writerNames, UsernamePackageToParticipant(libkb.UsernamePackage{
 				NormalizedUsername: libkb.NewNormalizedUsername(user),
 				FullName:           nil,
@@ -1308,16 +1308,16 @@ func PresentBytes(bytes int64) string {
 	switch {
 	case bytes >= TERABYTE:
 		unit = "TB"
-		value = value / TERABYTE
+		value /= TERABYTE
 	case bytes >= GIGABYTE:
 		unit = "GB"
-		value = value / GIGABYTE
+		value /= GIGABYTE
 	case bytes >= MEGABYTE:
 		unit = "MB"
-		value = value / MEGABYTE
+		value /= MEGABYTE
 	case bytes >= KILOBYTE:
 		unit = "KB"
-		value = value / KILOBYTE
+		value /= KILOBYTE
 	case bytes >= BYTE:
 		unit = "B"
 	case bytes == 0:
@@ -1416,6 +1416,8 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 				if info != nil {
 					infos = append(infos, *info)
 				}
+			default:
+				// Nothing to do for other payment result types.
 			}
 		}
 	}
@@ -1434,6 +1436,8 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	case chat1.MessageType_REQUESTPAYMENT:
 		body := msg.MessageBody.Requestpayment()
 		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+	default:
+		// Nothing to do for other message types.
 	}
 	return nil
 }
@@ -1513,7 +1517,10 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		knownTeamMentions = valid.MessageBody.Edit().TeamMentions
 	}
 	for _, tm := range valid.MaybeMentions {
-		g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
+		err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
+		if err != nil {
+			g.GetLog().CDebugf(ctx, "loadTeamMentions: error loading team mentions: %+v", err)
+		}
 	}
 }
 
@@ -2002,7 +2009,8 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 	if uri.UseTLS() {
 		rawCA := g.Env.GetBundledCA(uri.Host)
 		if len(rawCA) == 0 {
-			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			err := errors.New("len(rawCA) == 0")
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs", err.Error())
 			return conn, token, err
 		}
 		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),

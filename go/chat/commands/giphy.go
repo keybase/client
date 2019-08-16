@@ -113,7 +113,10 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if !s.Match(ctx, text) {
 		if _, ok := s.shownResults[convID.String()]; ok {
 			// tell UI to clear
-			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false, false)
+			err := s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false, false)
+			if err != nil {
+				s.Debug(ctx, "Preview: error on toggle result: %+v", err)
+			}
 			delete(s.shownResults, convID.String())
 		}
 		return
@@ -123,7 +126,11 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: same query given, skipping")
 		return
 	}
-	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
+	err := s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
+	if err != nil {
+		s.Debug(ctx, "Preview: error on toggle result: %+v", err)
+	}
+
 	s.shownResults[convID.String()] = query
 
 	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()),
@@ -132,8 +139,11 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
 	}
-	s.getChatUI().ChatGiphySearchResults(ctx, convID, chat1.GiphySearchResults{
+	err = s.getChatUI().ChatGiphySearchResults(ctx, convID, chat1.GiphySearchResults{
 		Results:    results,
 		GalleryUrl: s.G().AttachmentURLSrv.GetGiphyGalleryURL(ctx, convID, tlfName, results),
 	})
+	if err != nil {
+		s.Debug(ctx, "Preview: error on search results: %+v", err)
+	}
 }
