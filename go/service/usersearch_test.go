@@ -585,6 +585,8 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "1201555201@phone", res[0].Imptofu.Assertion)
 		require.Equal(t, "+1201555201", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "phone", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "1201555201", res[0].Imptofu.AssertionValue)
 	}
 
 	{
@@ -599,6 +601,8 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
 		require.Equal(t, "test@keyba.se", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
 	}
 
 	{
@@ -614,5 +618,7 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
 		require.Equal(t, "TEST@keyba.se", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
 	}
 }

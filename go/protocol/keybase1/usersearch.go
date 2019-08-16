@@ -97,6 +97,8 @@ func (o APIUserServiceSummary) DeepCopy() APIUserServiceSummary {
 
 type ImpTofuSearchResult struct {
 	Assertion       string `codec:"assertion" json:"assertion"`
+	AssertionValue  string `codec:"assertionValue" json:"assertionValue"`
+	AssertionKey    string `codec:"assertionKey" json:"assertionKey"`
 	Label           string `codec:"label" json:"label"`
 	PrettyName      string `codec:"prettyName" json:"prettyName"`
 	KeybaseUsername string `codec:"keybaseUsername" json:"keybaseUsername"`
@@ -105,6 +107,8 @@ type ImpTofuSearchResult struct {
 func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
 	return ImpTofuSearchResult{
 		Assertion:       o.Assertion,
+		AssertionValue:  o.AssertionValue,
+		AssertionKey:    o.AssertionKey,
 		Label:           o.Label,
 		PrettyName:      o.PrettyName,
 		KeybaseUsername: o.KeybaseUsername,

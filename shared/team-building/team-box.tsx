@@ -3,7 +3,7 @@ import GoButton from './go-button'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
@@ -14,12 +14,7 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    username: string
-    service: ServiceIdWithContact
-  }>
+  teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
   onBackspace: () => void
   onFinishTeamBuilding: () => void
@@ -27,13 +22,18 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
-  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+const formatNameForUserBubble = (u: SelectedUser) => {
+  let technicalName: string
+  switch (u.service) {
+    case 'keybase':
+    case 'contact': // do not display "michal@keyba.se on contact".
+      technicalName = u.username
+      break
+    default:
+      technicalName = `${u.username} on ${u.service}`
+      break
+  }
+  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -47,7 +47,7 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
+        prettyName={formatNameForUserBubble(u)}
       />
     ))
   }
