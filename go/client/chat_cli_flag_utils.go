@@ -285,7 +285,7 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
 
-	return fetcher, err
+	return fetcher, nil
 }
 
 func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxFetcher, err error) {

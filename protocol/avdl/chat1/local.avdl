@@ -811,6 +811,7 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    array<ConversationID> convIDs;
 
     boolean unreadFirst;
     UnreadFirstNumLimit unreadFirstLimit;

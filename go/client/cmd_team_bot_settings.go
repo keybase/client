@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -90,7 +91,7 @@ func (c *CmdTeamBotSettings) Run() error {
 
 	var output string
 	if botSettings.Cmds {
-		// TODO call bot advertise list, build output
+		// TODO call bot advertise list for public commands, build output
 		output += "\t- command messages\n"
 	}
 
@@ -113,15 +114,39 @@ func (c *CmdTeamBotSettings) Run() error {
 		dui.Printf("%s will receive messages in the follow cases:\n%s", c.Username, output)
 	}
 	if len(botSettings.Convs) == 0 {
-		dui.Printf("%s can receive/send into all conversations", c.Username)
+		dui.Printf("%s can send/receive into all conversations", c.Username)
 	} else {
 		dui.Printf("%s can send/receive into the following conversations:\n\t", c.Username)
-		// TODO convert to human readable
-		dui.Printf(strings.Join(botSettings.Convs, "\n\t"))
+		convNames, err := c.getConvNames(botSettings)
+		if err != nil {
+			return err
+		}
+		dui.Printf(strings.Join(convNames, "\n\t"))
 	}
 	dui.Printf("\n")
 
 	return nil
+}
+
+func (c *CmdTeamBotSettings) getConvNames(botSettings keybase1.TeamBotSettings) (convNames []string, err error) {
+	fetcher := chatCLIInboxFetcher{}
+	for _, convIDStr := range botSettings.Convs {
+		convID, err := chat1.MakeConvID(convIDStr)
+		if err != nil {
+			return nil, err
+		}
+		fetcher.query.ConvIDs = append(fetcher.query.ConvIDs, convID)
+	}
+	conversations, err := fetcher.fetch(context.TODO(), c.G())
+	if err != nil {
+		return nil, err
+	}
+	v := conversationListView(conversations)
+	for _, conv := range v {
+		convNames = append(convNames, v.convName(c.G(), conv, c.G().Env.GetUsername().String()))
+	}
+
+	return convNames, nil
 }
 
 func (c *CmdTeamBotSettings) GetUsage() libkb.Usage {

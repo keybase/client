@@ -7119,6 +7119,11 @@ func TestTeamBotSettings(t *testing.T) {
 			err = teams.SetBotSettings(ctx, tc.m.G(), team.Name().String(),
 				botua.Username, botSettings)
 			require.NoError(t, err)
+
+			actualBotSettings, err := teams.GetBotSettings(ctx, tc.m.G(), team.Name().String(),
+				botua.Username)
+			require.Equal(t, botSettings, actualBotSettings)
+
 			// wait for the teamchange to propagate
 			found := false
 			for !found {

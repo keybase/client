@@ -595,6 +595,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 	queryBase.Status = arg.Status
+	queryBase.ConvIDs = arg.ConvIDs
 
 	var gires chat1.GetInboxAndUnboxLocalRes
 	if arg.UnreadFirst {

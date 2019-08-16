@@ -4166,6 +4166,7 @@ type GetInboxSummaryForCLILocalQuery struct {
 	Before              string                 `codec:"before" json:"before"`
 	Visibility          keybase1.TLFVisibility `codec:"visibility" json:"visibility"`
 	Status              []ConversationStatus   `codec:"status" json:"status"`
+	ConvIDs             []ConversationID       `codec:"convIDs" json:"convIDs"`
 	UnreadFirst         bool                   `codec:"unreadFirst" json:"unreadFirst"`
 	UnreadFirstLimit    UnreadFirstNumLimit    `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
 	ActivitySortedLimit int                    `codec:"activitySortedLimit" json:"activitySortedLimit"`
@@ -4188,6 +4189,17 @@ func (o GetInboxSummaryForCLILocalQuery) DeepCopy() GetInboxSummaryForCLILocalQu
 			}
 			return ret
 		})(o.Status),
+		ConvIDs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvIDs),
 		UnreadFirst:         o.UnreadFirst,
 		UnreadFirstLimit:    o.UnreadFirstLimit.DeepCopy(),
 		ActivitySortedLimit: o.ActivitySortedLimit,
