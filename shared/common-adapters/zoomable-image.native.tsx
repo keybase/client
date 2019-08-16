@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {View, Animated, Image} from 'react-native'
+import {LayoutChangeEvent, View, Animated, Image} from 'react-native'
 import {
   // eslint-disable-next-line
   PanGestureHandlerStateChangeEvent,
@@ -11,7 +11,7 @@ import {
   PanGestureHandler,
   PinchGestureHandler,
   TapGestureHandler,
-  State,
+  State as GState,
 } from 'react-native-gesture-handler'
 
 type Props = {
@@ -24,9 +24,18 @@ type Props = {
 const maxZoom = 10
 const minZoom = 0.5
 
-class ZoomableBox extends React.Component<Props, {height: number; width: number}> {
+type State = {
+  height: number
+  imageHeight: number
+  imageWidth: number
+  width: number
+}
+
+class ZoomableImage extends React.Component<Props, State> {
   state = {
     height: 0,
+    imageHeight: 0,
+    imageWidth: 0,
     width: 0,
   }
 
@@ -37,11 +46,14 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
   private opacity = new Animated.Value(0)
-  private scale = Animated.multiply(this.baseScale, this.pinchScale).interpolate({
+  private scale = Animated.multiply(
+    this.baseScale,
+    this.pinchScale
+  ) /*.interpolate({
     extrapolate: 'clamp',
     inputRange: [0, minZoom, maxZoom, 9999],
     outputRange: [minZoom, minZoom, maxZoom, maxZoom],
-  })
+  })*/
   private lastScale = 1
   private onPinchGestureEvent = Animated.event([{nativeEvent: {scale: this.pinchScale}}], {
     useNativeDriver: true,
@@ -57,7 +69,7 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
   )
 
   private onDoubleTap = (event: TapGestureHandlerGestureEvent) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
+    if (event.nativeEvent.state === GState.ACTIVE) {
       this.lastScale = 1
       this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
       this.lastPanX = 0
@@ -78,27 +90,62 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
     }
   }
 
-  private onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this.lastScale *= event.nativeEvent.scale
-      this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
-      this.baseScale.setValue(this.lastScale)
-      this.pinchScale.setValue(1)
-    }
+  private updateScale = (next: number) => {
+    this.lastScale = next
+    // this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
+    this.baseScale.setValue(this.lastScale)
+    this.pinchScale.setValue(1)
   }
-  private onPanGestureStateChange = (event: PanGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this.lastPanX += event.nativeEvent.translationX
-      this.lastPanY += event.nativeEvent.translationY
-      this.panX.setOffset(this.lastPanX)
-      this.panX.setValue(0)
-      this.panY.setOffset(this.lastPanY)
-      this.panY.setValue(0)
+
+  private onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
+    console._log(event.nativeEvent.scale)
+    if (event.nativeEvent.oldState === GState.ACTIVE) {
+      this.updateScale(this.lastScale * event.nativeEvent.scale)
     }
   }
 
-  private updateImageSize = (width: number, height: number) => {
-    this.mounted && this.setState({height, width})
+  private updatePan = (nextX: number, nextY: number) => {
+    this.lastPanX = nextX
+    this.lastPanY = nextY
+    this.panX.setOffset(this.lastPanX)
+    this.panX.setValue(0)
+    this.panY.setOffset(this.lastPanY)
+    this.panY.setValue(0)
+  }
+  private onPanGestureStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    if (event.nativeEvent.oldState === GState.ACTIVE) {
+      this.updatePan(
+        this.lastPanX + event.nativeEvent.translationX,
+        this.lastPanY + event.nativeEvent.translationY
+      )
+    }
+  }
+
+  private resetInitial = (width: number, height: number) => {
+    if (!width || !height) {
+      return
+    }
+    const ratioX = this.state.width / width
+    const ratioY = this.state.height / height
+    console._log('aaaa ratio', {width, height, ratioX, ratioY})
+    let scale: number
+    if (ratioX >= 1 && ratioY >= 1) {
+      scale = 1
+    } else {
+      scale = Math.min(ratioX, ratioY)
+    }
+
+    scale = 0.1
+    // this.u
+    // dateScale(scale)
+    // this.updatePan((-this.state.width * scale) / 2, 0)
+  }
+
+  private updateImageSize = (imageWidth: number, imageHeight: number) => {
+    this.mounted && this.setState({imageHeight, imageWidth})
+
+    this.resetInitial(imageWidth, imageHeight)
+
     Animated.timing(this.opacity, {
       duration: 300,
       toValue: 1,
@@ -108,6 +155,13 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
 
   private getImageSize = () => {
     this.props.uri && Image.getSize(this.props.uri, this.updateImageSize, () => {})
+  }
+
+  private onLayout = (event: LayoutChangeEvent) => {
+    const {nativeEvent} = event
+    const {layout} = nativeEvent
+    const {width, height} = layout
+    this.setState({width, height})
   }
 
   componentWillUnmount() {
@@ -125,9 +179,10 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
   }
 
   render() {
+      // unclear how scale works. just added width/height to innder views
     return (
       <TapGestureHandler onHandlerStateChange={this.onDoubleTap} numberOfTaps={2}>
-        <View style={{flexGrow: 1, position: 'relative'}}>
+        <View style={{flexGrow: 1, position: 'relative'}} onLayout={this.onLayout}>
           <View style={{...Styles.globalStyles.fillAbsolute}}>
             <PanGestureHandler
               ref={this.panRef}
@@ -143,22 +198,35 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
                   onGestureEvent={this.onPinchGestureEvent}
                   onHandlerStateChange={this.onPinchHandlerStateChange}
                 >
-                  <Animated.View style={styles.container} collapsable={false}>
-                    <Animated.Image
-                      onLoad={this.props.onLoad}
-                      resizeMode="center"
-                      style={[
-                        {
-                          height: '100%',
-                          opacity: this.opacity,
-                          width: '100%',
-                        },
-                        {
-                          transform: [{translateX: this.panX}, {translateY: this.panY}, {scale: this.scale}],
-                        },
-                      ]}
-                      source={{uri: this.props.uri}}
-                    />
+                  <Animated.View style={[styles.container]}>
+                    <Animated.View
+                      key="panner"
+                      style={{
+                        height: this.state.imageHeight,
+                        width: this.state.imageWidth,
+                        transform: [{translateX: this.panX}, {translateY: this.panY}],
+                      }}
+                    >
+                      <Animated.View
+                        key="scaler"
+                        style={{
+                          height: this.state.imageHeight,
+                          width: this.state.imageWidth,
+                          transform: [{scale: this.scale}],
+                        }}
+                      >
+                        <Animated.Image
+                          onLoad={this.props.onLoad}
+                          style={{
+                            height: this.state.imageHeight,
+                            opacity: this.opacity,
+                            position: 'absolute',
+                            width: this.state.imageWidth,
+                          }}
+                          source={{uri: this.props.uri}}
+                        />
+                      </Animated.View>
+                    </Animated.View>
                   </Animated.View>
                 </PinchGestureHandler>
               </Animated.View>
@@ -172,17 +240,19 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
 
 const styles = Styles.styleSheetCreate({
   container: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black,
-    flexGrow: 1,
-    justifyContent: 'center',
-    overflow: 'hidden',
+    backgroundColor: 'pink', // TEMP
+    height: '100%',
+    position: 'relative',
+    width: '100%',
   },
   wrapper: {
-    backgroundColor: 'green',
+    alignItems: 'flex-start',
+    backgroundColor: 'green', // TEMP
     height: '100%',
+    justifyContent: 'flex-start',
+    overflow: 'hidden',
     width: '100%',
   },
 })
 
-export default ZoomableBox
+export default ZoomableImage
