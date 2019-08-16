@@ -10,7 +10,6 @@ type OwnProps = {
 
 const empty = {
   _messageID: 0,
-  author: '',
   text: '',
 }
 
@@ -25,17 +24,20 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
   return {
     _messageID: message.id,
-    author: message.author,
-    text: message.type === 'text' ? message.decoratedText.stringValue() : message.title,
+    text:
+      message.type === 'text'
+        ? message.decoratedText
+          ? message.decoratedText.stringValue()
+          : null
+        : message.title,
   }
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _onClick: (messageID: Types.MessageID) =>
     dispatch(
-      Chat2Gen.createLoadMessagesCentered({
+      Chat2Gen.createReplyJump({
         conversationIDKey: conversationIDKey,
-        highlightMode: 'flash',
         messageID,
       })
     ),

@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  author: string
   onClick: () => void
   onDismiss: () => void
   onUnpin?: () => void
@@ -12,29 +11,23 @@ type Props = {
 
 const PinnedMessage = (props: Props) => {
   return props.text ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.container}>
-      <Kb.ClickableBox onClick={props.onClick}>
+    <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
           <Kb.Text type="BodyTinySemibold" style={styles.label}>
             Pinned
           </Kb.Text>
-          <Kb.Text type="BodySmallSemibold" style={styles.author}>
-            {props.author}
-          </Kb.Text>
-          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={2} selectable={true} style={styles.text}>
+          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={2} style={styles.text}>
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
-      </Kb.ClickableBox>
-    </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
   ) : null
 }
 
 const styles = Styles.styleSheetCreate({
-  author: {
-    color: Styles.globalColors.black,
-  },
   blueBar: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.blue,
@@ -48,6 +41,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
     position: 'absolute',
     top: 0,
+    width: '100%',
   },
   label: {
     color: Styles.globalColors.blueDark,

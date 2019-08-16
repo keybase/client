@@ -3183,7 +3183,7 @@ const unpinMessage = async (_: TypedState, action: Chat2Gen.UnpinMessagePayload)
 
 const ignorePinnedMessage = (_: TypedState, action: Chat2Gen.IgnorePinnedMessagePayload) =>
   RPCChatTypes.localIgnorePinnedMessageRpcPromise({
-    conversationIDKey: action.payload.conversationIDKey,
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
   })
 
 const openChatFromWidget = (
