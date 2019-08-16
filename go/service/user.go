@@ -622,6 +622,6 @@ func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, bloc
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
-	mctx.G().CardCache().Delete(uid)
+	_ = mctx.G().CardCache().Delete(uid)
 	return err
 }

@@ -14,7 +14,6 @@ import (
 type LoginHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	identifyUI libkb.IdentifyUI
 }
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {

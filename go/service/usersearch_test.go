@@ -169,12 +169,10 @@ func stringifyAPIResult(list []keybase1.APIUserSearchResult) (res []string) {
 }
 
 type testKeybaseUserSearchData struct {
-	username     string
-	fullName     string
-	serviceMap   map[string]string
-	phoneNumbers []keybase1.PhoneNumber
-	emails       []keybase1.EmailAddress
-	followee     bool
+	username   string
+	fullName   string
+	serviceMap map[string]string
+	followee   bool
 }
 
 type testUserSearchProvider struct {
@@ -434,6 +432,7 @@ func TestUserSearchResolvedUsersShouldGoFirst(t *testing.T) {
 		Query:           "tuser",
 		MaxResults:      50,
 	})
+	require.NoError(t, err)
 	require.Equal(t, searchResultForTest{
 		id:              "tuser1",
 		displayName:     "tuser1",

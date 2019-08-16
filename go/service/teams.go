@@ -294,13 +294,14 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
-		switch err := err.Err.(type) {
+		switch e := err.Err.(type) {
 		case libkb.IdentifySummaryError:
 			// Return the IdentifySummaryError, which is exportable.
 			// Frontend presents this error specifically.
+			return e
+		default:
 			return err
 		}
-		return err
 	default:
 		return err
 	}
