@@ -75,14 +75,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         onDone={onDone}
         visible={showingMenu}
       />
-      <Kb.Toast visible={showingToast}>
-        <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.white} fontSize={22} />
-          <Kb.Text type="BodySemibold" style={styles.toastText}>
-            Saved
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.Toast>
+      <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
     </>
   )
 }

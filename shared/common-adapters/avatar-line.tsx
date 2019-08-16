@@ -39,7 +39,7 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor="white"
+            borderColor={Styles.globalColors.white}
             style={styles.avatar}
           />
         ))
@@ -56,7 +56,7 @@ const styleMap = avatarSizes.reduce(
   (styles, size) => ({
     ...styles,
     [size]: {
-      horizontal: Styles.styleSheetCreate({
+      horizontal: Styles.styleSheetCreate(() => ({
         avatar: {
           marginRight: -size / 3,
         },
@@ -76,8 +76,8 @@ const styleMap = avatarSizes.reduce(
           color: Styles.globalColors.black_50,
           paddingRight: size / 5,
         },
-      }),
-      vertical: Styles.styleSheetCreate({
+      })),
+      vertical: Styles.styleSheetCreate(() => ({
         avatar: {
           marginBottom: -size / 3,
         },
@@ -97,7 +97,7 @@ const styleMap = avatarSizes.reduce(
           color: Styles.globalColors.black_50,
           paddingBottom: size / 5,
         },
-      }),
+      })),
     },
   }),
   {}

@@ -117,7 +117,7 @@ class ConfirmModal extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     flex: 1,
   },
@@ -138,6 +138,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,
   },
-})
+}))
 
 export default ConfirmModal

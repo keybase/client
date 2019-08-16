@@ -18,12 +18,12 @@ class BoxGrow extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inner: {...Styles.globalStyles.fillAbsolute},
   outer: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default BoxGrow

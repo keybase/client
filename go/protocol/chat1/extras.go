@@ -2110,12 +2110,45 @@ func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
 func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
 func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
 }
 
 func (i EphemeralPurgeInfo) String() string {

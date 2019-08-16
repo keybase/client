@@ -594,6 +594,8 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		forceFullReload:                       false,
 		forceRepoll:                           false,
 		staleOK:                               true, // stale is fine, as long as get those seqnos.
+		skipSeedCheck:                         true,
+		skipAudit:                             true,
 
 		needSeqnos:    needParentSeqnos,
 		readSubteamID: &readSubteamID,
@@ -997,7 +999,7 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), func() error { return err })()
 
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-	return computeSeedChecks(
+	err = computeSeedChecks(
 		ctx,
 		state.ID(),
 		latestChainGen,
@@ -1014,6 +1016,7 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 			state.PerTeamKeySeedsUnverified[g] = ptksu
 		},
 	)
+	return err
 }
 
 // consumeRatchets finds the hidden chain ratchets in the given link (if it's not stubbed), and adds them

@@ -200,6 +200,7 @@ export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
 export type MentionsChannelName = Message.MentionsChannelName
 export type Message = Message.Message
+export type MessageAttachmentTransferState = Message.MessageAttachmentTransferState
 export type MessageAttachment = Message.MessageAttachment
 export type MessageExplodeDescription = Message.MessageExplodeDescription
 export type MessageID = Message.MessageID

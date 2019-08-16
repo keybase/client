@@ -32,16 +32,6 @@ const mergeProps = (_, dispatchProps, ownProps: OwnProps) => {
     : message.transferState === 'downloading'
     ? globalColors.blue
     : ''
-  const progressLabel =
-    message.transferState === 'downloading'
-      ? 'Downloading'
-      : message.transferState === 'uploading'
-      ? 'Uploading'
-      : message.transferState === 'mobileSaving'
-      ? 'Saving...'
-      : message.transferState === 'remoteUploading'
-      ? 'waiting...'
-      : ''
   const hasProgress =
     !!message.transferState &&
     message.transferState !== 'remoteUploading' &&
@@ -56,8 +46,8 @@ const mergeProps = (_, dispatchProps, ownProps: OwnProps) => {
     onShowInFinder:
       !Container.isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     progress: message.transferProgress,
-    progressLabel,
     title: message.title || message.fileName,
+    transferState: message.transferState,
   }
 }
 

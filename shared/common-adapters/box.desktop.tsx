@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {intersperseFn} from '../util/arrays'
 import {Box2Props} from './box'
+import './box.css'
 
 class Box extends React.PureComponent<any> {
   render() {

@@ -1360,4 +1360,15 @@ protocol teams {
   TeamID getTeamID(string teamName);
 
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
+
+
+  record MemberEmail {
+    string email;
+    string role;
+  }
+
+  record MemberUsername {
+    string username;
+    string role;
+  }
 }
