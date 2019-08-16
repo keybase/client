@@ -173,14 +173,6 @@ func (s *diskStorageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	return item.value(), true, nil
 }
 
-func (s *diskStorageGeneric) delete(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) error {
-	s.Lock()
-	defer s.Unlock()
-
-	key := s.dbKey(mctx, teamID, public)
-	return s.encryptedDB.Delete(mctx.Ctx(), key)
-}
-
 func (s *diskStorageGeneric) dbKey(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) libkb.DbKey {
 	key := fmt.Sprintf("tid:%s", teamID)
 	if public {
@@ -226,10 +218,6 @@ func (s *memoryStorageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return nil
 	}
 	return state
-}
-
-func (s *memoryStorageGeneric) delete(m libkb.MetaContext, teamID keybase1.TeamID, public bool) {
-	s.lru.Remove(s.key(teamID, public))
 }
 
 func (s *memoryStorageGeneric) clear() {

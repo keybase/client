@@ -230,9 +230,13 @@ func IsTeamReadError(err error) bool {
 		switch keybase1.StatusCode(e.Code) {
 		case keybase1.StatusCode_SCTeamReadError:
 			return true
+		default:
+			// Nothing to do for other codes.
 		}
+		return false
+	default:
+		return false
 	}
-	return false
 }
 
 func FixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {

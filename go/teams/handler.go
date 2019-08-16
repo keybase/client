@@ -258,8 +258,14 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	defer mctx.Trace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change),
 		func() error { return err })()
 
-	HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
-	HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
+	err = HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
+	if err != nil {
+		return err
+	}
+	err = HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
+	if err != nil {
+		return err
+	}
 
 	// If we're handling a rename we should also purge the resolver cache and
 	// the KBFS favorites cache
@@ -302,7 +308,10 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id)
+		err := TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id)
+		if err != nil {
+			return err
+		}
 		invalidateCaches(mctx, row.Id)
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
@@ -317,7 +326,10 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		mctx.Debug("team.HandleExitNotification: (%+v)", row)
-		FreezeTeam(mctx, row.Id)
+		err := FreezeTeam(mctx, row.Id)
+		if err != nil {
+			return err
+		}
 		invalidateCaches(mctx, row.Id)
 		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
 	}
@@ -691,7 +703,7 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
-	copy(sig[:], decodedSig[:])
+	copy(sig[:], decodedSig)
 
 	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
 	// NOTE: Since we are re-serializing the values from seitan here to

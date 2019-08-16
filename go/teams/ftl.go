@@ -60,9 +60,7 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
 		locktab:         libkb.NewLockTable(),
 	}
-	ret.storage = storage.NewFTLStorage(g, func(mctx libkb.MetaContext, s *keybase1.FastTeamData) (bool, error) {
-		return ret.upgradeStoredState(mctx, s)
-	})
+	ret.storage = storage.NewFTLStorage(g, ret.upgradeStoredState)
 	return ret
 }
 
@@ -474,10 +472,7 @@ func stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, sta
 		return false
 	}
 	_, foundPerTeamKey := state.Chain.PerTeamKeys[gen]
-	if !foundPerTeamKey {
-		return false
-	}
-	return true
+	return foundPerTeamKey
 }
 
 // stateHasKeys checks to see if the given state has the keys specified in the shopping list. If not, it will
