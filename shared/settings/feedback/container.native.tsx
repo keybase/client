@@ -76,7 +76,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             feedback || '',
             sendLogs,
             sendMaxBytes,
-            '', // logPath populated on Go side
             traceDir,
             cpuProfileDir
           )
