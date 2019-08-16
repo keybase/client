@@ -30,7 +30,7 @@ const (
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop    string
+	GUI        string
 	Kbfs       string
 	Service    string
 	EK         string
@@ -59,7 +59,6 @@ type LogSendContext struct {
 	kbfsLog          string
 	svcLog           string
 	ekLog            string
-	guiLog           string
 	desktopLog       string
 	updaterLog       string
 	startLog         string
@@ -179,9 +178,6 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	if err := addGzippedFile(mpart, "ek_log_gz", "ek_log.gz", l.ekLog); err != nil {
 		return "", err
 	}
-	if err := addGzippedFile(mpart, "gui_log_gz", "gui_log.gz", l.guiLog); err != nil {
-		return "", err
-	}
 	if err := addGzippedFile(mpart, "updater_log_gz", "updater_log.gz", l.updaterLog); err != nil {
 		return "", err
 	}
@@ -274,7 +270,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
 		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
-		l.desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		l.desktopLog = tail(l.G().Log, "gui", logs.GUI, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		// We don't use the systemd journal to store regular logs, since on
 		// some systems (e.g. Ubuntu 16.04) it's not persisted across boots.
@@ -325,7 +321,6 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 func (l *LogSendContext) Clear() {
 	l.svcLog = ""
 	l.ekLog = ""
-	l.guiLog = ""
 	l.kbfsLog = ""
 	l.desktopLog = ""
 	l.updaterLog = ""

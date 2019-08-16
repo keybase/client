@@ -5,7 +5,7 @@ import Feedback from '.'
 import logSend from '../../native/log-send'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
+import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
@@ -65,7 +65,6 @@ class FeedbackContainer extends React.Component<Props, State> {
       // @ts-ignore
       maybeDump
         .then(() => {
-          const logPath = logFileName
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = sendLogs
             ? {...this.props.status, ...this.props.chat, ...this.props.push}
@@ -77,7 +76,7 @@ class FeedbackContainer extends React.Component<Props, State> {
             feedback || '',
             sendLogs,
             sendMaxBytes,
-            logPath,
+            '', // logPath populated on Go side
             traceDir,
             cpuProfileDir
           )

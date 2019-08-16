@@ -284,7 +284,11 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, ui
 	logSendContext.InstallID = env.GetInstallID()
 	logSendContext.StatusJSON = statusJSON
 	logSendContext.Feedback = feedback
-	logSendContext.Logs.Desktop = uiLogPath
+	if len(uiLogPath) == 0 {
+		logSendContext.Logs.GUI = uiLogPath
+	} else {
+		logSendContext.Logs.GUI = env.GetGUILogFile()
+	}
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 	var numBytes int

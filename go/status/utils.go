@@ -87,7 +87,7 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 	cpuProfileDir := logDir
 	if fstatus != nil {
 		return Logs{
-			Desktop:    fstatus.Desktop.Log,
+			GUI:        fstatus.Desktop.Log,
 			Kbfs:       fstatus.Kbfs.Log,
 			Service:    fstatus.Service.Log,
 			EK:         fstatus.Service.EkLog,
@@ -103,7 +103,7 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 	}
 
 	return Logs{
-		Desktop:  filepath.Join(logDir, libkb.GUILogFileName),
+		GUI:      filepath.Join(logDir, libkb.GUILogFileName),
 		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
 		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
 		EK:       filepath.Join(logDir, libkb.EKLogFileName),
