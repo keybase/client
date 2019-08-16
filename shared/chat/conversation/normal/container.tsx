@@ -23,10 +23,12 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted
   )
+  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
     showLoader,
+    showThreadSearch,
     threadLoadedOffline: meta.offline,
   }
 }
@@ -70,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     showLoader: stateProps.showLoader,
+    showThreadSearch: stateProps.showThreadSearch,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
 }

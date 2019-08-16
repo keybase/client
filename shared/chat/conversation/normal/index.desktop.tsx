@@ -9,6 +9,7 @@ import {Props} from './index.types'
 import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
+import ThreadSearch from '../search/container'
 
 type State = {
   showDropOverlay: boolean
@@ -58,8 +59,16 @@ class Conversation extends React.PureComponent<Props, State> {
               scrollListUpCounter={this.props.scrollListUpCounter}
               conversationIDKey={this.props.conversationIDKey}
             />
+            {!this.props.showThreadSearch && (
+              <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
+            )}
+            {this.props.showThreadSearch && (
+              <ThreadSearch
+                style={styles.threadSearchStyle}
+                conversationIDKey={this.props.conversationIDKey}
+              />
+            )}
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
-            <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
           <Banner conversationIDKey={this.props.conversationIDKey} />
@@ -92,6 +101,10 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.black_10,
     flex: 1,
     maxHeight: Styles.globalMargins.medium,
+  },
+  threadSearchStyle: {
+    position: 'absolute' as const,
+    top: 0,
   },
 })
 

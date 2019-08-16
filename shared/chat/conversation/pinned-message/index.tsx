@@ -34,6 +34,7 @@ const styles = Styles.styleSheetCreate({
     width: Styles.globalMargins.xtiny,
   },
   container: {
+    backgroundColor: Styles.globalColors.white,
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
