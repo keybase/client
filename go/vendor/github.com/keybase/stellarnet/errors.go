@@ -47,6 +47,9 @@ var ErrTxOpFull = errors.New("tx cannot hold more operations")
 // ErrNoOps means a Tx has no operations.
 var ErrNoOps = errors.New("no operations in tx")
 
+// ErrAssetAlreadyExists means an asset cannot be created because it already exists
+var ErrAssetAlreadyExists = errors.New("asset already exists")
+
 // Error provides a hopefully user-friendly default in Error()
 // but with some details that might actually help debug in Verbose().
 type Error struct {
