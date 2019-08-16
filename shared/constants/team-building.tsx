@@ -138,4 +138,34 @@ const selfToUser = (you: string): Types.User => ({
   username: you,
 })
 
-export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser, selfToUser}
+const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
+  contact: true,
+  id: contact.assertion,
+  label: contact.displayLabel,
+  prettyName: contact.displayName,
+  serviceId: 'contact' as const,
+  serviceMap: {keybase: contact.username},
+  username: contact.component.email || contact.component.phoneNumber || '',
+})
+
+const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User => {
+  const {username, fullname} = person
+  return {
+    id: username,
+    prettyName: fullname,
+    serviceId: 'keybase' as const,
+    serviceMap: {keybase: username},
+    username: username,
+  }
+}
+
+export {
+  followStateHelperWithId,
+  makeSubState,
+  allServices,
+  services,
+  parseRawResultToUser,
+  selfToUser,
+  contactToUser,
+  interestingPersonToUser,
+}

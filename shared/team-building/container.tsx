@@ -79,7 +79,7 @@ const deriveSearchResults = memoize(
         prettyName: formatAnyPhoneNumbers(info.prettyName),
         services: info.serviceMap,
         userId: info.id,
-        username: info.id.split('@')[0],
+        username: info.username,
       }
     })
 )
