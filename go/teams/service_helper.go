@@ -719,6 +719,72 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return nil
 }
 
+func SetBotSettings(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
+	botSettings keybase1.TeamBotSettings) error {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamname,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+	return SetBotSettingsByID(ctx, g, team.ID, username, botSettings)
+}
+
+func SetBotSettingsByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string, botSettings keybase1.TeamBotSettings) error {
+
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return err
+	}
+
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+		if err != nil {
+			return err
+		}
+		if !t.IsMember(ctx, uv) {
+			return fmt.Errorf("user %q is not a member of team %q", username, teamID)
+		}
+
+		return t.PostTeamBotSettings(ctx, map[keybase1.UserVersion]keybase1.TeamBotSettings{
+			uv: botSettings,
+		})
+	})
+}
+
+func GetBotSettings(ctx context.Context, g *libkb.GlobalContext,
+	teamname, username string) (res keybase1.TeamBotSettings, err error) {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamname,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return res, err
+	}
+
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return res, err
+	}
+	if !role.IsRestrictedBot() {
+		return res, fmt.Errorf("%s is not a %v, but has the role %v",
+			username, keybase1.TeamRole_RESTRICTEDBOT, role)
+	}
+
+	botSettings, err := team.TeamBotSettings()
+	if err != nil {
+		return res, err
+	}
+	return botSettings[uv], nil
+}
+
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {

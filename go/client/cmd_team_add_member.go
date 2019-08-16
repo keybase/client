@@ -104,7 +104,9 @@ func (c *CmdTeamAddMember) Run() error {
 		return err
 	}
 
-	ValidateBotSettingsConvs(c.G(), c.Team, c.BotSettings)
+	if err := ValidateBotSettingsConvs(c.G(), c.Team, c.BotSettings); err != nil {
+		return err
+	}
 
 	arg := keybase1.TeamAddMemberArg{
 		Name:                 c.Team,

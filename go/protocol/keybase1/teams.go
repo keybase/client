@@ -3369,6 +3369,19 @@ type TeamEditMemberArg struct {
 	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
+type TeamGetBotSettingsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Username  string `codec:"username" json:"username"`
+}
+
+type TeamSetBotSettingsArg struct {
+	SessionID   int             `codec:"sessionID" json:"sessionID"`
+	Name        string          `codec:"name" json:"name"`
+	Username    string          `codec:"username" json:"username"`
+	BotSettings TeamBotSettings `codec:"botSettings" json:"botSettings"`
+}
+
 type TeamRenameArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	PrevName  TeamName `codec:"prevName" json:"prevName"`
@@ -3584,6 +3597,8 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
+	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
@@ -3879,6 +3894,36 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamEditMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetBotSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetBotSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetBotSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetBotSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetBotSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamSetBotSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamSetBotSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamSetBotSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamSetBotSettingsArg)(nil), args)
+						return
+					}
+					err = i.TeamSetBotSettings(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4507,6 +4552,16 @@ func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err err
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSettingsArg) (res TeamBotSettings, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil)
 	return
 }
 

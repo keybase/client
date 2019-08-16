@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -77,29 +78,37 @@ func ParseUserAndRole(ctx *cli.Context) (string, keybase1.TeamRole, error) {
 
 var botSettingsFlags = []cli.Flag{
 	cli.BoolFlag{
-		Name:  "bot-settings-allow-commands",
-		Usage: "Bots will receive messages that begin with commands they support. TODO keybase chat bot-advertise-list. Only applies if --role=restrictedbot.",
+		Name:  "allow-commands",
+		Usage: "Bots will receive messages that begin with commands they support. TODO keybase chat bot-advertise-list.",
 	},
 	cli.BoolFlag{
-		Name:  "bot-settings-allow-mentions",
-		Usage: "Bots will receive messages when they are @-mentioned. Only applies if --role=restrictedbot.",
+		Name:  "allow-mentions",
+		Usage: "Bots will receive messages when they are @-mentioned.",
 	},
 	cli.StringSliceFlag{
-		Name:  "bot-settings-triggers",
-		Usage: "Bots will receive messages that match the given text. Can be a regular expression. Can be specified multiple times. Only applies if --role=restrictedbot.",
+		Name: "allow-trigger",
+		Usage: `Bots will receive messages that match the given text. Can be a regular expression.
+			Can be specified multiple times.`,
 	},
 	cli.StringSliceFlag{
-		Name:  "bot-settings-allowed-conversations",
-		Usage: "Bots will only be able to send/receive messages in the given conversations. If not specified all conversations are allowed. Can be specified multiple times. Only applies if --role=restrictedbot.",
+		Name: "allow-conversation",
+		Usage: `Bots will only be able to send/receive messages in the given conversations. If not specified all conversations are allowed.
+			Can be specified multiple times.`,
 	},
 }
 
 func ParseBotSettings(ctx *cli.Context) *keybase1.TeamBotSettings {
+	if !(ctx.IsSet("allow-commands") ||
+		ctx.IsSet("allow-mentions") ||
+		ctx.IsSet("allow-trigger") ||
+		ctx.IsSet("allow-conversation")) {
+		return nil
+	}
 	return &keybase1.TeamBotSettings{
-		Cmds:     ctx.Bool("bot-settings-allow-commands"),
-		Mentions: ctx.Bool("bot-settings-allow-mentions"),
-		Triggers: ctx.StringSlice("bot-settings-triggers"),
-		Convs:    ctx.StringSlice("bot-settings-allowed-conversations"),
+		Cmds:     ctx.Bool("allow-commands"),
+		Mentions: ctx.Bool("allow-mentions"),
+		Triggers: ctx.StringSlice("allow-trigger"),
+		Convs:    ctx.StringSlice("allow-conversation"),
 	}
 }
 
@@ -115,6 +124,7 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, teamName string,
 		return err
 	}
 	for _, topicName := range botSettings.Convs {
+		topicName = utils.SanitizeTopicName(topicName)
 		conv, _, err := resolver.Resolve(context.TODO(), chatConversationResolvingRequest{
 			TlfName:     teamName,
 			TopicName:   topicName,
@@ -131,6 +141,7 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, teamName string,
 		}
 		convIDs = append(convIDs, conv.GetConvID().String())
 	}
+
 	botSettings.Convs = convIDs
 	return nil
 }
