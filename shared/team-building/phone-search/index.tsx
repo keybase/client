@@ -29,11 +29,15 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   }
 
   return (
-    <Kb.ScrollView>
+    <>
       <Kb.Box2
         direction="vertical"
         gap="tiny"
-        style={{backgroundColor: Styles.globalColors.greyLight, marginTop: Styles.globalMargins.tiny}}
+        style={{
+          backgroundColor: Styles.globalColors.greyLight,
+          marginTop: Styles.globalMargins.tiny,
+          width: '100%',
+        }}
       >
         <PhoneInput
           // Supply a key to force reset the PhoneInput state after a user is added
@@ -64,9 +68,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
         />
         {validity && !user && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
-      <Kb.Box
-        style={{backgroundColor: Styles.globalColors.greyLight, flexDirection: 'column', flexGrow: 1}}
-      />
+      <Kb.Box style={{backgroundColor: Styles.globalColors.greyLight, flexGrow: 1}} />
       <Kb.Button
         style={{flexGrow: 0}}
         fullWidth={true}
@@ -74,7 +76,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
         label="Continue"
         disabled={!(validity && !user)}
       />
-    </Kb.ScrollView>
+    </>
   )
 }
 

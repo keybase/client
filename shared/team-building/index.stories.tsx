@@ -622,6 +622,7 @@ const load = () => {
   // Add active for every service
   const servicesToDisplay: Array<Types.ServiceIdWithContact> = [
     'keybase',
+    'phone',
     'twitter',
     'facebook',
     'github',

@@ -13,6 +13,7 @@ import signup from '../login/signup/index.stories'
 import newSignup from '../signup/index.stories'
 import styles from '../styles/index.stories'
 import teamBuilding from '../team-building/index.stories'
+import teamBuidlingPhoneSearch from '../team-building/phone-search/index.stories'
 import teams from '../teams/index.stories'
 import wallets from '../wallets/index.stories'
 
@@ -31,6 +32,7 @@ const stories = {
   settings,
   signup,
   styles,
+  teamBuidlingPhoneSearch,
   teamBuilding,
   teams,
   wallets,
