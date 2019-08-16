@@ -7,18 +7,22 @@ import {
   // eslint-disable-next-line
   PinchGestureHandlerStateChangeEvent,
   // eslint-disable-next-line
-  RotationGestureHandlerStateChangeEvent,
+  TapGestureHandlerGestureEvent,
   PanGestureHandler,
   PinchGestureHandler,
-  RotationGestureHandler,
+  TapGestureHandler,
   State,
 } from 'react-native-gesture-handler'
 
 type Props = {
+  allowRotate?: boolean
   onLoad?: () => void
   uri: string
   style?: Styles.StylesCrossPlatform
 }
+
+const maxZoom = 10
+const minZoom = 0.5
 
 class ZoomableBox extends React.Component<Props, {height: number; width: number}> {
   state = {
@@ -27,25 +31,19 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
   }
 
   private mounted = true
+
   private panRef = React.createRef<PanGestureHandler>()
-  private rotationRef = React.createRef<RotationGestureHandler>()
   private pinchRef = React.createRef<PinchGestureHandler>()
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
   private opacity = new Animated.Value(0)
-  private scale = Animated.multiply(this.baseScale, this.pinchScale)
+  private scale = Animated.multiply(this.baseScale, this.pinchScale).interpolate({
+    extrapolate: 'clamp',
+    inputRange: [0, minZoom, maxZoom, 9999],
+    outputRange: [minZoom, minZoom, maxZoom, maxZoom],
+  })
   private lastScale = 1
   private onPinchGestureEvent = Animated.event([{nativeEvent: {scale: this.pinchScale}}], {
-    useNativeDriver: true,
-  })
-
-  private rotate = new Animated.Value(0)
-  private rotateStr = this.rotate.interpolate({
-    inputRange: [-100, 100],
-    outputRange: ['-100rad', '100rad'],
-  })
-  private lastRotate = 0
-  private onRotateGestureEvent = Animated.event([{nativeEvent: {rotation: this.rotate}}], {
     useNativeDriver: true,
   })
 
@@ -58,16 +56,32 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
     {useNativeDriver: true}
   )
 
-  private onRotateHandlerStateChange = (event: RotationGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this.lastRotate += event.nativeEvent.rotation
-      this.rotate.setOffset(this.lastRotate)
-      this.rotate.setValue(0)
+  private onDoubleTap = (event: TapGestureHandlerGestureEvent) => {
+    if (event.nativeEvent.state === State.ACTIVE) {
+      this.lastScale = 1
+      this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
+      this.lastPanX = 0
+      this.lastPanY = 0
+      this.panX.flattenOffset()
+      this.panY.flattenOffset()
+      this.pinchScale.setValue(1)
+
+      const common = {
+        duration: 200,
+        useNativeDriver: true,
+      }
+      Animated.parallel([
+        Animated.timing(this.baseScale, {...common, toValue: this.lastScale}),
+        Animated.timing(this.panX, {...common, toValue: 0}),
+        Animated.timing(this.panY, {...common, toValue: 0}),
+      ]).start()
     }
   }
+
   private onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
       this.lastScale *= event.nativeEvent.scale
+      this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
       this.baseScale.setValue(this.lastScale)
       this.pinchScale.setValue(1)
     }
@@ -112,59 +126,46 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
 
   render() {
     return (
-      <View style={{flexGrow: 1, position: 'relative'}}>
-        <View style={{...Styles.globalStyles.fillAbsolute}}>
-          <PanGestureHandler
-            ref={this.panRef}
-            onGestureEvent={this.onPanGestureEvent}
-            onHandlerStateChange={this.onPanGestureStateChange}
-            minDist={1}
-            minPointers={1}
-            maxPointers={1}
-          >
-            <Animated.View style={styles.wrapper}>
-              <RotationGestureHandler
-                ref={this.rotationRef}
-                simultaneousHandlers={this.pinchRef}
-                onGestureEvent={this.onRotateGestureEvent}
-                onHandlerStateChange={this.onRotateHandlerStateChange}
-              >
-                <Animated.View style={styles.wrapper}>
-                  <PinchGestureHandler
-                    ref={this.pinchRef}
-                    simultaneousHandlers={this.rotationRef}
-                    onGestureEvent={this.onPinchGestureEvent}
-                    onHandlerStateChange={this.onPinchHandlerStateChange}
-                  >
-                    <Animated.View style={styles.container} collapsable={false}>
-                      <Animated.Image
-                        onLoad={this.props.onLoad}
-                        resizeMode="center"
-                        style={[
-                          {
-                            height: '100%',
-                            opacity: this.opacity,
-                            width: '100%',
-                          },
-                          {
-                            transform: [
-                              {scale: this.scale},
-                              {translateX: this.panX},
-                              {translateY: this.panY},
-                              {rotate: this.rotateStr},
-                            ],
-                          },
-                        ]}
-                        source={{uri: this.props.uri}}
-                      />
-                    </Animated.View>
-                  </PinchGestureHandler>
-                </Animated.View>
-              </RotationGestureHandler>
-            </Animated.View>
-          </PanGestureHandler>
+      <TapGestureHandler onHandlerStateChange={this.onDoubleTap} numberOfTaps={2}>
+        <View style={{flexGrow: 1, position: 'relative'}}>
+          <View style={{...Styles.globalStyles.fillAbsolute}}>
+            <PanGestureHandler
+              ref={this.panRef}
+              onGestureEvent={this.onPanGestureEvent}
+              onHandlerStateChange={this.onPanGestureStateChange}
+              minDist={1}
+              minPointers={1}
+              maxPointers={1}
+            >
+              <Animated.View style={styles.wrapper}>
+                <PinchGestureHandler
+                  ref={this.pinchRef}
+                  onGestureEvent={this.onPinchGestureEvent}
+                  onHandlerStateChange={this.onPinchHandlerStateChange}
+                >
+                  <Animated.View style={styles.container} collapsable={false}>
+                    <Animated.Image
+                      onLoad={this.props.onLoad}
+                      resizeMode="center"
+                      style={[
+                        {
+                          height: '100%',
+                          opacity: this.opacity,
+                          width: '100%',
+                        },
+                        {
+                          transform: [{translateX: this.panX}, {translateY: this.panY}, {scale: this.scale}],
+                        },
+                      ]}
+                      source={{uri: this.props.uri}}
+                    />
+                  </Animated.View>
+                </PinchGestureHandler>
+              </Animated.View>
+            </PanGestureHandler>
+          </View>
         </View>
-      </View>
+      </TapGestureHandler>
     )
   }
 }
