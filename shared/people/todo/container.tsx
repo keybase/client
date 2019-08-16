@@ -282,7 +282,7 @@ const VerifyAllEmailConnector = connect(
         ...(meta
           ? [
               {
-                label: hasRecentVerifyEmail ? `Send the verification email again` : 'Verify',
+                label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
                 waiting: s._addingEmail && s._addingEmail === meta.email,

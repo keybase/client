@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as SignupGen from '../../actions/signup-gen'
+import * as SignupConstants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import EnterEmail, {Props} from '.'
@@ -14,7 +15,7 @@ type WatcherProps = Props & {
   onSuccess: (email: string) => void
 }
 const WatchForSuccess = (props: WatcherProps) => {
-  const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
+  const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
   React.useEffect(() => {
     if (props.addedEmail === addEmailInProgress) {
       props.onSuccess(addEmailInProgress)
@@ -23,7 +24,7 @@ const WatchForSuccess = (props: WatcherProps) => {
 
   const onCreate = (email: string, searchable: boolean) => {
     props.onCreate(email, searchable)
-    onAddEmailInProgress(email)
+    setAddEmailInProgress(email)
   }
 
   return (
@@ -40,7 +41,7 @@ const WatchForSuccess = (props: WatcherProps) => {
 const ConnectedEnterEmail = Container.connect(
   (state: Container.TypedState) => ({
     addedEmail: state.settings.email.addedEmail,
-    error: state.settings.email.error,
+    error: state.settings.email.error ? state.settings.email.error.message : '',
     initialEmail: state.signup.email,
     waiting: anyWaiting(state, SettingsConstants.addEmailWaitingKey),
   }),
@@ -49,7 +50,7 @@ const ConnectedEnterEmail = Container.connect(
       dispatch(SettingsGen.createAddEmail({email, searchable}))
     },
     onSkip: () => {
-      dispatch(SignupGen.createSetJustSignedUpEmail({email: 'none'}))
+      dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail}))
       dispatch(RouteTreeGen.createClearModals())
     },
     onSuccess: (email: string) => {

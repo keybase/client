@@ -4,7 +4,7 @@ import {storyDecorator} from '../common-stories'
 import EnterEmail from '.'
 
 const props = {
-  error: null,
+  error: '',
   initialEmail: '',
   onCreate: Sb.action('onCreate'),
   onSkip: Sb.action('onSkip'),

@@ -2,10 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen, errorBanner} from '../common'
-import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
-  error: Error | null
+  error: string
   initialEmail: string
   onCreate: (email: string, searchable: boolean) => void
   onSkip?: () => void
@@ -20,22 +19,21 @@ const EnterEmail = (props: Props) => {
 
   return (
     <SignupScreen
-      banners={errorBanner(props.error ? props.error.message : '')}
+      banners={errorBanner(props.error)}
       buttons={[
         {
-          disabled,
+          disabled: disabled || props.waiting,
           label: 'Finish',
           onClick: onContinue,
           type: 'Success',
-          waiting: props.waiting,
         },
         ...(!Styles.isMobile && props.onSkip
           ? [
               {
+                disabled: props.waiting,
                 label: 'Skip for now',
                 onClick: props.onSkip,
-                type: 'Dim' as ButtonType,
-                waiting: props.waiting,
+                type: 'Dim' as const,
               },
             ]
           : []),

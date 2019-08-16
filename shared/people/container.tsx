@@ -33,8 +33,6 @@ type Props = {
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
-  resentEmail: string
-  signupEmail: string
   showAirdrop: boolean
   myUsername: string
   waiting: boolean
@@ -68,9 +66,7 @@ class LoadOnMount extends React.PureComponent<Props> {
           waiting={this.props.waiting}
           getData={this._getData}
           onClickUser={this._onClickUser}
-          resentEmail={this.props.resentEmail}
           showAirdrop={this.props.showAirdrop}
-          signupEmail={this.props.signupEmail}
         />
       </Kb.Reloadable>
     )
@@ -83,9 +79,7 @@ export default Container.connect(
     myUsername: state.config.username,
     newItems: state.people.newItems,
     oldItems: state.people.oldItems,
-    resentEmail: state.people.resentEmail,
     showAirdrop: Container.isMobile,
-    signupEmail: state.signup.justSignedUpEmail,
     waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
   }),
   dispatch => ({
@@ -101,9 +95,7 @@ export default Container.connect(
     myUsername: stateProps.myUsername,
     newItems: stateProps.newItems,
     oldItems: stateProps.oldItems,
-    resentEmail: stateProps.resentEmail,
     showAirdrop: stateProps.showAirdrop,
-    signupEmail: stateProps.signupEmail,
     waiting: stateProps.waiting,
     ...dispatchProps,
   })

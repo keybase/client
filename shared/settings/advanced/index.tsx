@@ -35,7 +35,6 @@ type Props = {
   rememberPassword: boolean
   onChangeRememberPassword: (checked: boolean) => void
   onToggleRuntimeStats: () => void
-  onEnterPhoneFlow: () => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -213,7 +212,6 @@ class Developer extends React.Component<Props, State> {
           label="Enable Detailed Logging"
           onClick={props.onExtraKBFSLogging}
         />
-        <Kb.Button mode="Secondary" label="Open phone number input" onClick={props.onEnterPhoneFlow} />
         {this._showPprofControls() && (
           <React.Fragment>
             <Kb.Button
