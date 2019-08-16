@@ -191,8 +191,11 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       showNumSection =
         this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
       labels = this.props.recommendations
+        .filter(r => r.shortcut && r.label !== numSectionLabel)
         .map(r => r.label)
-        .slice(1, this.props.recommendations.length - (showNumSection ? 1 : 0))
+    }
+    if (!labels.length) {
+      return null
     }
     return (
       <AlphabetIndex

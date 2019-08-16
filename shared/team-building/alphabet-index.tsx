@@ -6,6 +6,8 @@ import {stubTrue} from 'lodash-es'
 
 const initMeasureRef = {height: -1, pageY: -1}
 const isValidMeasure = (m: typeof initMeasureRef) => m.height >= 0 && m.pageY >= 0
+const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
+  isValidMeasure(newM) ? newM : m
 
 type Props = {
   labels: Array<string>
@@ -24,16 +26,17 @@ const AlphabetIndex = (props: Props) => {
   const storeMeasure = Kb.useTimeout(() => {
     if (topSectionRef.current && Styles.isMobile) {
       // @ts-ignore measure exists on mobile
-      topSectionRef.current.measure(
-        (_1, _2, _3, height: number, _4, pageY: number) => (sectionMeasureRef.current = {height, pageY})
-      )
+      topSectionRef.current.measure((_1, _2, _3, height: number, _4, pageY: number) => {
+        sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
+      })
     }
-  }, 200)
+  }, 2000)
   React.useEffect(storeMeasure, [])
 
   const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(
     (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
+      debugger
       if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
@@ -63,6 +66,9 @@ const AlphabetIndex = (props: Props) => {
       onResponderGrant={handleTouch}
       onResponderMove={handleTouch}
       onResponderRelease={clearTouch}
+      onLayout={(...args) => {
+        debugger
+      }}
     >
       {/* It's assumed that every row is the same height */}
       {labels.map((label, index) => (
