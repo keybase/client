@@ -178,22 +178,8 @@ const fetchUserRecs = async (
     ])
     const suggestionRes = _suggestionRes || []
     const contactRes = _contactRes || []
-    const contacts = contactRes.map(
-      (x): TeamBuildingTypes.User => ({
-        contact: true,
-        id: x.assertion,
-        label: x.displayLabel,
-        prettyName: x.displayName,
-        serviceMap: {keybase: x.username},
-      })
-    )
-    let suggestions = suggestionRes.map(
-      ({username, fullname}): TeamBuildingTypes.User => ({
-        id: username,
-        prettyName: fullname,
-        serviceMap: {keybase: username},
-      })
-    )
+    const contacts = contactRes.map(Constants.contactToUser)
+    let suggestions = suggestionRes.map(Constants.interestingPersonToUser)
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)

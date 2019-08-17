@@ -220,6 +220,51 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}, nil
 }
 
+func (s *Server) AccountMergeCLILocal(ctx context.Context, arg stellar1.AccountMergeCLILocalArg) (res stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AccountMergeCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	mctx = mctx.WithUIs(uis)
+
+	primary, err := stellar.GetOwnPrimaryAccountID(mctx)
+	if err != nil {
+		return res, err
+	}
+	if arg.FromAccountID == primary {
+		return res, fmt.Errorf("cannot merge away your primary account")
+	}
+	if arg.To == "" {
+		// if unspecified, default the target account to the user's primary
+		arg.To = primary.String()
+	}
+
+	signRes, err := stellar.AccountMerge(mctx, s.walletState, arg)
+	if err != nil {
+		mctx.Debug("error building account-merge transaction for %s into %s: %v", arg.FromAccountID, arg.To, err)
+		return res, err
+	}
+	err = s.remoter.PostAnyTransaction(mctx, signRes.Signed)
+	if err != nil {
+		mctx.Debug("error posting account-merge transaction for %s into %s: %v", arg.FromAccountID, arg.To, err)
+		return res, err
+	}
+	mctx.Debug("posted account merge transaction for %s into %s", arg.FromAccountID, arg.To)
+	err = s.walletState.RefreshAll(mctx, "account merge")
+	if err != nil {
+		mctx.Debug("error refreshing accounts after successfully processing a merge")
+	}
+	return stellar1.TransactionID(signRes.TxHash), nil
+}
+
 func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLILocalArg) (res stellar1.SendResultCLILocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "SendPathCLILocal",

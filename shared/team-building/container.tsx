@@ -12,10 +12,15 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
-import {parseUserId, ServiceId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
+import {
+  ServiceIdWithContact,
+  User,
+  SearchResults,
+  AllowedNamespace,
+  SelectedUser,
+} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
@@ -74,31 +79,37 @@ const deriveSearchResults = memoize(
         prettyName: formatAnyPhoneNumbers(info.prettyName),
         services: info.serviceMap,
         userId: info.id,
-        username: info.id.split('@')[0],
+        username: info.username,
       }
     })
 )
 
-const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
-  teamSoFar.toArray().map(userInfo => {
-    let username = ''
-    let serviceId: ServiceId
-    if (userInfo.contact && userInfo.serviceMap.keybase) {
-      // resolved contact
-      username = userInfo.serviceMap.keybase
-      serviceId = 'keybase'
-    } else {
-      const parsed = parseUserId(userInfo.id)
-      username = parsed.username
-      serviceId = parsed.serviceId
-    }
-    return {
-      prettyName: userInfo.prettyName,
-      service: serviceId,
-      userId: userInfo.id,
-      username,
-    }
-  })
+const deriveTeamSoFar = memoize(
+  (teamSoFar: I.Set<User>): Array<SelectedUser> =>
+    teamSoFar.toArray().map(userInfo => {
+      let username = ''
+      let serviceId: ServiceIdWithContact
+      if (userInfo.contact && userInfo.serviceMap.keybase) {
+        // resolved contact - pass username @ 'keybase' to teambox
+        // so keybase avatar is rendered.
+        username = userInfo.serviceMap.keybase
+        serviceId = 'keybase'
+      } else if (userInfo.serviceId !== 'keybase' && userInfo.serviceMap.keybase) {
+        // Not a keybase result but has Keybase username. Id will be compound assertion,
+        // but we want to display Keybase username and profile pic in teambox.
+        username = userInfo.serviceMap.keybase
+        serviceId = 'keybase'
+      } else {
+        username = userInfo.username
+        serviceId = userInfo.serviceId
+      }
+      return {
+        prettyName: userInfo.prettyName,
+        service: serviceId,
+        userId: userInfo.id,
+        username,
+      }
+    })
 )
 
 const deriveServiceResultCount: (

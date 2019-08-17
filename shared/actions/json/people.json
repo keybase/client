@@ -18,6 +18,9 @@
     "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"
+    },
+    "setResentEmail": {
+      "email": "string"
     }
   }
 }

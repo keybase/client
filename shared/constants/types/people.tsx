@@ -79,6 +79,7 @@ export type _State = {
   newItems: I.List<PeopleScreenItem>
   oldItems: I.List<PeopleScreenItem>
   followSuggestions: I.List<FollowSuggestion>
+  resentEmail: string
 }
 
 export type State = I.RecordOf<_State>
