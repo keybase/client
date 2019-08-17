@@ -101,12 +101,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			return &msg
 		})
 
-	// make this a map once to filter BULKADDTOCONV messages
-	activeMap := make(map[string]struct{})
-	for _, uid := range conv.Conv.Metadata.AllList {
-		activeMap[uid.String()] = struct{}{}
-	}
-
+	var activeMap map[string]struct{}
 	// group BULKADDTOCONV system messages
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs, func(msg chat1.MessageUnboxed) bool {
 		body := msg.Valid().MessageBody
@@ -127,6 +122,13 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
 						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
 					}
+				}
+			}
+
+			if activeMap == nil && len(usernames) > 0 {
+				activeMap = make(map[string]struct{})
+				for _, uid := range conv.Conv.Metadata.AllList {
+					activeMap[uid.String()] = struct{}{}
 				}
 			}
 
