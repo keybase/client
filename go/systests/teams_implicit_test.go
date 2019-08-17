@@ -670,3 +670,70 @@ func TestSBSAfterRevokedAndProved(t *testing.T) {
 
 	require.Equal(t, teamID1, teamID2)
 }
+
+func TestSBSAfterRevokedAndProved2(t *testing.T) {
+	// Less common case of above.
+	// Team is a,b@rooter,c@rooter
+	// b proves, team is now a,b,c@rooter
+	// b revokes (a,b,c@rooter should stay as is; a,b@rooter,c@rooter should be freed)
+	// c proves, team should continue forward as a,b,c
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	cas := tt.addUser("cas")
+
+	// Create ann,bob@rooter,cas@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter,%s@rooter", ann.username, bob.username, cas.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Bob proves rooter
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure new team resolves
+	impteamName2 := fmt.Sprintf("%s,%s,%s@rooter", ann.username, bob.username, cas.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+
+	// Bob revokes proof
+	bob.revokeSocialProof("rooter")
+
+	// Make sure team still resolves and loads for both ann and bob.
+	for _, user := range []*userPlusDevice{ann, bob} {
+		user.loadTeamByID(teamID, true /* admin */)
+
+		teamID3, err := user.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID, teamID3)
+	}
+
+	// Cas proves rooter
+	cas.proveRooter()
+
+	// Team should go on as ann,bob,cas
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(3))
+
+	// Team a,b,c resolves and loads for everyone
+	impteamName3 := fmt.Sprintf("%s,%s,%s", ann.username, bob.username, cas.username)
+	for _, user := range []*userPlusDevice{ann, bob, cas} {
+		user.loadTeamByID(teamID, true /* admin */)
+
+		teamID3, err := user.lookupImplicitTeam(false /* create */, impteamName3, false /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID, teamID3)
+	}
+}
