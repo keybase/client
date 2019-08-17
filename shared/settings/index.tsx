@@ -1,10 +1,9 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import * as Constants from '../constants/settings'
 import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import SettingsContainer, {Props} from './render'
+import SettingsContainer from './render'
 import * as Container from '../util/container'
 
 type OwnProps = {
@@ -12,7 +11,7 @@ type OwnProps = {
   routeSelected: Types.Tab
 }
 
-const Connected = Container.connect(
+const Connected = Container.connectDEBUG(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
     _contactImportEnabled: state.settings.contacts.importEnabled,
@@ -25,11 +24,11 @@ const Connected = Container.connect(
     loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
     onLogout: () => dispatch(ConfigGen.createLogout()),
     onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
-      if (tab === Constants.walletsTab && !walletsAcceptedDisclaimer) {
+      if (tab === Types.walletsTab && !walletsAcceptedDisclaimer) {
         dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
         return
       }
-      if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
+      if (ownProps.routeSelected === Types.accountTab && tab !== Types.accountTab) {
         dispatch(SettingsGen.createClearAddedEmail())
       }
       dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
@@ -37,7 +36,7 @@ const Connected = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     badgeNotifications: stateProps.badgeNotifications,
-    badgeNumbers: (stateProps._badgeNumbers.toObject() as unknown) as Props['badgeNumbers'],
+    badgeNumbers: stateProps._badgeNumbers,
     children: ownProps.children,
     contactsLabel: stateProps._contactImportEnabled ? 'Phone contacts' : 'Import phone contacts',
     hasRandomPW: stateProps.hasRandomPW || undefined,
