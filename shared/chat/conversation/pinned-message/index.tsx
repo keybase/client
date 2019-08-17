@@ -64,9 +64,15 @@ const styles = Styles.styleSheetCreate({
   label: {
     color: Styles.globalColors.blueDark,
   },
-  text: {
-    color: Styles.globalColors.black_50,
-  },
+  text: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+    },
+    isElectron: {
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-word',
+    },
+  }),
 })
 
 export default PinnedMessage
