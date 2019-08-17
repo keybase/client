@@ -13,6 +13,7 @@ import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
 import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
 import SetDescription from '../set-description/container'
+import Pin from '../pin'
 import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
 import AttachmentMessage from '../attachment/container'
@@ -284,6 +285,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'requestPayment' ||
       this.props.message.type === 'setChannelname' ||
       this.props.message.type === 'setDescription' ||
+      this.props.message.type === 'pin' ||
       this.props.message.type === 'systemAddedToTeam' ||
       this.props.message.type === 'systemChangeRetention' ||
       this.props.message.type === 'systemGitPush' ||
@@ -452,6 +454,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'setDescription':
         child = <SetDescription key="setDescription" message={message} />
+        break
+      case 'pin':
+        child = <Pin key="pin" />
         break
       case 'setChannelname':
         child = <SetChannelname key="setChannelname" message={message} />

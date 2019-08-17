@@ -208,6 +208,7 @@ export type MessageRequestPayment = Message.MessageRequestPayment
 export type MessageSendPayment = Message.MessageSendPayment
 export type MessageSetChannelname = Message.MessageSetChannelname
 export type MessageSetDescription = Message.MessageSetDescription
+export type MessagePin = Message.MessagePin
 export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
 export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
 export type MessageSystemGitPush = Message.MessageSystemGitPush

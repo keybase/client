@@ -1,7 +1,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect, TypedState} from '../../../util/container'
+import {connect, TypedState, TypedDispatch} from '../../../util/container'
 import PinnedMessage from '.'
 
 type OwnProps = {
@@ -10,6 +10,7 @@ type OwnProps = {
 
 const empty = {
   _messageID: 0,
+  author: '',
   text: '',
 }
 
@@ -24,16 +25,17 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
   return {
     _messageID: message.id,
+    author: message.author,
     text:
       message.type === 'text'
         ? message.decoratedText
           ? message.decoratedText.stringValue()
-          : null
+          : ''
         : message.title,
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch: TypedDispatch, {conversationIDKey}: OwnProps) => ({
   _onClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
@@ -43,7 +45,10 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>
+) => ({
   author: stateProps.author,
   onClick: () => dispatchProps._onClick(stateProps._messageID),
   onDismiss: () => {},

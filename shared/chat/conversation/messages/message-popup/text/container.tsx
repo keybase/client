@@ -26,8 +26,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
-  let _canPinMessage = true
-  if (meta.teamname) {
+  let _canPinMessage = message.type === 'text'
+  if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations && yourOperations.pinMessage
   }
   const _participantsCount = meta.participants.count()
