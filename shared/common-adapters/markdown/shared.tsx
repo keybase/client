@@ -330,7 +330,7 @@ class SimpleMarkdownComponent extends PureComponent<
       )
     }
     const inner = this.props.serviceOnly ? (
-      <Text type="Body" style={this.props.style}>
+      <Text type="Body" style={this.props.style} lineClamp={this.props.lineClamp}>
         {output}
       </Text>
     ) : this.props.preview ? (

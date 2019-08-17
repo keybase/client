@@ -23,7 +23,7 @@ const PinnedMessage = (props: Props) => {
               Pinned Message
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text}>
+          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text} serviceOnly={true}>
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
