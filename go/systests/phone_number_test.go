@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/emails"
@@ -334,4 +337,76 @@ func TestSBSAfterPhoneChangesOwner(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotEqual(t, teamID, teamID2)
+}
+
+func TestImpTofuSBSAfterHiding(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	joe := tt.addUser("joe")
+
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
+	phone := kbtest.GenerateTestPhoneNumber()
+	email := joe.userInfo.email
+
+	// Make initial SBS implicit teams
+	impteamNames := []string{
+		fmt.Sprintf("%s,%s@phone", ann.username, phone),
+		fmt.Sprintf("%s,[%s]@email", ann.username, email),
+	}
+	teamIDs := make([]keybase1.TeamID, len(impteamNames))
+	for i, name := range impteamNames {
+		teamID, err := ann.lookupImplicitTeam(true /* create */, name, false /* public */)
+		require.NoError(t, err)
+		teamIDs[i] = teamID
+	}
+
+	// Bob adds and verifies phone number
+	phoneNumber := keybase1.PhoneNumber("+" + phone)
+	addAndVerifyPhone(t, bob.tc.G, phoneNumber)
+	err := phonenumbers.SetVisibilityPhoneNumber(bob.MetaContext(), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+
+	// Joe verifies and sets email to public
+	err = kbtest.VerifyEmailAuto(joe.MetaContext(), keybase1.EmailAddress(email))
+	require.NoError(t, err)
+	err = emails.SetVisibilityEmail(joe.MetaContext(), keybase1.EmailAddress(email), keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+
+	// Ann waits for teams to resolve
+	for i, teamID := range teamIDs {
+		ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		}, keybase1.Seqno(2))
+
+		teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamNames[i], false /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID, teamID2)
+	}
+
+	// Bob hides phone
+	err = phonenumbers.SetVisibilityPhoneNumber(bob.MetaContext(), phoneNumber, keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+
+	// Joe hides email
+	err = emails.SetVisibilityEmail(joe.MetaContext(), keybase1.EmailAddress(email), keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+
+	// Advance clock to nullify memcache for assertions. Even mutable
+	// assertions like phone numbers or emails are cached in memory for short
+	// period of time.
+	fc.Advance(1 * time.Hour)
+
+	// Should be able to recreate SBS teams now
+	for i, name := range impteamNames {
+		teamID, err := ann.lookupImplicitTeam(true /* create */, name, false /* public */)
+		require.NoError(t, err)
+		// Expecting to see a new team
+		require.NotEqual(t, teamIDs[i], teamID)
+	}
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -565,6 +566,9 @@ func TestNewSBSAfterResolvedOnce(t *testing.T) {
 	ann := tt.addUser("ann")
 	bob := tt.addUser("bob")
 
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
 	// Create ann,bob@rooter
 	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
 	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
@@ -597,6 +601,7 @@ func TestNewSBSAfterResolvedOnce(t *testing.T) {
 
 	// Bob revokes rooter proof
 	bob.revokeSocialProof("rooter")
+	fc.Advance(1 * time.Hour)
 
 	// Now we want to make an implicit team for ann,bob@rooter again and wait
 	// for a new owner.
@@ -627,6 +632,9 @@ func TestSBSAfterRevokedAndProved(t *testing.T) {
 	ann := tt.addUser("ann")
 	bob := tt.addUser("bob")
 
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
 	// Create ann,bob@rooter
 	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
 	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
@@ -653,6 +661,9 @@ func TestSBSAfterRevokedAndProved(t *testing.T) {
 
 	// Bob proves rooter again, what gives!?
 	bob.proveRooter()
+
+	// Advance clock because of assertion cache.
+	fc.Advance(1 * time.Hour)
 
 	// Ann logs back. We are expecting SBS notification to let Bob in.
 	ann.login()
@@ -685,6 +696,9 @@ func TestSBSAfterRevokedAndProved2(t *testing.T) {
 	bob := tt.addUser("bob")
 	cas := tt.addUser("cas")
 
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
 	// Create ann,bob@rooter,cas@rooter
 	impteamName := fmt.Sprintf("%s,%s@rooter,%s@rooter", ann.username, bob.username, cas.username)
 	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
@@ -709,6 +723,9 @@ func TestSBSAfterRevokedAndProved2(t *testing.T) {
 	// Bob revokes proof
 	bob.revokeSocialProof("rooter")
 
+	// Advance the clock to mitigate assertion memory cache effects.
+	fc.Advance(1 * time.Hour)
+
 	// Make sure team still resolves and loads for both ann and bob.
 	for _, user := range []*userPlusDevice{ann, bob} {
 		user.loadTeamByID(teamID, true /* admin */)
@@ -720,6 +737,7 @@ func TestSBSAfterRevokedAndProved2(t *testing.T) {
 
 	// Cas proves rooter
 	cas.proveRooter()
+	fc.Advance(1 * time.Hour)
 
 	// Team should go on as ann,bob,cas
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 
@@ -189,6 +190,12 @@ func (tt *teamTester) logUserNames() {
 			pukless = "pukless "
 		}
 		tt.t.Logf("Signed up %s%q (%s)", pukless, u.username, u.uid)
+	}
+}
+
+func (tt *teamTester) setClock(c clockwork.Clock) {
+	for _, u := range tt.users {
+		u.tc.G.SetClock(c)
 	}
 }
 
