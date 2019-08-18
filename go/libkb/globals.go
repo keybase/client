@@ -268,8 +268,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
-	g.initGUILogFile()
-
 	return g
 }
 
@@ -411,6 +409,8 @@ func (g *GlobalContext) ConfigureLogging() error {
 	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
+
+	g.initGUILogFile()
 	return nil
 }
 
