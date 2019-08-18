@@ -11,6 +11,9 @@ type OwnProps = {
 const empty = {
   _messageID: 0,
   author: '',
+  imageHeight: undefined,
+  imageURL: undefined,
+  imageWidth: undefined,
   text: '',
 }
 
@@ -23,15 +26,20 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   if (!message || !(message.type === 'text' || message.type === 'attachment')) {
     return empty
   }
+  const attachment: Types.MessageAttachment | undefined =
+    message.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
   return {
     _messageID: message.id,
     author: message.author,
+    imageHeight: attachment ? attachment.previewHeight : undefined,
+    imageURL: attachment ? attachment.previewURL : undefined,
+    imageWidth: attachment ? attachment.previewWidth : undefined,
     text:
       message.type === 'text'
         ? message.decoratedText
           ? message.decoratedText.stringValue()
           : ''
-        : message.title,
+        : message.title || message.fileName,
   }
 }
 
@@ -50,6 +58,9 @@ const mergeProps = (
   dispatchProps: ReturnType<typeof mapDispatchToProps>
 ) => ({
   author: stateProps.author,
+  imageHeight: stateProps.imageHeight,
+  imageURL: stateProps.imageURL,
+  imageWidth: stateProps.imageWidth,
   onClick: () => dispatchProps._onClick(stateProps._messageID),
   onDismiss: () => {},
   text: stateProps.text,
