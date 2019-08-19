@@ -1033,3 +1033,89 @@ func TestJournalQuotaStatusForGitBlocks(t *testing.T) {
 	require.Equal(
 		t, int64(2000), bs.JournalTrackerStatus.QuotaStatus.QuotaBytes)
 }
+
+func TestJournalManagerCorruptJournal(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
+
+	err := jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	status, tlfIDs := jManager.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Zero(t, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	blockServer := config.BlockServer()
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "test_user1", tlf.Private)
+	require.NoError(t, err)
+	id := h.ResolvedWriters()[0]
+	tlfID := h.TlfID()
+
+	jManager.PauseBackgroundWork(ctx, tlfID)
+
+	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+	require.NoError(t, err)
+
+	status, tlfIDs = jManager.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 1, status.JournalCount)
+	require.Len(t, tlfIDs, 1)
+
+	t.Log("Stop the journal and corrupt info.json")
+	tj, ok := jManager.getTLFJournal(tlfID, nil)
+	require.True(t, ok)
+	dir := tj.dir
+	tj.shutdown(ctx)
+
+	infoPath := getTLFJournalInfoFilePath(dir)
+	err = os.Truncate(infoPath, 0)
+	require.NoError(t, err)
+
+	t.Log("Simulate a restart -- the corrupted journal shouldn't show up")
+	jManager = makeJournalManager(
+		config, jManager.log, tempdir, jManager.delegateBlockCache,
+		jManager.delegateDirtyBlockCache,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	err = jManager.EnableExistingJournals(
+		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+	status, tlfIDs = jManager.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 0, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+	config.SetBlockServer(
+		journalBlockServer{jManager, jManager.delegateBlockServer, false})
+	blockServer = config.BlockServer()
+	config.SetMDOps(journalMDOps{jManager.delegateMDOps, jManager})
+
+	t.Log("Try writing to the journal again, it should make a new one")
+	_, err = tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "test_user1", tlf.Private)
+	require.NoError(t, err)
+	bCtx2 := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
+	data2 := []byte{4, 3, 2, 1}
+	bID2, err := kbfsblock.MakePermanentID(
+		data2, kbfscrypto.EncryptionSecretboxWithKeyNonce)
+	require.NoError(t, err)
+	serverHalf2, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(
+		ctx, tlfID, bID2, bCtx2, data2, serverHalf2, DiskBlockAnyCache)
+	require.NoError(t, err)
+	status, tlfIDs = jManager.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 1, status.JournalCount)
+	require.Len(t, tlfIDs, 1)
+}
