@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -70,13 +69,6 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 		}); err != nil {
 		h.Debug(ctx, "AckNotificationSuccess: failed to invoke remote notification success: %s", err)
 	}
-}
-
-func GetUserAvatar(username string, srvInfo *keybase1.HttpSrvInfo) string {
-	if srvInfo != nil {
-		return fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", srvInfo.Address, username, srvInfo.Token)
-	}
-	return ""
 }
 
 func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
