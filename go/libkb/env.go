@@ -718,7 +718,6 @@ func (e *Env) GetGUIConfigFilename() string {
 					return ""
 				}
 				return filepath.Join(dir, GUIConfigFile)
-
 			}
 			return ""
 		},
