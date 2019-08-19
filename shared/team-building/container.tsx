@@ -42,6 +42,8 @@ type OwnProps = {
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
+  showServiceBarLabels: 'initial' | boolean
+  setShowServiceBarLabels: (show: boolean) => void
 }
 
 type LocalState = {
@@ -49,6 +51,7 @@ type LocalState = {
   selectedService: ServiceIdWithContact
   highlightedIndex: number
   showRolePicker: boolean
+  showServiceBarLabels: 'initial' | boolean
 }
 
 const initialState: LocalState = {
@@ -56,6 +59,7 @@ const initialState: LocalState = {
   searchString: '',
   selectedService: 'keybase',
   showRolePicker: false,
+  showServiceBarLabels: 'initial',
 }
 
 const deriveSearchResults = memoize(
@@ -180,6 +184,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       ownProps.searchString
     ),
     showResults: deriveShowResults(ownProps.searchString),
+    showServiceBarLabels:
+      ownProps.showServiceBarLabels === 'initial'
+        ? !teamBuildingState.teamBuildingLabelsSeen
+        : ownProps.showServiceBarLabels,
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
@@ -221,6 +229,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
+  _onLabelsSeen: () => dispatch(TeamBuildingGen.createLabelsSeen({namespace})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -285,7 +294,9 @@ const deriveOnSearchForMore = memoizeShallow(
 )
 
 const deriveOnAdd = memoize(
-  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
+  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, setShowServiceBarLabels) => (
+    userId: string
+  ) => {
     const user = userFromUserId(userId)
     if (!user) {
       logger.error(`Couldn't find User to add for ${userId}`)
@@ -295,6 +306,7 @@ const deriveOnAdd = memoize(
     changeText('')
     dispatchOnAdd(user)
     resetHighlightIndex(true)
+    setShowServiceBarLabels(false)
   }
 )
 
@@ -483,7 +495,8 @@ const mergeProps = (
     userFromUserId,
     dispatchProps._onAdd,
     ownProps.onChangeText,
-    ownProps.resetHighlightIndex
+    ownProps.resetHighlightIndex,
+    ownProps.setShowServiceBarLabels
   )
 
   const rolePickerProps: RolePickerProps | null =
@@ -523,6 +536,7 @@ const mergeProps = (
   const title = rolePickerProps ? 'Add people' : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
+        borderless: true,
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
         rightActions: [
@@ -565,6 +579,11 @@ const mergeProps = (
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
+    onTabBarScroll: () => ownProps.setShowServiceBarLabels(true),
+    onTabBarSleepy: () => {
+      ownProps.setShowServiceBarLabels(false)
+      dispatchProps._onLabelsSeen()
+    },
     onUpArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
@@ -577,6 +596,7 @@ const mergeProps = (
     serviceResultCount,
     showRecs,
     showResults: stateProps.showResults,
+    showServiceBarLabels: stateProps.showServiceBarLabels,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamSoFar,
     title,
@@ -618,6 +638,8 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
   resetHighlightIndex = (resetToHidden?: boolean) =>
     this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
+  setShowServiceBarLabels = (show: boolean) => this.setState({showServiceBarLabels: show})
+
   render() {
     return (
       <Connected
@@ -634,6 +656,8 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
         showServiceResultCount={this.state.searchString !== ''}
+        showServiceBarLabels={this.state.showServiceBarLabels}
+        setShowServiceBarLabels={this.setShowServiceBarLabels}
       />
     )
   }
