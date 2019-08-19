@@ -220,6 +220,7 @@ type Props = {
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean, phoneNumber: string) => void
   onEnterKeyDown?: () => void
+  // A ReactNode to display beneath and aligned to the number input box
   result?: React.ReactNode
   style?: Styles.StylesCrossPlatform
 }

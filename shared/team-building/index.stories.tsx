@@ -8,6 +8,7 @@ import TeamBox from './team-box'
 import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
+import PhoneSearch from './phone-search'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -641,6 +642,7 @@ const load = () => {
     'github',
     'reddit',
     'hackernews',
+    'phone',
   ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
@@ -748,6 +750,14 @@ const load = () => {
         resultForService={'keybase'}
       />
     ))
+
+  Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
+    <PhoneSearch
+      onContinue={Sb.action('onContinue')}
+      search={Sb.action('search')}
+      teamBuildingSearchResults={{}}
+    />
+  ))
 }
 
 export default load
