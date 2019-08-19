@@ -185,12 +185,6 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     String pushId = pushes.getString(0);
                     int badgeCount = Integer.parseInt(bundle.getString("b"));
                     long unixTime = Integer.parseInt(bundle.getString("x"));
-                    // TODO why is unix time sometimes 1?
-                    if (unixTime < 1000) {
-                        // Go is expecting seconds from epoch
-                        unixTime = (new Date()).getTime() / 1000;
-
-                    }
                     String soundName = bundle.getString("s");
 
                     // Blow the cache if we aren't displaying plaintext
@@ -201,13 +195,12 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     // We've shown this notification already
                     if (seenChatNotifications.contains(convID + messageId)) {
                         return;
-                    } else {
-                        seenChatNotifications.add(convID + messageId);
                     }
 
                     notifier.setMsgCache(msgCache.get(convID));
 
                     Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageId, pushId, badgeCount, unixTime, soundName, notifier);
+                    seenChatNotifications.add(convID + messageId);
                 }
                 break;
                 case "follow": {
