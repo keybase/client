@@ -12,6 +12,7 @@ const allServices: Array<Types.ServiceIdWithContact> = [
   'reddit',
   'hackernews',
   'pgp',
+    'phone'
 ]
 
 // We don't search pgp explicitly, and contact isn't implemented yet

@@ -13,6 +13,8 @@ import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
+import PhoneSearch from './phone-search/container'
+import {User} from 'constants/types/team-building'
 
 export const numSectionLabel = '0-9'
 
@@ -511,13 +513,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
-        {this._listBody()}
-        {props.waitingForCreate && (
-          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-          </Kb.Box2>
-        )}
+        {props.selectedService === 'phone' ? (
+            <PhoneSearch onContinue={() => console.warn("DWORKEN: PhoneSearch.onContinue called!")}/>
+        ) : (
+            <>
+              {this._searchInput()}
+              {this._listBody()}
+              {props.waitingForCreate && (
+                <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                  <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+                </Kb.Box2>
+              )}
+            </>
+          )}
+
       </Kb.Box2>
     )
   }

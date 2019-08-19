@@ -571,6 +571,7 @@ const mergeProps = (
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     rolePickerProps,
+    search: dispatchProps._search,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
