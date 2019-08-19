@@ -14,6 +14,7 @@ import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
+import AlphabetIndex from './alphabet-index'
 
 export const numSectionLabel = '0-9'
 
@@ -184,43 +185,24 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   _alphabetIndex = () => {
     let showNumSection = false
+    let labels: Array<string> = []
     if (this.props.recommendations && this.props.recommendations.length > 0) {
       showNumSection =
         this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+      labels = this.props.recommendations
+        .filter(r => r.shortcut && r.label !== numSectionLabel)
+        .map(r => r.label)
+    }
+    if (!labels.length) {
+      return null
     }
     return (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
-        {this.props.recommendations &&
-          this.props.recommendations.map(section =>
-            section.label.length === 1 ? (
-              <Kb.ClickableBox
-                key={section.label}
-                onClick={() => this._onScrollToSection(section.label)}
-                style={styles.gapAlphaIndices}
-              >
-                <Kb.Text
-                  key={section.label}
-                  type="BodyTiny"
-                  onClick={() => this._onScrollToSection(section.label)}
-                >
-                  {section.label}
-                </Kb.Text>
-              </Kb.ClickableBox>
-            ) : null
-          )}
-        {showNumSection &&
-          ['0', '•', '9'].map(char => (
-            <Kb.ClickableBox
-              key={char}
-              onClick={() => this._onScrollToSection(numSectionLabel)}
-              style={styles.gapAlphaIndices}
-            >
-              <Kb.Text key={char} type="BodyTiny">
-                {char}
-              </Kb.Text>
-            </Kb.ClickableBox>
-          ))}
-      </Kb.Box2>
+      <AlphabetIndex
+        labels={labels}
+        showNumSection={showNumSection}
+        onScroll={this._onScrollToSection}
+        style={styles.alphabetIndex}
+      />
     )
   }
 
@@ -229,10 +211,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       const ref = this.sectionListRef.current
       const sectionIndex =
         (this.props.recommendations &&
-          this.props.recommendations.findIndex(section => section.label === label)) ||
+          (label === 'numSection'
+            ? this.props.recommendations.length - 1
+            : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        // @ts-ignore due to no RN types
+        // @ts-ignore RN type not plumbed. see section-list.d.ts
         ref.scrollToLocation({
           animated: false,
           itemIndex: 0,
@@ -599,10 +583,6 @@ const styles = Styles.styleSheetCreate({
       maxWidth: '80%',
     },
   }),
-  gapAlphaIndices: {
-    ...Styles.padding(2, 6, 2, 2),
-    flexShrink: 1,
-  },
   importContactsContainer: {
     justifyContent: 'space-between',
     padding: Styles.globalMargins.xsmall,

@@ -17,7 +17,7 @@ const Group = (props: {
 }) => (
   <Kb.Box2 direction="vertical">
     <Kb.Text type="Header">{props.title}</Kb.Text>
-    {props.label && (
+    {!!props.label && (
       <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
       </Kb.Text>
@@ -34,7 +34,7 @@ const Group = (props: {
           />
         ))}
     </Kb.Box2>
-    {props.unsub && (
+    {!!props.unsub && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
@@ -101,11 +101,7 @@ const Notifications = (props: Props) =>
       props.groups.app_push &&
       props.groups.app_push.settings ? (
         <PhoneSection {...props} />
-      ) : Styles.isMobile ? (
-        {
-          /* TODO: display something if the user needs to enable push? */
-        }
-      ) : (
+      ) : Styles.isMobile /* TODO: display something if the user needs to enable push? */ ? null : (
         <Kb.Box2 direction="vertical">
           <Kb.Text type="Header">Phone notifications</Kb.Text>
           <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>

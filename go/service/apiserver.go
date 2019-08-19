@@ -65,16 +65,14 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	}
 
 	// Acceptable http status list
-	var httpStatuses []int
-	for _, hstat := range arg.GetHttpStatuses() {
-		httpStatuses = append(httpStatuses, hstat)
-	}
+	s := arg.GetHttpStatuses()
+	httpStatuses := make([]int, len(s))
+	copy(httpStatuses, s)
 
 	// Acceptable app status code list
-	var appStatusCodes []int
-	for _, ac := range arg.GetAppStatusCodes() {
-		appStatusCodes = append(appStatusCodes, ac)
-	}
+	c := arg.GetAppStatusCodes()
+	appStatusCodes := make([]int, len(c))
+	copy(appStatusCodes, c)
 
 	// Do the API call
 	kbarg := libkb.APIArg{
@@ -155,18 +153,18 @@ func (a *APIServerHandler) convertRes(res *libkb.APIRes) keybase1.APIRes {
 	var ares keybase1.APIRes
 	mstatus, err := res.Status.Marshal()
 	if err == nil {
-		ares.Status = string(mstatus[:])
+		ares.Status = string(mstatus)
 	}
 	mbody, err := res.Body.Marshal()
 	if err == nil {
-		ares.Body = string(mbody[:])
+		ares.Body = string(mbody)
 	}
 	ares.HttpStatus = res.HTTPStatus
 
 	appStatus := jsonw.NewWrapper(res.AppStatus)
 	mappstatus, err := appStatus.Marshal()
 	if err == nil {
-		ares.AppStatus = string(mappstatus[:])
+		ares.AppStatus = string(mappstatus)
 	}
 
 	return ares
