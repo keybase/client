@@ -107,38 +107,35 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		BadgeCount:          badgeCount,
 	}
 
-	if !displayPlaintext {
-		pusher.DisplayChatNotification(&chatNotification)
-		return nil
-	}
+	if displayPlaintext {
+		// We show avatars on Android
+		if runtime.GOOS == "android" {
+			avatar, err := kbSvc.GetUserAvatar(username)
 
-	// We show avatars on Android
-	if runtime.GOOS == "android" {
-		avatar, err := kbSvc.GetUserAvatar(username)
-
-		if err != nil {
-			kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
-		} else {
-			chatNotification.Message.From.KeybaseAvatar = avatar
+			if err != nil {
+				kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
+			} else {
+				chatNotification.Message.From.KeybaseAvatar = avatar
+			}
 		}
-	}
 
-	chatNotification.IsPlaintext = true
+		chatNotification.IsPlaintext = true
 
-	switch msgUnboxed.GetMessageType() {
-	case chat1.MessageType_TEXT:
-		chatNotification.Message.Kind = "Text"
-		chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
-	case chat1.MessageType_REACTION:
-		chatNotification.Message.Kind = "Reaction"
-		reaction, err := utils.GetReaction(msgUnboxed)
-		if err != nil {
-			return err
+		switch msgUnboxed.GetMessageType() {
+		case chat1.MessageType_TEXT:
+			chatNotification.Message.Kind = "Text"
+			chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
+		case chat1.MessageType_REACTION:
+			chatNotification.Message.Kind = "Reaction"
+			reaction, err := utils.GetReaction(msgUnboxed)
+			if err != nil {
+				return err
+			}
+			chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
+		default:
+			kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
+			return errors.New("invalid message type for plaintext")
 		}
-		chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
-	default:
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
-		return errors.New("invalid message type for plaintext")
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
