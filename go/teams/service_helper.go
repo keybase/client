@@ -833,7 +833,12 @@ func leave(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team
 			return err
 		}
 
-		return FreezeTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		err = FreezeTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		if err != nil {
+			g.Log.CDebugf(ctx, "leave FreezeTeam error: %+v", err)
+		}
+
+		return nil
 	})
 }
 
@@ -868,7 +873,15 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInte
 			return err
 		}
 
-		return TombstoneTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		err = TombstoneTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Delete TombstoneTeam error: %+v", err)
+			if g.Env.GetRunMode() == libkb.DevelRunMode {
+				return err
+			}
+		}
+
+		return nil
 	})
 }
 
