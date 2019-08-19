@@ -44,8 +44,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 direction="vertical"
                 gap="tiny"
                 style={{
-                    backgroundColor: Styles.globalColors.greyLight,
-                    marginTop: Styles.globalMargins.tiny,
+                    backgroundColor: Styles.globalColors.blueGrey,
+                    paddingTop: Styles.globalMargins.tiny,
                     width: '100%',
                 }}
             >
@@ -65,7 +65,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                         // Pass a component into PhoneInput so it is displayed inline with the number input box
                         validity &&
                         !!user && (
-                            <Kb.ClickableBox onClick={_onContinue}>
+                            <Kb.ClickableBox onClick={_onContinue} style={{margin: Styles.globalMargins.tiny}}>
                                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                                     <Kb.Avatar size={48} username={user.username} showFollowingStatus={true} />
                                     <Kb.Box2 direction="vertical">
@@ -79,16 +79,17 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                         )
                     }
                 />
-                {validity && !user && <Kb.ProgressIndicator type="Small" />}
+                {validity && !user && <Kb.ProgressIndicator type="Small" style={{alignSelf: "center"}} />}
             </Kb.Box2>
-            <Kb.Box style={{backgroundColor: Styles.globalColors.greyLight, flexGrow: 1}} />
-            <Kb.Button
-                style={{flexGrow: 0}}
-                fullWidth={true}
-                onClick={_onContinue}
-                label="Continue"
-                disabled={!(validity && user)}
-            />
+            <Kb.Box style={{backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1}} />
+            <Kb.Box2 direction="horizontal" style={{backgroundColor: Styles.globalColors.blueGrey, justifyContent: "center"}} fullWidth={true}>
+                <Kb.Button
+                    style={{marginBottom: Styles.globalMargins.tiny, width: '80%'}}
+                    onClick={_onContinue}
+                    label="Continue"
+                    disabled={!(validity && user)}
+                />
+            </Kb.Box2>
         </>
     )
 }
