@@ -258,14 +258,9 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	defer mctx.Trace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change),
 		func() error { return err })()
 
-	err = HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
-	if err != nil {
-		return err
-	}
-	err = HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
-	if err != nil {
-		return err
-	}
+	// Any errors are already logged in their respective functions.
+	_ = HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
+	_ = HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
 
 	// If we're handling a rename we should also purge the resolver cache and
 	// the KBFS favorites cache
