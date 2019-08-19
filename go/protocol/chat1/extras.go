@@ -389,6 +389,13 @@ func (m MessageUnboxed) IsOutbox() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -631,6 +638,10 @@ func (m *MsgEphemeralMetadata) String() string {
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
 }
 
+func (m MessagePlaintext) SearchableText() string {
+	return m.MessageBody.SearchableText()
+}
+
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -761,6 +772,13 @@ func (m UIMessage) IsValid() bool {
 func (m UIMessage) IsOutbox() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
+func (m UIMessage) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
 	}
 	return false
 }
@@ -1471,6 +1489,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *PreviewConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1840,6 +1862,14 @@ func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *PreviewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PreviewConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *DeleteConversationLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2080,12 +2110,45 @@ func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
 func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
 func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
 }
 
 func (i EphemeralPurgeInfo) String() string {

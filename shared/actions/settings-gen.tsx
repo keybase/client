@@ -84,10 +84,10 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
-type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
+type _AddPhoneNumberPayload = {readonly searchable: boolean; readonly phoneNumber: string}
 type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
-  readonly allowSearch: boolean
+  readonly searchable: boolean
   readonly error?: string
   readonly phoneNumber: string
 }
@@ -165,7 +165,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
-type _SetContactImportedCountPayload = {readonly count: number | null}
+type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}

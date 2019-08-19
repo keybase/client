@@ -31,13 +31,14 @@ const Wrapper = ({children}) => (
 )
 
 const types: ButtonType[] = ['Default', 'Success', 'Danger', 'Wallet', 'Dim']
-const backgroundColors: ButtonColor[] = ['blue', 'red', 'green', 'purple', 'black']
+const backgroundColors: ButtonColor[] = ['blue', 'red', 'green', 'purple', 'black', 'yellow']
 const bgToColor = {
   black: globalColors.black,
   blue: globalColors.blue,
   green: globalColors.green,
   purple: globalColors.purple,
   red: globalColors.red,
+  yellow: globalColors.yellow,
 }
 
 const load = () => {

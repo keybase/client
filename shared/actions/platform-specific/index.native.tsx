@@ -29,6 +29,7 @@ import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {pluralize} from '../../util/string'
 
 type NextURI = string
 
@@ -49,7 +50,7 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
-const requestLocationPermission = (): Promise<void> => {
+export const requestLocationPermission = (): Promise<void> => {
   if (isAndroid) {
     return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
       buttonNegative: 'Cancel',
@@ -65,13 +66,13 @@ const requestLocationPermission = (): Promise<void> => {
   return Promise.resolve()
 }
 
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
@@ -93,7 +94,7 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-function showShareActionSheetFromURL(options: {
+export function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
@@ -118,7 +119,7 @@ function showShareActionSheetFromURL(options: {
 }
 
 // Shows the shareactionsheet for a file, and deletes the file afterwards
-function showShareActionSheetFromFile(filePath: string): Promise<void> {
+export function showShareActionSheetFromFile(filePath: string): Promise<void> {
   return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
@@ -137,7 +138,7 @@ const openAppSettings = () => {
   }
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
 ) =>
@@ -483,8 +484,16 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
-  let defaultCountryCode: string
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+  }
+  let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
     if (__DEV__ && !defaultCountryCode) {
@@ -517,17 +526,43 @@ async function manageContactsCache(
     return ret
   }, [])
   logger.info(`Importing ${mapped.length} contacts.`)
-  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
-    .then(() => {
-      logger.info(`Success`)
-      return [
-        SettingsGen.createSetContactImportedCount({count: mapped.length}),
-        SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode}),
-      ]
-    })
-    .catch(e => {
-      logger.error('Error saving contacts list: ', e.message)
-    })
+  const actions: Array<Container.TypedActions> = []
+  try {
+    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    logger.info(`Success`)
+    actions.push(
+      SettingsGen.createSetContactImportedCount({count: mapped.length}),
+      SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
+    )
+    if (newlyResolved && newlyResolved.length) {
+      PushNotifications.localNotification({
+        message: makeResolvedMessage(newlyResolved),
+      })
+    }
+  } catch (e) {
+    logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
+  }
+  return actions
+}
+
+const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `Your contact ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `Your contacts ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `Your contacts ${cts[0].contactName}, ${cts[1].contactName}, and ${lenMinusTwo} ${pluralize(
+        'other',
+        lenMinusTwo
+      )} joined Keybase!`
+    }
+  }
 }
 
 // Get phone number in e.164, or null if we can't parse it.
@@ -544,7 +579,7 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
@@ -577,14 +612,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-}
-
-export {
-  showShareActionSheetFromFile,
-  showShareActionSheetFromURL,
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  getContentTypeFromURL,
-  platformConfigSaga,
-  requestLocationPermission,
 }

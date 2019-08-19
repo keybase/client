@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
@@ -129,9 +130,11 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			// user/device EKs
 			if ephemeralLifetime != nil {
 				u1 := ctc.as(t, users[0])
-				u1.h.G().GetEKLib().KeygenIfNeeded(u1.h.G().MetaContext(context.Background()))
+				err := u1.h.G().GetEKLib().KeygenIfNeeded(u1.h.G().MetaContext(context.Background()))
+				require.NoError(t, err)
 				u2 := ctc.as(t, users[1])
-				u2.h.G().GetEKLib().KeygenIfNeeded(u2.h.G().MetaContext(context.Background()))
+				err = u2.h.G().GetEKLib().KeygenIfNeeded(u2.h.G().MetaContext(context.Background()))
+				require.NoError(t, err)
 			}
 
 			tc1 := ctc.world.Tcs[users[1].Username]
@@ -171,7 +174,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 					Body: "HI",
 				}), ephemeralLifetime)
 			require.Error(t, err)
-			require.IsType(t, libkb.ChatNotInTeamError{}, err)
+			require.IsType(t, utils.ErrGetVerifiedConvNotFound, err)
 
 			t.Logf("running sbsVerify now")
 
@@ -264,7 +267,8 @@ func TestChatSrvPhone(t *testing.T) {
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
 			phoneNumber := keybase1.PhoneNumber("+" + phone)
 			addAndVerifyPhone(t, g, phoneNumber)
-			phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+			err := phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+			require.NoError(t, err)
 		},
 	})
 }
@@ -276,8 +280,10 @@ func TestChatSrvEmail(t *testing.T) {
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
 			email := keybase1.EmailAddress(user.Email)
-			kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), email)
-			emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PUBLIC)
+			err := kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), email)
+			require.NoError(t, err)
+			err = emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PUBLIC)
+			require.NoError(t, err)
 		},
 	})
 }

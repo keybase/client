@@ -94,7 +94,7 @@ const RootWrapper = ({children}) => {
               const next = !darkMode
               setDarkMode(next)
               _setSystemIsDarkMode(next)
-                setAutoSwap(false)
+              setAutoSwap(false)
             }}
           >
             {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}

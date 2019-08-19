@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import * as SettingsGen from './settings-gen'
-import flags from '../util/feature-flags'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -36,9 +35,6 @@ const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signup
 const showInviteSuccessOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
 
-const showEmailScreenOnNoErrors = (state: Container.TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
-
 const showDeviceScreenOnNoErrors = (state: Container.TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
@@ -49,7 +45,6 @@ const showErrorOrCleanupAfterSignup = (state: Container.TypedState) =>
 
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
 const setEmailVisibilityAfterSignup = (state: Container.TypedState) =>
-  flags.sbsContacts &&
   noErrors(state) &&
   state.signup.emailVisible &&
   SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})
@@ -158,10 +153,10 @@ function* reallySignupOnNoErrors(state: Container.TypedState): Saga.SagaGenerato
     return
   }
 
-  const {email, username, inviteCode, devicename} = state.signup
+  const {username, inviteCode, devicename} = state.signup
 
-  if (!email || !username || !inviteCode || !devicename) {
-    logger.warn('Missing data during signup phase', email, username, inviteCode, devicename)
+  if (!username || !inviteCode || !devicename) {
+    logger.warn('Missing data during signup phase', username, inviteCode, devicename)
     throw new Error('Missing data for signup')
   }
 
@@ -180,13 +175,13 @@ function* reallySignupOnNoErrors(state: Container.TypedState): Saga.SagaGenerato
       params: {
         deviceName: devicename,
         deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
-        email,
+        email: '',
         genPGPBatch: false,
         genPaper: false,
         inviteCode,
         passphrase: '',
         randomPw: true,
-        skipMail: false,
+        skipMail: true,
         storeSecret: true,
         username,
         verifyEmail: true,
@@ -207,10 +202,9 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
   yield* Saga.chainAction2(SignupGen.checkDevicename, checkDevicename)
 
-  // move to next screen actions\
+  // move to next screen actions
   yield* Saga.chainAction2(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.checkedUsername, showEmailScreenOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.checkEmail, showDeviceScreenOnNoErrors)
+  yield* Saga.chainAction2(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
   yield* Saga.chainAction2(SignupGen.requestedAutoInvite, showInviteScreen)
   yield* Saga.chainAction2(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction2(SignupGen.signedup, showErrorOrCleanupAfterSignup)

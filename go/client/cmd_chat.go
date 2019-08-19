@@ -11,6 +11,7 @@ import (
 
 func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
+		newCmdChatAddToChannel(cl, g),
 		newCmdChatAPI(cl, g),
 		newCmdChatAPIListen(cl, g),
 		newCmdChatDeleteChannel(cl, g),

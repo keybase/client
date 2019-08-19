@@ -8,7 +8,7 @@ import {namedConnect} from '../../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   const pinfo = state.chat2.paymentConfirmInfo
   const payments = // Auto generated from flowToTs. Please clean me!
     ((pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
@@ -46,7 +46,7 @@ const mapStateToProps = (state) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onAccept: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: true}))
   },
@@ -69,6 +69,6 @@ const mapDispatchToProps = (dispatch) => ({
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-    (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'PaymentsConfirm'
 )(PaymentsConfirm)

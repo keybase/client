@@ -215,7 +215,12 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 			return p, nil
 		}
 	}
-	defer src.Reset()
+	defer func() {
+		err := src.Reset()
+		if err != nil {
+			log.Debug(ctx, "preprocessAsset: reset failed: %+v", err)
+		}
+	}()
 
 	if p.ContentType, err = DetectMIMEType(ctx, src, filename); err != nil {
 		return p, err

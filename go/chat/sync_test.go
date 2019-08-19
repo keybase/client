@@ -538,7 +538,7 @@ func TestSyncerAppState(t *testing.T) {
 	t.Logf("test incremental")
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, []chat1.ConversationStaleUpdate{
-		chat1.ConversationStaleUpdate{
+		{
 			ConvID:     conv.GetConvID(),
 			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 		},

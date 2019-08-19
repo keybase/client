@@ -141,9 +141,7 @@ func Shutdown() {
 	select {
 	case stdErrLoggingShutdown <- struct{}{}:
 		// Wait till logger is done
-		select {
-		case <-stdErrLoggingShutdownDone:
-		}
+		<-stdErrLoggingShutdownDone
 	default:
 	}
 }

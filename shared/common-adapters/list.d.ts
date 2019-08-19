@@ -15,7 +15,7 @@ export type Props<Item> = {
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only,
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
-  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null // mobile only
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
   onEndReachedThreshold?: number // mobile only
 }
 

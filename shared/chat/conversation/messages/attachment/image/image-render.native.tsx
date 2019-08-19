@@ -47,7 +47,7 @@ export class ImageRender extends React.Component<Props, State> {
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
-              resizeMode={Video.RESIZE_MODE_COVER}
+              resizeMode={Video.RESIZE_MODE_CONTAIN}
               style={Styles.collapseStyles([styles.video, {height, width}])}
               shouldPlay={true}
               ref={this.videoRef}

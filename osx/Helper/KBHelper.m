@@ -111,7 +111,7 @@
   } else if ([method isEqualToString:@"removeFromPath"]) {
     [self removeFromPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"startRedirector"]) {
-    [self startRedirector:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] redirectorBin:args[@"redirectorBin"] completion:completion];
+    [self startRedirector:args[@"directory"] link:args[@"link"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] redirectorBin:args[@"redirectorBin"] completion:completion];
   } else if ([method isEqualToString:@"stopRedirector"]) {
     [self stopRedirector:args[@"directory"] completion:completion];
   } else {
@@ -195,18 +195,34 @@
   attributes[NSFileOwnerAccountID] = uid;
   attributes[NSFileGroupOwnerAccountID] = gid;
 
+  NSURL *directoryURL = [NSURL fileURLWithPath:directory];
   NSError *error = nil;
-  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:attributes error:&error]) {
+  if (![NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:&error]) {
     completion(error, nil);
     return;
   }
 
   if (excludeFromBackup) {
-    NSURL *directoryURL = [NSURL fileURLWithPath:directory];
-    OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
-    if (status != noErr) {
-      completion(KBMakeError(status, @"Error trying to exclude from backup"), nil);
-      return;
+    // Retry excluding the directory from backup for up to a minute.
+    // On macOS 10.15 (the beta, anyway), this fails with a "One or
+    // more parameters passed to a function were not valid" error if
+    // it's called too quickly after the directory is created.
+    for (int i = 0; i < 12; i++) {
+      OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
+      if (status == noErr) {
+        break;
+      }
+
+      CFStringRef msg = SecCopyErrorMessageString(status, NULL);
+      if (i < 11) {
+          KBLog(@"Couldn't exclude %@ (%@), trying again shortly", directory, msg);
+          [NSThread sleepForTimeInterval:5.0f];
+      } else {
+        CFStringRef msg = SecCopyErrorMessageString(status, NULL);
+        NSString *errorMessage = [NSString stringWithFormat:@"Error trying to exclude from backup: %@ -- %@", directoryURL, msg];
+        completion(KBMakeError(status, errorMessage), nil);
+        return;
+      }
     }
   }
 
@@ -267,11 +283,24 @@
   }
 }
 
-- (void)startRedirector:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
+- (void)startRedirector:(NSString *)directory link:(NSString *)link uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
   if (self.redirector) {
     // Already started.
     completion(nil, @{});
     return;
+  }
+
+  // Heavily restrict which directories and links are allowed for the
+  // redirector.
+  NSString *prefixOption1 = @"/keybase";
+  NSString *prefixOption2 = @"/Volumes/Keybase";
+  if (!([KBFSUtils checkAbsolutePath:directory hasAbsolutePrefix:prefixOption1] || [KBFSUtils checkAbsolutePath:directory hasAbsolutePrefix:prefixOption2])) {
+    NSString *errorMessage = [NSString stringWithFormat:@"%@ is not an allowed directory", directory];
+    completion(KBMakeError(-1, errorMessage), nil);
+  }
+  if (!([KBFSUtils checkAbsolutePath:link hasAbsolutePrefix:prefixOption1] || [KBFSUtils checkAbsolutePath:link hasAbsolutePrefix:prefixOption2])) {
+    NSString *errorMessage = [NSString stringWithFormat:@"%@ is not an allowed symlink", link];
+    completion(KBMakeError(-1, errorMessage), nil);
   }
 
   // Unmount anything that's already mounted there.
@@ -311,6 +340,12 @@
     task.arguments = @[directory];
     self.redirector = task;
     [self.redirector launch];
+
+    // Create a link to the mount from another given location, if possible.
+    if (![self createLink:directory linkPath:link uid:uid gid:gid]) {
+      KBLog(@"Couldn't make redirector link: %@", link);
+    }
+
     completion(nil, value);
   }];
 }

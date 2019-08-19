@@ -135,12 +135,12 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 		return err
 	}
 	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {
-		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+		_ = ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
 			chat1.NewUIMaybeMentionInfoWithNothing())
 		return errors.New("not a team string")
 	}
 	if !forceRemote && !l.IsTeamMention(ctx, uid, maybeMention, knownTeamMentions) {
-		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+		_ = ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
 			chat1.NewUIMaybeMentionInfoWithUnknown())
 		return errors.New("not a team mention")
 	}
@@ -154,7 +154,7 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	var resp mentionAPIResp
 	if err = l.G().API.GetDecode(libkb.NewMetaContext(ctx, l.G().ExternalG()), arg, &resp); err != nil {
 		l.Debug(ctx, "loadMention: failed to get team info: %s", err)
-		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+		_ = ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
 			chat1.NewUIMaybeMentionInfoWithNothing())
 		return err
 	}
@@ -194,7 +194,7 @@ func (l *TeamMentionLoader) loadLoop() {
 	for {
 		select {
 		case job := <-l.jobCh:
-			l.loadMention(ctx, job.uid, job.maybeMention, job.knownTeamMentions, job.forceRemote)
+			_ = l.loadMention(ctx, job.uid, job.maybeMention, job.knownTeamMentions, job.forceRemote)
 		case ch := <-l.shutdownCh:
 			close(ch)
 			return

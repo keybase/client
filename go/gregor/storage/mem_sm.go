@@ -127,12 +127,6 @@ func (u *user) addItem(now time.Time, i gregor.Item) *item {
 	return newItem
 }
 
-func (u *user) addItems(items []gregor.Item) {
-	for _, it := range items {
-		u.addItem(time.Now(), it)
-	}
-}
-
 // logMessage logs a message for this user and potentially associates an item
 func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	for _, l := range u.log {

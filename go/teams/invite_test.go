@@ -100,7 +100,7 @@ func TestKeybaseInviteAfterReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Add member - should be added as keybase-type invite with name "uid%1".
-	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER)
+	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	require.True(t, res.Invited)
 

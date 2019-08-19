@@ -41,6 +41,8 @@ protocol userSearch {
 
     record ImpTofuSearchResult {
         string assertion;
+        string assertionValue; // name
+        string assertionKey; // service (phone/email)
         string label;
         string prettyName;
         string keybaseUsername; // keybase username if assertion resolves, empty if not

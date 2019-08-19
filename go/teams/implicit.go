@@ -239,7 +239,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return team, team.Name(), impTeamName, conflicts, nil
 }
 
-func isDupImplicitTeamError(ctx context.Context, err error) bool {
+func isDupImplicitTeamError(err error) bool {
 	if err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok {
 			code := keybase1.StatusCode(aerr.Code)
@@ -252,6 +252,23 @@ func isDupImplicitTeamError(ctx context.Context, err error) bool {
 	return false
 }
 
+func assertIsDisplayNameNormalized(displayName keybase1.ImplicitTeamDisplayName) error {
+	var errs []error
+	for _, userSet := range []keybase1.ImplicitTeamUserSet{displayName.Writers, displayName.Readers} {
+		for _, username := range userSet.KeybaseUsers {
+			if !libkb.IsLowercase(username) {
+				errs = append(errs, fmt.Errorf("Keybase username %q has mixed case", username))
+			}
+		}
+		for _, assertion := range userSet.UnresolvedUsers {
+			if !libkb.IsLowercase(assertion.User) {
+				errs = append(errs, fmt.Errorf("User %q in assertion %q has mixed case", assertion.User, assertion.String()))
+			}
+		}
+	}
+	return libkb.CombineErrors(errs...)
+}
+
 // LookupOrCreateImplicitTeam by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
@@ -261,6 +278,13 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return res, teamName, impTeamName, err
+	}
+
+	if err := assertIsDisplayNameNormalized(lookupName); err != nil {
+		// Do not allow display names with mixed letter case - while it's legal
+		// to create them, it will not be possible to load them because API
+		// server always downcases during normalization.
+		return res, teamName, impTeamName, fmt.Errorf("Display name is not normalized: %s", err)
 	}
 
 	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName, ImplicitTeamOptions{})
@@ -276,7 +300,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 			var teamID keybase1.TeamID
 			teamID, teamName, err = CreateImplicitTeam(ctx, g, impTeamName)
 			if err != nil {
-				if isDupImplicitTeamError(ctx, err) {
+				if isDupImplicitTeamError(err) {
 					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
 					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
 						lookupName, ImplicitTeamOptions{})

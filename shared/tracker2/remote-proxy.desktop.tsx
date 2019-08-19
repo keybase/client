@@ -7,7 +7,7 @@ import * as Constants from '../constants/tracker2'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, compose} from '../util/container'
+import * as Container from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 type OwnProps = {
@@ -35,7 +35,7 @@ const trackerMapStateToProps = (state, ownProps) => {
     registeredForAirdrop: d.registeredForAirdrop,
     state: d.state,
     teamShowcase: d.teamShowcase,
-    waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
+    waiting: Container.anyWaiting(state, Constants.waitingKey),
     youAreInAirdrop: false,
     yourUsername: state.config.username,
   }
@@ -70,12 +70,8 @@ const trackerMergeProps = (stateProps, _, ownProps: OwnProps) => {
 const Empty = () => null
 
 // Actions are handled by remote-container
-const RemoteTracker2 = compose(
-  connect(
-    trackerMapStateToProps,
-    () => ({}),
-    trackerMergeProps
-  ),
+const RemoteTracker2 = Container.compose(
+  Container.connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
   SyncAvatarProps,
   SyncProps(serialize)
@@ -108,8 +104,4 @@ const mergeProps = (stateProps, _, __) => ({
     .toArray(),
 })
 
-export default connect(
-  mapStateToProps,
-  () => ({}),
-  mergeProps
-)(RemoteTracker2s)
+export default Container.connect(mapStateToProps, () => ({}), mergeProps)(RemoteTracker2s)

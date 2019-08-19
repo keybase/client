@@ -1,10 +1,9 @@
 import * as React from 'react'
 import GoButton from './go-button'
-import Input from './input'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
@@ -15,12 +14,7 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    username: string
-    service: ServiceIdWithContact
-  }>
+  teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
   onBackspace: () => void
   onFinishTeamBuilding: () => void
@@ -28,13 +22,18 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
-  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+const formatNameForUserBubble = (u: SelectedUser) => {
+  let technicalName: string
+  switch (u.service) {
+    case 'keybase':
+    case 'contact': // do not display "michal@keyba.se on contact".
+      technicalName = u.username
+      break
+    default:
+      technicalName = `${u.username} on ${u.service}`
+      break
+  }
+  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -48,43 +47,27 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
+        prettyName={formatNameForUserBubble(u)}
       />
     ))
   }
 }
 
-const TeamInput = (props: Props) => (
-  <Input
-    hasMembers={!!props.teamSoFar.length}
-    onChangeText={props.onChangeText}
-    onEnterKeyDown={props.onEnterKeyDown}
-    onDownArrowKeyDown={props.onDownArrowKeyDown}
-    onUpArrowKeyDown={props.onUpArrowKeyDown}
-    onBackspace={props.onBackspace}
-    placeholder={
-      props.teamSoFar.length
-        ? 'Add another username or enter to chat'
-        : props.allowPhoneEmail
-        ? 'Enter a username, phone, or email'
-        : 'Enter a username'
-    }
-    searchString={props.searchString}
-  />
-)
-
 const TeamBox = (props: Props) => {
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-      <TeamInput {...props} />
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" style={styles.search}>
-          <TeamInput {...props} />
-        </Kb.Box2>
+    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" style={styles.bubbles}>
+        <Kb.ScrollView horizontal={true}>
+          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
+            <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={{marginLeft: 'auto'}}>
         {!!props.teamSoFar.length &&
           (props.rolePickerProps ? (
             <FloatingRolePicker
@@ -107,15 +90,8 @@ const TeamBox = (props: Props) => {
               />
             </FloatingRolePicker>
           ) : (
-            <GoButton label="Go!" onClick={props.onFinishTeamBuilding} />
+            <GoButton label="Start" onClick={props.onFinishTeamBuilding} />
           ))}
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
-            <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-          </Kb.Box2>
-        </Kb.ScrollView>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -131,20 +107,21 @@ const styles = Styles.styleSheetCreate({
   }),
   container: Styles.platformStyles({
     common: {
-      flexWrap: 'wrap',
+      backgroundColor: Styles.globalColors.blueGrey,
     },
     isElectron: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
     },
     isMobile: {
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       borderStyle: 'solid',
       flex: 1,
+      flexWrap: 'wrap',
       minHeight: 48,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
   floatingBubbles: Styles.platformStyles({

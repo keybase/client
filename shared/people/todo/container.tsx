@@ -258,10 +258,11 @@ const TeamShowcaseConnector = connect(
 )(Task)
 
 const VerifyAllEmailConnector = connect(
-  state => ({...mapStateToProps(state), _addedEmail: state.settings.email.addedEmail}),
+  state => ({...mapStateToProps(state), _addingEmail: state.settings.email.addingEmail}),
   dispatch => ({
     _onConfirm: email => {
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
+      dispatch(PeopleGen.createSetResentEmail({email}))
     },
     onManage: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
@@ -269,22 +270,27 @@ const VerifyAllEmailConnector = connect(
     },
   }),
   (s, d, o: TodoOwnProps) => {
-    const meta = o.metadata
+    const meta = o.metadata && o.metadata.type === 'email' ? o.metadata : undefined
+
+    // Has the user received a verification email less than 30 minutes ago?
+    const hasRecentVerifyEmail =
+      meta && meta.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+
     return {
       ...o,
       buttons: [
-        ...(meta && meta.type === 'email'
+        ...(meta
           ? [
               {
-                label: 'Verify',
+                label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
-                waiting: s._addedEmail && s._addedEmail === meta.email,
+                waiting: s._addingEmail && s._addingEmail === meta.email,
               },
             ]
           : []),
         {
-          label: 'Manage email',
+          label: 'Manage emails',
           mode: 'Secondary',
           onClick: d.onManage,
         },

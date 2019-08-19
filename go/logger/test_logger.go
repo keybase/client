@@ -98,7 +98,7 @@ func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts stri
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
-	log.common(nil, logging.INFO, false, fmts, arg...)
+	log.common(context.TODO(), logging.INFO, false, fmts, arg...)
 }
 
 func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
@@ -107,7 +107,7 @@ func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Info(fmts string, arg ...interface{}) {
-	log.common(nil, logging.INFO, false, fmts, arg...)
+	log.common(context.TODO(), logging.INFO, false, fmts, arg...)
 }
 
 func (log *TestLogger) CInfof(ctx context.Context, fmts string,
@@ -116,7 +116,7 @@ func (log *TestLogger) CInfof(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Notice(fmts string, arg ...interface{}) {
-	log.common(nil, logging.NOTICE, false, fmts, arg...)
+	log.common(context.TODO(), logging.NOTICE, false, fmts, arg...)
 }
 
 func (log *TestLogger) CNoticef(ctx context.Context, fmts string,
@@ -125,7 +125,7 @@ func (log *TestLogger) CNoticef(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Warning(fmts string, arg ...interface{}) {
-	log.common(nil, logging.WARNING, false, fmts, arg...)
+	log.common(context.TODO(), logging.WARNING, false, fmts, arg...)
 }
 
 func (log *TestLogger) CWarningf(ctx context.Context, fmts string,
@@ -134,11 +134,11 @@ func (log *TestLogger) CWarningf(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Error(fmts string, arg ...interface{}) {
-	log.common(nil, logging.ERROR, false, fmts, arg...)
+	log.common(context.TODO(), logging.ERROR, false, fmts, arg...)
 }
 
 func (log *TestLogger) Errorf(fmts string, arg ...interface{}) {
-	log.common(nil, logging.ERROR, false, fmts, arg...)
+	log.common(context.TODO(), logging.ERROR, false, fmts, arg...)
 }
 
 func (log *TestLogger) CErrorf(ctx context.Context, fmts string,
@@ -147,7 +147,7 @@ func (log *TestLogger) CErrorf(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Critical(fmts string, arg ...interface{}) {
-	log.common(nil, logging.CRITICAL, false, fmts, arg...)
+	log.common(context.TODO(), logging.CRITICAL, false, fmts, arg...)
 }
 
 func (log *TestLogger) CCriticalf(ctx context.Context, fmts string,
@@ -156,7 +156,7 @@ func (log *TestLogger) CCriticalf(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Fatalf(fmts string, arg ...interface{}) {
-	log.common(nil, logging.CRITICAL, true, fmts, arg...)
+	log.common(context.TODO(), logging.CRITICAL, true, fmts, arg...)
 }
 
 func (log *TestLogger) CFatalf(ctx context.Context, fmts string,
@@ -165,7 +165,7 @@ func (log *TestLogger) CFatalf(ctx context.Context, fmts string,
 }
 
 func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
-	log.common(nil, logging.CRITICAL, false, fmts, arg...)
+	log.common(context.TODO(), logging.CRITICAL, false, fmts, arg...)
 }
 
 func (log *TestLogger) Configure(style string, debug bool, filename string) {

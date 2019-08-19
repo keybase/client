@@ -12,9 +12,10 @@ import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const [searchable, onChangeSearchable] = React.useState(true)
   const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
   const disabled = !email
 
@@ -38,14 +39,14 @@ export const Email = () => {
     }
   }, [addEmailInProgress, dispatch, email, emailError])
 
-  const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
     }
     onAddEmailInProgress(email)
-    dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch}))
-  }, [dispatch, disabled, email, allowSearch, waiting])
+    dispatch(SettingsGen.createAddEmail({email, searchable: searchable}))
+  }, [dispatch, disabled, email, searchable, waiting])
   return (
     <Kb.Modal
       onClose={onClose}
@@ -82,9 +83,9 @@ export const Email = () => {
         <EnterEmailBody
           email={email}
           onChangeEmail={onChangeEmail}
-          showAllowSearch={true}
-          allowSearch={allowSearch}
-          onChangeAllowSearch={onChangeAllowSearch}
+          showSearchable={true}
+          searchable={searchable}
+          onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
           icon={
             <Kb.Icon type={Styles.isMobile ? 'icon-email-add-96' : 'icon-email-add-64'} style={styles.icon} />
@@ -101,10 +102,11 @@ export const Email = () => {
 }
 export const Phone = () => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
@@ -116,19 +118,19 @@ export const Phone = () => {
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+      dispatch(nav.safeNavigateAppendPayload({path: ['settingsVerifyPhone']}))
     }
-  }, [dispatch, error, pendingVerification])
+  }, [dispatch, error, nav, pendingVerification])
 
   const onClose = React.useCallback(() => {
     dispatch(SettingsGen.createClearPhoneNumberAdd())
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
+    dispatch(nav.safeNavigateUpPayload())
+  }, [dispatch, nav])
 
   const onContinue = React.useCallback(
     () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-    [dispatch, disabled, waiting, allowSearch, phoneNumber]
+      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
+    [dispatch, disabled, waiting, searchable, phoneNumber]
   )
   return (
     <Kb.Modal
@@ -167,8 +169,8 @@ export const Phone = () => {
           onChangeNumber={onChangeNumber}
           onChangeValidity={onChangeValidity}
           onContinue={onContinue}
-          allowSearch={allowSearch}
-          onChangeAllowSearch={onChangeAllowSearch}
+          searchable={searchable}
+          onChangeSearchable={onChangeSearchable}
           icon={
             <Kb.Icon
               type={Styles.isMobile ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}

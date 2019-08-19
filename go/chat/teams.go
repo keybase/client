@@ -164,7 +164,7 @@ func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string,
 		// Only need keys for private teams.
 		if !kbfsEncrypted {
 			refreshers.NeedApplicationsAtGenerations = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(keyGeneration): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+				keybase1.PerTeamKeyGeneration(keyGeneration): {keybase1.TeamApplication_CHAT},
 			}
 		} else {
 			refreshers.NeedKBFSKeyGeneration = keybase1.TeamKBFSKeyRefresher{
@@ -568,10 +568,6 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *Im
 		loader:         NewTeamLoader(g.ExternalG()),
 		lookupUpgraded: lookupUpgraded,
 	}
-}
-
-type identifyFailure struct {
-	Msg string
 }
 
 // Identify participants of a conv.

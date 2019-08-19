@@ -4,23 +4,38 @@
 .button__border {
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
+.darkMode .button__border {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 .button__border_blue:hover {
   border: 1px solid rgba(77, 142, 255, 0.3);
+}
+.darkMode .button__border_blue:hover {
+  border: 1px solid rgba(178, 113, 0, 0.3);
 }
 .button__border_red:hover {
   border: 1px solid rgba(255, 77, 97, 0.3);
 }
 .darkMode .button__border_red:hover {
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 178, 158, 0.3);
 }
 .button__border_green:hover {
   border: 1px solid rgba(55, 189, 153, 0.3);
 }
+.darkMode .button__border_green:hover {
+  border: 1px solid rgba(200, 66, 102, 0.3);
+}
 .button__border_purple:hover {
   border: 1px solid rgba(112, 78, 186, 0.3);
 }
+.darkMode .button__border_purple:hover {
+  border: 1px solid rgba(143, 177, 69, 0.3);
+}
 .button__border_black:hover {
   border: 1px solid rgba(0, 0, 0, 0.3);
+}
+.darkMode .button__border_black:hover {
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .button__underlay {
@@ -35,21 +50,42 @@
 .button__underlay_black10:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
+.darkMode .button__underlay_black10:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 .button__underlay_blue:hover {
   background-color: rgba(76, 142, 255, 0.05);
+}
+.darkMode .button__underlay_blue:hover {
+  background-color: rgba(178, 113, 0, 0.05);
 }
 .button__underlay_red:hover {
   background-color: rgba(255, 77, 97, 0.05);
 }
 .darkMode .button__underlay_red:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(0, 178, 158, 0.05);
 }
 .button__underlay_green:hover {
   background-color: rgba(55, 189, 153, 0.05);
 }
+.darkMode .button__underlay_green:hover {
+  background-color: rgba(200, 66, 102, 0.05)
+}
 .button__underlay_purple:hover {
   background-color: rgba(112, 78, 186, 0.05);
 }
+.darkMode .button__underlay_purple:hover {
+  background-color: rgba(143, 177, 69, 0.05);
+}
 .button__underlay_black:hover {
   background-color: rgba(0, 0, 0, 0.05);
+}
+.darkMode .button__underlay_black:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.button__underlay_yellow:hover {
+  background-color: rgba(255, 248, 90, 0.05);
+}
+.darkMode .button__underlay_yellow:hover {
+  background-color: rgba(0, 7, 165, 0.05);
 }

@@ -5,6 +5,7 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
+import './avatar.css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 type URLType = string
@@ -17,9 +18,10 @@ export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
   editable?: boolean
+  imageOverrideUrl?: string
   isTeam?: boolean
   loadingColor?: string
-  onClick?: (e?: React.BaseSyntheticEvent) => void
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
@@ -37,6 +39,7 @@ type Props = {
   followIconSize: number
   followIconType?: IconType
   followIconStyle: IconStyle
+  imageOverride?: string
   isTeam: boolean
   loadingColor?: string
   name: string
@@ -92,15 +95,20 @@ const ConnectedAvatar = Container.connect(
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
   }),
-  (dispatch, ownProps: OwnProps) => ({
+  dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {username} = ownProps
     const isTeam = ownProps.isTeam || !!ownProps.teamname
-    const onClick =
-      dispatchProps.onClick || (username ? () => dispatchProps._goToProfile(username) : undefined)
+
+    const opClick =
+      ownProps.onClick === 'profile'
+        ? username
+          ? () => dispatchProps._goToProfile(username)
+          : undefined
+        : ownProps.onClick
+    const onClick = ownProps.onEditAvatarClick || opClick
     const name = isTeam ? ownProps.teamname : username
     const urlMap = [960, 256, 192].reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
@@ -108,9 +116,10 @@ const ConnectedAvatar = Container.connect(
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
-    const url = stateProps._httpSrvAddress
-      ? urlsToImgSet(urlMap, ownProps.size)
-      : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
+    const url =
+      `url(${ownProps.imageOverrideUrl})` || stateProps._httpSrvAddress
+        ? urlsToImgSet(urlMap, ownProps.size)
+        : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
       borderColor: ownProps.borderColor,
@@ -143,7 +152,11 @@ const mockOwnToViewProps = (
   const following = username && follows.includes(username)
   const followsYou = username && followers.includes(username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
-  const onClick = ownProps.onClick || (username ? () => action('onClickToProfile') : undefined)
+
+  const opClick =
+    ownProps.onClick === 'profile' ? (username ? action('onClickToProfile') : undefined) : ownProps.onClick
+  const onClick = ownProps.onEditAvatarClick || opClick
+
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   const name = isTeam ? ownProps.teamname : username
   const iconInfo = followIconHelper(

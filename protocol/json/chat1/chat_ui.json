@@ -849,6 +849,13 @@
             "UIMessage"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID"
         }
       ]
     },

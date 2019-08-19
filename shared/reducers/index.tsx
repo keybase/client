@@ -1,12 +1,10 @@
 import chat2 from './chat2'
 import config from './config'
 import deeplinks from './deeplinks'
-import dev from './dev'
 import devices from './devices'
 import entities from './entities'
 import fs from './fs'
 import git from './git'
-import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
 import people from './people'
@@ -28,12 +26,10 @@ const reducers = {
   chat2,
   config,
   deeplinks,
-  dev,
   devices,
   entities,
   fs,
   git,
-  gregor,
   login,
   notifications,
   people,

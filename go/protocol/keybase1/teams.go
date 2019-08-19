@@ -585,7 +585,7 @@ type TeamChangeReq struct {
 	Writers          []UserVersion                           `codec:"writers" json:"writers"`
 	Readers          []UserVersion                           `codec:"readers" json:"readers"`
 	Bots             []UserVersion                           `codec:"bots" json:"bots"`
-	RestrictedBots   []UserVersion                           `codec:"restrictedBots" json:"restrictedBots"`
+	RestrictedBots   map[UserVersion]TeamBotSettings         `codec:"restrictedBots" json:"restrictedBots"`
 	None             []UserVersion                           `codec:"none" json:"none"`
 	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
 }
@@ -647,14 +647,15 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.Bots),
-		RestrictedBots: (func(x []UserVersion) []UserVersion {
+		RestrictedBots: (func(x map[UserVersion]TeamBotSettings) map[UserVersion]TeamBotSettings {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UserVersion, len(x))
-			for i, v := range x {
+			ret := make(map[UserVersion]TeamBotSettings, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
-				ret[i] = vCopy
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.RestrictedBots),
@@ -2972,14 +2973,22 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 }
 
 type UserRolePair struct {
-	AssertionOrEmail string   `codec:"assertionOrEmail" json:"assertionOrEmail"`
-	Role             TeamRole `codec:"role" json:"role"`
+	AssertionOrEmail string           `codec:"assertionOrEmail" json:"assertionOrEmail"`
+	Role             TeamRole         `codec:"role" json:"role"`
+	BotSettings      *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o UserRolePair) DeepCopy() UserRolePair {
 	return UserRolePair{
 		AssertionOrEmail: o.AssertionOrEmail,
 		Role:             o.Role.DeepCopy(),
+		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.BotSettings),
 	}
 }
 
@@ -3231,6 +3240,30 @@ func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
 	}
 }
 
+type MemberEmail struct {
+	Email string `codec:"email" json:"email"`
+	Role  string `codec:"role" json:"role"`
+}
+
+func (o MemberEmail) DeepCopy() MemberEmail {
+	return MemberEmail{
+		Email: o.Email,
+		Role:  o.Role,
+	}
+}
+
+type MemberUsername struct {
+	Username string `codec:"username" json:"username"`
+	Role     string `codec:"role" json:"role"`
+}
+
+func (o MemberUsername) DeepCopy() MemberUsername {
+	return MemberUsername{
+		Username: o.Username,
+		Role:     o.Role,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	Name        string `codec:"name" json:"name"`
@@ -3289,20 +3322,22 @@ type TeamChangeMembershipArg struct {
 }
 
 type TeamAddMemberArg struct {
-	SessionID            int      `codec:"sessionID" json:"sessionID"`
-	Name                 string   `codec:"name" json:"name"`
-	Email                string   `codec:"email" json:"email"`
-	Username             string   `codec:"username" json:"username"`
-	Role                 TeamRole `codec:"role" json:"role"`
-	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
+	SessionID            int              `codec:"sessionID" json:"sessionID"`
+	Name                 string           `codec:"name" json:"name"`
+	Email                string           `codec:"email" json:"email"`
+	Username             string           `codec:"username" json:"username"`
+	Role                 TeamRole         `codec:"role" json:"role"`
+	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	SendChatNotification bool             `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 type TeamAddMembersArg struct {
-	SessionID            int      `codec:"sessionID" json:"sessionID"`
-	Name                 string   `codec:"name" json:"name"`
-	Assertions           []string `codec:"assertions" json:"assertions"`
-	Role                 TeamRole `codec:"role" json:"role"`
-	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
+	SessionID            int              `codec:"sessionID" json:"sessionID"`
+	Name                 string           `codec:"name" json:"name"`
+	Assertions           []string         `codec:"assertions" json:"assertions"`
+	Role                 TeamRole         `codec:"role" json:"role"`
+	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	SendChatNotification bool             `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 type TeamAddMembersMultiRoleArg struct {
@@ -3327,10 +3362,11 @@ type TeamLeaveArg struct {
 }
 
 type TeamEditMemberArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Name      string   `codec:"name" json:"name"`
-	Username  string   `codec:"username" json:"username"`
-	Role      TeamRole `codec:"role" json:"role"`
+	SessionID   int              `codec:"sessionID" json:"sessionID"`
+	Name        string           `codec:"name" json:"name"`
+	Username    string           `codec:"username" json:"username"`
+	Role        TeamRole         `codec:"role" json:"role"`
+	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 type TeamRenameArg struct {

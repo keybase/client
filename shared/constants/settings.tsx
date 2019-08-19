@@ -39,6 +39,7 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   email: '',
   isPrimary: false,
   isVerified: false,
+  lastVerifyEmailDate: 0,
   visibility: 0,
 })
 
@@ -89,6 +90,7 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importError: '',
   importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
@@ -112,9 +114,9 @@ export const makeState = I.Record<Types._State>({
   useNativeFrame: true,
 })
 
-export const getPushTokenForLogSend = (state: any) => ({pushToken: state.push.token})
+export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})
 
-export const getExtraChatLogsForLogSend = (state: any) => {
+export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
@@ -122,6 +124,7 @@ export const getExtraChatLogsForLogSend = (state: any) => {
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
+      // @ts-ignore
       messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
         a: m.author,
         i: m.id,

@@ -44,10 +44,10 @@ class Checkbox extends Component<Props> {
           color={Styles.globalColors.white}
           fontSize={9}
         />
-        <Kb.Text type="Body" style={Styles.collapseStyles([
-            styles.text,
-            this.props.disabled && styles.semiLessTransparent,
-          ])}>
+        <Kb.Text
+          type="Body"
+          style={Styles.collapseStyles([styles.text, this.props.disabled && styles.semiLessTransparent])}
+        >
           {this.props.labelComponent || this.props.label}
         </Kb.Text>
       </Kb.Box>
@@ -55,7 +55,7 @@ class Checkbox extends Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.transition('background'),
@@ -103,6 +103,6 @@ const styles = Styles.styleSheetCreate({
   transparent: {
     opacity: 0,
   },
-})
+}))
 
 export default Checkbox

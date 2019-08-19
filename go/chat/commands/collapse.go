@@ -34,7 +34,7 @@ func (h *Collapse) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return err
 	}
 	h.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-		chat1.ConversationStaleUpdate{
+		{
 			ConvID:     convID,
 			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 		},

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
-type Label = 'Go!' | 'Add'
+type Label = 'Start' | 'Add'
 
 export type Props = {
   onClick: () => void
@@ -24,23 +24,33 @@ const GoIcon = () => (
   />
 )
 
-const GoWithIconHover = Kb.HoverHoc(Go('Go!'), GoIcon)
+const GoWithIconHover = Kb.HoverHoc(Go('Start'), GoIcon)
 const AddWithIconHover = Kb.HoverHoc(Go('Add'), GoIcon)
 
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
-    {props.label === 'Go!' ? <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} /> : <AddWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />}
+    <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+      {props.label === 'Start' ? (
+        <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />
+      ) : (
+        <AddWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />
+      )}
+    </Kb.Box2>
   </Kb.ClickableBox>
 )
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blue,
+      backgroundColor: Styles.globalColors.green,
       ...Styles.globalStyles.rounded,
       marginLeft: Styles.globalMargins.tiny,
     },
-    isElectron: {height: 40, width: 40},
+    isElectron: {
+      marginBottom: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.tiny,
+      width: 62,
+    },
   }),
   go: Styles.platformStyles({
     common: {color: Styles.globalColors.white},

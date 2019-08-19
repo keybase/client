@@ -133,6 +133,13 @@ export type PreviewSpec = {
   showPlayButton: boolean
 }
 
+export type MessageAttachmentTransferState =
+  | 'uploading'
+  | 'downloading'
+  | 'remoteUploading'
+  | 'mobileSaving'
+  | null
+
 export type _MessageAttachment = {
   attachmentType: AttachmentType
   showPlayButton: boolean
@@ -169,7 +176,7 @@ export type _MessageAttachment = {
   timestamp: number
   title: string
   transferProgress: number // 0-1 // only for the file,
-  transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null
+  transferState: MessageAttachmentTransferState
   transferErrMsg: string | null
   type: 'attachment'
   videoDuration: string | null
@@ -329,7 +336,8 @@ export type _MessageSystemJoined = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
+  joiners: Array<string>
+  leavers: Array<string>
   timestamp: number
   type: 'systemJoined'
 } & _MessageCommon
@@ -343,7 +351,6 @@ export type _MessageSystemLeft = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
   timestamp: number
   type: 'systemLeft'
 } & _MessageCommon
@@ -437,8 +444,6 @@ export type MessageWithReactionPopup =
   | MessageSystemChangeRetention
   | MessageSystemGitPush
   | MessageSystemInviteAccepted
-  | MessageSystemJoined
-  | MessageSystemLeft
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation

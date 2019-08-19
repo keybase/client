@@ -545,11 +545,22 @@ func LoadUserEmails(m MetaContext) (emails []keybase1.Email, err error) {
 		if err != nil {
 			return nil, err
 		}
+
+		var lastVerifyEmailDate int64
+		lastVerifyEmailDateNode := emailPayload.AtKey("last_verify_email_date")
+		if lastVerifyEmailDateNode.IsOk() && !lastVerifyEmailDateNode.IsNil() {
+			lastVerifyEmailDate, err = lastVerifyEmailDateNode.GetInt64()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		emails = append(emails, keybase1.Email{
-			Email:      keybase1.EmailAddress(email),
-			IsVerified: isVerified == 1,
-			IsPrimary:  isPrimary == 1,
-			Visibility: keybase1.IdentityVisibility(visibilityCode),
+			Email:               keybase1.EmailAddress(email),
+			IsVerified:          isVerified == 1,
+			IsPrimary:           isPrimary == 1,
+			Visibility:          keybase1.IdentityVisibility(visibilityCode),
+			LastVerifyEmailDate: keybase1.UnixTime(lastVerifyEmailDate),
 		})
 	}
 

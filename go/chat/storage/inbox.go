@@ -347,7 +347,10 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 	}
 
 	hasher := sha1.New()
-	hasher.Write(dat)
+	_, err = hasher.Write(dat)
+	if err != nil {
+		return nil, NewInternalError(ctx, i.DebugLabeler, "failed to write query: %s", err.Error())
+	}
 	return hasher.Sum(nil), nil
 }
 
@@ -1556,8 +1559,7 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 		}
 		return 0, err
 	}
-	vers = chat1.InboxVers(ibox.InboxVersion)
-	return vers, nil
+	return ibox.InboxVersion, nil
 }
 
 func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, err Error) {

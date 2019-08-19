@@ -171,6 +171,14 @@ export const getMessage = (
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
 ): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
+  return !(
+    message.type === 'placeholder' ||
+    message.type === 'deleted' ||
+    message.type === 'systemJoined' ||
+    message.type === 'systemLeft'
+  )
+}
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -279,7 +287,7 @@ export const waitingKeyConvStatusChange = (conversationIDKey: Types.Conversation
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
-  state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
+  [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))
 
 /**
  * Gregor key for exploding conversations
@@ -317,6 +325,12 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
+    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+      .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
+      .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
+      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
+      RPCChatTypes.ConversationMemberStatus
+    >,
     readOnly: false,
     status: (Object.keys(RPCChatTypes.ConversationStatus)
       .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')
@@ -437,6 +451,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,

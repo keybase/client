@@ -12,9 +12,19 @@ export const newRoutes = {fsRoot, main: fsRoot}
 
 export const newModalRoutes = {
   barePreview: {getScreen: (): typeof BarePreview => require('./filepreview').BarePreview},
-  confirmDelete: { getScreen: (): typeof ConfirmDelete => require('./common/path-item-action/confirm-delete/container').default },
-  destinationPicker: { getScreen: (): typeof DestinationPicker => require('./browser/destination-picker/container').default },
-  kextPermission: { getScreen: (): typeof KextPermission => require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default },
-  sendAttachmentToChat: { getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment/container').default },
-  sendLinkToChat: { getScreen: (): typeof SendLinkToChat => require('./send-to-chat/link/container').default },
+  confirmDelete: {
+    getScreen: (): typeof ConfirmDelete =>
+      require('./common/path-item-action/confirm-delete/container').default,
+  },
+  destinationPicker: {
+    getScreen: (): typeof DestinationPicker => require('./browser/destination-picker/container').default,
+  },
+  kextPermission: {
+    getScreen: (): typeof KextPermission =>
+      require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default,
+  },
+  sendAttachmentToChat: {
+    getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment/container').default,
+  },
+  sendLinkToChat: {getScreen: (): typeof SendLinkToChat => require('./send-to-chat/link/container').default},
 }

@@ -261,15 +261,20 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 	return res, nil
 }
 
-func imptofuQueryToAssertion(typ keybase1.ImpTofuSearchType, val string) (string, error) {
+func imptofuQueryToAssertion(ctx context.Context, typ keybase1.ImpTofuSearchType, val string) (ret libkb.AssertionURL, err error) {
+	parsef := func(key, val string) (libkb.AssertionURL, error) {
+		return libkb.ParseAssertionURLKeyValue(
+			externals.MakeStaticAssertionContext(ctx), key, val, true)
+	}
 	switch typ {
 	case keybase1.ImpTofuSearchType_PHONE:
-		return fmt.Sprintf("%s@phone", keybase1.PhoneNumberToAssertionValue(val)), nil
+		ret, err = parsef("phone", keybase1.PhoneNumberToAssertionValue(val))
 	case keybase1.ImpTofuSearchType_EMAIL:
-		return fmt.Sprintf("[%s]@email", strings.TrimSpace(strings.ToLower(val))), nil
+		ret, err = parsef("email", strings.ToLower(strings.TrimSpace(val)))
 	default:
-		return "", errors.New("invalid keybase1.ImpTofuSearchType enum value")
+		err = errors.New("invalid keybase1.ImpTofuSearchType enum value")
 	}
+	return ret, err
 }
 
 func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, imptofuQuery keybase1.ImpTofuQuery) (res *keybase1.APIUserSearchResult, err error) {
@@ -323,13 +328,15 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 				// Server corrected our assertion - take this instead.
 				assertionValue = v.Coerced
 			}
-			assertion, err := imptofuQueryToAssertion(imptofuType, assertionValue)
+			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), imptofuType, assertionValue)
 			if err != nil {
 				return nil, err
 			}
 			imptofu := &keybase1.ImpTofuSearchResult{
-				Assertion:  assertion,
-				PrettyName: queryString,
+				Assertion:      assertion.String(),
+				AssertionKey:   assertion.GetKey(),
+				AssertionValue: assertion.GetValue(),
+				PrettyName:     queryString,
 			}
 			if usernames != nil {
 				if uname, found := usernames[v.UID]; found {
@@ -348,13 +355,15 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 	}
 
 	// Not resolved - add SBS result.
-	assertion, err := imptofuQueryToAssertion(imptofuType, queryString)
+	assertion, err := imptofuQueryToAssertion(mctx.Ctx(), imptofuType, queryString)
 	if err != nil {
 		return nil, err
 	}
 	imptofu := &keybase1.ImpTofuSearchResult{
-		Assertion:  assertion,
-		PrettyName: queryString,
+		Assertion:      assertion.String(),
+		AssertionKey:   assertion.GetKey(),
+		AssertionValue: assertion.GetValue(),
+		PrettyName:     queryString,
 	}
 	res = &keybase1.APIUserSearchResult{
 		Score:   1.0,

@@ -2,13 +2,14 @@ package teams
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestRotateHiddenSelf(t *testing.T) {
@@ -72,7 +73,7 @@ func TestRotateHiddenOther(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	ctx := context.TODO()
@@ -124,7 +125,7 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	ctx := context.TODO()
@@ -219,7 +220,7 @@ func TestHiddenNeedRotate(t *testing.T) {
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("B rotates the team once (via hidden)")

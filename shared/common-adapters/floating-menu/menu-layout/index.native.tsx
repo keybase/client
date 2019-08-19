@@ -128,7 +128,7 @@ const styleRowText = (props: {
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     alignSelf: 'center',
     marginLeft: Styles.globalMargins.tiny,
@@ -169,6 +169,6 @@ const styles = Styles.styleSheetCreate({
   safeArea: {
     backgroundColor: Styles.globalColors.white,
   },
-})
+}))
 
 export default MenuLayout

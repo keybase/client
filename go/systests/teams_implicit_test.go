@@ -10,6 +10,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/emails"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -511,4 +513,41 @@ func TestResolveSBSConsolidatedTeamWithConflict(t *testing.T) {
 	lookupTeamID, err := ann.lookupImplicitTeam(false /* create */, name, false /* public */)
 	require.NoError(t, err)
 	require.Equal(t, teamid2, lookupTeamID)
+}
+
+func TestCreateAndResolveEmailImpTeam(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	email2 := keybase1.EmailAddress("BOB+" + bob.userInfo.email)
+	err := emails.AddEmail(bob.MetaContext(), email2, keybase1.IdentityVisibility_PRIVATE)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email2)
+	require.NoError(t, err)
+
+	t.Logf("Bob's email is: %q", email2)
+
+	// Display names have to be lowercase
+	impteamName := fmt.Sprintf("%s,[%s]@email", ann.username, strings.ToLower(string(email2)))
+	t.Logf("Display name is: %q", impteamName)
+
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Bob sets "BOB+..." email to public
+	bob.kickTeamRekeyd()
+	err = emails.SetVisibilityEmail(bob.MetaContext(), email2, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	teamID2, err := bob.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
 }

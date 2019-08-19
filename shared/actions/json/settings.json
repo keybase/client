@@ -7,12 +7,12 @@
   "actions": {
     "addPhoneNumber": {
       "_description": "Add a phone number and kick off a text message with a verification code.",
-      "allowSearch": "boolean",
+      "searchable": "boolean",
       "phoneNumber": "string"
     },
     "addedPhoneNumber": {
       "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
-      "allowSearch": "boolean",
+      "searchable": "boolean",
       "error?": "string",
       "phoneNumber": "string"
     },
@@ -48,7 +48,7 @@
     "editPhone": {
       "phone": "string",
       "delete?": "boolean",
-      "setSearchable?": "boolean",
+      "setSearchable?": "boolean"
     },
     "sentVerificationEmail": {
       "email": "string"
@@ -70,7 +70,8 @@
     },
     "importContactsLater": {},
     "setContactImportedCount": {
-      "count": "number | null"
+      "count": "number | null",
+      "error?": "string"
     },
     "loadedUserCountryCode": {
       "code": "string | null"

@@ -364,7 +364,8 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
     )
     return (
       <>
-        <Kb.Box ref={this._setRef}>{children}</Kb.Box>
+        {children}
+        <Kb.Box ref={this._setRef} />
         {open && (
           <Kb.FloatingBox
             attachTo={this._returnRef}

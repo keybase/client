@@ -3,7 +3,7 @@ import {Props} from './av'
 import Box from './box'
 import * as Styles from '../styles'
 import {useVideoSizer, CheckURL} from './av.shared'
-import {Video as ExpoVideo} from 'expo-av'
+import {Video as ExpoVideo, Audio as ExpoAudio} from 'expo-av'
 import {StatusBar} from 'react-native'
 import logger from '../logger'
 
@@ -13,6 +13,20 @@ const Kb = {
 
 export const Video = (props: Props) => {
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
+  React.useEffect(() => {
+    ExpoAudio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      interruptionModeAndroid: ExpoAudio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      interruptionModeIOS: ExpoAudio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      playThroughEarpieceAndroid: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: false,
+      staysActiveInBackground: false,
+    }).then(() =>
+      // setIsEnabledAsync needs to happen after setting the mode.
+      ExpoAudio.setIsEnabledAsync(true)
+    )
+  }, [])
   return (
     <CheckURL url={props.url}>
       <Kb.Box
@@ -66,7 +80,7 @@ export const Audio = (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   audio: {
     ...Styles.globalStyles.fullWidth,
     backgroundColor: Styles.globalColors.black,
@@ -79,4 +93,4 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: '100%',
   },
-})
+}))

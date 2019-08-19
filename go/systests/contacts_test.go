@@ -198,6 +198,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			randomNumber,
 		},
 		keybase1.RegionCode("US"),
+		contacts.NoneToken,
 	)
 	require.NoError(t, err)
 
@@ -327,7 +328,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 	}
 
 	{
-		err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		_, err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 			Contacts: rawContacts,
 		})
 		require.NoError(t, err)
@@ -430,7 +431,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 			require.Equal(t, 2, foundOurEmail)
 
 			if i == 0 {
-				err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+				_, err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 					Contacts: rawContacts,
 				})
 				require.NoError(t, err)
