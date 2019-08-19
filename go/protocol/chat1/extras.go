@@ -487,6 +487,11 @@ func (m MessageUnboxed) ChannelMention() ChannelMention {
 	return m.Valid().ChannelMention
 }
 
+func (m MessageUnboxed) IsBot() bool {
+	valid := m.Valid()
+	return gregor1.UIDPtrEq(valid.ClientHeader.BotUID, &valid.ClientHeader.Sender)
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"

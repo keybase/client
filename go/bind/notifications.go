@@ -86,16 +86,16 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 
-	// TODO how to figure out if it's a bot?
+	isBot := msgUnboxed.IsBot()
 	username := msgUnboxed.Valid().SenderUsername
 
 	chatNotification := ChatNotification{
-		IsPlaintext: false,
+		IsPlaintext: displayPlaintext,
 		Message: &Message{
 			ID: intMessageID,
 			From: &Person{
 				KeybaseUsername: username,
-				IsBot:           false,
+				IsBot:           isBot,
 			},
 			At: int64(unixTime) * 1000,
 		},
