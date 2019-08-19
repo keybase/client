@@ -40,7 +40,7 @@
 .darkMode .WrapperMessage-hoverColor:hover {
   background-color: #000;
   /* Using a second box shadow instead of a border to prevent changing the height of the box. */
-  box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 .darkMode .WrapperMessage-decorated.active {
   background-color: #000;
@@ -56,7 +56,7 @@
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
 .darkMode .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-  box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
@@ -76,4 +76,7 @@
 }
 .ReplyBox:hover {
   background-color: white;
+}
+.darkMode .ReplyBox:hover {
+  background-color: rgba(24, 45, 110, .5);
 }
