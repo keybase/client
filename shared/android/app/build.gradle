@@ -210,7 +210,7 @@ android {
 
 // KB:
 play {
-    track = 'alpha'
+    track = 'internal'
     serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
 }
 
