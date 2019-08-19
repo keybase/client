@@ -1118,10 +1118,16 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(mctx.Ctx())
 
-	_ = g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
+	err := g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
+	if err != nil {
+		mctx.Warning("LoginAs error: %+v", err)
+	}
 
 	// Do so outside the lock below
-	_ = g.GetFullSelfer().OnLogin(mctx)
+	err = g.GetFullSelfer().OnLogin(mctx)
+	if err != nil {
+		mctx.Warning("OnLogin full self error: %+v", err)
+	}
 
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
