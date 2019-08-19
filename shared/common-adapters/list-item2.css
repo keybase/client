@@ -13,7 +13,7 @@
   background-color: #a8ccff;
 }
 .darkMode .listItem2:hover {
-  background-color: red;
+  background-color: #000;
 }
 
 .listItem2:hover .avatar-border {
