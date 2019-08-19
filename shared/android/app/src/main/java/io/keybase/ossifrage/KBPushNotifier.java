@@ -94,17 +94,10 @@ public class KBPushNotifier implements PushNotifier {
       try {
         URL url = new URL(avatarUri);
         urlConnection = (HttpURLConnection) url.openConnection();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
-      try {
-        if (urlConnection != null) {
-          InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-          Bitmap bitmap = BitmapFactory.decodeStream(in);
-          Bitmap croppedBitmap = getCroppedBitmap(bitmap);
-          icon = IconCompat.createWithBitmap(croppedBitmap);
-        }
+        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+        Bitmap bitmap = BitmapFactory.decodeStream(in);
+        Bitmap croppedBitmap = getCroppedBitmap(bitmap);
+        icon = IconCompat.createWithBitmap(croppedBitmap);
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
@@ -136,7 +129,10 @@ public class KBPushNotifier implements PushNotifier {
         .setAutoCancel(true);
 
     Message msg = chatNotification.getMessage();
-    Person.Builder personBuilder = new Person.Builder().setName(msg.getFrom().getKeybaseUsername()).setBot(msg.getFrom().getIsBot());
+    keybase.Person from = msg.getFrom();
+    Person.Builder personBuilder = new Person.Builder()
+      .setName(from.getKeybaseUsername())
+      .setBot(from.getIsBot());
 
     String avatarUri = chatNotification.getMessage().getFrom().getKeybaseAvatar();
     IconCompat icon = getKeybaseAvatar(avatarUri);
@@ -181,17 +177,16 @@ public class KBPushNotifier implements PushNotifier {
 
   void deviceNotification() {
     Bundle bundle = (Bundle) this.bundle.clone();
-    bundle.putBoolean("userInteraction", true);
     genericNotification(bundle.getString("device_id") + bundle.getString("type"), bundle.getString("message"), "", bundle, KeybasePushNotificationListenerService.DEVICE_CHANNEL_ID);
   }
 
   void generalNotification() {
     Bundle bundle = (Bundle) this.bundle.clone();
-    bundle.putBoolean("userInteraction", true);
     genericNotification(bundle.getString("device_id") + bundle.getString("type"), bundle.getString("title"), bundle.getString("message"), bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
   }
 
   private void genericNotification(String uniqueTag, String notificationTitle, String notificationMsg, Bundle bundle, String channelID) {
+    bundle.putBoolean("userInteraction", true);
     NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, channelID)
       .setSmallIcon(R.drawable.ic_notif)
       // Set the intent that will fire when the user taps the notification

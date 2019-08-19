@@ -40,8 +40,8 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
     public static String DEVICE_CHANNEL_ID = "kb_device_channel";
     public static String GENERAL_CHANNEL_ID = "kb_rest_channel";
 
-    // This keeps a small (5 msg) ring buffer cache of the last messages the user was notified about,
-    // so we can give context to future notifications
+    // This keeps a small ring buffer cache of the last 5 messages per conversation the user
+    // was notified about to give context to future notifications.
     private HashMap<String, SmallMsgRingBuffer> msgCache = new HashMap<String, SmallMsgRingBuffer>();
 
     private NotificationCompat.Style buildStyle(String convID, Person person) {
@@ -244,13 +244,13 @@ class SmallMsgRingBuffer {
     private ArrayList<MessagingStyle.Message> buffer = new ArrayList<MessagingStyle.Message>();
 
     public void add(MessagingStyle.Message m) {
-        if (buffer.size() >= 5) {
+        while (buffer.size() > 4) {
             buffer.remove(0);
         }
         buffer.add(m);
     }
 
     public List<MessagingStyle.Message> summary() {
-        return buffer.subList(0, buffer.size() >= 5 ? 5 : buffer.size());
+        return buffer;
     }
 }

@@ -58,7 +58,7 @@ const listenForNativeAndroidIntentNotifications = emitter => {
 
   // TODO: move this out of this file.
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
-  // TODO: fixme this is buggy
+  // TODO: fixme this is buggy. See: TRIAGE-462
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
     emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
