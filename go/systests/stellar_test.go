@@ -69,7 +69,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	divDebug(ctx, "Bob logged in after reset")
 
 	t.Logf("fail to decrypt as post-reset self")
-	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
+	_, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
 	require.Error(t, err)
 	require.Equal(t, "note not encrypted for logged-in user", err.Error())
 
@@ -321,9 +321,7 @@ func TestStellarRelayAutoClaimsSBS(t *testing.T) {
 // Strips suffix off amount.
 func assertWithinFeeBounds(t testing.TB, amount string, target string, maxFeeStroops int64) {
 	suffix := " XLM"
-	if strings.HasSuffix(amount, suffix) {
-		amount = amount[:len(amount)-len(suffix)]
-	}
+	amount = strings.TrimSuffix(amount, suffix)
 	amountX, err := stellarnet.ParseStellarAmount(amount)
 	require.NoError(t, err)
 	targetX, err := stellarnet.ParseStellarAmount(target)
@@ -335,9 +333,7 @@ func assertWithinFeeBounds(t testing.TB, amount string, target string, maxFeeStr
 
 func isWithinFeeBounds(t testing.TB, amount string, target string, maxFeeStroops int64) bool {
 	suffix := " XLM"
-	if strings.HasSuffix(amount, suffix) {
-		amount = amount[:len(amount)-len(suffix)]
-	}
+	amount = strings.TrimSuffix(amount, suffix)
 	amountX, err := stellarnet.ParseStellarAmount(amount)
 	require.NoError(t, err)
 	targetX, err := stellarnet.ParseStellarAmount(target)
@@ -365,7 +361,8 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 			continue
 		}
 		bodyBuf := new(bytes.Buffer)
-		bodyBuf.ReadFrom(res.Body)
+		_, err = bodyBuf.ReadFrom(res.Body)
+		require.NoError(t, err)
 		res.Body.Close()
 		t.Logf("gift res: %v", bodyBuf.String())
 		if res.StatusCode == 200 {
