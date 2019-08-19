@@ -295,7 +295,7 @@ class Input extends React.PureComponent<Props, State> {
       },
       this.props.small
         ? styles.commonInputSmall
-        : {...styles.commonInputSmall, borderBottom: `1px solid ${underlineColor}`},
+        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
     ])
 
     const value = this._getValue()
