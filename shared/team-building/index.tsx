@@ -14,6 +14,7 @@ import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import AlphabetIndex from './alphabet-index'
+import EmailInput from './email-input'
 
 export const numSectionLabel = '0-9'
 
@@ -432,6 +433,27 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   render = () => {
     const props = this.props
+
+    let content
+    switch (props.selectedService) {
+      case 'email':
+        content = <EmailInput />
+        break
+      // case 'phone':
+      //   break
+      default:
+        content = (
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )
+    }
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
@@ -495,13 +517,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
-        {this._listBody()}
-        {props.waitingForCreate && (
-          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-          </Kb.Box2>
-        )}
+        {content}
       </Kb.Box2>
     )
   }
