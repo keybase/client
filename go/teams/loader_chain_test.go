@@ -45,8 +45,9 @@ type TestCase struct {
 	KeyOwners        map[keybase1.KID] /*kid*/ string/*username*/ `json:"key_owners"`
 	KeyPubKeyV2NaCls map[keybase1.KID]json.RawMessage `json:"key_pubkeyv2nacls"`
 	TeamMerkle       map[string] /*TeamID AND TeamID-seqno:Seqno*/ struct {
-		Seqno  keybase1.Seqno  `json:"seqno"`
-		LinkID keybase1.LinkID `json:"link_id"`
+		Seqno         keybase1.Seqno  `json:"seqno"`
+		LinkID        keybase1.LinkID `json:"link_id"`
+		HiddenIsFresh bool            `json:"hidden_is_fresh"`
 	} `json:"team_merkle"`
 	MerkleTriples map[string] /*LeafID-HashMeta*/ libkb.MerkleTriple `json:"merkle_triples"`
 

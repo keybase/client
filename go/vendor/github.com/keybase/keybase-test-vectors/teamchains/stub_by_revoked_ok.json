@@ -57,7 +57,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "64640cf9a4b04bea98bb9c48be4f8178f650ae608197c48b27bc6f5732837f67"
+                    "debug_link_id": "64640cf9a4b04bea98bb9c48be4f8178f650ae608197c48b27bc6f5732837f67",
+                    "hidden_is_fresh": true
                 },
                 {
                     "seqno": 2,
@@ -95,7 +96,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "e426f8fe6c734ba88725c64d566bb662c9fcf16906fdf960a9317f30ece6da11"
+                    "debug_link_id": "e426f8fe6c734ba88725c64d566bb662c9fcf16906fdf960a9317f30ece6da11",
+                    "hidden_is_fresh": true
                 },
                 {
                     "seqno": 3,
@@ -134,7 +136,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "7a0a288edbc7d45e4488cbab7786afc3f555cf597022ea2054258cebd9419816"
+                    "debug_link_id": "7a0a288edbc7d45e4488cbab7786afc3f555cf597022ea2054258cebd9419816",
+                    "hidden_is_fresh": true
                 },
                 {
                     "seqno": 4,
@@ -174,7 +177,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd"
+                    "debug_link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd",
+                    "hidden_is_fresh": true
                 }
             ],
             "team_key_boxes": [
@@ -315,23 +319,28 @@
     "team_merkle": {
         "2123209b98b16083c69c91152b861724": {
             "seqno": 4,
-            "link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd"
+            "link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
-            "link_id": "64640cf9a4b04bea98bb9c48be4f8178f650ae608197c48b27bc6f5732837f67"
+            "link_id": "64640cf9a4b04bea98bb9c48be4f8178f650ae608197c48b27bc6f5732837f67",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:2": {
             "seqno": 2,
-            "link_id": "e426f8fe6c734ba88725c64d566bb662c9fcf16906fdf960a9317f30ece6da11"
+            "link_id": "e426f8fe6c734ba88725c64d566bb662c9fcf16906fdf960a9317f30ece6da11",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:3": {
             "seqno": 3,
-            "link_id": "7a0a288edbc7d45e4488cbab7786afc3f555cf597022ea2054258cebd9419816"
+            "link_id": "7a0a288edbc7d45e4488cbab7786afc3f555cf597022ea2054258cebd9419816",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:4": {
             "seqno": 4,
-            "link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd"
+            "link_id": "5131053538080bc37d859cb81282ffe289932fad441ebe5e798ea89ecc04cdbd",
+            "hidden_is_fresh": true
         }
     },
     "merkle_triples": {
