@@ -105,15 +105,17 @@ type TestContext struct {
 func (tc *TestContext) Cleanup() {
 	// stop the background logger
 	close(tc.cleanupCh)
-	_ = tc.eg.Wait()
+	err := tc.eg.Wait()
+	require.NoError(tc.T, err)
 
 	tc.G.Log.Debug("global context shutdown:")
-	_ = tc.G.Shutdown()
+	_ = tc.G.Shutdown() // could error due to missing pid file
 	if len(tc.Tp.Home) > 0 {
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)
 		tc.G.Log.Debug("clearing stored secrets:")
-		_ = tc.ClearAllStoredSecrets()
+		err := tc.ClearAllStoredSecrets()
+		require.NoError(tc.T, err)
 	}
 	tc.G.Log.Debug("cleanup complete")
 }
