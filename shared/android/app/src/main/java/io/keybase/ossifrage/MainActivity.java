@@ -262,8 +262,8 @@ public class MainActivity extends ReactFragmentActivity {
     Handler handler = new Handler(Looper.getMainLooper());
     handler.post(() -> {
       // Construct and load our normal React JS code bundle
-      ReactInstanceManager mReactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-      ReactContext context = mReactInstanceManager.getCurrentReactContext();
+      ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+      ReactContext context = reactInstanceManager.getCurrentReactContext();
 
       // If it's constructed, send a notification
       if (context != null) {
@@ -274,14 +274,14 @@ public class MainActivity extends ReactFragmentActivity {
 
       } else {
         // Otherwise wait for construction, then send the notification
-        mReactInstanceManager.addReactInstanceEventListener(rctContext -> {
+        reactInstanceManager.addReactInstanceEventListener(rctContext -> {
           DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
           (new Emit(emitter)).run();
         });
-        if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
+        if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
           // Construct it in the background
-          mReactInstanceManager.createReactContextInBackground();
+          reactInstanceManager.createReactContextInBackground();
         }
       }
     });

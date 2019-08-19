@@ -87,27 +87,27 @@ public class KBPushNotifier implements PushNotifier {
   }
 
   private IconCompat getKeybaseAvatar(String avatarUri) {
-    IconCompat icon = null;
+    if (avatarUri.isEmpty()) {
+      return null;
+    }
 
-    if (!avatarUri.isEmpty()) {
-      HttpURLConnection urlConnection = null;
-      try {
-        URL url = new URL(avatarUri);
-        urlConnection = (HttpURLConnection) url.openConnection();
-        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-        Bitmap bitmap = BitmapFactory.decodeStream(in);
-        Bitmap croppedBitmap = getCroppedBitmap(bitmap);
-        icon = IconCompat.createWithBitmap(croppedBitmap);
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (urlConnection != null) {
-          urlConnection.disconnect();
-        }
+    HttpURLConnection urlConnection = null;
+    try {
+      URL url = new URL(avatarUri);
+      urlConnection = (HttpURLConnection) url.openConnection();
+      InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+      Bitmap bitmap = BitmapFactory.decodeStream(in);
+      Bitmap croppedBitmap = getCroppedBitmap(bitmap);
+      return IconCompat.createWithBitmap(croppedBitmap);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (urlConnection != null) {
+        urlConnection.disconnect();
       }
     }
 
-    return icon;
+    return null;
   }
 
   @Override
