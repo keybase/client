@@ -3,6 +3,7 @@ import ReactList from 'react-list'
 import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
 import logger from '../logger'
 import {throttle, once} from 'lodash-es'
+import {renderElementOrComponentOrNot} from '../util/util'
 
 import {Props} from './list'
 
@@ -98,6 +99,7 @@ class List extends PureComponent<Props<any>> {
             style={collapseStyles([styles.innerDiv, this.props.contentContainerStyle])}
             onScroll={this.props.onEndReached ? this._onScroll : undefined}
           >
+            {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
             <ReactList
               ref={this._setListRef}
               useTranslate3d={false}
