@@ -30,13 +30,12 @@ const AlphabetIndex = (props: Props) => {
         sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
       })
     }
-  }, 2000)
+  }, 200)
   React.useEffect(storeMeasure, [])
 
   const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(
     (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
-      debugger
       if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
@@ -66,11 +65,15 @@ const AlphabetIndex = (props: Props) => {
       onResponderGrant={handleTouch}
       onResponderMove={handleTouch}
       onResponderRelease={clearTouch}
-      collapsable={false}
     >
       {/* It's assumed that every row is the same height */}
       {labels.map((label, index) => (
-        <Kb.Box key={label} style={styles.gap} {...(index === 0 ? {ref: topSectionRef} : {})}>
+        <Kb.Box
+          key={label}
+          style={styles.gap}
+          {...(index === 0 ? {ref: topSectionRef} : {})}
+          collapsable={false}
+        >
           <Kb.Text type="BodyTiny">{label}</Kb.Text>
         </Kb.Box>
       ))}

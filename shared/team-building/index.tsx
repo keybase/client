@@ -219,7 +219,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore RN type not plumbed. see section-list.d.ts
         ref.scrollToLocation({
-          animated: true,
+          animated: false,
           itemIndex: 0,
           sectionIndex,
         })
