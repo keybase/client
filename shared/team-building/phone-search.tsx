@@ -53,12 +53,14 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                     // Supply a key to force reset the PhoneInput state after a user is added
                     key={phoneInputKey}
                     autoFocus={true}
-                    onChangeNumber={p => {
-                        setPhoneNumber(p)
-                        // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
-                        props.search(p, 'keybase')
+                    onChangeNumber={setPhoneNumber}
+                    onChangeValidity={(val: boolean, num: string) => {
+                        setValidity(val)
+                        if (val) {
+                            // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
+                            props.search(num, 'keybase')
+                        }
                     }}
-                    onChangeValidity={setValidity}
                     result={
                         // Pass a component into PhoneInput so it is displayed inline with the number input box
                         validity &&
