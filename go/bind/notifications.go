@@ -86,7 +86,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 
-	isBot := msgUnboxed.IsBot()
+	isBot := msgUnboxed.SenderIsBot()
 	username := msgUnboxed.Valid().SenderUsername
 
 	chatNotification := ChatNotification{
@@ -118,8 +118,6 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 				chatNotification.Message.From.KeybaseAvatar = avatar
 			}
 		}
-
-		chatNotification.IsPlaintext = true
 
 		switch msgUnboxed.GetMessageType() {
 		case chat1.MessageType_TEXT:
