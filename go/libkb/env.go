@@ -692,6 +692,16 @@ func (e *Env) GetConfigFilename() string {
 
 func (e *Env) GetUpdaterConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, UpdaterConfigFile)
+			}
+			return ""
+		},
 		func() string { return e.cmd.GetUpdaterConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
@@ -701,6 +711,16 @@ func (e *Env) GetUpdaterConfigFilename() string {
 
 func (e *Env) GetGUIConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, GUIConfigFile)
+			}
+			return ""
+		},
 		func() string { return e.cmd.GetGUIConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetGUIConfigFilename() },
