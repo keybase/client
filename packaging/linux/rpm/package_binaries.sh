@@ -82,7 +82,7 @@ build_one_architecture() {
   # could backfire on us if we get weird whitespace in any filename, but
   # hopefully that will never happen. (Maintaining this list by hand would be
   # much worse.)
-  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//')"
+  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//' | sed 's@/opt/keybase/chrome-sandbox@%attr(4755, root, -) /opt/keybase/chrome-sandbox@')"
 
   spec="$dest/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
@@ -94,6 +94,7 @@ build_one_architecture() {
     > "$spec"
   # Append the files list to the spec.
   echo -e "\n%files\n$files" >> "$spec"
+
   # Append the postinstall script to the spec.
   echo -e "\n%post -p /bin/bash" >> "$spec"
   cat "$here/postinst.template" \
