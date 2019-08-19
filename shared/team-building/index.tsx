@@ -8,13 +8,12 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
+import {ServiceIdWithContact, FollowingState, SelectedUser, User} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
-import PhoneSearch from './phone-search/container'
-import {User} from 'constants/types/team-building'
+import PhoneSearch from './phone-search'
 
 export const numSectionLabel = '0-9'
 
@@ -64,6 +63,7 @@ export type Props = ContactProps & {
   includeContacts: boolean
   highlightedIndex: number | null
   onAdd: (userId: string) => void
+  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -76,6 +76,7 @@ export type Props = ContactProps & {
   onUpArrowKeyDown: () => void
   onClear: () => void
   recommendations: Array<SearchRecSection> | null
+  search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -83,6 +84,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
+  teamBuildingSearchResults: any
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -514,7 +516,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           />
         )}
         {props.selectedService === 'phone' ? (
-            <PhoneSearch onContinue={() => console.warn("DWORKEN: PhoneSearch.onContinue called!")}/>
+            <PhoneSearch teamBuildingSearchResults={props.teamBuildingSearchResults} search={props.search} onContinue={props.onAddRaw}/>
         ) : (
             <>
               {this._searchInput()}

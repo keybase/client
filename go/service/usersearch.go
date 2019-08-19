@@ -344,6 +344,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 					// Ignore full-name here, force queryString as `prettyName`
 					// part in order for it to be displayed in the list.
 					imptofu.PrettyName = queryString
+					imptofu.Fullname = uname.Fullname
 				}
 			}
 			res = &keybase1.APIUserSearchResult{

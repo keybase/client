@@ -220,6 +220,7 @@ type Props = {
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
   onEnterKeyDown?: () => void
+  result?: React.ReactNode
   style?: Styles.StylesCrossPlatform
 }
 
@@ -378,76 +379,82 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   render() {
     return (
-      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={styles.container}>
-        <Kb.Box2
-          alignItems="center"
-          direction="horizontal"
-          style={Styles.collapseStyles([styles.countrySelectorRow, styles.fakeInput])}
-        >
-          <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullWidth}>
-            <Kb.Box2
-              direction="horizontal"
-              style={styles.countrySelectorContainer}
-              alignItems="center"
-              gap="xtiny"
-              ref={this.props.setAttachmentRef}
-            >
-              {this._renderCountrySelector()}
-              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-            </Kb.Box2>
-          </Kb.ClickableBox>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
-          {isMobile && (
-            <Kb.Box2
-              alignItems="center"
-              direction="horizontal"
-              style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
-            >
-              <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
-                {'+'}
-              </Kb.Text>
-              <Kb.PlainInput
-                style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
-                flexable={true}
-                keyboardType={isIOS ? 'number-pad' : 'numeric'}
-                onChangeText={x => this._reformatPrefix(x, false)}
-                maxLength={3}
-                onEnterKeyDown={this._onPrefixEnter}
-                returnKeyType="next"
-                value={this.state.prefix}
-              />
-            </Kb.Box2>
-          )}
+      <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={styles.container}>
           <Kb.Box2
             alignItems="center"
             direction="horizontal"
-            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
+            style={Styles.collapseStyles([styles.countrySelectorRow, styles.fakeInput])}
           >
-            <Kb.PlainInput
-              autoFocus={this.props.autoFocus}
-              style={Styles.collapseStyles([styles.plainInput])}
-              flexable={true}
-              keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              placeholder={getPlaceholder(this.state.country)}
-              onChangeText={x => this._reformatPhoneNumber(x, false)}
-              onEnterKeyDown={this.props.onEnterKeyDown}
-              value={this.state.formatted}
-              disabled={this.state.country === ''}
-              ref={this._phoneInputRef}
-              maxLength={17}
-              textContentType="telephoneNumber"
-            />
+            <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullWidth}>
+              <Kb.Box2
+                direction="horizontal"
+                style={styles.countrySelectorContainer}
+                alignItems="center"
+                gap="xtiny"
+                ref={this.props.setAttachmentRef}
+              >
+                {this._renderCountrySelector()}
+                <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
+              </Kb.Box2>
+            </Kb.ClickableBox>
           </Kb.Box2>
+          <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
+            {isMobile && (
+              <Kb.Box2
+                alignItems="center"
+                direction="horizontal"
+                style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
+              >
+                <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+                  {'+'}
+                </Kb.Text>
+                <Kb.PlainInput
+                  style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                  flexable={true}
+                  keyboardType={isIOS ? 'number-pad' : 'numeric'}
+                  onChangeText={x => this._reformatPrefix(x, false)}
+                  maxLength={3}
+                  onEnterKeyDown={this._onPrefixEnter}
+                  returnKeyType="next"
+                  value={this.state.prefix}
+                />
+              </Kb.Box2>
+            )}
+            <Kb.Box2 direction="vertical">
+              <Kb.Box2
+                alignItems="center"
+                direction="horizontal"
+                style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
+              >
+                <Kb.PlainInput
+                  autoFocus={this.props.autoFocus}
+                  style={Styles.collapseStyles([styles.plainInput])}
+                  flexable={true}
+                  keyboardType={isIOS ? 'number-pad' : 'numeric'}
+                  placeholder={getPlaceholder(this.state.country)}
+                  onChangeText={x => this._reformatPhoneNumber(x, false)}
+                  onEnterKeyDown={this.props.onEnterKeyDown}
+                  value={this.state.formatted}
+                  disabled={this.state.country === ''}
+                  ref={this._phoneInputRef}
+                  maxLength={17}
+                  textContentType="telephoneNumber"
+                />
+              </Kb.Box2>
+              {isMobile && this.props.result}
+            </Kb.Box2>
+          </Kb.Box2>
+          <CountrySelector
+            attachTo={this.props.getAttachmentRef}
+            onSelect={x => this._setCountry(x, false)}
+            onHidden={this._toggleShowingMenu}
+            selected={this.state.country}
+            visible={this.props.showingMenu}
+            ref={this._countrySelectorRef}
+          />
         </Kb.Box2>
-        <CountrySelector
-          attachTo={this.props.getAttachmentRef}
-          onSelect={x => this._setCountry(x, false)}
-          onHidden={this._toggleShowingMenu}
-          selected={this.state.country}
-          visible={this.props.showingMenu}
-          ref={this._countrySelectorRef}
-        />
+        {!isMobile && this.props.result}
       </Kb.Box2>
     )
   }

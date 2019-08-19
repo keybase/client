@@ -1,11 +1,13 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/index'
-import PhoneInput from '../../signup/phone-number/phone-input'
-import * as Styles from '../../styles'
-import {User} from 'constants/types/team-building'
+import * as Kb from '../common-adapters/index'
+import PhoneInput from '../signup/phone-number/phone-input'
+import * as Styles from '../styles'
+import {ServiceIdWithContact, User} from 'constants/types/team-building'
 
 type PhoneSearchProps = {
     onContinue: (user: User) => void
+    search: (query: string, service: ServiceIdWithContact) => void
+    teamBuildingSearchResults: any
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
@@ -13,11 +15,23 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     const [phoneNumber, setPhoneNumber] = React.useState<string>('')
     const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
 
-    let user = {}
+    let user: User | null = null
+    if (validity && props.teamBuildingSearchResults && props.teamBuildingSearchResults[phoneNumber] && props.teamBuildingSearchResults[phoneNumber].keybase && props.teamBuildingSearchResults[phoneNumber].keybase[0]) {
+        let serviceMap = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap
+        let username = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap.keybase
+        let fullname = props.teamBuildingSearchResults[phoneNumber].keybase[0].fullname
+        user = {
+            id: username,
+            prettyName: fullname,
+            serviceId: 'keybase',
+            serviceMap,
+            username,
+        }
+    }
 
     let _onContinue = () => {
         if (user) {
-            props.onContinue({id: user.username, prettyName: user.fullName, serviceMap: {phone: phoneNumber}})
+            props.onContinue(user)
             setPhoneNumber('')
             setPhoneInputKey(old => old + 1)
             setValidity(false)
@@ -41,6 +55,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                     autoFocus={true}
                     onChangeNumber={p => {
                         setPhoneNumber(p)
+                        // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
+                        props.search(p, 'keybase')
                     }}
                     onChangeValidity={setValidity}
                     result={
@@ -54,7 +70,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                                         <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.greenDark}}>
                                             {user.username}
                                         </Kb.Text>
-                                        <Kb.Text type="Body">{user.fullName}</Kb.Text>
+                                        <Kb.Text type="Body">{user.prettyName}</Kb.Text>
                                     </Kb.Box2>
                                 </Kb.Box2>
                             </Kb.ClickableBox>
@@ -69,7 +85,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 fullWidth={true}
                 onClick={_onContinue}
                 label="Continue"
-                disabled={!(validity && !user)}
+                disabled={!(validity && user)}
             />
         </>
     )

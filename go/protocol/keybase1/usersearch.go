@@ -102,6 +102,7 @@ type ImpTofuSearchResult struct {
 	Label           string `codec:"label" json:"label"`
 	PrettyName      string `codec:"prettyName" json:"prettyName"`
 	KeybaseUsername string `codec:"keybaseUsername" json:"keybaseUsername"`
+	Fullname        string `codec:"fullname" json:"fullname"`
 }
 
 func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
@@ -112,6 +113,7 @@ func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
 		Label:           o.Label,
 		PrettyName:      o.PrettyName,
 		KeybaseUsername: o.KeybaseUsername,
+		Fullname:        o.Fullname,
 	}
 }
 

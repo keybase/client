@@ -46,6 +46,7 @@ protocol userSearch {
         string label;
         string prettyName;
         string keybaseUsername; // keybase username if assertion resolves, empty if not
+        string fullname; // their full name if assertion resolves, empty if not
     }
 
     record APIUserSearchResult {

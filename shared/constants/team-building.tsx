@@ -91,6 +91,7 @@ const parseRawResultToUser = (
     }
   } else if (result.imptofu) {
     return {
+      fullname: result.imptofu.fullname,
       id: result.imptofu.assertion,
       label: result.imptofu.label,
       prettyName: result.imptofu.prettyName,
