@@ -389,24 +389,6 @@ const _bodyTextStyle: any = getTextStyle('Body')
 const _bodySmallTextStyle: any = getTextStyle('BodySmall')
 
 const styles = Styles.styleSheetCreate(() => ({
-  floatingStyle: Styles.platformStyles({
-    isElectron: {
-      color: Styles.globalColors.blueDark,
-      display: 'block',
-      minHeight: _bodySmallTextStyle.lineHeight,
-    },
-  }),
-  errorStyle: {
-    marginTop: Styles.globalMargins.xtiny,
-    width: '100%',
-  },
-  smallLabel: {
-    ...Styles.globalStyles.fontSemibold,
-    color: Styles.globalColors.blueDark,
-    fontSize: _bodySmallTextStyle.fontSize,
-    lineHeight: _lineHeight,
-    marginRight: 8,
-  },
   commonInput: {
     ...Styles.globalStyles.fontSemibold,
     backgroundColor: Styles.globalColors.transparent,
@@ -415,18 +397,36 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     outlineWidth: 0,
   },
-  commonInputSmall: {
-    fontSize: _bodyTextStyle.fontSize,
-    fontWeight: _bodyTextStyle.fontWeight,
-    lineHeight: _bodyTextStyle.lineHeight,
-    textAlign: 'left',
-  },
   commonInputRegular: {
     fontSize: _headerTextStyle.fontSize,
     fontWeight: _headerTextStyle.fontWeight,
     lineHeight: _headerTextStyle.lineHeight,
     minWidth: 333,
     textAlign: 'center',
+  },
+  commonInputSmall: {
+    fontSize: _bodyTextStyle.fontSize,
+    fontWeight: _bodyTextStyle.fontWeight,
+    lineHeight: _bodyTextStyle.lineHeight,
+    textAlign: 'left',
+  },
+  errorStyle: {
+    marginTop: Styles.globalMargins.xtiny,
+    width: '100%',
+  },
+  floatingStyle: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.blueDark,
+      display: 'block',
+      minHeight: _bodySmallTextStyle.lineHeight,
+    },
+  }),
+  smallLabel: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.blueDark,
+    fontSize: _bodySmallTextStyle.fontSize,
+    lineHeight: _lineHeight,
+    marginRight: 8,
   },
 }))
 
