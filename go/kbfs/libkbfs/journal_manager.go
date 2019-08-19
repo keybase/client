@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,6 +27,13 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
+
+const (
+	tlfJournalBrokenFmt = "%s-%d.broken"
+)
+
+var tlfJournalBrokenRegexp = regexp.MustCompile(
+	`[/\\]([[:alnum:]]+)-([[:digit:]]+)\.broken$`)
 
 type journalManagerConfig struct {
 	// EnableAuto, if true, means the user has explicitly set its
@@ -616,10 +625,47 @@ func (j *JournalManager) EnableExistingJournals(
 			}
 
 			dir := filepath.Join(j.rootPath(), name)
+
+			// Skip directories that have already been marked as broken.
+			matches := tlfJournalBrokenRegexp.FindStringSubmatch(dir)
+			if len(matches) > 0 {
+				j.log.CDebugf(groupCtx, "Skipping broken dir %q", name)
+				continue
+			}
+
+			// Skip directories that don't have an info file at all.
+			_, err := os.Lstat(getTLFJournalInfoFilePath(dir))
+			switch {
+			case err == nil:
+			case os.IsNotExist(err):
+				j.log.CDebugf(
+					groupCtx, "Skipping non-TLF dir %q", name)
+				continue
+			default:
+				j.log.CDebugf(
+					groupCtx, "Error stat'ing info file in dir %q: %+v",
+					name, err)
+				continue
+			}
+
 			uid, key, tlfID, chargedTo, err := readTLFJournalInfoFile(dir)
 			if err != nil {
+				idParts := strings.Split(name, "-")
+				newDirName := fmt.Sprintf(
+					tlfJournalBrokenFmt, idParts[len(idParts)-1],
+					j.config.Clock().Now().UnixNano())
+				fullDirName := filepath.Join(j.rootPath(), newDirName)
+
 				j.log.CDebugf(
-					groupCtx, "Skipping non-TLF dir %q: %+v", name, err)
+					groupCtx, "Renaming broken dir %q to %q due to error: %+v",
+					name, newDirName, err)
+
+				err := os.Rename(dir, fullDirName)
+				if err != nil {
+					j.log.CDebugf(
+						groupCtx, "Error renaming broken dir %q: %+v",
+						name, err)
+				}
 				continue
 			}
 
