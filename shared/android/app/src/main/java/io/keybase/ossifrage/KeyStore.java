@@ -6,9 +6,8 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
-
-import org.msgpack.MessagePack;
-
+import io.keybase.ossifrage.keystore.KeyStoreHelper;
+import io.keybase.ossifrage.modules.NativeLogger;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -20,16 +19,13 @@ import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-
 import keybase.UnsafeExternalKeyStore;
-import io.keybase.ossifrage.keystore.KeyStoreHelper;
-import io.keybase.ossifrage.modules.NativeLogger;
+import org.msgpack.MessagePack;
 
 public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
@@ -43,7 +39,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     private static final String ALGORITHM = "RSA_SECRETBOX";
 
-    public KeyStore(final Context context, final SharedPreferences prefs) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public KeyStore(final Context context, final SharedPreferences prefs)
+            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.context = context;
         this.prefs = prefs;
 
@@ -77,7 +74,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
     }
 
     @Override
-    public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
+    public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName)
+            throws Exception {
         NativeLogger.info("KeyStore: getting users with stored secrets for " + serviceName);
 
         try {
@@ -91,23 +89,30 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 }
             }
 
-            NativeLogger.info("KeyStore: got " + userNames.size() + " users with stored secrets for " + serviceName);
+            NativeLogger.info(
+                    "KeyStore: got "
+                            + userNames.size()
+                            + " users with stored secrets for "
+                            + serviceName);
 
             MessagePack msgpack = new MessagePack();
             return msgpack.write(userNames);
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName, e);
+            NativeLogger.error(
+                    "KeyStore: error getting users with stored secrets for " + serviceName, e);
             throw e;
         }
     }
 
     @Override
-    public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
+    public synchronized byte[] retrieveSecret(final String serviceName, final String key)
+            throws Exception {
         String id = serviceName + ":" + key;
         NativeLogger.info("KeyStore: retrieving secret for " + id);
 
         try {
-            final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
+            final byte[] wrappedSecret =
+                    readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
             Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
             if (entry == null) {
@@ -115,17 +120,20 @@ public class KeyStore implements UnsafeExternalKeyStore {
             }
 
             if (!(entry instanceof PrivateKeyEntry)) {
-                throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
+                throw new KeyStoreException(
+                        "Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
             }
 
             try {
                 byte[] secret = unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
-                NativeLogger.info("KeyStore: retrieved " + secret.length + "-byte secret for " + id);
+                NativeLogger.info(
+                        "KeyStore: retrieved " + secret.length + "-byte secret for " + id);
                 return secret;
             } catch (InvalidKeyException e) {
                 // Invalid key, this can happen when a user changes their lock screen from something to nothing
                 // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                        && e instanceof KeyPermanentlyInvalidatedException) {
                     NativeLogger.info("KeyStore: key no longer valid; deleting entry", e);
                     ks.deleteEntry((keyStoreAlias(serviceName)));
                 }
@@ -138,7 +146,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
     }
 
     @Override
-    public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
+    public synchronized void setupKeyStore(final String serviceName, final String key)
+            throws Exception {
         String id = serviceName + ":" + key;
         NativeLogger.info("KeyStore: setting up key store for " + id);
 
@@ -173,7 +182,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
     }
 
     @Override
-    public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
+    public synchronized void storeSecret(
+            final String serviceName, final String key, final byte[] bytes) throws Exception {
         String id = serviceName + ":" + key;
         NativeLogger.info("KeyStore: storing " + bytes.length + "-byte secret for " + id);
 
@@ -184,7 +194,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 throw new KeyStoreException("No RSA keys in the keystore");
             }
 
-            final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
+            final byte[] wrappedSecret =
+                    wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
 
             if (wrappedSecret == null) {
                 throw new IOException("Null return when wrapping secret");
@@ -199,12 +210,15 @@ public class KeyStore implements UnsafeExternalKeyStore {
         NativeLogger.info("KeyStore: stored " + bytes.length + "-byte secret for " + id);
     }
 
-    private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
-        prefs.edit().putString(prefsKey, Base64.encodeToString(wrappedSecret, Base64.NO_WRAP)).apply();
+    private static void saveWrappedSecret(
+            SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
+        prefs.edit()
+                .putString(prefsKey, Base64.encodeToString(wrappedSecret, Base64.NO_WRAP))
+                .apply();
     }
 
-
-    private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey) throws Exception {
+    private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey)
+            throws Exception {
         final String wrappedKey = prefs.getString(prefsKey, "");
         if (wrappedKey.isEmpty()) {
             throw new KeyStoreException("No secret for " + prefsKey);
@@ -213,9 +227,12 @@ public class KeyStore implements UnsafeExternalKeyStore {
     }
 
     /**
-     * Similar to Android's example Vault https://github.com/android/platform_development/tree/master/samples/Vault
+     * Similar to Android's example Vault
+     * https://github.com/android/platform_development/tree/master/samples/Vault
      */
-    private static byte[] wrapSecret(PrivateKeyEntry entry, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
+    private static byte[] wrapSecret(PrivateKeyEntry entry, SecretKey key)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+                    IllegalBlockSizeException, NoSuchProviderException {
         KeyPair mPair = new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
         // This is the only cipher that's supported by AndroidKeystore (api version +18)
         // The padding makes sure this encryption isn't deterministic
@@ -224,12 +241,12 @@ public class KeyStore implements UnsafeExternalKeyStore {
         return mCipher.wrap(key);
     }
 
-    private static SecretKey unwrapSecret(PrivateKeyEntry entry, byte[] wrappedSecretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
+    private static SecretKey unwrapSecret(PrivateKeyEntry entry, byte[] wrappedSecretKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+                    IllegalBlockSizeException, NoSuchProviderException {
         KeyPair mPair = new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
         Cipher mCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         mCipher.init(Cipher.UNWRAP_MODE, mPair.getPrivate());
         return (SecretKey) mCipher.unwrap(wrappedSecretKey, ALGORITHM, Cipher.SECRET_KEY);
     }
-
-
 }

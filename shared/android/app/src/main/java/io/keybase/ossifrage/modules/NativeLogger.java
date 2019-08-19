@@ -1,8 +1,7 @@
 package io.keybase.ossifrage.modules;
 
-import android.util.Log;
 import android.util.JsonWriter;
-
+import android.util.Log;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -10,14 +9,12 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 public class NativeLogger extends ReactContextBaseJavaModule {
     private static final String NAME = "KBNativeLogger";
@@ -39,11 +36,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
         StringWriter sw = new StringWriter();
         JsonWriter js = new JsonWriter(sw);
         try {
-            js.beginArray()
-                .value(millis)
-                .value(toLog)
-                .endArray()
-                .close();
+            js.beginArray().value(millis).value(toLog).endArray().close();
             return sw.toString();
         } catch (IOException e) {
             rawLog(ERROR_TAG, "Exception in dumpLine: " + Log.getStackTraceString(e));
@@ -52,7 +45,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     }
 
     private static String dumpLine(String toLog, Throwable tr) {
-      return dumpLine(toLog + ": " + Log.getStackTraceString(tr));
+        return dumpLine(toLog + ": " + Log.getStackTraceString(tr));
     }
 
     public static void error(String log) {

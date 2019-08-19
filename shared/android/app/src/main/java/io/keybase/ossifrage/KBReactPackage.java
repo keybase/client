@@ -3,13 +3,6 @@ package io.keybase.ossifrage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import io.keybase.ossifrage.components.KBTextInputManager;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
@@ -19,6 +12,10 @@ import io.keybase.ossifrage.modules.NativeSettings;
 import io.keybase.ossifrage.modules.ScreenProtector;
 import io.keybase.ossifrage.modules.ShareFiles;
 import io.keybase.ossifrage.modules.Utils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private List<KillableModule> killableModules = new ArrayList<>();
@@ -56,8 +53,6 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        return Arrays.<ViewManager>asList(
-            new KBTextInputManager()
-        );
+        return Arrays.<ViewManager>asList(new KBTextInputManager());
     }
 }

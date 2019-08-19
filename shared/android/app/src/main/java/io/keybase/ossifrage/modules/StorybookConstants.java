@@ -2,11 +2,9 @@ package io.keybase.ossifrage.modules;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
-
+import io.keybase.ossifrage.BuildConfig;
 import java.util.HashMap;
 import java.util.Map;
-
-import io.keybase.ossifrage.BuildConfig;
 
 public class StorybookConstants extends ReactContextBaseJavaModule {
     public StorybookConstants(final ReactApplicationContext reactContext) {

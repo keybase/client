@@ -2,7 +2,6 @@ package io.keybase.ossifrage.tests;
 
 import android.test.ActivityInstrumentationTestCase2;
 import android.widget.Toast;
-
 import io.keybase.ossifrage.MainActivity;
 
 public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {

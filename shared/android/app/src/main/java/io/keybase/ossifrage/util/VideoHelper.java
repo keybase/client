@@ -1,7 +1,7 @@
 package io.keybase.ossifrage.util;
 
-import android.media.MediaMetadataRetriever;
 import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
 import java.io.ByteArrayOutputStream;
 
 public class VideoHelper implements keybase.NativeVideoHelper {
@@ -15,6 +15,7 @@ public class VideoHelper implements keybase.NativeVideoHelper {
         retriever.release();
         return ret;
     }
+
     public long duration(String filename) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(filename);

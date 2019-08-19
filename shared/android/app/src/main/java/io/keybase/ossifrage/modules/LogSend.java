@@ -4,9 +4,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-
 import keybase.Keybase;
-import io.keybase.ossifrage.BuildConfig;
 
 public class LogSend extends ReactContextBaseJavaModule {
     private static final String NAME = "KBLogSend";
@@ -21,9 +19,25 @@ public class LogSend extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void logSend(String status, String feedback, boolean sendLogs, boolean sendMaxBytes, String logFilePath, String traceDir, String cpuProfileDir, Promise promise) {
+    public void logSend(
+            String status,
+            String feedback,
+            boolean sendLogs,
+            boolean sendMaxBytes,
+            String logFilePath,
+            String traceDir,
+            String cpuProfileDir,
+            Promise promise) {
         try {
-          final String logID = Keybase.logSend(status, feedback, sendLogs, sendMaxBytes, logFilePath, traceDir, cpuProfileDir);
+            final String logID =
+                    Keybase.logSend(
+                            status,
+                            feedback,
+                            sendLogs,
+                            sendMaxBytes,
+                            logFilePath,
+                            traceDir,
+                            cpuProfileDir);
             promise.resolve(logID);
         } catch (Exception e) {
             promise.reject(e);

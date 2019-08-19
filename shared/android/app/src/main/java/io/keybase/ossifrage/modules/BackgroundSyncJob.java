@@ -2,12 +2,9 @@ package io.keybase.ossifrage.modules;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-
 import com.evernote.android.job.Job;
 import com.evernote.android.job.JobRequest;
-
 import java.util.concurrent.TimeUnit;
-
 import keybase.Keybase;
 
 public class BackgroundSyncJob extends Job {

@@ -3,20 +3,16 @@ package io.keybase.ossifrage.modules;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
-
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-
+import io.keybase.ossifrage.R;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import io.keybase.ossifrage.R;
-
 
 public class ShareFiles extends ReactContextBaseJavaModule {
 
@@ -44,7 +40,8 @@ public class ShareFiles extends ReactContextBaseJavaModule {
                 StringBuilder textBuilder = new StringBuilder();
                 String text;
                 boolean isFirst = true;
-                while (textBuilder.length() < MAX_TEXT_FILE_SIZE && (text = br.readLine()) != null) {
+                while (textBuilder.length() < MAX_TEXT_FILE_SIZE
+                        && (text = br.readLine()) != null) {
                     if (isFirst) {
                         isFirst = false;
                     } else {
@@ -62,11 +59,15 @@ public class ShareFiles extends ReactContextBaseJavaModule {
                 return;
             }
         } else {
-            Uri fileUri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file);
+            Uri fileUri =
+                    FileProvider.getUriForFile(
+                            reactContext, reactContext.getPackageName() + ".fileprovider", file);
             intent.putExtra(Intent.EXTRA_STREAM, fileUri);
         }
         if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
-            Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+            Intent chooser =
+                    Intent.createChooser(
+                            intent, reactContext.getResources().getText(R.string.send_to));
             // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(chooser);
@@ -82,7 +83,9 @@ public class ShareFiles extends ReactContextBaseJavaModule {
         intent.putExtra(Intent.EXTRA_TEXT, text);
 
         if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
-            Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+            Intent chooser =
+                    Intent.createChooser(
+                            intent, reactContext.getResources().getText(R.string.send_to));
             // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(chooser);

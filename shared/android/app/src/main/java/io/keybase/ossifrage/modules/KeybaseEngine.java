@@ -1,35 +1,29 @@
 package io.keybase.ossifrage.modules;
 
+import static keybase.Keybase.readB64;
+import static keybase.Keybase.version;
+import static keybase.Keybase.writeB64;
+
 import android.app.KeyguardManager;
 import android.content.Context;
-
-import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-
+import io.keybase.ossifrage.BuildConfig;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import keybase.Keybase;
-import io.keybase.ossifrage.BuildConfig;
-import io.keybase.ossifrage.modules.NativeLogger;
-
-import static keybase.Keybase.readB64;
-import static keybase.Keybase.writeB64;
-import static keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
@@ -46,8 +40,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             NativeLogger.info(NAME + ": JS Bridge is dead, Can't send EOF message");
         } else {
             reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(KeybaseEngine.RPC_META_EVENT_NAME, KeybaseEngine.RPC_META_EVENT_ENGINE_RESET);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(
+                            KeybaseEngine.RPC_META_EVENT_NAME,
+                            KeybaseEngine.RPC_META_EVENT_ENGINE_RESET);
         }
     }
 
@@ -60,25 +56,27 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         @Override
         public void run() {
-          do {
-              try {
-                  final String data = readB64();
+            do {
+                try {
+                    final String data = readB64();
 
-                  if (!reactContext.hasActiveCatalystInstance()) {
-                      NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
-                  }
+                    if (!reactContext.hasActiveCatalystInstance()) {
+                        NativeLogger.info(
+                                NAME + ": JS Bridge is dead, dropping engine message: " + data);
+                    }
 
-                  reactContext
-                          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                          .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-              } catch (Exception e) {
-                if (e.getMessage().equals("Read error: EOF")) {
-                    NativeLogger.info("Got EOF from read. Likely because of reset.");
-                } else {
-                    NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                    reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+                } catch (Exception e) {
+                    if (e.getMessage().equals("Read error: EOF")) {
+                        NativeLogger.info("Got EOF from read. Likely because of reset.");
+                    } else {
+                        NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                    }
                 }
-              }
-          } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
+            } while (!Thread.currentThread().isInterrupted()
+                    && reactContext.hasActiveCatalystInstance());
         }
     }
 
@@ -87,24 +85,24 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
 
-        reactContext.addLifecycleEventListener(new LifecycleEventListener() {
-            @Override
-            public void onHostResume() {
-                if (started && executor == null) {
-                    executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new ReadFromKBLib(reactContext));
-                }
-            }
+        reactContext.addLifecycleEventListener(
+                new LifecycleEventListener() {
+                    @Override
+                    public void onHostResume() {
+                        if (started && executor == null) {
+                            executor = Executors.newSingleThreadExecutor();
+                            executor.execute(new ReadFromKBLib(reactContext));
+                        }
+                    }
 
-            @Override
-            public void onHostPause() {
-            }
+                    @Override
+                    public void onHostPause() {}
 
-            @Override
-            public void onHostDestroy() {
-                destroy();
-            }
-        });
+                    @Override
+                    public void onHostDestroy() {
+                        destroy();
+                    }
+                });
     }
 
     public void destroy() {
@@ -133,13 +131,13 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         try {
             FileInputStream inputStream = new FileInputStream(new File(path));
 
-            if ( inputStream != null ) {
+            if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String receiveString = "";
                 StringBuilder stringBuilder = new StringBuilder();
 
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                while ((receiveString = bufferedReader.readLine()) != null) {
                     stringBuilder.append(receiveString);
                 }
 
@@ -162,15 +160,19 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         boolean isDeviceSecure = false;
 
         try {
-            final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
+            final KeyguardManager keyguardManager =
+                    (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
             isDeviceSecure = keyguardManager.isKeyguardSecure();
         } catch (Exception e) {
-          NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
+            NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
         }
 
         String serverConfig = "";
         try {
-            serverConfig = this.readFromFile(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
+            serverConfig =
+                    this.readFromFile(
+                            this.reactContext.getCacheDir().getAbsolutePath()
+                                    + "/Keybase/keybase.app.serverConfig");
         } catch (Exception e) {
             NativeLogger.warn(NAME + ": Error reading server config", e);
         }
@@ -189,21 +191,21 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @ReactMethod
     public void runWithData(String data) {
-      try {
-          writeB64(data);
-      } catch (Exception e) {
-          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
-      }
+        try {
+            writeB64(data);
+        } catch (Exception e) {
+            NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
+        }
     }
 
     @ReactMethod
     public void reset() {
-      try {
-          Keybase.reset();
-          relayReset(reactContext);
-      } catch (Exception e) {
-          NativeLogger.error("Exception in KeybaseEngine.reset", e);
-      }
+        try {
+            Keybase.reset();
+            relayReset(reactContext);
+        } catch (Exception e) {
+            NativeLogger.error("Exception in KeybaseEngine.reset", e);
+        }
     }
 
     @ReactMethod
