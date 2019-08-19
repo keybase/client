@@ -101,11 +101,7 @@ const Notifications = (props: Props) =>
       props.groups.app_push &&
       props.groups.app_push.settings ? (
         <PhoneSection {...props} />
-      ) : Styles.isMobile ? (
-        {
-          /* TODO: display something if the user needs to enable push? */
-        }
-      ) : (
+      ) : Styles.isMobile /* TODO: display something if the user needs to enable push? */ ? null : (
         <Kb.Box2 direction="vertical">
           <Kb.Text type="Header">Phone notifications</Kb.Text>
           <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>
