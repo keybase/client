@@ -33,15 +33,15 @@ const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; la
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
   },
-  phone: {
-    color: '#4C8EFF',
-    icon: 'iconfont-phone-contact',
-    label: 'Phone',
-  },
   pgp: {
     color: '#000',
     icon: 'iconfont-identity-pgp',
     label: 'PGP',
+  },
+  phone: {
+    color: '#4C8EFF',
+    icon: 'iconfont-phone-contact',
+    label: 'Phone',
   },
   reddit: {
     color: '#ff4500',

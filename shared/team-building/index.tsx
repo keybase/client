@@ -516,19 +516,22 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           />
         )}
         {props.selectedService === 'phone' ? (
-            <PhoneSearch teamBuildingSearchResults={props.teamBuildingSearchResults} search={props.search} onContinue={props.onAddRaw}/>
+          <PhoneSearch
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+            onContinue={props.onAddRaw}
+          />
         ) : (
-            <>
-              {this._searchInput()}
-              {this._listBody()}
-              {props.waitingForCreate && (
-                <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-                  <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-                </Kb.Box2>
-              )}
-            </>
-          )}
-
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )}
       </Kb.Box2>
     )
   }

@@ -5,6 +5,7 @@ import * as RPCTypes from './types/rpc-gen'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
+  'phone',
   'contact',
   'twitter',
   'facebook',
@@ -12,7 +13,6 @@ const allServices: Array<Types.ServiceIdWithContact> = [
   'reddit',
   'hackernews',
   'pgp',
-    'phone'
 ]
 
 // We don't search pgp explicitly, and contact isn't implemented yet

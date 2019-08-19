@@ -401,24 +401,26 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
             {isMobile && (
-              <Kb.Box2
-                alignItems="center"
-                direction="horizontal"
-                style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
-              >
-                <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
-                  {'+'}
-                </Kb.Text>
-                <Kb.PlainInput
-                  style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
-                  flexable={true}
-                  keyboardType={isIOS ? 'number-pad' : 'numeric'}
-                  onChangeText={x => this._reformatPrefix(x, false)}
-                  maxLength={3}
-                  onEnterKeyDown={this._onPrefixEnter}
-                  returnKeyType="next"
-                  value={this.state.prefix}
-                />
+              <Kb.Box2 direction="vertical" alignItems="flex-start" fullHeight={true}>
+                <Kb.Box2
+                  alignItems="center"
+                  direction="horizontal"
+                  style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
+                >
+                  <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+                    {'+'}
+                  </Kb.Text>
+                  <Kb.PlainInput
+                    style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                    flexable={true}
+                    keyboardType={isIOS ? 'number-pad' : 'numeric'}
+                    onChangeText={x => this._reformatPrefix(x, false)}
+                    maxLength={3}
+                    onEnterKeyDown={this._onPrefixEnter}
+                    returnKeyType="next"
+                    value={this.state.prefix}
+                  />
+                </Kb.Box2>
               </Kb.Box2>
             )}
             <Kb.Box2 direction="vertical">

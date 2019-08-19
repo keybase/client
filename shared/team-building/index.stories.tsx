@@ -96,7 +96,9 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -148,6 +150,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string', () => (
@@ -189,7 +192,9 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -241,6 +246,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Show role picker', () => (
@@ -279,8 +285,11 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string or results', () => (
@@ -300,10 +309,13 @@ const load = () => {
           Sb.action('onSearchForMore')
         }}
         teamSoFar={[]}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
@@ -327,7 +339,9 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -379,6 +393,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - One line of users + 1', () => (
@@ -401,7 +416,9 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -453,6 +470,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Lotsa users', () => (
@@ -475,7 +493,9 @@ const load = () => {
         serviceResultCount={{}}
         showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -527,6 +547,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
 
