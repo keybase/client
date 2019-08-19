@@ -4,6 +4,7 @@ import Box, {Box2} from './box'
 import Icon, {IconType, castPlatformStyles} from './icon'
 import {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
+import './input.css'
 
 export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
