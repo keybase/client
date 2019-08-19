@@ -304,6 +304,8 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 				return team, err
 			}
 		}
+		// In upgraded implicit teams, make sure to check that tlfName matches
+		// team display name.
 		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
 			return team, err
 		}

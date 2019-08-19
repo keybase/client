@@ -59,7 +59,7 @@ func (p *ProveRooterUI) ContinueChecking(_ context.Context, _ int) (bool, error)
 	return true, nil
 }
 
-func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
+func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) (sigID keybase1.SigID) {
 	arg := keybase1.StartProofArg{
 		Service:  "rooter",
 		Username: fu.Username,
@@ -79,7 +79,8 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 
 	require.NoError(t, engine.RunEngine2(m, eng))
 
-	checkEng := engine.NewProveCheck(g, eng.SigID())
+	sigID = eng.SigID()
+	checkEng := engine.NewProveCheck(g, sigID)
 	require.NoError(t, engine.RunEngine2(m, checkEng))
 	found, status, state, text := checkEng.Results()
 	if !found {
@@ -94,6 +95,18 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 	if len(text) == 0 {
 		t.Errorf("empty proof text, expected non-empty")
 	}
+	return sigID
+}
+
+func revokeRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser, sigID keybase1.SigID) {
+	uis := libkb.UIs{
+		LogUI:    g.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	mctx := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	eng := engine.NewRevokeSigsEngine(g, []string{sigID.String()})
+	err := engine.RunEngine2(mctx, eng)
+	require.NoError(t, err)
 }
 
 func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
@@ -111,21 +124,30 @@ func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase
 type sbsTestCase struct {
 	getChatAssertion func(user *kbtest.FakeUser) string
 	sbsVerify        func(user *kbtest.FakeUser, g *libkb.GlobalContext)
+	sbsRevoke        func(user *kbtest.FakeUser, g *libkb.GlobalContext)
 }
 
 func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
+	//runChatSBSScenarioWithRevoke(t, testCase, false /* shouldRevoke */)
+	runChatSBSScenarioWithRevoke(t, testCase, true /* shouldRevoke */)
+}
+
+func runChatSBSScenarioWithRevoke(t *testing.T, testCase sbsTestCase, shouldRevoke bool) {
+	t.Logf("Starting runChatSBSScenarioWithRevoke shouldRevoke=%t", shouldRevoke)
+
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-			ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
-			defer ctc.cleanup()
-			users := ctc.users()
-
 			// Only run this test for imp teams
 			switch mt {
 			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			default:
 				return
 			}
+
+			ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+
 			// If we are sending ephemeral messages make sure both users have
 			// user/device EKs
 			if ephemeralLifetime != nil {
@@ -164,11 +186,12 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 
 			mustPostLocalEphemeralForTest(t, ctc, users[0], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "HI",
+					Body: "Hi from user 0 (before resolution)",
 				}), ephemeralLifetime)
 			require.NoError(t, err)
 			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 
+			// This message should never go in - user is not in the conv yet.
 			_, err = postLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "HI",
@@ -204,76 +227,123 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 
 			mustPostLocalEphemeralForTest(t, ctc, users[0], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "HI",
+					Body: "Hi from user 0 (after resolution)",
 				}), ephemeralLifetime)
 			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 
 			mustPostLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "HI",
+					Body: "Hi from user 1 (after resolution)",
 				}), ephemeralLifetime)
 			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
-			verifyThread := func(user *kbtest.FakeUser) {
-				tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-					ConversationID: ncres.Conv.GetConvID(),
-					Query: &chat1.GetThreadQuery{
-						MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-					},
-				})
-				require.NoError(t, err)
-				require.Equal(t, 3, len(tvres.Thread.Messages))
 
-				for _, msg := range tvres.Thread.Messages {
+			verifyThread := func(user *kbtest.FakeUser, local bool) {
+				var messages []chat1.MessageUnboxed
+				if local {
+					tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+						ConversationID: ncres.Conv.GetConvID(),
+						Query: &chat1.GetThreadQuery{
+							MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+						},
+					})
+					require.NoError(t, err)
+					messages = tvres.Thread.Messages
+				} else {
+					tc := ctc.world.Tcs[user.Username]
+					ctx := ctc.as(t, user).startCtx
+					// Nuke DB so we don't just pull cached messages.
+					_, err = tc.G.LocalDb.Nuke()
+					require.NoError(t, err)
+					_, err := tc.G.LocalChatDb.Nuke()
+					require.NoError(t, err)
+					tv, err := tc.Context().ConvSource.Pull(
+						ctx,
+						ncres.Conv.GetConvID(),
+						user.GetUID().ToBytes(),
+						chat1.GetThreadReason_GENERAL, &chat1.GetThreadQuery{
+							MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+						},
+						nil,
+					)
+					require.NoError(t, err)
+					messages = tv.Messages
+				}
+
+				for _, msg := range messages {
 					// Whether unboxing will succeed in the ephemeral case
 					// depends on whether pairwise MAC'ing was used, which in
 					// turn depends on the size of the team, in a way that we
 					// might tune in the future. Allow that specific failure.
 
 					if ephemeralLifetime != nil && msg.IsError() {
-						require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
+						require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType,
+							"Error is %s", msg.Error().ErrMsg)
 					} else {
+						if msg.IsError() {
+							require.FailNow(t, "verifyThread message error", msg.Error().ErrMsg)
+						}
 						require.True(t, msg.IsValid())
 					}
 				}
+
+				require.Equal(t, 3, len(messages))
 			}
 
-			verifyThread(users[0])
-			verifyThread(users[1])
+			verifyThread(users[0], true /* local */)
+			verifyThread(users[1], true /* local */)
+
+			if testCase.sbsRevoke != nil && mt == chat1.ConversationMembersType_IMPTEAMNATIVE {
+				t.Logf("running sbsRevoke now")
+				testCase.sbsRevoke(users[1], tc1.Context().ExternalG())
+
+				ctc.advanceFakeClock(time.Hour)
+
+				verifyThread(users[0], false /* local */)
+				verifyThread(users[1], false /* local */)
+			}
 		})
 	})
 
 }
 
-func TestChatSrvRooter(t *testing.T) {
+func TestChatSrvSBSRooter(t *testing.T) {
+	var sigID keybase1.SigID
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
 			return fmt.Sprintf("%s@rooter", user.Username)
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
-			proveRooter(t, g, user)
+			sigID = proveRooter(t, g, user)
+		},
+		sbsRevoke: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			revokeRooter(t, g, user, sigID)
 		},
 	})
 }
 
-func TestChatSrvPhone(t *testing.T) {
-	var phone string
+func TestChatSrvSBSPhone(t *testing.T) {
+	var phoneNumber keybase1.PhoneNumber
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
-			phone = kbtest.GenerateTestPhoneNumber()
+			phone := kbtest.GenerateTestPhoneNumber()
+			phoneNumber = keybase1.PhoneNumber("+" + phone)
 			return fmt.Sprintf("%s@phone", phone)
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
-			phoneNumber := keybase1.PhoneNumber("+" + phone)
 			addAndVerifyPhone(t, g, phoneNumber)
 			err := phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+			require.NoError(t, err)
+		},
+		sbsRevoke: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			err := phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PRIVATE)
 			require.NoError(t, err)
 		},
 	})
 }
 
-func TestChatSrvEmail(t *testing.T) {
+func TestChatSrvSBSEmail(t *testing.T) {
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
 			return fmt.Sprintf("[%s]@email", user.Email)
@@ -283,6 +353,11 @@ func TestChatSrvEmail(t *testing.T) {
 			err := kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), email)
 			require.NoError(t, err)
 			err = emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PUBLIC)
+			require.NoError(t, err)
+		},
+		sbsRevoke: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			email := keybase1.EmailAddress(user.Email)
+			err := emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PRIVATE)
 			require.NoError(t, err)
 		},
 	})
