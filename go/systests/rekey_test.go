@@ -154,7 +154,8 @@ func (rkt *rekeyTester) cleanup() {
 		od.tctx.Cleanup()
 		if od.service != nil {
 			od.service.Stop(0)
-			od.stop()
+			err := od.stop()
+			require.NoError(od.tctx.T, err)
 		}
 		for _, cl := range od.clones {
 			cl.Cleanup()
@@ -408,38 +409,6 @@ func (rkt *rekeyTester) clearAllEvents(dw *deviceWrapper) {
 		}
 	}
 	rkt.log.Debug("- cleared all events")
-}
-
-func (rkt *rekeyTester) clearAllRefreshes(dw *deviceWrapper) {
-	loop := true
-	rkt.log.Debug("+ clearing all refreshes")
-	for loop {
-		select {
-		case r := <-dw.rekeyUI.refreshes:
-			rkt.log.Debug("| Got refresh: %+v", r)
-		default:
-			loop = false
-		}
-	}
-	rkt.log.Debug("- cleared all refreshes")
-}
-
-func (rkt *rekeyTester) waitForEvent(dw *deviceWrapper, wanted service.RekeyInterrupt) {
-	rkt.log.Debug("+ waitForEvent(%v)", wanted)
-	defer rkt.log.Debug("- waitForEvent(%v)", wanted)
-	timeout := 30 * time.Second
-	for {
-		select {
-		case received := <-dw.rekeyUI.events:
-			if received.InterruptType == int(wanted) {
-				rkt.log.Debug("| found event!")
-				return
-			}
-			rkt.log.Debug("| ignored event: %v", received)
-		case <-time.After(timeout):
-			rkt.t.Fatalf("Failed to get %d event after %s", wanted, timeout)
-		}
-	}
 }
 
 func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {

@@ -113,7 +113,8 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 
 	// switch to another team member and decrypt
 	kbtest.Logout(tc)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI(), SaltpackUI: fakeSaltpackUI{}}
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 

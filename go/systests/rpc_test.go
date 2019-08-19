@@ -965,7 +965,8 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 
 	t.Logf("make rooter unreachable")
 	g.XAPI = &flakeyRooterAPI{orig: g.XAPI, hardFail: true, G: g}
-	g.ProofCache.Reset()
+	err = g.ProofCache.Reset()
+	require.NoError(t, err)
 
 	t.Logf("try but fail on tracking (1)")
 	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
@@ -1057,13 +1058,9 @@ func compareUserVersionSets(xs1 []keybase1.UserVersion, xs2 []keybase1.UserVersi
 		return false
 	}
 	var ys1 []keybase1.UserVersion
-	for _, x := range xs1 {
-		ys1 = append(ys1, x)
-	}
+	ys1 = append(ys1, xs1...)
 	var ys2 []keybase1.UserVersion
-	for _, x := range xs2 {
-		ys2 = append(ys2, x)
-	}
+	ys2 = append(ys2, xs2...)
 	cmp := func(a, b keybase1.UserVersion) bool {
 		if a.Uid.Equal(b.Uid) {
 			return a.EldestSeqno < b.EldestSeqno
@@ -1165,12 +1162,6 @@ type flakeyRooterAPI struct {
 	flakeOut bool
 	hardFail bool
 	G        *libkb.GlobalContext
-}
-
-func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
-	return &flakeyRooterAPI{
-		orig: x,
-	}
 }
 
 func (e *flakeyRooterAPI) GetText(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
