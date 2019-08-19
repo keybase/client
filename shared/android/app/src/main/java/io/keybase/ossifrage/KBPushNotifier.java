@@ -185,7 +185,7 @@ public class KBPushNotifier implements PushNotifier {
     genericNotification(bundle.getString("device_id") + bundle.getString("type"), bundle.getString("title"), bundle.getString("message"), bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
   }
 
-  private void genericNotification(String uniqueTag, String notificationTitle, String notificationMsg, Bundle bundle, String channelID) {
+  public void genericNotification(String uniqueTag, String notificationTitle, String notificationMsg, Bundle bundle, String channelID) {
     bundle.putBoolean("userInteraction", true);
     NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, channelID)
       .setSmallIcon(R.drawable.ic_notif)

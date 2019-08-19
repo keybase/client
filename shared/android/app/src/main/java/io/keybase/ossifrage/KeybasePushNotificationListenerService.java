@@ -23,7 +23,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,8 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
     // This keeps a small ring buffer cache of the last 5 messages per conversation the user
     // was notified about to give context to future notifications.
     private HashMap<String, SmallMsgRingBuffer> msgCache = new HashMap<String, SmallMsgRingBuffer>();
+    // Avoid ever showing doubles
+    private HashSet<String> seenChatNotifications = new HashSet<String>();
 
     private NotificationCompat.Style buildStyle(String convID, Person person) {
         MessagingStyle style = new MessagingStyle(person);
@@ -180,13 +184,27 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     JSONArray pushes = parseJSONArray(bundle.getString("p"));
                     String pushId = pushes.getString(0);
                     int badgeCount = Integer.parseInt(bundle.getString("b"));
-                    int unixTime = Integer.parseInt(bundle.getString("x"));
+                    long unixTime = Integer.parseInt(bundle.getString("x"));
+                    // TODO why is unix time sometimes 1?
+                    if (unixTime < 1000) {
+                        // Go is expecting seconds from epoch
+                        unixTime = (new Date()).getTime() / 1000;
+
+                    }
                     String soundName = bundle.getString("s");
 
                     // Blow the cache if we aren't displaying plaintext
                     if (!msgCache.containsKey(convID) || !displayPlaintext) {
                         msgCache.put(convID, new SmallMsgRingBuffer());
                     }
+
+                    // We've shown this notification already
+                    if (seenChatNotifications.contains(convID + messageId)) {
+                        return;
+                    } else {
+                        seenChatNotifications.add(convID + messageId);
+                    }
+
                     notifier.setMsgCache(msgCache.get(convID));
 
                     Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageId, pushId, badgeCount, unixTime, soundName, notifier);
@@ -208,8 +226,26 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                 }
                 break;
                 case "chat.newmessage": {
-                  // Ignore this
-                  // We are just using chat.newmessageSilent_2
+                    // The server will send us this if we didn't ack the chat.newmessageSilent_2 within
+                    String convID = bundle.getString("convID");
+                    int membersType = Integer.parseInt(bundle.getString("t"));
+                    int messageId = Integer.parseInt(bundle.getString("msgID"));
+                    // TODO should we just check if this is an exploding message and only show it then?
+                    String messageBody = bundle.getString("message");
+
+                    // We've shown this notification already
+                    if (seenChatNotifications.contains(convID + messageId)) {
+                        return;
+                    } else {
+                        seenChatNotifications.add(convID + messageId);
+                    }
+                    // TODO handle this case better. Right now this isn't as pretty as the notifs
+                    // above. We should use the engine to get more metadata. Making this ugly for now.
+                    // This is only used in exploding messages.
+                    if (messageBody != null && !messageBody.isEmpty()) {
+                        notifier.genericNotification(convID, "", messageBody, bundle, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID);
+                    }
+
                 }
                 break;
                 default:
