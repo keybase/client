@@ -128,13 +128,6 @@ type sbsTestCase struct {
 }
 
 func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
-	//runChatSBSScenarioWithRevoke(t, testCase, false /* shouldRevoke */)
-	runChatSBSScenarioWithRevoke(t, testCase, true /* shouldRevoke */)
-}
-
-func runChatSBSScenarioWithRevoke(t *testing.T, testCase sbsTestCase, shouldRevoke bool) {
-	t.Logf("Starting runChatSBSScenarioWithRevoke shouldRevoke=%t", shouldRevoke)
-
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
 			// Only run this test for imp teams
