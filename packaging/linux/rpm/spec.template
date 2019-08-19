@@ -13,4 +13,6 @@ The Keybase Go client, filesystem, and GUI
 mkdir -p "$RPM_BUILD_ROOT"
 cp -r "@@COPIED_BINARIES@@"/* "$RPM_BUILD_ROOT"
 
+%attr(755, root, -) /opt/keybase/chrome-sandbox
+
 # The files list and postinstall script get appended below.
