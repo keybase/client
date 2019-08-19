@@ -56,7 +56,7 @@ build_one_architecture() {
   # from unpredictable rpm mischief.
   copied_binaries="$dest/copied_binaries"
   mkdir -p "$copied_binaries"
-  cp -r "$binaries_path"/* "$copied_binaries/"
+  cp -rp "$binaries_path"/* "$copied_binaries/"
   echo "copied_binaries: $copied_binaries"
 
   # RPM-based distros (though not Debian or Arch, see
