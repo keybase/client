@@ -16,7 +16,7 @@ export type Props<Item> = {
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
   onEndReachedThreshold?: number // mobile only
-  ListHeaderComponent?: React.ReactNode // mobile only
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
 }
 
 export default class List<Item> extends React.Component<Props<Item>> {}
