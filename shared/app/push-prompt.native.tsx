@@ -4,6 +4,9 @@ import * as PushGen from '../actions/push-gen'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import HeaderHoc from '../common-adapters/header-hoc'
+import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {withProps} from 'recompose'
 
 type OwnProps = {}
 
@@ -13,72 +16,110 @@ type Props = {
 }
 
 const PushPrompt = (props: Props) => (
-  <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      <Kb.Box style={styles.spacer} />
-      <Kb.Text center={true} type="Header" style={styles.text}>
-        Please turn on notifications!
-      </Kb.Text>
-      <Kb.RequireImage
-        resizeMode="contain"
-        style={styles.image}
-        src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
-      />
-      <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
-        It's{' '}
-        <Kb.Text center={true} type="BodySmallSemiboldItalic" style={styles.text}>
-          very
-        </Kb.Text>{' '}
-        important you enable notifications.
-      </Kb.Text>
-      <Kb.Text center={true} type="BodySmall" style={styles.text}>
-        This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if
-        you provision a new device, this phone will be contacted.
-      </Kb.Text>
+  <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
+    <Kb.RequireImage
+      resizeMode="stretch"
+      style={styles.image}
+      src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
+    />
+    <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
+      It's{' '}
+      <Kb.Text center={true} type="BodySmallSemiboldItalic" style={styles.text}>
+        very
+      </Kb.Text>{' '}
+      important you enable notifications.
+    </Kb.Text>
+    <Kb.Text center={true} type="BodySmall" style={styles.text}>
+      This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if you
+      provision a new device, this phone will be contacted.
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
       <Kb.WaitingButton
         fullWidth={true}
         onClick={props.onRequestPermissions}
-        label="Got it"
+        label="Allow notifications"
         waitingKey={Constants.permissionsRequestingWaitingKey}
         style={styles.button}
+        type="Success"
       />
-      <Kb.Button
-        type="Dim"
-        fullWidth={true}
-        onClick={props.onNoPermissions}
-        label="No thanks"
-        style={styles.button}
-      />
-      <Kb.Box style={styles.spacer} />
     </Kb.Box2>
-  </Kb.ScrollView>
+  </Kb.Box2>
 )
-
-const styles = Styles.styleSheetCreate({
-  button: {maxHeight: 40},
-  container: {padding: Styles.globalMargins.small},
-  image: Styles.platformStyles({
-    isMobile: {
-      height: 200,
-      width: '170%',
-    },
-  }),
-  scroll: {
-    backgroundColor: Styles.globalColors.white,
-    ...Styles.globalStyles.fillAbsolute,
-  },
-  scrollContent: {minHeight: '100%'},
-  spacer: {flexGrow: 1},
-  text: {
-    color: Styles.globalColors.black,
-  },
-})
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
   onNoPermissions: () => dispatch(PushGen.createRejectPermissions()),
   onRequestPermissions: () => dispatch(PushGen.createRequestPermissions()),
 })
+
+const PushPromptWithHeader = withProps(
+  (props: Props & HeaderHocProps & ReturnType<typeof mapDispatchToProps>): Partial<HeaderHocProps> => ({
+    customComponent: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.header}>
+        <Kb.Text type="BodyBig" negative={true}>
+          Allow notifications
+        </Kb.Text>
+        <Kb.ClickableBox onCLick={props.onNoPermissions} style={styles.skip}>
+          <Kb.Text type="BodyBig" negative={true}>
+            Skip
+          </Kb.Text>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+    ),
+    onRightAction: props.onNoPermissions,
+    rightActionLabel: 'Skip',
+  })
+)(HeaderHoc(PushPrompt))
+
+// TODO: uncomment when we make this a routed component
+// PushPrompt.navigationOptions = {
+//   header: null,
+//   headerTitle: 'Allow notifications',
+//   headerBottomStyle: {height: undefined},
+//   headerLeft: null, // no back button
+//   headerRightActions: () => (
+//     <Kb.Box2
+//       direction="horizontal"
+//       style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+//     >
+//       <Text type="BodyBig" negative={true}>
+//         Skip
+//       </Text>
+//     </Kb.Box2>
+//   ),
+// }
+
+const styles = Styles.styleSheetCreate(() => ({
+  button: {maxHeight: 40},
+  buttonContainer: {
+    height: '30%',
+    justifyContent: 'flex-end',
+  },
+  container: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.blue,
+    padding: Styles.globalMargins.small,
+    height: '100%',
+  },
+  header: {
+    backgroundColor: Styles.globalColors.blue,
+    color: Styles.globalColors.white,
+    ...Styles.padding(Styles.globalMargins.medium),
+    position: 'relative',
+  },
+  image: {
+    width: '160%',
+    minHeight: 340,
+    marginTop: Styles.globalMargins.medium,
+  },
+  skip: {
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+  },
+  text: {
+    color: Styles.globalColors.white,
+  },
+}))
 
 export default Container.compose(
   Container.namedConnect(
@@ -89,4 +130,4 @@ export default Container.compose(
   ),
   Container.safeSubmitPerMount(['onRequestPermissions', 'onNoPermissions'])
   // @ts-ignore
-)(PushPrompt)
+)(PushPromptWithHeader)
