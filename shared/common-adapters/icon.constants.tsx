@@ -2178,6 +2178,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-folder-public-me': {
+    charCode: 0xe927,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-folder-up': {
     charCode: 0xe928,
     gridSize: 16,
@@ -2418,9 +2423,19 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-number-pad': {
+    charCode: 0xe996,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-open-browser': {
     charCode: 0xe949,
     gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-password': {
+    charCode: 0xe98d,
+    gridSize: 24,
     isFont: true,
   },
   'iconfont-people': {
@@ -2460,6 +2475,16 @@ const iconMeta_ = {
   },
   'iconfont-question-mark': {
     charCode: 0xe950,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio': {
+    charCode: 0xe997,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio-update': {
+    charCode: 0xe998,
     gridSize: 16,
     isFont: true,
   },
@@ -2516,6 +2541,11 @@ const iconMeta_ = {
   'iconfont-shh': {
     charCode: 0xe959,
     gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-skull': {
+    charCode: 0xe98c,
+    gridSize: 24,
     isFont: true,
   },
   'iconfont-spade': {
