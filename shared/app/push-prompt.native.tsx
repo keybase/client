@@ -58,7 +58,7 @@ const PushPromptWithHeader = Container.withProps(
         <Kb.Text type="BodyBig" negative={true}>
           Allow notifications
         </Kb.Text>
-        <Kb.ClickableBox onCLick={props.onNoPermissions} style={styles.skip}>
+        <Kb.ClickableBox onClick={props.onNoPermissions} style={styles.skip}>
           <Kb.Text type="BodyBig" negative={true}>
             Skip
           </Kb.Text>
