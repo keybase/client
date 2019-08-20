@@ -226,7 +226,7 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	// Clean up handlers when the connection closes.
-	defer shutdown()
+	defer func() { _ = shutdown() }()
 
 	// Make sure shutdown is called when service shuts down but the connection
 	// isn't closed yet.
@@ -688,7 +688,7 @@ func (d *Service) StartLoopbackServer() error {
 	// regular service mode.
 	d.tryLogin(ctx)
 
-	go d.ListenLoop(l)
+	go func() { _ = d.ListenLoop(l) }()
 
 	return nil
 }
@@ -767,7 +767,10 @@ func (d *Service) hourlyChecks() {
 			}
 
 			m.Debug("| checking tracks on an hour timer")
-			libkb.CheckTracking(m.G())
+			err := libkb.CheckTracking(m.G())
+			if err != nil {
+				m.Debug("CheckTracking error: %s", err)
+			}
 
 			m.Debug("- hourly check loop")
 		}
@@ -953,7 +956,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("shutting down gregor")
 	if d.gregor != nil {
-		d.gregor.Reset()
+		_ = d.gregor.Reset()
 	}
 
 	log("shutting down rekeyMaster")
@@ -966,7 +969,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("shutting down TLF upgrader")
 	if d.tlfUpgrader != nil {
-		d.tlfUpgrader.Shutdown()
+		_ = d.tlfUpgrader.Shutdown()
 	}
 
 	log("resetting wallet state on logout")
@@ -995,7 +998,7 @@ func (d *Service) gregordConnect() (err error) {
 	// If we are already connected, then shutdown and reset the gregor
 	// handler
 	if d.gregor.IsConnected() {
-		if d.gregor.Reset(); err != nil {
+		if err := d.gregor.Reset(); err != nil {
 			return err
 		}
 	}
@@ -1028,9 +1031,7 @@ func (d *Service) GetExclusiveLock() error {
 	if err := d.GetExclusiveLockWithoutAutoUnlock(); err != nil {
 		return err
 	}
-	d.G().PushShutdownHook(func() error {
-		return d.ReleaseLock()
-	})
+	d.G().PushShutdownHook(d.ReleaseLock)
 	return nil
 }
 
@@ -1247,7 +1248,10 @@ func (d *Service) configurePath() {
 	default:
 	}
 	if newDirs != "" {
-		mergeIntoPath(d.G(), newDirs)
+		err := mergeIntoPath(d.G(), newDirs)
+		if err != nil {
+			d.G().Log.Debug("Error merging into path: %+v", err)
+		}
 	}
 }
 
@@ -1280,7 +1284,10 @@ func (d *Service) tryLogin(ctx context.Context) {
 
 			if m.G().Keyrings == nil {
 				m.Debug("tryLogin: Configuring Keyrings")
-				m.G().ConfigureKeyring()
+				err := m.G().ConfigureKeyring()
+				if err != nil {
+					m.Debug("error configuring keyring: %s", err)
+				}
 			}
 
 			deng := engine.NewLoginProvisionedDevice(d.G(), "")
@@ -1302,7 +1309,10 @@ func (d *Service) startProfile() {
 			d.G().Log.Warning("error creating cpu profile: %s", err)
 		} else {
 			d.G().Log.Debug("+ starting service cpu profile in %s", cpu)
-			pprof.StartCPUProfile(f)
+			err := pprof.StartCPUProfile(f)
+			if err != nil {
+				d.G().Log.Warning("error starting CPU profile: %s", err)
+			}
 		}
 	}
 
@@ -1313,7 +1323,10 @@ func (d *Service) startProfile() {
 			d.G().Log.Warning("error creating service trace: %s", err)
 		} else {
 			d.G().Log.Debug("+ starting service trace: %s", tr)
-			trace.Start(f)
+			err := trace.Start(f)
+			if err != nil {
+				d.G().Log.Warning("error starting trace: %s", err)
+			}
 		}
 	}
 }

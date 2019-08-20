@@ -24,7 +24,7 @@ func NewTestHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TestHandler {
 
 func (t TestHandler) Test(ctx context.Context, arg keybase1.TestArg) (test keybase1.Test, err error) {
 	client := t.rpcClient()
-	cbArg := keybase1.TestCallbackArg{Name: arg.Name, SessionID: arg.SessionID}
+	cbArg := keybase1.TestCallbackArg(arg)
 	var cbReply string
 	err = client.Call(ctx, "keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply)
 	if err != nil {

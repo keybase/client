@@ -214,7 +214,7 @@ func TestInstallIDHeaders(t *testing.T) {
 	}
 	res, err := api.Get(mctx, APIArg{
 		Endpoint:    "pkg/show",
-		SessionType: APISessionTypeNONE,
+		SessionType: APISessionTypeOPTIONAL,
 		Args:        HTTPArgs{},
 	})
 	if err != nil {
@@ -235,5 +235,37 @@ func TestInstallIDHeaders(t *testing.T) {
 	}
 	if installID != "dummy-install-id" {
 		t.Fatalf("expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
+	}
+}
+func TestInstallIDHeadersAnon(t *testing.T) {
+	tc := SetupTest(t, "test", 1)
+	defer tc.Cleanup()
+	mctx := NewMetaContextForTest(tc)
+
+	// Hack in the device ID and install ID with dummy readers.
+	tc.G.Env.config = &DummyConfigReader{}
+	tc.G.Env.updaterConfig = &DummyUpdaterConfigReader{}
+
+	api, err := NewInternalAPIEngine(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := api.Get(mctx, APIArg{
+		Endpoint:    "pkg/show",
+		SessionType: APISessionTypeNONE,
+		Args:        HTTPArgs{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = res.Body.AtKey("device_id").GetString()
+	if err == nil {
+		t.Fatal("Device ID should not be here")
+	}
+
+	_, err = res.Body.AtKey("install_id").GetString()
+	if err == nil {
+		t.Fatal("Install ID should not be here")
 	}
 }

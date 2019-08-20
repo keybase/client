@@ -651,14 +651,16 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
-		if m.G().Env.GetDeviceID().Exists() {
-			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
-		}
-		if i := m.G().Env.GetInstallID(); i.Exists() {
-			req.Header.Set("X-Keybase-Install-ID", i.String())
-		}
 		if tags := LogTagsToString(m.Ctx()); tags != "" {
 			req.Header.Set("X-Keybase-Log-Tags", tags)
+		}
+		if arg.SessionType != APISessionTypeNONE {
+			if m.G().Env.GetDeviceID().Exists() {
+				req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
+			}
+			if i := m.G().Env.GetInstallID(); i.Exists() {
+				req.Header.Set("X-Keybase-Install-ID", i.String())
+			}
 		}
 	}
 

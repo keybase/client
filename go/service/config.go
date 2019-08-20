@@ -85,7 +85,7 @@ func (h ConfigHandler) getValue(_ context.Context, path string, reader libkb.JSO
 }
 
 func (h ConfigHandler) GuiSetValue(ctx context.Context, arg keybase1.GuiSetValueArg) (err error) {
-	return h.setValue(ctx, keybase1.SetValueArg{Path: arg.Path, Value: arg.Value}, h.G().Env.GetGUIConfig())
+	return h.setValue(ctx, keybase1.SetValueArg(arg), h.G().Env.GetGUIConfig())
 }
 
 func (h ConfigHandler) SetValue(ctx context.Context, arg keybase1.SetValueArg) (err error) {
@@ -116,7 +116,10 @@ func (h ConfigHandler) setValue(_ context.Context, arg keybase1.SetValueArg, w l
 		err = fmt.Errorf("Bad type for setting a value")
 	}
 	if err == nil {
-		h.G().ConfigReload()
+		reloadErr := h.G().ConfigReload()
+		if reloadErr != nil {
+			h.G().Log.Debug("setValue: error reloading: %+v", reloadErr)
+		}
 	}
 	return err
 }
@@ -131,8 +134,7 @@ func (h ConfigHandler) ClearValue(ctx context.Context, path string) error {
 
 func (h ConfigHandler) clearValue(_ context.Context, path string, w libkb.JSONWriter) error {
 	w.DeleteAtPath(path)
-	h.G().ConfigReload()
-	return nil
+	return h.G().ConfigReload()
 }
 
 func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
@@ -330,8 +332,7 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 
 func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
 	// Queue up a load for follower info
-	h.svc.trackerLoader.Queue(ctx, uid)
-	return nil
+	return h.svc.trackerLoader.Queue(ctx, uid)
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
@@ -354,7 +355,10 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
 		return err
 	}
-	h.G().ConfigReload()
+	err = h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
 
 	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
@@ -453,12 +457,21 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 		return fmt.Errorf("failed to convert proxy type into a string")
 	}
 
-	configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
-	configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
-	configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+	err := configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
+	if err != nil {
+		return err
+	}
+	err = configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
+	if err != nil {
+		return err
+	}
+	err = configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+	if err != nil {
+		return err
+	}
 
 	// Reload the config file in order to actually start using the proxy
-	err := h.G().ConfigReload()
+	err = h.G().ConfigReload()
 	if err != nil {
 		return err
 	}
@@ -469,7 +482,10 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 	configWriter := h.G().Env.GetConfigWriter()
 	curValue := h.G().Env.GetRuntimeStatsEnabled()
-	configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	err := configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	if err != nil {
+		return err
+	}
 	if err := h.G().ConfigReload(); err != nil {
 		return err
 	}

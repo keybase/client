@@ -98,7 +98,10 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 		// will be 0, because user has just reset and hasn't
 		// reprovisioned yet
 
-		r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), uv.Uid, uv.MemberEldestSeqno)
+		err := r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), uv.Uid, uv.MemberEldestSeqno)
+		if err != nil {
+			return err
+		}
 	}
 
 	go func() {
@@ -111,7 +114,10 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 		}
 
 		r.G().Log.CDebugf(ctx, "dismissing team.clkr item since rotate succeeded")
-		r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+		err := r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+		if err != nil {
+			r.G().Log.CDebugf(ctx, "error dismissing team.clkr item: %+v", err)
+		}
 	}()
 
 	return nil
