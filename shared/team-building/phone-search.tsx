@@ -10,11 +10,14 @@ type PhoneSearchProps = {
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
+type CurrentState = 'resolved' | 'loading' | 'notfound' | 'none'
+
 const PhoneSearch = (props: PhoneSearchProps) => {
   const [validity, setValidity] = React.useState<boolean>(false)
   const [phoneNumber, setPhoneNumber] = React.useState<string>('')
   const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
 
+  let state: CurrentState = 'none'
   let user: User | null = null
   if (
     validity &&
@@ -34,7 +37,14 @@ const PhoneSearch = (props: PhoneSearchProps) => {
         serviceMap,
         username,
       }
+      state = 'resolved'
     }
+  }
+  if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] === undefined) {
+    state = 'loading'
+  }
+  if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] !== undefined) {
+    state = 'notfound'
   }
 
   let _onContinue = () => {
@@ -73,21 +83,32 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           }}
           result={
             // Pass a component into PhoneInput so it is displayed inline with the number input box
-            validity &&
-            !!user && (
-              <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
-                <Kb.NameWithIcon
-                  size="big"
-                  onClick={_onContinue}
-                  horizontal={true}
-                  username={user.username}
-                  metaOne={user.prettyName}
-                />
-              </Kb.Box2>
-            )
+            <>
+              {state === 'resolved' && !!user && (
+                <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
+                  <Kb.NameWithIcon
+                    size="big"
+                    onClick={_onContinue}
+                    horizontal={true}
+                    username={user.username}
+                    metaOne={user.prettyName}
+                  />
+                </Kb.Box2>
+              )}
+              {state === 'notfound' && (
+                <Kb.Box2 direction="horizontal" style={{height: '64px'}} gap="tiny">
+                  <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
+                    <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
+                  </Kb.Box2>
+                  <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
+                    <Kb.Text type="BodyBig">User not found</Kb.Text>
+                  </Kb.Box2>
+                </Kb.Box2>
+              )}
+            </>
           }
         />
-        {validity && !user && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
+        {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
       </Kb.Box2>
       <Kb.Box style={styles.spaceFillingBox} />
       <Kb.Box2 direction="horizontal" style={styles.buttonContainer} fullWidth={true}>
@@ -105,7 +126,9 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.tiny,
     width: '100%',
   },
+  justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
+  placeholderIcon: {borderRadius: 16, height: '32px'},
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1},
 }))
