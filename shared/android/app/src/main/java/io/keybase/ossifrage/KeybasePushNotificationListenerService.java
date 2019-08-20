@@ -213,6 +213,11 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                 }
                 break;
                 case "chat.readmessage": {
+                    String convID = bundle.getString("c");
+                    // Clear the cache of msgs for this conv id
+                    if (msgCache.containsKey(convID)) {
+                        msgCache.put(convID, new SmallMsgRingBuffer());
+                    }
                     // Cancel any push notifications.
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
                     notificationManager.cancelAll();
