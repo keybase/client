@@ -40,7 +40,7 @@ const connected = Container.connect(
 // eslint-disable-next-line func-call-spacing
 const withState = Container.withStateHandlers<
   {enabled: boolean},
-  {setEnabled: (enabled: boolean) => {enabled: boolean} | undefined},
+  {setEnabled:(enabled: boolean) => {enabled: boolean} | undefined},
   {}
 >({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 

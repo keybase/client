@@ -106,9 +106,9 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
   },
   image: {
-    width: '160%',
-    minHeight: 340,
     marginTop: Styles.globalMargins.medium,
+    minHeight: 340,
+    width: '160%',
   },
   skip: {
     position: 'absolute',
