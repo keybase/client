@@ -265,6 +265,10 @@ func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []ke
 	return c.Provider.FindFollowing(mctx, uids)
 }
 
+func (c *CachedContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ServiceMap, error) {
+	return c.Provider.FindServiceMaps(mctx, uids)
+}
+
 // RemoveContactsCachePhoneEntry removes cached lookup for phone number.
 func (s *ContactCacheStore) RemoveContactsCacheEntries(mctx libkb.MetaContext,
 	phone *keybase1.PhoneNumber, email *keybase1.EmailAddress) {

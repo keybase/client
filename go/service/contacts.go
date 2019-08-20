@@ -110,6 +110,11 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 	return res, nil
 }
 
+func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
+	uids []keybase1.UID) (map[keybase1.UID]contacts.ServiceMap, error) {
+	return c.Provider.FindServiceMaps(mctx, uids)
+}
+
 type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
