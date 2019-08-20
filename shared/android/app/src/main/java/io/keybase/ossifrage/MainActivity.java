@@ -202,91 +202,98 @@ public class MainActivity extends ReactFragmentActivity {
     return filePath;
   }
 
-  // Emits the intent to JS
-  private void emitIntent(Intent intent) {
+  private class IntentEmitter {
+    private final Intent intent;
 
-    // Here we are just reading from the notification bundle.
-    // If other sources start the app, we can get their intent data the same way.
-    Bundle bundleFromNotification = intent.getBundleExtra("notification");
-
-    // TODO this doesn't work and didn't work before
-    String fromShareText = intent.getStringExtra(Intent.EXTRA_TEXT);
-    if (fromShareText == null) {
-      fromShareText = "";
-    }
-    String finalFromShareText = fromShareText;
-
-    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-
-    // If there isn't any data we care about, let's just return
-    if (bundleFromNotification == null && fromShareText.isEmpty() && uri == null) {
-      return;
+    private IntentEmitter(Intent intent) {
+      this.intent = intent;
     }
 
-    // Closure like class so we can keep our emit logic together
-    class Emit implements Runnable {
-      private DeviceEventManagerModule.RCTDeviceEventEmitter emitter;
 
-      Emit(DeviceEventManagerModule.RCTDeviceEventEmitter emitter) {
-        this.emitter = emitter;
+    public void emit() {
+      // Here we are just reading from the notification bundle.
+      // If other sources start the app, we can get their intent data the same way.
+      Bundle bundleFromNotification = intent.getBundleExtra("notification");
+
+      // TODO this doesn't work and didn't work before
+      String fromShareText = intent.getStringExtra(Intent.EXTRA_TEXT);
+      if (fromShareText == null) {
+        fromShareText = "";
+      }
+      String finalFromShareText = fromShareText;
+
+      Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+
+      // If there isn't any data we care about, let's just return
+      if (bundleFromNotification == null && fromShareText.isEmpty() && uri == null) {
+        return;
       }
 
-      @Override
-      public void run() {
-        assert emitter != null;
-        // If there are any other bundle sources we care about, emit them here
-        if (bundleFromNotification != null) {
-          emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
+      // Closure like class so we can keep our emit logic together
+      class Emit implements Runnable {
+        private DeviceEventManagerModule.RCTDeviceEventEmitter emitter;
+
+        Emit(DeviceEventManagerModule.RCTDeviceEventEmitter emitter) {
+          this.emitter = emitter;
         }
 
-        if (!finalFromShareText.isEmpty()) {
-          WritableMap args = Arguments.createMap();
-          args.putString("text", finalFromShareText);
-          emitter.emit("onShareText", args);
-        }
+        @Override
+        public void run() {
+          assert emitter != null;
+          // If there are any other bundle sources we care about, emit them here
+          if (bundleFromNotification != null) {
+            emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
+          }
 
-        if (uri != null) {
-          String filePath = readFileFromUri(getReactContext(), uri);
-          if (filePath != null) {
+          if (!finalFromShareText.isEmpty()) {
             WritableMap args = Arguments.createMap();
-            args.putString("localPath", filePath);
-            emitter.emit("onShareData", args);
+            args.putString("text", finalFromShareText);
+            emitter.emit("onShareText", args);
+          }
+
+          if (uri != null) {
+            String filePath = readFileFromUri(getReactContext(), uri);
+            if (filePath != null) {
+              WritableMap args = Arguments.createMap();
+              args.putString("localPath", filePath);
+              emitter.emit("onShareData", args);
+            }
           }
         }
       }
-    }
 
-    // We need to run this on the main thread, as the React code assumes that is true.
-    // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
-    // "Can't create handler inside thread that has not called Looper.prepare()"
-    Handler handler = new Handler(Looper.getMainLooper());
-    handler.post(() -> {
-      // Construct and load our normal React JS code bundle
-      ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-      ReactContext context = reactInstanceManager.getCurrentReactContext();
+      // We need to run this on the main thread, as the React code assumes that is true.
+      // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
+      // "Can't create handler inside thread that has not called Looper.prepare()"
+      Handler handler = new Handler(Looper.getMainLooper());
+      handler.post(() -> {
+        // Construct and load our normal React JS code bundle
+        ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+        ReactContext context = reactInstanceManager.getCurrentReactContext();
 
-      // If it's constructed, send a notification
-      if (context != null) {
-        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-
-        (new Emit(emitter)).run();
-
-      } else {
-        // Otherwise wait for construction, then send the notification
-        reactInstanceManager.addReactInstanceEventListener(rctContext -> {
-          DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
+        // If it's constructed, send a notification
+        if (context != null) {
+          DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+
           (new Emit(emitter)).run();
-        });
-        if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
-          // Construct it in the background
-          reactInstanceManager.createReactContextInBackground();
+
+        } else {
+          // Otherwise wait for construction, then send the notification
+          reactInstanceManager.addReactInstanceEventListener(rctContext -> {
+            DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+            (new Emit(emitter)).run();
+          });
+          if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
+            // Construct it in the background
+            reactInstanceManager.createReactContextInBackground();
+          }
         }
-      }
-    });
+      });
 
 
+    }
   }
 
   @Override
@@ -297,7 +304,7 @@ public class MainActivity extends ReactFragmentActivity {
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {
-      emitIntent(intent);
+      (new IntentEmitter(intent)).emit();
     }
   }
 
