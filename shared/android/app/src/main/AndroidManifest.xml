@@ -84,7 +84,7 @@
       </receiver>
       <service android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationRegistrationService"/>
       <service
-          android:name="io.keybase.ossifrage.KeybasePushNotificationListenerService"
+          android:name=".KeybasePushNotificationListenerService"
           android:exported="false" >
           <intent-filter>
               <action android:name="com.google.firebase.MESSAGING_EVENT" />
