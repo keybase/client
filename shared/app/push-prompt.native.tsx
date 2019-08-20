@@ -6,7 +6,6 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import HeaderHoc from '../common-adapters/header-hoc'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
-import {withProps} from 'recompose'
 
 type OwnProps = {}
 
@@ -52,7 +51,7 @@ const mapDispatchToProps = dispatch => ({
   onRequestPermissions: () => dispatch(PushGen.createRequestPermissions()),
 })
 
-const PushPromptWithHeader = withProps(
+const PushPromptWithHeader = Container.withProps(
   (props: Props & HeaderHocProps & ReturnType<typeof mapDispatchToProps>): Partial<HeaderHocProps> => ({
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.header}>
