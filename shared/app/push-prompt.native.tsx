@@ -97,7 +97,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   header: {
     backgroundColor: Styles.globalColors.blue,
-    color: Styles.globalColors.white,
     ...Styles.padding(Styles.globalMargins.medium),
     position: 'relative',
   },
