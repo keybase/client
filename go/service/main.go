@@ -83,6 +83,7 @@ type Service struct {
 	trackerLoader   *libkb.TrackerLoader
 	runtimeStats    *runtimestats.Runner
 	httpSrv         *manager.Srv
+	avatarSrv       *avatars.Srv
 }
 
 type Shutdowner interface {
@@ -351,7 +352,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(mctx)
 	teambot.ServiceInit(mctx)
-	avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
+	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
 	contacts.ServiceInit(d.G())
 	return nil
 }
@@ -1218,6 +1219,14 @@ func (d *Service) SimulateGregorCrashForTesting() {
 
 func (d *Service) SetGregorPushStateFilter(f func(m gregor.Message) bool) {
 	d.gregor.SetPushStateFilter(f)
+}
+
+func (d *Service) GetUserAvatar(username string) (string, error) {
+	if d.avatarSrv == nil {
+		return "", fmt.Errorf("AvatarSrv is not ready")
+	}
+
+	return d.avatarSrv.GetUserAvatar(username)
 }
 
 // configurePath is a somewhat unfortunate hack, but as it currently stands,

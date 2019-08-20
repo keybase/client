@@ -365,12 +365,12 @@ class SimpleMarkdownComponent extends PureComponent<
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
     isElectron: {
       whiteSpace: 'pre',
     },
   }),
-})
+}))
 
 export {SimpleMarkdownComponent, simpleMarkdownParser}

@@ -1,11 +1,17 @@
 package io.keybase.ossifrage;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat.MessagingStyle;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.Person;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
-import com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONArray;
@@ -16,17 +22,56 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
-import keybase.PushNotifier;
 
 import static keybase.Keybase.initOnce;
 
-public class KeybasePushNotificationListenerService extends RNPushNotificationListenerService {
+public class KeybasePushNotificationListenerService extends FirebaseMessagingService {
+    public static String CHAT_CHANNEL_ID = "kb_chat_channel";
+    public static String FOLLOW_CHANNEL_ID = "kb_follow_channel";
+    public static String DEVICE_CHANNEL_ID = "kb_device_channel";
+    public static String GENERAL_CHANNEL_ID = "kb_rest_channel";
+
+    // This keeps a small ring buffer cache of the last 5 messages per conversation the user
+    // was notified about to give context to future notifications.
+    private HashMap<String, SmallMsgRingBuffer> msgCache = new HashMap<String, SmallMsgRingBuffer>();
+    // Avoid ever showing doubles
+    private HashSet<String> seenChatNotifications = new HashSet<String>();
+
+    private NotificationCompat.Style buildStyle(String convID, Person person) {
+        MessagingStyle style = new MessagingStyle(person);
+        SmallMsgRingBuffer buf = msgCache.get(convID);
+        if (buf != null) {
+            for (MessagingStyle.Message msg: buf.summary()) {
+                style.addMessage(msg);
+            }
+        }
+
+        return style;
+    }
+
+    private void cacheMsg(String convID, MessagingStyle.Message msg) {
+        SmallMsgRingBuffer buf = msgCache.get(convID);
+        if (buf != null) {
+            buf.add(msg);
+        } else {
+            buf = new SmallMsgRingBuffer();
+            buf.add(msg);
+            msgCache.put(convID, buf);
+        }
+    }
+
+
     @Override
     public void onCreate() {
         try {
@@ -36,10 +81,66 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         }
         String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
         initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+          new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
         NativeLogger.info("KeybasePushNotificationListenerService created. path: " + getApplicationContext().getFilesDir().getPath());
+
+        createNotificationChannel(this);
+
     }
 
+
+    public static void createNotificationChannel(Context context) {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        // Safe to call this multiple times - no ops afterwards
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+
+            // Chat Notifications
+            {
+                CharSequence name = context.getString(R.string.channel_name);
+                String description = context.getString(R.string.channel_description);
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel chat_channel = new NotificationChannel(CHAT_CHANNEL_ID, name, importance);
+                chat_channel.setDescription(description);
+                // Register the channel with the system; you can't change the importance
+                // or other notification behaviors after this
+                notificationManager.createNotificationChannel(chat_channel);
+            }
+
+
+            // Follow Notifications
+            {
+                CharSequence follow_name = context.getString(R.string.notif_follows_name);
+                String follow_description = context.getString(R.string.notif_follow_desc);
+                int follow_importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel follow_channel = new NotificationChannel(FOLLOW_CHANNEL_ID, follow_name, follow_importance);
+                follow_channel.setDescription(follow_description);
+                notificationManager.createNotificationChannel(follow_channel);
+            }
+
+            // Device Notifications
+            {
+                CharSequence device_name = context.getString(R.string.notif_devices_name);
+                String device_description = context.getString(R.string.notif_device_description);
+                int device_importance = NotificationManager.IMPORTANCE_HIGH;
+                NotificationChannel device_channel = new NotificationChannel(DEVICE_CHANNEL_ID, device_name, device_importance);
+                device_channel.setDescription(device_description);
+                notificationManager.createNotificationChannel(device_channel);
+            }
+
+            // The rest of the notifications
+            {
+                CharSequence general_name = context.getString(R.string.general_channel_name);
+                String general_description = context.getString(R.string.general_channel_description);
+                int general_importance = NotificationManager.IMPORTANCE_LOW;
+                NotificationChannel general_channel = new NotificationChannel(GENERAL_CHANNEL_ID, general_name, general_importance);
+                general_channel.setDescription(general_description);
+                notificationManager.createNotificationChannel(general_channel);
+            }
+
+        }
+    }
 
     @Override
     public void onMessageReceived(RemoteMessage message) {
@@ -73,30 +174,42 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         try {
             String type = bundle.getString("type");
             String payload = bundle.getString("m");
-            KBPushNotifier notifier = new KBPushNotifier(getApplicationContext());
-            notifier.setBundle(bundle);
+            KBPushNotifier notifier = new KBPushNotifier(getApplicationContext(), bundle);
             switch (type) {
                 case "chat.newmessageSilent_2": {
-                    Boolean displayPlaintext = "true".equals(bundle.getString("n"));
-                    Integer membersType = Integer.parseInt(bundle.getString("t"));
+                    boolean displayPlaintext = "true".equals(bundle.getString("n"));
+                    int membersType = Integer.parseInt(bundle.getString("t"));
                     String convID = bundle.getString("c");
-                    Integer messageId = Integer.parseInt(bundle.getString("d"));
+                    int messageId = Integer.parseInt(bundle.getString("d"));
                     JSONArray pushes = parseJSONArray(bundle.getString("p"));
                     String pushId = pushes.getString(0);
-                    Integer badgeCount = Integer.parseInt(bundle.getString("b"));
-                    Integer unixTime = Integer.parseInt(bundle.getString("x"));
+                    int badgeCount = Integer.parseInt(bundle.getString("b"));
+                    long unixTime = Integer.parseInt(bundle.getString("x"));
                     String soundName = bundle.getString("s");
 
+                    // Blow the cache if we aren't displaying plaintext
+                    if (!msgCache.containsKey(convID) || !displayPlaintext) {
+                        msgCache.put(convID, new SmallMsgRingBuffer());
+                    }
+
+                    // We've shown this notification already
+                    if (seenChatNotifications.contains(convID + messageId)) {
+                        return;
+                    }
+
+                    notifier.setMsgCache(msgCache.get(convID));
+
                     Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageId, pushId, badgeCount, unixTime, soundName, notifier);
+                    seenChatNotifications.add(convID + messageId);
                 }
                 break;
-                case "chat.newmessage": {
-                    String convID = bundle.getString("convID");
-                    Integer membersType = Integer.parseInt(bundle.getString("t"));
-                    Integer messageId = Integer.parseInt(bundle.getString("msgID"));
-                    Keybase.handleBackgroundNotification(convID, payload, membersType, false, messageId, "", 0, 0, "", notifier);
-                    // FIXME: this seems to be sending phantom notifications...
-                    super.onMessageReceived(message);
+                case "follow": {
+                    notifier.followNotification(bundle.getString("username"), bundle.getString("message"));
+                }
+                break;
+                case "device.revoked":
+                case "device.new": {
+                    notifier.deviceNotification();
                 }
                 break;
                 case "chat.readmessage": {
@@ -105,15 +218,36 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     notificationManager.cancelAll();
                 }
                 break;
+                case "chat.newmessage": {
+                    // The server will send us this if we didn't ack the chat.newmessageSilent_2 within
+                    String convID = bundle.getString("convID");
+                    int membersType = Integer.parseInt(bundle.getString("t"));
+                    int messageId = Integer.parseInt(bundle.getString("msgID"));
+                    // TODO should we just check if this is an exploding message and only show it then?
+                    String messageBody = bundle.getString("message");
+
+                    // We've shown this notification already
+                    if (seenChatNotifications.contains(convID + messageId)) {
+                        return;
+                    } else {
+                        seenChatNotifications.add(convID + messageId);
+                    }
+                    // TODO handle this case better. Right now this isn't as pretty as the notifs
+                    // above. We should use the engine to get more metadata. Making this ugly for now.
+                    // This is only used in exploding messages.
+                    if (messageBody != null && !messageBody.isEmpty()) {
+                        notifier.genericNotification(convID, "", messageBody, bundle, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID);
+                    }
+
+                }
+                break;
                 default:
-                    super.onMessageReceived(message);
+                    notifier.generalNotification();
             }
         } catch (JSONException jex) {
             NativeLogger.error("Couldn't parse json: " + jex.getMessage());
         } catch (Exception ex) {
             NativeLogger.error("Couldn't handle background notification: " + ex.getMessage());
-            // Delegate to the RN code so at least something is sent.
-            super.onMessageReceived(message);
         }
 
     }
@@ -132,5 +266,20 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         } catch (Exception e) {
             return null;
         }
+    }
+}
+
+class SmallMsgRingBuffer {
+    private ArrayList<MessagingStyle.Message> buffer = new ArrayList<MessagingStyle.Message>();
+
+    public void add(MessagingStyle.Message m) {
+        while (buffer.size() > 4) {
+            buffer.remove(0);
+        }
+        buffer.add(m);
+    }
+
+    public List<MessagingStyle.Message> summary() {
+        return buffer;
     }
 }

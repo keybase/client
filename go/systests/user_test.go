@@ -49,14 +49,6 @@ type signupSecretUI struct {
 	parent *signupUI
 }
 
-type signupLoginUI struct {
-	libkb.Contextified
-}
-
-type signupGPGUI struct {
-	libkb.Contextified
-}
-
 func (n *signupUI) GetTerminalUI() libkb.TerminalUI {
 	return &signupTerminalUI{
 		info:         n.info,
@@ -127,8 +119,7 @@ func (n *signupTerminalUI) Output(s string) error {
 	return nil
 }
 func (n *signupTerminalUI) OutputDesc(od libkb.OutputDescriptor, s string) error {
-	switch od {
-	case client.OutputDescriptorPrimaryPaperKey:
+	if od == client.OutputDescriptorPrimaryPaperKey {
 		n.info.displayedPaperKey = s
 	}
 	n.G().Log.Debug("Terminal Output %d: %s", od, s)
@@ -189,7 +180,10 @@ func (n *signupTerminalUI) TerminalSize() (width int, height int) {
 
 func randomUser(prefix string) *signupInfo {
 	b := make([]byte, 5)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
 	sffx := hex.EncodeToString(b)
 	username := fmt.Sprintf("%s_%s", prefix, sffx)
 	return &signupInfo{
@@ -201,7 +195,10 @@ func randomUser(prefix string) *signupInfo {
 
 func randomDevice() string {
 	b := make([]byte, 5)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
 	sffx := hex.EncodeToString(b)
 	return fmt.Sprintf("d_%s", sffx)
 }
@@ -425,13 +422,14 @@ func TestLogoutMulti(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	user1 := tt.addUser("one")
-	go user1.tc.G.Logout(context.TODO())
-	go user1.tc.G.Logout(context.TODO())
-	go user1.tc.G.Logout(context.TODO())
-	go user1.tc.G.Logout(context.TODO())
-	go user1.tc.G.Logout(context.TODO())
-	go user1.tc.G.Logout(context.TODO())
-	user1.tc.G.Logout(context.TODO())
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	go func() { _ = user1.tc.G.Logout(context.TODO()) }()
+	err := user1.tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 }
 
 func TestNoPasswordCliSignup(t *testing.T) {
@@ -481,7 +479,8 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, res)
 
-	G.ConfigureConfig()
+	err = G.ConfigureConfig()
+	require.NoError(t, err)
 	logout := client.NewCmdLogoutRunner(G)
 	err = logout.Run()
 	require.Error(t, err)

@@ -26,13 +26,13 @@ const PopupHeaderText = (props: HeaderTextProps) => (
   </Text>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default PopupHeaderText

@@ -34,7 +34,8 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 		// simulate user that stays offline when not doing anything.
 		// Useful for teams tests to have a user that can post sigs
 		// but will not respond to any rekeyd messages.
-		g.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+		err := g.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+		require.NoError(t, err)
 	}
 
 	u.device = &deviceWrapper{tctx: tctx}

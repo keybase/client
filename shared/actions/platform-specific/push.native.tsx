@@ -16,7 +16,7 @@ import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {isIOS} from '../../constants/platform'
+import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 
 let lastCount = -1
@@ -34,30 +34,31 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
   lastCount = count
 }
 
-// Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
-// The notification is first passed through native code for e.g. plaintext processing.
-// If we were killed, then launching from the notification will go through the
-//   `getStartupDetailsFromInitialPush` flow, via
-//   actions/platfrom-specific/index.native->loadStartupDetails.
-//   * This flow queries the native code's Intent, which contains the original
-//     notification, and then the JS routes us to the right place.
-// If we're backgrounded, then we receive an `androidIntentNotification` event,
-// and execute the listener code below, causing an action that routes us correctly.
+// Push notifications on android are simple.
+// 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
+// 2. When a notification comes in it is handled only on Go/Java side (native only)
+// That's it.
+
+// If you want to pass data along to JS, you do so with an Intent.
+// The notification is built with a pending intent (a description of how to build a real Intent obj).
+// When you click the notification you fire the Intent, which starts the MainActivity and calls `onNewIntent`.
+// Take a look at MainActivity's onNewIntent, onResume, and emitIntent methods.
+//
+// High level:
+// 1. we read the intent that started the MainActivity (in onNewIntent)
+// 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
+// 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
+// 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
-  // If android launched due to push
-  RNEmitter.addListener('androidIntentNotification', evt => {
-    logger.debug('[PushAndroidIntent]', evt && evt.type)
+  RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
-    if (!notification) {
-      return
-    }
-
-    emitter(PushGen.createNotification({notification}))
+    notification && emitter(PushGen.createNotification({notification}))
   })
 
   // TODO: move this out of this file.
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
+  // TODO: fixme this is buggy. See: TRIAGE-462
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
     emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
@@ -356,6 +357,13 @@ const getStartupDetailsFromInitialPush = (): Promise<
     }
 > =>
   new Promise(resolve => {
+    if (isAndroid) {
+      // For android, we won't rely on the initial notification.
+      // We'll do all routing based of the intent
+      resolve(null)
+      return
+    }
+
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
       if (!notification) {

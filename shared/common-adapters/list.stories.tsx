@@ -104,7 +104,7 @@ class PropsChangeTester extends React.PureComponent<
     )
   }
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   listContainer: {
     backgroundColor: Styles.globalColors.red,
     height: 300,
@@ -118,6 +118,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.greyDark,
     height: 64,
   },
-})
+}))
 
 export default load

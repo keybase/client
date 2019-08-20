@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Keybase</string>
     <string name="send_to">Send To</string>
+    <string name="channel_name">Keybase Chat</string>
+    <string name="channel_description">Notifications from chat</string>
+    <string name="general_channel_name">General Notifications</string>
+    <string name="general_channel_description">Other important Keybase notifications</string>
+    <string name="notif_follows_name">New Follows</string>
+    <string name="notif_follow_desc">Let me know when someone follows me</string>
+    <string name="notif_devices_name">Changes with your Devices</string>
+    <string name="notif_device_description">Tell me when my devices have changed</string>
 </resources>
