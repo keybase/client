@@ -31,7 +31,7 @@ const PushPrompt = (props: Props) => (
     </Kb.Text>
     <Kb.Text center={true} type="BodySmall" style={styles.text}>
       This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if you
-      provision a new device, this phone will be contacted.
+      provision a new device, this phone will be notified.
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
       <Kb.WaitingButton
@@ -92,14 +92,13 @@ const PushPromptWithHeader = withProps(
 const styles = Styles.styleSheetCreate(() => ({
   button: {maxHeight: 40},
   buttonContainer: {
-    height: '30%',
+    flex: 1,
     justifyContent: 'flex-end',
   },
   container: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.blue,
     padding: Styles.globalMargins.small,
-    height: '100%',
   },
   header: {
     backgroundColor: Styles.globalColors.blue,
