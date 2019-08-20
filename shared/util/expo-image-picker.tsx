@@ -2,7 +2,10 @@ import {isIOS} from '../constants/platform'
 import * as ImagePicker from 'expo-image-picker'
 import * as Permissions from 'expo-permissions'
 
-export const parseUri = (result: {uri: string}): string => {
+export const parseUri = (result: {uri: string}, withPrefix: boolean = false): string => {
+  if (withPrefix) {
+    return result.uri
+  }
   return isIOS ? result.uri.replace('file://', '') : result.uri.replace('file:', '')
 }
 
