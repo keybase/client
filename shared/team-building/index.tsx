@@ -85,7 +85,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
-  teamBuildingSearchResults: any
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps

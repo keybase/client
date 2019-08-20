@@ -41,7 +41,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     if (user) {
       props.onContinue(user)
     } else {
-      alert('Continuing with not user!')
+      // Continue in order to start a conversation with their phone number
       props.onContinue({
         // substr to chop off the '+' at the start so it is in the correct format for an assertion
         id: phoneNumber.substr(1) + '@phone',
