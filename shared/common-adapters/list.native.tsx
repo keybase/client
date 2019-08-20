@@ -1,7 +1,6 @@
 import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
-import {globalStyles, collapseStyles, styleSheetCreate} from '../styles'
-
+import * as Styles from '../styles'
 import {Props} from './list'
 
 class List<Item> extends PureComponent<Props<Item>> {
@@ -29,7 +28,7 @@ class List<Item> extends PureComponent<Props<Item>> {
 
   render() {
     return (
-      <View style={collapseStyles([styles.outerView, this.props.style])}>
+      <View style={Styles.collapseStyles([styles.outerView, this.props.style])}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         {/* We can use
             initialScrollIndex={this.props.fixedHeight ? this.props.selectedIndex : undefined}
@@ -39,7 +38,7 @@ class List<Item> extends PureComponent<Props<Item>> {
           rows below, and a touch will cause it to 'snap back' so that the
           end of the list is at the bottom.
        */}
-        <View style={globalStyles.fillAbsolute}>
+        <View style={Styles.globalStyles.fillAbsolute}>
           <FlatList
             bounces={this.props.bounces}
             // @ts-ignore TODO styles
@@ -61,11 +60,11 @@ class List<Item> extends PureComponent<Props<Item>> {
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   outerView: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default List

@@ -117,79 +117,81 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
   </Kb.Box2>
 )
 
-const headerCommon = {
-  borderBottomColor: Styles.globalColors.black_10,
-  borderBottomWidth: 1,
-  borderStyle: 'solid' as const,
-}
+const styles = Styles.styleSheetCreate(() => {
+  const headerCommon = {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+  }
 
-const styles = Styles.styleSheetCreate(() => ({
-  footer: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      minHeight: 56,
+  return {
+    footer: Styles.platformStyles({
+      common: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+        minHeight: 56,
+      },
+      isElectron: {
+        borderBottomLeftRadius: Styles.borderRadius,
+        borderBottomRightRadius: Styles.borderRadius,
+        overflow: 'hidden',
+      },
+    }),
+    footerBorder: {
+      borderStyle: 'solid',
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
     },
-    isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+    footerWide: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
     },
-  }),
-  footerBorder: {
-    borderStyle: 'solid',
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-  },
-  footerWide: {
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
-  },
-  header: {
-    ...headerCommon,
-    minHeight: 48,
-  },
-  headerCenter: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
-  headerHideBorder: {
-    borderWidth: 0,
-  },
-  headerLeft: {
-    flexGrow: 0,
-    flexShrink: 0,
-    justifyContent: 'flex-start',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  headerRight: {
-    flexGrow: 0,
-    flexShrink: 0,
-    justifyContent: 'flex-end',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  headerWithIcon: {
-    ...headerCommon,
-    minHeight: 64,
-  },
-  modeDefault: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 560,
-      overflow: 'hidden',
-      width: 400,
+    header: {
+      ...headerCommon,
+      minHeight: 48,
     },
-  }),
-  modeWide: Styles.platformStyles({
-    isElectron: {
-      height: 400,
-      overflow: 'hidden',
-      width: 560,
+    headerCenter: {
+      flexGrow: 1,
+      flexShrink: 1,
     },
-  }),
-  scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
-  scrollWide: Styles.platformStyles({
-    isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
-  }),
-}))
+    headerHideBorder: {
+      borderWidth: 0,
+    },
+    headerLeft: {
+      flexGrow: 0,
+      flexShrink: 0,
+      justifyContent: 'flex-start',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    headerRight: {
+      flexGrow: 0,
+      flexShrink: 0,
+      justifyContent: 'flex-end',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    headerWithIcon: {
+      ...headerCommon,
+      minHeight: 64,
+    },
+    modeDefault: Styles.platformStyles({
+      isElectron: {
+        maxHeight: 560,
+        overflow: 'hidden',
+        width: 400,
+      },
+    }),
+    modeWide: Styles.platformStyles({
+      isElectron: {
+        height: 400,
+        overflow: 'hidden',
+        width: 560,
+      },
+    }),
+    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
+    scrollWide: Styles.platformStyles({
+      isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
+    }),
+  }
+})
 
 export default Modal
