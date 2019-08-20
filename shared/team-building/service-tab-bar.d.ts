@@ -11,13 +11,12 @@ import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
+  onLabelsSeen: () => void
   selectedService: ServiceIdWithContact
   onChangeService: (newService: ServiceIdWithContact) => void
-  onScroll: () => void
-  onSleepy: () => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showServiceResultCount: boolean
-  showLabels: boolean
+  initialShowLabels: boolean
 }
 
 export type IconProps = {

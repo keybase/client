@@ -94,28 +94,50 @@ const ServiceIcon = (props: IconProps) => {
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
-const deriveOnScroll = memoize((onScroll, postponeClose) => () => {
-  onScroll()
-  postponeClose()
+const deriveOnScroll = memoize((deferClose, locked, setShowLabels) => () => {
+  deferClose()
+  if (locked) {
+    // Avoid re-opening labels due to a scroll due to closing them.
+    // That was an issue on android.
+    return
+  }
+  setShowLabels(true)
 })
 
 export const ServiceTabBar = (props: Props) => {
-  const deferClose = useTimeout(props.onSleepy, 2000)
+  const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
+  const [locked, setLocked] = React.useState(false)
+  const onClose = () => {
+    setShowLabels(false)
+    props.onLabelsSeen()
+  }
+  const deferClose = useTimeout(onClose, 2000)
+  const deferUnlock = useTimeout(() => setLocked(false), 250)
+  const onScroll = deriveOnScroll(deferClose, locked, setShowLabels)
   React.useEffect(deferClose, [])
-  const onScroll = deriveOnScroll(props.onScroll, deferClose)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.barPlaceholder}>
-      <Kb.Animated to={{presence: props.showLabels ? 1 : 0}} config={{clamp: true, tension: 400}}>
+      <Kb.Animated
+        onStart={() => setLocked(true)}
+        onRest={deferUnlock}
+        to={{presence: showLabels ? 1 : 0}}
+        config={{clamp: true, tension: 400}}
+      >
         {({presence}) => (
           <Kb.Box2
-            direction="horizontal"
+            direction="vertical"
             fullWidth={true}
             style={Styles.collapseStyles([
               styles.tabBarContainer,
               {height: 48 + labelHeight * presence, shadowOpacity: presence * 0.1},
             ])}
           >
-            <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false} onScroll={onScroll}>
+            <Kb.ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              onScroll={onScroll}
+              scrollEventThrottle={1000}
+            >
               {Constants.services.map(service => (
                 <ServiceIcon
                   key={service}

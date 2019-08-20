@@ -42,8 +42,6 @@ type OwnProps = {
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
-  showServiceBarLabels: 'initial' | boolean
-  setShowServiceBarLabels: (show: boolean) => void
 }
 
 type LocalState = {
@@ -51,7 +49,6 @@ type LocalState = {
   selectedService: ServiceIdWithContact
   highlightedIndex: number
   showRolePicker: boolean
-  showServiceBarLabels: 'initial' | boolean
 }
 
 const initialState: LocalState = {
@@ -59,7 +56,6 @@ const initialState: LocalState = {
   searchString: '',
   selectedService: 'keybase',
   showRolePicker: false,
-  showServiceBarLabels: 'initial',
 }
 
 const deriveSearchResults = memoize(
@@ -163,6 +159,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
+    initialShowServiceBarLabels: !teamBuildingState.teamBuildingLabelsSeen,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -184,10 +181,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       ownProps.searchString
     ),
     showResults: deriveShowResults(ownProps.searchString),
-    showServiceBarLabels:
-      ownProps.showServiceBarLabels === 'initial'
-        ? !teamBuildingState.teamBuildingLabelsSeen
-        : ownProps.showServiceBarLabels,
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
@@ -294,9 +287,7 @@ const deriveOnSearchForMore = memoizeShallow(
 )
 
 const deriveOnAdd = memoize(
-  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, setShowServiceBarLabels) => (
-    userId: string
-  ) => {
+  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
     const user = userFromUserId(userId)
     if (!user) {
       logger.error(`Couldn't find User to add for ${userId}`)
@@ -306,7 +297,6 @@ const deriveOnAdd = memoize(
     changeText('')
     dispatchOnAdd(user)
     resetHighlightIndex(true)
-    setShowServiceBarLabels(false)
   }
 )
 
@@ -495,8 +485,7 @@ const mergeProps = (
     userFromUserId,
     dispatchProps._onAdd,
     ownProps.onChangeText,
-    ownProps.resetHighlightIndex,
-    ownProps.setShowServiceBarLabels
+    ownProps.resetHighlightIndex
   )
 
   const rolePickerProps: RolePickerProps | null =
@@ -564,6 +553,7 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
@@ -579,11 +569,7 @@ const mergeProps = (
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
-    onTabBarScroll: () => ownProps.setShowServiceBarLabels(true),
-    onTabBarSleepy: () => {
-      ownProps.setShowServiceBarLabels(false)
-      dispatchProps._onLabelsSeen()
-    },
+    onTabBarLabelsSeen: dispatchProps._onLabelsSeen,
     onUpArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
@@ -596,7 +582,6 @@ const mergeProps = (
     serviceResultCount,
     showRecs,
     showResults: stateProps.showResults,
-    showServiceBarLabels: stateProps.showServiceBarLabels,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamSoFar,
     title,
@@ -638,8 +623,6 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
   resetHighlightIndex = (resetToHidden?: boolean) =>
     this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
-  setShowServiceBarLabels = (show: boolean) => this.setState({showServiceBarLabels: show})
-
   render() {
     return (
       <Connected
@@ -656,8 +639,6 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
         showServiceResultCount={this.state.searchString !== ''}
-        showServiceBarLabels={this.state.showServiceBarLabels}
-        setShowServiceBarLabels={this.setShowServiceBarLabels}
       />
     )
   }

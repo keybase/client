@@ -73,8 +73,7 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   onClear: () => void
-  onTabBarScroll: () => void
-  onTabBarSleepy: () => void
+  onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
   searchResults: Array<SearchResult> | null
   searchString: string
@@ -83,7 +82,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
-  showServiceBarLabels: boolean
+  initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -504,11 +503,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         <ServiceTabBar
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
-          onScroll={props.onTabBarScroll}
-          onSleepy={props.onTabBarSleepy}
+          onLabelsSeen={props.onTabBarLabelsSeen}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
-          showLabels={props.showServiceBarLabels}
+          initialShowLabels={props.initialShowServiceBarLabels}
         />
         {Styles.isMobile && (
           <ContactsBanner

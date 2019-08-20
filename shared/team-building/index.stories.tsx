@@ -31,6 +31,14 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const commonProps = {
+  initialShowServiceBarLabels: true,
+  onTabBarLabelsSeen: Sb.action('onTabBarLabelsSeen'),
+  showRecs: false,
+  showResults: false,
+  showServiceResultCount: false,
+}
+
 const contactProps = {
   contactsImported: false,
   contactsPermissionStatus: 'granted',
@@ -61,6 +69,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -69,9 +78,6 @@ const load = () => {
         recommendations={[]}
         searchString="chris"
         selectedService="keybase"
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
@@ -97,7 +103,6 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[
@@ -155,6 +160,7 @@ const load = () => {
     ))
     .add('Team Building - No search string', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         includeContacts={true}
@@ -163,9 +169,6 @@ const load = () => {
         recommendations={[]}
         searchString=""
         selectedService="keybase"
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
@@ -191,7 +194,6 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[
@@ -249,6 +251,7 @@ const load = () => {
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -265,9 +268,6 @@ const load = () => {
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -282,7 +282,6 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[]}
@@ -290,6 +289,7 @@ const load = () => {
     ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -297,9 +297,6 @@ const load = () => {
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -308,13 +305,13 @@ const load = () => {
         teamSoFar={[]}
         searchResults={[]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
       />
     ))
     .add('Team Building - One line of users', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -322,9 +319,6 @@ const load = () => {
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -332,7 +326,6 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[
@@ -390,6 +383,7 @@ const load = () => {
     ))
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -397,9 +391,6 @@ const load = () => {
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -407,7 +398,6 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[
@@ -465,6 +455,7 @@ const load = () => {
     ))
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
         {...eventHandlers}
         title="The Title"
@@ -472,9 +463,6 @@ const load = () => {
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        showRecs={false}
-        showResults={false}
-        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -482,7 +470,6 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
         searchResults={[
@@ -604,26 +591,24 @@ const load = () => {
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onScroll={Sb.action('onScroll')}
-        onSleepy={Sb.action('onSleepy')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
-        showLabels={true}
+        initialShowLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onScroll={Sb.action('onScroll')}
-        onSleepy={Sb.action('onSleepy')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={true}
-        showLabels={true}
+        initialShowLabels={true}
       />
     ))
 
@@ -641,11 +626,10 @@ const load = () => {
       <ServiceTabBar
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
-        onScroll={Sb.action('onScroll')}
-        onSleepy={Sb.action('onSleepy')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={false}
-        showLabels={true}
+        initialShowLabels={true}
       />
     ))
   })
