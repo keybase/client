@@ -15,6 +15,10 @@
       "service": "Types.ServiceIdWithContact",
       "limit?": "number"
     },
+    "searchEmailAddress": {
+      "namespace": "Types.AllowedNamespace",
+      "query": "string"
+    },
     "addUsersToTeamSoFar": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
     "removeUsersFromTeamSoFar": {
       "namespace": "Types.AllowedNamespace",
@@ -25,6 +29,11 @@
       "users": "Array<Types.User>",
       "query": "string",
       "service": "Types.ServiceIdWithContact"
+    },
+    "searchEmailAddressResultLoaded": {
+      "namespace": "Types.AllowedNamespace",
+      "user": "Types.User",
+      "query": "string"
     },
     "selectRole": {
       "namespace": "'teams'",

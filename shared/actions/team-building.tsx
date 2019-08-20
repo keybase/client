@@ -20,10 +20,7 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
-  if (service === 'email') {
-    return []
-  }
-
+  console.log('query:', query)
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -33,6 +30,7 @@ const apiSearch = async (
       query,
       service,
     })
+    console.log('results:', results)
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
       const u = Constants.parseRawResultToUser(r, service)
       u && arr.push(u)
@@ -195,6 +193,19 @@ const fetchUserRecs = async (
   }
 }
 
+async function searchEmailAddress(state: TypedState, {payload: {namespace}}: SearchOrRecAction) {
+  const query = state[namespace].teamBuilding.teamBuildingEmailSearchQuery
+  const impTofuQuery = makeImpTofuQuery(query, null)
+
+  const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
+  console.log('nathan user:', users[0])
+  return TeamBuildingGen.createSearchEmailAddressResultLoaded({
+    namespace,
+    query,
+    user: users[0],
+  })
+}
+
 export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => R
@@ -227,6 +238,7 @@ export default function* commonSagas(
     TeamBuildingGen.search,
     filterGenForNs(namespace, searchResultCounts)
   )
+  yield* Saga.chainAction2(TeamBuildingGen.searchEmailAddress, filterForNs(namespace, searchEmailAddress))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

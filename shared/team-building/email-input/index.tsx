@@ -3,13 +3,11 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 // import {isIOS} from '../../constants/platform'
 import * as Styles from '../../styles'
-// import * as TeamBuildingGen from '../../actions/team-building-gen'
-import {ServiceIdWithContact, User} from 'constants/types/team-building'
+import * as TeamBuildingGen from '../../actions/team-building-gen'
+import {AllowedNamespace} from 'constants/types/team-building'
 
 type EmailInputProps = {
-  search: (query: string, service: ServiceIdWithContact) => void
-  onAddRaw: (user: User) => void
-  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
+  namespace: AllowedNamespace
 }
 
 function checkValidEmail(str: string): boolean {
@@ -17,10 +15,18 @@ function checkValidEmail(str: string): boolean {
   return str.length > 3 && emailRegex.test(str)
 }
 
-const EmailInput = (props: EmailInputProps) => {
-  const {search, onAddRaw} = props
+const EmailInput = ({namespace}: EmailInputProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
+  const dispatch = Container.useDispatch()
+  const user = Container.useSelector(state => {
+    console.log('state[namespace].teamBuilding', state[namespace].teamBuilding)
+    return state[namespace].teamBuilding.teamBuildingEmailResult
+  })
+  const isSearching = Container.useSelector(
+    state => state[namespace].teamBuilding.teamBuildingEmailIsSearching
+  )
+
   const onChange = React.useCallback(
     text => {
       setEmailString(text)
@@ -29,39 +35,19 @@ const EmailInput = (props: EmailInputProps) => {
         setEmailValidity(isNewInputValid)
       }
       if (isNewInputValid) {
-        search(text, 'keybase')
+        dispatch(TeamBuildingGen.createSearchEmailAddress({namespace: namespace, query: text}))
       }
     },
-    [isEmailValid, search]
+    [isEmailValid, namespace, dispatch]
   )
-
-  const result =
-    props.teamBuildingSearchResults[emailString] &&
-    props.teamBuildingSearchResults[emailString].keybase &&
-    props.teamBuildingSearchResults[emailString].keybase[0]
-  let user: User | null = null
-  if (result) {
-    let serviceMap = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap
-    let username = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap.keybase
-    let prettyName = props.teamBuildingSearchResults[emailString].keybase[0].prettyName
-    if (serviceMap && username && prettyName) {
-      user = {
-        id: username,
-        prettyName,
-        serviceId: 'keybase',
-        serviceMap,
-        username,
-      }
-    }
-  }
-  console.log('user:', user)
 
   const onSubmit = React.useCallback(() => {
     if (!user) return
-    onAddRaw(user)
+
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     // Clear input
     setEmailString('')
-  }, [onAddRaw, user, setEmailString])
+  }, [dispatch, user, setEmailString, namespace])
 
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
@@ -83,20 +69,21 @@ const EmailInput = (props: EmailInputProps) => {
             value={emailString}
           />
         </Kb.Box2>
-        {!!isEmailValid &&
-          (user !== null ? (
-            <Kb.NameWithIcon
-              colorFollowing={true}
-              horizontal={true}
-              username={user.username}
-              metaOne={user.prettyName}
-              onClick={onSubmit}
-            />
-          ) : (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.ProgressIndicator type="Small" />
-            </Kb.Box2>
-          ))}
+        {isSearching && (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.ProgressIndicator type="Small" />
+          </Kb.Box2>
+        )}
+        {!isSearching && user !== null && user.serviceMap.keybase !== '' && emailString === user.username && (
+          <Kb.NameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            username={user.serviceMap.keybase}
+            metaOne={user.prettyName}
+            onClick={onSubmit}
+            clickType="onClick"
+          />
+        )}
         {/* TODO: multiple email add support */}
         {/* <Kb.Text type="BodySmall" style={styles.subtext}> */}
         {/*   Pro tip: add multiple email addresses by separating them with commas. */}

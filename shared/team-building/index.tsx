@@ -8,7 +8,12 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
+import {
+  AllowedNamespace,
+  ServiceIdWithContact,
+  FollowingState,
+  SelectedUser,
+} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
@@ -63,6 +68,7 @@ export type Props = ContactProps & {
   fetchUserRecs: () => void
   includeContacts: boolean
   highlightedIndex: number | null
+  namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
@@ -437,13 +443,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     let content
     switch (props.selectedService) {
       case 'email':
-        content = (
-          <EmailInput
-            search={props.search}
-            onAddRaw={props.onAddRaw}
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
-          />
-        )
+        content = <EmailInput namespace={props.namespace} />
         break
       // case 'phone':
       //   break

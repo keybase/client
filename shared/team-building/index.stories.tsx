@@ -61,6 +61,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         fetchUserRecs={() => {}}
         includeContacts={true}
@@ -154,6 +155,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         includeContacts={true}
         title="The Title"
         fetchUserRecs={() => {}}
@@ -247,6 +249,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         rolePickerProps={{
@@ -287,6 +290,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString=""
@@ -311,6 +315,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -385,6 +390,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -459,6 +465,7 @@ const load = () => {
       <TeamBuilding
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"

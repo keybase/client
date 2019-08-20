@@ -60,6 +60,22 @@ export default function(
         teamBuildingSelectedService: service,
       })
     }
+    case TeamBuildingGen.searchEmailAddress: {
+      const {query} = action.payload
+      return state.merge({
+        teamBuildingEmailIsSearching: true,
+        teamBuildingEmailSearchQuery: query.trim(),
+      })
+    }
+    case TeamBuildingGen.searchEmailAddressResultLoaded: {
+      console.log('action.payload:', action.payload)
+      const {user} = action.payload
+      console.log('user hi:', user)
+      return state.merge({
+        teamBuildingEmailIsSearching: false,
+        teamBuildingEmailResult: user,
+      })
+    }
 
     case TeamBuildingGen.fetchUserRecs:
       return state
