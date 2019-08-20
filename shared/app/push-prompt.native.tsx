@@ -21,7 +21,7 @@ const PushPrompt = (props: Props) => (
       style={styles.image}
       src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
     />
-    <Kb.Text center={true} type="BodyBig" negative={true}>
+    <Kb.Text center={true} type="BodySemibold" negative={true}>
       Notifications are very important.
     </Kb.Text>
     <Kb.Text center={true} type="Body" negative={true}>
