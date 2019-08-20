@@ -22,21 +22,21 @@ type Props = {
 }
 
 const maxZoom = 10
-const minZoom = 0.5
+const minZoom = 0.1
 
 type State = {
-  height: number
   imageHeight: number
   imageWidth: number
-  width: number
+  viewHeight: number
+  viewWidth: number
 }
 
 class ZoomableImage extends React.Component<Props, State> {
   state = {
-    height: 0,
     imageHeight: 0,
     imageWidth: 0,
-    width: 0,
+    viewHeight: 0,
+    viewWidth: 0,
   }
 
   private mounted = true
@@ -46,14 +46,11 @@ class ZoomableImage extends React.Component<Props, State> {
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
   private opacity = new Animated.Value(0)
-  private scale = Animated.multiply(
-    this.baseScale,
-    this.pinchScale
-  ) /*.interpolate({
+  private scale = Animated.multiply(this.baseScale, this.pinchScale).interpolate({
     extrapolate: 'clamp',
     inputRange: [0, minZoom, maxZoom, 9999],
     outputRange: [minZoom, minZoom, maxZoom, maxZoom],
-  })*/
+  })
   private lastScale = 1
   private onPinchGestureEvent = Animated.event([{nativeEvent: {scale: this.pinchScale}}], {
     useNativeDriver: true,
@@ -70,23 +67,28 @@ class ZoomableImage extends React.Component<Props, State> {
 
   private onDoubleTap = (event: TapGestureHandlerGestureEvent) => {
     if (event.nativeEvent.state === GState.ACTIVE) {
-      this.lastScale = 1
-      this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
-      this.lastPanX = 0
-      this.lastPanY = 0
-      this.panX.flattenOffset()
-      this.panY.flattenOffset()
-      this.pinchScale.setValue(1)
+      const {scale, offsetX, offsetY} = this.getInitialScaleAndOffset(
+        this.state.imageWidth,
+        this.state.imageHeight
+      )
+      this.lastScale = scale
+      // this.lastPanX = offsetX
+      // this.lastPanY = offsetY
+      // this.panX.flattenOffset()
+      // this.panY.flattenOffset()
+      // this.pinchScale.setValue(1)
 
-      const common = {
-        duration: 200,
-        useNativeDriver: true,
-      }
-      Animated.parallel([
-        Animated.timing(this.baseScale, {...common, toValue: this.lastScale}),
-        Animated.timing(this.panX, {...common, toValue: 0}),
-        Animated.timing(this.panY, {...common, toValue: 0}),
-      ]).start()
+      // const common = {
+      // duration: 200,
+      // useNativeDriver: true,
+      // }
+      // Animated.parallel([
+      // Animated.timing(this.baseScale, {...common, toValue: this.lastScale}),
+      // Animated.timing(this.panX, {...common, toValue: offsetX}),
+      // Animated.timing(this.panY, {...common, toValue: offsetY}),
+      // ]).start()
+
+      this.updatePan(offsetX, offsetY, true)
     }
   }
 
@@ -104,15 +106,33 @@ class ZoomableImage extends React.Component<Props, State> {
     }
   }
 
-  private updatePan = (nextX: number, nextY: number) => {
+  // called after a pan is done, or explicitly. We need to set the offset so the initial state is kept
+  private updatePan = (nextX: number, nextY: number, animated?: boolean) => {
     this.lastPanX = nextX
     this.lastPanY = nextY
-    this.panX.setOffset(this.lastPanX)
-    this.panX.setValue(0)
-    this.panY.setOffset(this.lastPanY)
-    this.panY.setValue(0)
+
+    const setupPanForNextGesture = () => {
+      this.panX.setOffset(nextX)
+      this.panX.setValue(0)
+      this.panY.setOffset(nextY)
+      this.panY.setValue(0)
+    }
+
+    if (animated) {
+      const common = {duration: 200, useNativeDriver: true}
+      this.panX.flattenOffset()
+      this.panY.flattenOffset()
+      Animated.parallel([
+        Animated.timing(this.panX, {...common, toValue: nextX}),
+        Animated.timing(this.panY, {...common, toValue: nextY}),
+      ]).start(setupPanForNextGesture) // after the animation we need the offset updated else
+      // a touch won't have the offset
+    } else {
+      setupPanForNextGesture()
+    }
   }
   private onPanGestureStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    // pan is done, update the state
     if (event.nativeEvent.oldState === GState.ACTIVE) {
       this.updatePan(
         this.lastPanX + event.nativeEvent.translationX,
@@ -121,26 +141,32 @@ class ZoomableImage extends React.Component<Props, State> {
     }
   }
 
-  private resetInitial = (width: number, height: number) => {
-    if (!width || !height) {
-      return
+  // given an image size, figure out the scale/pan to constrain it
+  private getInitialScaleAndOffset = (imageWidth: number, imageHeight: number) => {
+    if (!imageWidth || !imageHeight) {
+      return {offsetX: 0, offsetY: 0, scale: 1}
     }
-    const ratioX = this.state.width / width
-    const ratioY = this.state.height / height
+    const ratioX = this.state.viewWidth / imageWidth
+    const ratioY = this.state.viewHeight / imageHeight
 
     let scale: number
     if (ratioX >= 1 && ratioY >= 1) {
       scale = 1
     } else {
+      // do we need to scale down? choose the larger size
       scale = Math.min(ratioX, ratioY)
     }
 
-    this.updateScale(scale)
-
     // image scales from center!
-    const offsetX = (this.state.width - this.state.imageWidth) / 2
-    const offsetY = (this.state.height - this.state.imageHeight) / 2
+    const offsetX = (this.state.viewWidth - this.state.imageWidth) / 2
+    const offsetY = (this.state.viewHeight - this.state.imageHeight) / 2
     // console._log('aaa ', {scale, offsetX, offsetY})
+    return {offsetX, offsetY, scale}
+  }
+
+  private resetInitial = (imageWidth: number, imageHeight: number) => {
+    const {scale, offsetX, offsetY} = this.getInitialScaleAndOffset(imageWidth, imageHeight)
+    this.updateScale(scale)
     this.updatePan(offsetX, offsetY)
   }
 
@@ -164,7 +190,7 @@ class ZoomableImage extends React.Component<Props, State> {
     const {nativeEvent} = event
     const {layout} = nativeEvent
     const {width, height} = layout
-    this.setState({height, width})
+    this.setState({viewHeight: height, viewWidth: width})
   }
 
   componentWillUnmount() {
@@ -206,17 +232,17 @@ class ZoomableImage extends React.Component<Props, State> {
                       key="panner"
                       style={{
                         // backgroundColor: 'red',
-                        height: this.state.height,
+                        height: this.state.viewHeight,
                         transform: [{translateX: this.panX}, {translateY: this.panY}],
-                        width: this.state.width,
+                        width: this.state.viewWidth,
                       }}
                     >
                       <Animated.View
                         key="scaler"
                         style={{
                           // backgroundColor: 'orange',
-                          height: this.state.height,
-                          width: this.state.width,
+                          height: this.state.viewHeight,
+                          width: this.state.viewWidth,
                         }}
                       >
                         <Animated.Image
