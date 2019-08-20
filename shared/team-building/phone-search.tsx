@@ -43,7 +43,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     } else {
       alert('Continuing with not user!')
       props.onContinue({
-        id: phoneNumber,
+        // substr to chop off the '+' at the start so it is in the correct format for an assertion
+        id: phoneNumber.substr(1) + '@phone',
         prettyName: phoneNumber,
         serviceId: 'phone',
         serviceMap: {},
