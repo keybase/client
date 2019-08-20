@@ -5,26 +5,32 @@ import SectionList from './section-list'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
 
+const Kb = {
+  Box2,
+  SectionList,
+  Text,
+}
+
 const simpleRender = ({item}) => (
-  <Text type="Body" style={styles.text}>
+  <Kb.Text type="Body" style={styles.text}>
     {item}
-  </Text>
+  </Kb.Text>
 )
 const simpleHeaderRender = ({section}) => (
-  <Box2
+  <Kb.Box2
     direction="vertical"
     fullWidth={true}
     style={section.data.length % 2 ? styles.otherHeader : styles.header}
   >
-    <Text type="Header" style={styles.text}>
+    <Kb.Text type="Header" style={styles.text}>
       {section.title}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 const customRowRender = ({item}) => (
-  <Text type="BodySemibold" style={styles.text}>
+  <Kb.Text type="BodySemibold" style={styles.text}>
     SPECIAL: {item}
-  </Text>
+  </Kb.Text>
 )
 
 const small: Array<unknown> = []
@@ -53,18 +59,22 @@ customRow[2] = {...customRow[2], renderItem: customRowRender}
 const load = () => {
   Sb.storiesOf('Common/SectionList', module)
     .addDecorator(story => (
-      <Box2 direction="vertical" style={{height: 300, width: '100%'}}>
+      <Kb.Box2 direction="vertical" style={{height: 300, width: '100%'}}>
         {story()}
-      </Box2>
+      </Kb.Box2>
     ))
     .add('Small', () => (
-      <SectionList sections={small} renderItem={simpleRender} renderSectionHeader={simpleHeaderRender} />
+      <Kb.SectionList sections={small} renderItem={simpleRender} renderSectionHeader={simpleHeaderRender} />
     ))
     .add('CustomRowRender', () => (
-      <SectionList sections={customRow} renderItem={simpleRender} renderSectionHeader={simpleHeaderRender} />
+      <Kb.SectionList
+        sections={customRow}
+        renderItem={simpleRender}
+        renderSectionHeader={simpleHeaderRender}
+      />
     ))
     .add('CustomKeys', () => (
-      <SectionList
+      <Kb.SectionList
         sections={customRow}
         renderItem={simpleRender}
         renderSectionHeader={simpleHeaderRender}
@@ -72,10 +82,10 @@ const load = () => {
       />
     ))
     .add('Large', () => (
-      <SectionList sections={large} renderItem={simpleRender} renderSectionHeader={simpleHeaderRender} />
+      <Kb.SectionList sections={large} renderItem={simpleRender} renderSectionHeader={simpleHeaderRender} />
     ))
     .add('LargeSticky', () => (
-      <SectionList
+      <Kb.SectionList
         stickySectionHeadersEnabled={true}
         sections={large}
         renderItem={simpleRender}
