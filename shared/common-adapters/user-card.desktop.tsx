@@ -11,28 +11,29 @@ const Kb = {
 const avatarSize = 128
 
 const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
-  <div style={{...styleContainer, ...outerStyle}}>
+  <div style={Styles.collapseStyles([styles.container, outerStyle])}>
     <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
-    <div style={{...styleInside, ...style}}>{children}</div>
+    <div style={Styles.collapseStyles([styles.inside, style])}>{children}</div>
   </div>
 )
 
-const styleContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height: 430,
-  width: 410,
-}
-
-const styleInside = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  backgroundColor: Styles.globalColors.white,
-  borderRadius: 4,
-  marginTop: -avatarSize / 2,
-  padding: 30,
-  paddingTop: 30 + avatarSize / 2,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    height: 430,
+    width: 410,
+  },
+  inside: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    borderRadius: 4,
+    marginTop: -avatarSize / 2,
+    padding: 30,
+    paddingTop: 30 + avatarSize / 2,
+  },
+}))
 
 export default UserCard
