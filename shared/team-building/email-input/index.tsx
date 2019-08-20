@@ -47,7 +47,8 @@ const EmailInput = ({namespace}: EmailInputProps) => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     // Clear input
     setEmailString('')
-  }, [dispatch, user, setEmailString, namespace])
+    setEmailValidity(false)
+  }, [dispatch, user, setEmailString, setEmailValidity, namespace])
 
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
