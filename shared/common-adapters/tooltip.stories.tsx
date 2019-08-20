@@ -79,7 +79,7 @@ const load = () => {
     ))
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   box: {
     backgroundColor: globalColors.purple_40,
     color: globalColors.white,
@@ -90,6 +90,6 @@ const styles = styleSheetCreate({
   container: {
     margin: globalMargins.xlarge,
   },
-})
+}))
 
 export default load

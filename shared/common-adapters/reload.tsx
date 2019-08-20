@@ -84,7 +84,7 @@ class Reloadable extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   details: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -119,7 +119,7 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-})
+}))
 
 export type OwnProps = {
   children: React.ReactNode

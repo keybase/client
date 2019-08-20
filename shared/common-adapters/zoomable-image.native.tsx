@@ -169,7 +169,7 @@ class ZoomableBox extends React.Component<Props, {height: number; width: number}
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.black,
@@ -182,6 +182,6 @@ const styles = Styles.styleSheetCreate({
     height: '100%',
     width: '100%',
   },
-})
+}))
 
 export default ZoomableBox

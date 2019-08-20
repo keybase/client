@@ -248,7 +248,7 @@ class SectionList extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   box: {
     alignSelf: 'stretch',
     flexShrink: 0,
@@ -265,6 +265,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     top: 0,
   },
-})
+}))
 
 export default SectionList

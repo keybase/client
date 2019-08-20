@@ -72,7 +72,7 @@ class WithTooltip extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: Styles.borderRadius,
@@ -90,6 +90,6 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-word',
     },
   }),
-})
+}))
 
 export default WithTooltip

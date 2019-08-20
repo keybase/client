@@ -57,7 +57,7 @@ const Toast = (props: Props) => {
   ) : null
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     backgroundColor: globalColors.black,
@@ -82,6 +82,6 @@ const styles = styleSheetCreate({
     right: 0,
     top: 0,
   },
-})
+}))
 
 export default Toast

@@ -23,7 +23,7 @@ export default (props: Props) => (
   </FloatingBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.black,
@@ -36,4 +36,4 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.xtiny,
   },
-})
+}))

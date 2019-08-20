@@ -49,7 +49,7 @@ const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Pr
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
@@ -85,6 +85,6 @@ const styles = styleSheetCreate({
   tabSelected: {
     color: globalColors.black,
   },
-})
+}))
 
 export default Tabs

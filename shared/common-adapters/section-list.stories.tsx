@@ -84,10 +84,10 @@ const load = () => {
     ))
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   header: {backgroundColor: 'grey'},
   otherHeader: {backgroundColor: 'orange'},
   text: {width: '100%'},
-})
+}))
 
 export default load

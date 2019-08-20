@@ -20,7 +20,7 @@ const TimelineMarker = ({idx, max, type, style}: Props) => (
 
 const circleSize = 8
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   circleClosed: Styles.platformStyles({
     common: {
       backgroundColor: timeline_grey,
@@ -61,6 +61,6 @@ const styles = Styles.styleSheetCreate({
       height: 8,
     },
   }),
-})
+}))
 
 export default TimelineMarker

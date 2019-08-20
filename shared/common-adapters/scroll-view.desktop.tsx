@@ -44,7 +44,7 @@ const ScrollView = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   overflowAuto: {
     overflow: 'auto',
   },
@@ -52,6 +52,6 @@ const styles = Styles.styleSheetCreate({
     overflowX: 'hidden',
     overflowY: 'auto',
   },
-})
+}))
 
 export default ScrollView
