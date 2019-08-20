@@ -197,7 +197,11 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         return state
       }
       return state.update('phoneNumbers', pn =>
-        pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
+        pn.merge({
+          addedPhone: !action.payload.error,
+          error: action.payload.error,
+          verificationState: action.payload.error ? 'error' : 'success',
+        })
       )
     case SettingsGen.loadedContactImportEnabled:
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
@@ -251,6 +255,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     }
     case SettingsGen.clearAddedEmail: {
       return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
+    case SettingsGen.clearAddedPhone: {
+      return state.mergeIn(['phoneNumbers'], {addedPhone: false})
     }
     // Saga only actions
     case SettingsGen.dbNuke:

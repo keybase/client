@@ -107,6 +107,7 @@ export type _ChatState = {
 export type ChatState = I.RecordOf<_ChatState>
 
 export type _PhoneNumbersState = {
+  addedPhone: boolean
   error: string
   pendingVerification: string
   phones: I.Map<string, PhoneRow> | null

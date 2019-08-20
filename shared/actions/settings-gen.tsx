@@ -15,6 +15,7 @@ export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const clearAddedEmail = 'settings:clearAddedEmail'
+export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
@@ -94,6 +95,7 @@ type _AddedPhoneNumberPayload = {
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearAddedEmailPayload = void
+type _ClearAddedPhonePayload = void
 type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
@@ -245,6 +247,13 @@ export const createResendVerificationForPhoneNumber = (
 export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
   payload,
   type: clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added a phone number.
+ */
+export const createClearAddedPhone = (payload: _ClearAddedPhonePayload): ClearAddedPhonePayload => ({
+  payload,
+  type: clearAddedPhone,
 })
 /**
  * Reset state used for showing we just added an email.
@@ -497,6 +506,10 @@ export type CheckPasswordPayload = {
 export type ClearAddedEmailPayload = {
   readonly payload: _ClearAddedEmailPayload
   readonly type: typeof clearAddedEmail
+}
+export type ClearAddedPhonePayload = {
+  readonly payload: _ClearAddedPhonePayload
+  readonly type: typeof clearAddedPhone
 }
 export type ClearAddingEmailPayload = {
   readonly payload: _ClearAddingEmailPayload
@@ -753,6 +766,7 @@ export type Actions =
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
   | ClearAddedEmailPayload
+  | ClearAddedPhonePayload
   | ClearAddingEmailPayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
