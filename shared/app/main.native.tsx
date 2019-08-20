@@ -20,7 +20,7 @@ class Main extends React.Component<Props> {
       <>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall">
-            You're on the alpha track Want to stay on the latest alpha track? Opt-in to stay :{' '}
+            You're on the alpha track. Want to stay on the latest alpha track? Opt-in to stay :{' '}
             <Kb.Text
               onClickURL="https://play.google.com/apps/internaltest/4700678063463294704"
               underline={true}
