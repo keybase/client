@@ -388,6 +388,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletUpkeep()
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
+	d.runBackgroundContactSync()
 	d.runTLFUpgrade()
 	d.runTrackerLoader(ctx)
 	d.runRuntimeStats(ctx)
@@ -931,6 +932,23 @@ func (d *Service) runBackgroundBoxAuditScheduler() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping background BoxAuditorScheduler")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundContactSync() {
+	eng := engine.NewContactSyncBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background ContactSync error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background ContactSync")
 		eng.Shutdown()
 		return nil
 	})

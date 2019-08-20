@@ -1224,6 +1224,10 @@ func (c *ChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.Conversation
 	return nil
 }
 
+func (c *ChatUI) TriggerContactSync(context.Context, int) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {

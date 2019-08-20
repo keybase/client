@@ -379,3 +379,7 @@ func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusAr
 func (c *ChatCLIUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) TriggerContactSync(context.Context, int) error {
+	return nil
+}

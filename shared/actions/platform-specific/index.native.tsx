@@ -605,7 +605,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     'requestContactPermissions'
   )
   yield* Saga.chainAction2(
-    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
   )
