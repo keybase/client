@@ -180,7 +180,10 @@ func (n *signupTerminalUI) TerminalSize() (width int, height int) {
 
 func randomUser(prefix string) *signupInfo {
 	b := make([]byte, 5)
-	_, _ = rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
 	sffx := hex.EncodeToString(b)
 	username := fmt.Sprintf("%s_%s", prefix, sffx)
 	return &signupInfo{
@@ -192,7 +195,10 @@ func randomUser(prefix string) *signupInfo {
 
 func randomDevice() string {
 	b := make([]byte, 5)
-	_, _ = rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
 	sffx := hex.EncodeToString(b)
 	return fmt.Sprintf("d_%s", sffx)
 }
