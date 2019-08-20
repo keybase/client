@@ -58,15 +58,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   return (
     <>
-      <Kb.Box2
-        direction="vertical"
-        gap="tiny"
-        style={{
-          backgroundColor: Styles.globalColors.blueGrey,
-          paddingTop: Styles.globalMargins.tiny,
-          width: '100%',
-        }}
-      >
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle}>
         <PhoneInput
           // Supply a key to force reset the PhoneInput state after a user is added
           key={phoneInputKey}
@@ -83,37 +75,39 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             // Pass a component into PhoneInput so it is displayed inline with the number input box
             validity &&
             !!user && (
-              <Kb.ClickableBox onClick={_onContinue} style={{margin: Styles.globalMargins.tiny}}>
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Avatar size={48} username={user.username} showFollowingStatus={true} />
-                  <Kb.Box2 direction="vertical">
-                    <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.greenDark}}>
-                      {user.username}
-                    </Kb.Text>
-                    <Kb.Text type="Body">{user.prettyName}</Kb.Text>
-                  </Kb.Box2>
-                </Kb.Box2>
-              </Kb.ClickableBox>
+              <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
+                <Kb.NameWithIcon
+                  size="big"
+                  onClick={_onContinue}
+                  horizontal={true}
+                  username={user.username}
+                  metaOne={user.prettyName}
+                />
+              </Kb.Box2>
             )
           }
         />
-        {validity && !user && <Kb.ProgressIndicator type="Small" style={{alignSelf: 'center'}} />}
+        {validity && !user && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
       </Kb.Box2>
-      <Kb.Box style={{backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1}} />
-      <Kb.Box2
-        direction="horizontal"
-        style={{backgroundColor: Styles.globalColors.blueGrey, justifyContent: 'center'}}
-        fullWidth={true}
-      >
-        <Kb.Button
-          style={{marginBottom: Styles.globalMargins.tiny, width: '80%'}}
-          onClick={_onContinue}
-          label="Continue"
-          disabled={!validity}
-        />
+      <Kb.Box style={styles.spaceFillingBox} />
+      <Kb.Box2 direction="horizontal" style={styles.buttonContainer} fullWidth={true}>
+        <Kb.Button style={styles.button} onClick={_onContinue} label="Continue" disabled={!validity} />
       </Kb.Box2>
     </>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  button: {marginBottom: Styles.globalMargins.tiny, width: '80%'},
+  buttonContainer: {backgroundColor: Styles.globalColors.blueGrey, justifyContent: 'center'},
+  containerStyle: {
+    backgroundColor: Styles.globalColors.blueGrey,
+    paddingTop: Styles.globalMargins.tiny,
+    width: '100%',
+  },
+  loading: {alignSelf: 'center'},
+  resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
+  spaceFillingBox: {backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1},
+}))
 
 export default PhoneSearch
