@@ -20,12 +20,9 @@ export default (
     switch (action.type) {
       case DevicesGen.resetStore:
         return initialState
-      case DevicesGen.loaded: {
-        const deviceMap = new Map()
-        action.payload.devices.forEach(d => deviceMap.set(d.deviceID, d))
-        draftState.deviceMap = deviceMap
+      case DevicesGen.loaded:
+        draftState.deviceMap = new Map(action.payload.devices.map(d => [d.deviceID, d]))
         return
-      }
       case DevicesGen.endangeredTLFsLoaded: {
         const endangeredTLFMap = new Map(draftState.endangeredTLFMap)
         endangeredTLFMap.set(action.payload.deviceID, new Set(action.payload.tlfs))
