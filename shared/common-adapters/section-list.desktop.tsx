@@ -8,6 +8,11 @@ import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 import {renderElementOrComponentOrNot} from '../util/util'
 
+const Kb = {
+  Box2,
+  ScrollView,
+}
+
 /*
  * How this works: We take in the same data structure as RN does Array<Section> and flatten it into an array (this._flat)
  * We make 2 types 'body' and 'header' and bookkeep which header body parts are in. We then feed this into a react-list
@@ -79,10 +84,10 @@ class SectionList extends React.Component<Props, State> {
         item.flatSectionIndex === 0
       ) {
         // don't render the first one since its always there
-        return <Box2 direction="vertical" key="stickyPlaceholder" />
+        return <Kb.Box2 direction="vertical" key="stickyPlaceholder" />
       }
       return (
-        <Box2
+        <Kb.Box2
           direction="vertical"
           key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
           style={
@@ -95,11 +100,11 @@ class SectionList extends React.Component<Props, State> {
           fullWidth={true}
         >
           {this.props.renderSectionHeader({section: section.section})}
-        </Box2>
+        </Kb.Box2>
       )
     } else if (item.type === 'placeholder') {
       return (
-        <Box2
+        <Kb.Box2
           direction="vertical"
           key={`blankPlaceholder${item.flatSectionIndex}`}
           style={{height: 1}}
@@ -108,13 +113,13 @@ class SectionList extends React.Component<Props, State> {
       )
     } else {
       return (
-        <Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
+        <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
           {(section.section.renderItem || this.props.renderItem)({
             index: item.indexWithinSection,
             item: item.item,
             section: section.section,
           })}
-        </Box2>
+        </Kb.Box2>
       )
     }
   }
@@ -224,9 +229,9 @@ class SectionList extends React.Component<Props, State> {
       this._itemRenderer(this.state.currentSectionFlatIndex, this.state.currentSectionFlatIndex, true)
 
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {this.props.disableAbsoluteStickyHeader && stickyHeader}
-        <ScrollView
+        <Kb.ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
@@ -241,9 +246,9 @@ class SectionList extends React.Component<Props, State> {
             ref={this._listRef}
             type="variable"
           />
-        </ScrollView>
+        </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}
-      </Box2>
+      </Kb.Box2>
     )
   }
 }

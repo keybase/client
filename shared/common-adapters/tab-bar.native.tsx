@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import {get} from 'lodash-es'
 import {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
@@ -7,7 +8,14 @@ import Box from './box'
 import Icon from './icon'
 import Meta from './meta'
 import Text from './text'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+
+const Kb = {
+  Badge,
+  Box,
+  Icon,
+  Meta,
+  Text,
+}
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
@@ -17,25 +25,28 @@ class TabBarItem extends React.Component<ItemProps> {
 
 class SimpleTabBarButton extends React.Component<ItemProps> {
   render() {
-    const selectedColor = this.props.selectedColor || globalColors.blue
+    const selectedColor = this.props.selectedColor || Styles.globalColors.blue
     return (
-      <Box style={{...stylesTab, ...this.props.style}}>
-        <Text
+      <Kb.Box style={{...stylesTab, ...this.props.style}}>
+        <Kb.Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black : globalColors.black_50}}
+          style={{
+            ...stylesLabel,
+            color: this.props.selected ? Styles.globalColors.black : Styles.globalColors.black_50,
+          }}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
-        </Text>
-        <Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
-      </Box>
+        </Kb.Text>
+        <Kb.Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
+      </Kb.Box>
     )
   }
 }
 
 const UnderlineHighlight = () => (
-  <Box
+  <Kb.Box
     style={{
-      backgroundColor: globalColors.white,
+      backgroundColor: Styles.globalColors.white,
       borderTopLeftRadius: 3,
       borderTopRightRadius: 3,
       bottom: 0,
@@ -54,16 +65,16 @@ const TabBarButton = (props: TabBarButtonProps) => {
   if (props.badgeNumber) {
     if (props.badgePosition === 'top-right') {
       badgeComponent = (
-        <Badge badgeNumber={props.badgeNumber} badgeStyle={{left: '52%', position: 'absolute', top: 2}} />
+        <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={{left: '52%', position: 'absolute', top: 2}} />
       )
     } else {
-      badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
+      badgeComponent = <Kb.Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
     }
   }
 
   const content = (
-    <Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
-      <Icon
+    <Kb.Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
+      <Kb.Icon
         type={
           // @ts-ignore
           props.source.icon
@@ -75,23 +86,23 @@ const TabBarButton = (props: TabBarButtonProps) => {
         sizeType="Big"
       />
       {!!props.label && (
-        <Text center={true} type="BodySemibold" style={{...props.styleLabel}}>
+        <Kb.Text center={true} type="BodySemibold" style={{...props.styleLabel}}>
           {props.label}
-        </Text>
+        </Kb.Text>
       )}
       {badgeComponent}
       {props.isNew && (
-        <Box style={styleBadgeNav}>
-          <Meta
+        <Kb.Box style={styleBadgeNav}>
+          <Kb.Meta
             title="new"
             size="Small"
             style={{alignSelf: 'center', marginRight: 4}}
-            backgroundColor={globalColors.blueLight}
+            backgroundColor={Styles.globalColors.blueLight}
           />
-        </Box>
+        </Kb.Box>
       )}
       {props.underlined && <UnderlineHighlight />}
-    </Box>
+    </Kb.Box>
   )
   if (props.onClick) {
     return (
@@ -111,11 +122,11 @@ class TabBar extends React.Component<Props> {
       const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
-          <Box style={{flex: 1}}>
-            <Box style={item.props.styleContainer}>
+          <Kb.Box style={{flex: 1}}>
+            <Kb.Box style={item.props.styleContainer}>
               {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
-            </Box>
-          </Box>
+            </Kb.Box>
+          </Kb.Box>
         </NativeTouchableWithoutFeedback>
       )
     })
@@ -127,17 +138,19 @@ class TabBar extends React.Component<Props> {
 
   render() {
     const tabBarButtons = (
-      <Box style={globalStyles.flexBoxColumn}>
-        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>{this._labels()}</Box>
-        {this.props.underlined && <Box style={stylesUnderline} />}
-      </Box>
+      <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
+          {this._labels()}
+        </Kb.Box>
+        {this.props.underlined && <Kb.Box style={stylesUnderline} />}
+      </Kb.Box>
     )
     return (
-      <Box style={{...stylesContainer, ...this.props.style}}>
+      <Kb.Box style={{...stylesContainer, ...this.props.style}}>
         {!this.props.tabBarOnBottom && tabBarButtons}
         {this._content()}
         {this.props.tabBarOnBottom && tabBarButtons}
-      </Box>
+      </Kb.Box>
     )
   }
 }
@@ -149,19 +162,19 @@ const styleBadgeNav = {
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
+  ...Styles.globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.fullHeight,
 }
 
 const stylesTab = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'flex-end',
 }
 
 const stylesTabBarButtonIcon = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
@@ -169,7 +182,7 @@ const stylesTabBarButtonIcon = {
 }
 
 const stylesLabel = {
-  height: globalMargins.small,
+  height: Styles.globalMargins.small,
   marginBottom: 11,
   marginTop: 11,
 }
@@ -187,7 +200,7 @@ const stylesUnselected = {
 
 const stylesUnderline = {
   alignSelf: 'stretch',
-  backgroundColor: globalColors.black_10,
+  backgroundColor: Styles.globalColors.black_10,
   height: NativeStyleSheet.hairlineWidth,
 }
 

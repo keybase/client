@@ -1,10 +1,15 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import FloatingBox from './floating-box'
 import Box from './box'
 import {useTimeout} from './use-timers'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import {Props} from './toast'
+
+const Kb = {
+  Box,
+  FloatingBox,
+}
 
 const noop = () => {}
 
@@ -45,32 +50,36 @@ const Toast = (props: Props) => {
     return noop
   }, [shouldRender])
   return shouldRender ? (
-    <FloatingBox>
-      <Box pointerEvents="none" style={styles.wrapper}>
+    <Kb.FloatingBox>
+      <Kb.Box pointerEvents="none" style={styles.wrapper}>
         <NativeAnimated.View
-          style={collapseStyles([styles.container, props.containerStyle, {opacity: opacityRef.current}])}
+          style={Styles.collapseStyles([
+            styles.container,
+            props.containerStyle,
+            {opacity: opacityRef.current},
+          ])}
         >
           {props.children}
         </NativeAnimated.View>
-      </Box>
-    </FloatingBox>
+      </Kb.Box>
+    </Kb.FloatingBox>
   ) : null
 }
 
-const styles = styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
-    backgroundColor: globalColors.black,
+    backgroundColor: Styles.globalColors.black,
     borderRadius: 70,
     borderWidth: 0,
     display: 'flex',
     height: 140,
     justifyContent: 'center',
-    margin: globalMargins.xtiny,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
+    margin: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
     width: 140,
   },
   wrapper: {

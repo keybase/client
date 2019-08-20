@@ -1,44 +1,49 @@
-import Avatar from './avatar'
 import * as React from 'react'
+import * as Styles from '../styles'
+import Avatar from './avatar'
 import Box from './box'
-import {globalStyles, globalColors} from '../styles'
 
 import {Props} from './user-card'
+
+const Kb = {
+  Avatar,
+  Box,
+}
 
 const avatarSize = 96
 
 const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
-  <Box style={{...styleContainer, ...outerStyle}}>
-    <Box style={styleAvatar}>
-      <Box style={styleAvatarBackground} />
-      <Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
-    </Box>
-    <Box style={{...styleInside, ...style}}>{children}</Box>
-  </Box>
+  <Kb.Box style={{...styleContainer, ...outerStyle}}>
+    <Kb.Box style={styleAvatar}>
+      <Kb.Box style={styleAvatarBackground} />
+      <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+    </Kb.Box>
+    <Kb.Box style={{...styleInside, ...style}}>{children}</Kb.Box>
+  </Kb.Box>
 )
 
 const styleContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'stretch',
 }
 
 const styleInside = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: globalColors.white,
+  backgroundColor: Styles.globalColors.white,
   justifyContent: 'flex-start',
   padding: 16,
 }
 
 const styleAvatar = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   alignSelf: 'stretch',
   marginTop: 0,
 }
 
 const styleAvatarBackground = {
-  backgroundColor: globalColors.white,
+  backgroundColor: Styles.globalColors.white,
   height: avatarSize / 2,
   left: 0,
   position: 'absolute',

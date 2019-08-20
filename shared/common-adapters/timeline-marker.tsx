@@ -3,6 +3,10 @@ import Box from './box'
 import * as Styles from '../styles'
 import {timeline_grey} from './timeline-marker.meta'
 
+const Kb = {
+  Box,
+}
+
 export type Props = {
   idx: number
   max: number
@@ -11,11 +15,11 @@ export type Props = {
 }
 
 const TimelineMarker = ({idx, max, type, style}: Props) => (
-  <Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16, ...style}}>
-    <Box style={{...styles.line, opacity: idx ? 1 : 0}} />
-    {type === 'closed' ? <Box style={styles.circleClosed} /> : <Box style={styles.circleOpen} />}
-    <Box style={{...styles.line, opacity: idx < max ? 1 : 0}} />
-  </Box>
+  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16, ...style}}>
+    <Kb.Box style={{...styles.line, opacity: idx ? 1 : 0}} />
+    {type === 'closed' ? <Kb.Box style={styles.circleClosed} /> : <Kb.Box style={styles.circleOpen} />}
+    <Kb.Box style={{...styles.line, opacity: idx < max ? 1 : 0}} />
+  </Kb.Box>
 )
 
 const circleSize = 8
