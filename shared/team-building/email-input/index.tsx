@@ -7,10 +7,28 @@ type EmailInputProps = {
   onSubmitEmail: () => void
 }
 
+function checkValidEmail(str: string): boolean {
+  const emailRegex = /^(\S+@\S+\.\S+)$/
+  return str.length > 3 && emailRegex.test(str)
+}
+
 const EmailInput = (props: EmailInputProps) => {
+  const [isEmailValid, setEmailValidity] = React.useState(false)
+  const onChange = React.useCallback(
+    text => {
+      const isNewInputValid = checkValidEmail(text)
+      if (isNewInputValid !== isEmailValid) {
+        setEmailValidity(isNewInputValid)
+      }
+    },
+    [isEmailValid]
+  )
+  const onSubmit = isEmailValid ? props.onSubmitEmail : undefined
+  console.log('isEmailValid:', isEmailValid)
+
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background} gap="tiny">
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.Box2
           fullWidth={true}
           alignItems="center"
@@ -22,10 +40,9 @@ const EmailInput = (props: EmailInputProps) => {
             flexable={true}
             keyboardType={isIOS ? 'number-pad' : 'numeric'}
             placeholder="Email address"
-            onChangeText={text => console.log(text)}
-            onEnterKeyDown={props.onSubmitEmail}
+            onChangeText={onChange}
+            onEnterKeyDown={onSubmit}
             // value={this.state.formatted}
-            // disabled={this.state.country === ''}
             textContentType="emailAddress"
           />
         </Kb.Box2>
@@ -35,7 +52,7 @@ const EmailInput = (props: EmailInputProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Button label="Continue" fullWidth={true} onClick={props.onSubmitEmail} />
+          <Kb.Button label="Continue" fullWidth={true} onClick={onSubmit} disabled={!isEmailValid} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
