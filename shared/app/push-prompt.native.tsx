@@ -21,16 +21,12 @@ const PushPrompt = (props: Props) => (
       style={styles.image}
       src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
     />
-    <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
-      It's{' '}
-      <Kb.Text center={true} type="BodySmallSemiboldItalic" style={styles.text}>
-        very
-      </Kb.Text>{' '}
-      important you enable notifications.
+    <Kb.Text center={true} type="BodyBig" negative={true}>
+      Notifications are very important.
     </Kb.Text>
-    <Kb.Text center={true} type="BodySmall" style={styles.text}>
-      This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if you
-      provision a new device, this phone will be notified.
+    <Kb.Text center={true} type="Body" negative={true}>
+      Your phone might need to be contacted, for example if you install Keybase on another device. This is a
+      crucial security setting.
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
       <Kb.WaitingButton
@@ -113,9 +109,6 @@ const styles = Styles.styleSheetCreate(() => ({
   skip: {
     position: 'absolute',
     right: Styles.globalMargins.small,
-  },
-  text: {
-    color: Styles.globalColors.white,
   },
 }))
 
