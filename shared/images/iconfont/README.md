@@ -2,7 +2,7 @@
 
 ### Dependencies
 
-[webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
+[webfonts-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
 [fontforge](https://fontforge.github.io/en-US/downloadsj)
 
