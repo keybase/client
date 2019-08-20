@@ -18,6 +18,28 @@ class Main extends React.Component<Props> {
     // TODO likely collapse index.native/main.native/nav.native etc
     return (
       <>
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="BodySmall">
+            You're on the alpha track Want to stay on the latest alpha track? Opt-in to stay :{' '}
+            <Kb.Text
+              onClickURL="https://play.google.com/apps/internaltest/4700678063463294704"
+              underline={true}
+              type="BodySmallPrimaryLink"
+            >
+              https://play.google.com/apps/internaltest/4700678063463294704
+            </Kb.Text>
+          </Kb.Text>
+          <Kb.Text
+            onClickURL="https://play.google.com/apps/testing/io.keybase.ossifrage"
+            underline={true}
+            type="BodySmall"
+          >
+            Or Opt-out of the alpha track here:
+            <Kb.Text type="BodySmallPrimaryLink">
+              https://play.google.com/apps/testing/io.keybase.ossifrage
+            </Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
         <RouterSwitcheroo />
         <GatewayDest
           name="popup-root"
