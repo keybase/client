@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {get} from 'lodash-es'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 // import {isIOS} from '../../constants/platform'
@@ -37,23 +36,28 @@ const EmailInput = (props: EmailInputProps) => {
   )
 
   const result =
-    props.teamBuildingSearchResults[emailString] && props.teamBuildingSearchResults[emailString].keybase[0]
-  let user
+    props.teamBuildingSearchResults[emailString] &&
+    props.teamBuildingSearchResults[emailString].keybase &&
+    props.teamBuildingSearchResults[emailString].keybase[0]
+  let user: User | null = null
   if (result) {
     let serviceMap = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap
     let username = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap.keybase
     let prettyName = props.teamBuildingSearchResults[emailString].keybase[0].prettyName
-    user = {
-      id: username,
-      prettyName,
-      serviceId: 'keybase',
-      serviceMap,
-      username,
+    if (serviceMap && username && prettyName) {
+      user = {
+        id: username,
+        prettyName,
+        serviceId: 'keybase',
+        serviceMap,
+        username,
+      }
     }
   }
   console.log('user:', user)
 
   const onSubmit = React.useCallback(() => {
+    if (!user) return
     onAddRaw(user)
     // Clear input
     setEmailString('')
@@ -71,14 +75,28 @@ const EmailInput = (props: EmailInputProps) => {
           <Kb.PlainInput
             style={Styles.collapseStyles([styles.plainInput])}
             flexable={true}
-            // keyboardType={isIOS ? 'number-pad' : 'numeric'}
+            keyboardType="email-address"
+            textContentType="emailAddress"
             placeholder="Email address"
             onChangeText={onChange}
             onEnterKeyDown={onSubmit}
             value={emailString}
-            textContentType="emailAddress"
           />
         </Kb.Box2>
+        {!!isEmailValid &&
+          (user !== null ? (
+            <Kb.NameWithIcon
+              colorFollowing={true}
+              horizontal={true}
+              username={user.username}
+              metaOne={user.prettyName}
+              onClick={onSubmit}
+            />
+          ) : (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.ProgressIndicator type="Small" />
+            </Kb.Box2>
+          ))}
         {/* TODO: multiple email add support */}
         {/* <Kb.Text type="BodySmall" style={styles.subtext}> */}
         {/*   Pro tip: add multiple email addresses by separating them with commas. */}
