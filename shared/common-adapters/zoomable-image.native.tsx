@@ -127,7 +127,7 @@ class ZoomableImage extends React.Component<Props, State> {
     }
     const ratioX = this.state.width / width
     const ratioY = this.state.height / height
-    console._log('aaaa ratio', {width, height, ratioX, ratioY})
+
     let scale: number
     if (ratioX >= 1 && ratioY >= 1) {
       scale = 1
@@ -135,10 +135,13 @@ class ZoomableImage extends React.Component<Props, State> {
       scale = Math.min(ratioX, ratioY)
     }
 
-    scale = 0.1
-    // this.u
-    // dateScale(scale)
-    // this.updatePan((-this.state.width * scale) / 2, 0)
+    this.updateScale(scale)
+
+    // image scales from center!
+    const offsetX = (this.state.width - this.state.imageWidth) / 2
+    const offsetY = (this.state.height - this.state.imageHeight) / 2
+    // console._log('aaa ', {scale, offsetX, offsetY})
+    this.updatePan(offsetX, offsetY)
   }
 
   private updateImageSize = (imageWidth: number, imageHeight: number) => {
@@ -161,7 +164,7 @@ class ZoomableImage extends React.Component<Props, State> {
     const {nativeEvent} = event
     const {layout} = nativeEvent
     const {width, height} = layout
-    this.setState({width, height})
+    this.setState({height, width})
   }
 
   componentWillUnmount() {
@@ -179,7 +182,7 @@ class ZoomableImage extends React.Component<Props, State> {
   }
 
   render() {
-      // unclear how scale works. just added width/height to innder views
+    // unclear how scale works. just added width/height to innder views
     return (
       <TapGestureHandler onHandlerStateChange={this.onDoubleTap} numberOfTaps={2}>
         <View style={{flexGrow: 1, position: 'relative'}} onLayout={this.onLayout}>
@@ -202,25 +205,29 @@ class ZoomableImage extends React.Component<Props, State> {
                     <Animated.View
                       key="panner"
                       style={{
-                        height: this.state.imageHeight,
-                        width: this.state.imageWidth,
+                        // backgroundColor: 'red',
+                        height: this.state.height,
                         transform: [{translateX: this.panX}, {translateY: this.panY}],
+                        width: this.state.width,
                       }}
                     >
                       <Animated.View
                         key="scaler"
                         style={{
-                          height: this.state.imageHeight,
-                          width: this.state.imageWidth,
-                          transform: [{scale: this.scale}],
+                          // backgroundColor: 'orange',
+                          height: this.state.height,
+                          width: this.state.width,
                         }}
                       >
                         <Animated.Image
                           onLoad={this.props.onLoad}
                           style={{
                             height: this.state.imageHeight,
+                            left: 0,
                             opacity: this.opacity,
                             position: 'absolute',
+                            top: 0,
+                            transform: [{scale: this.scale}],
                             width: this.state.imageWidth,
                           }}
                           source={{uri: this.props.uri}}
