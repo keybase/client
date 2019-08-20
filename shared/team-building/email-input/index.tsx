@@ -1,10 +1,16 @@
 import * as React from 'react'
+import {get} from 'lodash-es'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import {isIOS} from '../../constants/platform'
+// import {isIOS} from '../../constants/platform'
 import * as Styles from '../../styles'
+// import * as TeamBuildingGen from '../../actions/team-building-gen'
+import {ServiceIdWithContact, User} from 'constants/types/team-building'
 
 type EmailInputProps = {
-  onSubmitEmail: () => void
+  search: (query: string, service: ServiceIdWithContact) => void
+  onAddRaw: (user: User) => void
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
 function checkValidEmail(str: string): boolean {
@@ -13,18 +19,45 @@ function checkValidEmail(str: string): boolean {
 }
 
 const EmailInput = (props: EmailInputProps) => {
+  const {search, onAddRaw} = props
   const [isEmailValid, setEmailValidity] = React.useState(false)
+  const [emailString, setEmailString] = React.useState('')
   const onChange = React.useCallback(
     text => {
+      setEmailString(text)
       const isNewInputValid = checkValidEmail(text)
       if (isNewInputValid !== isEmailValid) {
         setEmailValidity(isNewInputValid)
       }
+      if (isNewInputValid) {
+        search(text, 'keybase')
+      }
     },
-    [isEmailValid]
+    [isEmailValid, search]
   )
-  const onSubmit = isEmailValid ? props.onSubmitEmail : undefined
-  console.log('isEmailValid:', isEmailValid)
+
+  const result =
+    props.teamBuildingSearchResults[emailString] && props.teamBuildingSearchResults[emailString].keybase[0]
+  let user
+  if (result) {
+    let serviceMap = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap
+    let username = props.teamBuildingSearchResults[emailString].keybase[0].serviceMap.keybase
+    let prettyName = props.teamBuildingSearchResults[emailString].keybase[0].prettyName
+    user = {
+      id: username,
+      prettyName,
+      serviceId: 'keybase',
+      serviceMap,
+      username,
+    }
+  }
+  console.log('user:', user)
+
+  const onSubmit = React.useCallback(() => {
+    onAddRaw(user)
+    // Clear input
+    setEmailString('')
+  }, [onAddRaw, user, setEmailString])
 
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
@@ -38,17 +71,18 @@ const EmailInput = (props: EmailInputProps) => {
           <Kb.PlainInput
             style={Styles.collapseStyles([styles.plainInput])}
             flexable={true}
-            keyboardType={isIOS ? 'number-pad' : 'numeric'}
+            // keyboardType={isIOS ? 'number-pad' : 'numeric'}
             placeholder="Email address"
             onChangeText={onChange}
             onEnterKeyDown={onSubmit}
-            // value={this.state.formatted}
+            value={emailString}
             textContentType="emailAddress"
           />
         </Kb.Box2>
-        <Kb.Text type="BodySmall" style={styles.subtext}>
-          Pro tip: add multiple email addresses by separating them with commas.
-        </Kb.Text>
+        {/* TODO: multiple email add support */}
+        {/* <Kb.Text type="BodySmall" style={styles.subtext}> */}
+        {/*   Pro tip: add multiple email addresses by separating them with commas. */}
+        {/* </Kb.Text> */}
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
