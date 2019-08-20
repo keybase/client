@@ -254,6 +254,7 @@ const (
 	MessageType_REQUESTPAYMENT     MessageType = 15
 	MessageType_UNFURL             MessageType = 16
 	MessageType_FLIP               MessageType = 17
+	MessageType_PIN                MessageType = 18
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -277,6 +278,7 @@ var MessageTypeMap = map[string]MessageType{
 	"REQUESTPAYMENT":     15,
 	"UNFURL":             16,
 	"FLIP":               17,
+	"PIN":                18,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -298,6 +300,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	15: "REQUESTPAYMENT",
 	16: "UNFURL",
 	17: "FLIP",
+	18: "PIN",
 }
 
 type TopicType int
@@ -2433,6 +2436,20 @@ func (e BotCommandsAdvertisementTyp) String() string {
 		return v
 	}
 	return ""
+}
+
+type TeamMember struct {
+	Uid    gregor1.UID               `codec:"uid" json:"uid"`
+	Role   keybase1.TeamRole         `codec:"role" json:"role"`
+	Status keybase1.TeamMemberStatus `codec:"status" json:"status"`
+}
+
+func (o TeamMember) DeepCopy() TeamMember {
+	return TeamMember{
+		Uid:    o.Uid.DeepCopy(),
+		Role:   o.Role.DeepCopy(),
+		Status: o.Status.DeepCopy(),
+	}
 }
 
 type CommonInterface interface {

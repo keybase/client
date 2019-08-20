@@ -160,7 +160,8 @@
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
         "UNFURL_16",
-        "FLIP_17"
+        "FLIP_17",
+        "PIN_18"
       ],
       "go": "nostring"
     },
@@ -1815,6 +1816,24 @@
         "PUBLIC_0",
         "TLFID_MEMBERS_1",
         "TLFID_CONVS_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "keybase1.TeamMemberStatus",
+          "name": "status"
+        }
       ]
     }
   ],

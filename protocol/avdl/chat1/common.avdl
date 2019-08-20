@@ -61,7 +61,8 @@
     SENDPAYMENT_14,
     REQUESTPAYMENT_15,
     UNFURL_16,
-    FLIP_17
+    FLIP_17,
+    PIN_18 // sent when pinning a message
   }
 
   @go("nostring")
@@ -680,5 +681,11 @@
     PUBLIC_0,
     TLFID_MEMBERS_1,
     TLFID_CONVS_2
+  }
+
+  record TeamMember {
+    gregor1.UID uid;
+    keybase1.TeamRole role;
+    keybase1.TeamMemberStatus status;
   }
 }

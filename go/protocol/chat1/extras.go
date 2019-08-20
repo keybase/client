@@ -155,6 +155,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
+	MessageType_PIN,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -178,6 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
 }
 
 func VisibleChatMessageTypes() []MessageType {
