@@ -20,7 +20,7 @@ export default connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     device: stateProps.device,
-    endangeredTLFs: stateProps._endangeredTLFs.toArray(),
+    endangeredTLFs: [...stateProps._endangeredTLFs],
     onCancel: dispatchProps.onCancel,
     onSubmit: () => dispatchProps._onSubmit(stateProps.device.deviceID),
     waiting: stateProps.waiting,

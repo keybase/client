@@ -199,7 +199,7 @@ const TextOrComponent = (props: {
   return props.val
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
   }),
@@ -244,7 +244,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+}))
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (

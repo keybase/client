@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
+import * as Styles from '../styles'
 import logger from '../logger'
 import {throttle, once} from 'lodash-es'
 import {renderElementOrComponentOrNot} from '../util/util'
@@ -93,10 +93,10 @@ class List extends PureComponent<Props<any>> {
 
   render() {
     return (
-      <div style={collapseStyles([styles.outerDiv, this.props.style])}>
-        <div style={globalStyles.fillAbsolute}>
+      <div style={Styles.collapseStyles([styles.outerDiv, this.props.style])}>
+        <div style={Styles.globalStyles.fillAbsolute}>
           <div
-            style={collapseStyles([styles.innerDiv, this.props.contentContainerStyle])}
+            style={Styles.collapseStyles([styles.innerDiv, this.props.contentContainerStyle])}
             onScroll={this.props.onEndReached ? this._onScroll : undefined}
           >
             {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
@@ -116,8 +116,8 @@ class List extends PureComponent<Props<any>> {
   }
 }
 
-const styles = styleSheetCreate({
-  innerDiv: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  innerDiv: Styles.platformStyles({
     isElectron: {
       height: '100%',
       overflowY: 'auto',
@@ -128,6 +128,6 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default List
