@@ -6,7 +6,7 @@ import TeamBuilding from './index'
 import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
 
 const provider = Sb.createPropProviderWithCommon(
@@ -51,6 +51,8 @@ const eventHandlers = {
   onFinishTeamBuilding: Sb.action('onFinishTeamBuilding'),
   onMakeItATeam: Sb.action('onMakeItATeam'),
   onRemove: Sb.action('onRemove'),
+  onTabBarScroll: Sb.action('onTabBarScroll'),
+  onTabBarSleepy: Sb.action('onTabBarSleepy'),
   onUpArrowKeyDown: Sb.action('onUpArrowKeyDown'),
 }
 
@@ -69,6 +71,7 @@ const load = () => {
         selectedService="keybase"
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
@@ -162,6 +165,7 @@ const load = () => {
         selectedService="keybase"
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         waitingForCreate={false}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
@@ -263,6 +267,7 @@ const load = () => {
         waitingForCreate={false}
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -294,6 +299,7 @@ const load = () => {
         waitingForCreate={false}
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -318,6 +324,7 @@ const load = () => {
         waitingForCreate={false}
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -392,6 +399,7 @@ const load = () => {
         waitingForCreate={false}
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -466,6 +474,7 @@ const load = () => {
         waitingForCreate={false}
         showRecs={false}
         showResults={false}
+        showServiceBarLabels={true}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -595,20 +604,26 @@ const load = () => {
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
+        onScroll={Sb.action('onScroll')}
+        onSleepy={Sb.action('onSleepy')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
+        showLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
+        onScroll={Sb.action('onScroll')}
+        onSleepy={Sb.action('onSleepy')}
         serviceResultCount={{}}
         showServiceResultCount={true}
+        showLabels={true}
       />
     ))
 
@@ -626,8 +641,11 @@ const load = () => {
       <ServiceTabBar
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
+        onScroll={Sb.action('onScroll')}
+        onSleepy={Sb.action('onSleepy')}
         serviceResultCount={{}}
         showServiceResultCount={false}
+        showLabels={true}
       />
     ))
   })
