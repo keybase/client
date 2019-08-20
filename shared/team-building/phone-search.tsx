@@ -25,11 +25,11 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   ) {
     let serviceMap = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap
     let username = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap.keybase
-    let fullname = props.teamBuildingSearchResults[phoneNumber].keybase[0].fullname
-    if (serviceMap && username && fullname) {
+    let prettyName = props.teamBuildingSearchResults[phoneNumber].keybase[0].prettyName
+    if (serviceMap && username && prettyName) {
       user = {
         id: username,
-        prettyName: fullname,
+        prettyName,
         serviceId: 'keybase',
         serviceMap,
         username,
@@ -40,10 +40,19 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   let _onContinue = () => {
     if (user) {
       props.onContinue(user)
-      setPhoneNumber('')
-      setPhoneInputKey(old => old + 1)
-      setValidity(false)
+    } else {
+      alert('Continuing with not user!')
+      props.onContinue({
+        id: phoneNumber,
+        prettyName: phoneNumber,
+        serviceId: 'phone',
+        serviceMap: {},
+        username: phoneNumber,
+      })
     }
+    setPhoneNumber('')
+    setPhoneInputKey(old => old + 1)
+    setValidity(false)
   }
 
   return (
@@ -99,7 +108,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           style={{marginBottom: Styles.globalMargins.tiny, width: '80%'}}
           onClick={_onContinue}
           label="Continue"
-          disabled={!(validity && user)}
+          disabled={!validity}
         />
       </Kb.Box2>
     </>

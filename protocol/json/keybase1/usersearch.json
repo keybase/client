@@ -146,10 +146,6 @@
         {
           "type": "string",
           "name": "keybaseUsername"
-        },
-        {
-          "type": "string",
-          "name": "fullname"
         }
       ]
     },

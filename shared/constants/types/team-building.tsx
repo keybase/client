@@ -20,7 +20,6 @@ export type User = {
   prettyName: string
   label?: string
   contact?: boolean // not a keybase user, a phone / email from our contacts
-  fullname?: string // specified if User comes from an imptofu query
 }
 
 // Treating this as a tuple
