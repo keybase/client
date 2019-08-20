@@ -1,14 +1,13 @@
 /* eslint-env jest */
-import * as I from 'immutable'
-import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
-import * as Tabs from '../../constants/tabs'
+import * as Container from '../../util/container'
 import * as DevicesGen from '../devices-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import devicesSaga from '../devices'
+import * as Tabs from '../../constants/tabs'
 import * as Testing from '../../util/testing'
-import HiddenString from '../../util/hidden-string'
+import * as Types from '../../constants/types/devices'
+import devicesSaga from '../devices'
 
 jest.mock('../../engine/require')
 
@@ -23,64 +22,64 @@ const initialStore = {
   }),
 }
 
-const loadedStore = {
-  ...initialStore,
-  devices: initialStore.devices.merge({
-    deviceMap: I.Map([
-      [
-        Types.stringToDeviceID('123'),
-        Constants.makeDevice({
-          created: 0,
-          currentDevice: true,
-          deviceID: Types.stringToDeviceID('123'),
-          lastUsed: 4567,
-          name: 'a computer',
-          provisionedAt: 0,
-          provisionerName: '',
-          revokedAt: null,
-          revokedByName: null,
-          type: 'desktop',
-        }),
-      ],
-      [
-        Types.stringToDeviceID('456'),
-        Constants.makeDevice({
-          created: 0,
-          currentDevice: false,
-          deviceID: Types.stringToDeviceID('456'),
-          lastUsed: 4567,
-          name: 'a phone',
-          provisionedAt: 0,
-          provisionerName: '',
-          revokedAt: null,
-          revokedByName: null,
-          type: 'mobile',
-        }),
-      ],
-      [
-        Types.stringToDeviceID('789'),
-        Constants.makeDevice({
-          created: 0,
-          currentDevice: false,
-          deviceID: Types.stringToDeviceID('789'),
-          lastUsed: 4567,
-          name: 'paper key',
-          provisionedAt: 0,
-          provisionerName: '',
-          revokedAt: null,
-          revokedByName: null,
-          type: 'backup',
-        }),
-      ],
-    ]),
-  }),
-}
+const loadedStore = Container.produce(initialStore, draftState => {
+  const deviceMap = new Map<string, Types.Device>()
+
+  deviceMap.set(
+    Types.stringToDeviceID('123'),
+    Constants.makeDevice({
+      created: 1234,
+      currentDevice: true,
+      deviceID: Types.stringToDeviceID('123'),
+      lastUsed: 4567,
+      name: 'a computer',
+      provisionedAt: undefined,
+      provisionerName: undefined,
+      revokedAt: undefined,
+      revokedByName: undefined,
+      type: 'desktop',
+    })
+  )
+
+  deviceMap.set(
+    Types.stringToDeviceID('456'),
+    Constants.makeDevice({
+      created: 1234,
+      currentDevice: false,
+      deviceID: Types.stringToDeviceID('456'),
+      lastUsed: 4567,
+      name: 'a phone',
+      provisionedAt: undefined,
+      provisionerName: undefined,
+      revokedAt: undefined,
+      revokedByName: undefined,
+      type: 'mobile',
+    })
+  )
+
+  deviceMap.set(
+    Types.stringToDeviceID('789'),
+    Constants.makeDevice({
+      created: 1234,
+      currentDevice: false,
+      deviceID: Types.stringToDeviceID('789'),
+      lastUsed: 4567,
+      name: 'paper key',
+      provisionedAt: undefined,
+      provisionerName: undefined,
+      revokedAt: undefined,
+      revokedByName: undefined,
+      type: 'backup',
+    })
+  )
+  draftState.devices.deviceMap = deviceMap
+})
 
 const details = [
   {
     currentDevice: true,
     device: {
-      ctime: 1234,
+      cTime: 1234,
       deviceID: '123',
       encryptKey: 0,
       lastUsedTime: 4567,
@@ -95,7 +94,7 @@ const details = [
   {
     currentDevice: false,
     device: {
-      ctime: 1234,
+      cTime: 1234,
       deviceID: '456',
       encryptKey: 0,
       lastUsedTime: 4567,
@@ -110,7 +109,7 @@ const details = [
   {
     currentDevice: false,
     device: {
-      ctime: 1234,
+      cTime: 1234,
       deviceID: '789',
       encryptKey: 0,
       lastUsedTime: 4567,
@@ -199,7 +198,7 @@ describe('load', () => {
     rpc.mockImplementation(() => Promise.resolve())
     dispatch(DevicesGen.createLoad())
     return Testing.flushPromises().then(() => {
-      expect(getState().devices.deviceMap).toEqual(I.Map())
+      expect(getState().devices.deviceMap).toEqual(new Map())
       expect(rpc).toHaveBeenCalled()
     })
   })
@@ -298,7 +297,7 @@ describe('shows revoke page correctly', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
-    rpc.mockImplementation(() => Promise.resolve())
+    rpc.mockImplementation(() => Promise.resolve({}))
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     const targetDevice = deviceID
     const actingDevice = getState().config.deviceID
@@ -312,7 +311,7 @@ describe('shows revoke page correctly', () => {
     rpc.mockImplementation(() => Promise.resolve({}))
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     return Testing.flushPromises().then(() => {
-      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set())
+      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(new Set())
     })
   })
 
@@ -323,7 +322,7 @@ describe('shows revoke page correctly', () => {
     rpc.mockImplementation(() => Promise.resolve({endangeredTLFs: [{name: 'one'}, {name: 'two'}]}))
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     return Testing.flushPromises().then(() => {
-      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set.of('one', 'two'))
+      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(new Set(['one', 'two']))
     })
   })
 })
@@ -370,8 +369,8 @@ describe('shows paperkey page correctly', () => {
 
   it('paperkey gets loaded', () => {
     const {dispatch, getState} = init
-    const paperKey = new HiddenString('a paper key')
-    expect(getState().devices.newPaperkey).toEqual(new HiddenString(''))
+    const paperKey = new Container.HiddenString('a paper key')
+    expect(getState().devices.newPaperkey).toEqual(new Container.HiddenString(''))
     dispatch(DevicesGen.createPaperKeyCreated({paperKey}))
     expect(getState().devices.newPaperkey).toEqual(paperKey)
   })
