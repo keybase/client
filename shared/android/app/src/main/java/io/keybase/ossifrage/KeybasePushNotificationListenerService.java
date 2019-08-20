@@ -100,7 +100,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
             {
                 CharSequence name = context.getString(R.string.channel_name);
                 String description = context.getString(R.string.channel_description);
-                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                int importance = NotificationManager.IMPORTANCE_HIGH;
                 NotificationChannel chat_channel = new NotificationChannel(CHAT_CHANNEL_ID, name, importance);
                 chat_channel.setDescription(description);
                 // Register the channel with the system; you can't change the importance
