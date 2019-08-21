@@ -103,7 +103,7 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
 )
 
 const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
-  <Kb.Box2 direction="horizontal" fullHeight={true} alignItems={'center'}>
+  <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
     <Kb.Icon
       style={{marginRight: Styles.globalMargins.tiny}}
       fontSize={16}
@@ -148,7 +148,7 @@ export const ServiceTabBar = (props: Props) => {
           isActive={props.selectedService === service}
         />
       ))}
-      {!!(moreServices.length > 0) && (
+      {moreServices.length > 0 && (
         <MoreNetworksButton services={moreServices} onChangeService={props.onChangeService} />
       )}
     </Kb.Box2>
