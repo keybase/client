@@ -9,7 +9,6 @@ import {
 } from './shared'
 import * as Constants from '../constants/team-building'
 import {Props, IconProps} from './service-tab-bar'
-import {memoize} from '../util/memoize'
 
 const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
   return ((v - fromMin) / (fromMax - fromMin)) * (toMax - toMin) + toMin
@@ -91,10 +90,11 @@ const undefToNull = (n: number | undefined | null): number | null => (n === unde
 export const ServiceTabBar = (props: Props) => {
   const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
   const [locked, setLocked] = React.useState(false)
-  const onClose = () => {
+  const {onLabelsSeen} = props
+  const onClose = React.useCallback(() => {
     setShowLabels(false)
-    props.onLabelsSeen()
-  }
+    onLabelsSeen()
+  }, [setShowLabels, onLabelsSeen])
   const deferClose = Kb.useTimeout(onClose, 2000)
   const deferUnlock = Kb.useTimeout(() => setLocked(false), 250)
   const onScroll = React.useCallback(() => {
