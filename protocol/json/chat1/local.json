@@ -306,6 +306,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -852,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -1681,6 +1698,13 @@
             "MessageUnboxed"
           ],
           "name": "snippetMsg"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": [

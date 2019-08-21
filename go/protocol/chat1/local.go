@@ -378,6 +378,16 @@ func (o MessageFlip) DeepCopy() MessageFlip {
 	}
 }
 
+type MessagePin struct {
+	MsgID MessageID `codec:"msgID" json:"msgID"`
+}
+
+func (o MessagePin) DeepCopy() MessagePin {
+	return MessagePin{
+		MsgID: o.MsgID.DeepCopy(),
+	}
+}
+
 type MessageSystemType int
 
 const (
@@ -1069,6 +1079,7 @@ type MessageBody struct {
 	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 	Unfurl__             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
 	Flip__               *MessageFlip                 `codec:"flip,omitempty" json:"flip,omitempty"`
+	Pin__                *MessagePin                  `codec:"pin,omitempty" json:"pin,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -1151,6 +1162,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_FLIP:
 		if o.Flip__ == nil {
 			err = errors.New("unexpected nil value for Flip__")
+			return ret, err
+		}
+	case MessageType_PIN:
+		if o.Pin__ == nil {
+			err = errors.New("unexpected nil value for Pin__")
 			return ret, err
 		}
 	}
@@ -1317,6 +1333,16 @@ func (o MessageBody) Flip() (res MessageFlip) {
 	return *o.Flip__
 }
 
+func (o MessageBody) Pin() (res MessagePin) {
+	if o.MessageType__ != MessageType_PIN {
+		panic("wrong case accessed")
+	}
+	if o.Pin__ == nil {
+		return
+	}
+	return *o.Pin__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1426,6 +1452,13 @@ func NewMessageBodyWithFlip(v MessageFlip) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_FLIP,
 		Flip__:        &v,
+	}
+}
+
+func NewMessageBodyWithPin(v MessagePin) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_PIN,
+		Pin__:         &v,
 	}
 }
 
@@ -1544,6 +1577,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Flip__),
+		Pin__: (func(x *MessagePin) *MessagePin {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pin__),
 	}
 }
 
@@ -3085,6 +3125,7 @@ type ConversationInfoLocal struct {
 	TopicName    string                         `codec:"topicName" json:"topicName"`
 	Headline     string                         `codec:"headline" json:"headline"`
 	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
+	PinnedMsg    *MessageUnboxed                `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 	Draft        *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
 	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus             `codec:"status" json:"status"`
@@ -3113,6 +3154,13 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SnippetMsg),
+		PinnedMsg: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMsg),
 		Draft: (func(x *string) *string {
 			if x == nil {
 				return nil

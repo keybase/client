@@ -1007,6 +1007,7 @@ type Conversation struct {
 	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
 	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	PinnedMsg       *MessageID                    `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
@@ -1059,6 +1060,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
+		PinnedMsg: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMsg),
 		Expunge: o.Expunge.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {

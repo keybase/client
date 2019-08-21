@@ -761,6 +761,13 @@
           "name": "creatorInfo"
         },
         {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pinnedMsg"
+        },
+        {
           "type": "Expunge",
           "name": "expunge"
         },
