@@ -298,7 +298,7 @@ class ZoomableImage extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     height: '100%',
     position: 'relative',
@@ -311,6 +311,6 @@ const styles = Styles.styleSheetCreate({
     overflow: 'hidden',
     width: '100%',
   },
-})
+}))
 
 export default ZoomableImage
