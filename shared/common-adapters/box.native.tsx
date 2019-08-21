@@ -22,7 +22,8 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
-const box2 = (props: Box2Props) => {
+type Box2WithRefProps = Box2Props & {forwardedRef: React.Ref<View>}
+const box2 = (props: Box2WithRefProps) => {
   let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
   let directionStyle
   switch (props.direction) {
@@ -59,17 +60,25 @@ const box2 = (props: Box2Props) => {
     props.style,
   ])
   return (
-    <View style={style} onLayout={props.onLayout} pointerEvents={props.pointerEvents || 'auto'}>
+    <View
+      style={style}
+      onLayout={props.onLayout}
+      pointerEvents={props.pointerEvents || 'auto'}
+      ref={props.forwardedRef}
+    >
       {injectGaps(horizontal ? HBoxGap : VBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </View>
   )
 }
 
-class Box2 extends React.Component<Box2Props> {
+class Box2WithRef extends React.Component<Box2WithRefProps> {
   render() {
     return box2(this.props)
   }
 }
+const Box2 = React.forwardRef<View, Box2Props>((props, forwardedRef) => (
+  <Box2WithRef {...props} forwardedRef={forwardedRef} />
+))
 const VBoxGap = ({gap}) => <View style={{flexShrink: 0, height: globalMargins[gap]}} />
 const HBoxGap = ({gap}) => <View style={{flexShrink: 0, width: globalMargins[gap]}} />
 
