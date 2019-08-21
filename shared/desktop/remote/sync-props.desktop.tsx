@@ -15,6 +15,7 @@ type Props = {
   clearCacheTrigger: number
   windowParam: string | null
   windowComponent: string
+  remoteWindowNeedsProps: number
   remoteWindow: SafeElectron.BrowserWindowType | null
 }
 
@@ -33,21 +34,13 @@ function SyncPropsFactory(serializer: Serializer) {
             // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
             // the data a lot
             if (this.props.remoteWindow && Object.keys(props).length) {
-              this.props.remoteWindow.emit('props', JSON.stringify(props))
+              this.props.remoteWindow.emit('KBprops', JSON.stringify(props))
             }
           } catch (e) {
             console.error(e)
           } finally {
             measureStop('remoteProps')
           }
-        }
-      }
-
-      _onNeedProps = (_, windowComponent: string, windowParam: string) => {
-        if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
-          // If the remote asks for props send the whole thing
-          this._lastProps = null
-          this._sendProps()
         }
       }
 
@@ -91,20 +84,20 @@ function SyncPropsFactory(serializer: Serializer) {
       }
 
       _getChildProps = () => {
-        // Don't pass down remoteWindow
-        const {remoteWindow, ...props} = this.props
+        // Don't pass down internal props
+        const {remoteWindowNeedsProps, remoteWindow, ...props} = this.props
         return props
       }
 
-      componentDidMount() {
-        SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', this._onNeedProps)
-      }
-      componentWillUnmount() {
-        SafeElectron.getIpcRenderer().removeListener('remoteWindowWantsProps', this._onNeedProps)
-      }
       componentDidUpdate(prevProps: Props) {
         if (this.props.clearCacheTrigger !== prevProps.clearCacheTrigger) {
           this._lastProps = null
+        }
+
+        if (this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps) {
+          // If the remote asks for props send the whole thing
+          this._lastProps = null
+          this.forceUpdate()
         }
       }
 
