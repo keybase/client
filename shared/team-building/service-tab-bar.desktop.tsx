@@ -10,6 +10,7 @@ import {
 import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
+import {difference} from 'lodash-es'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
@@ -132,7 +133,7 @@ export const ServiceTabBar = (props: Props) => {
       setState(props.selectedService)
     }
   }
-  const moreServices = Constants.services.slice(nLocked)
+  const moreServices = difference(Constants.services, frontServices)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.slice(0, 4).map(service => (
