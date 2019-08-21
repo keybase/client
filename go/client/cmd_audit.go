@@ -133,11 +133,6 @@ func (c *CmdAuditBox) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-type AuditResult struct {
-	teamID keybase1.TeamID
-	err    error
-}
-
 func (c *CmdAuditBox) Run() error {
 	cli, err := GetAuditClient(c.G())
 	if err != nil {
@@ -247,10 +242,10 @@ func describeAttempt(g *libkb.GlobalContext, attempt *keybase1.BoxAuditAttempt, 
 		prefix = info + " "
 	}
 	if attempt == nil {
-		tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+"Audit not attempted."))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+"Audit not attempted."))
 	} else if attempt.Error == nil {
-		tui.PrintfUnescaped("%s\n", ColorString(g, "green", prefix+attempt.String()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "green", prefix+attempt.String()))
 	} else {
-		tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+attempt.String()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+attempt.String()))
 	}
 }

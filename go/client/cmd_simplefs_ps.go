@@ -17,7 +17,6 @@ import (
 // CmdSimpleFSPs is the 'fs ps' command.
 type CmdSimpleFSPs struct {
 	libkb.Contextified
-	path    keybase1.Path
 	recurse bool
 }
 

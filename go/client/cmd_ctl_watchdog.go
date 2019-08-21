@@ -84,7 +84,7 @@ func (c *CmdWatchdog) Run() (err error) {
 
 		pstate, err := p.Wait()
 
-		if err != nil || pstate.Exited() == false {
+		if err != nil || !pstate.Exited() {
 			c.G().Log.Warning("Watchdog ends service wait with no error or exit")
 			return err
 		}

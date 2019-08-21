@@ -108,9 +108,9 @@ func (c *CmdAccountLockdown) Run() error {
 
 		if res.Status == *c.SetLockdownMode {
 			if res.Status {
-				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
+				_, _ = tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
 			} else {
-				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
+				_, _ = tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
 			}
 			return nil
 		}
@@ -149,9 +149,9 @@ func (c *CmdAccountLockdown) Run() error {
 	}
 	tui.Printf("Lockdown mode is: ")
 	if res.Status {
-		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
 	} else {
-		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
 	}
 
 	if c.History {

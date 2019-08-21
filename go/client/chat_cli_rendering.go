@@ -47,7 +47,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		if conv.Info.FinalizeInfo != nil {
 			reset = conv.Info.FinalizeInfo.BeforeSummary()
 		}
-		table.Insert(flexibletable.Row{
+		err := table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
@@ -66,6 +66,9 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 				Content:   flexibletable.SingleCell{Item: reset},
 			},
 		})
+		if err != nil {
+			return err
+		}
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5,                                 // visualIndex
@@ -220,7 +223,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				}
 			}
 
-			table.Insert(row)
+			err := table.Insert(row)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -259,7 +265,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			body = mv.Body
 		}
 
-		table.Insert(flexibletable.Row{
+		err := table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
@@ -291,6 +297,9 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				Content:   flexibletable.SingleCell{Item: body},
 			},
 		})
+		if err != nil {
+			return err
+		}
 	}
 
 	if table.NumInserts() == 0 {
@@ -363,7 +372,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		}
 
 		visualIndex++
-		table.Insert(flexibletable.Row{
+		err = table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
@@ -391,6 +400,9 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 				Content:   flexibletable.SingleCell{Item: mv.Body},
 			},
 		})
+		if err != nil {
+			return err
+		}
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5,                                     // visualIndex
@@ -495,7 +507,7 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 	}
 
 	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
-		ReqID: stellar1.KeybaseRequestID(body.RequestID),
+		ReqID: body.RequestID,
 	})
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
