@@ -72,20 +72,23 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
     }>
   ) => (
     <>
-      <Kb.Box2
-        direction="vertical"
-        style={styles.moreNetworks1}
-        fullHeight={true}
-        centerChildren={true}
-        ref={props.setAttachmentRef}
-      >
-        <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
-          <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
-            <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
-              •••
-            </Kb.Text>
-          </Kb.ClickableBox>
-        </Kb.WithTooltip>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
+        <Kb.Box2
+          direction="vertical"
+          style={styles.moreNetworks1}
+          fullHeight={true}
+          centerChildren={true}
+          ref={props.setAttachmentRef}
+        >
+          <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
+            <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
+              <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
+                •••
+              </Kb.Text>
+            </Kb.ClickableBox>
+          </Kb.WithTooltip>
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
@@ -104,11 +107,7 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
 
 const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-    <Kb.Icon
-      style={{marginRight: Styles.globalMargins.tiny}}
-      fontSize={16}
-      type={serviceIdToIconFont(props.service)}
-    />
+    <Kb.Icon style={styles.moreNetworkItemIcon} fontSize={16} type={serviceIdToIconFont(props.service)} />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
   </Kb.Box2>
 )
@@ -116,27 +115,36 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 export const ServiceTabBar = (props: Props) => {
-  const [lastSelectedUnlockedService, setState] = React.useState<ServiceIdWithContact | null>(null)
+  const [
+    lastSelectedUnlockedService,
+    setLastSelectedUnlockedDevice,
+  ] = React.useState<ServiceIdWithContact | null>(null)
   const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
   const lockedServices = Constants.services.slice(0, nLocked)
   let frontServices = lockedServices
+  let lastSelectedUnlockedServiceChanged = false
   if (Constants.services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
     if (lastSelectedUnlockedService === null) {
-      frontServices = lockedServices.concat(Constants.services.slice(nLocked, nLocked + 1))
+      frontServices = Constants.services.slice(0, nLocked + 1)
     } else {
       frontServices = lockedServices.concat([lastSelectedUnlockedService])
     }
   } else {
     frontServices = lockedServices.concat([props.selectedService])
     if (lastSelectedUnlockedService !== props.selectedService) {
-      setState(props.selectedService)
+      lastSelectedUnlockedServiceChanged = true
     }
   }
+  React.useEffect(() => {
+    if (lastSelectedUnlockedServiceChanged) {
+      setLastSelectedUnlockedDevice(props.selectedService)
+    }
+  }, [lastSelectedUnlockedServiceChanged, props.selectedService])
   const moreServices = difference(Constants.services, frontServices)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
-      {frontServices.slice(0, 4).map(service => (
+      {frontServices.map(service => (
         <ServiceIcon
           key={service}
           service={service}
@@ -155,7 +163,7 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   activeTabBar: {
     backgroundColor: Styles.globalColors.blue,
     height: 2,
@@ -163,14 +171,18 @@ const styles = Styles.styleSheetCreate({
   inactiveTabBar: {
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
     height: 2,
   },
   label: {
     marginTop: Styles.globalMargins.xtiny,
     minWidth: 64,
   },
-  moreNetworks1: {
+  moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
+  moreNetworks0: {
     flex: 1,
+  },
+  moreNetworks1: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
@@ -208,7 +220,7 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.xtiny,
   },
   serviceIconBox: {
-    marginTop: 14,
+    marginTop: Styles.globalMargins.xsmall, // xxx
   },
   serviceIconContainer: {
     flex: 1,
@@ -225,6 +237,6 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
     minHeight: 30,
   },
-})
+}))
 
 export default ServiceTabBar
