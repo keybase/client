@@ -33,10 +33,10 @@ type Config struct {
 // of the Merkle Tree).
 func NewConfig(h Hasher, logChildrenPerNode uint8, valuesPerLeaf int, keysByteLength int, valueConstructor ValueConstructor) (Config, error) {
 	childrenPerNode := 1 << logChildrenPerNode
-	if (keysByteLength*8)%childrenPerNode != 0 {
-		return Config{}, NewInvalidConfigError("keyBitLength does not divide 2^logChildrenPerNode")
+	if (keysByteLength*8)%int(logChildrenPerNode) != 0 {
+		return Config{}, NewInvalidConfigError("The key bit length does not divide logChildrenPerNode")
 	}
-	return Config{hasher: h, childrenPerNode: 1 << logChildrenPerNode, valuesPerLeaf: valuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, valueConstructor: valueConstructor}, nil
+	return Config{hasher: h, childrenPerNode: childrenPerNode, valuesPerLeaf: valuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, valueConstructor: valueConstructor}, nil
 }
 
 // Hasher is an interface for hashing MerkleTree data structures into their

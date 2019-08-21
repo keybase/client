@@ -45,6 +45,7 @@ func (p *Position) equals(q *Position) bool {
 	return (*big.Int)(p).Cmp((*big.Int)(q)) == 0
 }
 
+// getParent return nil if the p is the root
 func (t *Tree) getParent(p *Position) *Position {
 	if (*big.Int)(p).BitLen() < 2 {
 		return nil
@@ -56,6 +57,7 @@ func (t *Tree) getParent(p *Position) *Position {
 	return (*Position)(&f)
 }
 
+// getAllSiblings returns nil,nil if p is the root
 func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Position) {
 
 	parent = t.getParent(p)
@@ -84,15 +86,21 @@ func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Positio
 
 // getDeepestPositionForKey converts the key into the position the key would be
 // stored at if the tree was full with only one key per leaf.
-func (t *Tree) getDeepestPositionForKey(k Key) *Position {
+func (t *Tree) getDeepestPositionForKey(k Key) (*Position, error) {
+	if len(k) != t.cfg.keysByteLength {
+		return nil, NewInvalidKeyError()
+	}
 	var p Position
 	(*big.Int)(&p).SetBytes(k)
 	(*big.Int)(&p).SetBit((*big.Int)(&p), len(k)*8, 1)
-	return &p
+	return &p, nil
 }
 
-func (t *Tree) getSiblingPositionsOnPathToKey(k Key) [][]Position {
-	p := t.getDeepestPositionForKey(k)
+func (t *Tree) getSiblingPositionsOnPathToKey(k Key) ([][]Position, error) {
+	p, err := t.getDeepestPositionForKey(k)
+	if err != nil {
+		return nil, err
+	}
 	maxPathLength := ((*big.Int)(p).BitLen() - 1) / int(t.cfg.bitsPerIndex)
 	positions := make([][]Position, maxPathLength)
 	root := t.getRootPosition()
@@ -101,5 +109,5 @@ func (t *Tree) getSiblingPositionsOnPathToKey(k Key) [][]Position {
 		i++
 	}
 
-	return positions
+	return positions, nil
 }

@@ -11,12 +11,7 @@ import (
 
 func TestEncoding(t *testing.T) {
 
-	config1bit, _ := NewConfig(nil, 1, 1, 3, nil)
-	tree1bit := &Tree{cfg: config1bit}
-	config2bits, _ := NewConfig(nil, 2, 1, 3, nil)
-	tree2bits := &Tree{cfg: config2bits}
-	config3bits, _ := NewConfig(nil, 3, 1, 3, nil)
-	tree3bits := &Tree{cfg: config3bits}
+	tree1bit, tree2bits, tree3bits := getTreesWith1_2_3BitsPerIndex(t)
 
 	encodingTests := []struct {
 		t   *Tree
@@ -45,12 +40,7 @@ func TestEncoding(t *testing.T) {
 
 func TestGetParentAndGetChild(t *testing.T) {
 
-	config1bit, _ := NewConfig(nil, 1, 1, 3, nil)
-	tree1bit := &Tree{cfg: config1bit}
-	config2bits, _ := NewConfig(nil, 2, 1, 3, nil)
-	tree2bits := &Tree{cfg: config2bits}
-	config3bits, _ := NewConfig(nil, 3, 1, 3, nil)
-	tree3bits := &Tree{cfg: config3bits}
+	tree1bit, tree2bits, tree3bits := getTreesWith1_2_3BitsPerIndex(t)
 
 	parentChildTests := []struct {
 		t      *Tree
@@ -94,12 +84,7 @@ func TestNewConfigError(t *testing.T) {
 
 func TestIsPositionOnPathToKey(t *testing.T) {
 
-	config1bit, _ := NewConfig(nil, 1, 1, 3, nil)
-	tree1bit := &Tree{cfg: config1bit}
-	config2bits, _ := NewConfig(nil, 2, 1, 3, nil)
-	tree2bits := &Tree{cfg: config2bits}
-	config3bits, _ := NewConfig(nil, 3, 1, 3, nil)
-	tree3bits := &Tree{cfg: config3bits}
+	tree1bit, tree2bits, tree3bits := getTreesWith1_2_3BitsPerIndex(t)
 
 	tests := []struct {
 		t        *Tree
@@ -133,10 +118,7 @@ func TestIsPositionOnPathToKey(t *testing.T) {
 
 func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
 
-	config1bit, _ := NewConfig(nil, 1, 1, 3, nil)
-	tree1bit := &Tree{cfg: config1bit}
-	config2bits, _ := NewConfig(nil, 2, 1, 3, nil)
-	tree2bits := &Tree{cfg: config2bits}
+	tree1bit, tree2bits, _ := getTreesWith1_2_3BitsPerIndex(t)
 
 	tests := []struct {
 		t            *Tree
@@ -150,11 +132,13 @@ func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits: %v", test.t.cfg.bitsPerIndex, test.k), func(t *testing.T) {
-			posOnPath := test.t.getSiblingPositionsOnPathToKey(test.k)
+			posOnPath, err := test.t.getSiblingPositionsOnPathToKey(test.k)
 			if test.expPosOnPath == nil {
-				require.Nil(t, posOnPath)
+				require.Error(t, err)
+				require.IsType(t, InvalidKeyError{}, err)
 				return
 			}
+			require.NoError(t, err)
 			require.Equal(t, len(test.expPosOnPath), len(posOnPath))
 			for i, expPosAtLevel := range test.expPosOnPath {
 				require.Equal(t, len(test.expPosOnPath[i]), len(posOnPath[i]))
@@ -182,4 +166,20 @@ func makePositionFromStringForTesting(s string) (Position, error) {
 		return Position{}, err
 	}
 	return (Position)(*big.NewInt(posInt)), nil
+}
+
+func getTreesWith1_2_3BitsPerIndex(t *testing.T) (tree1bit, tree2bits, tree3bits *Tree) {
+	config1bit, err := NewConfig(nil, 1, 1, 1, nil)
+	require.NoError(t, err)
+	tree1bit = &Tree{cfg: config1bit}
+
+	config2bits, err := NewConfig(nil, 2, 1, 1, nil)
+	require.NoError(t, err)
+	tree2bits = &Tree{cfg: config2bits}
+
+	config3bits, err := NewConfig(nil, 3, 1, 3, nil)
+	require.NoError(t, err)
+	tree3bits = &Tree{cfg: config3bits}
+
+	return tree1bit, tree2bits, tree3bits
 }
