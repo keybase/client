@@ -22,7 +22,7 @@ type Props = {
 }
 
 const maxZoom = 10
-const minZoom = 0.1
+const minZoom = 0.2
 
 type State = {
   imageHeight: number
@@ -41,11 +41,11 @@ class ZoomableImage extends React.Component<Props, State> {
 
   private mounted = true
 
-  private panRef = React.createRef<PanGestureHandler>()
-  private pinchRef = React.createRef<PinchGestureHandler>()
+  // opacity
+  private opacity = new Animated.Value(0)
+  // scale
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
-  private opacity = new Animated.Value(0)
   private scale = Animated.multiply(this.baseScale, this.pinchScale).interpolate({
     extrapolate: 'clamp',
     inputRange: [0, minZoom, maxZoom, 9999],
@@ -55,7 +55,7 @@ class ZoomableImage extends React.Component<Props, State> {
   private onPinchGestureEvent = Animated.event([{nativeEvent: {scale: this.pinchScale}}], {
     useNativeDriver: true,
   })
-
+  // pan
   private panX = new Animated.Value(0)
   private panY = new Animated.Value(0)
   private lastPanX = 0
@@ -71,36 +71,31 @@ class ZoomableImage extends React.Component<Props, State> {
         this.state.imageWidth,
         this.state.imageHeight
       )
-      this.lastScale = scale
-      // this.lastPanX = offsetX
-      // this.lastPanY = offsetY
-      // this.panX.flattenOffset()
-      // this.panY.flattenOffset()
-      // this.pinchScale.setValue(1)
-
-      // const common = {
-      // duration: 200,
-      // useNativeDriver: true,
-      // }
-      // Animated.parallel([
-      // Animated.timing(this.baseScale, {...common, toValue: this.lastScale}),
-      // Animated.timing(this.panX, {...common, toValue: offsetX}),
-      // Animated.timing(this.panY, {...common, toValue: offsetY}),
-      // ]).start()
-
+      this.updateScale(scale, true)
       this.updatePan(offsetX, offsetY, true)
     }
   }
 
-  private updateScale = (next: number) => {
-    this.lastScale = next
-    // this.lastScale = Math.min(Math.max(this.lastScale, minZoom), maxZoom)
-    this.baseScale.setValue(this.lastScale)
-    this.pinchScale.setValue(1)
+  private animatedCommon = {duration: 200, useNativeDriver: true}
+
+  private updateScale = (next: number, animated?: boolean) => {
+    const scale = Math.min(Math.max(next, minZoom), maxZoom)
+    this.lastScale = scale
+
+    const setupScaleForNextGesture = () => {
+      this.baseScale.setValue(next)
+      this.pinchScale.setValue(1)
+    }
+
+    if (animated) {
+      this.pinchScale.setValue(1)
+      Animated.timing(this.baseScale, {...this.animatedCommon, toValue: next}).start(setupScaleForNextGesture)
+    } else {
+      setupScaleForNextGesture()
+    }
   }
 
   private onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
-    console._log(event.nativeEvent.scale)
     if (event.nativeEvent.oldState === GState.ACTIVE) {
       this.updateScale(this.lastScale * event.nativeEvent.scale)
     }
@@ -119,12 +114,11 @@ class ZoomableImage extends React.Component<Props, State> {
     }
 
     if (animated) {
-      const common = {duration: 200, useNativeDriver: true}
       this.panX.flattenOffset()
       this.panY.flattenOffset()
       Animated.parallel([
-        Animated.timing(this.panX, {...common, toValue: nextX}),
-        Animated.timing(this.panY, {...common, toValue: nextY}),
+        Animated.timing(this.panX, {...this.animatedCommon, toValue: nextX}),
+        Animated.timing(this.panY, {...this.animatedCommon, toValue: nextY}),
       ]).start(setupPanForNextGesture) // after the animation we need the offset updated else
       // a touch won't have the offset
     } else {
@@ -160,7 +154,6 @@ class ZoomableImage extends React.Component<Props, State> {
     // image scales from center!
     const offsetX = (this.state.viewWidth - this.state.imageWidth) / 2
     const offsetY = (this.state.viewHeight - this.state.imageHeight) / 2
-    // console._log('aaa ', {scale, offsetX, offsetY})
     return {offsetX, offsetY, scale}
   }
 
@@ -208,13 +201,11 @@ class ZoomableImage extends React.Component<Props, State> {
   }
 
   render() {
-    // unclear how scale works. just added width/height to innder views
     return (
       <TapGestureHandler onHandlerStateChange={this.onDoubleTap} numberOfTaps={2}>
         <View style={{flexGrow: 1, position: 'relative'}} onLayout={this.onLayout}>
           <View style={{...Styles.globalStyles.fillAbsolute}}>
             <PanGestureHandler
-              ref={this.panRef}
               onGestureEvent={this.onPanGestureEvent}
               onHandlerStateChange={this.onPanGestureStateChange}
               minDist={1}
@@ -223,7 +214,6 @@ class ZoomableImage extends React.Component<Props, State> {
             >
               <Animated.View style={styles.wrapper}>
                 <PinchGestureHandler
-                  ref={this.pinchRef}
                   onGestureEvent={this.onPinchGestureEvent}
                   onHandlerStateChange={this.onPinchHandlerStateChange}
                 >
@@ -231,7 +221,6 @@ class ZoomableImage extends React.Component<Props, State> {
                     <Animated.View
                       key="panner"
                       style={{
-                        // backgroundColor: 'red',
                         height: this.state.viewHeight,
                         transform: [{translateX: this.panX}, {translateY: this.panY}],
                         width: this.state.viewWidth,
@@ -240,7 +229,6 @@ class ZoomableImage extends React.Component<Props, State> {
                       <Animated.View
                         key="scaler"
                         style={{
-                          // backgroundColor: 'orange',
                           height: this.state.viewHeight,
                           width: this.state.viewWidth,
                         }}
@@ -273,14 +261,12 @@ class ZoomableImage extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: 'pink', // TEMP
     height: '100%',
     position: 'relative',
     width: '100%',
   },
   wrapper: {
     alignItems: 'flex-start',
-    backgroundColor: 'green', // TEMP
     height: '100%',
     justifyContent: 'flex-start',
     overflow: 'hidden',
