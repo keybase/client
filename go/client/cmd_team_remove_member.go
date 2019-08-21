@@ -80,7 +80,7 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 		c.InviteID, err = keybase1.TeamInviteIDFromString(ctx.String("invite-id"))
 		if err != nil {
 			errStr := "Invite IDs are 32 characters and end in '27' (%v)."
-			errStr = errStr + " Use `keybase team list-members %s --show-invite-id` to find one."
+			errStr += " Use `keybase team list-members %s --show-invite-id` to find one."
 			return fmt.Errorf(errStr, err, c.Team)
 		}
 	}
@@ -163,8 +163,9 @@ func (c *CmdTeamRemoveMember) Run() error {
 			}
 			ui.Printf("Error: No user %s on team %s.\n\n", c.Username, c.Team)
 			return nil
+		default:
+			return err
 		}
-		return err
 	}
 
 	if len(c.Email) > 0 {

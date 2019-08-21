@@ -73,8 +73,7 @@ func (c *cmdWalletAssetSearch) Run() (err error) {
 }
 
 func buildOutputStringForAsset(asset stellar1.Asset) string {
-	var out string
-	out = fmt.Sprintf("Asset Code: %12s", asset.Code)
+	out := fmt.Sprintf("Asset Code: %12s", asset.Code)
 	out = fmt.Sprintf("%s | Issuer ID: %s", out, asset.Issuer)
 	switch {
 	case asset.VerifiedDomain != "":
