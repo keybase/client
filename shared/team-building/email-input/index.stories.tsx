@@ -8,12 +8,12 @@ const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
   [namespace]: storeCommon[namespace].setIn(['teamBuilding', 'teamBuildingEmailResult'], {
-    id: '[max@keyba.se]@email',
+    id: '[max@keybase.io]@email',
     label: '',
-    prettyName: 'max@keyba.se',
+    prettyName: 'max@keybase.io',
     serviceId: 'contact',
     serviceMap: {keybase: 'max'},
-    username: 'max@keyba.se',
+    username: 'max@keybase.io',
   }),
 }
 
