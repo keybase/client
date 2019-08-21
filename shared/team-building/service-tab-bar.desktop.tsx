@@ -117,7 +117,7 @@ const undefToNull = (n: number | undefined | null): number | null => (n === unde
 export const ServiceTabBar = (props: Props) => {
   const [
     lastSelectedUnlockedService,
-    setLastSelectedUnlockedDevice,
+    setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
   const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
   const lockedServices = Constants.services.slice(0, nLocked)
@@ -138,7 +138,7 @@ export const ServiceTabBar = (props: Props) => {
   }
   React.useEffect(() => {
     if (lastSelectedUnlockedServiceChanged) {
-      setLastSelectedUnlockedDevice(props.selectedService)
+      setLastSelectedUnlockedService(props.selectedService)
     }
   }, [lastSelectedUnlockedServiceChanged, props.selectedService])
   const moreServices = difference(Constants.services, frontServices)
