@@ -10,11 +10,14 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.MessagingStyle;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.Person;
+import android.support.v4.app.RemoteInput;
 import android.support.v4.graphics.drawable.IconCompat;
 
 import java.io.BufferedInputStream;
@@ -110,6 +113,30 @@ public class KBPushNotifier implements PushNotifier {
     return null;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
+  private NotificationCompat.Action newReplyAction(Context context, ConvData convData, PendingIntent openConv) {
+    String replyLabel = "Reply";
+    RemoteInput remoteInput = new RemoteInput.Builder(ChatBroadcastReceiver.KEY_TEXT_REPLY)
+        .setLabel(replyLabel)
+        .build();
+
+    Intent intent = convData.intoIntent(context);
+    intent.putExtra("openConvPendingIntent", openConv);
+
+    // Our pending intent which will be sent to the broadcast receiver
+    PendingIntent replyPendingIntent =
+        PendingIntent.getBroadcast(context,
+                convData.convID.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+    NotificationCompat.Action action =
+      new NotificationCompat.Action.Builder(R.drawable.ic_notif, "Reply", replyPendingIntent)
+        .addRemoteInput(remoteInput)
+        .build();
+    return action;
+  }
+
   @Override
   public void displayChatNotification(ChatNotification chatNotification) {
     // We need to specify these parameters so that the data returned
@@ -121,12 +148,17 @@ public class KBPushNotifier implements PushNotifier {
     bundle.putString("convID", chatNotification.getConvID());
     PendingIntent pending_intent = buildPendingIntent(bundle);
 
+    ConvData convData = new ConvData(chatNotification.getConvID(), chatNotification.getTlFName(), chatNotification.getMessage().getID());
 
     NotificationCompat.Builder builder =
       new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notif)
         .setContentIntent(pending_intent)
         .setAutoCancel(true);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+      builder.addAction(newReplyAction(this.context, convData, pending_intent));
+    }
 
     Message msg = chatNotification.getMessage();
     keybase.Person from = msg.getFrom();
@@ -147,7 +179,7 @@ public class KBPushNotifier implements PushNotifier {
       convMsgCache.add(new MessagingStyle.Message(msgText, msg.getAt(), fromPerson));
     }
 
-    NotificationCompat.MessagingStyle style = buildStyle(fromPerson);
+    MessagingStyle style = buildStyle(fromPerson);
     style.setConversationTitle(chatNotification.getConversationName());
     style.setGroupConversation(chatNotification.getIsGroupConversation());
 

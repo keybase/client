@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -34,17 +35,30 @@ type Message struct {
 }
 
 type ChatNotification struct {
-	// Ordered from oldest to newest
 	Message   *Message
 	ConvID    string
 	TeamName  string
 	TopicName string
+	TlFName   string
 	// e.g. "keybase#general, CoolTeam, Susannah,Jake"
 	ConversationName    string
 	IsGroupConversation bool
 	IsPlaintext         bool
 	SoundName           string
 	BadgeCount          int
+}
+
+func HandlePostTextReply(strConvID, tlfName string, body string, replyTo int) (err error) {
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		return err
+	}
+	kbCtx.ChatHelper.SendTextByIDNonblock(context.Background(), convID, tlfName, body, &outboxID, nil)
+	return nil
 }
 
 func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
@@ -101,6 +115,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		},
 		ConvID:              strConvID,
 		TopicName:           conv.Info.TopicName,
+		TlFName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
 		ConversationName:    formatConversationName(conv.Info),
 		SoundName:           soundName,
