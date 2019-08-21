@@ -10,11 +10,9 @@ import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../desktop/app/ctl.desktop'
-import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
@@ -34,9 +32,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  const mw = getMainWindow()
-  mw && mw.show()
-  showDockIcon()
+  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {

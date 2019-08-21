@@ -1,6 +1,5 @@
 // Entry point for the node part of the electron app
 import MainWindow from './main-window.desktop'
-import {showDockIcon} from './dock-icon.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -143,15 +142,6 @@ const handleCrashes = () => {
 
 const handleActivate = () => mainWindow && mainWindow.show()
 
-const handleCloseWindows = () => {
-  const windows = SafeElectron.BrowserWindow.getAllWindows()
-  windows.forEach(w => {
-    // We tell it to close, we can register handlers for the 'close' event if we want to
-    // keep this window alive or hide it instead.
-    w.close()
-  })
-}
-
 const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
@@ -171,7 +161,7 @@ const willFinishLaunching = () => {
 
 let menubarWindowID = 0
 
-type IPCPayload = {type: 'appStartedUp'} | {type: 'requestStartService'} | {type: 'requestShowDockIcon'}
+type IPCPayload = {type: 'appStartedUp'} | {type: 'requestStartService'} | {type: 'closeWindows'}
 
 const plumbEvents = () => {
   Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
@@ -211,8 +201,13 @@ const plumbEvents = () => {
           startWinService()
         }
         break
-      case 'requestShowDockIcon':
-        showDockIcon()
+      case 'closeWindows':
+        const windows = SafeElectron.BrowserWindow.getAllWindows()
+        windows.forEach(w => {
+          // We tell it to close, we can register handlers for the 'close' event if we want to
+          // keep this window alive or hide it instead.
+          w.close()
+        })
         break
     }
   })
@@ -253,10 +248,6 @@ const start = () => {
 
   // Called when the user clicks the dock icon
   Electron.app.on('activate', handleActivate)
-
-  // Don't quit the app, instead try to close all windows
-  // @ts-ignore not in the docs so maybe it doesn't exist anymore? scared to change it now
-  Electron.app.on('close-windows', handleCloseWindows)
 
   // quit through dock. only listen once
   Electron.app.once('before-quit', handleQuitting)

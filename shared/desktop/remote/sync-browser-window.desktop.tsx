@@ -1,7 +1,6 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import menuHelper from '../app/menu-helper.desktop'
 import {resolveRootAsURL} from '../app/resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
@@ -101,8 +100,6 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
       this._remoteWindowId = remoteWindow.id
-
-      menuHelper(remoteWindow)
 
       SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestShowDockIcon'})
 

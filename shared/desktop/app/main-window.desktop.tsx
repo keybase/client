@@ -6,7 +6,6 @@ import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
-import {showDockIcon, hideDockIcon} from './dock-icon.desktop'
 import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
@@ -66,22 +65,10 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
     mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
   }, 500) // TODO higher
 
-  win.on('show', () => {
-    console.log('aaa show ')
-    saveWindowState()
-  })
-  win.on('close', () => {
-    console.log('aaa close')
-    saveWindowState()
-  })
-  win.on('resize', () => {
-    console.log('aaa resize')
-    saveWindowState()
-  })
-  win.on('move', () => {
-    console.log('aaa move')
-    saveWindowState()
-  })
+  win.on('show', saveWindowState)
+  win.on('close', saveWindowState)
+  win.on('resize', saveWindowState)
+  win.on('move', saveWindowState)
 
   const hideInsteadOfClose = (event: Electron.Event) => {
     event.preventDefault()
@@ -90,7 +77,44 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
+
+  type IPCPayload = {type: 'requestShowDockIcon'} | {type: 'showMainWindow'} | {type: 'closeWindows'}
+  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
+    switch (payload.type) {
+      case 'showMainWindow':
+        win.show()
+        showDockIcon()
+        break
+      case 'requestShowDockIcon':
+        showDockIcon()
+        break
+      case 'closeWindows':
+        hideDockIcon()
+        break
+    }
+  })
 }
+
+const changeDock = (show: boolean) => {
+  const dock = Electron.app.dock
+  if (!dock) return
+
+  if (show === dock.isVisible()) {
+    return
+  }
+
+  if (show) {
+    dock.show()
+  } else {
+    dock.hide()
+  }
+
+  windowState.dockHidden = !show
+  mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+}
+
+export const showDockIcon = () => changeDock(true)
+export const hideDockIcon = () => changeDock(false)
 
 const loadWindowState = () => {
   const filename = dataRoot + 'gui_config.json'

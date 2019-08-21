@@ -25,11 +25,9 @@ export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
 export type WindowState = {
-  // displayBounds?: {x: number; y: number; width: number; height: number}
   dockHidden: boolean
   height: number
   isFullScreen: boolean
-  isMaximized: boolean
   openAtLogin: boolean
   useNativeFrame: boolean
   width: number
