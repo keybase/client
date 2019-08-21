@@ -393,7 +393,10 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	}
 
 	Logout(tc)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))

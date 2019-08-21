@@ -111,7 +111,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Store and encrypt the new deviceEK with the new globally set
 	// active device.
-	if e.ekReboxer.storeEKs(m); err != nil {
+	if err := e.ekReboxer.storeEKs(m); err != nil {
 		m.Debug("unable to store ephemeral keys: %v", err)
 	}
 

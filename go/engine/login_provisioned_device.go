@@ -266,7 +266,10 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.runBug3964Repairman(m)
+	err = e.runBug3964Repairman(m)
+	if err != nil {
+		return err
+	}
 
 	success, err = e.reattemptUnlock(m)
 	if err != nil {

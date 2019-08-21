@@ -96,9 +96,10 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	t.Logf("deleted user")
 
 	// Punch through the UPAK cache. Not dealing with upak vs delete race right now.
-	tc.G.GetUPAKLoader().LoadV2(
+	_, _, err = tc.G.GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)).WithPublicKeyOptional().
 			WithUID(u.GetUID()).WithForcePoll(true))
+	require.NoError(t, err)
 
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.SetProofServices(i)

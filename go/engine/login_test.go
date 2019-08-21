@@ -59,15 +59,17 @@ func TestLoginTwiceLogoutOnce(t *testing.T) {
 	t.Logf("Logout first, and signup  u2")
 	u2 := CreateAndSignupFakeUser(tc, "secon")
 	t.Logf("Login u1")
-	u1.SwitchTo(tc.G, true)
+	err := u1.SwitchTo(tc.G, true)
+	require.NoError(t, err)
 	t.Logf("Logged in u1")
-	u2.SwitchTo(tc.G, true)
+	err = u2.SwitchTo(tc.G, true)
+	require.NoError(t, err)
 	eng := NewLogout()
 	mctx := NewMetaContextForTest(tc).WithUIs(libkb.UIs{
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &nullSecretUI{},
 	})
-	err := RunEngine2(mctx, eng)
+	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)
 	require.True(t, tc.G.ActiveDevice.Valid())
 	require.Equal(t, tc.G.ActiveDevice.UID(), u1.UID())
@@ -82,9 +84,11 @@ func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 	t.Logf("Logout first, and signup  u2")
 	u2 := CreateAndSignupFakeUser(tc, "secon")
 	t.Logf("Login u1")
-	u1.SwitchTo(tc.G, true)
+	err := u1.SwitchTo(tc.G, true)
+	require.NoError(t, err)
 	t.Logf("Logged in u1")
-	u2.SwitchTo(tc.G, true)
+	err = u2.SwitchTo(tc.G, true)
+	require.NoError(t, err)
 	t.Logf("Logged in u2")
 
 	swtch := func(u *FakeUser) {
@@ -233,7 +237,8 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 	}
 
 	// Now switch back to userX, which may or may not be userProvisionAs (above)
-	userX.SwitchTo(tcX.G, true)
+	err = userX.SwitchTo(tcX.G, true)
+	require.NoError(t, err)
 
 	secretCh := make(chan kex2.Secret)
 
@@ -2572,10 +2577,11 @@ func TestResetAccountNoLogoutSelfCache(t *testing.T) {
 	originalDevice := tc.G.Env.GetDeviceID()
 
 	// make sure FullSelf is cached
-	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err := tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		t.Logf("full self user: %s", u.GetName())
 		return nil
 	})
+	require.NoError(t, err)
 
 	ResetAccountNoLogout(tc, u)
 
@@ -3550,7 +3556,9 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		// do a upak load to make sure it is cached
 		arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc2.G, u1.UID())
-		tc2.G.GetUPAKLoader().Load(arg)
+		if _, _, err := tc2.G.GetUPAKLoader().Load(arg); err != nil {
+			t.Fatal(err)
+		}
 
 		// Simulate restarting the service by wiping out the
 		// passphrase stream cache and cached secret keys
@@ -3704,7 +3712,7 @@ func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
 
 	arg := MakeTestSignupEngineRunArg(fu)
 	desiredName := arg.DeviceName + "'s test's cool-thing-device"
-	arg.DeviceName = arg.DeviceName + "’s test‘s cool—thing–device"
+	arg.DeviceName += "’s test‘s cool—thing–device"
 	SignupFakeUserWithArg(tc, fu, arg)
 	fu.LoginOrBust(tc)
 	if err := fu.LoadUser(tc); err != nil {

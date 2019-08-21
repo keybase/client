@@ -175,7 +175,7 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
-	decmsg := string(decoded.Bytes())
+	decmsg := decoded.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}

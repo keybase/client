@@ -106,7 +106,7 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 		return err
 	}
 	usernamesMap := map[libkb.NormalizedUsername]struct{}{
-		currentUsername: struct{}{},
+		currentUsername: {},
 	}
 	for _, username := range otherUsernames {
 		usernamesMap[username] = struct{}{}

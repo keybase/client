@@ -46,9 +46,7 @@ func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	e.doSwitch(mctx)
-
-	return nil
+	return e.doSwitch(mctx)
 }
 
 var _ Engine2 = (*LogoutEngine)(nil)

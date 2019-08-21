@@ -58,7 +58,12 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		tc.T.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() {
+		err := runUntrack(tc, fu, username, sigVersion)
+		if err != nil {
+			tc.T.Fatal(err)
+		}
+	}()
 	assertTracking(tc, username)
 }
 
@@ -106,7 +111,12 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() {
+		err := runUntrack(tc, fu, username, sigVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -240,7 +250,12 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() {
+		err := runUntrack(tc, fu, username, sigVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -362,7 +377,12 @@ func TestTrackFailTempRecover(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() {
+		err := runUntrack(tc, fu, username, sigVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
