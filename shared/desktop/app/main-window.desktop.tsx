@@ -1,17 +1,21 @@
 import URL from 'url-parse'
-import AppState from '../../app/app-state.desktop'
-import Window from './window.desktop'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
+import * as ConfigGen from '../../actions/config-gen'
+import * as fs from 'fs'
+import menuHelper from './menu-helper.desktop'
+import {mainWindowDispatch} from '../remote/util.desktop'
+import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
-import {hideDockIcon} from './dock-icon.desktop'
-import {isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform'
+import {showDockIcon, hideDockIcon} from './dock-icon.desktop'
+import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
+import {debounce} from 'lodash-es'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
-export default function() {
-  const ds = SafeElectron.getSession().defaultSession
+const setupDefaultSession = () => {
+  const ds = Electron.session.defaultSession
   if (!ds) {
     throw new Error('No default Session? Should be impossible')
   }
@@ -32,75 +36,113 @@ export default function() {
     }
     return callback(false)
   })
+}
 
-  let appState = new AppState()
-  appState.checkOpenAtLogin()
+const windowState: WindowState = {
+  dockHidden: false,
+  height: 600,
+  isFullScreen: false,
+  isMaximized: false,
+  openAtLogin: true,
+  useNativeFrame: defaultUseNativeFrame,
+  width: 800,
+  windowHidden: false,
+  x: 0,
+  y: 0,
+}
 
-  const mainWindow = new Window(htmlFile, {
-    backgroundThrottling: false,
-    // Auto generated from flowToTs. Please clean me!
-    frame:
-      appState.state.useNativeFrame !== null && appState.state.useNativeFrame !== undefined
-        ? appState.state.useNativeFrame
-        : defaultUseNativeFrame,
-    height: appState.state.height,
-    minHeight: 600,
-    minWidth: 400,
-    show: false,
-    webPreferences: {
-      devTools: showDevTools,
-      nodeIntegration: true,
-      nodeIntegrationInWorker: false,
-    },
-    width: appState.state.width,
-    x: appState.state.x,
-    y: appState.state.y,
-    ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
-  })
+const setupWindowEvents = (win: Electron.BrowserWindow) => {
+  const saveWindowState = debounce(() => {
+    let winBounds = win.getBounds()
+    if (!win.isMaximized() && !win.isMinimized() && !win.isFullScreen()) {
+      windowState.x = winBounds.x
+      windowState.y = winBounds.y
+      windowState.width = winBounds.width
+      windowState.height = winBounds.height
+    }
+    windowState.isMaximized = win.isMaximized()
+    windowState.isFullScreen = win.isFullScreen()
+    // windowState.displayBounds = Electron.screen.getDisplayMatching(winBounds).bounds
+    windowState.windowHidden = !win.isVisible()
 
-  const webContents = mainWindow.window && mainWindow.window.webContents
+    console.log('aaaa saivng window state', windowState)
+    mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+  }, 5000)
 
-  if (showDevTools) {
-    webContents && webContents.openDevTools({mode: 'detach'})
+  win.on('show', saveWindowState)
+  win.on('close', saveWindowState)
+  win.on('resize', saveWindowState)
+  win.on('move', saveWindowState)
+
+  const hideInsteadOfClose = (event: Electron.Event) => {
+    event.preventDefault()
+    win.hide()
+    hideDockIcon()
   }
 
-  appState.manageWindow(mainWindow.window)
+  win.on('close', hideInsteadOfClose)
+}
 
-  const app = SafeElectron.getApp()
-  // Register for SEP7 and Keybase links.
-  app.setAsDefaultProtocolClient('web+stellar')
-  app.setAsDefaultProtocolClient('keybase')
+const loadWindowState = () => {
+  const filename = dataRoot + 'gui_config.json'
 
-  const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
+  try {
+    const s = fs.readFileSync(filename, {encoding: 'utf8'})
+    const obj = JSON.parse(s)
+    const {
+      dockHidden,
+      height,
+      isFullScreen,
+      isMaximized,
+      openAtLogin,
+      useNativeFrame,
+      width,
+      windowHidden,
+      x,
+      y,
+    } = obj
+
+    windowState.dockHidden = dockHidden || false
+    windowState.height = height || 800
+    windowState.isFullScreen = isFullScreen || false
+    windowState.isMaximized = isMaximized || false
+    windowState.openAtLogin = openAtLogin || Electron.app.getLoginItemSettings().wasOpenedAtLogin
+    windowState.useNativeFrame = useNativeFrame === undefined ? defaultUseNativeFrame : useNativeFrame
+    windowState.width = width || 600
+    windowState.windowHidden = windowHidden || false
+    windowState.x = x || 100
+    windowState.y = y || 100
+  } catch (e) {
+    logger.info(`Couldn't load`, filename, ' continuing...')
+  }
+}
+
+const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
+  if (!isWindows) {
+    return
+  }
+  // DPI scaling issues
+  // https://github.com/electron/electron/issues/10862
+  win.setBounds({
+    height: windowState.height,
+    width: windowState.width,
+    x: windowState.x,
+    y: windowState.y,
+  })
+}
+
+const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
+  const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    !!process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
+    !!process.env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
-  const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
-  logger.info('Opened at login:', openedAtLogin)
-  logger.info('Is restore:', isRestore)
-  logger.info('Open hidden:', openHidden)
-  if (
-    isWindows &&
-    appState &&
-    appState.state &&
-    typeof appState.state.x === 'number' &&
-    typeof appState.state.y === 'number' &&
-    typeof appState.state.width === 'number' &&
-    typeof appState.state.height === 'number'
-  ) {
-    // DPI scaling issues
-    // https://github.com/electron/electron/issues/10862
-    mainWindow.window &&
-      mainWindow.window.setBounds({
-        height: appState.state.height,
-        width: appState.state.width,
-        x: appState.state.x,
-        y: appState.state.y,
-      })
-  }
+  const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
+  // logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
+  // logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
+  // logger.info('Opened at login:', openedAtLogin)
+  // logger.info('Is restore:', isRestore)
+  // logger.info('Open hidden:', openHidden)
 
   // Don't show main window:
   // - If we are set to open hidden,
@@ -110,7 +152,7 @@ export default function() {
   const hideMainWindow =
     openHidden ||
     hideWindowOnStart ||
-    (isRestore && appState.state.windowHidden) ||
+    (isRestore && windowState.windowHidden) ||
     (openedAtLogin && !isRestore)
 
   logger.info('Hide main window:', hideMainWindow)
@@ -119,11 +161,12 @@ export default function() {
     // This will result in a dropped .show request
     // We add a listener to `did-finish-load` so we can show it when
     // Windows is ready.
-    mainWindow.show()
-    mainWindow.window &&
-      mainWindow.window.webContents.once('did-finish-load', () => {
-        mainWindow.show()
-      })
+    showDockIcon()
+
+    win.show()
+    win.webContents.once('did-finish-load', () => {
+      win.show()
+    })
   }
 
   // Don't show dock:
@@ -131,11 +174,65 @@ export default function() {
   // - or, if we are restoring and dock was hidden
   // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon =
-    openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
+    openHidden || (isRestore && windowState.dockHidden) || (openedAtLogin && !isRestore)
   logger.info('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
   }
+}
 
-  return mainWindow
+const registerForAppLinks = () => {
+  // Register for SEP7 and Keybase links.
+  Electron.app.setAsDefaultProtocolClient('web+stellar')
+  Electron.app.setAsDefaultProtocolClient('keybase')
+}
+
+// const checkOpenAtLogin = () => {
+// if (__DEV__) {
+// logger.info('Skipping auto login state change due to dev env. ')
+// return
+// }
+
+// if (isDarwin || isWindows) {
+// logger.info('Setting login item state', windowState.openAtLogin)
+// Electron.app.setLoginItemSettings({openAtLogin: windowState.openAtLogin})
+// }
+// }
+
+export default () => {
+  setupDefaultSession()
+  loadWindowState()
+  // checkOpenAtLogin()
+
+  const win = new Electron.BrowserWindow({
+    frame: windowState.useNativeFrame,
+    height: windowState.height,
+    minHeight: 600,
+    minWidth: 400,
+    show: false,
+    webPreferences: {
+      backgroundThrottling: false,
+      devTools: showDevTools,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: false,
+    },
+    width: windowState.width,
+    x: windowState.x,
+    y: windowState.y,
+    ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
+  })
+  win.loadURL(htmlFile)
+
+  menuHelper(win)
+  setupWindowEvents(win)
+
+  if (showDevTools && win.webContents) {
+    win.webContents.openDevTools({mode: 'detach'})
+  }
+
+  registerForAppLinks()
+  fixWindowsScalingIssue(win)
+  maybeShowWindowOrDock(win)
+
+  return win
 }

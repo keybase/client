@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isDarwin, isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
+import {isDarwin, isMobile, isLinux} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import AppState from '../../app/app-state'
 import {ProxySettings} from '../proxy/container'
 import {DarkModePreference} from '../../styles/dark-mode'
 
@@ -37,14 +36,11 @@ type Props = {
   onToggleRuntimeStats: () => void
 }
 
-const stateUseNativeFrame = new AppState().state.useNativeFrame
-const initialUseNativeFrame =
-  stateUseNativeFrame !== null && stateUseNativeFrame !== undefined
-    ? stateUseNativeFrame
-    : defaultUseNativeFrame
+const initialUseNativeFrame = false
+// TODO
 
 const UseNativeFrame = (props: Props) => {
-  return !isMobile ? (
+  return isMobile ? null : (
     <>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
@@ -59,7 +55,7 @@ const UseNativeFrame = (props: Props) => {
         </Kb.Text>
       )}
     </>
-  ) : null
+  )
 }
 
 const Advanced = (props: Props) => {

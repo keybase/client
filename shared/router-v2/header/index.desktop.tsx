@@ -9,7 +9,6 @@ import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
-import AppState from '../../app/app-state.desktop'
 import * as ReactIs from 'react-is'
 
 // A mobile-like header for desktop
@@ -24,7 +23,7 @@ type Props = {
   style?: any
 }
 
-const useNativeFrame = new AppState().state.useNativeFrame
+const useNativeFrame = false // TODO
 const initialUseNativeFrame =
   useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
 

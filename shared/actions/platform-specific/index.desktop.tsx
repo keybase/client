@@ -19,7 +19,6 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
-import AppState from '../../app/app-state.desktop'
 
 export function showShareActionSheetFromURL() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -369,13 +368,24 @@ const setUseNativeFrame = (state: Container.TypedState) => {
 }
 
 function* initializeUseNativeFrame() {
-  const useNativeFrame = new AppState().state.useNativeFrame
+  const useNativeFrame = false // TODO
   yield Saga.put(
     SettingsGen.createOnChangeUseNativeFrame({
       enabled:
         useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : defaultUseNativeFrame,
     })
   )
+}
+
+const saveWindowState = async (state: Container.TypedState) => {
+  const {windowState} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'windowState',
+    value: {
+      isNull: false,
+      s: JSON.stringify(windowState),
+    },
+  })
 }
 
 export const requestLocationPermission = () => Promise.resolve()
@@ -399,6 +409,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
   yield* Saga.chainAction2(SettingsGen.onChangeUseNativeFrame, setUseNativeFrame)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)

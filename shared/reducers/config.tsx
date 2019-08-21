@@ -290,6 +290,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       const {component, param} = action.payload
       return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
     }
+    case ConfigGen.updateWindowState:
+      return state.merge({windowState: action.payload.windowState})
     // Saga only actions
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:

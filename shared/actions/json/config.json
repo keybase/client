@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import {ConnectionType} from '../constants/types/config'",
+    "import * as Types from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
@@ -121,7 +121,7 @@
     },
     "osNetworkStatusChanged": {
       "online": "boolean",
-      "type": "ConnectionType",
+      "type": "Types.ConnectionType",
       "isInit?": "boolean"
     },
     "setDarkModePreference": {
@@ -138,6 +138,10 @@
       "_description": "remote electron window wants props sent",
       "component": "string",
       "param": "string"
+    },
+    "updateWindowState": {
+      "_description": "main electron window wants to store its state",
+      "windowState": "Types.WindowState",
     }
   }
 }

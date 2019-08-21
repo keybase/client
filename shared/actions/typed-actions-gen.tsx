@@ -237,6 +237,7 @@ export type TypedActionsMap = {
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
+  'config:updateWindowState': config.UpdateWindowStatePayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload

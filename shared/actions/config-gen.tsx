@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {ConnectionType} from '../constants/types/config'
+import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -53,6 +53,7 @@ export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
+export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = {
@@ -102,7 +103,7 @@ type _OpenAppSettingsPayload = void
 type _OpenAppStorePayload = void
 type _OsNetworkStatusChangedPayload = {
   readonly online: boolean
-  readonly type: ConnectionType
+  readonly type: Types.ConnectionType
   readonly isInit?: boolean
 }
 type _PersistRoutePayload = {readonly path: Array<any>}
@@ -141,6 +142,7 @@ type _UpdateInfoPayload = {
 }
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
 type _UpdateNowPayload = void
+type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
 /**
@@ -187,6 +189,13 @@ export const createRestartHandshake = (payload: _RestartHandshakePayload): Resta
 export const createStartHandshake = (payload: _StartHandshakePayload): StartHandshakePayload => ({
   payload,
   type: startHandshake,
+})
+/**
+ * main electron window wants to store its state
+ */
+export const createUpdateWindowState = (payload: _UpdateWindowStatePayload): UpdateWindowStatePayload => ({
+  payload,
+  type: updateWindowState,
 })
 /**
  * mobile only: open the settings page
@@ -458,6 +467,10 @@ export type UpdateMenubarWindowIDPayload = {
   readonly type: typeof updateMenubarWindowID
 }
 export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
+export type UpdateWindowStatePayload = {
+  readonly payload: _UpdateWindowStatePayload
+  readonly type: typeof updateWindowState
+}
 
 // All Actions
 // prettier-ignore
@@ -505,4 +518,5 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
+  | UpdateWindowStatePayload
   | {type: 'common:resetStore', payload: {}}
