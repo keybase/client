@@ -2762,8 +2762,27 @@ func (h *Server) UnpinMessage(ctx context.Context, convID chat1.ConversationID) 
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UnpinMessage")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
+		return res, err
+	}
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	pin, err := conv.GetMaxMessage(chat1.MessageType_PIN)
+	if err != nil {
+		return res, err
+	}
+	if _, err := h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+		ConversationID: convID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				MessageType: chat1.MessageType_DELETE,
+				Supersedes:  pin.GetMessageID(),
+			},
+		},
+	}); err != nil {
 		return res, err
 	}
 	return res, nil
