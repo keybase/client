@@ -135,27 +135,34 @@ safe_restart_systemd_services() {
 }
 
 is_owned_by_root() {
-    owner_uid="$(stat --format=%u "$1")" && [ "0" = "$owner_uid" ]
+    owner_uid="$(stat --format=%u "$1" 2> /dev/null)" && [ "0" = "$owner_uid" ]
 }
 
 # In 4.3.0, 4.3.1, we had a bug where this post install script's usage of
 # Keybase commands would create .config/keybase/ with root permissions if it
 # didn't already exist.
 fix_bad_config_perms() {
-    if users=$(find /home -maxdepth 1 -mindepth 1 -type d); then
-        while read -r user; do
+    if userhomes=$(find /home -maxdepth 1 -mindepth 1 -type d); then
+        while read -r userhome; do
+            user="$(basename "$userhome")"
             # Don't attempt to fix for users with custom XDG_CONFIG_HOME,
             # hopefully they will read release notes.
             configdir="/home/$user/.config"
-            keybaseconfigdir="$configdir/keybase"
-            if [ -e "$keybaseconfigdir" ]; then
+            keybase_configdir="$configdir/keybase"
+            keybase_configfile="$configdir/keybase/gui_config.json"
+            if [ -e "$keybase_configdir" ]; then
                 if is_owned_by_root "$configdir"; then
+                    echo "Fixing bad permissions in $configdir; try 'run_keybase' after install."
                     chown -R "$user:$user" "$configdir"
-                elif is_owned_by_root "$keybaseconfigdir"; then
-                    chown -R "$user:$user" "$keybaseconfigdir"
+                elif is_owned_by_root "$keybase_configdir"; then
+                    echo "Fixing bad permissions in $keybase_configdir; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configdir"
+                elif is_owned_by_root "$keybase_configfile"; then
+                    echo "Fixing bad permissions in $keybase_configfile; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configfile"
                 fi
             fi
-        done <<< "$users"
+        done <<< "$userhomes"
     fi
 }
 
