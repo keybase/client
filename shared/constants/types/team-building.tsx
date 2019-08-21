@@ -46,6 +46,7 @@ export type _TeamBuildingSubState = {
   teamBuildingUserRecs: Array<User> | null
   teamBuildingSelectedRole: TeamRoleType
   teamBuildingSendNotification: boolean
+  teamBuildingLabelsSeen: boolean
 }
 
 export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>

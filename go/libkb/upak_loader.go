@@ -373,7 +373,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
 			if fs := g.GetFullSelfer(); fs != nil && arg.self {
-				fs.Update(ctx, user)
+				_ = fs.Update(ctx, user)
 			}
 		}
 	}()
@@ -774,7 +774,7 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 	for _, b := range staleOK {
 		arg = arg.WithStaleOK(b)
 		found := false
-		u.loadWithInfo(arg, info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+		_, _, err := u.loadWithInfo(arg, info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 			if upak == nil {
 				return nil
 			}
@@ -786,13 +786,14 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 			}
 			return nil
 		}, false)
+		if err != nil {
+			return NormalizedUsername(""), "", "", err
+		}
 		if found {
 			return username, deviceName, deviceType, nil
 		}
 	}
-	if err == nil {
-		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
-	}
+	err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
 	return NormalizedUsername(""), "", "", err
 }
 

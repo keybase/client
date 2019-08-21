@@ -130,7 +130,10 @@ func (c *levelDbCleaner) monitorAppState() {
 			switch state {
 			case keybase1.MobileAppState_BACKGROUNDACTIVE:
 				c.log("monitorAppState: attempting clean")
-				c.clean(false)
+				err := c.clean(false)
+				if err != nil {
+					c.log("monitorAppState: clean err: %+v", err)
+				}
 			default:
 				c.log("monitorAppState: attempting cancel, state: %v", state)
 				c.Lock()

@@ -1,4 +1,5 @@
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
@@ -15,7 +16,7 @@ import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
-import {quit, hideWindow} from '../../util/quit-helper'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {tabRoots} from '../routes'
 
 type OwnProps = {
@@ -72,9 +73,11 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       }
     }
     // In case dump log doesn't exit for us
-    hideWindow()
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .hide()
     setTimeout(() => {
-      quit('quitButton')
+      quit()
     }, 2000)
   },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),

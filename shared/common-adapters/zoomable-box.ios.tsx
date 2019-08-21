@@ -2,8 +2,12 @@ import * as React from 'react'
 import ScrollView from './scroll-view'
 import {Props} from './zoomable-box'
 
+const Kb = {
+  ScrollView,
+}
+
 export const ZoomableBox = (props: Props) => (
-  <ScrollView
+  <Kb.ScrollView
     alwaysBounceVertical={false}
     bounces={props.bounces}
     children={props.children}

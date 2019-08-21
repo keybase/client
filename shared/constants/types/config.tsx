@@ -59,6 +59,7 @@ export type _State = {
   outOfDate?: OutOfDate | null
   pushLoaded: boolean
   registered: boolean
+  remoteWindowNeedsProps: I.Map<string, I.Map<string, number>>
   runtimeStats: RPCTypes.RuntimeStats | null
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean

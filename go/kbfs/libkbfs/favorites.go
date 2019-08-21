@@ -99,7 +99,8 @@ type Favorites struct {
 	// Channel that is full when there is already a refresh queued
 	refreshWaiting chan struct{}
 
-	wg kbfssync.RepeatedWaitGroup
+	wg     kbfssync.RepeatedWaitGroup
+	loopWG kbfssync.RepeatedWaitGroup
 
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's
@@ -600,6 +601,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
+	f.loopWG.Add(1)
+	defer f.loopWG.Done()
 	bufferedTicker := time.NewTicker(favoritesBufferedReqInterval)
 	defer bufferedTicker.Stop()
 
@@ -653,7 +656,11 @@ func (f *Favorites) Shutdown() error {
 				"Could not close disk favorites cache: %v", err)
 		}
 	}
-	return f.wg.Wait(context.Background())
+	err := f.wg.Wait(context.Background())
+	if err != nil {
+		return err
+	}
+	return f.loopWG.Wait(context.Background())
 }
 
 func (f *Favorites) waitOnReq(ctx context.Context,

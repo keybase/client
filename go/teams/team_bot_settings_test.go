@@ -121,7 +121,7 @@ func TestTeamBotSettings(t *testing.T) {
 	// sad paths
 	// must specify a restricted-bot member but botua is a BOT
 	expectedBots = map[keybase1.UserVersion]keybase1.TeamBotSettings{
-		botuaUV: keybase1.TeamBotSettings{},
+		botuaUV: {},
 	}
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.Error(t, err)

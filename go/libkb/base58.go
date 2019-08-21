@@ -96,7 +96,9 @@ func Decode58(inp string) (outp []byte, err error) {
 	}
 	buf = res.Bytes()
 	pad := bytes.Repeat([]byte{0}, padlen)
-	outp = append(pad, buf...)
+	outp = make([]byte, len(pad)+len(buf))
+	copy(outp, pad)
+	copy(outp[len(pad):], buf)
 
 	return
 }

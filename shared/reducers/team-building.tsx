@@ -20,7 +20,7 @@ export default function(
 
   switch (action.type) {
     case TeamBuildingGen.cancelTeamBuilding:
-      return Constants.makeSubState()
+      return Constants.makeSubState().set('teamBuildingLabelsSeen', state.teamBuildingLabelsSeen)
     case TeamBuildingGen.selectRole:
       return state.set('teamBuildingSelectedRole', action.payload.role)
     case TeamBuildingGen.changeSendNotification:
@@ -42,6 +42,7 @@ export default function(
         teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
         teamBuildingFinishedSendNotification: state.teamBuildingSendNotification,
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
+        teamBuildingLabelsSeen: state.teamBuildingLabelsSeen,
         teamBuildingSelectedRole: initialState.teamBuildingSelectedRole,
         teamBuildingSendNotification: initialState.teamBuildingSendNotification,
         teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
@@ -63,6 +64,8 @@ export default function(
 
     case TeamBuildingGen.fetchUserRecs:
       return state
+    case TeamBuildingGen.labelsSeen:
+      return state.set('teamBuildingLabelsSeen', true)
 
     default:
       return state

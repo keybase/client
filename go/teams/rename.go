@@ -104,7 +104,10 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 
 		payload := make(libkb.JSONPayload)
 		payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
-		ratchetBlindingKeys.AddToJSONPayload(payload)
+		err = ratchetBlindingKeys.AddToJSONPayload(payload)
+		if err != nil {
+			return err
+		}
 
 		mctx.Debug("RenameSubteam post")
 		_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
@@ -116,7 +119,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		go mctx.G().GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String())
+		go func() { _ = mctx.G().GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String()) }()
 
 		return nil
 	})
