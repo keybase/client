@@ -72,6 +72,7 @@ const AlphabetIndex = (props: Props) => {
           key={label}
           style={styles.gap}
           {...(index === 0 ? {ref: topSectionRef} : {})}
+          // Do not let android collapse this view as we need measurements
           collapsable={false}
         >
           <Kb.Text type="BodyTiny">{label}</Kb.Text>

@@ -65,6 +65,7 @@ const box2 = (props: Box2WithRefProps) => {
       onLayout={props.onLayout}
       pointerEvents={props.pointerEvents || 'auto'}
       ref={props.forwardedRef}
+      collapsable={props.collapsable}
     >
       {injectGaps(horizontal ? HBoxGap : VBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </View>

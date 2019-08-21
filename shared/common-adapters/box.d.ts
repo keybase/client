@@ -8,14 +8,15 @@ export type Box2Props = {
   children?: React.ReactNode
   centerChildren?: boolean
   className?: string | null
+  collapsable?: boolean // mobile only.
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
   fullHeight?: boolean
   fullWidth?: boolean
   noShrink?: boolean
   onDragLeave?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
   onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
-  onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop
-  // only
+  onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
+  // mobile only
   onLayout?: (evt: {
     nativeEvent: {
       layout: {
@@ -25,7 +26,7 @@ export type Box2Props = {
         height: number
       }
     }
-  }) => void // mobile only
+  }) => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
