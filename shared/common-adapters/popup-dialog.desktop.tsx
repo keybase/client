@@ -52,9 +52,9 @@ export function PopupDialog({
             <Icon
               type="iconfont-close"
               style={Styles.collapseStyles([styles.close, styleClose])}
-              color={Styles.globalColors.white}
+              color={Styles.isDarkMode ? Styles.globalColors.black : Styles.globalColors.white}
               onClick={onClose}
-              hoverColor={Styles.globalColors.white_40}
+              hoverColor={Styles.isDarkMode ? Styles.globalColors.black_60 : Styles.globalColors.white_40}
             />
           )}
           <Box
@@ -103,7 +103,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50,
+    backgroundColor: Styles.isDarkMode ? Styles.globalColors.white_75 : Styles.globalColors.black_50,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,

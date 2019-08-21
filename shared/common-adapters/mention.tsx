@@ -34,6 +34,7 @@ const styles = Styles.styleSheetCreate({
   highlight: {
     backgroundColor: Styles.globalColors.yellow,
     borderRadius: 2,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,
