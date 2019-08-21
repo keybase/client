@@ -97,7 +97,7 @@ class EditProfile extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bio: {
     maxHeight: undefined,
   },
@@ -112,6 +112,6 @@ const styles = Styles.styleSheetCreate({
   }),
   gap: {flexGrow: 1, minHeight: Styles.globalMargins.small},
   header: {marginBottom: Styles.globalMargins.small},
-})
+}))
 
 export default Kb.HeaderOrPopupWithHeader(EditProfile)

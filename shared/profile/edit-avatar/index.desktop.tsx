@@ -401,20 +401,27 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 }
 
-const HoverBox = Styles.styled(Kb.Box)({
-  '&.filled': {
+const hoverStyles = Styles.styleSheetCreate(() => ({
+  filled: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
-  '&.filled:active': {cursor: '-webkit-grabbing'},
-  '&.filled:hover': {
+  filledHover: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
   },
-  '&:hover': {borderColor: Styles.globalColors.black_50},
-  '&:hover .icon': {color: Styles.globalColors.black_50},
+  hover: {borderColor: Styles.globalColors.black_50},
+  hoverIcon: {color: Styles.globalColors.black_50},
+}))
+
+const HoverBox = Styles.styled(Kb.Box)({
+  '&.filled': hoverStyles.filled,
+  '&.filled:active': {cursor: '-webkit-grabbing'},
+  '&.filled:hover': hoverStyles.filledHover,
+  '&:hover': hoverStyles.hover,
+  '&:hover .icon': hoverStyles.hoverIcon,
   '.dropping &': {
     backgroundColor: Styles.globalColors.blue_60,
     borderColor: Styles.globalColors.blue_60,
@@ -433,7 +440,7 @@ const HoverBox = Styles.styled(Kb.Box)({
   width: AVATAR_CONTAINER_SIZE,
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -470,6 +477,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.grey,
     justifyContent: 'center',
   },
-})
+}))
 
 export default HOCTimers(EditAvatar)

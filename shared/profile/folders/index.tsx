@@ -59,7 +59,7 @@ class Folders extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   itemContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
@@ -77,6 +77,6 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
-})
+}))
 
 export default Folders
