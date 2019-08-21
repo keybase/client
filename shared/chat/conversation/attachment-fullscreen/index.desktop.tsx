@@ -132,7 +132,21 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen: any = KeyHandler(OverlayParentHOC(_Fullscreen as any))
+
+const AF = KeyHandler(OverlayParentHOC(_Fullscreen as any))
+const Fullscreen = (p: Props) => {
+  const {onNextAttachment, onPreviousAttachment, ...rest} = p
+  return (
+    <AF
+      hotkeys={['left', 'right']}
+      onHotkey={(cmd: string) => {
+        cmd === 'left' && onPreviousAttachment()
+        cmd === 'right' && onNextAttachment()
+      }}
+      {...rest}
+    />
+  )
+}
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_50, cursor: 'pointer'},

@@ -28,19 +28,18 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
-  _onHotkey: (conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, cmd: string) => {
-    switch (cmd) {
-      case 'left':
-      case 'right':
-        dispatch(
-          Chat2Gen.createAttachmentFullscreenNext({
-            backInTime: cmd === 'left',
-            conversationIDKey,
-            messageID,
-          })
-        )
-        break
-    }
+  _onSwitchAttachment: (
+    conversationIDKey: Types.ConversationIDKey,
+    messageID: Types.MessageID,
+    prev: boolean
+  ) => {
+    dispatch(
+      Chat2Gen.createAttachmentFullscreenNext({
+        backInTime: prev,
+        conversationIDKey,
+        messageID,
+      })
+    )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
@@ -63,14 +62,15 @@ const Connected = Container.connect(
     )
     return {
       autoPlay: stateProps.autoPlay,
-      hotkeys: ['left', 'right'],
       isVideo: Constants.isVideoAttachment(message),
       message,
       onClose: dispatchProps.onClose,
       onDownloadAttachment: message.downloadPath
         ? undefined
         : () => dispatchProps._onDownloadAttachment(message),
-      onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
+      onPreviousAttachment: () =>
+        dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, true),
+      onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
       onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
       path: message.fileURL || message.previewURL,
       previewHeight: height,

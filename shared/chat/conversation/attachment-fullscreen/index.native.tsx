@@ -70,8 +70,8 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               style={{...Styles.globalStyles.fillAbsolute}}
               uri={this.props.path}
               onLoad={this._setLoaded}
-              onSwipeRight={() => this.props.onHotkey('right')}
-              onSwipeLeft={() => this.props.onHotkey('left')}
+              onSwipeRight={() => this.props.onNextAttachment()}
+              onSwipeLeft={() => this.props.onPreviousAttachment()}
             />
           )}
           {!this.state.loaded && (
