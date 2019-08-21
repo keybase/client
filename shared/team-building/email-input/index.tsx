@@ -44,9 +44,8 @@ const EmailInput = ({namespace}: EmailInputProps) => {
 
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     // Clear input
-    setEmailString('')
-    setEmailValidity(false)
-  }, [dispatch, user, setEmailString, setEmailValidity, namespace])
+    onChange('')
+  }, [dispatch, user, namespace, onChange])
 
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
@@ -76,10 +75,10 @@ const EmailInput = ({namespace}: EmailInputProps) => {
             clickType="onClick"
           />
         )}
-        {/* TODO: multiple email add support */}
+        {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
           <Kb.Button label="Continue" fullWidth={true} onClick={onSubmit} disabled={!isEmailValid} />
         </Kb.Box2>
       </Kb.Box2>

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import emailInput from './email-input/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -734,6 +735,7 @@ const load = () => {
         resultForService={'keybase'}
       />
     ))
+  emailInput()
 }
 
 export default load
