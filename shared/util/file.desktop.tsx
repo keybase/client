@@ -1,41 +1,38 @@
-import crypto from 'crypto'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 import {StatResult, WriteStream, Encoding} from './file'
+const fs = KB.fs.__
 
 export function tmpDir(): string {
   return cacheRoot
 }
 
 export function tmpFile(suffix: string): string {
-  return path.join(tmpDir(), suffix)
+  return KB.path.join(tmpDir(), suffix)
 }
 
 export function tmpRandFile(suffix: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    crypto.randomBytes(16, (err, buf) => {
+    KB.crypto.randomBytes(16, (err, buf) => {
       if (err) {
         reject(err)
         return
       }
-      resolve(path.join(tmpDir(), buf.toString('hex') + suffix))
+      resolve(KB.path.join(tmpDir(), buf.toString('hex') + suffix))
     })
   })
 }
 
 export const downloadFolder = __STORYBOOK__
   ? ''
-  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
+  : KB.process.env.XDG_DOWNLOAD_DIR || KB.path.join(KB.os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
-  return path.join(downloadFolder, filename)
+  return KB.path.join(downloadFolder, filename)
 }
 
 export function downloadFilePath(suffix: string): Promise<string> {
-  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
+  return findAvailableFilename(exists, KB.path.join(downloadFolder, suffix))
 }
 
 export function exists(filepath: string): Promise<boolean> {
@@ -58,9 +55,9 @@ export function stat(filepath: string): Promise<StatResult> {
 }
 
 export function mkdirp(target: string) {
-  const initDir = path.isAbsolute(target) ? path.sep : ''
-  target.split(path.sep).reduce((parentDir, childDir) => {
-    const curDir = path.resolve(parentDir, childDir)
+  const initDir = KB.path.isAbsolute(target) ? KB.path.sep : ''
+  target.split(KB.path.sep).reduce((parentDir, childDir) => {
+    const curDir = KB.path.resolve(parentDir, childDir)
     if (!fs.existsSync(curDir)) {
       fs.mkdirSync(curDir)
     }
@@ -71,7 +68,7 @@ export function mkdirp(target: string) {
 
 export function copy(from: string, to: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    mkdirp(path.dirname(to))
+    mkdirp(KB.path.dirname(to))
     fs.readFile(from, (err, data) => {
       if (err) {
         reject(err)

@@ -40,7 +40,7 @@ class RemoteComponentLoader extends React.Component<Props> {
       windowParam: props.params,
     })
     this._store = remoteStore.getStore()
-    setupContextMenu(this._window)
+    setupContextMenu()
   }
 
   _onGotProps = () => {

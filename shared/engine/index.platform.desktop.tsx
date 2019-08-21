@@ -47,7 +47,7 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  if (!isWindows || process.type !== 'renderer') {
+  if (!isWindows || KB.process.type !== 'renderer') {
     return
   }
 

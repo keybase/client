@@ -1,6 +1,5 @@
 import {colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import path from 'path'
 import * as Shared from './shared'
 import {isEmpty} from 'lodash-es'
 import styleSheeCreateProxy from './style-sheet-proxy'
@@ -99,8 +98,8 @@ export const backgroundURL = (...to: Array<string>) => {
 
   if (goodPath && goodPath.length) {
     const last = goodPath[goodPath.length - 1]
-    const ext = path.extname(last)
-    goodPath[goodPath.length - 1] = path.basename(last, ext)
+    const ext = KB.path.extname(last)
+    goodPath[goodPath.length - 1] = KB.path.basename(last, ext)
 
     const images = [1, 2, 3].map(
       mult => `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`

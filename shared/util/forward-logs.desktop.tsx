@@ -1,8 +1,15 @@
+// TODO move to rpc
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isWindows, logFileName} from '../constants/platform.desktop'
-import fs from 'fs'
 import {mkdirp} from '../util/file.desktop'
-import path from 'path'
+
+const fs = KB.fs.__
+
+type Log = (...args: Array<any>) => void
+
+const localLog: Log = console.log.bind(console)
+const localWarn: Log = console.warn.bind(console)
+const localError: Log = console.error.bind(console)
 
 const fileDoesNotExist = err => {
   if (isWindows && err.errno === -4058) {
@@ -25,7 +32,7 @@ const setupFileWritable = () => {
   }
 
   // Ensure log directory exists
-  mkdirp(path.dirname(logFile))
+  mkdirp(KB.path.dirname(logFile))
 
   // Check if we can write to log file
   try {
@@ -59,12 +66,6 @@ const setupFileWritable = () => {
   // Append to existing log
   return fs.openSync(logFile, 'a')
 }
-
-type Log = (...args: Array<any>) => void
-
-const localLog: Log = console.log.bind(console)
-const localWarn: Log = console.warn.bind(console)
-const localError: Log = console.error.bind(console)
 
 const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
   lines: Array<LogLineWithLevelISOTimestamp>

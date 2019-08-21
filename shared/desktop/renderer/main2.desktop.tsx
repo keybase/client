@@ -52,7 +52,7 @@ const setupApp = (store, runSagas) => {
   runSagas && runSagas()
   eng.sagasAreReady()
 
-  setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
+  setupContextMenu()
 
   // Listen for the menubarWindowID
   SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (_, id) => {

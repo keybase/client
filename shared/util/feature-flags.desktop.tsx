@@ -1,7 +1,7 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
 import {FeatureFlags} from './feature-flags'
 
-if (process.env['KEYBASE_FEATURES']) {
+if (KB.process.env['KEYBASE_FEATURES']) {
   console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
 }
 

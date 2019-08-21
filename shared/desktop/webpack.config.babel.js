@@ -198,6 +198,18 @@ const config = (_, {mode}) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
+    externals: {
+      ...(isDev
+        ? {
+            // needed by webpack dev server, fulfilled by preload
+            events: 'KB.DEV.events',
+            punycode: 'KB.punycode',
+            url: 'KB.DEV.url',
+          }
+        : {
+            punycode: 'KB.punycode',
+          }),
+    },
     module: {rules: makeRules(false)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},
@@ -206,11 +218,11 @@ const config = (_, {mode}) => {
   })
   const preloadConfig = merge(commonConfig, {
     entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
-    module: {rules: makeRules(false)},
+    module: {rules: makeRules(true)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},
     plugins: [],
-    target: 'node',
+    target: 'electron-main',
   })
 
   return [nodeConfig, viewConfig, preloadConfig]
