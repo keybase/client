@@ -98,8 +98,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   header: {
     backgroundColor: Styles.globalColors.blue,
-    position: 'relative',
     height: '100%',
+    position: 'relative',
   },
   image: {
     height: '55%',
