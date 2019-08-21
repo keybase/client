@@ -44,7 +44,7 @@ class ZoomableImage extends React.Component<Props, State> {
   private opacity = new Animated.Value(0)
   // scale
   private maxZoom = 10
-  private minZoom = 0.2
+  private minZoom = 0.001 // TODO dynamically calc min zoom
 
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
