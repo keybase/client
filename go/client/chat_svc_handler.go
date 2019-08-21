@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -1188,7 +1187,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	}
 	var ephemeralMetadata *chat1.MsgEphemeralMetadata
 	if arg.ephemeralLifetime.Duration != 0 && membersType != chat1.ConversationMembersType_KBFS {
-		ephemeralLifetime := gregor1.ToDurationSec(time.Duration(arg.ephemeralLifetime.Duration))
+		ephemeralLifetime := gregor1.ToDurationSec(arg.ephemeralLifetime.Duration)
 		ephemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
 	}
 
@@ -1280,23 +1279,6 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) chat1.MsgConte
 		Unfurl:             mb.Unfurl__,
 		Flip:               c.displayFlipBody(mb.Flip__),
 	}
-}
-
-func (c *chatServiceHandler) fileInfo(filename string) (os.FileInfo, *FileSource, error) {
-	info, err := os.Stat(filename)
-	if err != nil {
-		return nil, nil, err
-	}
-	if info.IsDir() {
-		return nil, nil, fmt.Errorf("%s is a directory", filename)
-	}
-
-	fsource := NewFileSource(filename)
-	if err := fsource.Open(); err != nil {
-		return nil, nil, err
-	}
-
-	return info, fsource, nil
 }
 
 func (c *chatServiceHandler) errReply(err error) Reply {

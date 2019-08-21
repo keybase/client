@@ -12,7 +12,6 @@ import (
 
 type cmdWalletDump struct {
 	libkb.Contextified
-	address string
 }
 
 func newCmdWalletDump(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

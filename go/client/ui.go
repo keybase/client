@@ -288,7 +288,7 @@ func (ui *IdentifyTrackUI) Confirm(_ libkb.MetaContext, o *keybase1.IdentifyOutc
 }
 
 func (ui *BaseIdentifyUI) ReportHook(s string) {
-	ui.parent.ErrorWriter().Write([]byte(s + "\n"))
+	_, _ = ui.parent.ErrorWriter().Write([]byte(s + "\n"))
 }
 
 func (ui *BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
@@ -690,7 +690,7 @@ func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstru
 		err = p.outputHook(arg.Proof)
 	} else {
 		// Whitespace is trimmed from proof text before it gets here.
-		p.terminal.Output("\n" + arg.Proof + "\n\n")
+		_ = p.terminal.Output("\n" + arg.Proof + "\n\n")
 	}
 	return
 }
@@ -770,34 +770,34 @@ func (l LoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPa
 
 func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	if l.noPrompt {
-		l.parent.Printf("Paper key: ")
-		l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
-		l.parent.Printf("\n")
+		_, _ = l.parent.Printf("Paper key: ")
+		_ = l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
+		_, _ = l.parent.Printf("\n")
 		return nil
 	}
-	l.parent.Printf("\n")
-	l.parent.Printf("===============================\n")
-	l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n")
-	l.parent.Printf("===============================\n\n")
-	l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
-	l.parent.Printf("  1. you must write it down\n")
-	l.parent.Printf("  2. the first two words are a public label\n")
-	l.parent.Printf("  3. it can be used to recover data\n")
-	l.parent.Printf("  4. it can provision new keys/devices, so put it in your wallet\n")
-	l.parent.Printf("  5. just like any other device, it'll be revokable/replaceable if you lose it\n\n")
-	l.parent.Printf("Your paper key is\n\n")
-	l.parent.Printf("\t")
-	l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
-	l.parent.Printf("\n\n")
-	l.parent.Printf("Write it down....now!\n\n")
+	_, _ = l.parent.Printf("\n")
+	_, _ = l.parent.Printf("===============================\n")
+	_, _ = l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n")
+	_, _ = l.parent.Printf("===============================\n\n")
+	_, _ = l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
+	_, _ = l.parent.Printf("  1. you must write it down\n")
+	_, _ = l.parent.Printf("  2. the first two words are a public label\n")
+	_, _ = l.parent.Printf("  3. it can be used to recover data\n")
+	_, _ = l.parent.Printf("  4. it can provision new keys/devices, so put it in your wallet\n")
+	_, _ = l.parent.Printf("  5. just like any other device, it'll be revokable/replaceable if you lose it\n\n")
+	_, _ = l.parent.Printf("Your paper key is\n\n")
+	_, _ = l.parent.Printf("\t")
+	_ = l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
+	_, _ = l.parent.Printf("\n\n")
+	_, _ = l.parent.Printf("Write it down....now!\n\n")
 
 	confirmed, err := l.parent.PromptYesNo(PromptDescriptorLoginWritePaper, "Have you written down the above paper key?", libkb.PromptDefaultNo)
 	if err != nil {
 		return err
 	}
 	for !confirmed {
-		l.parent.Printf("\nPlease write down your paper key\n\n")
-		l.parent.Printf("\t%s\n\n", arg.Phrase)
+		_, _ = l.parent.Printf("\nPlease write down your paper key\n\n")
+		_, _ = l.parent.Printf("\t%s\n\n", arg.Phrase)
 		confirmed, err = l.parent.PromptYesNo(PromptDescriptorLoginWritePaper, "Now have you written it down?", libkb.PromptDefaultNo)
 		if err != nil {
 			return err
@@ -809,7 +809,7 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 		return err
 	}
 	for !confirmed {
-		l.parent.Printf("\nPlease put it in your wallet.\n\n")
+		_, _ = l.parent.Printf("\nPlease put it in your wallet.\n\n")
 		confirmed, err = l.parent.PromptYesNo(PromptDescriptorLoginWallet, "Now is it in your wallet?", libkb.PromptDefaultNo)
 		if err != nil {
 			return err
@@ -842,7 +842,7 @@ Would you like to request a reset of your account?`
 }
 
 func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
-	l.parent.Printf("%s\n", arg.Text)
+	_, _ = l.parent.Printf("%s\n", arg.Text)
 	return nil
 }
 
@@ -852,10 +852,10 @@ func (l LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.Explain
 	}
 	switch arg.Kind {
 	case keybase1.DeviceType_DESKTOP:
-		l.parent.Printf("On %q, go to \"Settings > Your account\" to change your password.\n", arg.Name)
+		_, _ = l.parent.Printf("On %q, go to \"Settings > Your account\" to change your password.\n", arg.Name)
 		return nil
 	case keybase1.DeviceType_MOBILE:
-		l.parent.Printf("On %q, go to the \"menu > Change password\" to change your password.\n", arg.Name)
+		_, _ = l.parent.Printf("On %q, go to the \"menu > Change password\" to change your password.\n", arg.Name)
 		return nil
 	default:
 		return fmt.Errorf("Invalid device type passed: %v", arg.Kind)
@@ -949,7 +949,7 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 			emt = emp
 		}
 
-		tp = tp + ": "
+		tp += ": "
 
 		res, err = ui.getSecret(keybase1.SecretEntryArg{
 			Err:        emp,
@@ -1019,7 +1019,7 @@ func PromptWithChecker(pd libkb.PromptDescriptor, ui libkb.TerminalUI, prompt st
 		if !first && len(checker.Hint) > 0 {
 			p = p + " (" + checker.Hint + ")"
 		}
-		p = p + ": "
+		p += ": "
 		res, err = prompter(p)
 		if err == nil && checker.Transform != nil {
 			res = checker.Transform(res)

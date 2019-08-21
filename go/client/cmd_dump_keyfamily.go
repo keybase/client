@@ -96,8 +96,7 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 		return fmt.Errorf("error loading device list: %s", err)
 	}
 
-	v.printExportedUser(user, publicKeys, devs)
-	return nil
+	return v.printExportedUser(user, publicKeys, devs)
 }
 
 func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
@@ -188,7 +187,10 @@ func (v *CmdDumpKeyfamily) printKey(key keybase1.PublicKey, subkeys []keybase1.P
 	if len(subkeys) > 0 {
 		dui.Printf("%sSubkeys:\n", indentSpace(indent+1))
 		for _, subkey := range subkeys {
-			v.printKey(subkey, nil, indent+2)
+			err := v.printKey(subkey, nil, indent+2)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
