@@ -55,7 +55,7 @@ class UserBubbleCollection extends React.PureComponent<{
 
 const TeamBox = (props: Props) => {
   const addMorePrompt = props.teamSoFar.length === 1 && (
-    <Kb.Text type="BodyTiny" style={{alignSelf: 'center', marginLeft: 28, maxWidth: 145}}>
+    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
       Keep adding people, or click Start when done.
     </Kb.Text>
   )
@@ -106,7 +106,8 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
+  addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
   bubbles: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
@@ -162,6 +163,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginLeft: 10,
   },
-})
+}))
 
 export default TeamBox
