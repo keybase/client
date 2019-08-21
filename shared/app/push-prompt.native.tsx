@@ -49,6 +49,7 @@ const mapDispatchToProps = dispatch => ({
 
 const PushPromptWithHeader = Container.withProps(
   (props: Props & HeaderHocProps & ReturnType<typeof mapDispatchToProps>): Partial<HeaderHocProps> => ({
+    borderless: true,
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.header}>
         <Kb.Text type="BodyBig" negative={true}>
@@ -97,13 +98,14 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   header: {
     backgroundColor: Styles.globalColors.blue,
-    ...Styles.padding(Styles.globalMargins.medium),
     position: 'relative',
+    height: '100%',
   },
   image: {
+    height: '55%',
+    marginBottom: Styles.globalMargins.medium,
     marginTop: Styles.globalMargins.medium,
-    minHeight: 340,
-    width: '160%',
+    width: '155%',
   },
   skip: {
     position: 'absolute',
