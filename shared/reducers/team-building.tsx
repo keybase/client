@@ -68,9 +68,7 @@ export default function(
       })
     }
     case TeamBuildingGen.searchEmailAddressResultLoaded: {
-      console.log('action.payload:', action.payload)
       const {user} = action.payload
-      console.log('user hi:', user)
       return state.merge({
         teamBuildingEmailIsSearching: false,
         teamBuildingEmailResult: user,

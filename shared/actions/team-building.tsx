@@ -20,7 +20,6 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
-  console.log('query:', query)
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -30,7 +29,6 @@ const apiSearch = async (
       query,
       service,
     })
-    console.log('results:', results)
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
       const u = Constants.parseRawResultToUser(r, service)
       u && arr.push(u)
@@ -198,7 +196,6 @@ async function searchEmailAddress(state: TypedState, {payload: {namespace}}: Sea
   const impTofuQuery = makeImpTofuQuery(query, null)
 
   const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
-  console.log('nathan user:', users[0])
   return TeamBuildingGen.createSearchEmailAddressResultLoaded({
     namespace,
     query,

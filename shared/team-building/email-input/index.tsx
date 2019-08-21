@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-// import {isIOS} from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import {AllowedNamespace} from 'constants/types/team-building'
@@ -20,7 +19,6 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   const [emailString, setEmailString] = React.useState('')
   const dispatch = Container.useDispatch()
   const user = Container.useSelector(state => {
-    console.log('state[namespace].teamBuilding', state[namespace].teamBuilding)
     return state[namespace].teamBuilding.teamBuildingEmailResult
   })
   const isSearching = Container.useSelector(
