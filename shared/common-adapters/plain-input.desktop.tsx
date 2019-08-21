@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, globalColors, styled, styleSheetCreate, platformStyles} from '../styles'
+import * as Styles from '../styles'
 import {pick} from 'lodash-es'
 import logger from '../logger'
 
@@ -187,7 +187,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return {
       ...this._getCommonProps(),
       rows,
-      style: collapseStyles([
+      style: Styles.collapseStyles([
         styles.noChrome, // noChrome comes before because we want lineHeight set in multiline
         textStyle,
         styles.multiline,
@@ -201,7 +201,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const textStyle = getTextStyle(this.props.textType)
     return {
       ...this._getCommonProps(),
-      style: collapseStyles([
+      style: Styles.collapseStyles([
         textStyle,
         styles.noChrome, // noChrome comes after to unset lineHeight in singleline
         this.props.flexable && styles.flexable,
@@ -275,26 +275,26 @@ class PlainInput extends React.PureComponent<InternalProps> {
 }
 
 // @ts-ignore this type is wrong
-const StyledTextArea = styled.textarea<'textarea', {placeholderColor: any}>(props => ({
+const StyledTextArea = Styles.styled.textarea<'textarea', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
 // @ts-ignore this type is wrong
-const StyledInput = styled.input<'input', {placeholderColor: any}>(props => ({
+const StyledInput = Styles.styled.input<'input', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   flexable: {
     flex: 1,
     minWidth: 0,
     width: '100%',
   },
-  multiline: platformStyles({
+  multiline: Styles.platformStyles({
     isElectron: {
       height: 'initial',
       paddingBottom: 0,
@@ -303,13 +303,13 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-  noChrome: platformStyles({
+  noChrome: Styles.platformStyles({
     isElectron: {
       borderWidth: 0,
       lineHeight: 'unset',
       outline: 'none',
     },
   }),
-})
+}))
 
 export default PlainInput

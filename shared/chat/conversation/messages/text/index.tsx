@@ -143,6 +143,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
+  color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }
@@ -170,7 +171,7 @@ const pendingFailEditing = {
   ...pendingFail,
   ...editing,
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   claimButton: {
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.xtiny,
@@ -183,7 +184,7 @@ const styles = Styles.styleSheetCreate({
   pendingFailEditing,
   quoteContainer: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.greyLight,
+    backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
   },
   replyContainer: {
@@ -221,6 +222,6 @@ const styles = Styles.styleSheetCreate({
   sent,
   sentEditing,
   wrapper: {alignSelf: 'flex-start', flex: 1},
-})
+}))
 
 export default MessageText

@@ -667,7 +667,7 @@ const styles = Styles.styleSheetCreate({
       borderBottom: `1px solid ${Styles.globalColors.black_10}`,
       borderLeft: `1px solid ${Styles.globalColors.black_10}`,
       borderRight: `1px solid ${Styles.globalColors.black_10}`,
-    }
+    },
   }),
   emojiRowLast: Styles.platformStyles({
     isElectron: {

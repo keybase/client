@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
-import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
 import * as Tabs from '../../constants/tabs'
@@ -56,16 +56,16 @@ const SettingsNav = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate(() => ({
-  container: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  container: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
-      backgroundColor: globalColors.white,
-      paddingTop: globalMargins.small,
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.blueGrey,
+      paddingTop: Styles.globalMargins.small,
       width: 160,
     },
     isElectron: {
-      borderRight: `1px solid ${globalColors.black_10}`,
+      borderRight: `1px solid ${Styles.globalColors.black_10}`,
     },
   }),
 }))
