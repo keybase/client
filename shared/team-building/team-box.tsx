@@ -54,10 +54,16 @@ class UserBubbleCollection extends React.PureComponent<{
 }
 
 const TeamBox = (props: Props) => {
+  const addMorePrompt = props.teamSoFar.length === 1 && (
+    <Kb.Text type="BodyTiny" style={{alignSelf: 'center', marginLeft: 28, maxWidth: 145}}>
+      Keep adding people, or click Start when done.
+    </Kb.Text>
+  )
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false}>
         <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+        {addMorePrompt}
       </Kb.ScrollView>
     </Kb.Box2>
   ) : (
@@ -66,6 +72,7 @@ const TeamBox = (props: Props) => {
         <Kb.ScrollView horizontal={true}>
           <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+            {addMorePrompt}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
