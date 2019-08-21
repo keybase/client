@@ -6,11 +6,12 @@ import (
 
 // Position represents the position of a node in the tree. When converted to
 // bytes, a Position can be interpreted as a 1 followed (from left to right) by
-// a sequence of log2(Config.m)-bit symbols, where each such symbol identifies
-// which child to descend to in a path from the root to a node. The sequence is
-// padded with 0s on the left to the nearest byte. For example, in a binary tree
-// the root has position 0x01 (i.e. 0b00000001), and the second child of the
-// first child of the root has position 0x05 (0b00000101).
+// a sequence of log2(Config.childrenPerNode)-bit symbols, where each such
+// symbol identifies which child to descend to in a path from the root to a
+// node. The sequence is padded with 0s on the left to the nearest byte. For
+// example, in a binary tree the root has position 0x01 (i.e. 0b00000001), and
+// the second child of the first child of the root has position 0x05
+// (0b00000101).
 type Position big.Int
 
 func (t *Tree) getRootPosition() *Position {

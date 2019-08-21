@@ -11,7 +11,8 @@ type Config struct {
 	// The maximum number of KeyValuePairs in a leaf node before we split
 	valuesPerLeaf int
 
-	// The number of bits necessary to represent a ChildIndex, i.e. log2(m)
+	// The number of bits necessary to represent a ChildIndex, i.e.
+	// log2(childrenPerNode)
 	bitsPerIndex uint8
 
 	// The length of all the keys which will be stored in the tree. For
