@@ -39,7 +39,7 @@ const ServiceIcon = (props: IconProps) => {
           </Kb.Text>
           {!!props.showCount &&
             (props.count !== null ? (
-              <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
+              <Kb.Text type="BodyTinySemibold">
                 {props.count && props.count > 10 ? '10+' : props.count}
               </Kb.Text>
             ) : (
@@ -205,7 +205,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_50,
   },
   pendingIcon: {height: 10, width: 10},
-  resultCount: {},
   serviceIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
