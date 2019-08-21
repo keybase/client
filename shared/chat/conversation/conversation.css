@@ -38,12 +38,12 @@
   background-color: #f7f9fc;
 }
 .darkMode .WrapperMessage-hoverColor:hover {
-  background-color: #000;
+  background-color: #101010;
   /* Using a second box shadow instead of a border to prevent changing the height of the box. */
   box-shadow: none;
 }
 .darkMode .WrapperMessage-decorated.active {
-  background-color: #000;
+  background-color: #101010;
 }
 .WrapperMessage-author {
   padding-left: 0;
@@ -78,5 +78,5 @@
   background-color: white;
 }
 .darkMode .ReplyBox:hover {
-  background-color: rgba(24, 45, 110, .5);
+  background-color: rgba(24, 45, 110, 0.5);
 }
