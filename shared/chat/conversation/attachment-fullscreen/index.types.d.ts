@@ -7,6 +7,7 @@ export type Props = {
   message: MessageAttachment
   progress: number
   progressLabel: string | null
+  onHotkey: (cmd: 'left' | 'right') => void
   onClose: () => void
   onDownloadAttachment: (() => void) | null
   onShowInFinder: (() => void) | null

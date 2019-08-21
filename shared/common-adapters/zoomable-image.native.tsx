@@ -17,6 +17,8 @@ import {
 type Props = {
   allowRotate?: boolean
   onLoad?: () => void
+  onSwipeLeft?: () => void
+  onSwipeRight?: () => void
   uri: string
   style?: Styles.StylesCrossPlatform
 }
@@ -133,12 +135,21 @@ class ZoomableImage extends React.Component<Props, State> {
     }
   }
   private onPanGestureStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    const {nativeEvent} = event
+    const {oldState, velocityX} = nativeEvent
     // pan is done, update the state
-    if (event.nativeEvent.oldState === GState.ACTIVE) {
-      this.updatePan(
-        this.lastPanX + event.nativeEvent.translationX,
-        this.lastPanY + event.nativeEvent.translationY
-      )
+    if (oldState === GState.ACTIVE) {
+      if (this.props.onSwipeLeft && velocityX > 1000) {
+        // fast swipe left?
+        this.props.onSwipeLeft()
+      } else if (this.props.onSwipeRight && velocityX < -1000) {
+        this.props.onSwipeRight()
+      } else {
+        this.updatePan(
+          this.lastPanX + event.nativeEvent.translationX,
+          this.lastPanY + event.nativeEvent.translationY
+        )
+      }
     }
   }
 
@@ -174,12 +185,7 @@ class ZoomableImage extends React.Component<Props, State> {
     this.mounted && this.setState({imageHeight, imageWidth})
 
     this.resetInitial(imageWidth, imageHeight)
-
-    Animated.timing(this.opacity, {
-      duration: 300,
-      toValue: 1,
-      useNativeDriver: true,
-    }).start()
+    Animated.timing(this.opacity, {...this.animatedCommon, toValue: 1}).start()
   }
 
   private getImageSize = () => {
@@ -203,6 +209,7 @@ class ZoomableImage extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.uri !== prevProps.uri) {
+      Animated.timing(this.opacity, {...this.animatedCommon, toValue: 0}).start()
       this.getImageSize()
     }
   }
