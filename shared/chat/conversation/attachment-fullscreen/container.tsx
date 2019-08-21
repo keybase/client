@@ -21,33 +21,20 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onDownloadAttachment: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        message,
-      })
-    )
+  _onDownloadAttachment: (message: Types.MessageAttachment) =>
+    dispatch(Chat2Gen.createAttachmentDownload({message})),
+  _onShowInFinder: (message: Types.MessageAttachment) => {
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
   _onSwitchAttachment: (
     conversationIDKey: Types.ConversationIDKey,
     messageID: Types.MessageID,
     prev: boolean
   ) => {
-    dispatch(
-      Chat2Gen.createAttachmentFullscreenNext({
-        backInTime: prev,
-        conversationIDKey,
-        messageID,
-      })
-    )
+    dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
   },
-  _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
-  },
-  onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Connected = Container.connect(
@@ -68,9 +55,9 @@ const Connected = Container.connect(
       onDownloadAttachment: message.downloadPath
         ? undefined
         : () => dispatchProps._onDownloadAttachment(message),
+      onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
       onPreviousAttachment: () =>
         dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, true),
-      onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
       onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
       path: message.fileURL || message.previewURL,
       previewHeight: height,

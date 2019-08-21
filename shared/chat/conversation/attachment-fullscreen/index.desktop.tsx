@@ -133,11 +133,11 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   }
 }
 
-const AF = KeyHandler(OverlayParentHOC(_Fullscreen as any))
+const Af = KeyHandler(OverlayParentHOC(_Fullscreen as any))
 const Fullscreen = (p: Props) => {
   const {onNextAttachment, onPreviousAttachment, ...rest} = p
   return (
-    <AF
+    <Af
       hotkeys={['left', 'right']}
       onHotkey={(cmd: string) => {
         cmd === 'left' && onPreviousAttachment()
