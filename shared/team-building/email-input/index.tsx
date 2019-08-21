@@ -51,23 +51,16 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-        <Kb.Box2
-          fullWidth={true}
-          alignItems="center"
-          direction="horizontal"
-          // style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
-        >
-          <Kb.PlainInput
-            style={Styles.collapseStyles([styles.plainInput])}
-            flexable={true}
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            placeholder="Email address"
-            onChangeText={onChange}
-            onEnterKeyDown={onSubmit}
-            value={emailString}
-          />
-        </Kb.Box2>
+        <Kb.NewInput
+          autoFocus={true}
+          containerStyle={styles.input}
+          keyboardType="email-address"
+          placeholder="Email address"
+          onChangeText={onChange}
+          onEnterKeyDown={onSubmit}
+          textContentType="emailAddress"
+          value={emailString}
+        />
         {isSearching && (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.ProgressIndicator type="Small" />
@@ -84,9 +77,6 @@ const EmailInput = ({namespace}: EmailInputProps) => {
           />
         )}
         {/* TODO: multiple email add support */}
-        {/* <Kb.Text type="BodySmall" style={styles.subtext}> */}
-        {/*   Pro tip: add multiple email addresses by separating them with commas. */}
-        {/* </Kb.Text> */}
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -108,30 +98,17 @@ const styles = Styles.styleSheetCreate(() => ({
   bottomContainer: {
     flexGrow: 1,
   },
-  plainInput: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.greyDark,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-    },
+  input: Styles.platformStyles({
+    common: {},
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 36,
+      height: 38,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small),
       height: 48,
     },
   }),
-  subtext: {
-    maxWidth: Styles.platformStyles({
-      isElectron: {
-        maxWidth: 300,
-      },
-      isMobile: {},
-    }),
-  },
 }))
 
 export default EmailInput
