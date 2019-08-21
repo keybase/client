@@ -8,14 +8,17 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export type Props = {
   addedEmail: string | null
+  addedPhone: boolean
   contactKeys: I.List<string>
   hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
+  onClearAddedPhone: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
+  onStartPhoneConversation: () => void
   onReload: () => void
   supersededPhoneNumber?: string
   tooManyEmails: boolean
@@ -150,6 +153,17 @@ const AccountSettings = (props: Props) => (
             small={true}
             backgroundColor="yellow"
             style={styles.topButton}
+          />
+        </Kb.Banner>
+      )}
+      {props.addedPhone && (
+        <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
+          <Kb.BannerParagraph
+            bannerColor="green"
+            content={[
+              'Success! And now you can message anyone on Keybase by phone number. ',
+              {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
+            ]}
           />
         </Kb.Banner>
       )}

@@ -150,7 +150,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 			}
 		}
 	}
-	extraLog(nil, "api.Client:%v New", needCookie)
+	extraLog(context.TODO(), "api.Client:%v New", needCookie)
 	env := g.Env
 	var jar *cookiejar.Jar
 	if needCookie && (config == nil || config.UseCookies) && env.GetTorMode().UseCookies() {

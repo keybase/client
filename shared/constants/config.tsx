@@ -122,6 +122,7 @@ export const makeState = I.Record<Types._State>({
   outOfDate: undefined,
   pushLoaded: false,
   registered: false,
+  remoteWindowNeedsProps: I.Map(),
   runtimeStats: null,
   startupConversation: ChatConstants.noConversationIDKey,
   startupDetailsLoaded: false,

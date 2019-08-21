@@ -27,6 +27,7 @@ const EnterKey = (props: EnterKeyProps) => (
         Paste your secret key
       </Kb.Text>
       <Kb.NewInput
+        placeholder="SDNBUW...SC7632"
         style={styles.input}
         multiline={true}
         rowsMin={2}
@@ -45,12 +46,6 @@ const EnterKey = (props: EnterKeyProps) => (
     </Kb.Box2>
     <Kb.InfoNote>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text center={true} type="BodySmall" lineClamp={1} style={styles.infoText}>
-          Example:
-        </Kb.Text>
-        <Kb.Text center={true} type="BodySmall" lineClamp={1} ellipsizeMode="middle" style={styles.infoText}>
-          SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
-        </Kb.Text>
         <Kb.Text center={true} type="BodySmall" style={styles.infoText}>
           This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
           Stellar account in other wallet apps.

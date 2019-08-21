@@ -122,7 +122,7 @@ const WithTooltip = (props: Props) => {
 
 export default WithTooltip
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.black_60,
     borderRadius: Styles.borderRadius,
@@ -132,4 +132,4 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.white,
   },
-})
+}))

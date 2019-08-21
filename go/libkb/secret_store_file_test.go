@@ -222,7 +222,8 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	require.NoError(t, err)
 
 	ss := NewSecretStoreFile(td)
-	ss.StoreSecret(m, "ogden", lksec)
+	err = ss.StoreSecret(m, "ogden", lksec)
+	require.NoError(t, err)
 	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
 	require.NoError(t, err)
 

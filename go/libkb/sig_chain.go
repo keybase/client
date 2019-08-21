@@ -50,7 +50,6 @@ type SigChain struct {
 	uid               keybase1.UID
 	username          NormalizedUsername
 	chainLinks        ChainLinks // all the links we know about, starting with seqno 1
-	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
 
@@ -212,7 +211,7 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 		start = i
 	}
 	if start >= 0 {
-		ret = ChainLinks(sc.chainLinks[start:])
+		ret = sc.chainLinks[start:]
 	}
 	return ret
 }
@@ -301,7 +300,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 	numEntries := 0
 
-	jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+	_, err = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
@@ -329,7 +328,6 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		tail = link
 		numEntries++
 	}, "sigs")
-
 	if err != nil {
 		return nil, err
 	}
@@ -554,12 +552,12 @@ func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) err
 const resetReason = "hardcoded reset"
 
 var hardcodedResets = map[keybase1.LinkID]SpecialChainLink{
-	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": SpecialChainLink{UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
-	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": SpecialChainLink{UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(8), Reason: resetReason},
-	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": SpecialChainLink{UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
-	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": SpecialChainLink{UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
-	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": SpecialChainLink{UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},
-	"af381fd3a43e22edc2ac1f271e3270b92038e4a820de335d179d34eb780f8796": SpecialChainLink{UID: keybase1.UID("a07089770463db10994c8727177eef19"), Seqno: keybase1.Seqno(12), Reason: resetReason},
+	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": {UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": {UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(8), Reason: resetReason},
+	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": {UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
+	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": {UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
+	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": {UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},
+	"af381fd3a43e22edc2ac1f271e3270b92038e4a820de335d179d34eb780f8796": {UID: keybase1.UID("a07089770463db10994c8727177eef19"), Seqno: keybase1.Seqno(12), Reason: resetReason},
 }
 
 // GetCurrentSubchain takes the given sigchain and walks backward until it
@@ -814,11 +812,6 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 		if err = ckf.UpdateDevices(tcl); err != nil {
 			return cached, cki, err
 		}
-
-		if err != nil {
-			m.Debug("| bailing out on error: %s", err)
-			return cached, cki, err
-		}
 	}
 
 	last.PutSigCheckCache(cki)
@@ -982,7 +975,7 @@ func verifySigsAndComputeKeysHistorical(m MetaContext, uid keybase1.UID, usernam
 
 func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSeqno() == keybase1.Seqno(seqno) {
+		if link.GetSeqno() == seqno {
 			return link
 		}
 	}

@@ -298,7 +298,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	finisher = func() {
 		if internalResp != nil {
-			DiscardAndCloseBody(internalResp)
+			_ = DiscardAndCloseBody(internalResp)
 			internalResp = nil
 		}
 		if canc != nil {
@@ -756,8 +756,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	}
 	defer finisher()
 
-	var reader io.Reader
-	reader = resp.Body
+	reader := resp.Body.(io.Reader)
 	if a.G().Env.GetAPIDump() {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -969,7 +968,7 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 		var buf bytes.Buffer
 		_, err = buf.ReadFrom(resp.Body)
 		if err == nil {
-			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
+			tr = &ExternalTextRes{resp.StatusCode, buf.String()}
 		}
 	default:
 		err = fmt.Errorf("unknown restype to DoRequest")

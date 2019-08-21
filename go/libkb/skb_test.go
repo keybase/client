@@ -91,7 +91,8 @@ func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (Met
 	salt, err := RandBytes(triplesec.SaltLen)
 	require.NoError(t, err)
 	m = m.WithNewProvisionalLoginContext()
-	m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	err = m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	require.NoError(t, err)
 
 	return m, skb
 }
@@ -148,8 +149,10 @@ func TestCorruptSecretStore(t *testing.T) {
 
 	var skb *SKB
 	m, skb = makeTestSKB(t, m, lks, tc.G)
-	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
-	tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	fs, err := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
+	require.NoError(t, err)
+	err = tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	require.NoError(t, err)
 	testPromptAndUnlock(t, m, skb)
 
 	// The corrupt secret value should be overwritten by the new
@@ -192,7 +195,7 @@ func TestPromptCancelCache(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	m := NewMetaContextForTest(tc)
 	var skb *SKB
-	m, skb = makeTestSKB(t, m, lks, tc.G)
+	_, skb = makeTestSKB(t, m, lks, tc.G)
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)

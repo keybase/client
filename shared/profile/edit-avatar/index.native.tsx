@@ -75,6 +75,8 @@ class AvatarUpload extends React.Component<Props> {
   }
 
   render() {
+    const uri =
+      this.props.image && this.props.image.cancelled === false ? parseUri(this.props.image, true) : null
     return (
       <Kb.StandardScreen
         onCancel={this.props.onClose}
@@ -114,15 +116,9 @@ class AvatarUpload extends React.Component<Props> {
                   : null
               }
             >
-              <Kb.NativeFastImage
-                resizeMode="cover"
-                source={{
-                  uri: `${
-                    this.props.image && this.props.image.cancelled === false ? parseUri(this.props.image) : ''
-                  }`,
-                }}
-                style={this._imageDimensions()}
-              />
+              {uri && (
+                <Kb.NativeFastImage resizeMode="cover" source={{uri}} style={this._imageDimensions()} />
+              )}
             </Kb.ZoomableBox>
           </Kb.Box>
           <Kb.ButtonBar direction="column">

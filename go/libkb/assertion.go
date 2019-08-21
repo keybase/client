@@ -477,10 +477,8 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		service := s[:colIndex]
 		name := s[colIndex+1:]
 
-		if strings.HasPrefix(name, "//") {
-			// "dns://keybase.io" syntax.
-			name = name[2:]
-		}
+		// "dns://keybase.io" syntax.
+		name = strings.TrimPrefix(name, "//")
 
 		if matchNameAndService(name, service) {
 			return key, value, err
@@ -772,7 +770,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	if err != nil {
 		return "", "", fmt.Errorf("Could not parse part as SBS assertion")
 	}
-	return string(assertion.GetKey()), assertion.GetValue(), nil
+	return assertion.GetKey(), assertion.GetValue(), nil
 }
 
 func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictInfo) string {
