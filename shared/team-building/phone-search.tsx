@@ -17,6 +17,15 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [phoneNumber, setPhoneNumber] = React.useState<string>('')
   const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
 
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    setValidity(validity)
+    setPhoneNumber(phoneNumber)
+    if (validity) {
+      // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
+      props.search(phoneNumber, 'keybase')
+    }
+  }
+
   let state: CurrentState = 'none'
   let user: User | null = null
   if (
@@ -73,19 +82,12 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           // Supply a key to force reset the PhoneInput state after a user is added
           key={phoneInputKey}
           autoFocus={true}
-          onChangeNumber={(phoneNumber: string, validity: boolean) => {
-            setValidity(validity)
-            setPhoneNumber(phoneNumber)
-            if (validity) {
-              // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
-              props.search(phoneNumber, 'keybase')
-            }
-          }}
+          onChangeNumber={onChangeNumberCb}
           result={
             // Pass a component into PhoneInput so it is displayed inline with the number input box
             <>
               {state === 'resolved' && !!user && (
-                <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
+                <Kb.Box2 direction="horizontal" style={styles.foundResultContainer}>
                   <Kb.NameWithIcon
                     size="big"
                     onClick={_onContinue}
@@ -96,7 +98,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 </Kb.Box2>
               )}
               {state === 'notfound' && (
-                <Kb.Box2 direction="horizontal" style={{height: '64px'}} gap="tiny">
+                <Kb.Box2 direction="horizontal" style={styles.notFoundResultContainer} gap="tiny">
                   <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
                     <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
                   </Kb.Box2>
@@ -126,10 +128,11 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.tiny,
     width: '100%',
   },
+  foundResultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
+  notFoundResultContainer: {height: '64px', width: '100%'},
   placeholderIcon: {borderRadius: 16, height: '32px'},
-  resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1},
 }))
 
