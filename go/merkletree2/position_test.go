@@ -126,8 +126,8 @@ func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
 		expPosOnPath [][]string
 	}{
 		{tree1bit, []byte{}, nil},
-		{tree1bit, []byte{0xf0}, [][]string{[]string{"111110001"}, []string{"11111001"}, []string{"1111101"}, []string{"111111"}, []string{"11110"}, []string{"1110"}, []string{"110"}, []string{"10"}}},
-		{tree2bits, []byte{0xf0}, [][]string{[]string{"111110001", "111110010", "111110011"}, []string{"1111101", "1111110", "1111111"}, []string{"11100", "11101", "11110"}, []string{"100", "101", "110"}}},
+		{tree1bit, []byte{0xf0}, [][]string{{"111110001"}, {"11111001"}, {"1111101"}, {"111111"}, {"11110"}, {"1110"}, {"110"}, {"10"}}},
+		{tree2bits, []byte{0xf0}, [][]string{{"111110001", "111110010", "111110011"}, {"1111101", "1111110", "1111111"}, {"11100", "11101", "11110"}, {"100", "101", "110"}}},
 	}
 
 	for _, test := range tests {
