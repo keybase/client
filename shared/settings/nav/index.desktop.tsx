@@ -57,17 +57,12 @@ const SettingsNav = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingTop: Styles.globalMargins.small,
-      width: 160,
-    },
-    isElectron: {
-      borderRight: `1px solid ${Styles.globalColors.black_10}`,
-    },
-  }),
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.blueGrey,
+    paddingTop: Styles.globalMargins.small,
+    width: 160,
+  },
 }))
 
 export default SettingsNav

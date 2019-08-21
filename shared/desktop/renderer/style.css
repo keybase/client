@@ -228,7 +228,7 @@ body {
 }
 
 .darkMode input {
-  background-color: #101010;
+  background-color: #191919;
 }
 
 #root {
@@ -340,5 +340,5 @@ body {
 }
 
 .darkMode {
-  background-color: #101010;
+  background-color: #191919;
 }
