@@ -2757,6 +2757,7 @@ type MessageUnboxedValid struct {
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	MaybeMentions         []MaybeMention              `codec:"maybeMentions" json:"maybeMentions"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	KbfsPaths             []KBFSPath                  `codec:"kbfsPaths" json:"kbfsPaths"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
 	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
@@ -2843,6 +2844,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		KbfsPaths: (func(x []KBFSPath) []KBFSPath {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KBFSPath, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.KbfsPaths),
 		Reactions: o.Reactions.DeepCopy(),
 		Unfurls: (func(x map[MessageID]UnfurlResult) map[MessageID]UnfurlResult {
 			if x == nil {

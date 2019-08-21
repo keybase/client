@@ -201,6 +201,7 @@ export const makeMessageText = I.Record<MessageTypes._MessageText>({
   inlinePaymentSuccessful: false,
   isDeleteable: true,
   isEditable: true,
+  kbfsPaths: I.List(),
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),

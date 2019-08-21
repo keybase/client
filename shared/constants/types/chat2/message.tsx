@@ -46,6 +46,11 @@ export type MentionsAt = I.Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
+export type KbfsPath = {
+  index: number
+  path: string
+}
+
 export type MessageExplodeDescription = {
   text: string
   seconds: number
@@ -113,6 +118,7 @@ export type _MessageText = {
   mentionsAt: MentionsAt
   mentionsChannel: MentionsChannel
   mentionsChannelName: MentionsChannelName
+  kbfsPaths: I.List<KbfsPath>
   outboxID: OutboxID | null
   // eslint-disable-next-line no-use-before-define
   replyTo: Message | null

@@ -207,6 +207,7 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    array<KBFSPath> kbfsPaths;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;

@@ -672,6 +672,8 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		return nil, ierr
 	}
 
+	kbfsPaths := b.getKBFSPaths(ctx, clientHeader.Conv.TopicType, body)
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,
@@ -689,6 +691,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
+		KbfsPaths:             kbfsPaths,
 		MaybeMentions:         maybeRes,
 	}, nil
 }
@@ -941,6 +944,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 
 	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
 
+	kbfsPaths := b.getKBFSPaths(ctx, clientHeader.Conv.TopicType, body)
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,
@@ -958,6 +963,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
+		KbfsPaths:             kbfsPaths,
 		MaybeMentions:         maybeRes,
 	}, nil
 }
@@ -1229,6 +1235,30 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 		}
 	}
 	return username, deviceName, deviceType
+}
+
+func (b *Boxer) getKBFSPaths(ctx context.Context, topicType chat1.TopicType,
+	body chat1.MessageBody) (kbfsPaths []chat1.UIKBFSPath) {
+	if topicType != chat1.TopicType_CHAT {
+		// only care about chat conversations for these mentions
+		return nil
+	}
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_TEXT:
+		return utils.ParseKBFSPaths(ctx, body.Text().Body)
+	case chat1.MessageType_FLIP:
+		return utils.ParseKBFSPaths(ctx, body.Flip().Text)
+	case chat1.MessageType_EDIT:
+		return utils.ParseKBFSPaths(ctx, body.Edit().Body)
+	case chat1.MessageType_SYSTEM:
+		return nil // TODO: parse git paths here
+	default:
+		return nil
+	}
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
