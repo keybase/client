@@ -256,4 +256,4 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
-# safe_restart_systemd_services
+safe_restart_systemd_services
