@@ -166,8 +166,10 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
-          onChangeNumber={onChangeNumber}
-          onChangeValidity={onChangeValidity}
+          onChangeNumber={(phoneNumber: string, validity: boolean) => {
+            onChangeNumber(phoneNumber)
+            onChangeValidity(validity)
+          }}
           onContinue={onContinue}
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}

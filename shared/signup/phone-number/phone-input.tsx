@@ -217,8 +217,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 type Props = {
   autoFocus?: boolean
   defaultCountry?: string
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean, phoneNumber: string) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
   // A ReactNode to display beneath and aligned to the number input box
   result?: React.ReactNode
@@ -317,8 +316,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
-    this.props.onChangeNumber(validation.e164)
-    this.props.onChangeValidity(validation.valid, validation.e164)
+    this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
   _setCountry = (country, keepPrefix) => {
