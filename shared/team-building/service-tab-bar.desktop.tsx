@@ -80,11 +80,9 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
       >
         <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
           <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
-            {/* <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.moreNetworks} fullWidth={true} fullHeight={true}> */}
             <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
               •••
             </Kb.Text>
-            {/* </Kb.Box2> */}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       </Kb.Box2>
