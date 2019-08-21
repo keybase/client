@@ -1,7 +1,7 @@
 
 @namespace("keybase.1")
 protocol gregor {
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "../gregor1" as gregor1;
   gregor1.State getState();
   gregor1.MsgID injectItem(string cat, string body, gregor1.TimeOrOffset dtime);
   void dismissCategory(gregor1.Category category);

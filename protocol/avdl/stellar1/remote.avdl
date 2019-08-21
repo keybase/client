@@ -1,7 +1,7 @@
 @namespace("stellar.1")
 protocol remote {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
   import idl "common.avdl";
 
   @typedef("string") record ChatConversationID {}

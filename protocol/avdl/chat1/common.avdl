@@ -1,7 +1,7 @@
 @namespace("chat.1") protocol common {
 
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
