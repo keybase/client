@@ -136,7 +136,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
-  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults.toJS()
+  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -582,7 +582,7 @@ const mergeProps = (
     showRecs,
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
-    teamBuildingSearchResults: stateProps.teamBuildingSearchResults,
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
     title,
     waitingForCreate,
