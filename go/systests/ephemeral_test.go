@@ -557,9 +557,11 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	bob := tt.addUserWithPaper("bob")
 
 	annMctx := ann.MetaContext()
-	initEphemeralForTests(t, annMctx)
+	err := annMctx.G().GetEKLib().KeygenIfNeeded(annMctx)
+	require.NoError(t, err)
 	bobMctx := bob.MetaContext()
-	initEphemeralForTests(t, bobMctx)
+	err = bobMctx.G().GetEKLib().KeygenIfNeeded(bobMctx)
+	require.NoError(t, err)
 
 	teamID, teamName := ann.createTeam2()
 
@@ -601,9 +603,11 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	bob := tt.addUserWithPaper("bob")
 
 	annMctx := ann.MetaContext()
-	initEphemeralForTests(t, annMctx)
+	err := annMctx.G().GetEKLib().KeygenIfNeeded(annMctx)
+	require.NoError(t, err)
 	bobMctx := bob.MetaContext()
-	initEphemeralForTests(t, bobMctx)
+	err = bobMctx.G().GetEKLib().KeygenIfNeeded(bobMctx)
+	require.NoError(t, err)
 
 	teamID, teamName := ann.createTeam2()
 
@@ -656,8 +660,9 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	teamID, _ := ann.createTeam2()
 
 	annMctx := ann.MetaContext()
-	initEphemeralForTests(t, annMctx)
 	ekLib := annMctx.G().GetEKLib()
+	err := ekLib.KeygenIfNeeded(annMctx)
+	require.NoError(t, err)
 
 	_, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 	require.NoError(t, err)
@@ -726,10 +731,14 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	mctx1 := user1.MetaContext()
-	initEphemeralForTests(t, mctx1)
-	mctx2 := user2.MetaContext()
-	initEphemeralForTests(t, mctx2)
 	ekLib := mctx1.G().GetEKLib()
+	err := ekLib.KeygenIfNeeded(mctx1)
+	require.NoError(t, err)
+
+	mctx2 := user2.MetaContext()
+	err = mctx2.G().GetEKLib().KeygenIfNeeded(mctx2)
+	require.NoError(t, err)
+
 	teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(mctx1, teamID)
 	require.NoError(t, err)
 	require.True(t, created)
@@ -784,7 +793,8 @@ func TestEphemeralAfterEKError(t *testing.T) {
 	teamID, teamName := user1.createTeam2()
 	g1 := user1.tc.G
 	mctx1 := user1.MetaContext()
-	initEphemeralForTests(t, mctx1)
+	err := mctx1.G().GetEKLib().KeygenIfNeeded(mctx1)
+	require.NoError(t, err)
 	merkleRoot, err := g1.GetMerkleClient().FetchRootFromServer(mctx1, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	// Force two team EKs to be created and then create/add u2 to the team.
@@ -797,7 +807,8 @@ func TestEphemeralAfterEKError(t *testing.T) {
 
 	user2 := tt.addUserWithPaper("u2")
 	mctx2 := user2.MetaContext()
-	initEphemeralForTests(t, mctx2)
+	err = mctx2.G().GetEKLib().KeygenIfNeeded(mctx2)
+	require.NoError(t, err)
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
 
