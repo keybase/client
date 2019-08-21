@@ -27,17 +27,17 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
   render() {
     const selectedColor = this.props.selectedColor || Styles.globalColors.blue
     return (
-      <Kb.Box style={{...stylesTab, ...this.props.style}}>
+      <Kb.Box style={{...styles.tab, ...this.props.style}}>
         <Kb.Text
           type="BodySmallSemibold"
           style={{
-            ...stylesLabel,
+            ...styles.label,
             color: this.props.selected ? Styles.globalColors.black : Styles.globalColors.black_50,
           }}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Kb.Text>
-        <Kb.Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
+        <Kb.Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : styles.unselected} />
       </Kb.Box>
     )
   }
@@ -73,7 +73,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
   }
 
   const content = (
-    <Kb.Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
+    <Kb.Box style={{...styles.tabBarButtonIcon, ...props.style, flexGrow: 1}}>
       <Kb.Icon
         type={
           // @ts-ignore
@@ -92,7 +92,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
       )}
       {badgeComponent}
       {props.isNew && (
-        <Kb.Box style={styleBadgeNav}>
+        <Kb.Box style={styles.badgeNav}>
           <Kb.Meta
             title="new"
             size="Small"
@@ -142,49 +142,17 @@ class TabBar extends React.Component<Props> {
         <Kb.Box style={{...Styles.globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
           {this._labels()}
         </Kb.Box>
-        {this.props.underlined && <Kb.Box style={stylesUnderline} />}
+        {this.props.underlined && <Kb.Box style={styles.underline} />}
       </Kb.Box>
     )
     return (
-      <Kb.Box style={{...stylesContainer, ...this.props.style}}>
+      <Kb.Box style={{...styles.container, ...this.props.style}}>
         {!this.props.tabBarOnBottom && tabBarButtons}
         {this._content()}
         {this.props.tabBarOnBottom && tabBarButtons}
       </Kb.Box>
     )
   }
-}
-
-const styleBadgeNav = {
-  position: 'absolute',
-  right: 12,
-  top: 4,
-}
-
-const stylesContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  ...Styles.globalStyles.fullHeight,
-}
-
-const stylesTab = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  justifyContent: 'flex-end',
-}
-
-const stylesTabBarButtonIcon = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  justifyContent: 'center',
-  position: 'relative',
-}
-
-const stylesLabel = {
-  height: Styles.globalMargins.small,
-  marginBottom: 11,
-  marginTop: 11,
 }
 
 const stylesSelectedUnderline = color => ({
@@ -194,15 +162,44 @@ const stylesSelectedUnderline = color => ({
   marginBottom: -1,
 })
 
-const stylesUnselected = {
-  height: 2,
-}
-
-const stylesUnderline = {
-  alignSelf: 'stretch',
-  backgroundColor: Styles.globalColors.black_10,
-  height: NativeStyleSheet.hairlineWidth,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  badgeNav: {
+    position: 'absolute',
+    right: 12,
+    top: 4,
+  },
+  container: Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, Styles.globalStyles.fullHeight]),
+  label: {
+    height: Styles.globalMargins.small,
+    marginBottom: 11,
+    marginTop: 11,
+  },
+  tab: Styles.collapseStyles([
+    Styles.globalStyles.flexBoxColumn,
+    {
+      alignItems: 'center',
+      flexGrow: 1,
+      justifyContent: 'flex-end',
+    },
+  ]),
+  tabBarButtonIcon: Styles.collapseStyles([
+    Styles.globalStyles.flexBoxColumn,
+    {
+      alignItems: 'center',
+      flexGrow: 1,
+      justifyContent: 'center',
+      position: 'relative',
+    },
+  ]),
+  underline: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.black_10,
+    height: NativeStyleSheet.hairlineWidth,
+  },
+  unselected: {
+    height: 2,
+  },
+}))
 
 export {TabBarItem, TabBarButton}
 
