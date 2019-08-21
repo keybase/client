@@ -55,8 +55,10 @@ class UserBubbleCollection extends React.PureComponent<{
 
 const TeamBox = (props: Props) => {
   return Styles.isMobile ? (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false}>
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+      </Kb.ScrollView>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
@@ -117,9 +119,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       borderStyle: 'solid',
-      flex: 1,
-      flexWrap: 'wrap',
-      minHeight: 48,
+      minHeight: 90,
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
