@@ -1,4 +1,4 @@
-package merkletreev2
+package merkletree2
 
 import "sync"
 
@@ -26,8 +26,8 @@ type Hash []byte
 // the tree can store.
 type Key []byte
 
-// SeqNo is an integer used to differentiate different versions of a merkle tree.
-type SeqNo uint32
+// Seqno is an integer used to differentiate different versions of a merkle tree.
+type Seqno uint
 
 // ChildIndex specifies one of an iNode's child nodes.
 type ChildIndex uint32
