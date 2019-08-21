@@ -73,7 +73,7 @@ func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Positio
 	var buff big.Int
 	pChildIndex := buff.Xor(&child0, (*big.Int)(p)).Int64()
 
-	for i, j := int64(0), int64(0); j < int64(t.cfg.childrenPerNode); j = j + 1 {
+	for i, j := int64(0), int64(0); j < int64(t.cfg.childrenPerNode); j++ {
 		if j == pChildIndex {
 			continue
 		}
