@@ -134,6 +134,31 @@ safe_restart_systemd_services() {
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
+is_owned_by_root() {
+    owner_uid="$(stat --format=%u "$1")" && [ "0" = "$owner_uid" ]
+}
+
+# In 4.3.0, 4.3.1, we had a bug where this post install script's usage of
+# Keybase commands would create .config/keybase/ with root permissions if it
+# didn't already exist.
+fix_bad_config_perms() {
+    if users=$(find /home -maxdepth 1 -mindepth 1 -type d); then
+        while read -r user; do
+            # Don't attempt to fix for users with custom XDG_CONFIG_HOME,
+            # hopefully they will read release notes.
+            configdir="/home/$user/.config"
+            keybaseconfigdir="$configdir/keybase"
+            if [ -e "$keybaseconfigdir" ]; then
+                if is_owned_by_root "$configdir"; then
+                    chown -R "$user:$user" "$configdir"
+                elif is_owned_by_root "$keybaseconfigdir"; then
+                    chown -R "$user:$user" "$keybaseconfigdir"
+                fi
+            fi
+        done <<< "$users"
+    fi
+}
+
 if redirector_enabled ; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
@@ -214,6 +239,8 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
+fix_bad_config_perms
+
 # Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint
 
@@ -222,4 +249,4 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
-safe_restart_systemd_services
+# safe_restart_systemd_services
