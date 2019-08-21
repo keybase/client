@@ -1,9 +1,11 @@
 import * as React from 'react'
+import {debounce} from 'lodash-es'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import {AllowedNamespace} from 'constants/types/team-building'
+import {requestIdleCallback} from '../../util/idle-callback'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
@@ -25,6 +27,12 @@ const EmailInput = ({namespace}: EmailInputProps) => {
     state => state[namespace].teamBuilding.teamBuildingEmailIsSearching
   )
 
+  const debouncedSearch = debounce(
+    (query: string) =>
+      requestIdleCallback(() => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query}))),
+    200
+  )
+
   const onChange = React.useCallback(
     text => {
       setEmailString(text)
@@ -33,14 +41,16 @@ const EmailInput = ({namespace}: EmailInputProps) => {
         setEmailValidity(isNewInputValid)
       }
       if (isNewInputValid) {
-        dispatch(TeamBuildingGen.createSearchEmailAddress({namespace: namespace, query: text}))
+        debouncedSearch(text)
       }
     },
-    [isEmailValid, namespace, dispatch]
+    [isEmailValid, debouncedSearch]
   )
 
   const onSubmit = React.useCallback(() => {
-    if (!user) return
+    if (!user) {
+      throw new Error('User not found, cannot submit')
+    }
 
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     // Clear input

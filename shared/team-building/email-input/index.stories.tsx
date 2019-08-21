@@ -13,12 +13,11 @@ const store = {
     prettyName: 'max@keybase.io',
     serviceId: 'contact',
     serviceMap: {keybase: 'max'},
-    username: 'max@keybase.io',
+    username: 'max@keybase',
   }),
 }
 
 const load = () => {
-  console.log('storeCommon:', storeCommon)
   Sb.storiesOf('Team-Building', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Email address', () => <EmailInput namespace={namespace} />)
