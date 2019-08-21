@@ -1,7 +1,7 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import * as Styles from '../styles'
 
 import {Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
@@ -275,6 +275,7 @@ class Input extends React.PureComponent<Props, State> {
 
     const inputStyle = Styles.collapseStyles([
       styles.commonInput,
+      this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
       {
         height: this.props.small ? 18 : 28,
         maxWidth: 460,
@@ -283,6 +284,9 @@ class Input extends React.PureComponent<Props, State> {
 
     const textareaStyle = Styles.collapseStyles([
       styles.commonInput,
+      this.props.small
+        ? styles.commonInputSmall
+        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
       {
         height: 'initial',
         minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
@@ -293,9 +297,6 @@ class Input extends React.PureComponent<Props, State> {
         wrap: 'off',
         ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
       },
-      this.props.small
-        ? styles.commonInputSmall
-        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
     ])
 
     const value = this._getValue()
@@ -349,7 +350,7 @@ class Input extends React.PureComponent<Props, State> {
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
         <style>{inputRealCSS}</style>
         {!this.props.small && !this.props.hideLabel && (
-          <Text center={true} type="BodySmallSemibold" style={styles.floatingStyle}>
+          <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}
           </Text>
         )}
@@ -373,7 +374,7 @@ class Input extends React.PureComponent<Props, State> {
           <Text
             center={true}
             type="BodySmallError"
-            style={Styles.collapseStyles([styles.errorStyle, this.props.errorStyle])}
+            style={Styles.collapseStyles([styles.error, this.props.errorStyle])}
           >
             {this.props.errorText}
           </Text>
@@ -389,14 +390,16 @@ const _bodyTextStyle: any = getTextStyle('Body')
 const _bodySmallTextStyle: any = getTextStyle('BodySmall')
 
 const styles = Styles.styleSheetCreate(() => ({
-  commonInput: {
-    ...Styles.globalStyles.fontSemibold,
-    backgroundColor: Styles.globalColors.transparent,
-    border: 'none',
-    color: Styles.globalColors.black,
-    flex: 1,
-    outlineWidth: 0,
-  },
+  commonInput: Styles.collapseStyles([
+    Styles.globalStyles.fontSemibold,
+    {
+      backgroundColor: Styles.globalColors.transparent,
+      border: 'none',
+      color: Styles.globalColors.black,
+      flex: 1,
+      outlineWidth: 0,
+    },
+  ]),
   commonInputRegular: {
     fontSize: _headerTextStyle.fontSize,
     fontWeight: _headerTextStyle.fontWeight,
@@ -410,24 +413,25 @@ const styles = Styles.styleSheetCreate(() => ({
     lineHeight: _bodyTextStyle.lineHeight,
     textAlign: 'left',
   },
-  errorStyle: {
+  error: {
     marginTop: Styles.globalMargins.xtiny,
     width: '100%',
   },
-  floatingStyle: Styles.platformStyles({
+  floating: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.blueDark,
       display: 'block',
       minHeight: _bodySmallTextStyle.lineHeight,
     },
   }),
-  smallLabel: {
-    ...Styles.globalStyles.fontSemibold,
-    color: Styles.globalColors.blueDark,
-    fontSize: _bodySmallTextStyle.fontSize,
-    lineHeight: _lineHeight,
-    marginRight: 8,
-  },
+  smallLabel: Styles.collapseStyles([
+    Styles.globalStyles.fontSemibold,
+    {
+      color: Styles.globalColors.blueDark,
+      fontSize: _bodySmallTextStyle.fontSize,
+      lineHeight: `${_lineHeight}px`,
+      marginRight: 8,
+    },
+  ]),
 }))
-
 export default Input
