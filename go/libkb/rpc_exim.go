@@ -142,7 +142,7 @@ func ExportProofError(pe ProofError) (ret keybase1.ProofResult) {
 }
 
 func ImportProofError(e keybase1.ProofResult) ProofError {
-	ps := keybase1.ProofStatus(e.Status)
+	ps := e.Status
 	if ps == keybase1.ProofStatus_OK {
 		return nil
 	}
@@ -365,8 +365,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCKeyNoPGPEncryption:
 		ret := NoPGPEncryptionKeyError{User: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "HasKeybaseEncryptionKey":
+			if field.Key == "HasKeybaseEncryptionKey" {
 				ret.HasKeybaseEncryptionKey = true
 			}
 		}
@@ -427,8 +426,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCDecryptionError:
 		ret := DecryptionError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Cause":
+			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
 			}
 		}
@@ -436,8 +434,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCSigCannotVerify:
 		ret := kbcrypto.VerificationError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Cause":
+			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
 			}
 		}
@@ -451,8 +448,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGenericAPIError:
 		var code int
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "code":
+			if field.Key == "code" {
 				var err error
 				code, err = strconv.Atoi(field.Value)
 				if err != nil && g != nil {
@@ -471,8 +467,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatEphemeralRetentionPolicyViolatedError:
 		var maxAge gregor1.DurationSec
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "MaxAge":
+			if field.Key == "MaxAge" {
 				dur, err := time.ParseDuration(field.Value)
 				if err == nil {
 					maxAge = gregor1.ToDurationSec(dur)
@@ -483,13 +478,12 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatConvExists:
 		var convID chat1.ConversationID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "ConvID":
+			if field.Key == "ConvID" {
 				bs, err := chat1.MakeConvID(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing ChatConvExistsError")
 				}
-				convID = chat1.ConversationID(bs)
+				convID = bs
 			}
 		}
 		return ChatConvExistsError{
@@ -498,8 +492,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatUnknownTLFID:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "TlfID":
+			if field.Key == "TlfID" {
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil && g != nil {
@@ -513,8 +506,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatNotInConv:
 		var uid gregor1.UID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "UID":
+			if field.Key == "UID" {
 				val, err := hex.DecodeString(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat not in conv UID")
@@ -528,8 +520,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatNotInTeam:
 		var uid gregor1.UID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "UID":
+			if field.Key == "UID" {
 				val, err := hex.DecodeString(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat not in conv UID")
@@ -543,8 +534,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatTLFFinalized:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "TlfID":
+			if field.Key == "TlfID" {
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil && g != nil {
@@ -562,10 +552,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatRateLimit:
 		var rlimit chat1.RateLimit
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "RateLimit":
-				var err error
-				err = json.Unmarshal([]byte(field.Value), &rlimit)
+			if field.Key == "RateLimit" {
+				err := json.Unmarshal([]byte(field.Value), &rlimit)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat rate limit: %s", err.Error())
 				}
@@ -593,8 +581,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatMessageCollision:
 		var headerHash string
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "HeaderHash":
+			if field.Key == "HeaderHash" {
 				headerHash = field.Value
 			}
 		}
@@ -604,8 +591,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatDuplicateMessage:
 		var soutboxID string
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "OutboxID":
+			if field.Key == "OutboxID" {
 				soutboxID = field.Value
 			}
 		}
@@ -618,8 +604,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Tlf":
+			if field.Key == "Tlf" {
 				ret.Tlf = field.Value
 			}
 		}
@@ -627,8 +612,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCNeedOtherRekey:
 		ret := NeedOtherRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Tlf":
+			if field.Key == "Tlf" {
 				ret.Tlf = field.Value
 			}
 		}
@@ -671,8 +655,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGitInvalidRepoName:
 		e := InvalidRepoNameError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Name":
+			if field.Key == "Name" {
 				e.Name = field.Value
 			}
 		}
@@ -693,8 +676,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGitRepoDoesntExist:
 		e := RepoDoesntExistError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Name":
+			if field.Key == "Name" {
 				e.Name = field.Value
 			}
 		}
@@ -791,7 +773,7 @@ func (a AppStatusError) ToStatus() keybase1.Status {
 func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 	if d != nil {
 		res = &keybase1.TrackDiff{
-			Type:          keybase1.TrackDiffType(d.GetTrackDiffType()),
+			Type:          d.GetTrackDiffType(),
 			DisplayMarkup: d.ToDisplayString(),
 		}
 	}
@@ -1157,7 +1139,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			Time: keybase1.TimeFromSeconds(info.DelegatedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.DelegatedAtHashMeta,
-				Seqno:    keybase1.Seqno(info.DelegatedAt.Chain),
+				Seqno:    info.DelegatedAt.Chain,
 			},
 			FirstAppearedUnverified: info.FirstAppearedUnverified,
 		}
@@ -1172,7 +1154,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			Time: keybase1.TimeFromSeconds(info.RevokedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.RevokedAtHashMeta,
-				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
+				Seqno:    info.RevokedAt.Chain,
 			},
 			FirstAppearedUnverified: info.RevokeFirstAppearedUnverified,
 			SigningKID:              info.RevokedBy,
@@ -1776,7 +1758,7 @@ func (e IdentifiesFailedError) ToStatus() keybase1.Status {
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
 	kvpairs := []keybase1.StringKVPair{
-		keybase1.StringKVPair{Key: "username", Value: e.username.String()},
+		{Key: "username", Value: e.username.String()},
 	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{
@@ -2079,7 +2061,7 @@ func (e ChatRateLimitError) ToStatus() keybase1.Status {
 	b, _ := json.Marshal(e.RateLimit)
 	kv := keybase1.StringKVPair{
 		Key:   "RateLimit",
-		Value: string(b[:]),
+		Value: string(b),
 	}
 	return keybase1.Status{
 		Code:   SCChatRateLimit,
@@ -2389,7 +2371,7 @@ func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
 	ret.Code = SCFeatureFlag
 	ret.Name = "FEATURE_FLAG"
 	ret.Desc = e.msg
-	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
+	ret.Fields = []keybase1.StringKVPair{{Key: "feature", Value: string(e.feature)}}
 	return ret
 }
 

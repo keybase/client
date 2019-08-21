@@ -830,7 +830,11 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// reconnection any longer than we have to.
 	g.chatLog.Debug(ctx, "broadcasting reconnect oobm")
 	go func(m gregor1.Message) {
-		g.BroadcastMessage(context.Background(), m)
+		ctx := context.Background()
+		err := g.BroadcastMessage(ctx, m)
+		if err != nil {
+			g.chatLog.Debug(ctx, "Gregor broadcast error: %+v", err)
+		}
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected
@@ -934,7 +938,10 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		err = g.handleInBandMessage(ctx, g.GetIncomingClient(), ibm)
 
 		// Send message to local state machine
-		gcli.StateMachineConsumeMessage(ctx, m)
+		consumeErr := gcli.StateMachineConsumeMessage(ctx, m)
+		if consumeErr != nil {
+			g.Debug(ctx, "broadcast: error consuming message: %+v", consumeErr)
+		}
 
 		// Forward to electron or whichever UI is listening for the new gregor state
 		if g.pushStateFilter(m) {
@@ -965,7 +972,7 @@ func (g *gregorHandler) broadcastMessageHandler() {
 		m := <-g.broadcastCh
 		if g.G().GetEnv().GetSlowGregorConn() {
 			g.Debug(ctx, "[slow conn]: sleeping")
-			time.Sleep(time.Duration(slowConnSleepTime))
+			time.Sleep(slowConnSleepTime)
 			g.Debug(ctx, "[slow conn]: awake")
 		}
 		err := g.broadcastMessageOnce(ctx, m)
@@ -1104,9 +1111,9 @@ func (h IdentifyUIHandler) Create(ctx context.Context, cli gregor1.IncomingInter
 	switch category {
 	case "show_tracker_popup":
 		return true, h.handleShowTrackerPopupCreate(ctx, cli, item)
+	default:
+		return false, nil
 	}
-
-	return false, nil
 }
 
 func (h IdentifyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string,
@@ -1115,9 +1122,9 @@ func (h IdentifyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInte
 	switch category {
 	case "show_tracker_popup":
 		return true, h.handleShowTrackerPopupDismiss(ctx, cli, item)
+	default:
+		return false, nil
 	}
-
-	return false, nil
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli gregor1.IncomingInterface,
@@ -1219,7 +1226,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 	reason := keybase1.DismissReason{
 		Type: keybase1.DismissReasonType_HANDLED_ELSEWHERE,
 	}
-	identifyUI.Dismiss(mctx, user.GetName(), reason)
+	_ = identifyUI.Dismiss(mctx, user.GetName(), reason)
 
 	return nil
 }
@@ -1625,7 +1632,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 
 	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		Ranges_: []gregor1.MsgRange{
-			gregor1.MsgRange{
+			{
 				Category_: category,
 			}},
 	}
@@ -1702,7 +1709,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	}
 	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		Ranges_: []gregor1.MsgRange{
-			gregor1.MsgRange{
+			{
 				Category_:   gregor1.Category(cat),
 				SkipMsgIDs_: []gregor1.MsgID{msgID},
 			}},
@@ -1744,7 +1751,7 @@ func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system strin
 
 func (g *gregorHandler) simulateCrashForTesting() {
 	g.transportForTesting.Reset()
-	gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
+	_, _ = gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
 }
 
 type gregorRPCHandler struct {

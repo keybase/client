@@ -316,7 +316,7 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
-	typ, err := TeamInviteTypeFromString(mctx, string(i.Type))
+	typ, err := TeamInviteTypeFromString(mctx, i.Type)
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
@@ -324,7 +324,7 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 		Id:      id,
 		Role:    r,
 		Type:    typ,
-		Name:    keybase1.TeamInviteName(i.Name),
+		Name:    i.Name,
 		Inviter: inviter,
 	}, nil
 }

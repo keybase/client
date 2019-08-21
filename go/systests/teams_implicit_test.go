@@ -500,7 +500,7 @@ func TestResolveSBSConsolidatedTeamWithConflict(t *testing.T) {
 	}, keybase1.Seqno(2))
 
 	// Make sure teams are still loadable by ID.
-	teamObj1 = ann.loadTeamByID(teamid1, true /* admin */)
+	_ = ann.loadTeamByID(teamid1, true /* admin */)
 	teamObj2 = ann.loadTeamByID(teamid2, true /* admin */)
 
 	name, err = teamObj2.ImplicitTeamDisplayNameString(context.Background())

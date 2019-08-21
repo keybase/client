@@ -164,24 +164,28 @@ func TestLevelDb(t *testing.T) {
 				// synchronize between two doWhileOpenAndNukeIfCorrupted calls to know
 				// for sure they can happen concurrently.
 				ch := make(chan struct{})
-				go db.doWhileOpenAndNukeIfCorrupted(func() error {
-					defer wg.Done()
-					select {
-					case <-time.After(8 * time.Second):
-						t.Error("doWhileOpenAndNukeIfCorrupted is not concurrent")
-					case <-ch:
-					}
-					return nil
-				})
-				go db.doWhileOpenAndNukeIfCorrupted(func() error {
-					defer wg.Done()
-					select {
-					case <-time.After(8 * time.Second):
-						t.Error("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
-					case ch <- struct{}{}:
-					}
-					return nil
-				})
+				go func() {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+						defer wg.Done()
+						select {
+						case <-time.After(8 * time.Second):
+							t.Error("doWhileOpenAndNukeIfCorrupted is not concurrent")
+						case <-ch:
+						}
+						return nil
+					})
+				}()
+				go func() {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+						defer wg.Done()
+						select {
+						case <-time.After(8 * time.Second):
+							t.Error("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
+						case ch <- struct{}{}:
+						}
+						return nil
+					})
+				}()
 				wg.Wait()
 			},
 		},

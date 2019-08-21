@@ -168,12 +168,12 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	}
 	rkb := sig3.RotateKeyBody{
 		PTKs: []sig3.PerTeamKey{
-			sig3.PerTeamKey{
+			{
 				AppkeyDerivationVersion: sig3.AppkeyDerivationXOR,
 				Generation:              p.Gen,
 				SeedCheck:               *checkPostImage,
-				EncryptionKID:           sig3.KID(p.NewEncryptionKey.GetBinaryKID()),
-				SigningKID:              sig3.KID(p.NewSigningKey.GetBinaryKID()),
+				EncryptionKID:           p.NewEncryptionKey.GetBinaryKID(),
+				SigningKID:              p.NewSigningKey.GetBinaryKID(),
 				PTKType:                 keybase1.PTKType_READER,
 			},
 		},
@@ -187,7 +187,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 		if signing.Private == nil {
 			return nil, NewGenerateError("bad key pair, got null private key")
 		}
-		return sig3.NewKeyPair(*signing.Private, sig3.KID(g.GetBinaryKID())), nil
+		return sig3.NewKeyPair(*signing.Private, g.GetBinaryKID()), nil
 	}
 
 	rk := sig3.NewRotateKey(outer, inner, rkb)

@@ -2,6 +2,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
+import * as Container from '../../util/container'
 import * as Sb from '../../stories/storybook'
 import DevicePage from './container'
 
@@ -13,48 +14,32 @@ const makeDevice = (options: any) => {
     deviceID: Types.stringToDeviceID('123'),
     lastUsed: lastUsed ? new Date('2002-10-10T01:23:45').getTime() : 0,
     name: `My ${type}`,
-    revokedAt: revoked ? new Date('2002-10-11T01:23:45').getTime() : null,
+    revokedAt: revoked ? new Date('2002-10-11T01:23:45').getTime() : undefined,
     type,
   })
 }
 
 const common = Sb.createStoreWithCommon()
 
-const store = {
-  ...common,
-  devices: common.devices.mergeDeep(
-    I.Map({
-      deviceMap: {
-        backup: makeDevice({type: 'backup'}),
-        'backup revoked': makeDevice({revoked: true, type: 'backup'}),
-        desktop: makeDevice({type: 'desktop'}),
-        'desktop current': makeDevice({current: true, type: 'desktop'}),
-        'desktop no last': makeDevice({lastUsed: false, type: 'desktop'}),
-        'desktop revoked': makeDevice({revoked: true, type: 'desktop'}),
-        mobile: makeDevice({type: 'mobile'}),
-        'mobile revoked': makeDevice({revoked: true, type: 'mobile'}),
-      },
-    })
-  ),
-}
+const store = Container.produce(common, draftState => {
+  const deviceMap = new Map(draftState.devices.deviceMap)
+  deviceMap.set('backup', makeDevice({type: 'backup'}))
+  deviceMap.set('backup revoked', makeDevice({revoked: true, type: 'backup'}))
+  deviceMap.set('desktop', makeDevice({type: 'desktop'}))
+  deviceMap.set('desktop current', makeDevice({current: true, type: 'desktop'}))
+  deviceMap.set('desktop no last', makeDevice({lastUsed: false, type: 'desktop'}))
+  deviceMap.set('desktop revoked', makeDevice({revoked: true, type: 'desktop'}))
+  deviceMap.set('mobile', makeDevice({type: 'mobile'}))
+  deviceMap.set('mobile revoked', makeDevice({revoked: true, type: 'mobile'}))
+  draftState.devices.deviceMap = deviceMap
+})
 
-const storeNOPW = {
-  ...common,
-  devices: common.devices.mergeDeep(
-    I.Map({
-      deviceMap: {
-        'desktop last nopw': makeDevice({type: 'desktop'}),
-      },
-    })
-  ),
-  settings: common.settings.mergeDeep(
-    I.Map({
-      password: {
-        randomPW: true,
-      },
-    })
-  ),
-}
+const storeNOPW = Container.produce(common, draftState => {
+  const deviceMap = new Map(draftState.devices.deviceMap)
+  deviceMap.set('desktop last nopw', makeDevice({type: 'desktop'}))
+  draftState.devices.deviceMap = deviceMap
+  draftState.settings = draftState.settings.mergeDeep(I.Map({password: {randomPW: true}}))
+})
 
 const load = () => {
   Sb.storiesOf('Devices/Device', module)

@@ -1826,7 +1826,7 @@ type sanityCheckInvitesOptions struct {
 }
 
 func assertIsKeybaseInvite(mctx libkb.MetaContext, i SCTeamInvite) bool {
-	typ, err := TeamInviteTypeFromString(mctx, string(i.Type))
+	typ, err := TeamInviteTypeFromString(mctx, i.Type)
 	if err != nil {
 		mctx.Info("bad invite type: %s", err)
 		return false
@@ -2247,7 +2247,7 @@ func (t *teamSigchainPlayer) assertSubteamName(parent *TeamSigChainState, parent
 
 func (t *teamSigchainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.TeamID, error) {
 	// Check the subteam ID
-	subteamID, err := keybase1.TeamIDFromString(string(subteamIDStr))
+	subteamID, err := keybase1.TeamIDFromString(subteamIDStr)
 	if err != nil {
 		return subteamID, fmt.Errorf("invalid subteam id: %v", err)
 	}

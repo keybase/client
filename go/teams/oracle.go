@@ -40,7 +40,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 			}
 
 			mctx.Debug("Trying to unbox with key gen %d", gen)
-			decryptedData, ok := box.Open(nil, arg.EncryptedData[:], (*[24]byte)(&arg.Nonce),
+			decryptedData, ok := box.Open(nil, arg.EncryptedData, (*[24]byte)(&arg.Nonce),
 				(*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(key.Private))
 			if !ok {
 				continue

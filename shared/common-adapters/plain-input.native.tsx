@@ -259,7 +259,7 @@ class PlainInput extends Component<InternalProps, State> {
   }
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
   multiline: platformStyles({
     isMobile: {
@@ -271,6 +271,6 @@ const styles = styleSheetCreate({
     },
   }),
   singleline: {padding: 0},
-})
+}))
 
 export default PlainInput

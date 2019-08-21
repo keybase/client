@@ -19,7 +19,7 @@ func TestBgTicker(t *testing.T) {
 		select {
 		case <-ticker.C:
 			if i == 0 {
-				require.True(t, time.Now().Sub(start) >= duration)
+				require.True(t, time.Since(start) >= duration)
 			}
 		case <-time.After(chWait):
 			require.Fail(t, "ticker did not fire")

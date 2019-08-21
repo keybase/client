@@ -97,12 +97,12 @@ func (k GpgBaseKey) ExpirationString() string {
 		return "never"
 	}
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Expires), 0).Format(layout)
+	return time.Unix(k.Expires, 0).Format(layout)
 }
 
 func (k GpgBaseKey) CreatedString() string {
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Created), 0).Format(layout)
+	return time.Unix(k.Created, 0).Format(layout)
 }
 
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
@@ -171,7 +171,7 @@ func (k *GpgPrimaryKey) IsValid() bool {
 	} else if k.Expires == 0 {
 		return true
 	} else {
-		expired := time.Now().After(time.Unix(int64(k.Expires), 0))
+		expired := time.Now().After(time.Unix(k.Expires, 0))
 		if expired {
 			var fp string
 			if k.fingerprint != nil {

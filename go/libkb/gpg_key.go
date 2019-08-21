@@ -65,7 +65,10 @@ func (g *GPGKey) SignToString(msg []byte) (sig string, id keybase1.SigID, err er
 
 	// compute sig id:
 	h := sha256.New()
-	h.Write(msg)
+	_, err = h.Write(msg)
+	if err != nil {
+		return sig, id, err
+	}
 	id, err = keybase1.SigIDFromSlice(h.Sum(nil))
 	if err != nil {
 		return sig, id, err

@@ -5464,8 +5464,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 				Payload:     encMsg,
 			})
 		require.NoError(t, err)
-		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, convInfo.TlfName, "general"),
-			unboxRes)
+		require.Equal(t, unboxRes, "PUSH")
 	})
 }
 

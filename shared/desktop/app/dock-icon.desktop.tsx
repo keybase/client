@@ -1,21 +1,22 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
-export function showDockIcon() {
+const changeDock = (show: boolean) => {
   const app = SafeElectron.getApp()
   const dock = app.dock
-  if (dock && !dock.isVisible()) {
-    // Be aware that app.dock.isVisible() won't be true immediately
-    // after app.dock.show() since there is a slight delay there.
-    dock.show()
-    app.emit('-keybase-dock-showing', {})
+  if (!dock) return
+
+  if (show === dock.isVisible()) {
+    return
   }
+
+  if (show) {
+    dock.show()
+  } else {
+    dock.hide()
+  }
+
+  app.emit('KBappState', '', {payload: {showing: show}, type: 'dock'})
 }
 
-export function hideDockIcon() {
-  const app = SafeElectron.getApp()
-  const dock = app.dock
-  if (dock && dock.isVisible()) {
-    dock.hide()
-    app.emit('-keybase-dock-hide', {})
-  }
-}
+export const showDockIcon = () => changeDock(true)
+export const hideDockIcon = () => changeDock(false)

@@ -175,7 +175,7 @@ func (d Darwin) appDir(dirs ...string) string {
 	appName := toUpper(d.appName)
 	runMode := d.getRunMode()
 	if runMode != ProductionRunMode {
-		appName = appName + toUpper(string(runMode))
+		appName += toUpper(string(runMode))
 	}
 	dirs = append(dirs, appName)
 	return filepath.Join(dirs...)
@@ -242,8 +242,7 @@ func (d Darwin) InfoDir() string {
 }
 
 func (d Darwin) Home(emptyOk bool) string {
-	var ret string
-	ret = d.getHome()
+	ret := d.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret = d.getenv("HOME")
 	}
@@ -350,7 +349,7 @@ func (w Win32) Home(emptyOk bool) string {
 			// Capitalize the first letter
 			r, n := utf8.DecodeRuneInString(runModeName)
 			runModeName = string(unicode.ToUpper(r)) + runModeName[n:]
-			packageName = packageName + runModeName
+			packageName += runModeName
 		}
 	}
 

@@ -54,7 +54,14 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     subscriptionId: number | null = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
-      SafeElectron.getIpcRenderer().send('showTray', icon, iconSelected, this.props.desktopAppBadgeCount)
+      SafeElectron.getApp().emit('KBmenu', '', {
+        payload: {
+          desktopAppBadgeCount: this.props.desktopAppBadgeCount,
+          icon,
+          iconSelected,
+        },
+        type: 'showTray',
+      })
       // Windows just lets us set (or unset, with null) a single 16x16 icon
       // to be used as an overlay in the bottom right of the taskbar icon.
       if (isWindows) {
@@ -125,6 +132,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
+  remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['menubar', ''], -1),
   showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,
@@ -170,6 +178,7 @@ export default Container.namedConnect(
       kbfsEnabled: stateProps.kbfsEnabled,
       loggedIn: stateProps.loggedIn,
       outOfDate: stateProps.outOfDate,
+      remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
       showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
       userInfo: stateProps.userInfo,
       username: stateProps.username,

@@ -171,7 +171,8 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	// Also test the gregor-powered refresh mechanism. We're going to mock out the gregor message for now.
 	rotate(true)
 	mctx1 := libkb.NewMetaContext(ctx, tcs[1].G)
-	tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(mctx1, teamID, keybase1.Seqno(4))
+	err = tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(mctx1, teamID, keybase1.Seqno(4))
+	require.NoError(t, err)
 	checkForUser(1, false)
 
 	ch, err := tcs[1].G.GetHiddenTeamChainManager().Load(mctx1, teamID)
@@ -201,7 +202,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		}
 		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
-		wait = wait * 2
+		wait *= 2
 	}
 	require.True(t, found, "whether condition was satisfied after polling ended")
 }

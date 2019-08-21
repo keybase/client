@@ -419,7 +419,7 @@ func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localE
 		m.Debug("| DB lookup failed")
 		return nil, err
 	}
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		m.Debug("| No local track found")
 		return nil, nil
 	}
@@ -439,7 +439,7 @@ func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localE
 
 		if linkETime.Before(m.G().Clock().Now()) {
 			m.Debug("| expired local track, deleting")
-			removeLocalTrack(m, tracker, trackee, true)
+			_ = removeLocalTrack(m, tracker, trackee, true)
 			return nil, ErrTrackingExpired
 		}
 	}

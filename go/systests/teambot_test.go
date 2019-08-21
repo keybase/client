@@ -194,7 +194,8 @@ func TestTeambotKey(t *testing.T) {
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotKeyWrongKIDCacheKey(teamID, botua.uid, teambotKey2.Metadata.Generation)
 	expired := keybase1.ToTime(fc.Now())
-	mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	err = mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	require.NoError(t, err)
 	permitted, ctime, err := teambot.TeambotKeyWrongKIDPermitted(mctx3, teamID, botua.uid,
 		teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
@@ -268,6 +269,7 @@ func TestTeambotKey(t *testing.T) {
 		ID:          teamID,
 		ForceRepoll: true,
 	})
+	require.NoError(t, err)
 	appKey2, err := team.ApplicationKey(mctx1.Ctx(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	teambotKey, _, err = memberKeyer1.GetOrCreateTeambotKey(mctx1, teamID, botuaUID, appKey2)

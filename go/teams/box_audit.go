@@ -31,7 +31,7 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 		}
 		appState, stateMtime := mctx.G().MobileAppState.StateAndMtime()
 		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", appState, stateMtime)
-		if stateMtime == nil || appState != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
+		if stateMtime == nil || appState != keybase1.MobileAppState_FOREGROUND || time.Since(*stateMtime) < 3*time.Minute {
 			mctx.Debug("ShouldRunBoxAudit: mobile and backgrounded")
 			return false
 		}
@@ -363,7 +363,7 @@ func (a *BoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (attempt *keybase
 		mctx.Debug("Retry queue empty, succeeding vacuously")
 		return nil, nil
 	}
-	return a.BoxAuditTeam(mctx, (*queueItem).TeamID)
+	return a.BoxAuditTeam(mctx, queueItem.TeamID)
 }
 
 // BoxAuditRandomTeam selects a random known team from the slow team or FTL
@@ -746,7 +746,7 @@ func NewBoxAuditID() (BoxAuditID, error) {
 	if err != nil {
 		return nil, err
 	}
-	return BoxAuditID(idBytes), nil
+	return idBytes, nil
 }
 
 // BoxAuditQueue holds a list of teams that need to be reaudited, because the

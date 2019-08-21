@@ -144,7 +144,6 @@ func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, 
 		if err != nil {
 			// warn, don't fail
 			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
-			err = nil
 			continue
 		}
 		conflicts = append(conflicts, *conflictInfo)
@@ -187,8 +186,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	impTeamName = impTeamNameInput
 
 	// Use a copy without the conflict info to hit the api endpoint
-	var impTeamNameWithoutConflict keybase1.ImplicitTeamDisplayName
-	impTeamNameWithoutConflict = impTeamName
+	impTeamNameWithoutConflict := impTeamName
 	impTeamNameWithoutConflict.ConflictInfo = nil
 	lookupNameWithoutConflict, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
 	if err != nil {
@@ -246,6 +244,8 @@ func isDupImplicitTeamError(err error) bool {
 			switch code {
 			case keybase1.StatusCode_SCTeamImplicitDuplicate:
 				return true
+			default:
+				// Nothing to do for other codes.
 			}
 		}
 	}
@@ -330,23 +330,20 @@ func FormatImplicitTeamDisplayNameWithUserFront(ctx context.Context, g *libkb.Gl
 }
 
 func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, optionalFrontName *libkb.NormalizedUsername) (string, error) {
-	var writerNames []string
-	for _, u := range impTeamName.Writers.KeybaseUsers {
-		writerNames = append(writerNames, u)
-	}
+	writerNames := make([]string, 0, len(impTeamName.Writers.KeybaseUsers)+len(impTeamName.Writers.UnresolvedUsers))
+	writerNames = append(writerNames, impTeamName.Writers.KeybaseUsers...)
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		writerNames = append(writerNames, u.String())
 	}
+
 	if optionalFrontName == nil {
 		sort.Strings(writerNames)
 	} else {
 		sortStringsFront(writerNames, optionalFrontName.String())
 	}
 
-	var readerNames []string
-	for _, u := range impTeamName.Readers.KeybaseUsers {
-		readerNames = append(readerNames, u)
-	}
+	readerNames := make([]string, 0, len(impTeamName.Readers.KeybaseUsers)+len(impTeamName.Readers.UnresolvedUsers))
+	readerNames = append(readerNames, impTeamName.Readers.KeybaseUsers...)
 	for _, u := range impTeamName.Readers.UnresolvedUsers {
 		readerNames = append(readerNames, u.String())
 	}

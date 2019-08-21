@@ -85,7 +85,7 @@ func (r *RemoteProofLinks) TrackingStatement() *jsonw.Wrapper {
 
 	res := jsonw.NewArray(len(proofs))
 	for i, proof := range proofs {
-		res.SetIndex(i, proof)
+		_ = res.SetIndex(i, proof)
 	}
 	return res
 }

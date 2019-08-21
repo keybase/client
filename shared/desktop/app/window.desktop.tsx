@@ -5,60 +5,36 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 export default class Window {
   filename: string
   opts: any
-  window: any
+  window: Electron.BrowserWindow | undefined
   initiallyVisible: boolean
 
   constructor(filename: string, opts: any) {
     this.filename = filename
     this.opts = opts || {}
-    this.window = null
     this.initiallyVisible = this.opts.show || false
     this.createWindow()
-
-    const ipcMain = SafeElectron.getIpcMain()
-    // Listen for remote windows to show a dock icon for, we'll bind them on close to
-    // hide the dock icon too
-    ipcMain.on('showDockIconForRemoteWindow', () => {
-      showDockIcon()
-    })
-
-    ipcMain.on('listenForRemoteWindowClosed', (event, remoteWindowId) => {
-      const w = SafeElectron.BrowserWindow.fromId(remoteWindowId)
-      w &&
-        w.on('close', () => {
-          try {
-            event.sender.send('remoteWindowClosed', remoteWindowId)
-          } catch (_) {}
-        })
-    })
-
-    ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {
-      const relayRemoteUnmount = (_, otherRemoteWindowId) => {
-        if (remoteWindowId === otherRemoteWindowId) {
-          remoteComponentLoaderEvent.sender.send('remoteUnmount')
-          ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)
-        }
-      }
-      ipcMain.on('remoteUnmount', relayRemoteUnmount)
-    })
   }
 
-  bindWindowListeners() {
+  bindWindowListeners = () => {
+    const w = this.window
+    if (!w) {
+      return
+    }
     // We don't really want to close the window since it'll keep track of the main app state.
     // So instead we'll hide it
-    this.window.on('close', event => {
+    w.on('close', event => {
       // Prevent an actual close
       event.preventDefault()
-      this.window.hide()
+      w.hide()
       hideDockIcon()
     })
 
-    this.window.on('closed', () => {
-      this.window = null
+    w.on('closed', () => {
+      this.window = undefined
     })
   }
 
-  createWindow() {
+  createWindow = () => {
     if (this.window) {
       return
     }
@@ -73,24 +49,19 @@ export default class Window {
     this.window.once('show', () => this.onFirstTimeBeingShown())
   }
 
-  onFirstTimeBeingShown() {
+  onFirstTimeBeingShown = () => {
     menuHelper(this.window)
   }
 
-  show() {
+  show = () => {
     showDockIcon()
 
-    if (this.window) {
-      if (!this.window.isVisible()) {
-        this.window.show()
-      }
-      return
+    const w = this.window
+
+    if (w) {
+      !w.isVisible() && w.show()
     } else {
       this.createWindow()
-    }
-
-    if (this.opts.openDevTools) {
-      this.window.openDevTools()
     }
   }
 }

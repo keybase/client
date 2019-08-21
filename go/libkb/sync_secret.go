@@ -276,19 +276,6 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 	return ss.keys.Devices, nil
 }
 
-func (ss *SecretSyncer) dumpDevices() {
-	ss.Lock()
-	defer ss.Unlock()
-	ss.G().Log.Warning("dumpDevices:")
-	if ss.keys == nil {
-		ss.G().Log.Warning("dumpDevices -- ss.keys == nil")
-		return
-	}
-	for devid, dev := range ss.keys.Devices {
-		ss.G().Log.Warning("%s -> desc: %q, type: %q, ppgen: %d", devid, dev.Description, dev.Type, dev.PPGen)
-	}
-}
-
 // IsDeviceNameTaken returns true if a desktop or mobile device is
 // using a name already.
 func (ss *SecretSyncer) IsDeviceNameTaken(name string, includeTypesSet DeviceTypeSet) bool {

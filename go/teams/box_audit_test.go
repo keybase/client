@@ -143,11 +143,6 @@ func requireNonfatalError(t *testing.T, err error, args ...interface{}) {
 	require.True(t, ok, args...)
 }
 
-func requireClientError(t *testing.T, err error, args ...interface{}) {
-	_, ok := err.(FatalBoxAuditError)
-	require.True(t, ok, args...)
-}
-
 func auditTeam(a libkb.TeamBoxAuditor, mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	_, err := a.BoxAuditTeam(mctx, teamID)
 	return err
@@ -196,10 +191,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_VERIFIED,
@@ -223,10 +218,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_VERIFIED,
@@ -247,10 +242,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	t.Logf("check C's & D's view of the successful no-op audit in db")
 	vacuousLog := BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE,
@@ -305,7 +300,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	requireNonfatalError(t, err, "audit failure on unrotated puk")
 	_, ok := err.(NonfatalBoxAuditError)
 	require.True(t, ok)
-	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
+	log, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(log.Audits), 2)
 	require.True(t, log.InProgress, "failed audit causes it to be in progress")
 	require.Equal(t, len(queue.Items), 1)
@@ -313,7 +308,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.Equal(t, queue.Version, CurrentBoxAuditVersion)
 	err = auditTeam(aA, aM, teamID)
 	requireNonfatalError(t, err, "another audit failure on unrotated puk")
-	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
+	_, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(queue.Items), 1, "no duplicates in retry queue")
 
 	t.Logf("checking that we can load a team in retry queue, but that is not jailed yet")
@@ -491,7 +486,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 		return team, chainSummary, currentSummary
 	}
 
-	team, chainSummary, currentSummary := load(aM, aTeamID)
+	_, chainSummary, currentSummary := load(aM, aTeamID)
 	expected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno,
@@ -503,7 +498,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	t.Logf("B rotates PUK")
 	kbtest.RotatePaper(*bTc, bU)
 
-	team, chainSummary, currentSummary = load(cM, aTeamID)
+	team, chainSummary, currentSummary := load(cM, aTeamID)
 	newExpected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno + 3,
@@ -517,7 +512,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("C checks summary")
-	team, chainSummary, currentSummary = load(cM, aTeamID)
+	_, chainSummary, currentSummary = load(cM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newExpected, currentSummary.table)
 
@@ -527,7 +522,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno + 3,
 	}
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 
@@ -540,7 +535,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.NoError(t, err)
 	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 
@@ -553,7 +548,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	team, _, _ = load(aM, aTeamID)
 	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newerExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 }
@@ -767,7 +762,8 @@ func TestBoxAuditVersionBump(t *testing.T) {
 
 	a1 := newBoxAuditorWithVersion(aM.G(), 5)
 
-	a1.jail(aM, teamID)
+	err := a1.jail(aM, teamID)
+	require.NoError(t, err)
 
 	jailed, err := a1.IsInJail(aM, teamID)
 	require.NoError(t, err)

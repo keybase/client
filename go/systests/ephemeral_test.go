@@ -214,7 +214,8 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
 	expired := keybase1.ToTime(fc.Now())
-	mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	err = mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	require.NoError(t, err)
 	permitted, ctime, err := teambot.TeambotEKWrongKIDPermitted(mctx3, teamID, botua.uid,
 		teambotEK2.Generation(), keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)

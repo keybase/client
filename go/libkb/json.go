@@ -175,8 +175,8 @@ func (f *JSONFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
 }
 
 func (f *JSONFile) DeleteAtPath(p string) {
-	f.jw.DeleteValueAtPath(p)
-	f.Save()
+	_ = f.jw.DeleteValueAtPath(p)
+	_ = f.Save()
 }
 
 func (f *JSONFile) Save() error {
@@ -189,7 +189,7 @@ func (f *JSONFile) Save() error {
 		// still exists on exit
 		defer func() {
 			if tx != nil {
-				tx.Abort()
+				_ = tx.Abort()
 			}
 		}()
 	}
@@ -336,7 +336,10 @@ func (f *JSONFile) save() (err error) {
 func (f *jsonFileTransaction) Abort() error {
 	f.f.G().Log.Debug("+ Aborting %s rewrite %s", f.f.which, f.tmpname)
 	err := os.Remove(f.tmpname)
-	f.f.setTx(nil)
+	setErr := f.f.setTx(nil)
+	if err == nil {
+		err = setErr
+	}
 	f.f.G().Log.Debug("- Abort -> %s\n", ErrToOk(err))
 	return err
 }
@@ -371,9 +374,7 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	if err != nil {
 		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
 	}
-	f.f.setTx(nil)
-
-	return err
+	return f.f.setTx(nil)
 }
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)
