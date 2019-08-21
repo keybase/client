@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import {useTimeout} from '../common-adapters/use-timers'
 import {
   serviceIdToIconFont,
   serviceIdToAccentColor,
@@ -33,7 +32,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 }
 
 const ServiceIcon = (props: IconProps) => {
-  const smallWidth = serviceMinWidthWhenSmall(Kb.NativeDimensions.get('window').width)
+  const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
   return (
     <Kb.ClickableBox onClick={props.onClick}>
@@ -48,10 +47,7 @@ const ServiceIcon = (props: IconProps) => {
         <Kb.Icon
           fontSize={18}
           type={serviceIdToIconFont(props.service)}
-          style={Styles.collapseStyles([
-            styles.serviceIcon,
-            {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
-          ])}
+          color={props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor}
         />
         <Kb.Box2
           direction="vertical"
@@ -75,9 +71,7 @@ const ServiceIcon = (props: IconProps) => {
           />
         )}
         {!!props.showCount && props.count !== null && (
-          <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-            {props.count && props.count === 11 ? '10+' : props.count}
-          </Kb.Text>
+          <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
         )}
       </Kb.Box2>
       <Kb.Box2
@@ -94,16 +88,6 @@ const ServiceIcon = (props: IconProps) => {
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
-const deriveOnScroll = memoize((deferClose, locked, setShowLabels) => () => {
-  deferClose()
-  if (locked) {
-    // Avoid re-opening labels due to a scroll due to closing them.
-    // That was an issue on android.
-    return
-  }
-  setShowLabels(true)
-})
-
 export const ServiceTabBar = (props: Props) => {
   const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
   const [locked, setLocked] = React.useState(false)
@@ -111,9 +95,18 @@ export const ServiceTabBar = (props: Props) => {
     setShowLabels(false)
     props.onLabelsSeen()
   }
-  const deferClose = useTimeout(onClose, 2000)
-  const deferUnlock = useTimeout(() => setLocked(false), 250)
-  const onScroll = deriveOnScroll(deferClose, locked, setShowLabels)
+  const deferClose = Kb.useTimeout(onClose, 2000)
+  const deferUnlock = Kb.useTimeout(() => setLocked(false), 250)
+  const onScroll = React.useCallback(() => {
+    deferClose()
+    if (locked) {
+      // On android the animation of narrowing while hiding labels caused scroll events
+      // which caused the labels to re-open. To work around that issue the state is 'locked'
+      // for a trice after animation completes.
+      return
+    }
+    setShowLabels(true)
+  }, [deferClose, locked, setShowLabels])
   React.useEffect(deferClose, [])
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.barPlaceholder}>
@@ -158,7 +151,7 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   activeTabBar: {
     backgroundColor: Styles.globalColors.blue,
     height: 2,
@@ -173,20 +166,18 @@ const styles = Styles.styleSheetCreate({
     height: 2,
   },
   pendingIcon: {height: 17, width: 17},
-  resultCount: {},
-  serviceIcon: {},
   serviceIconContainer: {
     flex: 1,
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   tabBarContainer: {
-    backgroundColor: 'white',
+    backgroundColor: Styles.globalColors.white,
     position: 'absolute',
     shadowOffset: {height: 3, width: 0},
     shadowRadius: 2,
     top: 0,
   },
-})
+}))
 
 export default ServiceTabBar
