@@ -83,6 +83,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                    { re
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
 func (n NullConfiguration) GetEKLogFile() string                            { return "" }
+func (n NullConfiguration) GetGUILogFile() string                           { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
@@ -1622,6 +1623,14 @@ func (e *Env) GetEKLogFile() string {
 	)
 }
 
+func (e *Env) GetGUILogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUILogFile() },
+		func() string { return os.Getenv("KEYBASE_GUI_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), GUILogFileName) },
+	)
+}
+
 func (e *Env) GetUseDefaultLogFile() bool {
 	return e.GetBool(false,
 		e.cmd.GetUseDefaultLogFile,
@@ -1709,6 +1718,7 @@ type AppConfig struct {
 	MobileSharedHomeDir            string
 	LogFile                        string
 	EKLogFile                      string
+	GUILogFile                     string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
@@ -1739,6 +1749,10 @@ func (c AppConfig) GetLogFile() string {
 
 func (c AppConfig) GetEKLogFile() string {
 	return c.EKLogFile
+}
+
+func (c AppConfig) GetGUILogFile() string {
+	return c.GUILogFile
 }
 
 func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {

@@ -950,6 +950,10 @@ type GetProxyDataArg struct {
 type ToggleRuntimeStatsArg struct {
 }
 
+type AppendGUILogsArg struct {
+	Content string `codec:"content" json:"content"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -985,6 +989,7 @@ type ConfigInterface interface {
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
 	ToggleRuntimeStats(context.Context) error
+	AppendGUILogs(context.Context, string) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1371,6 +1376,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"appendGUILogs": {
+				MakeArg: func() interface{} {
+					var ret [1]AppendGUILogsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AppendGUILogsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AppendGUILogsArg)(nil), args)
+						return
+					}
+					err = i.AppendGUILogs(ctx, typedArgs[0].Content)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1532,5 +1552,11 @@ func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err erro
 
 func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil)
+	return
+}
+
+func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err error) {
+	__arg := AppendGUILogsArg{Content: content}
+	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []interface{}{__arg}, nil)
 	return
 }

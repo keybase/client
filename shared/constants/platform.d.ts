@@ -16,7 +16,6 @@ export const defaultUseNativeFrame: boolean
 
 export declare const fileUIName: string
 export declare const version: string
-export declare const logFileName: string
 export declare const pprofDir: string
 export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
