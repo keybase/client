@@ -161,7 +161,7 @@ const AccountSettings = (props: Props) => (
           <Kb.BannerParagraph
             bannerColor="green"
             content={[
-              'Success! And now you can mesage anyone on Keybase by phone number. ',
+              'Success! And now you can message anyone on Keybase by phone number. ',
               {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
             ]}
           />
