@@ -78,62 +78,66 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle}>
-        <PhoneInput
-          // Supply a key to force reset the PhoneInput state after a user is added
-          key={phoneInputKey}
-          autoFocus={true}
-          onChangeNumber={onChangeNumberCb}
-          result={
-            // Pass a component into PhoneInput so it is displayed inline with the number input box
-            <>
-              {state === 'resolved' && !!user && (
-                <Kb.Box2 direction="horizontal" style={styles.foundResultContainer}>
-                  <Kb.NameWithIcon
-                    size="big"
-                    onClick={_onContinue}
-                    horizontal={true}
-                    username={user.username}
-                    metaOne={user.prettyName}
-                  />
-                </Kb.Box2>
-              )}
-              {state === 'notfound' && (
-                <Kb.Box2 direction="horizontal" style={styles.notFoundResultContainer} gap="tiny">
-                  <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                    <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
-                  </Kb.Box2>
-                  <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                    <Kb.Text type="BodyBig">User not found</Kb.Text>
-                  </Kb.Box2>
-                </Kb.Box2>
-              )}
-            </>
-          }
+        <Kb.Box2 direction="vertical" gap="tiny">
+          <PhoneInput
+            // Supply a key to force reset the PhoneInput state after a user is added
+            key={phoneInputKey}
+            autoFocus={true}
+            onChangeNumber={onChangeNumberCb}
+          />
+          {state === 'resolved' && !!user && (
+            <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
+              <Kb.NameWithIcon
+                size="big"
+                onClick={_onContinue}
+                horizontal={true}
+                username={user.username}
+                metaOne={user.prettyName}
+              />
+            </Kb.Box2>
+          )}
+          {state === 'notfound' && (
+            <Kb.Box2 direction="horizontal" style={styles.resultContainer} gap="tiny">
+              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
+                <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
+                <Kb.Text type="BodyBig">User not found</Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+          )}
+          {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
+        </Kb.Box2>
+        <Kb.Box style={styles.spaceFillingBox} />
+        <Kb.Button
+          fullWidth={true}
+          style={styles.button}
+          onClick={_onContinue}
+          label="Continue"
+          disabled={!validity}
         />
-        {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
-      </Kb.Box2>
-      <Kb.Box style={styles.spaceFillingBox} />
-      <Kb.Box2 direction="horizontal" style={styles.buttonContainer} fullWidth={true}>
-        <Kb.Button style={styles.button} onClick={_onContinue} label="Continue" disabled={!validity} />
       </Kb.Box2>
     </>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  button: {marginBottom: Styles.globalMargins.tiny, width: '80%'},
-  buttonContainer: {backgroundColor: Styles.globalColors.blueGrey, justifyContent: 'center'},
+  button: {flexGrow: 0},
+  buttonContainer: {justifyContent: 'center'},
   containerStyle: {
     backgroundColor: Styles.globalColors.blueGrey,
+    height: '100%',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
     width: '100%',
   },
-  foundResultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
-  notFoundResultContainer: {height: '64px', width: '100%'},
   placeholderIcon: {borderRadius: 16, height: '32px'},
-  spaceFillingBox: {backgroundColor: Styles.globalColors.blueGrey, flexGrow: 1},
+  resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
+  spaceFillingBox: {flexGrow: 1},
 }))
 
 export default PhoneSearch
