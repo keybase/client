@@ -75,6 +75,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
+    },
   }),
 })
 

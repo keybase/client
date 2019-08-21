@@ -767,6 +767,7 @@ export type TypedActionsMap = {
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
+  'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
