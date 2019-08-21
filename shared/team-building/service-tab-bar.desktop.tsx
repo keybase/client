@@ -220,7 +220,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   serviceIconBox: {
-    marginTop: Styles.globalMargins.xsmall, // xxx
+    marginTop: 14,
   },
   serviceIconContainer: {
     flex: 1,
@@ -234,7 +234,6 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'flex-start',
   },
   tabBarContainer: {
-    marginTop: Styles.globalMargins.xtiny,
     minHeight: 30,
   },
 }))
