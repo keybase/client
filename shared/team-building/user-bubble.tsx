@@ -20,6 +20,7 @@ const UserBubble = (props: Props) => {
     .hoverContainer .hoverComponent { visibility: hidden; }
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
+  const showAvatar = ['keybase', 'contact', 'phone', 'email'].includes(props.service)
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer" style={styles.bubbleContainer}>
       <DesktopStyle style={realCSS} />
@@ -28,8 +29,8 @@ const UserBubble = (props: Props) => {
           colorFollowing={true}
           hideFollowingOverlay={true}
           horizontal={false}
-          icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
-          iconBoxStyle={props.service !== 'keybase' ? styles.iconBox : undefined}
+          icon={showAvatar ? undefined : serviceIdToIconFont(props.service)}
+          iconBoxStyle={showAvatar ? undefined : styles.iconBox}
           size="smaller"
           username={props.username}
         />
