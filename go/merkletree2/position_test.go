@@ -131,61 +131,49 @@ func TestIsPositionOnPathToKey(t *testing.T) {
 
 }
 
-func TestGetAllSiblings(t *testing.T) {
+func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
 
 	config1bit, _ := NewConfig(nil, 1, 1, 3, nil)
 	tree1bit := &Tree{cfg: config1bit}
 	config2bits, _ := NewConfig(nil, 2, 1, 3, nil)
 	tree2bits := &Tree{cfg: config2bits}
-	config3bits, _ := NewConfig(nil, 3, 1, 3, nil)
-	tree3bits := &Tree{cfg: config3bits}
 
 	tests := []struct {
-		t        *Tree
-		p        string
-		siblings []string
-		parent   string
+		t            *Tree
+		k            Key
+		expPosOnPath [][]string
 	}{
-		{tree1bit, "1", nil, ""},
-		{tree1bit, "11", []string{"10"}, "1"},
-		{tree1bit, "10", []string{"11"}, "1"},
-		{tree1bit, "101", []string{"100"}, "10"},
-		{tree2bits, "10010", []string{"10000", "10001", "10011"}, "100"},
-		{tree3bits, "1001111", []string{"1001000", "1001001", "1001010", "1001011", "1001100", "1001101", "1001110"}, "1001"},
+		{tree1bit, []byte{}, nil},
+		{tree1bit, []byte{0xf0}, [][]string{[]string{"111110001"}, []string{"11111001"}, []string{"1111101"}, []string{"111111"}, []string{"11110"}, []string{"1110"}, []string{"110"}, []string{"10"}}},
+		{tree2bits, []byte{0xf0}, [][]string{[]string{"111110001", "111110010", "111110011"}, []string{"1111101", "1111110", "1111111"}, []string{"11100", "11101", "11110"}, []string{"100", "101", "110"}}},
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: %v", test.t.cfg.bitsPerIndex, test.p), func(t *testing.T) {
-			pos, err := makePositionFromStringForTesting(test.p)
-			require.NoError(t, err)
-			sibs, par := test.t.getAllSiblings(&pos)
-			if test.siblings == nil {
-				require.Nil(t, sibs)
-				require.Nil(t, par)
+		t.Run(fmt.Sprintf("%v bits: %v", test.t.cfg.bitsPerIndex, test.k), func(t *testing.T) {
+			posOnPath := test.t.getSiblingPositionsOnPathToKey(test.k)
+			if test.expPosOnPath == nil {
+				require.Nil(t, posOnPath)
 				return
 			}
-			parExp, err := makePositionFromStringForTesting(test.parent)
-			require.NoError(t, err)
-			require.True(t, parExp.equals(par))
-			require.Equal(t, len(test.siblings), len(sibs))
-			siblingsExpected := make([]Position, len(test.siblings))
-			for i, sib := range test.siblings {
-				siblingsExpected[i], err = makePositionFromStringForTesting(sib)
-				require.NoError(t, err)
-			}
-			for _, sibExp := range siblingsExpected {
-				res := false
-				for _, sib := range sibs {
-					if sib.equals(&sibExp) {
-						res = true
-						break
+			require.Equal(t, len(test.expPosOnPath), len(posOnPath))
+			for i, expPosAtLevel := range test.expPosOnPath {
+				require.Equal(t, len(test.expPosOnPath[i]), len(posOnPath[i]))
+				for _, expPosStr := range expPosAtLevel {
+					expPos, err := makePositionFromStringForTesting(expPosStr)
+					require.NoError(t, err)
+					res := false
+					for _, sib := range posOnPath[i] {
+						if sib.equals(&expPos) {
+							res = true
+							break
+						}
 					}
+					require.True(t, res, "sibling %v not found", expPos.getBytes())
 				}
-				require.True(t, res, "sibling %v not found", sibExp.getBytes())
 			}
+
 		})
 	}
-
 }
 
 func makePositionFromStringForTesting(s string) (Position, error) {

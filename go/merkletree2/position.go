@@ -87,17 +87,16 @@ func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Positio
 func (t *Tree) getDeepestPositionForKey(k Key) *Position {
 	var p Position
 	(*big.Int)(&p).SetBytes(k)
-	(*big.Int)(&p).SetBit((*big.Int)(&p), len(k)*8+1, 1)
+	(*big.Int)(&p).SetBit((*big.Int)(&p), len(k)*8, 1)
 	return &p
 }
 
 func (t *Tree) getSiblingPositionsOnPathToKey(k Key) [][]Position {
 	p := t.getDeepestPositionForKey(k)
-	maxPathLength := (8 * ((*big.Int)(p).BitLen() - 1)) / int(t.cfg.bitsPerIndex)
+	maxPathLength := ((*big.Int)(p).BitLen() - 1) / int(t.cfg.bitsPerIndex)
 	positions := make([][]Position, maxPathLength)
-
 	root := t.getRootPosition()
-	for i := 0; p.equals(root); {
+	for i := 0; !p.equals(root); {
 		positions[i], p = t.getAllSiblings(p)
 		i++
 	}
