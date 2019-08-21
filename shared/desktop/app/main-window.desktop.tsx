@@ -7,7 +7,7 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {showDockIcon, hideDockIcon} from './dock-icon.desktop'
-import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform'
+import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
 import {debounce} from 'lodash-es'
@@ -38,11 +38,10 @@ const setupDefaultSession = () => {
   })
 }
 
-const windowState: WindowState = {
+const defaultWindowState: WindowState = {
   dockHidden: false,
   height: 600,
   isFullScreen: false,
-  isMaximized: false,
   openAtLogin: true,
   useNativeFrame: defaultUseNativeFrame,
   width: 800,
@@ -51,28 +50,38 @@ const windowState: WindowState = {
   y: 0,
 }
 
+const windowState = {...defaultWindowState}
+
 const setupWindowEvents = (win: Electron.BrowserWindow) => {
   const saveWindowState = debounce(() => {
-    let winBounds = win.getBounds()
-    if (!win.isMaximized() && !win.isMinimized() && !win.isFullScreen()) {
-      windowState.x = winBounds.x
-      windowState.y = winBounds.y
-      windowState.width = winBounds.width
-      windowState.height = winBounds.height
-    }
-    windowState.isMaximized = win.isMaximized()
+    let winBounds = win.getNormalBounds()
+    windowState.x = winBounds.x
+    windowState.y = winBounds.y
+    windowState.width = winBounds.width
+    windowState.height = winBounds.height
     windowState.isFullScreen = win.isFullScreen()
-    // windowState.displayBounds = Electron.screen.getDisplayMatching(winBounds).bounds
     windowState.windowHidden = !win.isVisible()
 
     console.log('aaaa saivng window state', windowState)
     mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
-  }, 5000)
+  }, 500) // TODO higher
 
-  win.on('show', saveWindowState)
-  win.on('close', saveWindowState)
-  win.on('resize', saveWindowState)
-  win.on('move', saveWindowState)
+  win.on('show', () => {
+    console.log('aaa show ')
+    saveWindowState()
+  })
+  win.on('close', () => {
+    console.log('aaa close')
+    saveWindowState()
+  })
+  win.on('resize', () => {
+    console.log('aaa resize')
+    saveWindowState()
+  })
+  win.on('move', () => {
+    console.log('aaa move')
+    saveWindowState()
+  })
 
   const hideInsteadOfClose = (event: Electron.Event) => {
     event.preventDefault()
@@ -88,30 +97,37 @@ const loadWindowState = () => {
 
   try {
     const s = fs.readFileSync(filename, {encoding: 'utf8'})
-    const obj = JSON.parse(s)
-    const {
-      dockHidden,
-      height,
-      isFullScreen,
-      isMaximized,
-      openAtLogin,
-      useNativeFrame,
-      width,
-      windowHidden,
-      x,
-      y,
-    } = obj
+    const guiConfig = JSON.parse(s)
+    const obj = JSON.parse(guiConfig.windowState)
+    windowState.dockHidden = obj.dockHidden || windowState.dockHidden
+    windowState.height = obj.height || windowState.height
+    windowState.isFullScreen = obj.isFullScreen || windowState.isFullScreen
+    windowState.openAtLogin = obj.openAtLogin || Electron.app.getLoginItemSettings().wasOpenedAtLogin
+    windowState.useNativeFrame = obj.useNativeFrame === undefined ? defaultUseNativeFrame : obj.useNativeFrame
+    windowState.width = obj.width || windowState.width
+    windowState.windowHidden = obj.windowHidden || windowState.windowHidden
+    windowState.x = obj.x === undefined ? windowState.x : obj.x
+    windowState.y = obj.y === undefined ? windowState.y : obj.y
 
-    windowState.dockHidden = dockHidden || false
-    windowState.height = height || 800
-    windowState.isFullScreen = isFullScreen || false
-    windowState.isMaximized = isMaximized || false
-    windowState.openAtLogin = openAtLogin || Electron.app.getLoginItemSettings().wasOpenedAtLogin
-    windowState.useNativeFrame = useNativeFrame === undefined ? defaultUseNativeFrame : useNativeFrame
-    windowState.width = width || 600
-    windowState.windowHidden = windowHidden || false
-    windowState.x = x || 100
-    windowState.y = y || 100
+    // sanity check it fits in the screen
+    const displayBounds = Electron.screen.getDisplayMatching({
+      height: windowState.height,
+      width: windowState.width,
+      x: windowState.x,
+      y: windowState.y,
+    }).bounds
+
+    if (
+      windowState.x > displayBounds.x + displayBounds.width ||
+      windowState.x + windowState.width < displayBounds.x ||
+      windowState.y > displayBounds.y + displayBounds.height ||
+      windowState.y + windowState.height < displayBounds.y
+    ) {
+      windowState.height = defaultWindowState.height
+      windowState.width = defaultWindowState.width
+      windowState.x = defaultWindowState.x
+      windowState.y = defaultWindowState.y
+    }
   } catch (e) {
     logger.info(`Couldn't load`, filename, ' continuing...')
   }
@@ -138,11 +154,11 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
     !!process.env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
-  // logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
-  // logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
-  // logger.info('Opened at login:', openedAtLogin)
-  // logger.info('Is restore:', isRestore)
-  // logger.info('Open hidden:', openHidden)
+  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
+  logger.info('Opened at login:', openedAtLogin)
+  logger.info('Is restore:', isRestore)
+  logger.info('Open hidden:', openHidden)
 
   // Don't show main window:
   // - If we are set to open hidden,
@@ -223,8 +239,11 @@ export default () => {
   })
   win.loadURL(htmlFile)
 
+  if (windowState.isFullScreen) {
+    win.setFullScreen(true)
+  }
+
   menuHelper(win)
-  setupWindowEvents(win)
 
   if (showDevTools && win.webContents) {
     win.webContents.openDevTools({mode: 'detach'})
@@ -234,5 +253,6 @@ export default () => {
   fixWindowsScalingIssue(win)
   maybeShowWindowOrDock(win)
 
+  setupWindowEvents(win)
   return win
 }
