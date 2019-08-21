@@ -40,7 +40,7 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
         .setSmallIcon(R.drawable.ic_notif);
 
       try {
-        Keybase.handlePostTextReply(convData.convID, convData.tlfName, messageBody, convData.replyToMsgId);
+        Keybase.handlePostTextReply(convData.convID, convData.tlfName, messageBody);
         repliedNotification.setContentText("Replied");
       } catch (Exception e) {
         repliedNotification.setContentText("Couldn't send reply");
@@ -56,26 +56,22 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
 class ConvData {
   String convID;
   String tlfName;
-  long replyToMsgId;
 
-  ConvData(String convId, String tlfName, long replyToMsgId) {
+  ConvData(String convId, String tlfName) {
     this.convID = convId;
     this.tlfName = tlfName;
-    this.replyToMsgId = replyToMsgId;
   }
 
   ConvData (Intent intent) {
     Bundle data = intent.getBundleExtra("ConvData");
     this.convID = data.getString("convID");
     this.tlfName = data.getString("tlfName");
-    this.replyToMsgId = data.getLong("replyToMsgId");
   }
 
   public Intent intoIntent(Context context) {
     Bundle data = new Bundle();
     data.putString("convID", this.convID);
     data.putString("tlfName", this.tlfName);
-    data.putLong("replyToMsgId", this.replyToMsgId);
     Intent intent = new Intent(context, ChatBroadcastReceiver.class);
     intent.putExtra("ConvData", data);
     return intent;

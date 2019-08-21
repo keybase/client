@@ -48,7 +48,7 @@ type ChatNotification struct {
 	BadgeCount          int
 }
 
-func HandlePostTextReply(strConvID, tlfName string, body string, replyTo int) (err error) {
+func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
