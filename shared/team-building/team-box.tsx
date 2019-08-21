@@ -3,6 +3,7 @@ import GoButton from './go-button'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
@@ -54,6 +55,21 @@ class UserBubbleCollection extends React.PureComponent<{
 }
 
 const TeamBox = (props: Props) => {
+  // Scroll to the end when a new user is added so they are visible.
+  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const teamLength = props.teamSoFar.length
+  const prevTeamLength = Container.usePrevious(teamLength)
+  React.useEffect(() => {
+    if (
+      Styles.isMobile &&
+      prevTeamLength !== undefined &&
+      prevTeamLength !== teamLength &&
+      scrollViewRef.current
+    ) {
+      scrollViewRef.current.scrollToEnd({animated: true})
+    }
+  }, [prevTeamLength, teamLength])
+
   const addMorePrompt = props.teamSoFar.length === 1 && (
     <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
       Keep adding people, or click Start when done.
@@ -61,7 +77,7 @@ const TeamBox = (props: Props) => {
   )
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false}>
+      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
         <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
         {addMorePrompt}
       </Kb.ScrollView>

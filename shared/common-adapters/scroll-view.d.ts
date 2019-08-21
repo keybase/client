@@ -31,4 +31,5 @@ export type Props = {
 
 export default class ScrollView extends React.Component<Props> {
   scrollTo: ((arg0: {x: number; y: number; animated?: boolean}) => void) | null
+  scrollToEnd: (options: {animated?: boolean; duration?: number}) => void // mobile only
 }
