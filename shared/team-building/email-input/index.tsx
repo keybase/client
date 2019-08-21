@@ -97,7 +97,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   background: {
     backgroundColor: Styles.globalColors.blueGrey,
     flexBasis: 0,
@@ -132,6 +132,6 @@ const styles = Styles.styleSheetCreate({
       isMobile: {},
     }),
   },
-})
+}))
 
 export default EmailInput
