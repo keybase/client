@@ -174,8 +174,9 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		switch err.(type) {
 		case libkb.SelfNotFoundError:
 			err = libkb.LoginRequiredError{}
+		default:
+			return err
 		}
-		return err
 	}
 
 	if e.arg.PushSecret {
@@ -197,8 +198,9 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 			switch err.(type) {
 			case libkb.NoUsernameError:
 				err = libkb.LoginRequiredError{}
+			default:
+				return err
 			}
-			return err
 		}
 	}
 

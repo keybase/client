@@ -9,40 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// findDeviceKeys looks for device keys and unlocks them.
-func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys, error) {
-	// need to be logged in to get a device key (unlocked)
-	lin, _ := isLoggedIn(m)
-	if !lin {
-		return nil, libkb.LoginRequiredError{}
-	}
-
-	// Get unlocked device for decryption and signing
-	// passing in nil SecretUI since we don't know the passphrase.
-	m.Debug("findDeviceKeys: getting device encryption key")
-	parg := libkb.SecretKeyPromptArg{
-		Ska: libkb.SecretKeyArg{
-			Me:      me,
-			KeyType: libkb.DeviceEncryptionKeyType,
-		},
-		Reason: "change passphrase",
-	}
-	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
-	if err != nil {
-		return nil, err
-	}
-	m.Debug("findDeviceKeys: got device encryption key")
-	m.Debug("findDeviceKeys: getting device signing key")
-	parg.Ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
-	if err != nil {
-		return nil, err
-	}
-	m.Debug("findDeviceKeys: got device signing key")
-
-	return libkb.NewDeviceWithKeysOnly(sigKey, encKey), nil
-}
-
 // findPaperKeys checks if the user has paper backup keys.  If he/she
 // does, it prompts for a paperkey phrase.  This is used to
 // regenerate paper keys, which are then matched against the

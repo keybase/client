@@ -402,7 +402,10 @@ func TestSignAfterRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	AssertLoggedOut(tc1)
+	err = AssertLoggedOut(tc1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// And now this should fail.
 	ret, err = SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
@@ -423,13 +426,17 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "rev")
 
-	AssertLoggedIn(tc)
+	if err := AssertLoggedIn(tc); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := NewMetaContextForTest(tc).LogoutAndDeprovisionIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 
-	AssertLoggedIn(tc)
+	if err := AssertLoggedIn(tc); err != nil {
+		t.Fatal(err)
+	}
 
 	f := func() libkb.SecretUI {
 		return u.NewSecretUI()

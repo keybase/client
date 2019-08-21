@@ -118,9 +118,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		case libkb.APINetError:
 			m.Debug("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
 			return libkb.ProvisionFailedOfflineError{}
+		default:
+			return err
 		}
-
-		return err
 	}
 	if e.skippedLogin || e.resetComplete {
 		return nil
@@ -130,7 +130,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	// config has already been written and there is no way to roll
 	// back.
 
-	e.displaySuccess(m)
+	_ = e.displaySuccess(m)
 
 	m.G().KeyfamilyChanged(m.Ctx(), e.arg.User.GetUID())
 
@@ -264,7 +264,10 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		return err
 	}
 
-	e.saveToSecretStoreWithLKS(m, provisionee.GetLKSec())
+	err = e.saveToSecretStoreWithLKS(m, provisionee.GetLKSec())
+	if err != nil {
+		return err
+	}
 
 	e.signingKey, err = provisionee.SigningKey()
 	if err != nil {
@@ -317,7 +320,9 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
 	m = m.WithProvisioningKeyActiveDevice(keys, uv)
-	m.LoginContext().SetUsernameUserVersion(nn, uv)
+	if err := m.LoginContext().SetUsernameUserVersion(nn, uv); err != nil {
+		return err
+	}
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
@@ -338,8 +343,7 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *
 	// the paper key on the global and not thread-local active device.
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
-	e.saveToSecretStore(m)
-	return nil
+	return e.saveToSecretStore(m)
 }
 
 var paperKeyNotFound = libkb.NotFoundError{
@@ -420,8 +424,7 @@ func (e *loginProvision) pgpProvision(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.saveToSecretStore(m)
-	return nil
+	return e.saveToSecretStore(m)
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
@@ -964,7 +967,9 @@ func (e *loginProvision) tryGPG(m libkb.MetaContext) (err error) {
 		}
 		return err
 	}
-	e.saveToSecretStore(m)
+	if err := e.saveToSecretStore(m); err != nil {
+		return err
+	}
 
 	if method == keybase1.GPGMethod_GPG_IMPORT {
 		// store the key in lksec
@@ -983,11 +988,9 @@ func (e *loginProvision) chooseGPGKeyAndMethod(m libkb.MetaContext) (*libkb.GpgP
 	// find any local private gpg keys that are in user's key family
 	matches, err := e.matchingGPGKeys(m)
 	if err != nil {
-		if _, ok := err.(libkb.NoSecretKeyError); ok {
-			// no match found
-			// tell the user they need to get a gpg
-			// key onto this device.
-		}
+		// If this is a libkb.NoSecretKeyError, then no match found.
+		// Tell the user they need to get a gpg
+		// key onto this device.
 		return nil, nilMethod, err
 	}
 
@@ -1132,7 +1135,6 @@ func (e *loginProvision) gpgImportKey(m libkb.MetaContext, fp *libkb.PGPFingerpr
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
 		m.Warning("error getting TTY for GPG: %s", err)
-		err = nil
 	}
 
 	bundle, err := cli.ImportKey(m, true, *fp, tty)
@@ -1158,7 +1160,9 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 	if err = e.makeDeviceKeys(m, args); err != nil {
 		return err
 	}
-	e.saveToSecretStore(m)
+	if err := e.saveToSecretStore(m); err != nil {
+		return err
+	}
 
 	if cErr := libkb.ClearPwhashEddsaPassphraseStream(m, e.arg.User.GetNormalizedName()); cErr != nil {
 		m.Debug("ClearPwhashEddsaPassphraseStream failed with: %s", cErr)

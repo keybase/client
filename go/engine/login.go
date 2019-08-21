@@ -140,7 +140,10 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
 	// If the doUserSwitch flag is specified, we don't want to kill the existing session
-	m.G().LogoutCurrentUserWithSecretKill(m, !e.doUserSwitch)
+	err = m.G().LogoutCurrentUserWithSecretKill(m, !e.doUserSwitch)
+	if err != nil {
+		return err
+	}
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
@@ -164,7 +167,10 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
-	e.perUserKeyUpgradeSoft(m)
+	err = e.perUserKeyUpgradeSoft(m)
+	if err != nil {
+		return err
+	}
 
 	m.Debug("Login provisioning success, sending login notification")
 	e.sendNotification(m)
@@ -290,7 +296,10 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	case libkb.LoggedInWrongUserError:
 		m.Debug(err.Error())
 		if e.doUserSwitch {
-			m.G().ClearStateForSwitchUsers(m)
+			err := m.G().ClearStateForSwitchUsers(m)
+			if err != nil {
+				return false, err
+			}
 			return false, nil
 		}
 		return true, libkb.LoggedInError{}
