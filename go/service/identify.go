@@ -358,9 +358,9 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 				h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
 			}
 			if idRes != nil {
+				trackBreaksLock.Lock()
+				defer trackBreaksLock.Unlock()
 				if idRes.TrackBreaks != nil && idErr == nil {
-					trackBreaksLock.Lock()
-					defer trackBreaksLock.Unlock()
 					if res.TrackBreaks == nil {
 						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
 					}
