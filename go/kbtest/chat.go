@@ -1224,7 +1224,7 @@ func (c *ChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.Conversation
 	return nil
 }
 
-func (c *ChatUI) TriggerContactSync(context.Context, int) error {
+func (c *ChatUI) TriggerContactSync(context.Context) error {
 	return nil
 }
 
