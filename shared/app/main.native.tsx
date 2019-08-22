@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import PushPrompt from './push-prompt.native'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
@@ -9,9 +8,7 @@ import {View} from 'react-native'
 
 type OwnProps = {}
 
-type Props = {
-  showPushPrompt: any
-}
+type Props = {}
 
 class Main extends React.Component<Props> {
   render() {
@@ -37,7 +34,6 @@ class Main extends React.Component<Props> {
             style={styles.gatewayDest}
           />
         </Kb.KeyboardAvoidingView>
-        {this.props.showPushPrompt && <PushPrompt />}
       </>
     )
   }
@@ -52,15 +48,9 @@ const styles = Styles.styleSheetCreate({
   gatewayDest: {flexGrow: 1, width: '100%'},
 })
 
-const mapStateToProps = state => ({
-  showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
-})
-
-const mapDispatchToProps = () => ({})
-
 const Connected = connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  () => ({}),
+  () => ({}),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Main)
 export default Connected
