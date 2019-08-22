@@ -27,7 +27,7 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return <Icon type="iconfont-identity-stellar" fontSize={size} />
+    return <Icon type="iconfont-identity-stellar" fontSize={size} style={Styles.collapseStyles([Styles.isDarkMode && styles.invert50])} />
   }
   switch (props.counterpartyType) {
     case 'airdrop':
@@ -586,6 +586,7 @@ const styles = Styles.styleSheetCreate({
   },
   flexOne: {flex: 1},
   invert: Styles.platformStyles({isElectron: {filter: 'invert(100%)'}}),
+  invert50: Styles.platformStyles({isElectron: {filter: 'invert(50%)'}}),
   lineThrough: {
     textDecorationLine: 'line-through',
   } as const,

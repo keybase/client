@@ -371,7 +371,7 @@ class Input extends React.PureComponent<Props, State> {
       this.props.smallLabelStyle,
     ])
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }`
+    const inputRealCSS = `::-webkit-input-placeholder { color: ${Styles.isDarkMode ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)'}; }`
 
     return (
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
@@ -425,9 +425,5 @@ const _floatingStyle = Styles.platformStyles({
     minHeight: _bodySmallTextStyle.lineHeight,
   },
 })
-
-// const styles = Styles.styleSheetCreate(() => ({
-//   input: {},
-// }))
 
 export default Input
