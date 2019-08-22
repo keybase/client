@@ -414,6 +414,24 @@ const hoverStyles = Styles.styleSheetCreate(() => ({
   },
   hover: {borderColor: Styles.globalColors.black_50},
   hoverIcon: {color: Styles.globalColors.black_50},
+  dropping: {
+    backgroundColor: Styles.globalColors.blue_60,
+    borderColor: Styles.globalColors.blue_60,
+  },
+  droppingIcon: {color: Styles.globalColors.blue_60},
+  hoverContainer: {
+    backgroundColor: Styles.globalColors.grey,
+    borderColor: Styles.globalColors.greyDark,
+    borderStyle: 'dotted',
+    borderWidth: AVATAR_BORDER_SIZE,
+    cursor: 'pointer',
+    height: AVATAR_CONTAINER_SIZE,
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
+    overflow: 'hidden',
+    position: 'relative',
+    width: AVATAR_CONTAINER_SIZE,
+  },
 }))
 
 const HoverBox = Styles.styled(Kb.Box)({
@@ -422,22 +440,9 @@ const HoverBox = Styles.styled(Kb.Box)({
   '&.filled:hover': hoverStyles.filledHover,
   '&:hover': hoverStyles.hover,
   '&:hover .icon': hoverStyles.hoverIcon,
-  '.dropping &': {
-    backgroundColor: Styles.globalColors.blue_60,
-    borderColor: Styles.globalColors.blue_60,
-  },
-  '.dropping & .icon': {color: Styles.globalColors.blue_60},
-  backgroundColor: Styles.globalColors.grey,
-  borderColor: Styles.globalColors.greyDark,
-  borderStyle: 'dotted',
-  borderWidth: AVATAR_BORDER_SIZE,
-  cursor: 'pointer',
-  height: AVATAR_CONTAINER_SIZE,
-  marginBottom: Styles.globalMargins.small,
-  marginTop: Styles.globalMargins.medium,
-  overflow: 'hidden',
-  position: 'relative',
-  width: AVATAR_CONTAINER_SIZE,
+  '.dropping &': hoverStyles.dropping,
+  '.dropping & .icon': hoverStyles.droppingIcon,
+  ...hoverStyles.hoverContainer,
 })
 
 const styles = Styles.styleSheetCreate(() => ({
