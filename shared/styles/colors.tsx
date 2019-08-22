@@ -114,7 +114,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueGrey: '#202020',
   blueGreyDark: 'rgba(24, 45, 110, .5)',
   blueLight: '#73A6FF',
-  blueLighter: '#A8CCFF',
+  blueLighter: '#4C8EFF',
   blueLighter2: 'rgba(24, 45, 110, .5)',
   blueLighter3: '#101010',
   blueLighter_20: 'rgba(168, 204, 255, 0.2)',
