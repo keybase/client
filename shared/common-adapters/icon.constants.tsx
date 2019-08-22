@@ -2418,6 +2418,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-number-pad': {
+    charCode: 0xe996,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-open-browser': {
     charCode: 0xe949,
     gridSize: 16,

@@ -6,6 +6,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -495,4 +496,9 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 		h.svc.runtimeStats.Start(ctx)
 	}
 	return nil
+}
+
+func (h ConfigHandler) AppendGUILogs(ctx context.Context, content string) error {
+	_, err := io.WriteString(h.G().GetGUILogWriter(), content)
+	return err
 }

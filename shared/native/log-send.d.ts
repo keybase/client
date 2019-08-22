@@ -3,7 +3,6 @@ declare function logSend(
   feedback: string,
   sendLogs: boolean,
   sendMaxBytes: boolean,
-  path: string,
   traceDir: string,
   cpuProfileDir: string
 ): Promise<string>

@@ -2,17 +2,17 @@
   "protocol": "local",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -302,6 +302,16 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
         }
       ]
     },
@@ -852,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -1681,6 +1698,13 @@
             "MessageUnboxed"
           ],
           "name": "snippetMsg"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": [
