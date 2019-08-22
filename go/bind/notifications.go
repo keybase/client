@@ -39,7 +39,7 @@ type ChatNotification struct {
 	ConvID    string
 	TeamName  string
 	TopicName string
-	TlFName   string
+	TlfName   string
 	// e.g. "keybase#general, CoolTeam, Susannah,Jake"
 	ConversationName    string
 	IsGroupConversation bool
@@ -115,7 +115,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		},
 		ConvID:              strConvID,
 		TopicName:           conv.Info.TopicName,
-		TlFName:             conv.Info.TlfName,
+		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
 		ConversationName:    formatConversationName(conv.Info),
 		SoundName:           soundName,
