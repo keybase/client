@@ -122,18 +122,18 @@ class PaymentStatus extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   claimable: {
-    backgroundColor: Styles.globalColors.black_05,
+    backgroundColor: Styles.isDarkMode ? Styles.globalColors.black_60 : Styles.globalColors.black_05,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_50,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
   },
   claimableIcon: {},
   completed: {
-    backgroundColor: Styles.globalColors.purple_10,
+    backgroundColor: Styles.isDarkMode ? Styles.globalColors.purple : Styles.globalColors.purple_10,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purpleDark,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.purpleDark,
   },
   completedIcon: {
-    color: Styles.globalColors.purpleDark,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.purpleDark,
   },
   container: Styles.platformStyles({
     isElectron: {
@@ -141,12 +141,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    backgroundColor: Styles.globalColors.red_10,
+    backgroundColor: Styles.isDarkMode ? Styles.globalColors.red : Styles.globalColors.red_10,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.redDark,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.redDark,
   },
   errorIcon: {
-    color: Styles.globalColors.redDark,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.redDark,
   },
   iconBoxStyle: Styles.platformStyles({
     isElectron: {
@@ -154,11 +154,13 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   pending: {
-    backgroundColor: Styles.globalColors.black_05,
+    backgroundColor: Styles.isDarkMode ? Styles.globalColors.black_60 : Styles.globalColors.black_05,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_50,
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
   },
-  pendingIcon: {},
+  pendingIcon: {
+    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
+  },
 })
 
 export default PaymentStatus
