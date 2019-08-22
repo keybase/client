@@ -56,7 +56,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     state = 'notfound'
   }
 
-  let _onContinue = () => {
+  let _onContinue = React.useCallback(() => {
     if (user) {
       props.onContinue(user)
     } else {
@@ -73,7 +73,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setValidity(false)
-  }
+  }, [])
 
   return (
     <>
@@ -88,6 +88,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           {state === 'resolved' && !!user && (
             <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
               <Kb.NameWithIcon
+                containerStyle={styles.nameWithIconContainer}
                 size="big"
                 onClick={_onContinue}
                 horizontal={true}
@@ -135,7 +136,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
-  placeholderIcon: {borderRadius: 16, height: '32px'},
+  nameWithIconContainer: {width: '100%'},
+  placeholderIcon: {borderRadius: 16, height: 32},
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
 }))
