@@ -209,7 +209,6 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
                     notificationManager.cancelAll();
                 }
-                break;
                 default:
                     notifier.generalNotification();
             }
