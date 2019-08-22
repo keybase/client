@@ -10,7 +10,6 @@ import * as PushGen from '../push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -347,43 +346,39 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
-const getStartupDetailsFromInitialPush = (): Promise<
-  | null
-  | {
-      startupFollowUser: string
-    }
-  | {
-      startupConversation: ChatTypes.ConversationIDKey
-    }
-> =>
-  new Promise(resolve => {
-    if (isAndroid) {
-      // For android, we won't rely on the initial notification.
-      // We'll do all routing based of the intent
-      resolve(null)
-      return
-    }
+function* getStartupDetailsFromInitialPush() {
+  const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
+    push: isAndroid ? Saga.take(PushGen.notification) : Saga.callPromise(getInitialPushiOS),
+    pushTimeout: Saga.delay(50),
+  })
+  if (pushTimeout || !push) {
+    return null
+  }
 
+  const notification = push.payload.notification
+  if (notification.type === 'follow') {
+    if (notification.username) {
+      return {startupFollowUser: notification.username}
+    }
+  } else if (notification.type === 'chat.newmessage') {
+    if (notification.conversationIDKey) {
+      return {startupConversation: notification.conversationIDKey}
+    }
+  }
+
+  return null
+}
+
+const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
+  new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
-      if (!notification) {
-        resolve(null)
-        return
-      }
-      if (notification.type === 'follow') {
-        if (notification.username) {
-          resolve({startupFollowUser: notification.username})
-          return
-        }
-      } else if (notification.type === 'chat.newmessage') {
-        if (notification.conversationIDKey) {
-          resolve({startupConversation: notification.conversationIDKey})
-          return
-        }
+      if (notification !== null) {
+        resolve(PushGen.createNotification({notification}))
       }
       resolve(null)
     })
-  })
+  )
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   // Permissions
