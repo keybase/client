@@ -348,8 +348,8 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: isAndroid ? Saga.take(PushGen.notification) : Saga.callPromise(getInitialPushiOS),
-    pushTimeout: Saga.delay(50),
+    push: Saga.callPromise(isAndroid ? getInitialPushAndroid : getInitialPushiOS),
+    pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {
     return null
@@ -368,6 +368,12 @@ function* getStartupDetailsFromInitialPush() {
 
   return null
 }
+
+const getInitialPushAndroid = (): Promise<PushGen.NotificationPayload | null> =>
+  NativeModules.KeybaseEngine.getInitialIntent().then(n => {
+    let notification = n && Constants.normalizePush(n)
+    return notification && PushGen.createNotification({notification})
+  })
 
 const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
   new Promise(resolve =>
