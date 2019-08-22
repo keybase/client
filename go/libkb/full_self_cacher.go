@@ -167,9 +167,9 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	var u *User
 
 	if m.me != nil && m.isSelfLoad(arg) {
-		if arg.uid.IsNil() {
-			arg.uid = m.me.GetUID()
-		}
+		// This UID might be nil. Or it could be wrong, so just overwrite it with the current
+		// self that we have loaded into the full self cacher.
+		arg.uid = m.me.GetUID()
 		m.maybeClearCache(ctx, &arg)
 	}
 
