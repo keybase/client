@@ -13,13 +13,13 @@ import (
 )
 
 var howMany int
-var accountID string
+var destination string
 var bin string
 var home string
 
 func main() {
 	flag.IntVar(&howMany, "n", 5, "number of accounts to create to fund base account")
-	flag.StringVar(&accountID, "a", "", "destination account id")
+	flag.StringVar(&destination, "d", "", "destination account")
 	flag.StringVar(&bin, "bin", "/usr/local/bin/keybase", "keybase binary path")
 	flag.StringVar(&home, "home", "/tmp", "home directory")
 	flag.Parse()
@@ -27,9 +27,9 @@ func main() {
 		flag.PrintDefaults()
 		log.Fatal("n must be > 0")
 	}
-	if accountID == "" {
+	if destination == "" {
 		flag.PrintDefaults()
-		log.Fatal("account id required")
+		log.Fatal("destination account required")
 	}
 
 	for i := 0; i < howMany; i++ {
@@ -93,6 +93,19 @@ func createWalletUser() (string, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	fmt.Printf("friendbot body: %s\n", string(body))
+	if err != nil {
+		return "", err
+	}
+
+	// send most of it to destination
+	in = fmt.Sprintf("{\"method\": \"send\", \"params\": {\"options\": {\"recipient\": %q, \"amount\": \"9900\"}}}", destination)
+	cmd = exec.Command(bin, "-home", home, "wallet", "api", "-m", in)
+	out, err = cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("wallet send error: %s\n", err)
+		return "", err
+	}
+	fmt.Printf("output: %s\n", string(out))
 
 	return username, nil
 }
