@@ -171,7 +171,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
   return {}
 }
 
-export const makeVerifyPhoneError = (e: RPCError) => {
+export const makePhoneError = (e: RPCError) => {
   switch (e.code) {
     case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
       return 'Incorrect code, please try again.'
@@ -186,6 +186,20 @@ export const makeVerifyPhoneError = (e: RPCError) => {
     default:
       return e.message
   }
+}
+
+export const makeAddEmailError = (err: RPCError): string => {
+  switch (err.code) {
+    case RPCTypes.StatusCode.scratelimit:
+      return "Sorry, you've added too many email addresses lately. Please try again later."
+    case RPCTypes.StatusCode.scemailtaken:
+      return 'This email is already claimed by another user.'
+    case RPCTypes.StatusCode.scemaillimitexceeded:
+      return 'You have too many emails, delete one and try again.'
+    case RPCTypes.StatusCode.scinputerror:
+      return 'Invalid email.'
+  }
+  return err.message
 }
 
 export const traceInProgressKey = 'settings:traceInProgress'
