@@ -236,6 +236,7 @@ export type TypedActionsMap = {
   'config:setDarkModePreference': config.SetDarkModePreferencePayload
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
+  'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -690,6 +691,7 @@ export type TypedActionsMap = {
   'settings:addedEmail': settings.AddedEmailPayload
   'settings:clearAddingEmail': settings.ClearAddingEmailPayload
   'settings:clearAddedEmail': settings.ClearAddedEmailPayload
+  'settings:clearAddedPhone': settings.ClearAddedPhonePayload
   'settings:invitesClearError': settings.InvitesClearErrorPayload
   'settings:invitesReclaim': settings.InvitesReclaimPayload
   'settings:invitesReclaimed': settings.InvitesReclaimedPayload
@@ -767,6 +769,7 @@ export type TypedActionsMap = {
   'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
+  'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload

@@ -12,6 +12,7 @@ export const changeSendNotification = 'team-building:changeSendNotification'
 export const fetchUserRecs = 'team-building:fetchUserRecs'
 export const fetchedUserRecs = 'team-building:fetchedUserRecs'
 export const finishedTeamBuilding = 'team-building:finishedTeamBuilding'
+export const labelsSeen = 'team-building:labelsSeen'
 export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
 export const searchEmailAddress = 'team-building:searchEmailAddress'
@@ -29,6 +30,7 @@ type _ChangeSendNotificationPayload = {readonly namespace: 'teams'; readonly sen
 type _FetchUserRecsPayload = {readonly includeContacts: boolean; readonly namespace: Types.AllowedNamespace}
 type _FetchedUserRecsPayload = {readonly namespace: Types.AllowedNamespace; readonly users: Array<Types.User>}
 type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamname?: string}
+type _LabelsSeenPayload = {readonly namespace: Types.AllowedNamespace}
 type _RemoveUsersFromTeamSoFarPayload = {
   readonly namespace: Types.AllowedNamespace
   readonly users: Array<Types.UserID>
@@ -76,6 +78,10 @@ export const createFetchedUserRecs = (payload: _FetchedUserRecsPayload): Fetched
 export const createFinishedTeamBuilding = (
   payload: _FinishedTeamBuildingPayload
 ): FinishedTeamBuildingPayload => ({payload, type: finishedTeamBuilding})
+export const createLabelsSeen = (payload: _LabelsSeenPayload): LabelsSeenPayload => ({
+  payload,
+  type: labelsSeen,
+})
 export const createRemoveUsersFromTeamSoFar = (
   payload: _RemoveUsersFromTeamSoFarPayload
 ): RemoveUsersFromTeamSoFarPayload => ({payload, type: removeUsersFromTeamSoFar})
@@ -120,6 +126,7 @@ export type FinishedTeamBuildingPayload = {
   readonly payload: _FinishedTeamBuildingPayload
   readonly type: typeof finishedTeamBuilding
 }
+export type LabelsSeenPayload = {readonly payload: _LabelsSeenPayload; readonly type: typeof labelsSeen}
 export type RemoveUsersFromTeamSoFarPayload = {
   readonly payload: _RemoveUsersFromTeamSoFarPayload
   readonly type: typeof removeUsersFromTeamSoFar
@@ -148,6 +155,7 @@ export type Actions =
   | FetchUserRecsPayload
   | FetchedUserRecsPayload
   | FinishedTeamBuildingPayload
+  | LabelsSeenPayload
   | RemoveUsersFromTeamSoFarPayload
   | SearchEmailAddressPayload
   | SearchEmailAddressResultLoadedPayload

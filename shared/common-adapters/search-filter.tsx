@@ -273,7 +273,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
 
 export default SearchFilter
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -356,4 +356,4 @@ const styles = Styles.styleSheetCreate({
   textNegative: {
     color: Styles.globalColors.white,
   },
-})
+}))

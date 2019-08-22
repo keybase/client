@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/settings'
+import * as Tabs from '../../constants/tabs'
 import * as I from 'immutable'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -12,6 +13,7 @@ const mapStateToProps = (state: TypedState) => ({
   _emails: state.settings.email.emails,
   _phones: state.settings.phoneNumbers.phones,
   addedEmail: state.settings.email.addedEmail,
+  addedPhone: state.settings.phoneNumbers.addedPhone,
   bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
   hasPassword: !state.settings.password.randomPW,
   waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
@@ -23,6 +25,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
+  onClearAddedPhone: () => dispatch(SettingsGen.createClearAddedPhone()),
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
   onReload: () => {
     dispatch(SettingsGen.createLoadSettings())
@@ -33,6 +36,15 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})
     ),
+  onStartPhoneConversation: () => {
+    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
+      })
+    )
+    dispatch(SettingsGen.createClearAddedPhone())
+  },
 })
 
 export default connect(
@@ -44,6 +56,7 @@ export default connect(
     return {
       ...dispatchProps,
       addedEmail: stateProps.addedEmail,
+      addedPhone: stateProps.addedPhone,
       contactKeys: I.List([
         ...(stateProps._emails ? stateProps._emails.keys() : []),
         ...(stateProps._phones ? stateProps._phones.keys() : []),

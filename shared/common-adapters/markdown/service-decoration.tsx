@@ -31,7 +31,10 @@ type KeybaseLinkProps = {
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
   const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [dispatch])
+  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [
+    dispatch,
+    props.link,
+  ])
 
   return (
     <Text

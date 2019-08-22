@@ -286,6 +286,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.setSystemDarkMode:
       _setSystemIsDarkMode(action.payload.dark)
       return state.merge({systemDarkMode: action.payload.dark})
+    case ConfigGen.remoteWindowWantsProps: {
+      const {component, param} = action.payload
+      return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
+    }
     // Saga only actions
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:

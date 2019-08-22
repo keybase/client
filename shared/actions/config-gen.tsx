@@ -35,6 +35,7 @@ export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
+export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
 export const setDarkModePreference = 'config:setDarkModePreference'
@@ -106,6 +107,7 @@ type _OsNetworkStatusChangedPayload = {
 }
 type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
+type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
 type _SetDarkModePreferencePayload = {
@@ -199,6 +201,12 @@ export const createOpenAppSettings = (payload: _OpenAppSettingsPayload): OpenApp
 export const createDaemonHandshakeDone = (
   payload: _DaemonHandshakeDonePayload
 ): DaemonHandshakeDonePayload => ({payload, type: daemonHandshakeDone})
+/**
+ * remote electron window wants props sent
+ */
+export const createRemoteWindowWantsProps = (
+  payload: _RemoteWindowWantsPropsPayload
+): RemoteWindowWantsPropsPayload => ({payload, type: remoteWindowWantsProps})
 /**
  * someone wants to log out
  */
@@ -393,6 +401,10 @@ export type OsNetworkStatusChangedPayload = {
 }
 export type PersistRoutePayload = {readonly payload: _PersistRoutePayload; readonly type: typeof persistRoute}
 export type PushLoadedPayload = {readonly payload: _PushLoadedPayload; readonly type: typeof pushLoaded}
+export type RemoteWindowWantsPropsPayload = {
+  readonly payload: _RemoteWindowWantsPropsPayload
+  readonly type: typeof remoteWindowWantsProps
+}
 export type RestartHandshakePayload = {
   readonly payload: _RestartHandshakePayload
   readonly type: typeof restartHandshake
@@ -475,6 +487,7 @@ export type Actions =
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PushLoadedPayload
+  | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
   | SetAccountsPayload
   | SetDarkModePreferencePayload

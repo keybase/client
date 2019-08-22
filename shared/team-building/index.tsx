@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
 import Input from './input'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
@@ -81,6 +81,7 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   onClear: () => void
+  onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
   searchResults: Array<SearchResult> | null
   searchString: string
@@ -89,6 +90,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
+  initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -513,8 +515,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         <ServiceTabBar
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
+          onLabelsSeen={props.onTabBarLabelsSeen}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
+          initialShowLabels={props.initialShowServiceBarLabels}
         />
         {Styles.isMobile && (
           <ContactsBanner
@@ -536,10 +540,15 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: Styles.globalMargins.large,
   },
-  banner: {
-    backgroundColor: Styles.globalColors.blue,
-    padding: Styles.globalMargins.tiny,
-  },
+  banner: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      padding: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
+    },
+  }),
   bannerButtonContainer: {
     flexWrap: 'wrap',
     marginBottom: Styles.globalMargins.xsmall,

@@ -1,8 +1,13 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {executeActionsForContext} from '../../util/quit-helper.desktop'
 import {isDarwin} from '../../constants/platform'
+import {hideDockIcon} from '../app/dock-icon.desktop'
 
 let devToolsState = false
+
+const windowQuit = () => {
+  SafeElectron.getApp().emit('close-windows')
+  hideDockIcon()
+}
 
 export default function makeMenu(window: any) {
   const editMenu = {
@@ -79,21 +84,15 @@ export default function makeMenu(window: any) {
           {
             accelerator: 'CmdOrCtrl+Q',
             click() {
-              executeActionsForContext('uiWindow')
+              windowQuit()
             },
             label: 'Minimize to Tray',
           },
         ],
       },
-      {
-        ...editMenu,
-      },
-      {
-        ...windowMenu,
-      },
-      {
-        ...helpMenu,
-      },
+      {...editMenu},
+      {...windowMenu},
+      {...helpMenu},
     ]
     const menu = SafeElectron.Menu.buildFromTemplate(template)
     SafeElectron.Menu.setApplicationMenu(menu)
@@ -106,24 +105,15 @@ export default function makeMenu(window: any) {
           {
             accelerator: 'CmdOrCtrl+Q',
             click() {
-              executeActionsForContext('uiWindow')
+              windowQuit()
             },
             label: '&Minimize to Tray',
           },
         ],
       },
-      {
-        ...editMenu,
-        label: '&Edit',
-      },
-      {
-        ...windowMenu,
-        label: '&Window',
-      },
-      {
-        ...helpMenu,
-        label: '&Help',
-      },
+      {...editMenu, label: '&Edit'},
+      {...windowMenu, label: '&Window'},
+      {...helpMenu, label: '&Help'},
     ]
     const menu = SafeElectron.Menu.buildFromTemplate(template)
     window.setAutoHideMenuBar(true)
@@ -146,7 +136,7 @@ export function setupContextMenu(window: any) {
     {role: 'selectall'},
   ])
 
-  window.webContents.on('context-menu', (_, props) => {
+  window.webContents.on('context-menu', (_: any, props) => {
     const {selectionText, isEditable} = props
     if (isEditable) {
       inputMenu.popup(window)

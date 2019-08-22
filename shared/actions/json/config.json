@@ -133,6 +133,11 @@
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"
+    },
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
     }
   }
 }

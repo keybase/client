@@ -30,7 +30,7 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
       ? [
           'Some of ',
           {onClick: () => onClickUsername(props.users[0]), text: props.users[0]},
-          "'s proofs hahve changed since you last followed them.",
+          "'s proofs have changed since you last followed them.",
         ]
       : [
           ...(props.users.length === 2

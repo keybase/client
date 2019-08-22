@@ -11,7 +11,7 @@ export const SafeAreaViewTop = ({style, children}: Props) =>
     <SafeAreaView style={Styles.collapseStyles([styles.topSafeArea, style])}>{children}</SafeAreaView>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   androidTopSafeArea: {
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
@@ -19,6 +19,6 @@ const styles = Styles.styleSheetCreate({
     paddingTop: StatusBar.currentHeight,
   },
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
-})
+}))
 
 export default SafeAreaView

@@ -59,6 +59,14 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type loginAttempt int
+
+const (
+	loginAttemptNone    loginAttempt = 0
+	loginAttemptOffline loginAttempt = 1
+	loginAttemptOnline  loginAttempt = 2
+)
+
 type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
@@ -84,6 +92,10 @@ type Service struct {
 	runtimeStats    *runtimestats.Runner
 	httpSrv         *manager.Srv
 	avatarSrv       *avatars.Srv
+
+	loginAttemptMu sync.Mutex
+	loginAttempt   loginAttempt
+	loginSuccess   bool
 }
 
 type Shutdowner interface {
@@ -362,7 +374,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	ctx := context.Background()
-	d.tryLogin(ctx)
+	d.tryLogin(ctx, loginAttemptOnline)
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
@@ -686,7 +698,7 @@ func (d *Service) StartLoopbackServer() error {
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.
-	d.tryLogin(ctx)
+	d.tryLogin(ctx, loginAttemptOffline)
 
 	go func() { _ = d.ListenLoop(l) }()
 
@@ -1255,50 +1267,80 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin should only be called once.
-var tryLoginOnce sync.Once
-
 // tryLogin runs LoginOffline which will load the local session file and unlock the
 // local device keys without making any network requests.
 //
 // If that fails for any reason, LoginProvisionedDevice is used, which should get
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
-func (d *Service) tryLogin(ctx context.Context) {
-	tryLoginOnce.Do(func() {
-		eng := engine.NewLoginOffline(d.G())
-		m := libkb.NewMetaContext(ctx, d.G())
-		if err := engine.RunEngine2(m, eng); err != nil {
-			m.Debug("error running LoginOffline on service startup: %s", err)
-			m.Debug("trying LoginProvisionedDevice")
+func (d *Service) tryLogin(ctx context.Context, mode loginAttempt) {
+	d.loginAttemptMu.Lock()
+	defer d.loginAttemptMu.Unlock()
 
-			// Standalone mode quirk here. We call tryLogin when client is
-			// launched in standalone to unlock the same keys that we would
-			// have in service mode. But NewLoginProvisionedDevice engine
-			// needs KbKeyrings and not every command sets it up. Ensure
-			// Keyring is available.
+	m := libkb.NewMetaContext(ctx, d.G())
 
-			// TODO: We will be phasing out KbKeyrings usage flag, or even
-			// usage flags entirely. Then this will not be needed because
-			// Keyrings will always be loaded.
+	if d.loginAttempt == loginAttemptOnline {
+		m.Debug("login online attempt already tried, nothing to do")
+		return
+	}
+	if d.loginSuccess {
+		m.Debug("already logged in successfully, so nothing left to do")
+		return
+	}
 
-			if m.G().Keyrings == nil {
-				m.Debug("tryLogin: Configuring Keyrings")
-				err := m.G().ConfigureKeyring()
-				if err != nil {
-					m.Debug("error configuring keyring: %s", err)
-				}
-			}
+	if mode == loginAttemptOffline && d.loginAttempt == loginAttemptOffline {
+		m.Debug("already tried a login attempt offline")
+		return
+	}
 
-			deng := engine.NewLoginProvisionedDevice(d.G(), "")
-			deng.SecretStoreOnly = true
-			if err := engine.RunEngine2(m, deng); err != nil {
-				m.Debug("error running LoginProvisionedDevice on service startup: %s", err)
-			}
-		} else {
-			m.Debug("success running LoginOffline on service startup")
+	if mode == loginAttemptNone {
+		m.Debug("no login attempt made due to loginAttemptNone flag passed")
+		return
+	}
+
+	d.loginAttempt = mode
+	eng := engine.NewLoginOffline(d.G())
+	err := engine.RunEngine2(m, eng)
+	if err == nil {
+		m.Debug("login offline success")
+		d.loginSuccess = true
+		return
+	}
+
+	if mode == loginAttemptOffline {
+		m.Debug("not continuing with online login")
+		return
+	}
+
+	m.Debug("error running LoginOffline on service startup: %s", err)
+	m.Debug("trying LoginProvisionedDevice")
+
+	// Standalone mode quirk here. We call tryLogin when client is
+	// launched in standalone to unlock the same keys that we would
+	// have in service mode. But NewLoginProvisionedDevice engine
+	// needs KbKeyrings and not every command sets it up. Ensure
+	// Keyring is available.
+
+	// TODO: We will be phasing out KbKeyrings usage flag, or even
+	// usage flags entirely. Then this will not be needed because
+	// Keyrings will always be loaded.
+
+	if m.G().Keyrings == nil {
+		m.Debug("tryLogin: Configuring Keyrings")
+		err := m.G().ConfigureKeyring()
+		if err != nil {
+			m.Debug("error configuring keyring: %s", err)
 		}
-	})
+	}
+
+	deng := engine.NewLoginProvisionedDevice(d.G(), "")
+	deng.SecretStoreOnly = true
+	if err := engine.RunEngine2(m, deng); err != nil {
+		m.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+	} else {
+		m.Debug("success running LoginOffline on service startup")
+		d.loginSuccess = true
+	}
 }
 
 func (d *Service) startProfile() {

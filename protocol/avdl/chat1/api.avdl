@@ -24,8 +24,10 @@ protocol api {
     @jsonkey("members_type")
     string membersType;
     @jsonkey("topic_type")
+    @optional(true)
     string topicType;
     @jsonkey("topic_name")
+    @optional(true)
     string topicName;
   }
 
@@ -40,10 +42,12 @@ protocol api {
     @jsonkey("uid")
     string uid;
     @jsonkey("username")
+    @optional(true)
     string username;
     @jsonkey("device_id")
     string deviceID;
     @jsonkey("device_name")
+    @optional(true)
     string deviceName;
   }
 
@@ -116,26 +120,36 @@ protocol api {
     @jsonkey("unread")
     boolean unread;
     @jsonkey("revoked_device")
+    @optional(true)
     boolean revokedDevice;
     @jsonkey("offline")
+    @optional(true)
     boolean offline;
     @jsonkey("kbfs_encrypted")
+    @optional(true)
     boolean kbfsEncrypted;
     @jsonkey("is_ephemeral")
+    @optional(true)
     boolean isEphemeral;
+    @optional(true)
     @jsonkey("is_ephemeral_expired")
     boolean isEphemeralExpired;
     @jsonkey("e_time")
+    @optional(true)
     gregor1.Time eTime;
     @jsonkey("reactions")
     union { null, ReactionMap } reactions;
     @jsonkey("has_pairwise_macs")
+    @optional(true)
     boolean hasPairwiseMacs;
     @jsonkey("at_mention_usernames")
+    @optional(true)
     array<string> atMentionUsernames;
     @jsonkey("channel_mention")
+    @optional(true)
     string channelMention;
     @jsonkey("channel_name_mentions")
+    @optional(true)
     array<UIChannelNameMention> channelNameMentions;
   }
 
@@ -155,10 +169,13 @@ protocol api {
     @jsonkey("pagination")
     union { null, Pagination } pagination;
     @jsonkey("offline")
+    @optional(true)
     boolean offline;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -199,10 +216,12 @@ protocol api {
     @jsonkey("offline")
     boolean offline;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("pagination")
     union { null, Pagination } pagination;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -215,8 +234,10 @@ protocol api {
     @jsonkey("outbox_id")
     union { null, OutboxID } outboxID;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -224,8 +245,10 @@ protocol api {
     @jsonkey("results")
     union { null, ChatSearchInboxResults } results;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -233,8 +256,10 @@ protocol api {
     @jsonkey("hits")
     array<ChatSearchHit> hits;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -242,8 +267,10 @@ protocol api {
     @jsonkey("id")
     string id;
     @jsonkey("identify_failures")
+    @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
@@ -251,12 +278,14 @@ protocol api {
     @jsonkey("commands")
     array<UserBotCommandOutput> commands;
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 
   // EmptyRes is used for JSON output of a boring command.
   record EmptyRes {
     @jsonkey("ratelimits")
+    @optional(true)
     array<RateLimitRes> rateLimits;
   }
 

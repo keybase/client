@@ -42,6 +42,7 @@
     "changeSendNotification": {
       "namespace": "'teams'",
       "sendNotification": "boolean"
-    }
+    },
+    "labelsSeen": {"namespace": "Types.AllowedNamespace"}
   }
 }
