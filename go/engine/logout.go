@@ -46,8 +46,8 @@ func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	// XXX turning this off because it is so slow
-	// e.doSwitch(mctx)
+	e.doSwitch(mctx)
+
 	return nil
 }
 
