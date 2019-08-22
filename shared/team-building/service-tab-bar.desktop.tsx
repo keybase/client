@@ -119,10 +119,19 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
+  const {onChangeService: propsOnChangeService} = props
   const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
+  const onChangeService = React.useCallback(
+    (service: ServiceIdWithContact) => {
+      if (Constants.services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
+        setLastSelectedUnlockedService(service)
+      }
+      propsOnChangeService(service)
+    },
+    [lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
+  )
   const lockedServices = Constants.services.slice(0, nLocked)
   let frontServices = lockedServices
-  let lastSelectedUnlockedServiceChanged = false
   if (Constants.services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
     if (lastSelectedUnlockedService === null) {
@@ -132,15 +141,7 @@ export const ServiceTabBar = (props: Props) => {
     }
   } else {
     frontServices = lockedServices.concat([props.selectedService])
-    if (lastSelectedUnlockedService !== props.selectedService) {
-      lastSelectedUnlockedServiceChanged = true
-    }
   }
-  React.useEffect(() => {
-    if (lastSelectedUnlockedServiceChanged) {
-      setLastSelectedUnlockedService(props.selectedService)
-    }
-  }, [lastSelectedUnlockedServiceChanged, props.selectedService])
   const moreServices = difference(Constants.services, frontServices)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
@@ -150,14 +151,14 @@ export const ServiceTabBar = (props: Props) => {
           service={service}
           label={serviceIdToLongLabel(service)}
           labelPresence={1}
-          onClick={() => props.onChangeService(service)}
+          onClick={() => onChangeService(service)}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
         />
       ))}
       {moreServices.length > 0 && (
-        <MoreNetworksButton services={moreServices} onChangeService={props.onChangeService} />
+        <MoreNetworksButton services={moreServices} onChangeService={onChangeService} />
       )}
     </Kb.Box2>
   )
