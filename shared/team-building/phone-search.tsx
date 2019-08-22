@@ -129,7 +129,7 @@ const styles = Styles.styleSheetCreate(() => ({
   containerStyle: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueGrey,
-      height: '100%',
+      flex: 1,
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
