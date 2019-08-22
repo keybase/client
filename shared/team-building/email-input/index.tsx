@@ -21,6 +21,9 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   const isSearching = Container.useSelector(
     state => state[namespace].teamBuilding.teamBuildingEmailIsSearching
   )
+  const canSubmit = user !== null && !isSearching && isEmailValid
+  const emailHasKeybaseAccount =
+    user !== null && user.serviceMap.keybase !== '' && emailString === user.username
 
   const debouncedSearch = React.useCallback(
     debounce((query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})), 200),
@@ -42,14 +45,14 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   )
 
   const onSubmit = React.useCallback(() => {
-    if (!user) {
+    if (user === null || !canSubmit) {
       return
     }
 
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     // Clear input
     onChange('')
-  }, [dispatch, user, namespace, onChange])
+  }, [dispatch, canSubmit, user, namespace, onChange])
 
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
@@ -69,7 +72,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {!isSearching && user !== null && user.serviceMap.keybase !== '' && emailString === user.username && (
+        {user !== null && canSubmit && emailHasKeybaseAccount && (
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
@@ -83,7 +86,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
-          <Kb.Button label="Continue" fullWidth={true} onClick={onSubmit} disabled={!isEmailValid} />
+          <Kb.Button label="Continue" fullWidth={true} onClick={onSubmit} disabled={!canSubmit} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
