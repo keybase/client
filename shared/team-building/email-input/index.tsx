@@ -97,9 +97,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   background: {
     backgroundColor: Styles.globalColors.blueGrey,
-    flexBasis: 0,
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
     padding: Styles.globalMargins.small,
   },
   bottomContainer: {
