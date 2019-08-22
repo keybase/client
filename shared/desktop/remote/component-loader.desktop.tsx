@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import menuHelper from '../app/menu-helper.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
@@ -40,8 +39,6 @@ class RemoteComponentLoader extends React.Component<Props> {
       windowParam: props.params,
     })
     this._store = remoteStore.getStore()
-
-    props.name !== 'menubar' && menuHelper(this._window)
   }
 
   _onGotProps = () => {

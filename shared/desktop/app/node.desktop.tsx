@@ -4,6 +4,7 @@ import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
+import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
@@ -282,6 +283,10 @@ const plumbEvents = () => {
         }
 
         remoteWindow.loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+
+        if (action.payload.windowComponent !== 'menubar') {
+          menuHelper(remoteWindow)
+        }
 
         if (showDevTools && remoteWindow.webContents && !skipSecondaryDevtools) {
           remoteWindow.webContents.openDevTools({mode: 'detach'})
