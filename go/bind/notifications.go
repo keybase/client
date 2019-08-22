@@ -57,8 +57,8 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	if err != nil {
 		return err
 	}
-	kbCtx.ChatHelper.SendTextByIDNonblock(context.Background(), convID, tlfName, body, &outboxID, nil)
-	return nil
+	_, err = kbCtx.ChatHelper.SendTextByIDNonblock(context.Background(), convID, tlfName, body, &outboxID, nil)
+	return err
 }
 
 func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
