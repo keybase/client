@@ -49,7 +49,7 @@ const services: {
   },
   phone: {
     color: '#4C8EFF',
-    icon: 'iconfont-phone-contact',
+    icon: 'iconfont-number-pad',
     label: 'Phone',
     longLabel: 'A phone number',
   },

@@ -73,7 +73,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setValidity(false)
-  }, [])
+  }, [user, phoneNumber])
 
   return (
     <>
