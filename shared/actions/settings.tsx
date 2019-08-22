@@ -679,12 +679,7 @@ const verifyPhoneNumber = async (
     logger.info('success')
     return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
   } catch (err) {
-    const message =
-      err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
-        ? 'Incorrect code, please try again.'
-        : err.code === RPCTypes.StatusCode.scratelimit
-        ? 'Sorry, tried too many guesses in a short period of time. Please try again later.'
-        : err.message
+    const message = Constants.makeVerifyPhoneError(err)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }

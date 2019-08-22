@@ -6,6 +6,7 @@ import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {e164ToDisplay} from '../util/phone-numbers'
+import {RPCError} from 'util/errors'
 
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
@@ -168,6 +169,23 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
     }).toJS()
   }
   return {}
+}
+
+export const makeVerifyPhoneError = (e: RPCError) => {
+  switch (e.code) {
+    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
+      return 'Incorrect code, please try again.'
+    case RPCTypes.StatusCode.scphonenumberunknown:
+      return e.desc
+    case RPCTypes.StatusCode.scphonenumberalreadyverified:
+      return 'This phone number is already verified.'
+    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
+      return 'Verification code expired, resend and try again.'
+    case RPCTypes.StatusCode.scratelimit:
+      return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
+    default:
+      return e.message
+  }
 }
 
 export const traceInProgressKey = 'settings:traceInProgress'
