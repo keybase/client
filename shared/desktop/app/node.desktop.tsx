@@ -197,6 +197,14 @@ type Action =
 const remoteURL = (windowComponent: string, windowParam: string) =>
   resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
 
+const findRemoteComponent = (windowComponent: string, windowParam: string) => {
+  const url = remoteURL(windowComponent, windowParam)
+  return Electron.BrowserWindow.getAllWindows().find(w => {
+    const wc = w.webContents
+    return wc && wc.getURL() === url
+  })
+}
+
 const plumbEvents = () => {
   Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
     switch (action.type) {
@@ -284,13 +292,14 @@ const plumbEvents = () => {
         break
       }
       case 'closeRenderer': {
-        const url = remoteURL(action.payload.windowComponent, action.payload.windowParam)
-        Electron.BrowserWindow.getAllWindows().forEach(w => {
-          const wc = w.webContents
-          if (wc && wc.getURL() === url) {
-            w.close()
-          }
-        })
+        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        w && w.close()
+        break
+      }
+      case 'rendererNewProps': {
+        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        w && w.emit('KBprops', action.payload.propsStr)
+        break
       }
     }
   })

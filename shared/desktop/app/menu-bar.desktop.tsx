@@ -6,7 +6,7 @@ import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
-const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html`)
+const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
 let icon = ''
 let selectedIcon = ''

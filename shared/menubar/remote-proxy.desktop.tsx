@@ -109,7 +109,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         externalRemoteWindow,
         ...props
       } = this.props
-      return <ComposedComponent {...props} remoteWindow={externalRemoteWindow} />
+      return <ComposedComponent {...props} />
     }
   }
 
