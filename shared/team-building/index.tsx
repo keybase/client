@@ -434,6 +434,21 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   render = () => {
     const props = this.props
+    const teamBox = !!props.teamSoFar.length && (
+      <TeamBox
+        allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
+        onChangeText={props.onChangeText}
+        onDownArrowKeyDown={props.onDownArrowKeyDown}
+        onUpArrowKeyDown={props.onUpArrowKeyDown}
+        onEnterKeyDown={props.onEnterKeyDown}
+        onFinishTeamBuilding={props.onFinishTeamBuilding}
+        onRemove={props.onRemove}
+        teamSoFar={props.teamSoFar}
+        onBackspace={props.onBackspace}
+        searchString={props.searchString}
+        rolePickerProps={props.rolePickerProps}
+      />
+    )
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
@@ -443,37 +458,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Box2>
         )}
-        {!!props.teamSoFar.length &&
+        {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <TeamBox
-                allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-                onChangeText={props.onChangeText}
-                onDownArrowKeyDown={props.onDownArrowKeyDown}
-                onUpArrowKeyDown={props.onUpArrowKeyDown}
-                onEnterKeyDown={props.onEnterKeyDown}
-                onFinishTeamBuilding={props.onFinishTeamBuilding}
-                onRemove={props.onRemove}
-                teamSoFar={props.teamSoFar}
-                onBackspace={props.onBackspace}
-                searchString={props.searchString}
-                rolePickerProps={props.rolePickerProps}
-              />
+              {teamBox}
             </Kb.Box2>
           ) : (
-            <TeamBox
-              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-              onChangeText={props.onChangeText}
-              onDownArrowKeyDown={props.onDownArrowKeyDown}
-              onUpArrowKeyDown={props.onUpArrowKeyDown}
-              onEnterKeyDown={props.onEnterKeyDown}
-              onFinishTeamBuilding={props.onFinishTeamBuilding}
-              onRemove={props.onRemove}
-              teamSoFar={props.teamSoFar}
-              onBackspace={props.onBackspace}
-              searchString={props.searchString}
-              rolePickerProps={props.rolePickerProps}
-            />
+            teamBox
           ))}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
