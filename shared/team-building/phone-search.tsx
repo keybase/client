@@ -13,6 +13,7 @@ type PhoneSearchProps = {
 type CurrentState = 'resolved' | 'loading' | 'notfound' | 'none'
 
 const PhoneSearch = (props: PhoneSearchProps) => {
+  const {onContinue} = props
   const [validity, setValidity] = React.useState<boolean>(false)
   const [phoneNumber, setPhoneNumber] = React.useState<string>('')
   const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
@@ -58,10 +59,10 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   let _onContinue = React.useCallback(() => {
     if (user) {
-      props.onContinue(user)
+      onContinue(user)
     } else {
       // Continue in order to start a conversation with their phone number
-      props.onContinue({
+      onContinue({
         // substr to chop off the '+' at the start so it is in the correct format for an assertion
         id: phoneNumber.substr(1) + '@phone',
         prettyName: phoneNumber,
@@ -73,7 +74,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setValidity(false)
-  }, [user, phoneNumber])
+  }, [user, phoneNumber, setPhoneNumber, setValidity, setPhoneInputKey, onContinue])
 
   return (
     <>
@@ -125,15 +126,20 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
   buttonContainer: {justifyContent: 'center'},
-  containerStyle: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    height: '100%',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
+  containerStyle: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueGrey,
+      height: '100%',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isMobile: {
+      zIndex: -1,
+    },
+  }),
   justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},

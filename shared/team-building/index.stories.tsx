@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import emailInput from './email-input/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -73,6 +74,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         fetchUserRecs={() => {}}
         includeContacts={true}
@@ -167,6 +169,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         includeContacts={true}
         title="The Title"
         fetchUserRecs={() => {}}
@@ -261,6 +264,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         rolePickerProps={{
@@ -302,6 +306,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString=""
@@ -327,6 +332,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -402,6 +408,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -477,6 +484,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -760,6 +768,8 @@ const load = () => {
       teamBuildingSearchResults={{}}
     />
   ))
+
+  emailInput()
 }
 
 export default load

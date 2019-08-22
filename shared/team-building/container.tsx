@@ -566,6 +566,7 @@ const mergeProps = (
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
+    namespace: ownProps.namespace,
     onAdd,
     onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
