@@ -163,6 +163,11 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         try {
             String type = bundle.getString("type");
             String payload = bundle.getString("m");
+            boolean displayPlaintext = "true".equals(bundle.getString("n"));
+            int badgeCount = Integer.parseInt(bundle.getString("b"));
+            long unixTime = Integer.parseInt(bundle.getString("x"));
+            String soundName = bundle.getString("s");
+            int membersType = Integer.parseInt(bundle.getString("t"));
             KBPushNotifier notifier = new KBPushNotifier(getApplicationContext(), bundle);
             switch (type) {
                 case "chat.newmessage":
