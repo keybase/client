@@ -217,8 +217,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 type Props = {
   autoFocus?: boolean
   defaultCountry?: string
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
   style?: Styles.StylesCrossPlatform
 }
@@ -315,8 +314,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
-    this.props.onChangeNumber(validation.e164)
-    this.props.onChangeValidity(validation.valid)
+    this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
   _setCountry = (country, keepPrefix) => {
