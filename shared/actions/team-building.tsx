@@ -193,6 +193,7 @@ async function searchEmailAddress(state: TypedState, {payload: {namespace}}: Sea
   const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
   return TeamBuildingGen.createSearchEmailAddressResultLoaded({
     namespace,
+    query,
     user: users[0],
   })
 }

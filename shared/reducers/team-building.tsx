@@ -65,7 +65,6 @@ export default function(
       const {query} = action.payload
       return state.merge({
         teamBuildingEmailIsSearching: true,
-        teamBuildingEmailResult: null,
         teamBuildingEmailSearchQuery: query.trim(),
       })
     }

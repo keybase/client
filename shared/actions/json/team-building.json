@@ -32,7 +32,8 @@
     },
     "searchEmailAddressResultLoaded": {
       "namespace": "Types.AllowedNamespace",
-      "user": "Types.User"
+      "user": "Types.User",
+      "query": "string"
     },
     "selectRole": {
       "namespace": "'teams'",
