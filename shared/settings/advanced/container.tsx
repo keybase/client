@@ -57,7 +57,7 @@ const mapDispatchToProps = dispatch => ({
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetDarkModePreference: (preference: DarkModePreference) =>
     dispatch(ConfigGen.createSetDarkModePreference({preference})),
-  onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
+  onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
   onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
 })

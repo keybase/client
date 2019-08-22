@@ -210,9 +210,9 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
     case ConfigGen.setNotifySound:
-      return state.merge({notifySound: action.payload.sound})
+      return state.merge({notifySound: action.payload.notifySound})
     case ConfigGen.setOpenAtLogin:
-      return state.merge({openAtLogin: action.payload.open})
+      return state.merge({openAtLogin: action.payload.openAtLogin})
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts: {

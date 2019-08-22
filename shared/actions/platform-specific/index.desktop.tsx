@@ -63,17 +63,6 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (
-  _: Container.TypedState,
-  action: ConfigGen.SetOpenAtLoginPayload
-) => {
-  action.payload.writeFile &&
-    SafeElectron.getApp().emit('KBappState' as any, '', {
-      payload: {data: {openAtLogin: action.payload.open}},
-      type: 'set',
-    })
-}
-
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
@@ -381,10 +370,10 @@ function* initializeNotifySound() {
   })
 
   try {
-    const sound: boolean | undefined = val.b || undefined
+    const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
-    if (sound !== undefined && sound !== state.config.notifySound) {
-      yield Saga.put(ConfigGen.createSetNotifySound({sound}))
+    if (notifySound !== undefined && notifySound !== state.config.notifySound) {
+      yield Saga.put(ConfigGen.createSetNotifySound({notifySound}))
     }
   } catch (_) {}
 }
@@ -400,10 +389,42 @@ const setNotifySound = async (state: Container.TypedState) => {
   })
 }
 
+function* initializeOpenAtLogin() {
+  const val: Saga.RPCPromiseType<
+    typeof RPCTypes.configGuiGetValueRpcPromise
+  > = yield RPCTypes.configGuiGetValueRpcPromise({
+    path: 'openAtLogin',
+  })
+
+  try {
+    const openAtLogin: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
+      yield Saga.put(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+    }
+  } catch (_) {}
+}
+
+const setOpenAtLogin = async (state: Container.TypedState) => {
+  const {openAtLogin} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'openAtLogin',
+    value: {
+      b: openAtLogin,
+      isNull: false,
+    },
+  })
+
+  if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+    logger.info(`Login item settings changed! now ${openAtLogin}`)
+    SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+  }
+}
+
 export const requestLocationPermission = () => Promise.resolve()
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
+  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
@@ -429,6 +450,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.spawn(initializeUseNativeFrame)
   yield Saga.spawn(initializeNotifySound)
+  yield Saga.spawn(initializeOpenAtLogin)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(setupReachabilityWatcher)

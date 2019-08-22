@@ -28,7 +28,6 @@ export type WindowState = {
   dockHidden: boolean
   height: number
   isFullScreen: boolean
-  openAtLogin: boolean
   useNativeFrame: boolean
   width: number
   windowHidden: boolean

@@ -117,8 +117,8 @@ type _SetDarkModePreferencePayload = {
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
-type _SetNotifySoundPayload = {readonly sound: boolean}
-type _SetOpenAtLoginPayload = {readonly open: boolean; readonly writeFile: boolean}
+type _SetNotifySoundPayload = {readonly notifySound: boolean}
+type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
 type _SetStartupDetailsPayload = {
   readonly startupWasFromPush: boolean
   readonly startupConversation: ChatTypes.ConversationIDKey | null

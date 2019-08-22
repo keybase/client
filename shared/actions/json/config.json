@@ -85,11 +85,8 @@
       "startupFollowUser": "string",
       "startupSharePath": "FsTypes.LocalPath | null"
     },
-    "setOpenAtLogin": {
-      "open": "boolean",
-      "writeFile": "boolean"
-    },
-    "setNotifySound": { "sound": "boolean", },
+    "setOpenAtLogin": { "openAtLogin": "boolean", },
+    "setNotifySound": { "notifySound": "boolean", },
     "setDeletedSelf": {"deletedUsername": "string"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},

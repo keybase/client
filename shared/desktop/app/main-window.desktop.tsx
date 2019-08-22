@@ -41,7 +41,6 @@ const defaultWindowState: WindowState = {
   dockHidden: false,
   height: 600,
   isFullScreen: false,
-  openAtLogin: true,
   useNativeFrame: defaultUseNativeFrame,
   width: 800,
   windowHidden: false,
@@ -119,11 +118,21 @@ const loadWindowState = () => {
   try {
     const s = fs.readFileSync(filename, {encoding: 'utf8'})
     const guiConfig = JSON.parse(s)
+
+    if (guiConfig.openAtLogin !== undefined) {
+      const {openAtLogin} = guiConfig
+      if (/*!__DEV__ &&*/ isDarwin || isWindows) {
+        if (Electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+          logger.info('Setting login item state', openAtLogin)
+          Electron.app.setLoginItemSettings({openAtLogin})
+        }
+      }
+    }
+
     const obj = JSON.parse(guiConfig.windowState)
     windowState.dockHidden = obj.dockHidden || windowState.dockHidden
     windowState.height = obj.height || windowState.height
     windowState.isFullScreen = obj.isFullScreen || windowState.isFullScreen
-    windowState.openAtLogin = obj.openAtLogin || Electron.app.getLoginItemSettings().wasOpenedAtLogin
     windowState.useNativeFrame = obj.useNativeFrame === undefined ? defaultUseNativeFrame : obj.useNativeFrame
     windowState.width = obj.width || windowState.width
     windowState.windowHidden = obj.windowHidden || windowState.windowHidden
@@ -224,22 +233,9 @@ const registerForAppLinks = () => {
   Electron.app.setAsDefaultProtocolClient('keybase')
 }
 
-// const checkOpenAtLogin = () => {
-// if (__DEV__) {
-// logger.info('Skipping auto login state change due to dev env. ')
-// return
-// }
-
-// if (isDarwin || isWindows) {
-// logger.info('Setting login item state', windowState.openAtLogin)
-// Electron.app.setLoginItemSettings({openAtLogin: windowState.openAtLogin})
-// }
-// }
-
 export default () => {
   setupDefaultSession()
   loadWindowState()
-  // checkOpenAtLogin()
 
   const win = new Electron.BrowserWindow({
     frame: windowState.useNativeFrame,

@@ -23,7 +23,6 @@ export type Managed = {
 export default class AppState {
   state = {
     dockHidden: false,
-    openAtLogin: true,
   }
   config: Config
   managed: Managed
@@ -81,11 +80,6 @@ export default class AppState {
     } catch (err) {
       logger.info(`Error saving file: ${err}`)
     }
-
-    // if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
-    // logger.info(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
-    // // this.setOSLoginState()
-    // }
   }
 
   _loadStateSync() {
@@ -99,12 +93,6 @@ export default class AppState {
     }
     try {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
-
-      if (!Object.prototype.hasOwnProperty.call(stateLoaded, 'openAtLogin')) {
-        // always make sure we have, this
-        stateLoaded.openAtLogin = true
-      }
-
       this.state = stateLoaded
     } catch (e) {
       console.warn('Error loading app state:', e)
