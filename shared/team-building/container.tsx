@@ -11,7 +11,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
+import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {
@@ -540,7 +540,17 @@ const mergeProps = (
                     />
                   ),
                 }
-              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+              : {
+                  custom: (
+                    <Button
+                      label={'Start'} // PICNIC-360 rabbit here
+                      mode="Primary"
+                      onClick={dispatchProps.onFinishTeamBuilding}
+                      small={true}
+                      type="Success"
+                    />
+                  ),
+                }
             : null,
         ],
         title,
