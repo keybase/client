@@ -302,6 +302,7 @@ const styles = Styles.styleSheetCreate({
   },
   title: Styles.platformStyles({
     common: {
+      alignSelf: 'flex-start',
       padding: 5,
     },
     isElectron: {
