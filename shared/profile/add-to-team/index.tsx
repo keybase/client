@@ -245,10 +245,10 @@ const styles = Styles.styleSheetCreate({
       flex: 1,
       height: '100%',
       marginTop: 35,
-      paddingBottom: Styles.globalMargins.xsmall,
     },
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xsmall,
       width: 500,
     },
     isMobile: {
