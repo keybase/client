@@ -117,7 +117,7 @@ type _SetDarkModePreferencePayload = {
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
-type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
+type _SetNotifySoundPayload = {readonly sound: boolean}
 type _SetOpenAtLoginPayload = {readonly open: boolean; readonly writeFile: boolean}
 type _SetStartupDetailsPayload = {
   readonly startupWasFromPush: boolean

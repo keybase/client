@@ -73,12 +73,8 @@
       "followees": "Array<string>"
     },
     "daemonError": {"daemonError": "Error | null"},
-    "setAccounts": {
-      "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"
-    },
-    "setDefaultUsername": {
-      "username": "string"
-    },
+    "setAccounts": { "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>" },
+    "setDefaultUsername": { "username": "string" },
     "globalError": {"globalError": "null | Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
@@ -93,10 +89,7 @@
       "open": "boolean",
       "writeFile": "boolean"
     },
-    "setNotifySound": {
-      "sound": "boolean",
-      "writeFile": "boolean"
-    },
+    "setNotifySound": { "sound": "boolean", },
     "setDeletedSelf": {"deletedUsername": "string"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
@@ -127,9 +120,7 @@
     "setDarkModePreference": {
       "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
     },
-    "setSystemDarkMode": {
-        "dark": "boolean"
-    },
+    "setSystemDarkMode": { "dark": "boolean" },
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"

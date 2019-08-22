@@ -74,17 +74,6 @@ const writeElectronSettingsOpenAtLogin = (
     })
 }
 
-const writeElectronSettingsNotifySound = (
-  _: Container.TypedState,
-  action: ConfigGen.SetNotifySoundPayload
-) => {
-  action.payload.writeFile &&
-    SafeElectron.getApp().emit('KBappState' as any, '', {
-      payload: {data: {notifySound: action.payload.sound}},
-      type: 'set',
-    })
-}
-
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
@@ -126,22 +115,22 @@ function* initializeInputMonitor(): Iterable<any> {
 }
 
 // get this value from electron and update our store version
-function* initializeAppSettingsState(): Iterable<any> {
-  const getAppState = () =>
-    new Promise(resolve => {
-      SafeElectron.getApp().once(
-        'KBappState' as any,
-        (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
-      )
-      SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
-    })
+// TODO remove
+// function* initializeAppSettingsState(): Iterable<any> {
+// const getAppState = () =>
+// new Promise(resolve => {
+// SafeElectron.getApp().once(
+// 'KBappState' as any,
+// (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
+// )
+// SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
+// })
 
-  const state = yield* Saga.callPromise(getAppState)
-  if (state) {
-    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
-    yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
-  }
-}
+// const state = yield* Saga.callPromise(getAppState)
+// if (state) {
+// yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
+// }
+// }
 
 export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
   logger
@@ -384,11 +373,38 @@ const saveWindowState = async (state: Container.TypedState) => {
   })
 }
 
+function* initializeNotifySound() {
+  const val: Saga.RPCPromiseType<
+    typeof RPCTypes.configGuiGetValueRpcPromise
+  > = yield RPCTypes.configGuiGetValueRpcPromise({
+    path: 'notifySound',
+  })
+
+  try {
+    const sound: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (sound !== undefined && sound !== state.config.notifySound) {
+      yield Saga.put(ConfigGen.createSetNotifySound({sound}))
+    }
+  } catch (_) {}
+}
+
+const setNotifySound = async (state: Container.TypedState) => {
+  const {notifySound} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'notifySound',
+    value: {
+      b: notifySound,
+      isNull: false,
+    },
+  })
+}
+
 export const requestLocationPermission = () => Promise.resolve()
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
-  yield* Saga.chainAction2(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
+  yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
@@ -412,9 +428,9 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.spawn(initializeUseNativeFrame)
+  yield Saga.spawn(initializeNotifySound)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
-  yield Saga.spawn(initializeAppSettingsState)
   yield Saga.spawn(setupReachabilityWatcher)
   yield Saga.spawn(startOutOfDateCheckLoop)
   yield Saga.spawn(startPowerMonitor)

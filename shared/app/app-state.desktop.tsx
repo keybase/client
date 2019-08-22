@@ -23,7 +23,6 @@ export type Managed = {
 export default class AppState {
   state = {
     dockHidden: false,
-    notifySound: false,
     openAtLogin: true,
   }
   config: Config
