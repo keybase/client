@@ -90,6 +90,11 @@ protocol local {
     array<KnownTeamMention> teamMentions;
   }
 
+
+  record MessagePin {
+    MessageID msgID;
+  }
+
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
@@ -233,6 +238,7 @@ protocol local {
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
     case FLIP: MessageFlip;
+    case PIN: MessagePin;
   }
 
   record SenderPrepareOptions {
@@ -531,6 +537,7 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, MessageUnboxed } pinnedMsg;
     union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -949,7 +956,7 @@ protocol local {
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
   record PreviewConversationLocalRes {
-    InboxUIItem conv;  
+    InboxUIItem conv;
     boolean offline;
     array<RateLimit> rateLimits;
   }
