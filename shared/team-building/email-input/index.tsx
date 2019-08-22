@@ -4,15 +4,11 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
-import {AllowedNamespace} from 'constants/types/team-building'
+import {AllowedNamespace} from '../../constants/types/team-building'
+import {validateEmailAddress} from '../../util/email-address'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
-}
-
-function checkValidEmail(str: string): boolean {
-  const emailRegex = /^(\S+@\S+\.\S+)$/
-  return str.length > 3 && emailRegex.test(str)
 }
 
 const EmailInput = ({namespace}: EmailInputProps) => {
@@ -34,7 +30,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   const onChange = React.useCallback(
     text => {
       setEmailString(text)
-      const isNewInputValid = checkValidEmail(text)
+      const isNewInputValid = validateEmailAddress(text)
       if (isNewInputValid !== isEmailValid) {
         setEmailValidity(isNewInputValid)
       }

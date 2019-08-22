@@ -7,6 +7,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateNumber} from '../util/phone-numbers'
+import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -117,16 +118,10 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
       phone: phoneNumber.e164,
       t: RPCTypes.ImpTofuSearchType.phone,
     }
-  } else {
-    // Consider the query a valid email if it contains at sign (but not at 0
-    // index) and a period after the at sign.
-    const atIndex = query.indexOf('@')
-    const periodIndex = query.lastIndexOf('.')
-    if (atIndex > 0 && periodIndex > atIndex && periodIndex !== query.length - 1) {
-      return {
-        email: query,
-        t: RPCTypes.ImpTofuSearchType.email,
-      }
+  } else if (validateEmailAddress(query)) {
+    return {
+      email: query,
+      t: RPCTypes.ImpTofuSearchType.email,
     }
   }
   return null
