@@ -2,7 +2,6 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as FsGen from '../../actions/fs-gen'
-import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -10,7 +9,6 @@ import * as PushGen from '../push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -49,6 +47,10 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
 // 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
 // 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
 // 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
+
+// At startup the flow above can be racy, since we may not have registered the
+// event listener before the event is emitted. In that case you can always use
+// `getInitialPushAndroid`.
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
@@ -62,13 +64,11 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
     emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
-    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
     logger.debug('[ShareTextIntent]', evt)
-    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     // TODO: implement
   })
 }
@@ -347,43 +347,45 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
-const getStartupDetailsFromInitialPush = (): Promise<
-  | null
-  | {
-      startupFollowUser: string
-    }
-  | {
-      startupConversation: ChatTypes.ConversationIDKey
-    }
-> =>
-  new Promise(resolve => {
-    if (isAndroid) {
-      // For android, we won't rely on the initial notification.
-      // We'll do all routing based of the intent
-      resolve(null)
-      return
-    }
+function* getStartupDetailsFromInitialPush() {
+  const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
+    push: Saga.callPromise(isAndroid ? getInitialPushAndroid : getInitialPushiOS),
+    pushTimeout: Saga.delay(10),
+  })
+  if (pushTimeout || !push) {
+    return null
+  }
 
+  const notification = push.payload.notification
+  if (notification.type === 'follow') {
+    if (notification.username) {
+      return {startupFollowUser: notification.username}
+    }
+  } else if (notification.type === 'chat.newmessage') {
+    if (notification.conversationIDKey) {
+      return {startupConversation: notification.conversationIDKey}
+    }
+  }
+
+  return null
+}
+
+const getInitialPushAndroid = (): Promise<PushGen.NotificationPayload | null> =>
+  NativeModules.KeybaseEngine.getInitialIntent().then(n => {
+    let notification = n && Constants.normalizePush(n)
+    return notification && PushGen.createNotification({notification})
+  })
+
+const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
+  new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
-      if (!notification) {
-        resolve(null)
-        return
-      }
-      if (notification.type === 'follow') {
-        if (notification.username) {
-          resolve({startupFollowUser: notification.username})
-          return
-        }
-      } else if (notification.type === 'chat.newmessage') {
-        if (notification.conversationIDKey) {
-          resolve({startupConversation: notification.conversationIDKey})
-          return
-        }
+      if (notification !== null) {
+        resolve(PushGen.createNotification({notification}))
       }
       resolve(null)
     })
-  })
+  )
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   // Permissions

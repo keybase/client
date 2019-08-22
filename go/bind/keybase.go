@@ -142,11 +142,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
-	var ekLogFile string
+	var ekLogFile, guiLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 		ekLogFile = logFile + ".ek"
 		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
+		guiLogFile = logFile + ".gui"
+		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
@@ -186,6 +188,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		EKLogFile:                      ekLogFile,
+		GUILogFile:                     guiLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
 		LocalRPCDebug:                  "",
@@ -277,14 +280,14 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	env := kbCtx.Env
 	logSendContext.UID = env.GetUID()
 	logSendContext.InstallID = env.GetInstallID()
 	logSendContext.StatusJSON = statusJSON
 	logSendContext.Feedback = feedback
-	logSendContext.Logs.Desktop = uiLogPath
+	logSendContext.Logs.GUI = env.GetGUILogFile()
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 	var numBytes int

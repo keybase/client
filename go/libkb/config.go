@@ -739,6 +739,9 @@ func (f *JSONConfigFile) GetLogFile() string {
 func (f *JSONConfigFile) GetEKLogFile() string {
 	return f.GetTopLevelString("ek_log_file")
 }
+func (f *JSONConfigFile) GetGUILogFile() string {
+	return f.GetTopLevelString("gui_log_file")
+}
 
 func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
 	return f.GetTopLevelBool("use_default_log_file")

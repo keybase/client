@@ -3,6 +3,7 @@ import GoButton from './go-button'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
@@ -54,9 +55,32 @@ class UserBubbleCollection extends React.PureComponent<{
 }
 
 const TeamBox = (props: Props) => {
+  // Scroll to the end when a new user is added so they are visible.
+  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const teamLength = props.teamSoFar.length
+  const prevTeamLength = Container.usePrevious(teamLength)
+  React.useEffect(() => {
+    if (
+      Styles.isMobile &&
+      prevTeamLength !== undefined &&
+      prevTeamLength !== teamLength &&
+      scrollViewRef.current
+    ) {
+      scrollViewRef.current.scrollToEnd({animated: true})
+    }
+  }, [prevTeamLength, teamLength])
+
+  const addMorePrompt = props.teamSoFar.length === 1 && (
+    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
+      Keep adding people, or click Start when done.
+    </Kb.Text>
+  )
   return Styles.isMobile ? (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+        {addMorePrompt}
+      </Kb.ScrollView>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
@@ -64,6 +88,7 @@ const TeamBox = (props: Props) => {
         <Kb.ScrollView horizontal={true}>
           <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+            {addMorePrompt}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
@@ -97,7 +122,8 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
+  addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
   bubbles: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
@@ -117,9 +143,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       borderStyle: 'solid',
-      flex: 1,
-      flexWrap: 'wrap',
-      minHeight: 48,
+      minHeight: 90,
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
@@ -155,6 +179,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginLeft: 10,
   },
-})
+}))
 
 export default TeamBox
