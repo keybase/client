@@ -115,18 +115,13 @@ export const hideDockIcon = () => changeDock(false)
 const loadWindowState = () => {
   const filename = dataRoot + 'gui_config.json'
 
+  let openAtLogin = true
   try {
     const s = fs.readFileSync(filename, {encoding: 'utf8'})
     const guiConfig = JSON.parse(s)
 
     if (guiConfig.openAtLogin !== undefined) {
-      const {openAtLogin} = guiConfig
-      if (/*!__DEV__ &&*/ isDarwin || isWindows) {
-        if (Electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
-          logger.info('Setting login item state', openAtLogin)
-          Electron.app.setLoginItemSettings({openAtLogin})
-        }
-      }
+      openAtLogin = guiConfig.openAtLogin
     }
 
     const obj = JSON.parse(guiConfig.windowState)
@@ -160,6 +155,15 @@ const loadWindowState = () => {
     }
   } catch (e) {
     logger.info(`Couldn't load`, filename, ' continuing...')
+  }
+
+  if ((isDarwin || isWindows) && Electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+    logger.info('Setting login item state', openAtLogin)
+    if (__DEV__) {
+      logger.info('Setting login item state skipped due to dev')
+    } else {
+      Electron.app.setLoginItemSettings({openAtLogin})
+    }
   }
 }
 

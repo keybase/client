@@ -363,13 +363,12 @@ const saveWindowState = async (state: Container.TypedState) => {
 }
 
 function* initializeNotifySound() {
-  const val: Saga.RPCPromiseType<
-    typeof RPCTypes.configGuiGetValueRpcPromise
-  > = yield RPCTypes.configGuiGetValueRpcPromise({
-    path: 'notifySound',
-  })
-
   try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: 'notifySound',
+    })
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -390,13 +389,13 @@ const setNotifySound = async (state: Container.TypedState) => {
 }
 
 function* initializeOpenAtLogin() {
-  const val: Saga.RPCPromiseType<
-    typeof RPCTypes.configGuiGetValueRpcPromise
-  > = yield RPCTypes.configGuiGetValueRpcPromise({
-    path: 'openAtLogin',
-  })
-
   try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: 'openAtLogin',
+    })
+
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
