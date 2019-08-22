@@ -125,15 +125,20 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
   buttonContainer: {justifyContent: 'center'},
-  containerStyle: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    height: '100%',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
+  containerStyle: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueGrey,
+      height: '100%',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
+    },
+  }),
   justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},
