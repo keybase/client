@@ -94,11 +94,16 @@ const EmailInput = ({namespace}: EmailInputProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  background: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    flex: 1,
-    padding: Styles.globalMargins.small,
-  },
+  background: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueGrey,
+      flex: 1,
+      padding: Styles.globalMargins.small,
+    },
+    isMobile: {
+      zIndex: -1,
+    },
+  }),
   bottomContainer: {
     flexGrow: 1,
   },
