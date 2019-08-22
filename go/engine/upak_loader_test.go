@@ -570,7 +570,7 @@ func TestInvalidation(t *testing.T) {
 	require.NotNil(t, upak)
 	upl.Invalidate(mctx.Ctx(), u.UID())
 	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly()
-	upak, _, err = upl.LoadV2(arg)
+	_, _, err = upl.LoadV2(arg)
 	require.Error(t, err)
 	require.IsType(t, libkb.UserNotFoundError{}, err)
 	require.Contains(t, err.Error(), "cached user found, but it was stale, and cached only")

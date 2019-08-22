@@ -155,10 +155,7 @@ func TestLoginOfflineNoUpak(t *testing.T) {
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("LoginOffline worked after upak cache invalidation")
-	}
-	if _, ok := err.(libkb.LoginRequiredError); !ok {
-		t.Fatalf("LoginOffline error: %s (%T) expected libkb.LoginRequiredError", err, err)
+	if err != nil {
+		t.Fatalf("LoginOffline should still work after upak cache invalidation; got %s", err)
 	}
 }
