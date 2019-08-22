@@ -260,11 +260,16 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+
 	t.Logf("found path: %s", path)
 
 	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 	t.Logf("found path: %s", path)
 
 	// Try with an attachment with no preview
@@ -292,4 +297,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	found, _, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.False(t, found)
+	// No preview is available, but the file is still on disk.
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 }
