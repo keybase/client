@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import {AllowedNamespace} from 'constants/types/team-building'
-import {requestIdleCallback} from '../../util/idle-callback'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
@@ -28,8 +27,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   )
 
   const debouncedSearch = debounce(
-    (query: string) =>
-      requestIdleCallback(() => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query}))),
+    (query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})),
     200
   )
 
