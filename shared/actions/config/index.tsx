@@ -19,7 +19,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
-import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
@@ -384,9 +383,13 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
     // A share
     if (state.config.startupSharePath) {
+      // TODO/FIXME: this seems unused. [ShareDataIntent] in
+      // actions/platform-specific/push.native.tsx happens at cold-start too,
+      // so maybe we can just use that. Though that happens before this
+      // (routeToInitialScreen), so in the end it just routes to the saved tab
+      // which gets rid of the destination-picker modal.
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
       ]
@@ -397,7 +400,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }

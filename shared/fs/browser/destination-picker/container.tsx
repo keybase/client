@@ -40,6 +40,9 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
     dispatch(RouteTreeGen.createClearModals())
+    dispatch(
+      ownProps.safeNavigateAppendPayload({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
+    )
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
