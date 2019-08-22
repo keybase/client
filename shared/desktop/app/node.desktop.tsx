@@ -1,5 +1,5 @@
 // Entry point for the node part of the electron app
-import MainWindow from './main-window.desktop'
+import MainWindow, {showDockIcon} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -8,12 +8,13 @@ import os from 'os'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {allowMultipleInstances} from '../../local-debug.desktop'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
+import {resolveRootAsURL} from './resolve-root.desktop'
 
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
 let appStartedUp = false
@@ -104,7 +105,7 @@ const fixWindowsNotifications = () => {
   SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
 }
 
-const isRelevantDeepLink = x => {
+const isRelevantDeepLink = (x: string) => {
   return x.startsWith('web+stellar:') || x.startsWith('keybase://')
 }
 
@@ -122,7 +123,7 @@ const handleCrashes = () => {
       return
     }
 
-    win.on('unresponsive', e => {
+    win.on('unresponsive', (e: Electron.Event) => {
       console.log('Browser window unresponsive: ', e)
       win.reload()
     })
@@ -161,11 +162,44 @@ const willFinishLaunching = () => {
 
 let menubarWindowID = 0
 
-type IPCPayload = {type: 'appStartedUp'} | {type: 'requestStartService'} | {type: 'closeWindows'}
+type Action =
+  | {type: 'appStartedUp'}
+  | {type: 'requestStartService'}
+  | {type: 'closeWindows'}
+  | {
+      type: 'makeRenderer'
+      payload: {
+        windowComponent: string
+        windowParam: string
+        windowOpts: {
+          width: number
+          height: number
+        }
+        windowPositionBottomRight: boolean
+      }
+    }
+  | {
+      type: 'closeRenderer'
+      payload: {
+        windowComponent: string
+        windowParam: string
+      }
+    }
+  | {
+      type: 'rendererNewProps'
+      payload: {
+        propsStr: string
+        windowComponent: string
+        windowParam: string
+      }
+    }
+
+const remoteURL = (windowComponent: string, windowParam: string) =>
+  resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
 
 const plumbEvents = () => {
-  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
-    switch (payload.type) {
+  Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
+    switch (action.type) {
       case 'appStartedUp':
         appStartedUp = true
         if (menubarWindowID) {
@@ -201,7 +235,7 @@ const plumbEvents = () => {
           startWinService()
         }
         break
-      case 'closeWindows':
+      case 'closeWindows': {
         const windows = SafeElectron.BrowserWindow.getAllWindows()
         windows.forEach(w => {
           // We tell it to close, we can register handlers for the 'close' event if we want to
@@ -209,6 +243,55 @@ const plumbEvents = () => {
           w.close()
         })
         break
+      }
+      case 'makeRenderer': {
+        const defaultWindowOpts = {
+          frame: false,
+          fullscreen: false,
+          height: 300,
+          resizable: false,
+          show: false, // Start hidden and show when we actually get props
+          titleBarStyle: 'customButtonsOnHover' as const,
+          webPreferences: {
+            nodeIntegration: true,
+            nodeIntegrationInWorker: false,
+          },
+          width: 500,
+        }
+
+        const remoteWindow = new Electron.BrowserWindow({
+          ...defaultWindowOpts,
+          ...action.payload.windowOpts,
+        })
+
+        if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
+          const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
+          remoteWindow.setPosition(
+            width - action.payload.windowOpts.width - 100,
+            height - action.payload.windowOpts.height - 100,
+            false
+          )
+        }
+
+        remoteWindow.loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+
+        if (showDevTools && remoteWindow.webContents && !skipSecondaryDevtools) {
+          remoteWindow.webContents.openDevTools({mode: 'detach'})
+        }
+
+        showDockIcon()
+
+        break
+      }
+      case 'closeRenderer': {
+        const url = remoteURL(action.payload.windowComponent, action.payload.windowParam)
+        Electron.BrowserWindow.getAllWindows().forEach(w => {
+          const wc = w.webContents
+          if (wc && wc.getURL() === url) {
+            w.close()
+          }
+        })
+      }
     }
   })
 }

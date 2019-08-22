@@ -30,7 +30,7 @@ class RemoteComponentLoader extends React.Component<Props> {
   _store: any
   _window: SafeElectron.BrowserWindowType | null
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
     this._window = SafeElectron.getRemote().getCurrentWindow()
     const remoteStore = new RemoteStore({
@@ -41,7 +41,7 @@ class RemoteComponentLoader extends React.Component<Props> {
     })
     this._store = remoteStore.getStore()
 
-    menuHelper(this._window)
+    props.name !== 'menubar' && menuHelper(this._window)
   }
 
   _onGotProps = () => {
