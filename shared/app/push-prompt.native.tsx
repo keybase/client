@@ -103,8 +103,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   image: {
     height: '55%',
-    marginBottom: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.medium,
     width: '155%',
   },
   skip: {
