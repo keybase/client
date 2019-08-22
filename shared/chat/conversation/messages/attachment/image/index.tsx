@@ -102,7 +102,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 ])}
               >
                 {!!this.props.path && (
-                  <Kb.Box>
+                  <Kb.Box2 direction="vertical" alignItems="center">
                     <ImageRender
                       ref={ref => {
                         this.imageRef = ref
@@ -124,6 +124,40 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         },
                       ])}
                     />
+                    {!this.state.playingVideo && (
+                      <Kb.Box
+                        style={Styles.collapseStyles([
+                          styles.absoluteContainer,
+                          {
+                            height: this.props.height,
+                            width: this.props.width,
+                          },
+                        ])}
+                      >
+                        {!!this.props.showButton && (
+                          <Kb.Icon
+                            type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                            style={Kb.iconCastPlatformStyles(styles.playButton)}
+                          />
+                        )}
+                        {this.props.videoDuration.length > 0 && this.state.loaded && (
+                          <Kb.Box style={styles.durationContainer}>
+                            <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                              {this.props.videoDuration}
+                            </Kb.Text>
+                          </Kb.Box>
+                        )}
+                        {!!this.props.arrowColor && (
+                          <Kb.Box style={styles.downloadedIconWrapper}>
+                            <Kb.Icon
+                              type="iconfont-download"
+                              style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                              color={this.props.arrowColor}
+                            />
+                          </Kb.Box>
+                        )}
+                      </Kb.Box>
+                    )}
                     {this.props.title.length > 0 && (
                       <Kb.Text
                         type="Body"
@@ -138,41 +172,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       </Kb.Text>
                     )}
                     {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
-                  </Kb.Box>
-                )}
-                {!this.state.playingVideo && (
-                  <Kb.Box
-                    style={Styles.collapseStyles([
-                      styles.absoluteContainer,
-                      {
-                        height: this.props.height,
-                        width: this.props.width,
-                      },
-                    ])}
-                  >
-                    {!!this.props.showButton && (
-                      <Kb.Icon
-                        type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                        style={Kb.iconCastPlatformStyles(styles.playButton)}
-                      />
-                    )}
-                    {this.props.videoDuration.length > 0 && this.state.loaded && (
-                      <Kb.Box style={styles.durationContainer}>
-                        <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                          {this.props.videoDuration}
-                        </Kb.Text>
-                      </Kb.Box>
-                    )}
-                    {!!this.props.arrowColor && (
-                      <Kb.Box style={styles.downloadedIconWrapper}>
-                        <Kb.Icon
-                          type="iconfont-download"
-                          style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                          color={this.props.arrowColor}
-                        />
-                      </Kb.Box>
-                    )}
-                  </Kb.Box>
+                  </Kb.Box2>
                 )}
                 {Styles.isMobile && this.state.loadingVideo === 'loading' && (
                   <Kb.ProgressIndicator style={styles.progress} />
@@ -207,9 +207,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   absoluteContainer: {
-    left: 0,
     position: 'absolute',
-    top: 0,
   },
   backgroundContainer: {
     backgroundColor: Styles.globalColors.black_05,
