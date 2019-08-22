@@ -48,6 +48,7 @@ export type ServiceId =
   | 'pgp'
   | 'reddit'
   | 'twitter'
+  | 'phone'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return ({

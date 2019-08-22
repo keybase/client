@@ -13,11 +13,13 @@ import {
   ServiceIdWithContact,
   FollowingState,
   SelectedUser,
+  User,
 } from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
+import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailInput from './email-input'
 
@@ -70,6 +72,7 @@ export type Props = ContactProps & {
   highlightedIndex: number | null
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
+  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -83,6 +86,7 @@ export type Props = ContactProps & {
   onClear: () => void
   onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
+  search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -90,6 +94,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
@@ -447,8 +452,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       case 'email':
         content = <EmailInput namespace={props.namespace} />
         break
-      // case 'phone':
-      //   break
+      case 'phone':
+        content = (
+          <PhoneSearch
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+            onContinue={props.onAddRaw}
+          />
+        )
+        break
       default:
         content = (
           <>

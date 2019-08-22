@@ -132,6 +132,12 @@ export const Phone = () => {
       disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
     [dispatch, disabled, waiting, searchable, phoneNumber]
   )
+
+  const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
+    onChangeNumber(phoneNumber)
+    onChangeValidity(validity)
+  }, [])
+
   return (
     <Kb.Modal
       onClose={onClose}
@@ -166,8 +172,7 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
-          onChangeNumber={onChangeNumber}
-          onChangeValidity={onChangeValidity}
+          onChangeNumber={onChangeNumberCb}
           onContinue={onContinue}
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}

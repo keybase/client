@@ -108,7 +108,7 @@ const Root = ({destinationPickerIndex}: Props) => {
       data: top10,
       key: 'section-recent-tlfs',
       keyExtractor: (item: SectionListItem) => `recent-tlfs:${item.tlfType}-${item.name}`,
-      title: 'Recent Folders',
+      title: 'Recent folders',
     },
   ]
   const renderItem = React.useMemo(() => getRenderItem(destinationPickerIndex), [destinationPickerIndex])

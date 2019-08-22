@@ -5,6 +5,7 @@ import * as RPCTypes from './types/rpc-gen'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
+  'phone',
   'contact',
   'email',
   'twitter',
