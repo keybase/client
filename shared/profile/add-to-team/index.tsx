@@ -243,7 +243,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flex: 1,
+      height: '100%',
       marginTop: 35,
+      paddingBottom: Styles.globalMargins.xsmall,
     },
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
