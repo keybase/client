@@ -39,7 +39,6 @@ type _SearchEmailAddressPayload = {readonly namespace: Types.AllowedNamespace; r
 type _SearchEmailAddressResultLoadedPayload = {
   readonly namespace: Types.AllowedNamespace
   readonly user: Types.User
-  readonly query: string
 }
 type _SearchPayload = {
   readonly includeContacts: boolean
