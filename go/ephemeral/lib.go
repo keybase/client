@@ -1098,9 +1098,11 @@ func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	if err := e.KeygenIfNeeded(mctx); err != nil {
-		mctx.Debug("OnLogin error: %v", err)
-	}
+	go func() {
+		if err := e.KeygenIfNeeded(mctx); err != nil {
+			mctx.Debug("OnLogin error: %v", err)
+		}
+	}()
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}

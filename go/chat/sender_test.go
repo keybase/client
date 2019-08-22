@@ -185,6 +185,8 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 		teams.ServiceInit(w.G)
 		mctx := libkb.NewMetaContextTODO(w.G)
 		ephemeral.ServiceInit(mctx)
+		err := mctx.G().GetEKLib().KeygenIfNeeded(mctx)
+		require.NoError(t, err)
 		teambot.ServiceInit(mctx)
 		contacts.ServiceInit(w.G)
 	}
