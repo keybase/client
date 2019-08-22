@@ -639,7 +639,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
-        showServiceResultCount={this.state.searchString !== ''}
+        showServiceResultCount={false}
       />
     )
   }
