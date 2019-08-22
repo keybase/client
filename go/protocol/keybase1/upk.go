@@ -389,6 +389,7 @@ type UserPlusKeysV2AllIncarnations struct {
 	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
 	SeqnoLinkIDs     map[Seqno]LinkID  `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
 	MinorVersion     UPK2MinorVersion  `codec:"minorVersion" json:"minorVersion"`
+	Stale            bool              `codec:"stale" json:"stale"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -419,6 +420,7 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			return ret
 		})(o.SeqnoLinkIDs),
 		MinorVersion: o.MinorVersion.DeepCopy(),
+		Stale:        o.Stale,
 	}
 }
 
