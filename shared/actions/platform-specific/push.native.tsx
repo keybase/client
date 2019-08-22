@@ -48,6 +48,10 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
 // 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
 // 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
 // 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
+
+// At startup the flow above can be racy, since we may not have registered the
+// event listener before the event is emitted. In that case you can always use
+// `getInitialPushAndroid`.
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {

@@ -288,7 +288,7 @@ public class MainActivity extends ReactFragmentActivity {
           reactInstanceManager.addReactInstanceEventListener(rctContext -> {
             DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-            (new Emit(emitter, context)).run();
+            (new Emit(emitter, rctContext)).run();
           });
           if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
             // Construct it in the background
