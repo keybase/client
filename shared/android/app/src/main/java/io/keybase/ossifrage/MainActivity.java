@@ -40,6 +40,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.UUID;
 
+import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
@@ -230,15 +231,19 @@ public class MainActivity extends ReactFragmentActivity {
       }
 
       // Closure like class so we can keep our emit logic together
-      class Emit implements Runnable {
+      class Emit {
+        private final ReactContext context;
         private DeviceEventManagerModule.RCTDeviceEventEmitter emitter;
 
-        Emit(DeviceEventManagerModule.RCTDeviceEventEmitter emitter) {
+        Emit(DeviceEventManagerModule.RCTDeviceEventEmitter emitter, ReactContext context) {
           this.emitter = emitter;
+          this.context = context;
         }
 
-        @Override
         public void run() {
+          KeybaseEngine engine = context.getNativeModule(KeybaseEngine.class);
+          engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
+
           assert emitter != null;
           // If there are any other bundle sources we care about, emit them here
           if (bundleFromNotification != null) {
@@ -276,14 +281,14 @@ public class MainActivity extends ReactFragmentActivity {
           DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
 
-          (new Emit(emitter)).run();
+          (new Emit(emitter, context)).run();
 
         } else {
           // Otherwise wait for construction, then send the notification
           reactInstanceManager.addReactInstanceEventListener(rctContext -> {
             DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-            (new Emit(emitter)).run();
+            (new Emit(emitter, rctContext)).run();
           });
           if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
             // Construct it in the background
