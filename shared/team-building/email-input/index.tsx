@@ -26,9 +26,9 @@ const EmailInput = ({namespace}: EmailInputProps) => {
     state => state[namespace].teamBuilding.teamBuildingEmailIsSearching
   )
 
-  const debouncedSearch = debounce(
-    (query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})),
-    200
+  const debouncedSearch = React.useCallback(
+    debounce((query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})), 200),
+    [dispatch, namespace]
   )
 
   const onChange = React.useCallback(
@@ -47,7 +47,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
 
   const onSubmit = React.useCallback(() => {
     if (!user) {
-      throw new Error('User not found, cannot submit')
+      return
     }
 
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
