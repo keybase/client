@@ -292,6 +292,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     }
     case ConfigGen.updateWindowState:
       return state.merge({windowState: action.payload.windowState})
+    case ConfigGen.setUseNativeFrame:
+      return state.merge({useNativeFrame: action.payload.useNativeFrame})
     // Saga only actions
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:

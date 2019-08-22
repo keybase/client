@@ -58,7 +58,6 @@ export const onChangeNewPassword = 'settings:onChangeNewPassword'
 export const onChangeNewPasswordConfirm = 'settings:onChangeNewPasswordConfirm'
 export const onChangeRememberPassword = 'settings:onChangeRememberPassword'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
-export const onChangeUseNativeFrame = 'settings:onChangeUseNativeFrame'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onSubmitNewPassword = 'settings:onSubmitNewPassword'
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
@@ -149,7 +148,6 @@ type _OnChangeNewPasswordConfirmPayload = {readonly password: HiddenString}
 type _OnChangeNewPasswordPayload = {readonly password: HiddenString}
 type _OnChangeRememberPasswordPayload = {readonly remember: boolean}
 type _OnChangeShowPasswordPayload = void
-type _OnChangeUseNativeFramePayload = {readonly enabled: boolean}
 type _OnSubmitNewEmailPayload = void
 type _OnSubmitNewPasswordPayload = {readonly thenSignOut: boolean}
 type _OnUpdateEmailErrorPayload = {readonly error: Error}
@@ -430,9 +428,6 @@ export const createOnChangeRememberPassword = (
 export const createOnChangeShowPassword = (
   payload: _OnChangeShowPasswordPayload
 ): OnChangeShowPasswordPayload => ({payload, type: onChangeShowPassword})
-export const createOnChangeUseNativeFrame = (
-  payload: _OnChangeUseNativeFramePayload
-): OnChangeUseNativeFramePayload => ({payload, type: onChangeUseNativeFrame})
 export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload): OnSubmitNewEmailPayload => ({
   payload,
   type: onSubmitNewEmail,
@@ -668,10 +663,6 @@ export type OnChangeShowPasswordPayload = {
   readonly payload: _OnChangeShowPasswordPayload
   readonly type: typeof onChangeShowPassword
 }
-export type OnChangeUseNativeFramePayload = {
-  readonly payload: _OnChangeUseNativeFramePayload
-  readonly type: typeof onChangeUseNativeFrame
-}
 export type OnSubmitNewEmailPayload = {
   readonly payload: _OnSubmitNewEmailPayload
   readonly type: typeof onSubmitNewEmail
@@ -811,7 +802,6 @@ export type Actions =
   | OnChangeNewPasswordPayload
   | OnChangeRememberPasswordPayload
   | OnChangeShowPasswordPayload
-  | OnChangeUseNativeFramePayload
   | OnSubmitNewEmailPayload
   | OnSubmitNewPasswordPayload
   | OnUpdateEmailErrorPayload

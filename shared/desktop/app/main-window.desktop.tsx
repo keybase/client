@@ -41,7 +41,6 @@ const defaultWindowState: WindowState = {
   dockHidden: false,
   height: 600,
   isFullScreen: false,
-  useNativeFrame: defaultUseNativeFrame,
   width: 800,
   windowHidden: false,
   x: 0,
@@ -112,6 +111,8 @@ const changeDock = (show: boolean) => {
 export const showDockIcon = () => changeDock(true)
 export const hideDockIcon = () => changeDock(false)
 
+let useNativeFrame = defaultUseNativeFrame
+
 const loadWindowState = () => {
   const filename = dataRoot + 'gui_config.json'
 
@@ -124,11 +125,14 @@ const loadWindowState = () => {
       openAtLogin = guiConfig.openAtLogin
     }
 
+    if (guiConfig.useNativeFrame !== undefined) {
+      useNativeFrame = guiConfig.useNativeFrame
+    }
+
     const obj = JSON.parse(guiConfig.windowState)
     windowState.dockHidden = obj.dockHidden || windowState.dockHidden
     windowState.height = obj.height || windowState.height
     windowState.isFullScreen = obj.isFullScreen || windowState.isFullScreen
-    windowState.useNativeFrame = obj.useNativeFrame === undefined ? defaultUseNativeFrame : obj.useNativeFrame
     windowState.width = obj.width || windowState.width
     windowState.windowHidden = obj.windowHidden || windowState.windowHidden
     windowState.x = obj.x === undefined ? windowState.x : obj.x
@@ -242,7 +246,7 @@ export default () => {
   loadWindowState()
 
   const win = new Electron.BrowserWindow({
-    frame: windowState.useNativeFrame,
+    frame: useNativeFrame,
     height: windowState.height,
     minHeight: 600,
     minWidth: 400,

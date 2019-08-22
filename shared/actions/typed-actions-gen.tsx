@@ -238,6 +238,7 @@ export type TypedActionsMap = {
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'config:updateWindowState': config.UpdateWindowStatePayload
+  'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -707,7 +708,6 @@ export type TypedActionsMap = {
   'settings:loadLockdownMode': settings.LoadLockdownModePayload
   'settings:loadedLockdownMode': settings.LoadedLockdownModePayload
   'settings:onChangeLockdownMode': settings.OnChangeLockdownModePayload
-  'settings:onChangeUseNativeFrame': settings.OnChangeUseNativeFramePayload
   'settings:notificationsRefresh': settings.NotificationsRefreshPayload
   'settings:notificationsRefreshed': settings.NotificationsRefreshedPayload
   'settings:notificationsSaved': settings.NotificationsSavedPayload

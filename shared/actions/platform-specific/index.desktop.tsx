@@ -1,5 +1,4 @@
 import * as ConfigGen from '../config-gen'
-import * as SettingsGen from '../settings-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -102,24 +101,6 @@ function* initializeInputMonitor(): Iterable<any> {
     }
   }
 }
-
-// get this value from electron and update our store version
-// TODO remove
-// function* initializeAppSettingsState(): Iterable<any> {
-// const getAppState = () =>
-// new Promise(resolve => {
-// SafeElectron.getApp().once(
-// 'KBappState' as any,
-// (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
-// )
-// SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
-// })
-
-// const state = yield* Saga.callPromise(getAppState)
-// if (state) {
-// yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
-// }
-// }
 
 export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
   logger
@@ -330,25 +311,27 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state: Container.TypedState) => {
-  SafeElectron.getApp().emit('KBappState' as any, '', {
-    payload: {
-      data: {
-        useNativeFrame: state.settings.useNativeFrame,
-      },
+const saveUseNativeFrame = async (state: Container.TypedState) => {
+  const {useNativeFrame} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'useNativeFrame',
+    value: {
+      b: useNativeFrame,
+      isNull: false,
     },
-    type: 'set',
   })
 }
 
 function* initializeUseNativeFrame() {
-  const useNativeFrame = false // TODO
-  yield Saga.put(
-    SettingsGen.createOnChangeUseNativeFrame({
-      enabled:
-        useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : defaultUseNativeFrame,
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: 'useNativeFrame',
     })
-  )
+    const useNativeFrame = val.b === undefined ? defaultUseNativeFrame : val.b || defaultUseNativeFrame
+    yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+  } catch (_) {}
 }
 
 const saveWindowState = async (state: Container.TypedState) => {
@@ -439,7 +422,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
-  yield* Saga.chainAction2(SettingsGen.onChangeUseNativeFrame, setUseNativeFrame)
+  yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)
 

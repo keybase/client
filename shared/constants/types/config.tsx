@@ -28,7 +28,6 @@ export type WindowState = {
   dockHidden: boolean
   height: number
   isFullScreen: boolean
-  useNativeFrame: boolean
   width: number
   windowHidden: boolean
   x: number
@@ -84,5 +83,6 @@ export type _State = {
   uid: string
   userActive: boolean
   username: string
+  useNativeFrame: boolean
 }
 export type State = I.RecordOf<_State>

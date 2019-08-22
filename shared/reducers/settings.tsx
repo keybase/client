@@ -167,8 +167,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('password', password => password.merge({randomPW: action.payload.randomPW}))
     case SettingsGen.loadedCheckPassword:
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
-    case SettingsGen.onChangeUseNativeFrame:
-      return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
         pn.merge({

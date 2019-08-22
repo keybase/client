@@ -135,11 +135,11 @@ export const makeState = I.Record<Types._State>({
   uid: '',
   userActive: true,
   username: '',
+  useNativeFrame: defaultUseNativeFrame,
   windowState: {
     dockHidden: false,
     height: 800,
     isFullScreen: false,
-    useNativeFrame: defaultUseNativeFrame,
     width: 600,
     windowHidden: false,
     x: 0,

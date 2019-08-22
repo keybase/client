@@ -46,6 +46,7 @@ export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
+export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -128,6 +129,7 @@ type _SetStartupDetailsPayload = {
   readonly startupSharePath: FsTypes.LocalPath | null
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
+type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -328,6 +330,10 @@ export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): Set
   payload,
   type: setSystemDarkMode,
 })
+export const createSetUseNativeFrame = (payload: _SetUseNativeFramePayload): SetUseNativeFramePayload => ({
+  payload,
+  type: setUseNativeFrame,
+})
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
   payload,
@@ -448,6 +454,10 @@ export type SetSystemDarkModePayload = {
   readonly payload: _SetSystemDarkModePayload
   readonly type: typeof setSystemDarkMode
 }
+export type SetUseNativeFramePayload = {
+  readonly payload: _SetUseNativeFramePayload
+  readonly type: typeof setUseNativeFrame
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
@@ -511,6 +521,7 @@ export type Actions =
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
   | SetSystemDarkModePayload
+  | SetUseNativeFramePayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload

@@ -130,6 +130,9 @@
     "updateWindowState": {
       "_description": "main electron window wants to store its state",
       "windowState": "Types.WindowState",
+    },
+    "setUseNativeFrame": {
+      "useNativeFrame": "boolean"
     }
   }
 }

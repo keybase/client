@@ -28,7 +28,7 @@ type Props = {
   processorProfileInProgress: boolean
   hasRandomPW: boolean
   useNativeFrame: boolean
-  onChangeUseNativeFrame: (arg0: boolean) => void
+  onChangeUseNativeFrame: (use: boolean) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
   rememberPassword: boolean
@@ -36,10 +36,12 @@ type Props = {
   onToggleRuntimeStats: () => void
 }
 
-const initialUseNativeFrame = false
-// TODO
+let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = (props: Props) => {
+  if (initialUseNativeFrame === undefined) {
+    initialUseNativeFrame = props.useNativeFrame
+  }
   return isMobile ? null : (
     <>
       <Kb.Box style={styles.checkboxContainer}>

@@ -112,7 +112,6 @@ export const makeState = I.Record<Types._State>({
   password: makePassword(),
   phoneNumbers: makePhoneNumbers(),
   proxyData: null,
-  useNativeFrame: true,
 })
 
 export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})

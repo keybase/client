@@ -137,7 +137,6 @@ export type _State = {
   password: PasswordState
   phoneNumbers: PhoneNumbersState
   lockdownModeEnabled: boolean | null
-  useNativeFrame: boolean
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
   proxyData: RPCTypes.ProxyData | null
