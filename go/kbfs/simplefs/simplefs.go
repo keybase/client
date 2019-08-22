@@ -250,7 +250,7 @@ func populateIdentifyBehaviorIfNeeded(ctx context.Context, path1 *keybase1.Path,
 	if ib1 != nil && ib2 == nil {
 		return tlfhandle.MakeExtendedIdentify(ctx, *ib1)
 	}
-	if ib1 == ib2 {
+	if *ib1 == *ib2 {
 		return tlfhandle.MakeExtendedIdentify(ctx, *ib1)
 	}
 	return nil, errors.New("inconsistent IdentifyBehavior set in both paths")
