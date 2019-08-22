@@ -189,7 +189,7 @@ const styles = Styles.styleSheetCreate(() => ({
   createIcon: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.xtiny},
     isElectron: {display: 'block'},
-  })
+  }),
 }))
 
 export default ManageChannels
