@@ -109,11 +109,6 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	var err error
 	m.G().Log.CDebugf(ctx, "CachedFullSelf#maybeClearCache(%+v)", arg)
 
-	if !arg.uid.Exists() {
-		// m.me is non-nill since it's a precondition for maybeClearCache to be called
-		arg.uid = m.me.GetUID()
-	}
-
 	now := m.G().Clock().Now()
 	diff := now.Sub(m.cachedAt)
 
@@ -172,6 +167,9 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	var u *User
 
 	if m.me != nil && m.isSelfLoad(arg) {
+		if arg.uid.IsNil() {
+			arg.uid = m.me.GetUID()
+		}
 		m.maybeClearCache(ctx, &arg)
 	}
 
