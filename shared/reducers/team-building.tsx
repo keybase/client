@@ -69,7 +69,10 @@ export default function(
       })
     }
     case TeamBuildingGen.searchEmailAddressResultLoaded: {
-      const {user} = action.payload
+      const {user, query} = action.payload
+      if (query !== state.teamBuildingEmailSearchQuery) {
+        return state
+      }
       return state.merge({
         teamBuildingEmailIsSearching: false,
         teamBuildingEmailResult: user,
