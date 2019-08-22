@@ -155,6 +155,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
+	MessageType_PIN,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -178,6 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
 }
 
 func VisibleChatMessageTypes() []MessageType {
@@ -485,6 +488,14 @@ func (m MessageUnboxed) ChannelMention() ChannelMention {
 		return ChannelMention_NONE
 	}
 	return m.Valid().ChannelMention
+}
+
+func (m MessageUnboxed) SenderIsBot() bool {
+	if m.IsValid() {
+		valid := m.Valid()
+		return gregor1.UIDPtrEq(valid.ClientHeader.BotUID, &valid.ClientHeader.Sender)
+	}
+	return false
 }
 
 func (m *MessageUnboxed) DebugString() string {

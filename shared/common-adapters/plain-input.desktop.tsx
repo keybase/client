@@ -1,9 +1,8 @@
 import * as React from 'react'
-import {getStyle as getTextStyle} from './text.desktop'
 import * as Styles from '../styles'
+import {getStyle as getTextStyle} from './text.desktop'
 import {pick} from 'lodash-es'
 import logger from '../logger'
-
 import {_StylesDesktop} from '../styles/css'
 import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'

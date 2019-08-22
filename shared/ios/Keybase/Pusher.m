@@ -31,5 +31,14 @@
   }];
 }
 
+- (void)displayChatNotification:(KeybaseChatNotification *)notification {
+  NSString* ident = [NSString stringWithFormat:@"%@:%ld", notification.convID, notification.message.id_];
+  NSString* msgTxt = notification.isPlaintext ? notification.message.plaintext : @"Encrypted Message...";
+  NSString* msg = [NSString stringWithFormat:@"%@ (%@): %@", notification.message.from.keybaseUsername, notification.conversationName, msgTxt];
+
+  [self localNotification:ident msg:msg badgeCount:notification.badgeCount soundName:notification.soundName convID:notification.convID typ:@"chat.newmessage"];
+}
+
+
 @end
 

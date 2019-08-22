@@ -25,7 +25,7 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
   </Text>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   follow: {
     backgroundColor: Styles.isDarkMode ? Styles.globalColors.green : Styles.globalColors.greenLighter,
     borderRadius: 2,
@@ -54,4 +54,4 @@ const styles = Styles.styleSheetCreate({
       display: 'inline-block',
     },
   }),
-})
+}))

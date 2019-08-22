@@ -168,7 +168,7 @@ func newNIST(g *GlobalContext) *NIST {
 }
 
 type nistPayload struct {
-	_struct   bool `codec:",toarray"`
+	_struct   bool `codec:",toarray"` //nolint
 	Version   sessionVersion
 	Mode      nistMode
 	Hostname  string
@@ -181,7 +181,7 @@ type nistPayload struct {
 }
 
 type nistSig struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version sessionVersion
 	Mode    nistMode
 	Sig     []byte
@@ -189,7 +189,7 @@ type nistSig struct {
 }
 
 type nistPayloadShort struct {
-	_struct   bool `codec:",toarray"`
+	_struct   bool `codec:",toarray"` //nolint
 	UID       []byte
 	DeviceID  []byte
 	Generated int64
@@ -198,7 +198,7 @@ type nistPayloadShort struct {
 }
 
 type nistHash struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version sessionVersion
 	Mode    nistMode
 	Hash    []byte

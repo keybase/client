@@ -13,7 +13,7 @@ import {getEngine} from '../../engine'
 import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../util/quit-helper'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
@@ -68,13 +68,27 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_: Container.TypedState, action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (
+  _: Container.TypedState,
+  action: ConfigGen.SetOpenAtLoginPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      payload: {data: {openAtLogin: action.payload.open}},
+      type: 'set',
+    })
+}
 
-const writeElectronSettingsNotifySound = (_: Container.TypedState, action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (
+  _: Container.TypedState,
+  action: ConfigGen.SetNotifySoundPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      payload: {data: {notifySound: action.payload.sound}},
+      type: 'set',
+    })
+}
 
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
@@ -120,8 +134,11 @@ function* initializeInputMonitor(): Iterable<any> {
 function* initializeAppSettingsState(): Iterable<any> {
   const getAppState = () =>
     new Promise(resolve => {
-      SafeElectron.getIpcRenderer().once('getAppStateReply', (_, data) => resolve(data))
-      SafeElectron.getIpcRenderer().send('getAppState')
+      SafeElectron.getApp().once(
+        'KBappState' as any,
+        (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
+      )
+      SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
     })
 
   const state = yield* Saga.callPromise(getAppState)
@@ -141,7 +158,7 @@ export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPa
     .then(() => {
       // quit as soon as possible
       if (action && action.payload.reason === 'quitting through menu') {
-        quit('quitButton')
+        quit()
       }
     })
 
@@ -280,7 +297,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getIpcRenderer().send('kb-service-check')
+    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
   }
 }
 
@@ -340,8 +357,16 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state: Container.TypedState) =>
-  SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
+const setUseNativeFrame = (state: Container.TypedState) => {
+  SafeElectron.getApp().emit('KBappState' as any, '', {
+    payload: {
+      data: {
+        useNativeFrame: state.settings.useNativeFrame,
+      },
+    },
+    type: 'set',
+  })
+}
 
 function* initializeUseNativeFrame() {
   const useNativeFrame = new AppState().state.useNativeFrame

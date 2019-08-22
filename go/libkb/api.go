@@ -298,7 +298,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	finisher = func() {
 		if internalResp != nil {
-			DiscardAndCloseBody(internalResp)
+			_ = DiscardAndCloseBody(internalResp)
 			internalResp = nil
 		}
 		if canc != nil {
@@ -651,14 +651,16 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
-		if m.G().Env.GetDeviceID().Exists() {
-			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
-		}
-		if i := m.G().Env.GetInstallID(); i.Exists() {
-			req.Header.Set("X-Keybase-Install-ID", i.String())
-		}
 		if tags := LogTagsToString(m.Ctx()); tags != "" {
 			req.Header.Set("X-Keybase-Log-Tags", tags)
+		}
+		if arg.SessionType != APISessionTypeNONE {
+			if m.G().Env.GetDeviceID().Exists() {
+				req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
+			}
+			if i := m.G().Env.GetInstallID(); i.Exists() {
+				req.Header.Set("X-Keybase-Install-ID", i.String())
+			}
 		}
 	}
 
@@ -754,8 +756,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	}
 	defer finisher()
 
-	var reader io.Reader
-	reader = resp.Body
+	reader := resp.Body.(io.Reader)
 	if a.G().Env.GetAPIDump() {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -967,7 +968,7 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 		var buf bytes.Buffer
 		_, err = buf.ReadFrom(resp.Body)
 		if err == nil {
-			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
+			tr = &ExternalTextRes{resp.StatusCode, buf.String()}
 		}
 	default:
 		err = fmt.Errorf("unknown restype to DoRequest")

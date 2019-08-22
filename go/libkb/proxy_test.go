@@ -16,7 +16,7 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 	require.Equal(t, HTTPConnect, proxyType)
 	require.Equal(t, true, ok)
 
-	proxyType, ok = ProxyTypeStrToEnum["bogus"]
+	_, ok = ProxyTypeStrToEnum["bogus"]
 	require.Equal(t, false, ok)
 }
 

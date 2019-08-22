@@ -9,6 +9,10 @@ import Box from './box'
 import {clamp} from 'lodash-es'
 import {Props} from './zoomable-box'
 
+const Kb = {
+  Box,
+}
+
 const distance = (a: NativeTouchEvent, b: NativeTouchEvent): number => {
   return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
 }
@@ -204,7 +208,7 @@ class ZoomableBox extends React.Component<Props, State> {
   render() {
     const panHandlers = this._panResponder ? this._panResponder.panHandlers : {}
     return (
-      <Box
+      <Kb.Box
         {...this.props}
         {...panHandlers}
         onLayout={this._onLayout}

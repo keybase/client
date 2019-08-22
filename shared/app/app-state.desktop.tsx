@@ -1,3 +1,4 @@
+// TODO entirely remove this file
 // This is modified from https://github.com/mawie81/electron-window-state
 import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
@@ -63,21 +64,32 @@ export default class AppState {
       winRef: null,
     }
 
+    type Action =
+      | {type: 'get'}
+      | {type: 'set'; payload: {data: any}}
+      | {type: 'reply'; payload: {data: any}}
+      | {type: 'dock'; payload: {showing: boolean}}
     // Listen to the main window asking for this value
-    SafeElectron.getIpcMain().on('getAppState', event => {
-      event.sender.send('getAppStateReply', this.state)
-    })
-
-    SafeElectron.getIpcMain().on('setAppState', (_, data) => {
-      this.state = {
-        ...this.state,
-        ...data,
+    SafeElectron.getApp().on('KBappState' as any, (_: string, action: Action) => {
+      switch (action.type) {
+        case 'get':
+          SafeElectron.getApp().emit('KBappState', '', {payload: {data: this.state}, type: 'reply'})
+          break
+        case 'set':
+          this.state = {
+            ...this.state,
+            ...action.payload.data,
+          }
+          this.saveState()
+          break
+        case 'dock':
+          this.state.dockHidden = !action.payload.showing
+          this.saveState()
+          break
       }
-      this.saveState()
     })
 
     this._loadStateSync()
-    this._loadAppListeners()
   }
 
   // Changing this to use fs.writeFileSync because:
@@ -282,19 +294,5 @@ export default class AppState {
     this.managed.debounceChangeTimer = setTimeout(() => {
       this._updateState()
     }, this.config.eventHandlingDelay)
-  }
-
-  _loadAppListeners() {
-    // @ts-ignore
-    SafeElectron.getApp().on('-keybase-dock-showing', () => {
-      this.state.dockHidden = false
-      this.saveState()
-    })
-
-    // @ts-ignore
-    SafeElectron.getApp().on('-keybase-dock-hide', () => {
-      this.state.dockHidden = true
-      this.saveState()
-    })
   }
 }

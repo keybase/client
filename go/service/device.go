@@ -105,9 +105,12 @@ func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisse
 			return err
 		}
 		itemID := item.Metadata().MsgID()
-		if body.DeviceID != string(exceptedDeviceID) {
+		if body.DeviceID != exceptedDeviceID {
 			mctx.Debug("dismissing device notification %s for %s", category, body.DeviceID)
-			dismisser.DismissItem(mctx.Ctx(), nil, itemID)
+			err := dismisser.DismissItem(mctx.Ctx(), nil, itemID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -62,11 +62,11 @@ class List2<T> extends PureComponent<Props<T>> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   outerView: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default List2

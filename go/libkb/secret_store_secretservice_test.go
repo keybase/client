@@ -90,7 +90,10 @@ func TestSSSSCorruptKeystore(t *testing.T) {
 	keystore := s.keystore(mctx, "alice", nil)
 	keypath := keystore.(*FileErasableKVStore).filepath(s.keystoreKey())
 	file, err := os.OpenFile(keypath, os.O_RDWR, 0755)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		require.NoError(t, err)
+	}()
 	require.NoError(t, err)
 	_, err = file.Write([]byte("YELLOW_SUBMARINE"))
 	require.NoError(t, err)
@@ -118,7 +121,10 @@ func TestSSSSCorruptNoise(t *testing.T) {
 	fileKeystore := keystore.(*FileErasableKVStore)
 	keypath := fileKeystore.filepath(fileKeystore.noiseKey(s.keystoreKey()))
 	file, err := os.OpenFile(keypath, os.O_RDWR, 0755)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		require.NoError(t, err)
+	}()
 	require.NoError(t, err)
 	_, err = file.Write([]byte("YELLOW_SUBMARINE"))
 	require.NoError(t, err)

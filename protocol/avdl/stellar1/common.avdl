@@ -1,6 +1,6 @@
 @namespace("stellar.1")
 protocol common {
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("string") record AccountID {}
   @typedef("string") record SecretKey {}

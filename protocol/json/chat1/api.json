@@ -73,12 +73,14 @@
         {
           "type": "string",
           "name": "topicType",
-          "jsonkey": "topic_type"
+          "jsonkey": "topic_type",
+          "optional": true
         },
         {
           "type": "string",
           "name": "topicName",
-          "jsonkey": "topic_name"
+          "jsonkey": "topic_name",
+          "optional": true
         }
       ]
     },
@@ -105,7 +107,8 @@
         {
           "type": "string",
           "name": "username",
-          "jsonkey": "username"
+          "jsonkey": "username",
+          "optional": true
         },
         {
           "type": "string",
@@ -115,7 +118,8 @@
         {
           "type": "string",
           "name": "deviceName",
-          "jsonkey": "device_name"
+          "jsonkey": "device_name",
+          "optional": true
         }
       ]
     },
@@ -326,32 +330,38 @@
         {
           "type": "boolean",
           "name": "revokedDevice",
-          "jsonkey": "revoked_device"
+          "jsonkey": "revoked_device",
+          "optional": true
         },
         {
           "type": "boolean",
           "name": "offline",
-          "jsonkey": "offline"
+          "jsonkey": "offline",
+          "optional": true
         },
         {
           "type": "boolean",
           "name": "kbfsEncrypted",
-          "jsonkey": "kbfs_encrypted"
+          "jsonkey": "kbfs_encrypted",
+          "optional": true
         },
         {
           "type": "boolean",
           "name": "isEphemeral",
-          "jsonkey": "is_ephemeral"
+          "jsonkey": "is_ephemeral",
+          "optional": true
         },
         {
           "type": "boolean",
           "name": "isEphemeralExpired",
+          "optional": true,
           "jsonkey": "is_ephemeral_expired"
         },
         {
           "type": "gregor1.Time",
           "name": "eTime",
-          "jsonkey": "e_time"
+          "jsonkey": "e_time",
+          "optional": true
         },
         {
           "type": [
@@ -364,7 +374,8 @@
         {
           "type": "boolean",
           "name": "hasPairwiseMacs",
-          "jsonkey": "has_pairwise_macs"
+          "jsonkey": "has_pairwise_macs",
+          "optional": true
         },
         {
           "type": {
@@ -372,12 +383,14 @@
             "items": "string"
           },
           "name": "atMentionUsernames",
-          "jsonkey": "at_mention_usernames"
+          "jsonkey": "at_mention_usernames",
+          "optional": true
         },
         {
           "type": "string",
           "name": "channelMention",
-          "jsonkey": "channel_mention"
+          "jsonkey": "channel_mention",
+          "optional": true
         },
         {
           "type": {
@@ -385,7 +398,8 @@
             "items": "UIChannelNameMention"
           },
           "name": "channelNameMentions",
-          "jsonkey": "channel_name_mentions"
+          "jsonkey": "channel_name_mentions",
+          "optional": true
         }
       ]
     },
@@ -434,7 +448,8 @@
         {
           "type": "boolean",
           "name": "offline",
-          "jsonkey": "offline"
+          "jsonkey": "offline",
+          "optional": true
         },
         {
           "type": {
@@ -442,7 +457,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": {
@@ -450,7 +466,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -554,7 +571,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": [
@@ -570,7 +588,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -605,7 +624,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": {
@@ -613,7 +633,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -635,7 +656,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": {
@@ -643,7 +665,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -665,7 +688,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": {
@@ -673,7 +697,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -692,7 +717,8 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures",
-          "jsonkey": "identify_failures"
+          "jsonkey": "identify_failures",
+          "optional": true
         },
         {
           "type": {
@@ -700,7 +726,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -722,7 +749,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },
@@ -736,7 +764,8 @@
             "items": "RateLimitRes"
           },
           "name": "rateLimits",
-          "jsonkey": "ratelimits"
+          "jsonkey": "ratelimits",
+          "optional": true
         }
       ]
     },

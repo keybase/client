@@ -40,8 +40,8 @@ const GoodLines = ({color}: {color: Styles.Color}) => {
 const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color}) =>
   canScan ? <GoodLines color={color || Styles.globalColors.blue} /> : <BadLines />
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   common: {position: 'absolute'},
-})
+}))
 
 export default QRScanLines

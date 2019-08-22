@@ -469,7 +469,10 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 				kf.pgp2kid[fp] = kid
 				kf.kid2pgp[kid] = fp
 			}
-			ks.addKey(pgp)
+			err = ks.addKey(pgp)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			kf.SingleKeys[kid] = newKey
 		}

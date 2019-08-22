@@ -41,6 +41,5 @@ export const isLargeScreen = Dimensions.get('window').height >= 667
 
 const _dir = `${cachesDirectoryPath}/Keybase`
 export const logFileDir = _dir
-export const logFileName = `${_dir}/rn.log`
 export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`

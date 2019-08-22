@@ -60,7 +60,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 
 	// These are the proofs that user previously tracked that
 	// are not in the current profile:
-	diff := (*tracked).Subtract(*found)
+	diff := tracked.Subtract(*found)
 
 	for _, e := range diff {
 		if e.GetProofState() != keybase1.ProofState_OK {
@@ -174,7 +174,10 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) 
 		if diff != nil {
 			k.BreaksTracking = diff.BreaksTracking()
 		}
-		dhook(k)
+		err := dhook(k)
+		if err != nil {
+			s.G().Log.Debug("computeKeyDiffs: dhook error: %+v", err)
+		}
 	}
 
 	// first check the eldest key

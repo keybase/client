@@ -85,16 +85,18 @@ func (r *rekeyMaster) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case TLFRekeyGregorCategory:
 		r.G().Log.Debug("incoming gregor: %+v", ibm)
 		return true, r.handleGregorCreation()
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 func (r *rekeyMaster) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case TLFRekeyGregorCategory:
 		return true, r.handleGregorDismissal()
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 var _ libkb.GregorInBandMessageHandler = (*rekeyMaster)(nil)
@@ -241,7 +243,10 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 
 	// sendRekeyEvent sends a debug message to the UI (useful only in testing)
 	event.InterruptType = int(ri)
-	r.sendRekeyEvent(event)
+	err = r.sendRekeyEvent(event)
+	if err != nil {
+		return ret, err
+	}
 
 	err = r.actOnProblems(problemsAndDevices, event)
 	return ret, err
@@ -558,7 +563,7 @@ func (r *RekeyHandler2) DebugShowRekeyStatus(ctx context.Context, sessionID int)
 					Username: me.GetName(),
 				},
 				Tlfs: []keybase1.ProblemTLF{
-					keybase1.ProblemTLF{
+					{
 						Tlf: keybase1.TLF{
 							// this is only for debugging
 							Name:      "/keybase/private/" + me.GetName(),

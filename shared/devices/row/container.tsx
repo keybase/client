@@ -13,7 +13,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
   return {
     isCurrentDevice: device.currentDevice,
-    isNew: !!state.devices.getIn(['isNew', device.deviceID]) || false,
+    isNew: state.devices.isNew.has(device.deviceID),
     isRevoked: !!device.revokedByName,
     name: device.name,
     type: device.type,

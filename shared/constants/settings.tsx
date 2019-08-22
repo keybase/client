@@ -82,6 +82,7 @@ export const makePassword = I.Record<Types._PasswordState>({
 })
 
 export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
+  addedPhone: false,
   error: '',
   pendingVerification: '',
   phones: null,

@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"fmt"
 	"net/http"
+	"runtime"
 	"sync"
 
 	"github.com/keybase/client/go/kbhttp"
@@ -103,6 +104,10 @@ func (r *Srv) monitorAppState() {
 	ctx := context.Background()
 	r.debug(ctx, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
+	// We don't need this on Android
+	if runtime.GOOS == "android" {
+		return
+	}
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
