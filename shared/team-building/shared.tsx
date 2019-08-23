@@ -1,6 +1,7 @@
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {IconType} from '../common-adapters/icon.constants'
+import Flags from '../util/feature-flags'
 
 const services: {
   [K in ServiceIdWithContact]: {color: string; icon: IconType; label: string; longLabel: string}
@@ -15,7 +16,7 @@ const services: {
     color: '#000',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
-    longLabel: 'An email address',
+    longLabel: Flags.wonderland ? 'An email address 🐇' : 'An email address',
   },
   facebook: {
     color: '#3B5998',
@@ -51,7 +52,7 @@ const services: {
     color: '#4C8EFF',
     icon: 'iconfont-number-pad',
     label: 'Phone',
-    longLabel: 'A phone number',
+    longLabel: Flags.wonderland ? 'A phone number 🐇' : 'A phone number',
   },
   reddit: {
     color: '#ff4500',

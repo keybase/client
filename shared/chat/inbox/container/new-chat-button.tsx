@@ -4,6 +4,7 @@ import {globalMargins, styleSheetCreate} from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
+import Flags from '../../../util/feature-flags'
 
 type OwnProps = {
   hide: boolean
@@ -16,7 +17,7 @@ const _HeaderNewChatButton = (props: OwnProps) => {
   }
   return (
     <Kb.Button
-      label="New chat"
+      label={Flags.wonderland ? 'New chat 🐇' : 'New chat'}
       mode="Primary"
       onClick={props.onNewChat}
       small={true}
