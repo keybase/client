@@ -115,7 +115,6 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
-  buttonContainer: {justifyContent: 'center'},
   containerStyle: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueGrey,
@@ -130,10 +129,8 @@ const styles = Styles.styleSheetCreate(() => ({
       zIndex: -1,
     },
   }),
-  justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},
-  placeholderIcon: {borderRadius: 16, height: 32},
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
 }))
