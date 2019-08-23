@@ -27,6 +27,7 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -545,7 +546,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label={'Start'} // PICNIC-360 rabbit here
+                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}

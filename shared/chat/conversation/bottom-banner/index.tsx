@@ -3,6 +3,7 @@ import {Box2, Button, Text} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import Flags from '../../../util/feature-flags'
 
 export type InviteProps = {
   openShareSheet: () => void
@@ -39,7 +40,11 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>Last step: summon {theirName}!</BannerText>
-        <Button label="Send install link" onClick={() => openSMS(users[0].slice(0, -6))} mode="Secondary" />
+        <Button
+          label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
+          onClick={() => openSMS(users[0].slice(0, -6))}
+          mode="Secondary"
+        />
       </BannerBox>
     )
   }
