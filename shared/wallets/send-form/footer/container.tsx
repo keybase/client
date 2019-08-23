@@ -2,6 +2,7 @@ import Footer from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
@@ -11,12 +12,17 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => {
   const accountID = state.wallets.building.from
+  let thisDeviceIsLockedOut = false
+  if (Types.isValidAccountID(accountID)) {
+    thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
+  } else {
+    thisDeviceIsLockedOut = Constants.getDefaultAccount(state).deviceReadOnly
+  }
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
   return {
     calculating:
       !!state.wallets.building.amount &&
