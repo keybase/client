@@ -96,7 +96,7 @@ class PaymentStatus extends React.Component<Props, State> {
         attachTo={this._getAttachmentRef}
         visible={this.state.showPopup}
         paymentID={this.props.paymentID}
-        position={'top center'}
+        position="top center"
         message={this.props.message}
         onHidden={this._hidePopup}
       />

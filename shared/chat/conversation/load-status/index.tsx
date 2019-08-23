@@ -68,13 +68,13 @@ const ThreadLoadStatus = (props: Props) => {
     case RPCChatTypes.UIChatThreadStatusTyp.server:
       return (
         <Container status={props.status}>
-          <Kb.Text type="BodyTiny">{'Syncing messages with server...'}</Kb.Text>
+          <Kb.Text type="BodyTiny">Syncing messages with server...</Kb.Text>
         </Container>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validating:
       return (
         <Container status={props.status}>
-          <Kb.Text type="BodyTiny">{'Validating sender signing keys...'}</Kb.Text>
+          <Kb.Text type="BodyTiny">Validating sender signing keys...</Kb.Text>
         </Container>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validated:

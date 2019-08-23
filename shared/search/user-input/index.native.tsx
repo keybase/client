@@ -214,7 +214,7 @@ class UserInput extends Component<Props, State> {
             <TextInput
               autoFocus={autoFocus}
               autoCorrect={false}
-              autoCapitalize={'none'}
+              autoCapitalize="none"
               ref={el => {
                 this._textInput = el
               }}

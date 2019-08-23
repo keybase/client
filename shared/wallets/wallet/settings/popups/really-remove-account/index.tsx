@@ -79,7 +79,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           into Keybase later.
         </Kb.Text>
 
-        <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position={'top center'}>
+        <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position="top center">
           {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard

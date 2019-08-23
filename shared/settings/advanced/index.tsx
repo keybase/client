@@ -49,7 +49,7 @@ const UseNativeFrame = (props: Props) => {
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!props.useNativeFrame}
-          label={'Hide system window frame'}
+          label="Hide system window frame"
           onCheck={x => props.onChangeUseNativeFrame(!x)}
         />
       </Kb.Box>

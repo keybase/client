@@ -160,7 +160,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={props.onConfirmRolePicker}
                 onCancel={props.onCancelRolePicker}
-                position={'bottom center'}
+                position="bottom center"
                 open={props.isRolePickerOpen}
                 disabledRoles={props.disabledReasonsForRolePicker}
               >

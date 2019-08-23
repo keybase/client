@@ -545,7 +545,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label={'Start'} // PICNIC-360 rabbit here
+                      label="Start" // PICNIC-360 rabbit here
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}

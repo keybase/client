@@ -32,7 +32,7 @@ const CoinFlipError = (props: Props) => {
     return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
 
-  return <CoinFlipGenericError error={'Unknown error occurred'} />
+  return <CoinFlipGenericError error="Unknown error occurred" />
 }
 
 type GenericProps = {

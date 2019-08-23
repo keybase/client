@@ -50,7 +50,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('onAnyActivity')}
           selected={props.desktop === 'onAnyActivity'}
-          label={'On any activity'}
+          label="On any activity"
         />
       </Kb.Box>
       <Kb.Box style={styleRadioButton}>
@@ -58,7 +58,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('onWhenAtMentioned')}
           selected={props.desktop === 'onWhenAtMentioned'}
-          label={'Only when @mentioned'}
+          label="Only when @mentioned"
         />
       </Kb.Box>
       <Kb.Box style={styleRadioButton}>
@@ -66,7 +66,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('never')}
           selected={props.desktop === 'never'}
-          label={'Never'}
+          label="Never"
         />
       </Kb.Box>
 
@@ -79,7 +79,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('onAnyActivity')}
           selected={props.mobile === 'onAnyActivity'}
-          label={'On any activity'}
+          label="On any activity"
         />
       </Kb.Box>
       <Kb.Box style={styleRadioButton}>
@@ -87,7 +87,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('onWhenAtMentioned')}
           selected={props.mobile === 'onWhenAtMentioned'}
-          label={'Only when @mentioned'}
+          label="Only when @mentioned"
         />
       </Kb.Box>
       <Kb.Box style={styleRadioButton}>
@@ -95,7 +95,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('never')}
           selected={props.mobile === 'never'}
-          label={'Never'}
+          label="Never"
         />
       </Kb.Box>
     </React.Fragment>

@@ -151,8 +151,8 @@ class TabBar extends React.PureComponent<Props, State> {
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
                     {p.uploading && t === Tabs.fsTab && (
                       <Kb.Icon
-                        type={'icon-addon-file-uploading'}
-                        sizeType={'Default'}
+                        type="icon-addon-file-uploading"
+                        sizeType="Default"
                         style={styles.badgeIcon}
                       />
                     )}

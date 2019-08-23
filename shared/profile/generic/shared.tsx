@@ -5,7 +5,7 @@ import {SiteIconSet} from '../../constants/types/tracker2'
 
 export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Styles.globalColors.green} />
 export const MastadonIcon = (
-  <Kb.Icon type="iconfont-identity-mastodon" colorOverride={'#2b90d9'} fontSize={64} />
+  <Kb.Icon type="iconfont-identity-mastodon" colorOverride="#2b90d9" fontSize={64} />
 )
 
 const siteIconToSrcSet = siteIcon =>
