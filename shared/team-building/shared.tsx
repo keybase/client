@@ -46,7 +46,7 @@ const services: {
     color: '#FF6600',
     icon: 'iconfont-identity-hn',
     label: 'Hacker News',
-    longLabel: 'A HN user',
+    longLabel: 'A Hacker News user',
     searchPlaceholder: 'HackerNews',
   },
   keybase: {
