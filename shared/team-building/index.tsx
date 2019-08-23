@@ -138,7 +138,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
-        <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
+        <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
         <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
@@ -178,13 +178,14 @@ const ContactsImportButton = (props: ContactProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
+        gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-phone-contact" fontSize={24} />
+        <Kb.Icon type="iconfont-contact-book" color="Styles.globalColors.black" />
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import your phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" fontSize={24} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color="Styles.globalColors.black" />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -548,7 +549,9 @@ const styles = Styles.styleSheetCreate({
   banner: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
-      padding: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
     },
     isMobile: {
       zIndex: -1, // behind ServiceTabBar
@@ -556,8 +559,8 @@ const styles = Styles.styleSheetCreate({
   }),
   bannerButtonContainer: {
     flexWrap: 'wrap',
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xsmall,
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerIcon: {
     maxHeight: 112,
@@ -574,7 +577,7 @@ const styles = Styles.styleSheetCreate({
   },
   bannerText: {
     flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerTextContainer: {
     flex: 1,
@@ -606,7 +609,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   importContactsContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     padding: Styles.globalMargins.xsmall,
   },
   list: Styles.platformStyles({
