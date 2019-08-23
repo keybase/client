@@ -30,7 +30,7 @@ const Group = (props: {
       alignSelf="flex-start"
       fullWidth={true}
     >
-      {props.settings &&
+      {!!props.settings &&
         props.settings.map(s => (
           <Kb.Checkbox
             key={props.groupName + s.name}
@@ -104,8 +104,8 @@ const Notifications = (props: Props) =>
       )}
       <Kb.Divider style={styles.divider} />
       {(!Styles.isMobile || props.mobileHasPermissions) &&
-      props.groups.app_push &&
-      props.groups.app_push.settings ? (
+      !!props.groups.app_push &&
+      !!props.groups.app_push.settings ? (
         <>
           <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
@@ -121,8 +121,8 @@ const Notifications = (props: Props) =>
       )}
 
       {(!Styles.isMobile || props.mobileHasPermissions) &&
-        props.groups.security &&
-        props.groups.security.settings && (
+        !!props.groups.security &&
+        !!props.groups.security.settings && (
           <Group
             allowEdit={props.allowEdit}
             groupName="security"
