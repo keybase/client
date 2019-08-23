@@ -28,14 +28,16 @@ class BannerContainer extends React.PureComponent<Props> {
   render() {
     switch (this.props.type) {
       case 'invite':
-        return this.props.dismissed ? null : (
-          <InviteBanner
-            openShareSheet={this.props.openShareSheet}
-            openSMS={this.props.openSMS}
-            onDismiss={this.props.onDismiss}
-            users={this.props.users}
-            usernameToContactName={this.props.usernameToContactName}
-          />
+        return (
+          !this.props.dismissed && (
+            <InviteBanner
+              openShareSheet={this.props.openShareSheet}
+              openSMS={this.props.openSMS}
+              onDismiss={this.props.onDismiss}
+              users={this.props.users}
+              usernameToContactName={this.props.usernameToContactName}
+            />
+          )
         )
       case 'broken':
         return <Kb.ProofBrokenBanner users={this.props.users} />
