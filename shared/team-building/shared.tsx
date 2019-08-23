@@ -19,7 +19,7 @@ const services: {
     longLabel: 'A contact',
   },
   email: {
-    color: '#000',
+    color: '#4C8EFF',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
     longLabel: 'An email address',

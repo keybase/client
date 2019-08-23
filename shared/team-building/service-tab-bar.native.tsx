@@ -34,6 +34,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 const ServiceIcon = (props: IconProps) => {
   const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
+  const color = props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -44,21 +45,19 @@ const ServiceIcon = (props: IconProps) => {
           {width: mapRange(props.labelPresence, 0, 1, smallWidth, bigWidth)},
         ])}
       >
-        <Kb.Icon
-          fontSize={18}
-          type={serviceIdToIconFont(props.service)}
-          color={props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor}
-        />
+        <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         <Kb.Box2
           direction="vertical"
-          style={{
-            height: labelHeight * props.labelPresence,
-            opacity: props.labelPresence,
-            overflow: 'hidden',
-          }}
+          style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Text type="BodyTiny" center={true} lineClamp={2}>
+            <Kb.Text
+              type="BodyTiny"
+              center={true}
+              lineClamp={2}
+              // @ts-ignore: we need to allow any color here for various services
+              style={{color}}
+            >
               {props.label}
             </Kb.Text>
           </Kb.Box2>
@@ -165,6 +164,10 @@ const styles = Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
     height: 2,
+  },
+  labelContainer: {
+    marginTop: Styles.globalMargins.xtiny,
+    overflow: 'hidden',
   },
   pendingIcon: {height: 17, width: 17},
   serviceIconContainer: {
