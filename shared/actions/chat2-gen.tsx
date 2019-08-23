@@ -35,6 +35,7 @@ export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -212,6 +213,7 @@ type _DesktopNotificationPayload = {
   readonly author: string
   readonly body: string
 }
+type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -870,6 +872,12 @@ export const createSetWalletsOld = (payload: _SetWalletsOldPayload): SetWalletsO
   type: setWalletsOld,
 })
 /**
+ * Set the bottom banner on a new conversation as dismissed
+ */
+export const createDismissBottomBanner = (
+  payload: _DismissBottomBannerPayload
+): DismissBottomBannerPayload => ({payload, type: dismissBottomBanner})
+/**
  * Set the collapse status of a message
  */
 export const createToggleMessageCollapse = (
@@ -1402,6 +1410,10 @@ export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
   readonly type: typeof desktopNotification
 }
+export type DismissBottomBannerPayload = {
+  readonly payload: _DismissBottomBannerPayload
+  readonly type: typeof dismissBottomBanner
+}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1828,6 +1840,7 @@ export type Actions =
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload
+  | DismissBottomBannerPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
