@@ -2775,10 +2775,28 @@ func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.Conver
 	return keybase1.TeamIDFromString(nameInfo.ID.String())
 }
 
+func (h *Server) fixupTeamErrorWithTLFName(ctx context.Context, username, tlfName string, err error) error {
+	switch err.(type) {
+	case nil:
+		return nil
+	case libkb.ExistsError:
+		h.Debug(ctx, "fixupTeamErrorWithTLFName: %v", err)
+		return libkb.ExistsError{Msg: fmt.Sprintf(
+			"user %q is already a member of team %q", username, tlfName)}
+	case libkb.NotFoundError:
+		h.Debug(ctx, "fixupTeamErrorWithTLFName: %v", err)
+		return libkb.NotFoundError{Msg: fmt.Sprintf(
+			"user %q is not a member of team %q", username, tlfName)}
+	default:
+		return err
+	}
+}
+
 func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddBotMember")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
@@ -2821,6 +2839,7 @@ func (h *Server) RemoveBotMember(ctx context.Context, arg chat1.RemoveBotMemberA
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "RemoveBotMember")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
@@ -2837,6 +2856,7 @@ func (h *Server) SetBotMemberSettings(ctx context.Context, arg chat1.SetBotMembe
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
@@ -2853,6 +2873,7 @@ func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMembe
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}

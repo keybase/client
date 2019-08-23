@@ -6980,7 +6980,7 @@ func TestTeamBotSettings(t *testing.T) {
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings,
 				MembersType: mt,
-				TlfPublic:   false,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(3)
@@ -6994,7 +6994,7 @@ func TestTeamBotSettings(t *testing.T) {
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings2,
 				MembersType: mt,
-				TlfPublic:   false,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(5)

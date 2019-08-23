@@ -675,10 +675,7 @@ func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (
 			return err
 		}
 		if !t.IsMember(ctx, uv) {
-			// TODO NotFoundError
-			//return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
-			//	username, uv.Uid)}
-			return fmt.Errorf("user %q is not a member of team %q", username, t.ID)
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, t.Name())}
 		}
 		existingRole, err := t.MemberRole(ctx, uv)
 		if err != nil {
@@ -754,6 +751,9 @@ func setBotSettings(ctx context.Context, g *libkb.GlobalContext, teamGetter func
 			return err
 		}
 
+		if !t.IsMember(ctx, uv) {
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, t.Name())}
+		}
 		role, err := t.MemberRole(ctx, uv)
 		if err != nil {
 			return err
@@ -798,6 +798,10 @@ func getBotSettings(ctx context.Context, g *libkb.GlobalContext,
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return res, err
+	}
+
+	if !team.IsMember(ctx, uv) {
+		return res, libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, team.Name())}
 	}
 
 	role, err := team.MemberRole(ctx, uv)

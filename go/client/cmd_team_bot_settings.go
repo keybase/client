@@ -24,7 +24,7 @@ func newCmdTeamBotSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	return cli.Command{
 		Name:         "bot-settings",
 		ArgumentHelp: "<team name>",
-		Usage:        "Modify the bot settings of the given user. User must be a member of the given team with role `restrictedbot`",
+		Usage:        "Modify the bot settings of the given user. User must be a member of the given team with role restrictedbot",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdTeamBotSettingsRunner(g), "bot-settings", c)
 		},
