@@ -467,7 +467,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         break
       default:
         content = (
-          <>
+          <Kb.Box>
             {this._searchInput()}
             {this._listBody()}
             {props.waitingForCreate && (
@@ -475,9 +475,18 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
               </Kb.Box2>
             )}
-          </>
+          </Kb.Box>
         )
     }
+
+    if (Styles.isMobile) {
+      content = (
+        <Kb.ClickableBox feedback={false} onClick={() => console.log('hello nathan')}>
+          {content}
+        </Kb.ClickableBox>
+      )
+    }
+
     const teamBox = !!props.teamSoFar.length && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}

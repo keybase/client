@@ -32,10 +32,19 @@ class ClickableBox extends React.Component<Props> {
       } else {
         return (
           <NativeTouchableWithoutFeedback
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
+            // onPressIn={props.onPressIn}
+            // onPressOut={props.onPressOut}
+            onPressIn={() => {
+              console.log('onPressIn')
+            }}
+            onPressOut={() => {
+              console.log('onPressOut')
+            }}
             style={clickStyle}
-            onPress={props.onClick}
+            onPress={e => {
+              console.log('onPress')
+              props.onClick && props.onClick(e)
+            }}
             onLongPress={props.onLongPress}
           >
             {props.children}
