@@ -264,22 +264,24 @@ class NotificationData {
             convID = bundle.getString("convID");
             // TODO consolidate this with below when new server code goes in
             unixTime = ((new Date()).getTime() / 1000);
+            pushId = "";
         } else if (type.equals("chat.newmessageSilent_2"))  {
             messageId = Integer.parseInt(bundle.getString("d", ""));
             convID = bundle.getString("c");
             unixTime = Long.parseLong(bundle.getString("x", "0"));
+
+            String pushIdTmp = "";
+            try {
+                JSONArray pushes = new JSONArray(bundle.getString("p"));
+                pushIdTmp = pushes.getString(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            pushId = pushIdTmp;
         } else {
             throw new Error("Tried to parse notification of unhandled type: " + type );
         }
 
-        String pushIdTmp = "";
-        try {
-            JSONArray pushes = new JSONArray(bundle.getString("p"));
-            pushIdTmp = pushes.getString(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        pushId = pushIdTmp;
     }
 }
 
