@@ -88,9 +88,9 @@ const ServiceIcon = (props: IconProps) => {
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 export const ServiceTabBar = (props: Props) => {
+  const {onChangeService, onLabelsSeen} = props
   const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
   const [locked, setLocked] = React.useState(false)
-  const {onLabelsSeen} = props
   const onClose = React.useCallback(() => {
     setShowLabels(false)
     onLabelsSeen()
@@ -107,6 +107,14 @@ export const ServiceTabBar = (props: Props) => {
     }
     setShowLabels(true)
   }, [deferClose, locked, setShowLabels])
+  const onIconClick = React.useCallback(
+    service => {
+      onClose()
+      onChangeService(service)
+    },
+    [onChangeService, onClose]
+  )
+
   React.useEffect(deferClose, [])
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.barPlaceholder}>
@@ -137,7 +145,7 @@ export const ServiceTabBar = (props: Props) => {
                   service={service}
                   label={serviceIdToLongLabel(service)}
                   labelPresence={presence}
-                  onClick={() => props.onChangeService(service)}
+                  onClick={() => onIconClick(service)}
                   count={undefToNull(props.serviceResultCount[service])}
                   showCount={props.showServiceResultCount}
                   isActive={props.selectedService === service}
