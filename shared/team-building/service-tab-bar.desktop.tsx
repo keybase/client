@@ -5,6 +5,7 @@ import {
   serviceIdToIconFont,
   serviceIdToAccentColor,
   serviceIdToLongLabel,
+  serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
 import * as Constants from '../constants/team-building'
@@ -37,6 +38,12 @@ const ServiceIcon = (props: IconProps) => {
           />
           <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={styles.label}>
             {props.label}
+            {serviceIdToWonderland(props.service) && (
+              <Kb.Text type="Body" style={styles.wonderland}>
+                {' '}
+                🐇
+              </Kb.Text>
+            )}
           </Kb.Text>
           {!!props.showCount &&
             (props.count !== null ? (
@@ -236,6 +243,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   tabBarContainer: {
     minHeight: 30,
+  },
+  wonderland: {
+    color: Styles.globalColors.white,
   },
 }))
 

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
-import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string

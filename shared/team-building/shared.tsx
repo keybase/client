@@ -4,7 +4,13 @@ import {IconType} from '../common-adapters/icon.constants'
 import Flags from '../util/feature-flags'
 
 const services: {
-  [K in ServiceIdWithContact]: {color: string; icon: IconType; label: string; longLabel: string}
+  [K in ServiceIdWithContact]: {
+    color: string
+    icon: IconType
+    label: string
+    longLabel: string
+    wonderland?: boolean
+  }
 } = {
   contact: {
     color: '#000',
@@ -16,7 +22,8 @@ const services: {
     color: '#000',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
-    longLabel: Flags.wonderland ? 'An email address 🐇' : 'An email address',
+    longLabel: 'An email address',
+    wonderland: true,
   },
   facebook: {
     color: '#3B5998',
@@ -52,7 +59,8 @@ const services: {
     color: '#4C8EFF',
     icon: 'iconfont-number-pad',
     label: 'Phone',
-    longLabel: Flags.wonderland ? 'A phone number 🐇' : 'A phone number',
+    longLabel: 'A phone number',
+    wonderland: true,
   },
   reddit: {
     color: '#ff4500',
@@ -72,6 +80,8 @@ const serviceIdToAccentColor = (service: ServiceIdWithContact): string => servic
 const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
 const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
 const serviceIdToLongLabel = (service: ServiceIdWithContact): string => services[service].longLabel
+const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
+  Flags.wonderland && services[service].wonderland === true
 
 const inactiveServiceAccentColor = Styles.globalColors.black_50
 
@@ -81,4 +91,5 @@ export {
   inactiveServiceAccentColor,
   serviceIdToLabel,
   serviceIdToLongLabel,
+  serviceIdToWonderland,
 }

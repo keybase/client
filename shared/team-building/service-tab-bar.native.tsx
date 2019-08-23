@@ -5,6 +5,7 @@ import {
   serviceIdToIconFont,
   serviceIdToAccentColor,
   serviceIdToLongLabel,
+  serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
 import * as Constants from '../constants/team-building'
@@ -135,7 +136,7 @@ export const ServiceTabBar = (props: Props) => {
                 <ServiceIcon
                   key={service}
                   service={service}
-                  label={serviceIdToLongLabel(service)}
+                  label={serviceIdToLongLabel(service) + (serviceIdToWonderland(service) ? ' 🐇' : '')}
                   labelPresence={presence}
                   onClick={() => props.onChangeService(service)}
                   count={undefToNull(props.serviceResultCount[service])}
