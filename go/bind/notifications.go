@@ -110,7 +110,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    utils.FormatConversationName(conv.Info, ""),
+		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
 	}
@@ -120,7 +120,6 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
 		username := msgUnboxed.Valid().SenderUsername
 		chatNotification.Message.From.KeybaseUsername = username
-		chatNotification.ConversationName = utils.FormatConversationName(conv.Info, username)
 
 		if displayPlaintext {
 			// We show avatars on Android
@@ -155,9 +154,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		// Guess the username? We need this for android
 		split := strings.Split(serverMessageBody, " ")
 		if len(split) > 1 {
-			username := split[0]
-			chatNotification.Message.From.KeybaseUsername = username
-			chatNotification.ConversationName = utils.FormatConversationName(conv.Info, username)
+			chatNotification.Message.From.KeybaseUsername = split[0]
 		}
 	}
 
