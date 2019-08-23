@@ -140,7 +140,7 @@ class InboxWrapper extends React.PureComponent<Props> {
     headerTitle: (
       <Kb.Text type="BodyBig" lineClamp={1}>
         {' '}
-        {Flags.wonderland && isIOS ? '' : 'Chats'}{' '}
+        Chats{' '}
       </Kb.Text>
     ),
     title: 'Chats',

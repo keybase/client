@@ -23,9 +23,7 @@ const _HeaderNewChatButton = (props: OwnProps) => {
       small={true}
       style={styles.button}
       type="Default"
-    >
-      <Kb.Meta backgroundColor={globalColors.orange} title="NEW" style={styles.newMeta} />
-    </Kb.Button>
+    />
   )
 }
 
@@ -46,6 +44,8 @@ const styles = styleSheetCreate({
   button: {
     marginLeft: globalMargins.small,
     marginRight: globalMargins.small,
+    paddingLeft: globalMargins.xsmall,
+    paddingRight: globalMargins.tiny,
   },
   newMeta: {
     alignSelf: 'center',
