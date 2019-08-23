@@ -47,10 +47,7 @@ const ServiceIcon = (props: IconProps) => {
         <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([
-            styles.labelContainer,
-            {height: labelHeight * props.labelPresence, marginTop: Styles.globalMargins.xtiny},
-          ])}
+          style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={{color}}>
