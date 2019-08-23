@@ -45,7 +45,7 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingEmailSearchQuery: '',
   teamBuildingFinishedSelectedRole: 'writer',
   teamBuildingFinishedSendNotification: true,
-  teamBuildingFinishedTeam: I.Set(),
+  teamBuildingFinishedTeam: I.OrderedSet(),
   teamBuildingLabelsSeen: false,
   teamBuildingSearchLimit: 11,
   teamBuildingSearchQuery: '',
@@ -54,7 +54,7 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingSelectedService: 'keybase',
   teamBuildingSendNotification: true,
   teamBuildingServiceResultCount: I.Map(),
-  teamBuildingTeamSoFar: I.Set(),
+  teamBuildingTeamSoFar: I.OrderedSet(),
   teamBuildingUserRecs: null,
 })
 
