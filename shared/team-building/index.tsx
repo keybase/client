@@ -586,7 +586,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderRadius: 4,
-      height: 434,
+      height: 560,
       overflow: 'hidden',
       width: 470,
     },
