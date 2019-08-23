@@ -173,7 +173,7 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	if err = e.loadMe(m); err != nil {
 		switch err.(type) {
 		case libkb.SelfNotFoundError:
-			err = libkb.LoginRequiredError{}
+			return libkb.LoginRequiredError{}
 		default:
 			return err
 		}
@@ -197,7 +197,7 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		if err = e.loadDelegator(m); err != nil {
 			switch err.(type) {
 			case libkb.NoUsernameError:
-				err = libkb.LoginRequiredError{}
+				return libkb.LoginRequiredError{}
 			default:
 				return err
 			}

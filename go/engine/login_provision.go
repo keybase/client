@@ -342,7 +342,7 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
 	e.saveToSecretStore(m)
-	return
+	return nil
 }
 
 var paperKeyNotFound = libkb.NotFoundError{
@@ -424,7 +424,7 @@ func (e *loginProvision) pgpProvision(m libkb.MetaContext) (err error) {
 	}
 
 	e.saveToSecretStore(m)
-	return
+	return nil
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing

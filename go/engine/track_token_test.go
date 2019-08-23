@@ -12,7 +12,6 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
-	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -59,10 +58,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		tc.T.Fatal(err)
 	}
 
-	defer func() {
-		err := runUntrack(tc, fu, username, sigVersion)
-		require.NoError(t, err)
-	}()
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 	assertTracking(tc, username)
 }
 
@@ -110,10 +106,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func() {
-		err := runUntrack(tc, fu, username, sigVersion)
-		require.NoError(t, err)
-	}()
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -247,10 +240,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 		t.Fatal(err)
 	}
 
-	defer func() {
-		err := runUntrack(tc, fu, username, sigVersion)
-		require.NoError(t, err)
-	}()
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -372,10 +362,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func() {
-		err := runUntrack(tc, fu, username, sigVersion)
-		require.NoError(t, err)
-	}()
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
