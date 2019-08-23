@@ -58,8 +58,6 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
     windowState.height = winBounds.height
     windowState.isFullScreen = win.isFullScreen()
     windowState.windowHidden = !win.isVisible()
-
-    console.log('aaaa saivng window state', windowState)
     mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
   }, 500) // TODO higher
 
