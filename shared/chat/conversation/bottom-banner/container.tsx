@@ -1,5 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -16,8 +17,10 @@ type OwnProps = {
 type Props = {
   type: 'invite' | 'none' | 'broken'
   users: Array<string>
+  dismissed: boolean
   openShareSheet: () => void
   openSMS: (email: string) => void
+  onDismiss: () => void
   usernameToContactName: {[username: string]: string}
 }
 
@@ -25,10 +28,11 @@ class BannerContainer extends React.PureComponent<Props> {
   render() {
     switch (this.props.type) {
       case 'invite':
-        return (
+        return this.props.dismissed ? null : (
           <InviteBanner
             openShareSheet={this.props.openShareSheet}
             openSMS={this.props.openSMS}
+            onDismiss={this.props.onDismiss}
             users={this.props.users}
             usernameToContactName={this.props.usernameToContactName}
           />
@@ -53,10 +57,15 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   }
 }
 
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  onDismiss: () =>
+    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey: ownProps.conversationIDKey})),
+})
+
 export default Container.connect(
   mapStateToProps,
-  () => ({}),
-  (stateProps, __, _: OwnProps) => {
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => {
     let type
     let users: Array<string> = []
 
@@ -81,6 +90,8 @@ export default Container.connect(
     }
 
     return {
+      dismissed: stateProps._meta.bottomBannerDismissed,
+      onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
         showShareActionSheetFromURL({

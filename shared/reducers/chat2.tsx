@@ -59,6 +59,10 @@ const metaMapReducer = (
       return metaMap.update(action.payload.conversationIDKey, meta =>
         meta ? meta.set('offline', action.payload.offline) : meta
       )
+    case Chat2Gen.dismissBottomBanner:
+      return metaMap.update(action.payload.conversationIDKey, meta =>
+        meta ? meta.set('bottomBannerDismissed', true) : meta
+      )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
@@ -1391,6 +1395,7 @@ const rootReducer = (
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
     // metaMap/messageMap/messageOrdinalsList only actions
+    case Chat2Gen.dismissBottomBanner:
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:

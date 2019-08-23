@@ -8,6 +8,7 @@ import Flags from '../../../util/feature-flags'
 export type InviteProps = {
   openShareSheet: () => void
   openSMS: (phoneNumber: string) => void
+  onDismiss: () => void
   usernameToContactName: {[username: string]: string}
   users: Array<string>
 }
@@ -29,7 +30,7 @@ const BannerBox = (props: {
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
-const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: InviteProps) => {
+const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, onDismiss}: InviteProps) => {
   const theirName =
     users.length === 1
       ? usernameToContactName[users[0]] || assertionToDisplay(users[0])
@@ -45,6 +46,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
           onClick={() => openSMS(users[0].slice(0, -6))}
           mode="Secondary"
         />
+        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
       </BannerBox>
     )
   }
@@ -55,6 +57,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>Last step: summon {theirName}!</BannerText>
         <Button label="Send install link" onClick={openShareSheet} mode="Secondary" />
+        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
       </BannerBox>
     )
   }
@@ -86,6 +89,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
           https://keybase.io/app
         </BannerText>
       </BannerText>
+      <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
     </BannerBox>
   )
 }

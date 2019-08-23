@@ -13,6 +13,7 @@ export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
   botCommands: RPCChatTypes.ConversationCommandGroups
+  bottomBannerDismissed: boolean
   cannotWrite: boolean
   channelname: string
   commands: RPCChatTypes.ConversationCommandGroups
