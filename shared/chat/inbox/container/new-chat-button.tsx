@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalMargins, styleSheetCreate} from '../../../styles'
+import {globalMargins, styleSheetCreate, globalColors, platformStyles} from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
@@ -23,7 +23,9 @@ const _HeaderNewChatButton = (props: OwnProps) => {
       small={true}
       style={styles.button}
       type="Default"
-    />
+    >
+      <Kb.Meta backgroundColor={globalColors.orange} title="NEW" style={styles.newMeta} />
+    </Kb.Button>
   )
 }
 
@@ -44,6 +46,10 @@ const styles = styleSheetCreate({
   button: {
     marginLeft: globalMargins.small,
     marginRight: globalMargins.small,
+  },
+  newMeta: {
+    alignSelf: 'center',
+    marginRight: globalMargins.tiny,
   },
 })
 
