@@ -99,12 +99,11 @@ const undefToNull = (n: number | undefined | null): number | null => (n === unde
 
 export const ServiceTabBar = (props: Props) => {
   const {onChangeService, onLabelsSeen} = props
-  const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
+  const [showLabels, setShowLabels] = React.useState(true)
   const [locked, setLocked] = React.useState(false)
   const onClose = React.useCallback(() => {
     setShowLabels(false)
-    onLabelsSeen()
-  }, [setShowLabels, onLabelsSeen])
+  }, [setShowLabels])
   const deferClose = Kb.useTimeout(onClose, 2000)
   const deferUnlock = Kb.useTimeout(() => setLocked(false), 250)
   const onScroll = React.useCallback(() => {
