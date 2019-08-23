@@ -16,6 +16,7 @@ import {
 
 type Props = {
   allowRotate?: boolean
+  onClose?: () => void
   onLoad?: () => void
   onSwipeLeft?: () => void
   onSwipeRight?: () => void
@@ -136,14 +137,26 @@ class ZoomableImage extends React.Component<Props, State> {
   }
   private onPanGestureStateChange = (event: PanGestureHandlerStateChangeEvent) => {
     const {nativeEvent} = event
-    const {oldState, velocityX} = nativeEvent
+    const {oldState, velocityX, velocityY, translationX, translationY} = nativeEvent
     // pan is done, update the state
     if (oldState === GState.ACTIVE) {
-      if (this.props.onSwipeLeft && velocityX > 1000) {
+      console.log('aaa', nativeEvent)
+      const swipeThreshold = 1000
+      const orthoThreshold = 300
+      const dragThreshold = 100
+      const smallY = Math.abs(translationY) < orthoThreshold
+      const smallX = Math.abs(translationX) < orthoThreshold
+      const bigX = Math.abs(translationX) > dragThreshold
+      const bigY = Math.abs(translationY) > dragThreshold
+      const sideSwipe = smallY && bigX
+      const vertSwipe = smallX && bigY
+      if (this.props.onSwipeLeft && velocityX > swipeThreshold && sideSwipe) {
         // fast swipe left?
         this.props.onSwipeLeft()
-      } else if (this.props.onSwipeRight && velocityX < -1000) {
+      } else if (this.props.onSwipeRight && velocityX < -swipeThreshold && sideSwipe) {
         this.props.onSwipeRight()
+      } else if (this.props.onClose && velocityY > swipeThreshold && vertSwipe) {
+        this.props.onClose()
       } else {
         this.updatePan(
           this.lastPanX + event.nativeEvent.translationX,
@@ -242,16 +255,16 @@ class ZoomableImage extends React.Component<Props, State> {
 
     return (
       <TapGestureHandler onHandlerStateChange={this.onDoubleTap} numberOfTaps={2}>
-        <View style={{flexGrow: 1, position: 'relative'}} onLayout={this.onLayout}>
-          <View style={{...Styles.globalStyles.fillAbsolute}}>
+        <View style={styles.outerContainer} onLayout={this.onLayout}>
+          <View style={Styles.globalStyles.fillAbsolute}>
             <PanGestureHandler
               onGestureEvent={this.onPanGestureEvent}
               onHandlerStateChange={this.onPanGestureStateChange}
               minDist={1}
               minPointers={1}
-              maxPointers={1}
+              maxPointers={2}
             >
-              <Animated.View style={styles.wrapper}>
+              <Animated.View style={styles.pannedView}>
                 <PinchGestureHandler
                   onGestureEvent={this.onPinchGestureEvent}
                   onHandlerStateChange={this.onPinchHandlerStateChange}
@@ -274,15 +287,15 @@ class ZoomableImage extends React.Component<Props, State> {
                       >
                         <Animated.Image
                           onLoad={this.props.onLoad}
-                          style={{
-                            height: this.state.imageHeight,
-                            left: 0,
-                            opacity: this.opacity,
-                            position: 'absolute',
-                            top: 0,
-                            transform: [{scale: this.scale}],
-                            width: this.state.imageWidth,
-                          }}
+                          style={[
+                            styles.image,
+                            {
+                              height: this.state.imageHeight,
+                              opacity: this.opacity,
+                              transform: [{scale: this.scale}],
+                              width: this.state.imageWidth,
+                            },
+                          ]}
                           source={this.props.uri ? {uri: this.props.uri} : undefined}
                         />
                       </Animated.View>
@@ -304,7 +317,13 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: '100%',
   },
-  wrapper: {
+  image: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  outerContainer: {flexGrow: 1, position: 'relative'},
+  pannedView: {
     alignItems: 'flex-start',
     height: '100%',
     justifyContent: 'flex-start',
