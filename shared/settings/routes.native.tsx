@@ -22,6 +22,7 @@ import DisableCertPinningModal from './disable-cert-pinning-modal/container'
 import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 import ManageContactsTab from './manage-contacts.native'
+import PushPrompt from './notifications/push-prompt.native'
 
 export const newRoutes = {
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
@@ -66,6 +67,9 @@ export const newModalRoutes = {
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
+  },
+  pushPrompt: {
+    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
   },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
