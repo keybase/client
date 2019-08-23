@@ -456,7 +456,7 @@ func TestTlfHistoryRenameDirAndReuseNameForFile(t *testing.T) {
 		"/k/p/a,b/x", NotificationCreate, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
-	// Alice creates modifies existing file "a/b".
+	// Alice modifies existing file "a/b".
 	aliceModifyB := nn.make(
 		"/k/p/a,b/a/b", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
@@ -469,7 +469,7 @@ func TestTlfHistoryRenameDirAndReuseNameForFile(t *testing.T) {
 	bobMessages = append(bobMessages, nn.encode(t))
 	aliceModifyB.Filename = "/k/p/a,b/c/b"
 
-	// Alice renames x to a.
+	// Alice renames "x" to "a".
 	_ = nn.makeWithType(
 		"/k/p/a,b/a", NotificationRename, aliceUID, &NotificationParams{
 			OldFilename: "/k/p/a,b/x",
@@ -477,7 +477,7 @@ func TestTlfHistoryRenameDirAndReuseNameForFile(t *testing.T) {
 	aliceMessages = append(aliceMessages, nn.encode(t))
 	aliceCreateA.Filename = "/k/p/a,b/a"
 
-	// Alice creates modifies file "a".
+	// Alice modifies file "a".
 	aliceModifyA := nn.make(
 		"/k/p/a,b/a", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
