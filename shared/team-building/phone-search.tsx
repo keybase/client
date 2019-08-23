@@ -98,16 +98,6 @@ const PhoneSearch = (props: PhoneSearchProps) => {
               />
             </Kb.Box2>
           )}
-          {state === 'notfound' && (
-            <Kb.Box2 direction="horizontal" style={styles.resultContainer} gap="tiny">
-              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
-              </Kb.Box2>
-              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                <Kb.Text type="BodyBig">User not found</Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-          )}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
