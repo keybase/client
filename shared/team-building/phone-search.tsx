@@ -98,16 +98,6 @@ const PhoneSearch = (props: PhoneSearchProps) => {
               />
             </Kb.Box2>
           )}
-          {state === 'notfound' && (
-            <Kb.Box2 direction="horizontal" style={styles.resultContainer} gap="tiny">
-              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                <Kb.Icon type="icon-placeholder-avatar-32" style={styles.placeholderIcon} />
-              </Kb.Box2>
-              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.justifyCenter}>
-                <Kb.Text type="BodyBig">User not found</Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-          )}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
@@ -125,7 +115,6 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
-  buttonContainer: {justifyContent: 'center'},
   containerStyle: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueGrey,
@@ -137,10 +126,8 @@ const styles = Styles.styleSheetCreate(() => ({
       zIndex: -1,
     },
   }),
-  justifyCenter: {justifyContent: 'center'},
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},
-  placeholderIcon: {borderRadius: 16, height: 32},
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
 }))
