@@ -173,7 +173,7 @@ const ProxySettingsPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   divider: {
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
@@ -211,6 +211,6 @@ const styles = Styles.styleSheetCreate({
       cursor: 'default',
     },
   }),
-})
+}))
 
 export {ProxySettings, ProxySettingsPopup}

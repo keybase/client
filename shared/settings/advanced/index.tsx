@@ -270,7 +270,7 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   advancedContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -324,6 +324,6 @@ const styles = Styles.styleSheetCreate({
       cursor: 'default',
     },
   }),
-})
+}))
 
 export default Advanced
