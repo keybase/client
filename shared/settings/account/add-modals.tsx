@@ -17,7 +17,7 @@ export const Email = () => {
   const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
   const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
-  const disabled = !email
+  const disabled = !email.trim()
 
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const emailError = Container.useSelector(state => state.settings.email.error)
@@ -34,7 +34,7 @@ export const Email = () => {
   }, [addEmailInProgress, addedEmail, dispatch])
   // clean on edit
   React.useEffect(() => {
-    if (email !== addEmailInProgress && emailError) {
+    if (email.trim() !== addEmailInProgress && emailError) {
       dispatch(SettingsGen.createClearAddingEmail())
     }
   }, [addEmailInProgress, dispatch, email, emailError])
@@ -44,8 +44,8 @@ export const Email = () => {
     if (disabled || waiting) {
       return
     }
-    onAddEmailInProgress(email)
-    dispatch(SettingsGen.createAddEmail({email, searchable: searchable}))
+    onAddEmailInProgress(email.trim())
+    dispatch(SettingsGen.createAddEmail({email: email.trim(), searchable: searchable}))
   }, [dispatch, disabled, email, searchable, waiting])
   return (
     <Kb.Modal
