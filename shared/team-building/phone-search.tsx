@@ -130,10 +130,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: Styles.globalColors.blueGrey,
       flex: 1,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
+      padding: Styles.globalMargins.small,
       width: '100%',
     },
     isMobile: {
