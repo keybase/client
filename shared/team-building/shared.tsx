@@ -83,7 +83,7 @@ const serviceIdToLongLabel = (service: ServiceIdWithContact): string => services
 const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
   Flags.wonderland && services[service].wonderland === true
 
-const inactiveServiceAccentColor = Styles.globalColors.black_50
+const inactiveServiceAccentColor = Styles.globalColors.black
 
 export {
   serviceIdToIconFont,

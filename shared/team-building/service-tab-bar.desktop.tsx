@@ -30,12 +30,23 @@ const ServiceIcon = (props: IconProps) => {
           fullHeight={true}
           style={styles.serviceIconContainerInner}
         >
-          <Kb.Icon
-            fontSize={16}
-            type={serviceIdToIconFont(props.service)}
-            style={Styles.collapseStyles([styles.serviceIcon, {color}])}
-            boxStyle={styles.serviceIconBox}
-          />
+          <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+            {serviceIdToWonderland(props.service) && (
+              <Kb.Badge
+                border={true}
+                height={9}
+                containerStyle={styles.badgeContainerStyle}
+                badgeStyle={styles.badgeStyle}
+                leftRightPadding={0}
+              />
+            )}
+            <Kb.Icon
+              fontSize={16}
+              type={serviceIdToIconFont(props.service)}
+              style={Styles.collapseStyles([styles.serviceIcon, {color}])}
+              boxStyle={styles.serviceIconBox}
+            />
+          </Kb.Box2>
           <Kb.Text
             type="BodyTiny"
             center={true}
@@ -181,6 +192,12 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blue,
     height: 2,
   },
+  badgeContainerStyle: {
+    position: 'absolute',
+    right: 0,
+    top: 10,
+  },
+  badgeStyle: {backgroundColor: Styles.globalColors.blue},
   inactiveTabBar: {
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
