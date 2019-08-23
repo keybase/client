@@ -45,7 +45,17 @@ const ServiceIcon = (props: IconProps) => {
           {width: mapRange(props.labelPresence, 0, 1, smallWidth, bigWidth)},
         ])}
       >
-        <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+        <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+          {serviceIdToWonderland(props.service) && (
+            <Kb.Badge
+              border={true}
+              height={9}
+              containerStyle={styles.badgeContainerStyle}
+              badgeStyle={styles.badgeStyle}
+            />
+          )}
+          <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+        </Kb.Box2>
         <Kb.Box2
           direction="vertical"
           style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
@@ -156,6 +166,13 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blue,
     height: 2,
   },
+  badgeContainerStyle: {
+    position: 'absolute',
+    right: -4,
+    top: -2,
+    zIndex: 1, // above the service icon
+  },
+  badgeStyle: {backgroundColor: Styles.globalColors.blue},
   barPlaceholder: {
     height: 48,
     position: 'relative',
@@ -173,7 +190,8 @@ const styles = Styles.styleSheetCreate(() => ({
   serviceIconContainer: {
     flex: 1,
     paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny - 1,
+    position: 'relative',
   },
   tabBarContainer: {
     backgroundColor: Styles.globalColors.white,
