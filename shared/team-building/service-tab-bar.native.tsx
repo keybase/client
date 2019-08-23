@@ -47,12 +47,13 @@ const ServiceIcon = (props: IconProps) => {
         <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         <Kb.Box2
           direction="vertical"
-          style={{
-            height: labelHeight * props.labelPresence,
-            marginTop: Styles.globalMargins.xtiny,
-            opacity: props.labelPresence,
-            overflow: 'hidden',
-          }}
+          style={Styles.collapseStyles([
+            styles.labelContainer,
+            {
+              marginTop: Styles.globalMargins.xtiny,
+              overflow: 'hidden',
+            },
+          ])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={{color}}>
@@ -162,6 +163,10 @@ const styles = Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
     height: 2,
+  },
+  labelContainer: {
+    marginTop: Styles.globalMargins.xtiny,
+    overflow: 'hidden',
   },
   pendingIcon: {height: 17, width: 17},
   serviceIconContainer: {
