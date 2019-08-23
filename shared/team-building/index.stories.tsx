@@ -34,8 +34,6 @@ const generateTeamSofar = (count: number) => {
 }
 
 const commonProps = {
-  initialShowServiceBarLabels: true,
-  onTabBarLabelsSeen: Sb.action('onTabBarLabelsSeen'),
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
@@ -621,24 +619,20 @@ const load = () => {
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
 
@@ -657,10 +651,8 @@ const load = () => {
       <ServiceTabBar
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={false}
-        initialShowLabels={true}
       />
     ))
   })

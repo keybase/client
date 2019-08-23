@@ -143,6 +143,8 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
               <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
+                {/* {Flags.wonderland && (<Kb.Text type="BodyBig" style={styles.newChatButtonRabbit}> 🐇 </Kb.Text>)} */}
+                {/* PICNIC-360 TODO rabbit rabbit emojis are different sizes on retina rabbit */}
               </Kb.Button>
             </Kb.WithTooltip>
           )}
@@ -228,6 +230,11 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+  newChatButtonRabbit: {
+    color: Styles.globalColors.white,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: -Styles.globalMargins.tiny,
+  },
   newIcon: {
     position: 'relative',
     top: 1,

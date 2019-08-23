@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters/index'
 import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
 import {ServiceIdWithContact, User} from 'constants/types/team-building'
+import Flags from '../util/feature-flags'
 
 type PhoneSearchProps = {
   onContinue: (user: User) => void
@@ -105,7 +106,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           fullWidth={true}
           style={styles.button}
           onClick={_onContinue}
-          label="Continue"
+          label={Flags.wonderland ? 'Continue 🐇' : 'Continue'}
           disabled={!validity}
         />
       </Kb.Box2>

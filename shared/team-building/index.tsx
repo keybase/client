@@ -7,7 +7,12 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
-import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
+import {
+  serviceIdToAccentColor,
+  serviceIdToIconFont,
+  serviceIdToLabel,
+  serviceIdToSearchPlaceholder,
+} from './shared'
 import {
   AllowedNamespace,
   ServiceIdWithContact,
@@ -84,7 +89,6 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   onClear: () => void
-  onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
@@ -95,7 +99,6 @@ export type Props = ContactProps & {
   showResults: boolean
   showServiceResultCount: boolean
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
-  initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -212,6 +215,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         showNumSection={showNumSection}
         onScroll={this._onScrollToSection}
         style={styles.alphabetIndex}
+        measureKey={!!this.props.teamSoFar.length}
       />
     )
   }
@@ -304,7 +308,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onBackspace={props.onBackspace}
-        placeholder="Search"
+        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
       />
     )
@@ -518,10 +522,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         <ServiceTabBar
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
-          onLabelsSeen={props.onTabBarLabelsSeen}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
-          initialShowLabels={props.initialShowServiceBarLabels}
         />
         {Styles.isMobile && (
           <ContactsBanner

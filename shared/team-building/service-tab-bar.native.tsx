@@ -5,6 +5,7 @@ import {
   serviceIdToIconFont,
   serviceIdToAccentColor,
   serviceIdToLongLabel,
+  serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
 import * as Constants from '../constants/team-building'
@@ -33,6 +34,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 const ServiceIcon = (props: IconProps) => {
   const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
+  const color = props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -43,21 +45,29 @@ const ServiceIcon = (props: IconProps) => {
           {width: mapRange(props.labelPresence, 0, 1, smallWidth, bigWidth)},
         ])}
       >
-        <Kb.Icon
-          fontSize={18}
-          type={serviceIdToIconFont(props.service)}
-          color={props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor}
-        />
+        <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+          {serviceIdToWonderland(props.service) && (
+            <Kb.Badge
+              border={true}
+              height={9}
+              containerStyle={styles.badgeContainerStyle}
+              badgeStyle={styles.badgeStyle}
+            />
+          )}
+          <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+        </Kb.Box2>
         <Kb.Box2
           direction="vertical"
-          style={{
-            height: labelHeight * props.labelPresence,
-            opacity: props.labelPresence,
-            overflow: 'hidden',
-          }}
+          style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Text type="BodyTiny" center={true} lineClamp={2}>
+            <Kb.Text
+              type="BodyTiny"
+              center={true}
+              lineClamp={2}
+              // @ts-ignore: we need to allow any color here for various services
+              style={{color}}
+            >
               {props.label}
             </Kb.Text>
           </Kb.Box2>
@@ -88,13 +98,12 @@ const ServiceIcon = (props: IconProps) => {
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 export const ServiceTabBar = (props: Props) => {
-  const [showLabels, setShowLabels] = React.useState(props.initialShowLabels)
+  const {onChangeService} = props
+  const [showLabels, setShowLabels] = React.useState(true)
   const [locked, setLocked] = React.useState(false)
-  const {onLabelsSeen} = props
   const onClose = React.useCallback(() => {
     setShowLabels(false)
-    onLabelsSeen()
-  }, [setShowLabels, onLabelsSeen])
+  }, [setShowLabels])
   const deferClose = Kb.useTimeout(onClose, 2000)
   const deferUnlock = Kb.useTimeout(() => setLocked(false), 250)
   const onScroll = React.useCallback(() => {
@@ -107,6 +116,14 @@ export const ServiceTabBar = (props: Props) => {
     }
     setShowLabels(true)
   }, [deferClose, locked, setShowLabels])
+  const onIconClick = React.useCallback(
+    service => {
+      onClose()
+      onChangeService(service)
+    },
+    [onChangeService, onClose]
+  )
+
   React.useEffect(deferClose, [])
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.barPlaceholder}>
@@ -135,9 +152,9 @@ export const ServiceTabBar = (props: Props) => {
                 <ServiceIcon
                   key={service}
                   service={service}
-                  label={serviceIdToLongLabel(service)}
+                  label={serviceIdToLongLabel(service) + (serviceIdToWonderland(service) ? ' 🐇' : '')}
                   labelPresence={presence}
-                  onClick={() => props.onChangeService(service)}
+                  onClick={() => onIconClick(service)}
                   count={undefToNull(props.serviceResultCount[service])}
                   showCount={props.showServiceResultCount}
                   isActive={props.selectedService === service}
@@ -156,6 +173,13 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blue,
     height: 2,
   },
+  badgeContainerStyle: {
+    position: 'absolute',
+    right: -4,
+    top: -2,
+    zIndex: 1, // above the service icon
+  },
+  badgeStyle: {backgroundColor: Styles.globalColors.blue},
   barPlaceholder: {
     height: 48,
     position: 'relative',
@@ -165,11 +189,16 @@ const styles = Styles.styleSheetCreate(() => ({
     borderColor: Styles.globalColors.black_10,
     height: 2,
   },
+  labelContainer: {
+    marginTop: Styles.globalMargins.xtiny,
+    overflow: 'hidden',
+  },
   pendingIcon: {height: 17, width: 17},
   serviceIconContainer: {
     flex: 1,
     paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny - 1,
+    position: 'relative',
   },
   tabBarContainer: {
     backgroundColor: Styles.globalColors.white,

@@ -166,6 +166,7 @@ export type _State = {
   userReacjis: UserReacjis
   createConversationError: string | null
   threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
+  dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
 }
 
 export type State = I.RecordOf<_State>
