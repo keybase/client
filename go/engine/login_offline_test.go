@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoginOffline(t *testing.T) {
@@ -21,9 +22,8 @@ func TestLoginOffline(t *testing.T) {
 
 	// do a upak load to make sure it is cached
 	arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc.G, u1.UID())
-	if _, _, err := tc.G.GetUPAKLoader().Load(arg); err != nil {
-		t.Fatal(err)
-	}
+	_, _, err := tc.G.GetUPAKLoader().Load(arg)
+	require.NoError(t, err)
 
 	// Simulate restarting the service by wiping out the
 	// passphrase stream cache and cached secret keys
@@ -34,9 +34,8 @@ func TestLoginOffline(t *testing.T) {
 	prev := os.Getenv("KEYBASE_SERVER_URI")
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
 	defer os.Setenv("KEYBASE_SERVER_URI", prev)
-	if err := tc.G.ConfigureAPI(); err != nil {
-		t.Fatal(err)
-	}
+	err = tc.G.ConfigureAPI()
+	require.NoError(t, err)
 
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)
@@ -87,9 +86,8 @@ func TestLoginOfflineDelay(t *testing.T) {
 
 	// do a upak load to make sure it is cached
 	arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc.G, u1.UID())
-	if _, _, err := tc.G.GetUPAKLoader().Load(arg); err != nil {
-		t.Fatal(err)
-	}
+	_, _, err := tc.G.GetUPAKLoader().Load(arg)
+	require.NoError(t, err)
 
 	// Simulate restarting the service by wiping out the
 	// passphrase stream cache and cached secret keys
@@ -100,9 +98,8 @@ func TestLoginOfflineDelay(t *testing.T) {
 	prev := os.Getenv("KEYBASE_SERVER_URI")
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
 	defer os.Setenv("KEYBASE_SERVER_URI", prev)
-	if err := tc.G.ConfigureAPI(); err != nil {
-		t.Fatal(err)
-	}
+	err = tc.G.ConfigureAPI()
+	require.NoError(t, err)
 
 	// advance the clock past the cache timeout
 	fakeClock.Advance(libkb.CachedUserTimeout * 10)
@@ -159,9 +156,7 @@ func TestLoginOfflineNoUpak(t *testing.T) {
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
 	defer os.Setenv("KEYBASE_SERVER_URI", prev)
 	err := tc.G.ConfigureAPI()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	eng := NewLoginOffline(tc.G)
 	m := NewMetaContextForTest(tc)

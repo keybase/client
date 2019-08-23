@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBootstrap(t *testing.T) {
@@ -19,9 +20,8 @@ func TestBootstrap(t *testing.T) {
 
 	// do a upak load to make sure it is cached
 	arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc.G, u1.UID())
-	if _, _, err := tc.G.GetUPAKLoader().Load(arg); err != nil {
-		t.Fatal(err)
-	}
+	_, _, err := tc.G.GetUPAKLoader().Load(arg)
+	require.NoError(t, err)
 
 	// get the status values
 	uid := tc.G.Env.GetUID()
@@ -37,9 +37,8 @@ func TestBootstrap(t *testing.T) {
 	prev := os.Getenv("KEYBASE_SERVER_URI")
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
 	defer os.Setenv("KEYBASE_SERVER_URI", prev)
-	if err := tc.G.ConfigureAPI(); err != nil {
-		t.Fatal(err)
-	}
+	err = tc.G.ConfigureAPI()
+	require.NoError(t, err)
 	tc.G.ConnectivityMonitor = OfflineConnectivityMonitor{}
 
 	eng := NewLoginOffline(tc.G)

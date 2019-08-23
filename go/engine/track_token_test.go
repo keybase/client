@@ -12,6 +12,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -60,9 +61,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 
 	defer func() {
 		err := runUntrack(tc, fu, username, sigVersion)
-		if err != nil {
-			tc.T.Fatal(err)
-		}
+		require.NoError(t, err)
 	}()
 	assertTracking(tc, username)
 }
@@ -113,9 +112,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 
 	defer func() {
 		err := runUntrack(tc, fu, username, sigVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}()
 
 	// Now make her Rooter proof fail with a 429
@@ -252,9 +249,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 
 	defer func() {
 		err := runUntrack(tc, fu, username, sigVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}()
 
 	// Now make her Rooter proof fail with a 429
@@ -379,9 +374,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 
 	defer func() {
 		err := runUntrack(tc, fu, username, sigVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	}()
 
 	// Now make her Rooter proof fail with a 429

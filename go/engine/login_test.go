@@ -3556,9 +3556,8 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		// do a upak load to make sure it is cached
 		arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc2.G, u1.UID())
-		if _, _, err := tc2.G.GetUPAKLoader().Load(arg); err != nil {
-			t.Fatal(err)
-		}
+		_, _, err := tc2.G.GetUPAKLoader().Load(arg)
+		require.NoError(t, err)
 
 		// Simulate restarting the service by wiping out the
 		// passphrase stream cache and cached secret keys

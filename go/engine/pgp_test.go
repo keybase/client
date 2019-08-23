@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateNewPGPKey(t *testing.T) {
@@ -23,9 +24,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 		},
 	}
 	err := arg.Gen.MakeAllIds(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,

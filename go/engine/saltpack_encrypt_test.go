@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeSaltpackUI2 struct {
@@ -394,9 +395,7 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 
 	Logout(tc)
 	err = u1.Login(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))

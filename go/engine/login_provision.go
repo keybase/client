@@ -144,15 +144,16 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	return nil
 }
 
-func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) error {
-	return e.saveToSecretStoreWithLKS(m, e.lks)
+func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) {
+	e.saveToSecretStoreWithLKS(m, e.lks)
 }
 
-func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) (err error) {
+func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) {
 	nun := e.arg.User.GetNormalizedName()
+	var err error
 	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
 	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
-	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
+	err = libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
 
 // deviceWithType provisions this device with an existing device using the
@@ -264,10 +265,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		return err
 	}
 
-	err = e.saveToSecretStoreWithLKS(m, provisionee.GetLKSec())
-	if err != nil {
-		return err
-	}
+	e.saveToSecretStoreWithLKS(m, provisionee.GetLKSec())
 
 	e.signingKey, err = provisionee.SigningKey()
 	if err != nil {
@@ -343,7 +341,8 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *
 	// the paper key on the global and not thread-local active device.
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
-	return e.saveToSecretStore(m)
+	e.saveToSecretStore(m)
+	return
 }
 
 var paperKeyNotFound = libkb.NotFoundError{
@@ -424,7 +423,8 @@ func (e *loginProvision) pgpProvision(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	return e.saveToSecretStore(m)
+	e.saveToSecretStore(m)
+	return
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
@@ -967,9 +967,7 @@ func (e *loginProvision) tryGPG(m libkb.MetaContext) (err error) {
 		}
 		return err
 	}
-	if err := e.saveToSecretStore(m); err != nil {
-		return err
-	}
+	e.saveToSecretStore(m)
 
 	if method == keybase1.GPGMethod_GPG_IMPORT {
 		// store the key in lksec
@@ -1160,9 +1158,7 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 	if err = e.makeDeviceKeys(m, args); err != nil {
 		return err
 	}
-	if err := e.saveToSecretStore(m); err != nil {
-		return err
-	}
+	e.saveToSecretStore(m)
 
 	if cErr := libkb.ClearPwhashEddsaPassphraseStream(m, e.arg.User.GetNormalizedName()); cErr != nil {
 		m.Debug("ClearPwhashEddsaPassphraseStream failed with: %s", cErr)
