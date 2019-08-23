@@ -588,7 +588,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: 4,
       height: 560,
       overflow: 'hidden',
-      width: 470,
+      width: 400,
     },
   }),
   emptyContainer: Styles.platformStyles({
