@@ -330,7 +330,6 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
 export const makeConversationMeta = I.Record<_ConversationMeta>({
   botCommands: {} as RPCChatTypes.ConversationCommandGroups,
-  bottomBannerDismissed: false,
   cannotWrite: false,
   channelname: '',
   commands: {} as RPCChatTypes.ConversationCommandGroups,

@@ -46,7 +46,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
           onClick={() => openSMS(users[0].slice(0, -6))}
           mode="Secondary"
         />
-        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
+        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
       </BannerBox>
     )
   }
@@ -57,7 +57,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>Last step: summon {theirName}!</BannerText>
         <Button label="Send install link" onClick={openShareSheet} mode="Secondary" />
-        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
+        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
       </BannerBox>
     )
   }
@@ -88,8 +88,8 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
         >
           https://keybase.io/app
         </BannerText>
+        <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
       </BannerText>
-      <Button label="Dismiss" mode="Secondary" onClick={onDismiss} />
     </BannerBox>
   )
 }

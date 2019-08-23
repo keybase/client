@@ -50,7 +50,9 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
+  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey, false)
   return {
+    _dismissed,
     _following,
     _meta,
     _users,
@@ -90,7 +92,7 @@ export default Container.connect(
     }
 
     return {
-      dismissed: stateProps._meta.bottomBannerDismissed,
+      dismissed: stateProps._dismissed,
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
