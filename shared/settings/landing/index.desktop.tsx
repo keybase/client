@@ -138,10 +138,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
     >
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text
-            type="BodySemibold"
-            style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}
-          >
+          <Text type="BodySemibold" style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}>
             {level}
           </Text>
           <Text type="BodySmall">({price})</Text>

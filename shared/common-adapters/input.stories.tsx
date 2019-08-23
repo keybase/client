@@ -228,12 +228,7 @@ const load = () => {
       <Input {...commonProps} floatingHintTextOverride="Hello..." multiline={true} />
     ))
     .add('Floating Label Multiline Filled', () => (
-      <Input
-        {...commonProps}
-        floatingHintTextOverride="Hello..."
-        multiline={true}
-        value="Hello, World!"
-      />
+      <Input {...commonProps} floatingHintTextOverride="Hello..." multiline={true} value="Hello, World!" />
     ))
     .add('Floating Label Multiline Filled Long', () => (
       <Input

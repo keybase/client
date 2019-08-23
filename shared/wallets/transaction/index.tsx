@@ -143,10 +143,7 @@ const Detail = (props: DetailProps) => {
       const assetCode = props.trustline.asset.code
       const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
       const asset = (
-        <Text
-          type="BodySmall"
-          style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}
-        >
+        <Text type="BodySmall" style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}>
           <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
         </Text>
       )
