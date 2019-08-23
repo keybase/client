@@ -105,15 +105,16 @@ func (m *CachedFullSelf) WithSelfForcePoll(ctx context.Context, f func(u *User) 
 	return m.WithUser(arg, f)
 }
 
-func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) (err error) {
-	defer m.G().CTrace(ctx, "CachedFullSelf#maybeClearCache", func() error { return err })()
+func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) {
+	var err error
+	m.G().Log.CDebugf(ctx, "CachedFullSelf#maybeClearCache(%+v)", arg)
 
 	now := m.G().Clock().Now()
 	diff := now.Sub(m.cachedAt)
 
 	if diff < CachedUserTimeout && !arg.forcePoll {
 		m.G().Log.CDebugf(ctx, "| was fresh, last loaded %s ago", diff)
-		return nil
+		return
 	}
 
 	var sigHints *SigHints
@@ -122,7 +123,8 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true, MerkleOpts{})
 	if err != nil {
 		m.me = nil
-		return err
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf error querying merkle tree, will nil-out cache: %s", err)
+		return
 	}
 
 	arg.sigHints = sigHints
@@ -132,18 +134,17 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 
 	if idVersion, err = m.me.GetIDVersion(); err != nil {
 		m.me = nil
-		return err
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf: error get id version, will nil-out cache: %s", err)
+		return
 	}
 
 	if leaf.public != nil && leaf.public.Seqno == m.me.GetSigChainLastKnownSeqno() && leaf.idVersion == idVersion {
 		m.G().Log.CDebugf(ctx, "| CachedFullSelf still fresh at seqno=%d, idVersion=%d", leaf.public.Seqno, leaf.idVersion)
-		return nil
+		return
 	}
 
 	m.G().Log.CDebugf(ctx, "| CachedFullSelf was out of date")
 	m.me = nil
-
-	return nil
 }
 
 // WithUser loads any old user. If it happens to be the self user, then it behaves
@@ -166,10 +167,10 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	var u *User
 
 	if m.me != nil && m.isSelfLoad(arg) {
-		err := m.maybeClearCache(ctx, &arg)
-		if err != nil {
-			return err
-		}
+		// This UID might be nil. Or it could be wrong, so just overwrite it with the current
+		// self that we have loaded into the full self cacher.
+		arg.uid = m.me.GetUID()
+		m.maybeClearCache(ctx, &arg)
 	}
 
 	if m.me == nil || !m.isSelfLoad(arg) {

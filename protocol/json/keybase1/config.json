@@ -1082,6 +1082,15 @@
     "toggleRuntimeStats": {
       "request": [],
       "response": null
+    },
+    "appendGUILogs": {
+      "request": [
+        {
+          "name": "content",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -31,6 +31,6 @@ const SimpleToast = (props: Props) => (
 
 export default SimpleToast
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   toastText: {color: Styles.globalColors.white},
-})
+}))

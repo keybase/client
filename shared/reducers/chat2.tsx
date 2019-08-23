@@ -1426,7 +1426,10 @@ const rootReducer = (
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
+    case TeamBuildingGen.searchEmailAddress:
+    case TeamBuildingGen.searchEmailAddressResultLoaded:
     case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:
       return state.update('teamBuilding', teamBuilding => teamBuildingReducer('chat2', teamBuilding, action))
 

@@ -5,24 +5,31 @@ import Text from './text'
 import SearchFilter from './search-filter'
 import * as Styles from '../styles'
 
+const Kb = {
+  Box,
+  Box2,
+  SearchFilter,
+  Text,
+}
+
 const load = () => {
   Sb.storiesOf('Common', module)
     .addDecorator(Sb.scrollViewDecorator)
     .add('SearchFilter', () => (
-      <Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
-        <Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-          <Text type="Body">Small</Text>
-          <SearchFilter
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="Body">Small</Kb.Text>
+          <Kb.SearchFilter
             hotkey="k"
             icon="iconfont-search"
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
             waiting={true}
           />
-        </Box2>
-        <Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-          <Text type="Body">Full-width</Text>
-          <SearchFilter
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="Body">Full-width</Kb.Text>
+          <Kb.SearchFilter
             hotkey="k"
             icon="iconfont-search"
             placeholderText="Search in the universe"
@@ -30,10 +37,10 @@ const load = () => {
             fullWidth={true}
             waiting={true}
           />
-        </Box2>
-        <Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-          <Text type="Body">with onClick</Text>
-          <SearchFilter
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Kb.Text type="Body">with onClick</Kb.Text>
+          <Kb.SearchFilter
             hotkey="k"
             icon="iconfont-search"
             placeholderText="Search in the universe"
@@ -42,16 +49,16 @@ const load = () => {
             fullWidth={true}
             waiting={true}
           />
-        </Box2>
-        <SearchFilter
+        </Kb.Box2>
+        <Kb.SearchFilter
           hotkey="k"
           icon="iconfont-search"
           placeholderText="Search in the universe (by itself in a column flex box)"
           onChange={Sb.action('onChange')}
           fullWidth={true}
         />
-        <Box style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.large}}>
-          <SearchFilter
+        <Kb.Box style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.large}}>
+          <Kb.SearchFilter
             hotkey="k"
             icon="iconfont-search"
             waiting={true}
@@ -59,36 +66,36 @@ const load = () => {
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
           />
-        </Box>
-      </Box2>
+        </Kb.Box>
+      </Kb.Box2>
     ))
     .add('SearchFilter - Mobile', () => (
-      <Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
-        <SearchFilter icon="iconfont-search" placeholderText="Search" onChange={Sb.action('onChange')} />
-        <SearchFilter
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
+        <Kb.SearchFilter icon="iconfont-search" placeholderText="Search" onChange={Sb.action('onChange')} />
+        <Kb.SearchFilter
           icon="iconfont-search"
           placeholderText="Search"
           onChange={Sb.action('onChange')}
           waiting={true}
         />
-        <Box style={{backgroundColor: Styles.globalColors.blue}}>
-          <SearchFilter
+        <Kb.Box style={{backgroundColor: Styles.globalColors.blue}}>
+          <Kb.SearchFilter
             icon="iconfont-search"
             placeholderText="Search"
             onChange={Sb.action('onChange')}
             negative={true}
           />
-        </Box>
-        <Box style={{backgroundColor: Styles.globalColors.blue}}>
-          <SearchFilter
+        </Kb.Box>
+        <Kb.Box style={{backgroundColor: Styles.globalColors.blue}}>
+          <Kb.SearchFilter
             icon="iconfont-search"
             placeholderText="Search"
             onChange={Sb.action('onChange')}
             waiting={true}
             negative={true}
           />
-        </Box>
-      </Box2>
+        </Kb.Box>
+      </Kb.Box2>
     ))
 }
 

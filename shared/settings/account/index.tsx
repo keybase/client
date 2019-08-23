@@ -58,7 +58,10 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
-        find you by phone number or email.
+        find you by phone number or email.{' '}
+        <Kb.Text type="BodySmallSecondaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
+          Read more <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" boxStyle={styles.displayInline} />
+        </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
     {!!props.contactKeys.size && (
@@ -192,6 +195,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
+  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
