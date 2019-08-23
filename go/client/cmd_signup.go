@@ -228,7 +228,7 @@ func (s *CmdSignup) Run() (err error) {
 
 	if s.code == "" && !s.noInvitationCodeBypass {
 		// Eat the error here - we prompt the user in that case
-		_ = s.requestInvitationCode()
+		s.requestInvitationCode()
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -239,7 +239,8 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	return s.successMessage()
+	s.successMessage()
+	return nil
 }
 
 func (s *CmdSignup) checkRegistered() (err error) {

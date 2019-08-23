@@ -159,7 +159,8 @@ type handler interface {
 }
 
 func (c *cmdAPI) runHandler(h handler) error {
-	r := io.Reader(os.Stdin)
+	var r io.Reader
+	r = os.Stdin
 	if len(c.message) > 0 {
 		r = strings.NewReader(c.message)
 	} else if len(c.inputFile) > 0 {
@@ -171,7 +172,8 @@ func (c *cmdAPI) runHandler(h handler) error {
 		r = f
 	}
 
-	w := os.Stdout
+	var w io.Writer
+	w = os.Stdout
 	if len(c.outputFile) > 0 {
 		f, err := os.Create(c.outputFile)
 		if err != nil {

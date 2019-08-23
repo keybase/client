@@ -27,6 +27,7 @@ type CmdChatSearchRegexp struct {
 	resolvingRequest chatConversationResolvingRequest
 	query            string
 	opts             chat1.SearchOpts
+	isRegex          bool
 	hasTTY           bool
 }
 

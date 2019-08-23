@@ -74,7 +74,7 @@ func (c *CmdAccountReset) Run() error {
 	if err != nil {
 		return err
 	}
-	_, _ = c.G().UI.GetDumbOutputUI().PrintfStderr("Account has been reset.\n")
+	c.G().UI.GetDumbOutputUI().PrintfStderr("Account has been reset.\n")
 	return nil
 }
 

@@ -86,7 +86,10 @@ func (d DirentFileInfo) ModTime() time.Time {
 
 // IsDir is an abbreviation for Mode().IsDir()
 func (d DirentFileInfo) IsDir() bool {
-	return d.Entry.DirentType == keybase1.DirentType_DIR
+	if d.Entry.DirentType == keybase1.DirentType_DIR {
+		return true
+	}
+	return false
 }
 
 // Sys - underlying data source (can return nil)

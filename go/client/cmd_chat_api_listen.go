@@ -137,7 +137,7 @@ func sendPing(cli keybase1.SessionClient) error {
 }
 
 func (c *CmdChatAPIListen) ErrWriteLn(format string, obj ...interface{}) {
-	_, _ = c.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, obj...) + "\n"))
+	c.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, obj...) + "\n"))
 }
 
 func (c *CmdChatAPIListen) Run() error {
@@ -183,16 +183,10 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 	errWriter := c.G().UI.GetTerminalUI().ErrorWriter()
-	_, err = errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: hideExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
+	errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: hideExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
 		c.hideExploding, c.showLocal, c.subscribeDev)))
-	if err != nil {
-		return err
-	}
 	if c.subscribeWallet {
-		_, err := errWriter.Write([]byte("Listening for wallet notifications\n"))
-		if err != nil {
-			return err
-		}
+		errWriter.Write([]byte("Listening for wallet notifications\n"))
 	}
 
 	for {
@@ -229,8 +223,8 @@ func (d *baseNotificationDisplay) errorf(format string, args ...interface{}) err
 
 func (d *baseNotificationDisplay) printJSON(data interface{}) {
 	if jsonStr, err := json.Marshal(data); err != nil {
-		_ = d.errorf("Error while marshaling JSON: %s\n", err)
+		d.errorf("Error while marshaling JSON: %s\n", err)
 	} else {
-		_ = d.printf("%s\n", string(jsonStr))
+		d.printf("%s\n", string(jsonStr))
 	}
 }

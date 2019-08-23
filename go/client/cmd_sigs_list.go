@@ -27,6 +27,10 @@ type CmdSigsList struct {
 	types   map[string]bool
 
 	username string
+
+	user  *libkb.User
+	sigs  []libkb.TypedChainLink
+	ksigs []keybase1.Sig
 }
 
 func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
@@ -170,7 +174,7 @@ func (s *CmdSigsList) Run() error {
 		if err != nil {
 			return err
 		}
-		_ = s.G().UI.GetTerminalUI().Output(json)
+		s.G().UI.GetTerminalUI().Output(json)
 		return nil
 	}
 

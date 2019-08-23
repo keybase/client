@@ -43,27 +43,33 @@ func (i *IdentifyUIServer) Confirm(ctx context.Context, arg keybase1.ConfirmArg)
 }
 
 func (i *IdentifyUIServer) FinishWebProofCheck(ctx context.Context, arg keybase1.FinishWebProofCheckArg) error {
-	return i.ui.FinishWebProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+	i.ui.FinishWebProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+	return nil
 }
 
 func (i *IdentifyUIServer) FinishSocialProofCheck(ctx context.Context, arg keybase1.FinishSocialProofCheckArg) error {
-	return i.ui.FinishSocialProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+	i.ui.FinishSocialProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+	return nil
 }
 
 func (i *IdentifyUIServer) DisplayCryptocurrency(ctx context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
-	return i.ui.DisplayCryptocurrency(i.newMetaContext(ctx), arg.C)
+	i.ui.DisplayCryptocurrency(i.newMetaContext(ctx), arg.C)
+	return nil
 }
 
 func (i *IdentifyUIServer) DisplayStellarAccount(ctx context.Context, arg keybase1.DisplayStellarAccountArg) error {
-	return i.ui.DisplayStellarAccount(i.newMetaContext(ctx), arg.A)
+	i.ui.DisplayStellarAccount(i.newMetaContext(ctx), arg.A)
+	return nil
 }
 
 func (i *IdentifyUIServer) DisplayKey(ctx context.Context, arg keybase1.DisplayKeyArg) error {
-	return i.ui.DisplayKey(i.newMetaContext(ctx), arg.Key)
+	i.ui.DisplayKey(i.newMetaContext(ctx), arg.Key)
+	return nil
 }
 
 func (i *IdentifyUIServer) ReportLastTrack(ctx context.Context, arg keybase1.ReportLastTrackArg) error {
-	return i.ui.ReportLastTrack(i.newMetaContext(ctx), arg.Track)
+	i.ui.ReportLastTrack(i.newMetaContext(ctx), arg.Track)
+	return nil
 }
 
 func (i *IdentifyUIServer) LaunchNetworkChecks(ctx context.Context, arg keybase1.LaunchNetworkChecksArg) error {
@@ -71,31 +77,38 @@ func (i *IdentifyUIServer) LaunchNetworkChecks(ctx context.Context, arg keybase1
 }
 
 func (i *IdentifyUIServer) DisplayTrackStatement(ctx context.Context, arg keybase1.DisplayTrackStatementArg) error {
-	return i.ui.DisplayTrackStatement(i.newMetaContext(ctx), arg.Stmt)
+	i.ui.DisplayTrackStatement(i.newMetaContext(ctx), arg.Stmt)
+	return nil
 }
 
 func (i *IdentifyUIServer) ReportTrackToken(ctx context.Context, arg keybase1.ReportTrackTokenArg) error {
-	return i.ui.ReportTrackToken(i.newMetaContext(ctx), arg.TrackToken)
+	i.ui.ReportTrackToken(i.newMetaContext(ctx), arg.TrackToken)
+	return nil
 }
 
 func (i *IdentifyUIServer) DisplayUserCard(ctx context.Context, arg keybase1.DisplayUserCardArg) error {
-	return i.ui.DisplayUserCard(i.newMetaContext(ctx), arg.Card)
+	i.ui.DisplayUserCard(i.newMetaContext(ctx), arg.Card)
+	return nil
 }
 
 func (i *IdentifyUIServer) Start(ctx context.Context, arg keybase1.StartArg) error {
-	return i.ui.Start(i.newMetaContext(ctx), arg.Username, arg.Reason, arg.ForceDisplay)
+	i.ui.Start(i.newMetaContext(ctx), arg.Username, arg.Reason, arg.ForceDisplay)
+	return nil
 }
 
 func (i *IdentifyUIServer) Cancel(ctx context.Context, sessionID int) error {
-	return i.ui.Cancel(i.newMetaContext(ctx))
+	i.ui.Cancel(i.newMetaContext(ctx))
+	return nil
 }
 
 func (i *IdentifyUIServer) Finish(ctx context.Context, sessionID int) error {
-	return i.ui.Finish(i.newMetaContext(ctx))
+	i.ui.Finish(i.newMetaContext(ctx))
+	return nil
 }
 
 func (i *IdentifyUIServer) Dismiss(ctx context.Context, arg keybase1.DismissArg) error {
-	return i.ui.Dismiss(i.newMetaContext(ctx), arg.Username, arg.Reason)
+	i.ui.Dismiss(i.newMetaContext(ctx), arg.Username, arg.Reason)
+	return nil
 }
 
 func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(ctx context.Context, arg keybase1.DisplayTLFCreateWithInviteArg) error {

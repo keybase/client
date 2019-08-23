@@ -92,10 +92,7 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.
 	err := srv.GetExclusiveLockWithoutAutoUnlock()
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
-		err := srv.ReleaseLock()
-		if err != nil {
-			return false, err
-		}
+		srv.ReleaseLock()
 		_, err = spawnServer(g, cl, forkType)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
@@ -124,6 +121,7 @@ func pingLoop(g *libkb.GlobalContext) error {
 			return nil
 		}
 		g.Log.Debug("Failed to connect to socket (%d): %s", i, err)
+		err = nil
 		time.Sleep(200 * time.Millisecond)
 	}
 	return nil

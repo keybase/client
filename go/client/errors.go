@@ -31,7 +31,9 @@ func (e CleanCancelError) Error() string {
 	return "clean cancel"
 }
 
-type CanceledError struct{}
+type CanceledError struct {
+	msg string
+}
 
 type BadServiceError struct {
 	n string

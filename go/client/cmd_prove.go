@@ -111,7 +111,9 @@ func (p *CmdProve) Run() error {
 
 func (p *CmdProve) installOutputHook(ui *ProveUI) {
 	if len(p.output) > 0 {
-		ui.outputHook = p.fileOutputHook
+		ui.outputHook = func(s string) error {
+			return p.fileOutputHook(s)
+		}
 	}
 }
 

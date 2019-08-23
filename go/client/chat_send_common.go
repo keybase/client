@@ -115,6 +115,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		if err != nil {
 			return err
 		}
+		confirmed = true
 	}
 
 	arg.Msg = msg

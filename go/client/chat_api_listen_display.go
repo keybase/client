@@ -157,7 +157,8 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 	if err != nil {
 		return err
 	}
-	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+	switch typ {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
 		inMsg := activity.IncomingMessage()
 		if d.hideExploding && inMsg.Message.IsEphemeral() {
 			// Skip exploding message

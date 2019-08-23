@@ -92,7 +92,7 @@ func (c *CmdAccountDelete) Run() error {
 	if err != nil {
 		return err
 	}
-	_, _ = c.G().UI.GetDumbOutputUI().PrintfStderr("Account deleted.\n")
+	c.G().UI.GetDumbOutputUI().PrintfStderr("Account deleted.\n")
 	return nil
 }
 

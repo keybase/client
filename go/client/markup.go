@@ -33,6 +33,7 @@ func (p *Paragraph) Buffer(b []byte) {
 
 var (
 	nl = []byte{'\n'}
+	sp = []byte{' '}
 )
 
 // makePad makes a whitespace pad that is l bytes long.
@@ -66,7 +67,7 @@ func spacify(s string) string {
 func (p Paragraph) Output(out io.Writer) {
 	s := []byte(spacify(string(p.data)))
 	if len(s) == 0 {
-		_, _ = out.Write(nl)
+		out.Write(nl)
 		return
 	}
 	indent := p.indent * INDENT
@@ -77,14 +78,14 @@ func (p Paragraph) Output(out io.Writer) {
 	pad := makePad(len(p.prefix))
 
 	for i, line := range lines {
-		_, _ = out.Write(gutter)
+		out.Write(gutter)
 		if i == 0 {
-			_, _ = out.Write([]byte(p.prefix))
+			out.Write([]byte(p.prefix))
 		} else {
-			_, _ = out.Write(pad)
+			out.Write(pad)
 		}
-		_, _ = out.Write(line)
-		_, _ = out.Write(nl)
+		out.Write(line)
+		out.Write(nl)
 	}
 }
 
@@ -223,7 +224,7 @@ func Render(g *libkb.GlobalContext, w io.Writer, m *libkb.Markup) {
 func RenderText(g *libkb.GlobalContext, w io.Writer, txt keybase1.Text) {
 	w = getWriter(g, w)
 	if !txt.Markup {
-		_, _ = w.Write([]byte(txt.Data))
+		w.Write([]byte(txt.Data))
 	} else {
 		Render(g, w, libkb.NewMarkup(txt.Data))
 	}

@@ -88,12 +88,12 @@ func (c *CmdWalletSign) Run() (err error) {
 		return err
 	}
 	ui := c.G().UI.GetDumbOutputUI()
-	_, _ = ui.PrintfStderr(ColorString(c.G(), "green", "Signing with account ID: %s\n", res.AccountID.String()))
-	_, _ = ui.Printf("%s\n", res.SingedTx)
+	ui.PrintfStderr(ColorString(c.G(), "green", "Signing with account ID: %s\n", res.AccountID.String()))
+	ui.Printf("%s\n", res.SingedTx)
 	if res.SubmitErr != nil {
-		_, _ = ui.PrintfStderr(ColorString(c.G(), "red", "Failed to submit the transaction: %s\n", *res.SubmitErr))
+		ui.PrintfStderr(ColorString(c.G(), "red", "Failed to submit the transaction: %s\n", *res.SubmitErr))
 	} else if res.SubmitTxID != nil {
-		_, _ = ui.PrintfStderr(ColorString(c.G(), "green", "Transaction submitted to the network. Transaction ID: %s\n", res.SubmitTxID.String()))
+		ui.PrintfStderr(ColorString(c.G(), "green", "Transaction submitted to the network. Transaction ID: %s\n", res.SubmitTxID.String()))
 	}
 	return nil
 }

@@ -34,7 +34,7 @@ func (c *CmdInterestingPeople) Run() error {
 	}
 
 	for _, user := range users {
-		_ = c.G().UI.GetTerminalUI().Output(user.Username + "\n")
+		c.G().UI.GetTerminalUI().Output(user.Username + "\n")
 	}
 	return nil
 }

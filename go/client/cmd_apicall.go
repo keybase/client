@@ -244,10 +244,14 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 	}
 
 	httpStatuses := ctx.IntSlice("status")
-	c.httpStatuses = append(c.httpStatuses, httpStatuses...)
+	for _, h := range httpStatuses {
+		c.httpStatuses = append(c.httpStatuses, h)
+	}
 
 	appStatuses := ctx.IntSlice("appstatus")
-	c.appStatuses = append(c.appStatuses, appStatuses...)
+	for _, a := range appStatuses {
+		c.appStatuses = append(c.appStatuses, a)
+	}
 
 	payload := ctx.String("json-payload")
 	if payload != "" {
