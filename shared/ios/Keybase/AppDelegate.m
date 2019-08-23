@@ -156,7 +156,7 @@
       PushNotifier* pusher = [[PushNotifier alloc] init];
       // This always tries to unbox the notification and adds a plaintext
       // notification if displayPlaintext is set.
-      KeybaseHandleBackgroundNotification(convID, body, membersType, displayPlaintext,
+      KeybaseHandleBackgroundNotification(convID, body, @"", membersType, displayPlaintext,
             messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
@@ -171,7 +171,7 @@
       NSString* body = notification[@"m"];
       int membersType = [notification[@"t"] intValue];
       int messageID = [notification[@"msgID"] intValue];
-      KeybaseHandleBackgroundNotification(convID, body, membersType, false,
+      KeybaseHandleBackgroundNotification(convID, body, @"", membersType, false,
                                           messageID, @"", 0, 0, @"", nil, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
