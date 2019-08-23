@@ -46,6 +46,7 @@ class ZoomableImage extends React.Component<Props, State> {
   // scale
   private maxZoom = 10
   private minZoom = 0.001 // TODO dynamically calc min zoom
+  private pinchRef = React.createRef<PinchGestureHandler>()
 
   private baseScale = new Animated.Value(1)
   private pinchScale = new Animated.Value(1)
@@ -258,14 +259,17 @@ class ZoomableImage extends React.Component<Props, State> {
         <View style={styles.outerContainer} onLayout={this.onLayout}>
           <View style={Styles.globalStyles.fillAbsolute}>
             <PanGestureHandler
+              simultaneousHandlers={this.pinchRef}
               onGestureEvent={this.onPanGestureEvent}
               onHandlerStateChange={this.onPanGestureStateChange}
               minDist={1}
               minPointers={1}
               maxPointers={2}
+              avgTouches={true}
             >
               <Animated.View style={styles.pannedView}>
                 <PinchGestureHandler
+                  ref={this.pinchRef}
                   onGestureEvent={this.onPinchGestureEvent}
                   onHandlerStateChange={this.onPinchHandlerStateChange}
                 >
