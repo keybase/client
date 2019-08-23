@@ -226,7 +226,7 @@ describe('Search Actions', () => {
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet([userToAdd]))
     })
   })
 
@@ -236,7 +236,7 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
     })
   })
 
@@ -246,8 +246,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.OrderedSet([userToAdd]))
     })
   })
 
@@ -257,8 +257,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.OrderedSet())
     })
   })
 })

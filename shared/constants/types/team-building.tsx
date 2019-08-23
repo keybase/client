@@ -40,7 +40,7 @@ export type _TeamBuildingSubState = {
   teamBuildingTeamSoFar: I.OrderedSet<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
-  teamBuildingFinishedTeam: I.Set<User>
+  teamBuildingFinishedTeam: I.OrderedSet<User>
   teamBuildingFinishedSelectedRole: TeamRoleType
   teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
