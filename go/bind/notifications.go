@@ -27,11 +27,12 @@ type Person struct {
 }
 
 type Message struct {
-	ID        int
-	Kind      string // "Text" | "Reaction"
-	Plaintext string
-	From      *Person
-	At        int64
+	ID            int
+	Kind          string // "Text" | "Reaction"
+	Plaintext     string
+	ServerMessage string // This is the server's suggested display message for the notification
+	From          *Person
+	At            int64
 }
 
 type ChatNotification struct {
@@ -61,7 +62,7 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	return err
 }
 
-func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
+func HandleBackgroundNotification(strConvID, body, serverMessageBody string, intMembersType int, displayPlaintext bool,
 	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
@@ -106,7 +107,8 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
-			ID: intMessageID,
+			ID:            intMessageID,
+			ServerMessage: serverMessageBody,
 			From: &Person{
 				KeybaseUsername: username,
 				IsBot:           isBot,
