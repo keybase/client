@@ -212,6 +212,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         showNumSection={showNumSection}
         onScroll={this._onScrollToSection}
         style={styles.alphabetIndex}
+        measureKey={!!this.props.teamSoFar.length}
       />
     )
   }
