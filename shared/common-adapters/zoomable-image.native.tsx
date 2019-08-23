@@ -141,7 +141,6 @@ class ZoomableImage extends React.Component<Props, State> {
     const {oldState, velocityX, velocityY, translationX, translationY} = nativeEvent
     // pan is done, update the state
     if (oldState === GState.ACTIVE) {
-      console.log('aaa', nativeEvent)
       const swipeThreshold = 1000
       const orthoThreshold = 300
       const dragThreshold = 100
