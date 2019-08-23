@@ -474,6 +474,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </>
         )
     }
+    if (Styles.isMobile) {
+      content = (
+        <Kb.ClickableBox feedback={false} style={{flex: 1, width: '100%'}} onClick={() => console.log('hi')}>
+          {content}
+        </Kb.ClickableBox>
+      )
+    }
+
     const teamBox = !!props.teamSoFar.length && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
