@@ -7,7 +7,12 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
-import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
+import {
+  serviceIdToAccentColor,
+  serviceIdToIconFont,
+  serviceIdToLabel,
+  serviceIdToSearchPlaceholder,
+} from './shared'
 import {
   AllowedNamespace,
   ServiceIdWithContact,
@@ -303,7 +308,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onBackspace={props.onBackspace}
-        placeholder="Search"
+        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
       />
     )
