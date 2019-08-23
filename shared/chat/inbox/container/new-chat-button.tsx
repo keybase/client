@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalMargins, styleSheetCreate, globalColors, platformStyles} from '../../../styles'
+import {globalMargins, styleSheetCreate, globalColors} from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
