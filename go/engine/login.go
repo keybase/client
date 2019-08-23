@@ -167,10 +167,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
-	err = e.perUserKeyUpgradeSoft(m)
-	if err != nil {
-		return err
-	}
+	e.perUserKeyUpgradeSoft(m)
 
 	m.Debug("Login provisioning success, sending login notification")
 	e.sendNotification(m)
@@ -259,13 +256,12 @@ func (e *Login) sendNotification(m libkb.MetaContext) {
 
 // Get a per-user key.
 // Wait for attempt but only warn on error.
-func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) error {
+func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) {
 	eng := NewPerUserKeyUpgrade(m.G(), &PerUserKeyUpgradeArgs{})
 	err := RunEngine2(m, eng)
 	if err != nil {
 		m.Warning("loginProvision PerUserKeyUpgrade failed: %v", err)
 	}
-	return err
 }
 
 func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
