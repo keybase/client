@@ -779,7 +779,7 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	_, _ = l.parent.Printf("===============================\n")
 	_, _ = l.parent.Printf("IMPORTANT: PAPER KEY GENERATION\n")
 	_, _ = l.parent.Printf("===============================\n\n")
-	_, _ = l.parent.Printf("During Keybase's alpha, everyone gets a paper key. This is a private key.\n")
+	_, _ = l.parent.Printf("This is a private key.\n")
 	_, _ = l.parent.Printf("  1. you must write it down\n")
 	_, _ = l.parent.Printf("  2. the first two words are a public label\n")
 	_, _ = l.parent.Printf("  3. it can be used to recover data\n")
