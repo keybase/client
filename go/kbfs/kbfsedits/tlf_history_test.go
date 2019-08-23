@@ -27,10 +27,10 @@ func checkTlfHistory(t *testing.T, th *TlfHistory, expected writersByRevision,
 		require.Equal(t, e.writerName, history[i].writerName)
 		require.Len(t, history[i].notifications, len(e.notifications))
 		for j, n := range e.notifications {
-			require.Equal(t, n, history[i].notifications[j])
+			require.Equal(t, n, history[i].notifications[j], i)
 		}
 		if len(e.notifications) < maxEditsPerWriter {
-			require.Contains(t, writersWhoNeedMore, e.writerName)
+			require.Contains(t, writersWhoNeedMore, e.writerName, i)
 		}
 	}
 }
@@ -437,6 +437,63 @@ func TestTlfHistoryRenameParentSimple(t *testing.T) {
 	expected = writersByRevision{
 		{aliceName, nil, []NotificationMessage{aliceDeleteB}},
 	}
+	checkTlfHistory(t, th, expected, aliceName)
+}
+
+// Regression test for HOTPOT-616.
+func TestTlfHistoryRenameDirAndReuseNameForFile(t *testing.T) {
+	aliceName, bobName := "alice", "bob"
+	aliceUID, bobUID := keybase1.MakeTestUID(1), keybase1.MakeTestUID(2)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+
+	var aliceMessages, bobMessages []string
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	// Alice creates file "x".   (Use truncated Keybase canonical
+	// paths because renames only matter beyond the TLF name.)
+	aliceCreateA := nn.make(
+		"/k/p/a,b/x", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Alice modifies existing file "a/b".
+	aliceModifyB := nn.make(
+		"/k/p/a,b/a/b", NotificationModify, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Bob renames "a" to "c".
+	bobRename := nn.makeWithType(
+		"/k/p/a,b/c", NotificationRename, bobUID, &NotificationParams{
+			OldFilename: "/k/p/a,b/a",
+		}, time.Time{}, EntryTypeDir)
+	bobMessages = append(bobMessages, nn.encode(t))
+	aliceModifyB.Filename = "/k/p/a,b/c/b"
+
+	// Alice renames "x" to "a".
+	_ = nn.makeWithType(
+		"/k/p/a,b/a", NotificationRename, aliceUID, &NotificationParams{
+			OldFilename: "/k/p/a,b/x",
+		}, time.Time{}, EntryTypeFile)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	aliceCreateA.Filename = "/k/p/a,b/a"
+
+	// Alice modifies file "a".
+	aliceModifyA := nn.make(
+		"/k/p/a,b/a", NotificationModify, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	expected := writersByRevision{
+		{aliceName, []NotificationMessage{aliceModifyA, aliceModifyB}, nil},
+	}
+
+	// Alice, then Bob.
+	th := NewTlfHistory()
+	rev, err := th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, aliceModifyA.Revision, rev)
+	rev, err = th.AddNotifications(bobName, bobMessages)
+	require.NoError(t, err)
+	require.Equal(t, bobRename.Revision, rev)
 	checkTlfHistory(t, th, expected, aliceName)
 }
 
