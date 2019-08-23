@@ -30,7 +30,7 @@ export default (props: Props) => {
       )}
     >
       <Kb.Text type="BodyBigLink" onClick={() => setRolePickerOpen(true)}>
-        Select role
+        Add
       </Kb.Text>
     </FloatingRolePicker>
   )

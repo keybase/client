@@ -47,6 +47,12 @@ const services: {
     label: 'PGP',
     longLabel: 'A PGP user',
   },
+  phone: {
+    color: '#4C8EFF',
+    icon: 'iconfont-number-pad',
+    label: 'Phone',
+    longLabel: 'A phone number',
+  },
   reddit: {
     color: '#ff4500',
     icon: 'iconfont-identity-reddit',

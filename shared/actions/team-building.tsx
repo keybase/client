@@ -7,6 +7,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateNumber} from '../util/phone-numbers'
+import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -20,6 +21,10 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
+  if (service === 'phone') {
+    return []
+  }
+
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -117,16 +122,10 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
       phone: phoneNumber.e164,
       t: RPCTypes.ImpTofuSearchType.phone,
     }
-  } else {
-    // Consider the query a valid email if it contains at sign (but not at 0
-    // index) and a period after the at sign.
-    const atIndex = query.indexOf('@')
-    const periodIndex = query.lastIndexOf('.')
-    if (atIndex > 0 && periodIndex > atIndex && periodIndex !== query.length - 1) {
-      return {
-        email: query,
-        t: RPCTypes.ImpTofuSearchType.email,
-      }
+  } else if (validateEmailAddress(query)) {
+    return {
+      email: query,
+      t: RPCTypes.ImpTofuSearchType.email,
     }
   }
   return null
@@ -191,6 +190,18 @@ const fetchUserRecs = async (
   }
 }
 
+async function searchEmailAddress(state: TypedState, {payload: {namespace}}: SearchOrRecAction) {
+  const query = state[namespace].teamBuilding.teamBuildingEmailSearchQuery
+  const impTofuQuery = makeImpTofuQuery(query, null)
+
+  const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
+  return TeamBuildingGen.createSearchEmailAddressResultLoaded({
+    namespace,
+    query,
+    user: users[0],
+  })
+}
+
 export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => R
@@ -223,6 +234,7 @@ export default function* commonSagas(
     TeamBuildingGen.search,
     filterGenForNs(namespace, searchResultCounts)
   )
+  yield* Saga.chainAction2(TeamBuildingGen.searchEmailAddress, filterForNs(namespace, searchEmailAddress))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

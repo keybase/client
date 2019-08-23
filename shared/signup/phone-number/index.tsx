@@ -19,6 +19,10 @@ const EnterPhoneNumber = (props: Props) => {
   const disabled = !valid
   const onContinue = () =>
     disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* searchable */)
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    onChangePhoneNumber(phoneNumber)
+    onChangeValidity(validity)
+  }
   return (
     <SignupScreen
       buttons={[
@@ -50,8 +54,7 @@ const EnterPhoneNumber = (props: Props) => {
         // the push prompt might be overlaying us
         // TODO Y2K-57 move phone number earlier and check that email won't have this problem
         autoFocus={!Styles.isMobile}
-        onChangeNumber={onChangePhoneNumber}
-        onChangeValidity={onChangeValidity}
+        onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
         icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
@@ -62,8 +65,7 @@ const EnterPhoneNumber = (props: Props) => {
 
 type BodyProps = {
   autoFocus: boolean
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
   searchable: boolean
   onChangeSearchable?: (allow: boolean) => void
@@ -85,7 +87,6 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
           autoFocus={props.autoFocus}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
-          onChangeValidity={props.onChangeValidity}
           onEnterKeyDown={props.onContinue}
         />
         {showCheckbox ? (

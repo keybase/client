@@ -65,7 +65,7 @@ const UseNativeFrame = (props: Props) => {
 const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.ScrollView>
+    <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.advancedContainer}>
         <Kb.Box style={styles.progressContainer}>
           {props.settingLockdownMode && <Kb.ProgressIndicator />}
@@ -314,6 +314,9 @@ const styles = Styles.styleSheetCreate({
   },
   proxyDivider: {
     marginBottom: Styles.globalMargins.small,
+    width: '100%',
+  },
+  scrollview: {
     width: '100%',
   },
   text: Styles.platformStyles({

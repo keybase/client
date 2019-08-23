@@ -5,7 +5,9 @@ import * as RPCTypes from './types/rpc-gen'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
+  'phone',
   'contact',
+  'email',
   'twitter',
   'facebook',
   'github',
@@ -38,9 +40,12 @@ function followStateHelperWithId(
 }
 
 const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
+  teamBuildingEmailIsSearching: false,
+  teamBuildingEmailResult: null,
+  teamBuildingEmailSearchQuery: '',
   teamBuildingFinishedSelectedRole: 'writer',
   teamBuildingFinishedSendNotification: true,
-  teamBuildingFinishedTeam: I.Set(),
+  teamBuildingFinishedTeam: I.OrderedSet(),
   teamBuildingLabelsSeen: false,
   teamBuildingSearchLimit: 11,
   teamBuildingSearchQuery: '',
@@ -49,7 +54,7 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingSelectedService: 'keybase',
   teamBuildingSendNotification: true,
   teamBuildingServiceResultCount: I.Map(),
-  teamBuildingTeamSoFar: I.Set(),
+  teamBuildingTeamSoFar: I.OrderedSet(),
   teamBuildingUserRecs: null,
 })
 

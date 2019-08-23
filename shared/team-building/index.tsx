@@ -8,12 +8,20 @@ import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
+import {
+  AllowedNamespace,
+  ServiceIdWithContact,
+  FollowingState,
+  SelectedUser,
+  User,
+} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
+import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
+import EmailInput from './email-input'
 
 export const numSectionLabel = '0-9'
 
@@ -62,7 +70,9 @@ export type Props = ContactProps & {
   fetchUserRecs: () => void
   includeContacts: boolean
   highlightedIndex: number | null
+  namespace: AllowedNamespace
   onAdd: (userId: string) => void
+  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -76,6 +86,7 @@ export type Props = ContactProps & {
   onClear: () => void
   onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
+  search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -83,6 +94,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
@@ -434,6 +446,34 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   render = () => {
     const props = this.props
+
+    let content
+    switch (props.selectedService) {
+      case 'email':
+        content = <EmailInput namespace={props.namespace} />
+        break
+      case 'phone':
+        content = (
+          <PhoneSearch
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+            onContinue={props.onAddRaw}
+          />
+        )
+        break
+      default:
+        content = (
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )
+    }
     const teamBox = !!props.teamSoFar.length && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
@@ -490,13 +530,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
-        {this._listBody()}
-        {props.waitingForCreate && (
-          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-          </Kb.Box2>
-        )}
+        {content}
       </Kb.Box2>
     )
   }
@@ -552,9 +586,9 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderRadius: 4,
-      height: 434,
+      height: 560,
       overflow: 'hidden',
-      width: 470,
+      width: 400,
     },
   }),
   emptyContainer: Styles.platformStyles({

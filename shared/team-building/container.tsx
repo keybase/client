@@ -11,7 +11,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
+import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {
@@ -136,6 +136,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -182,6 +183,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
@@ -540,7 +542,17 @@ const mergeProps = (
                     />
                   ),
                 }
-              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+              : {
+                  custom: (
+                    <Button
+                      label={'Start'} // PICNIC-360 rabbit here
+                      mode="Primary"
+                      onClick={dispatchProps.onFinishTeamBuilding}
+                      small={true}
+                      type="Success"
+                    />
+                  ),
+                }
             : null,
         ],
         title,
@@ -554,7 +566,9 @@ const mergeProps = (
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
+    namespace: ownProps.namespace,
     onAdd,
+    onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -576,6 +590,7 @@ const mergeProps = (
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     rolePickerProps,
+    search: dispatchProps._search,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
@@ -583,6 +598,7 @@ const mergeProps = (
     showRecs,
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
     title,
     waitingForCreate,
