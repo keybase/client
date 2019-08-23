@@ -37,7 +37,7 @@ export type _TeamBuildingSubState = {
   teamBuildingEmailSearchQuery: Query
   teamBuildingEmailIsSearching: boolean
   teamBuildingEmailResult: User | null
-  teamBuildingTeamSoFar: I.Set<User>
+  teamBuildingTeamSoFar: I.OrderedSet<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
   teamBuildingFinishedTeam: I.Set<User>

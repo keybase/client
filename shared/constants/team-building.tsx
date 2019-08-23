@@ -54,7 +54,7 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingSelectedService: 'keybase',
   teamBuildingSendNotification: true,
   teamBuildingServiceResultCount: I.Map(),
-  teamBuildingTeamSoFar: I.Set(),
+  teamBuildingTeamSoFar: I.OrderedSet(),
   teamBuildingUserRecs: null,
 })
 
