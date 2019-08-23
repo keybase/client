@@ -72,7 +72,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
+	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return flattenError(err) })()
 
@@ -162,6 +162,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	}
 
 	pusher.DisplayChatNotification(&chatNotification)
-	mp.AckNotificationSuccess(ctx, []string{pushID})
+	if len(pushID) != 0 {
+		mp.AckNotificationSuccess(ctx, []string{pushID})
+	}
 	return nil
 }
