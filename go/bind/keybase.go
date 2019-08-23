@@ -470,13 +470,6 @@ func BackgroundSync() {
 	<-doneCh
 }
 
-func formatConversationName(info chat1.ConversationInfoLocal) string {
-	if info.TopicName != "" {
-		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
-	}
-	return info.TlfName
-}
-
 // pushPendingMessageFailure sends at most one notification that a message
 // failed to send. We don't notify the user about background failures like
 // unfurling.

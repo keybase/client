@@ -2383,6 +2383,23 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.ConvsUnverified[0], nil
 }
 
+func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string) string {
+	if info.TopicName != "" {
+		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
+	}
+	users := strings.Split(info.TlfName, ",")
+	if len(users) > 1 {
+		usersWithoutYou := make([]string, len(users)-1)
+		for _, user := range users {
+			if user != myUsername {
+				usersWithoutYou = append(usersWithoutYou, user)
+			}
+		}
+		return strings.Join(usersWithoutYou, ",")
+	}
+	return info.TlfName
+}
+
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
 	// in case we are being called from within some cancelable context, remove it for the purposes
