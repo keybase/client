@@ -98,7 +98,7 @@ const ServiceIcon = (props: IconProps) => {
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 export const ServiceTabBar = (props: Props) => {
-  const {onChangeService, onLabelsSeen} = props
+  const {onChangeService} = props
   const [showLabels, setShowLabels] = React.useState(true)
   const [locked, setLocked] = React.useState(false)
   const onClose = React.useCallback(() => {
