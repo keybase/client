@@ -35,7 +35,12 @@ const ServiceIcon = (props: IconProps) => {
             style={Styles.collapseStyles([styles.serviceIcon, {color}])}
             boxStyle={styles.serviceIconBox}
           />
-          <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={styles.label}>
+          <Kb.Text
+            type="BodyTiny"
+            center={true}
+            lineClamp={2}
+            style={Styles.collapseStyles([styles.label, {color}])}
+          >
             {props.label}
           </Kb.Text>
           {!!props.showCount &&

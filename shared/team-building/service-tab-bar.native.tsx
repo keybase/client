@@ -33,6 +33,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 const ServiceIcon = (props: IconProps) => {
   const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
+  const color = props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -43,21 +44,18 @@ const ServiceIcon = (props: IconProps) => {
           {width: mapRange(props.labelPresence, 0, 1, smallWidth, bigWidth)},
         ])}
       >
-        <Kb.Icon
-          fontSize={18}
-          type={serviceIdToIconFont(props.service)}
-          color={props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor}
-        />
+        <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         <Kb.Box2
           direction="vertical"
           style={{
             height: labelHeight * props.labelPresence,
+            marginTop: Styles.globalMargins.xtiny,
             opacity: props.labelPresence,
             overflow: 'hidden',
           }}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Text type="BodyTiny" center={true} lineClamp={2}>
+            <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={{color}}>
               {props.label}
             </Kb.Text>
           </Kb.Box2>
