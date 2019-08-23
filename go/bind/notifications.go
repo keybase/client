@@ -152,7 +152,10 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	} else {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		// Guess the username? We need this for android
-		chatNotification.Message.From.KeybaseUsername = strings.Split(serverMessageBody, " ")[0]
+		split := strings.Split(serverMessageBody, " ")
+		if len(split) > 1 {
+			chatNotification.Message.From.KeybaseUsername = split[0]
+		}
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
