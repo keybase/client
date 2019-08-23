@@ -41,7 +41,7 @@ export const accountIDToString = (accountID: AccountID): string => accountID
 // No account
 export const noAccountID = stringToAccountID('NOACCOUNTID')
 
-export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
+export const isValidAccountID = (accountID: AccountID) => !!accountID && accountID !== noAccountID
 
 export type PartnerUrl = StellarRPCTypes.PartnerUrl
 
@@ -236,11 +236,15 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  depositButtonText: string
   infoUrl: string
   infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
+  showDepositButton: boolean
+  showWithdrawButton: boolean
+  withdrawButtonText: string
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
@@ -314,37 +318,47 @@ export type _AirdropQualification = {
 }
 export type AirdropQualification = I.RecordOf<_AirdropQualification>
 
-export type _AirdropDetailsLine = {
+export type _StellarDetailsLine = {
   bullet: boolean
   text: string
 }
-type AirdropDetailsLine = I.RecordOf<_AirdropDetailsLine>
+type StellarDetailsLine = I.RecordOf<_StellarDetailsLine>
 
-export type _AirdropDetailsSection = {
-  lines: I.List<AirdropDetailsLine>
+export type _StellarDetailsSection = {
+  lines: I.List<StellarDetailsLine>
   section: string
   icon: string
 }
-type AirdropDetailsSection = I.RecordOf<_AirdropDetailsSection>
+type StellarDetailsSection = I.RecordOf<_StellarDetailsSection>
 
-export type _AirdropDetailsHeader = {
+export type _StellarDetailsHeader = {
   body: string
   title: string
 }
-type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
+type StellarDetailsHeader = I.RecordOf<_StellarDetailsHeader>
 
-export type _AirdropDetailsResponse = {
-  header: AirdropDetailsHeader
-  sections: I.List<AirdropDetailsSection>
+export type _StellarDetailsResponse = {
+  header: StellarDetailsHeader
+  sections: I.List<StellarDetailsSection>
 }
-export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
+export type StellarDetailsResponse = I.RecordOf<_StellarDetailsResponse>
 
-export type _AirdropDetails = {
-  details: AirdropDetailsResponse
+export type _StellarDetails = {
+  details: StellarDetailsResponse
+  disclaimer: StellarDetailsResponse
   isPromoted: boolean
 }
 
-export type AirdropDetails = I.RecordOf<_AirdropDetails>
+export type StellarDetailsSections = ReadonlyArray<{
+  lines: ReadonlyArray<{
+    bullet: boolean
+    text: string
+  }>
+  section: string
+  icon: string | null
+}>
+
+export type AirdropDetails = I.RecordOf<_StellarDetails>
 
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>

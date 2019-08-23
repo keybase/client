@@ -47,10 +47,6 @@ func (k *KeyFinderImpl) Reset() {
 	k.encKeys = make(map[string]encItem)
 }
 
-func (k *KeyFinderImpl) cacheKey(name string, membersType chat1.ConversationMembersType, public bool) string {
-	return fmt.Sprintf("%s|%v|%v", name, membersType, public)
-}
-
 func (k *KeyFinderImpl) encCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
 	public bool, botUID *gregor1.UID) string {
 	return fmt.Sprintf("_enc:%s|%s|%v|%v|%v", name, tlfID, membersType, public, botUID)
@@ -65,19 +61,6 @@ func (k *KeyFinderImpl) decCacheKey(name string, tlfID chat1.TLFID, membersType 
 func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 	membersType chat1.ConversationMembersType) types.NameInfoSource {
 	return CreateNameInfoSource(ctx, k.G(), membersType)
-}
-
-func (k *KeyFinderImpl) lookupKey(key string) (*types.NameInfo, bool) {
-	k.Lock()
-	defer k.Unlock()
-	existing, ok := k.keys[key]
-	return existing, ok
-}
-
-func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
-	k.Lock()
-	defer k.Unlock()
-	k.keys[key] = v
 }
 
 func (k *KeyFinderImpl) lookupEncKey(key string) (encItem, bool) {
@@ -165,10 +148,6 @@ func (k *KeyFinderImpl) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfNam
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
 	return k.createNameInfoSource(ctx, membersType).ShouldPairwiseMAC(ctx, tlfName, tlfID, membersType, public)
-}
-
-func tlfIDToTeamdID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
-	return keybase1.TeamIDFromString(tlfID.String())
 }
 
 type KeyFinderMock struct {

@@ -1,9 +1,9 @@
 @namespace("chat.1")
 
 protocol local {
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
+  import idl "../stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";
@@ -88,6 +88,11 @@ protocol local {
     ConversationID flipConvID;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+  }
+
+
+  record MessagePin {
+    MessageID msgID;
   }
 
   enum MessageSystemType {
@@ -188,9 +193,12 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
-  record MessageJoin {}
+  record MessageJoin {
+    array<string> joiners;
+    array<string> leavers;
+  }
 
-  record MessageLeave {}
+  record MessageLeave { }
 
   record MessageReaction {
      @mpackkey("m") @jsonkey("m")
@@ -230,6 +238,7 @@ protocol local {
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
     case FLIP: MessageFlip;
+    case PIN: MessagePin;
   }
 
   record SenderPrepareOptions {
@@ -528,6 +537,8 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, MessageUnboxed } pinnedMsg;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -943,8 +954,13 @@ protocol local {
   }
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
-  JoinLeaveConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  record PreviewConversationLocalRes {
+    InboxUIItem conv;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  PreviewConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   record DeleteConversationLocalRes {
     boolean offline;
     array<RateLimit> rateLimits;

@@ -182,6 +182,8 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
               <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
                 <Kb.SearchFilter
                   icon="iconfont-search"
+                  placeholderCentered={true}
+                  mobileCancelButton={true}
                   fullWidth={true}
                   onChange={this._onChangeFilter}
                   placeholderText="Search"
@@ -213,9 +215,9 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 }
 
 type Props = {
+  autoFocus?: boolean
   defaultCountry?: string
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
   style?: Styles.StylesCrossPlatform
 }
@@ -312,8 +314,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
-    this.props.onChangeNumber(validation.e164)
-    this.props.onChangeValidity(validation.valid)
+    this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
   _setCountry = (country, keepPrefix) => {
@@ -422,7 +423,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
           >
             <Kb.PlainInput
-              autoFocus={true}
+              autoFocus={this.props.autoFocus}
               style={Styles.collapseStyles([styles.plainInput])}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}

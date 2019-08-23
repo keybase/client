@@ -1,13 +1,15 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import emailInput from './email-input/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
+import PhoneSearch from './phone-search'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -31,6 +33,14 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const commonProps = {
+  initialShowServiceBarLabels: true,
+  onTabBarLabelsSeen: Sb.action('onTabBarLabelsSeen'),
+  showRecs: false,
+  showResults: false,
+  showServiceResultCount: false,
+}
+
 const contactProps = {
   contactsImported: false,
   contactsPermissionStatus: 'granted',
@@ -41,28 +51,37 @@ const contactProps = {
   onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
 }
 
+const eventHandlers = {
+  onBackspace: Sb.action('onBackspace'),
+  onChangeService: Sb.action('onChangeService'),
+  onChangeText: Sb.action('onChangeText'),
+  onClear: Sb.action('onClear'),
+  onDownArrowKeyDown: Sb.action('onDownArrowKeyDown'),
+  onEnterKeyDown: Sb.action('onEnterKeyDown'),
+  onFinishTeamBuilding: Sb.action('onFinishTeamBuilding'),
+  onMakeItATeam: Sb.action('onMakeItATeam'),
+  onRemove: Sb.action('onRemove'),
+  onTabBarScroll: Sb.action('onTabBarScroll'),
+  onTabBarSleepy: Sb.action('onTabBarSleepy'),
+  onUpArrowKeyDown: Sb.action('onUpArrowKeyDown'),
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        fetchUserRecs={() => {}}
         includeContacts={true}
+        recommendations={[]}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -87,9 +106,10 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -141,27 +161,22 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
         includeContacts={true}
+        title="The Title"
+        fetchUserRecs={() => {}}
+        recommendations={[]}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -186,9 +201,10 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -240,12 +256,17 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
-        includeContacts={true}
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
@@ -258,16 +279,6 @@ const load = () => {
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -282,59 +293,51 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
         includeContacts={true}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
         teamSoFar={[]}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
     .add('Team Building - One line of users', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -342,9 +345,10 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -396,25 +400,20 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -422,9 +421,10 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -476,25 +476,20 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
+        {...commonProps}
         {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
         includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -502,9 +497,10 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -556,19 +552,20 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
 
     .add('Input', () => (
       <Input
-        hasMembers={false}
         placeholder="Type in some input inside"
         searchString=""
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onBackspace={Sb.action('onBackspace')}
+        onChangeText={Sb.action('onChangeText')}
+        onClear={Sb.action('onClear')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
       />
     ))
     .add('TeamBox', () => (
@@ -598,7 +595,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Start" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)
@@ -624,20 +621,24 @@ const load = () => {
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
+        initialShowLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={true}
+        initialShowLabels={true}
       />
     ))
 
@@ -649,14 +650,17 @@ const load = () => {
     'github',
     'reddit',
     'hackernews',
+    'phone',
   ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
+        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={false}
+        initialShowLabels={true}
       />
     ))
   })
@@ -756,6 +760,16 @@ const load = () => {
         resultForService={'keybase'}
       />
     ))
+
+  Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
+    <PhoneSearch
+      onContinue={Sb.action('onContinue')}
+      search={Sb.action('search')}
+      teamBuildingSearchResults={{}}
+    />
+  ))
+
+  emailInput()
 }
 
 export default load

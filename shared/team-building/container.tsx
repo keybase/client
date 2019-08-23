@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
+import unidecode from 'unidecode'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
@@ -10,16 +11,23 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
-import {parseUserId} from '../util/platforms'
+import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
+import {
+  ServiceIdWithContact,
+  User,
+  SearchResults,
+  AllowedNamespace,
+  SelectedUser,
+} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
+import {isMobile} from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -72,21 +80,37 @@ const deriveSearchResults = memoize(
         prettyName: formatAnyPhoneNumbers(info.prettyName),
         services: info.serviceMap,
         userId: info.id,
-        username: info.id.split('@')[0],
+        username: info.username,
       }
     })
 )
 
-const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
-  teamSoFar.toArray().map(userInfo => {
-    const {username, serviceId} = parseUserId(userInfo.id)
-    return {
-      prettyName: userInfo.prettyName,
-      service: serviceId,
-      userId: userInfo.id,
-      username,
-    }
-  })
+const deriveTeamSoFar = memoize(
+  (teamSoFar: I.Set<User>): Array<SelectedUser> =>
+    teamSoFar.toArray().map(userInfo => {
+      let username = ''
+      let serviceId: ServiceIdWithContact
+      if (userInfo.contact && userInfo.serviceMap.keybase) {
+        // resolved contact - pass username @ 'keybase' to teambox
+        // so keybase avatar is rendered.
+        username = userInfo.serviceMap.keybase
+        serviceId = 'keybase'
+      } else if (userInfo.serviceId !== 'keybase' && userInfo.serviceMap.keybase) {
+        // Not a keybase result but has Keybase username. Id will be compound assertion,
+        // but we want to display Keybase username and profile pic in teambox.
+        username = userInfo.serviceMap.keybase
+        serviceId = 'keybase'
+      } else {
+        username = userInfo.username
+        serviceId = userInfo.serviceId
+      }
+      return {
+        prettyName: userInfo.prettyName,
+        service: serviceId,
+        userId: userInfo.id,
+        username,
+      }
+    })
 )
 
 const deriveServiceResultCount: (
@@ -100,7 +124,7 @@ const deriveServiceResultCount: (
     .toObject()
 )
 
-const deriveShowServiceResultCount = memoize(searchString => !!searchString)
+const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
   (searchResults: Array<User> | null, recommendations: Array<User> | null) => (userId: string): User | null =>
@@ -113,6 +137,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -136,6 +161,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
+    initialShowServiceBarLabels: !teamBuildingState.teamBuildingLabelsSeen,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -156,7 +182,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       teamBuildingState.teamBuildingSearchResults,
       ownProps.searchString
     ),
-    showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
+    showResults: deriveShowResults(ownProps.searchString),
+    showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
@@ -197,6 +225,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
+  _onLabelsSeen: () => dispatch(TeamBuildingGen.createLabelsSeen({namespace})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -322,7 +351,7 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
-const sortAndSplitRecommendations = memoize(
+export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
@@ -353,7 +382,9 @@ const sortAndSplitRecommendations = memoize(
         return
       }
       if (rec.prettyName || rec.displayLabel) {
-        const letter = (rec.prettyName || rec.displayLabel)[0].toLowerCase()
+        // Use the first letter of the name we will display, but first normalize out
+        // any diacritics.
+        const letter = unidecode(rec.prettyName || rec.displayLabel)[0].toLowerCase()
         if (isAlpha(letter)) {
           // offset 1 to skip recommendations
           const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
@@ -377,7 +408,7 @@ const sortAndSplitRecommendations = memoize(
         }
       }
     })
-    return sections.filter(Boolean)
+    return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
 
@@ -444,6 +475,8 @@ const mergeProps = (
     ownProps.resetHighlightIndex
   )
 
+  const onClear = () => onChangeText('')
+
   const onSearchForMore = deriveOnSearchForMore({
     search: dispatchProps._search,
     searchResults,
@@ -492,8 +525,10 @@ const mergeProps = (
     teamSoFar,
   })
 
+  const title = rolePickerProps ? 'Add people' : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
+        borderless: true,
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
         rightActions: [
@@ -508,10 +543,20 @@ const mergeProps = (
                     />
                   ),
                 }
-              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+              : {
+                  custom: (
+                    <Button
+                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
+                      mode="Primary"
+                      onClick={dispatchProps.onFinishTeamBuilding}
+                      small={true}
+                      type="Success"
+                    />
+                  ),
+                }
             : null,
         ],
-        title: rolePickerProps ? 'Add people' : 'New chat',
+        title,
       }
     : {}
 
@@ -521,10 +566,14 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
+    namespace: ownProps.namespace,
     onAdd,
+    onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
+    onClear,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
     onDownArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
@@ -535,19 +584,24 @@ const mergeProps = (
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
+    onTabBarLabelsSeen: dispatchProps._onLabelsSeen,
     onUpArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     rolePickerProps,
+    search: dispatchProps._search,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showRecs,
+    showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
+    title,
     waitingForCreate,
   }
 }
@@ -601,7 +655,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
-        showServiceResultCount={this.state.searchString !== ''}
+        showServiceResultCount={false}
       />
     )
   }

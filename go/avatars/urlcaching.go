@@ -53,8 +53,7 @@ func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-m.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_BACKGROUND:
+		if state == keybase1.MobileAppState_BACKGROUND {
 			c.debug(m, "monitorAppState: backgrounded")
 			c.diskLRU.Flush(m.Ctx(), m.G())
 		}

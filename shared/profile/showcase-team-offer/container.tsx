@@ -58,7 +58,7 @@ export default Container.compose(
       teamNameToRole: stateProps._teamNameToRole.toObject(),
       teammembercounts: stateProps._teammembercounts.toObject(),
       title: 'Publish your teams',
-      waiting: stateProps._waiting.toObject(),
+      waiting: stateProps._waiting,
     }
   }),
   Container.lifecycle({

@@ -162,10 +162,13 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 		val = jsonw.NewString(nu.String())
 	}
 
-	f.jw.SetKey("current_user", val)
+	setKeyErr := f.jw.SetKey("current_user", val)
+	if err == nil {
+		err = setKeyErr
+	}
 	f.userConfigWrapper.userConfig = nil
 	saveErr := f.Save()
-	if err != nil {
+	if err == nil {
 		err = saveErr
 	}
 	return err
@@ -341,7 +344,10 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 
 	if u == nil {
 		f.G().Log.Debug("| SetUserConfig(nil)")
-		f.jw.DeleteKey("current_user")
+		err := f.jw.DeleteKey("current_user")
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
 	}
@@ -356,19 +362,28 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	f.G().Log.Debug("| SetUserConfig(%s)", un)
 	if parent.IsNil() {
 		parent = jsonw.NewDictionary()
-		f.jw.SetKey("users", parent)
+		err := f.jw.SetKey("users", parent)
+		if err != nil {
+			return err
+		}
 	}
 	if parent.AtKey(un.String()).IsNil() || overwrite {
 		uWrapper, err := jsonw.NewObjectWrapper(*u)
 		if err != nil {
 			return err
 		}
-		parent.SetKey(un.String(), uWrapper)
+		err = parent.SetKey(un.String(), uWrapper)
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = u
 	}
 
 	if !f.getCurrentUser().Eq(un) {
-		f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		err := f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 	}
 
@@ -377,7 +392,7 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 
 func (f *JSONConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
-	f.Save()
+	_ = f.Save()
 }
 
 func (f *JSONConfigFile) GetHome() string {
@@ -724,6 +739,9 @@ func (f *JSONConfigFile) GetLogFile() string {
 func (f *JSONConfigFile) GetEKLogFile() string {
 	return f.GetTopLevelString("ek_log_file")
 }
+func (f *JSONConfigFile) GetGUILogFile() string {
+	return f.GetTopLevelString("gui_log_file")
+}
 
 func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
 	return f.GetTopLevelBool("use_default_log_file")
@@ -873,6 +891,10 @@ func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
 
 func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_box_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return f.GetBoolAtPath("disable_ek_background_keygen")
 }
 
 func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {

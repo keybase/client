@@ -702,7 +702,7 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 	sendSuccess()
 }
 
-// Whether the logged-in user following the recipient.
+// Whether the logged-in user following the recipient. If the recipient is the logged-in user, returns true.
 // Unresolved assertions will false negative.
 func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing bool, err error) {
 	// The 'following' check blocks sending, and is not that important, so impose a timeout.
@@ -714,7 +714,14 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 		if idTable == nil {
 			return nil
 		}
+
 		targetUsername := libkb.NewNormalizedUsername(assertion)
+		selfUsername := libkb.NewNormalizedUsername(u.GetName())
+		if targetUsername.Eq(selfUsername) {
+			isFollowing = true
+			return nil
+		}
+
 		for _, track := range idTable.GetTrackList() {
 			if trackedUsername, err := track.GetTrackedUsername(); err == nil {
 				if trackedUsername.Eq(targetUsername) {

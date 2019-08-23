@@ -56,7 +56,7 @@ export default class Badge extends React.Component<Badge2Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     ...Styles.globalStyles.flexBoxRow,
     ...Styles.globalStyles.flexBoxCenter,
@@ -65,4 +65,4 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.white,
   },
-})
+}))

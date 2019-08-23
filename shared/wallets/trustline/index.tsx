@@ -117,6 +117,8 @@ const Body = (props: BodyProps) => {
               icon="iconfont-search"
               fullWidth={true}
               placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
+              placeholderCentered={true}
+              mobileCancelButton={true}
               hotkey="f"
               onChange={props.onSearchChange}
               onFocus={onFocusChange ? () => onFocusChange(true) : null}

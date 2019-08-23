@@ -158,15 +158,13 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 					SecretNote:         "xx",
 					PublicMemo:         "yy",
 				})
-				took := time.Now().Sub(start)
+				took := time.Since(start)
 				if err != nil {
 					log("build[%v] [%v] error: %v", i, took, err)
 					return
 				}
 				log("build[%v] [%v] ok", i, took)
-				if i == count-1 || err == nil {
-					log("build[%v] res: %v", i, spew.Sdump(res))
-				}
+				log("build[%v] res: %v", i, spew.Sdump(res))
 			}()
 		}
 		wg.Wait()

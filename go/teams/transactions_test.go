@@ -24,19 +24,22 @@ func TestTransactions1(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := CreateAddMemberTx(team)
-	tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER)
+	err = tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(tx.payloads))
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 
-	tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER)
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 	require.Equal(t, 2, len(tx.payloads))
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 	require.Equal(t, txPayloadTagCryptomembers, tx.payloads[1].Tag)
 	require.IsType(t, &keybase1.TeamChangeReq{}, tx.payloads[1].Val)
 
-	tx.AddMemberByUsername(context.Background(), "t_tracy", keybase1.TeamRole_ADMIN)
+	err = tx.AddMemberByUsername(context.Background(), "t_tracy", keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
 
 	// 3rd add (pukless member) should re-use first signature instead
 	// of creating new one.
@@ -98,13 +101,13 @@ func TestTransactionRotateKey(t *testing.T) {
 	// Create payloads manually so user add and user del happen in
 	// separate links.
 	tx.payloads = []txPayload{
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				Writers: []keybase1.UserVersion{otherB.GetUserVersion()},
 			},
 		},
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				None: []keybase1.UserVersion{otherA.GetUserVersion()},

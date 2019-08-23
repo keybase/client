@@ -168,5 +168,5 @@ func (b *backgroundTLFPinner) run(m libkb.MetaContext) (err error) {
 }
 
 func BackgroundPinTLFLoop(m libkb.MetaContext) {
-	newBackgroundTLFPinner().run(m)
+	_ = newBackgroundTLFPinner().run(m)
 }

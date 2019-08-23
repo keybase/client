@@ -11,6 +11,7 @@ type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
+  avatarImageOverride?: string
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
   colorBroken?: boolean
@@ -30,7 +31,7 @@ export type NameWithIconProps = {
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: (username: string) => void
   clickType?: 'profile' | 'onClick'
-  onEditIcon?: (e?: React.SyntheticEvent) => void
+  onEditIcon?: (e?: React.BaseSyntheticEvent) => void
   selectable?: boolean
   size?: Size
   teamname?: string
@@ -64,6 +65,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     if (isAvatar) {
       avatarOrIcon = (
         <Avatar
+          imageOverrideUrl={this.props.avatarImageOverride}
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
           size={
@@ -197,7 +199,7 @@ const TextOrComponent = (props: {
   return props.val
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
   }),
@@ -242,7 +244,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+}))
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (

@@ -5,7 +5,7 @@ import Icon from './icon'
 import * as Styles from '../styles'
 
 class BackButton extends Component<Props> {
-  _onClick = (event: React.SyntheticEvent) => {
+  _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()
     event.stopPropagation()
     if (this.props.onClick) {

@@ -2,17 +2,17 @@
   "protocol": "chatUi",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -187,6 +187,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": [
+            null,
             "ConversationFinalizeInfo"
           ],
           "name": "finalizeInfo"
@@ -316,6 +323,13 @@
         {
           "type": "string",
           "name": "headlineDecorated"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -835,6 +849,13 @@
             "UIMessage"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID"
         }
       ]
     },

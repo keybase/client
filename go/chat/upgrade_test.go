@@ -147,7 +147,7 @@ func TestChatKBFSUpgradeBadteam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, []keybase1.CryptKey{
-		keybase1.CryptKey{},
+		{},
 	}, keybase1.TeamApplication_CHAT))
 
 	// Should fail because the name of the imp team doesn't match the conversation name

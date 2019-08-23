@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stretchr/testify/require"
@@ -368,6 +369,75 @@ func TestChatSearchConvRegexp(t *testing.T) {
 	})
 }
 
+func TestChatSearchRemoveMsg(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSearchRemoveMsg", 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	chatUI := kbtest.NewChatUI()
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	ctc.as(t, users[0]).h.mockChatUI = chatUI
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
+
+	msgID0 := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	msgID2 := mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "MIKEMAXIM",
+	}))
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "CRICKETS",
+	}))
+	res, err := ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
+		Query: "MIKEM",
+		Opts: chat1.SearchOpts{
+			MaxConvsHit: 5,
+			MaxHits:     5,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, 2, len(res.Res.Hits))
+	if res.Res.Hits[0].ConvID.Eq(conv.Id) {
+		require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+		require.Equal(t, 1, len(res.Res.Hits[1].Hits))
+	} else {
+		require.Equal(t, 1, len(res.Res.Hits[0].Hits))
+		require.Equal(t, 2, len(res.Res.Hits[1].Hits))
+	}
+
+	mustDeleteMsg(ctx, t, ctc, users[0], conv1, msgID2)
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().SearchInbox(ctx, chat1.SearchInboxArg{
+		Query: "MIKEM",
+		Opts: chat1.SearchOpts{
+			MaxConvsHit: 5,
+			MaxHits:     5,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, 1, len(res.Res.Hits))
+	require.Equal(t, 2, len(res.Res.Hits[0].Hits))
+
+	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID0)
+	mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID1)
+
+	hres, err := tc.ChatG.Indexer.(*search.Indexer).GetStoreHits(ctx, uid, conv.Id, "MIKEM")
+	require.NoError(t, err)
+	require.Zero(t, len(hres))
+}
+
 func TestChatSearchInbox(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
@@ -564,12 +634,12 @@ func TestChatSearchInbox(t *testing.T) {
 
 		queries := []string{"hello", "hello, ByE"}
 		matches := []chat1.ChatSearchMatch{
-			chat1.ChatSearchMatch{
+			{
 				StartIndex: 0,
 				EndIndex:   5,
 				Match:      "hello",
 			},
-			chat1.ChatSearchMatch{
+			{
 				StartIndex: 0,
 				EndIndex:   10,
 				Match:      "hello, byE",
@@ -783,7 +853,8 @@ func TestChatSearchInbox(t *testing.T) {
 		verifySearchDone(1, false)
 
 		// DB nuke, ensure that we reindex after the search
-		g1.LocalChatDb.Nuke()
+		_, err = g1.LocalChatDb.Nuke()
+		require.NoError(t, err)
 		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -800,7 +871,8 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-		g1.LocalChatDb.Nuke()
+		_, err = g1.LocalChatDb.Nuke()
+		require.NoError(t, err)
 		err = indexer1.SelectiveSync(ictx, uid1)
 		require.NoError(t, err)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
@@ -894,7 +966,8 @@ func TestChatSearchInbox(t *testing.T) {
 		opts.ConvID = &convID
 		// delegate if a single conv is not fully indexed
 		query = "hello"
-		g1.LocalChatDb.Nuke()
+		_, err = g1.LocalChatDb.Nuke()
+		require.NoError(t, err)
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]

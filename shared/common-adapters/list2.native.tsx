@@ -11,11 +11,11 @@ class List2<T> extends PureComponent<Props<T>> {
     keyboardShouldPersistTaps: 'handled',
   }
 
-  _itemRender = ({item, index}) => {
+  _itemRender = ({item, index}: {item: T; index: number}) => {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (data, index) => {
+  _getItemLayout = (data: Array<T> | null, index: number) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
@@ -24,14 +24,14 @@ class List2<T> extends PureComponent<Props<T>> {
         return {index, length: itemHeight, offset: itemHeight * index}
       }
       case 'variable':
-        return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
+        return {index, ...this.props.itemHeight.getItemLayout(index, data ? data[index] : undefined)}
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
-        return {height: 0, index, offset: 0}
+        return {index, length: 0, offset: 0}
     }
   }
 
-  _keyExtractor = (item, index: number) => {
+  _keyExtractor = (item: T, index: number) => {
     if (this.props.indexAsKey || !item) {
       return String(index)
     }
@@ -54,6 +54,7 @@ class List2<T> extends PureComponent<Props<T>> {
           onEndReached={this.props.onEndReached}
           windowSize={this.props.windowSize || 10}
           debug={false /* set to true to debug the list */}
+          // @ts-ignore TODO fix styles
           contentContainerStyle={this.props.style}
         />
       </View>
@@ -61,11 +62,11 @@ class List2<T> extends PureComponent<Props<T>> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   outerView: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default List2

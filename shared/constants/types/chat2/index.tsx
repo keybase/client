@@ -139,6 +139,7 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   quote: QuoteInfo | null // last quoted message,
   selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
+  previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,
   unreadMap: ConversationCountMap // how many unread messages there are,
@@ -199,6 +200,7 @@ export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
 export type MentionsChannelName = Message.MentionsChannelName
 export type Message = Message.Message
+export type MessageAttachmentTransferState = Message.MessageAttachmentTransferState
 export type MessageAttachment = Message.MessageAttachment
 export type MessageExplodeDescription = Message.MessageExplodeDescription
 export type MessageID = Message.MessageID

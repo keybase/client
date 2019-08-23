@@ -14,7 +14,7 @@ type OwnProps = {
   firstItem: boolean
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   acceptedAssets: state.wallets.trustline.acceptedAssets.get(
     ownProps.accountID,
     Constants.emptyAccountAcceptedAssets
@@ -28,7 +28,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   ),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onAccept: () =>
     dispatch(WalletsGen.createAddTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
   onCollapse: () =>
@@ -38,6 +38,8 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
         expanded: false,
       })
     ),
+  onDeposit: (accountID: string, code: string, issuerAccountID: string) =>
+    dispatch(WalletsGen.createAssetDeposit({accountID, code, issuerAccountID})),
   onDone: RouteTreeGen.createNavigateUp(),
   onExpand: () =>
     dispatch(
@@ -48,28 +50,41 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ),
   onRemove: () =>
     dispatch(WalletsGen.createDeleteTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
+  onWithdraw: (accountID: string, code: string, issuerAccountID: string) =>
+    dispatch(WalletsGen.createAssetWithdraw({accountID, code, issuerAccountID})),
 })
 
-const mergeProps = (s, d, o: OwnProps) => ({
-  cannotAccept: o.cannotAccept,
-  code: s.asset.code,
-  expanded: s.expandedAssets.includes(o.assetID),
-  firstItem: o.firstItem,
-  infoUrlText: s.asset.infoUrlText,
-  issuerAccountID: s.asset.issuerAccountID,
-  issuerVerifiedDomain: s.asset.issuerVerifiedDomain,
-  onAccept: d.onAccept,
-  onCollapse: d.onCollapse,
-  onExpand: d.onExpand,
-  onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
-  onRemove: d.onRemove,
-  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  trusted: !!s.acceptedAssets.get(o.assetID, 0),
-  waitingAdd: s.waitingAdd,
-  waitingDelete: s.waitingDelete,
-  waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
-  waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
-  waitingRefresh: s.waitingRefresh,
-})
-
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Asset')(Asset)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({
+    cannotAccept: o.cannotAccept,
+    code: s.asset.code,
+    depositButtonText: s.asset.depositButtonText,
+    depositButtonWaitingKey: Constants.assetDepositWaitingKey(s.asset.issuerAccountID, s.asset.code),
+    expanded: s.expandedAssets.includes(o.assetID),
+    firstItem: o.firstItem,
+    infoUrlText: s.asset.infoUrlText,
+    issuerAccountID: s.asset.issuerAccountID,
+    issuerVerifiedDomain: s.asset.issuerVerifiedDomain,
+    onAccept: d.onAccept,
+    onCollapse: d.onCollapse,
+    onDeposit: s.asset.showDepositButton
+      ? () => d.onDeposit(o.accountID, s.asset.code, s.asset.issuerAccountID)
+      : undefined,
+    onExpand: d.onExpand,
+    onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
+    onRemove: d.onRemove,
+    onWithdraw: s.asset.showWithdrawButton
+      ? () => d.onWithdraw(o.accountID, s.asset.code, s.asset.issuerAccountID)
+      : undefined,
+    thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
+    trusted: !!s.acceptedAssets.get(o.assetID, 0),
+    waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
+    waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
+    waitingRefresh: s.waitingRefresh,
+    withdrawButtonText: s.asset.withdrawButtonText,
+    withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(s.asset.issuerAccountID, s.asset.code),
+  }),
+  'Asset'
+)(Asset)

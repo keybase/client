@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as PhoneUtil from '../../util/phone-numbers'
 
@@ -54,12 +53,13 @@ type OwnProps = Container.RouteProps<{address: string; searchable: boolean; type
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const itemAddress = Container.getRouteProps(props, 'address', '')
   const itemType = Container.getRouteProps(props, 'type', 'email')
   const itemSearchable = Container.getRouteProps(props, 'searchable', false)
 
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onConfirm = React.useCallback(() => {
     if (itemType === 'phone') {
       dispatch(SettingsGen.createEditPhone({delete: true, phone: itemAddress}))
@@ -67,8 +67,8 @@ const DeleteModal = (props: OwnProps) => {
       dispatch(SettingsGen.createEditEmail({delete: true, email: itemAddress}))
     }
 
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch, itemAddress, itemType])
+    dispatch(nav.safeNavigateUpPayload())
+  }, [dispatch, itemAddress, itemType, nav])
 
   return (
     <ConfirmDeleteAddress

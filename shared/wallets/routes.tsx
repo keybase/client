@@ -1,7 +1,13 @@
 import {isMobile} from '../constants/platform'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {
+  NavigationViewProps,
+  createNavigator,
+  createSwitchNavigator,
+  StackRouter,
+  SceneView,
+} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import AirdropQualify from './airdrop/qualify/container'
 import CreateNewAccount from './create-account/container'
@@ -23,6 +29,7 @@ import Airdrop from './airdrop/container'
 import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import Wallet from './wallet/container'
+import * as Container from '../util/container'
 
 const sharedRoutes = {
   airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
@@ -34,21 +41,21 @@ const sharedRoutes = {
   },
 }
 
-const walletsSubRoutes = isMobile
-  ? {}
-  : {
-      ...sharedRoutes,
-      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
-    }
+// walletsSubRoutes should only be used on desktop
+const walletsSubRoutes = {
+  ...sharedRoutes,
+  wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
+}
+const noScreenProps = {}
 
-class WalletsSubNav extends React.PureComponent<any> {
+class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
     const activeKey = navigation.state.routes[index].key
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
-    const WalletsAndDetails = require('./wallets-and-details/container').default
+    const WalletsAndDetails = require('./wallets-and-details').default
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
@@ -56,7 +63,7 @@ class WalletsSubNav extends React.PureComponent<any> {
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
+            screenProps={this.props.screenProps || noScreenProps}
           />
         </WalletsAndDetails>
       </Kb.Box2>
@@ -64,29 +71,67 @@ class WalletsSubNav extends React.PureComponent<any> {
   }
 }
 
+const WalletsSubNavigator = createNavigator(
+  WalletsSubNav,
+  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+  {}
+)
+const OnboardingOrWalletsNavigator = createSwitchNavigator(
+  {
+    onboarding: RoutedOnboarding,
+    walletsubnav: WalletsSubNavigator,
+  },
+  {initialRouteName: 'walletsubnav'}
+)
+
+type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
+
+class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
+  static router = OnboardingOrWalletsNavigator.router
+  static navigationOptions = ({navigation}) => {
+    return {
+      header: undefined,
+      headerExpandable: true,
+      // index 0 means we're on the onboarding page, so hide the header
+      headerMode: navigation.state.index === 0 ? 'none' : undefined,
+      headerRightActions: require('./nav-header/container').HeaderRightActions,
+      headerTitle: require('./nav-header/container').HeaderTitle,
+      title: 'Wallet',
+    }
+  }
+
+  componentDidMount() {
+    if (!this.props.acceptedDisclaimer) {
+      this.props.navigation.navigate('onboarding')
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.acceptedDisclaimer === false && this.props.acceptedDisclaimer === true) {
+      this.props.navigation.navigate('walletsubnav')
+    }
+  }
+
+  render() {
+    return <OnboardingOrWalletsNavigator {...this.props} />
+  }
+}
+const OnboardingOrWallets = Container.namedConnect(
+  state => ({
+    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
+  }),
+  undefined,
+  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
+  'OnboardingOrWallets'
+)(_OnboardingOrWallets)
+
 export const newRoutes = {
   walletsRoot: {
     getScreen: () => {
       if (isMobile) {
         return require('./wallet/container').default
       } else {
-        const WalletsSubNavigator = createNavigator(
-          WalletsSubNav,
-          StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-          {}
-        )
-
-        const {HeaderTitle, HeaderRightActions} = require('./nav-header/container')
-
-        WalletsSubNavigator.navigationOptions = {
-          header: undefined,
-          headerExpandable: true,
-          headerRightActions: HeaderRightActions,
-          headerTitle: HeaderTitle,
-          title: 'Wallet',
-        }
-
-        return WalletsSubNavigator
+        return OnboardingOrWallets
       }
     },
   },

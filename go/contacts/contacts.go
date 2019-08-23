@@ -26,7 +26,7 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 		// the assertion.
 		value = keybase1.PhoneNumberToAssertionValue(value)
 	} else {
-		value = strings.TrimSpace(strings.ToLower(value))
+		value = strings.ToLower(strings.TrimSpace(value))
 	}
 	if key == "" || value == "" {
 		return "", errors.New("invalid variant value in contact component")
@@ -210,11 +210,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			v := &res[i]
 			if v.Resolved {
 				v.DisplayName = v.Username
-				if v.Following && v.FullName != "" {
+				switch {
+				case v.Following && v.FullName != "":
 					v.DisplayLabel = v.FullName
-				} else if v.ContactName != "" {
+				case v.ContactName != "":
 					v.DisplayLabel = v.ContactName
-				} else {
+				default:
 					v.DisplayLabel = v.Component.ValueString()
 				}
 			}

@@ -80,7 +80,8 @@ func setupPuklessInviteTest(t *testing.T) (tc libkb.TestContext, owner, other *k
 	tc.Tp.SkipSendingSystemChatMessages = true
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	tc.Tp.DisableUpgradePerUserKey = false
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -100,12 +101,13 @@ func TestKeybaseInviteAfterReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Add member - should be added as keybase-type invite with name "uid%1".
-	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER)
+	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	require.True(t, res.Invited)
 
 	// Reset account, should now have EldestSeqno=0
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	require.NoError(t, other.Login(tc.G))
 	kbtest.ResetAccount(tc, other)
 

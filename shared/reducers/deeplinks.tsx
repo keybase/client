@@ -4,8 +4,7 @@ import * as DeeplinksGen from '../actions/deeplinks-gen'
 
 const initialState = Constants.makeState()
 
-type Actions =
-  | DeeplinksGen.Actions
+type Actions = DeeplinksGen.Actions
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {

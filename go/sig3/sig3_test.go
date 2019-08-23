@@ -10,10 +10,6 @@ import (
 	"time"
 )
 
-func b64twiddle(b []byte) {
-
-}
-
 func genKey(t *testing.T) (pair KeyPair) {
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
@@ -27,7 +23,7 @@ func genDHKID(t *testing.T) KID {
 }
 
 func makeKID(key []byte, typ byte) KID {
-	ret := KID(make([]byte, 35, 35))
+	ret := KID(make([]byte, 35))
 	ret[0] = 1
 	ret[1] = typ
 	ret[34] = 0x0a

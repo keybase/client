@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
@@ -28,8 +27,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _username: username,
     _you: state.config.username,
     disabledReasonsForRolePicker,
-    follower: amIBeingFollowed(state, username),
-    following: amIFollowing(state, username),
+    follower: state.config.followers.has(username),
+    following: state.config.following.has(username),
     loading: anyWaiting(state, teamWaitingKey(teamname)),
     teamname: teamname,
     yourOperations: getCanPerform(state, teamname),

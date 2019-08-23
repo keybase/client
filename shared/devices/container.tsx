@@ -12,80 +12,69 @@ import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 type OwnProps = Container.RouteProps
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _deviceMap: state.devices.deviceMap,
-  _newlyChangedItemIds: state.devices.isNew,
-  waiting: Constants.isWaiting(state),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  clearBadges: () => dispatch(DevicesGen.createClearBadges()),
-  loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
-    // We don't have navigateAppend in upgraded routes
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
-  },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
-const sortDevices = (a, b) => {
+const sortDevices = (a: Types.Device, b: Types.Device) => {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
 }
 
 const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'})
-const splitAndSortDevices = (
-  deviceMap: I.Map<string, Types.Device>
-): [Array<Types.Device>, Array<Types.Device>] =>
-  partition(
-    deviceMap
-      .valueSeq()
-      .toArray()
-      .sort(sortDevices),
-    d => d.revokedAt
+const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
+  partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
+
+const ReloadableDevices = (props: Props & {clearBadges: () => void}) => {
+  const {clearBadges, ...rest} = props
+  const {loadDevices, title, onBack} = rest
+  React.useEffect(() => {
+    return () => {
+      clearBadges()
+    }
+    // eslint-disable-next-line
+  }, [])
+
+  return (
+    <Kb.Reloadable
+      onBack={Container.isMobile ? onBack : undefined}
+      waitingKeys={Constants.waitingKey}
+      onReload={loadDevices}
+      reloadOnMount={true}
+      title={title}
+    >
+      <Devices {...rest} />
+    </Kb.Reloadable>
   )
-
-class ReloadableDevices extends React.PureComponent<Props & {clearBadges: () => void}> {
-  componentWillUnmount() {
-    this.props.clearBadges()
-  }
-
-  render() {
-    return (
-      <Kb.Reloadable
-        onBack={Container.isMobile ? this.props.onBack : undefined}
-        waitingKeys={Constants.waitingKey}
-        onReload={this.props.loadDevices}
-        reloadOnMount={true}
-        title={this.props.title}
-      >
-        <Devices
-          _stateOverride={this.props._stateOverride}
-          onAddDevice={this.props.onAddDevice}
-          hasNewlyRevoked={this.props.hasNewlyRevoked}
-          items={this.props.items}
-          loadDevices={this.props.loadDevices}
-          onBack={this.props.onBack}
-          revokedItems={this.props.revokedItems}
-          showPaperKeyNudge={this.props.showPaperKeyNudge}
-          title={this.props.title}
-          waiting={this.props.waiting}
-        />
-      </Kb.Reloadable>
-    )
-  }
 }
 
+ReloadableDevices.navigationOptions = Container.isMobile
+  ? undefined
+  : {
+      header: undefined,
+      headerRightActions: HeaderRightActions,
+      headerTitle: HeaderTitle,
+      title: 'Devices',
+    }
+
 const NamedConnected = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => ({
+    _deviceMap: state.devices.deviceMap,
+    _newlyChangedItemIds: state.devices.isNew,
+    waiting: Constants.isWaiting(state),
+  }),
+  dispatch => ({
+    clearBadges: () => dispatch(DevicesGen.createClearBadges()),
+    loadDevices: () => dispatch(DevicesGen.createLoad()),
+    onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
+      // We don't have navigateAppend in upgraded routes
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
+    },
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
     const revokedItems = revoked.map(deviceToItem)
     const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
     const showPaperKeyNudge =
-      !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
+      !!stateProps._deviceMap.size && ![...stateProps._deviceMap.values()].some(v => v.type === 'backup')
     return {
       _stateOverride: null,
       clearBadges: dispatchProps.clearBadges,
@@ -104,16 +93,4 @@ const NamedConnected = Container.namedConnect(
 )
 
 const SafeSub = Container.safeSubmitPerMount(['onBack'])
-const Connected = NamedConnected(SafeSub(ReloadableDevices))
-
-if (!Container.isMobile) {
-  // @ts-ignore fix this
-  Connected.navigationOptions = {
-    header: undefined,
-    headerRightActions: HeaderRightActions,
-    headerTitle: HeaderTitle,
-    title: 'Devices',
-  }
-}
-
-export default Connected
+export default NamedConnected(SafeSub(ReloadableDevices))

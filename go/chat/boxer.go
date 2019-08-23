@@ -126,6 +126,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		switch keybase1.StatusCode(aerr.Code) {
 		case keybase1.StatusCode_SCTeamNotFound:
 			return NewPermanentUnboxingError(err)
+		default:
+			// Nothing to do.
 		}
 	}
 	// Check if we have a permanent or tranissent team read error. Transient
@@ -267,6 +269,8 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
 			return chat1.ConversationMembersType_KBFS
 		}
+	default:
+		// Nothing to do for other conv types.
 	}
 	return convMembersType
 }
@@ -748,12 +752,12 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	return senderEncryptionKID.ToBytes(), nil
 }
 
-func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnboxed) (chat1.MessageUnboxed, types.UnboxingError) {
+func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, modified bool, err types.UnboxingError) {
 	if !msg.IsValid() {
-		return msg, nil
+		return msg, false, nil
 	}
 	if msg.Valid().VerificationKey == nil {
-		return msg, nil
+		return msg, false, nil
 	}
 	// verify sender key
 	revokedAt, ierr := b.ValidSenderKey(ctx, msg.Valid().ClientHeader.Sender, *msg.Valid().VerificationKey,
@@ -763,24 +767,26 @@ func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnbo
 			return b.makeErrorMessageFromPieces(ctx, ierr, msg.GetMessageID(), msg.GetMessageType(),
 				msg.Valid().ServerHeader.Ctime, msg.Valid().ClientHeader.Sender,
 				msg.Valid().ClientHeader.SenderDevice, msg.Valid().IsEphemeral(),
-				msg.Valid().IsEphemeralExpired(b.clock.Now()), msg.Valid().Etime()), nil
+				msg.Valid().IsEphemeralExpired(b.clock.Now()), msg.Valid().Etime()), true, nil
 		}
-		return msg, ierr
+		return msg, false, ierr
 	}
 	mvalid := msg.Valid()
 	mvalid.SenderDeviceRevokedAt = revokedAt
-	return chat1.NewMessageUnboxedWithValid(mvalid), nil
+	return chat1.NewMessageUnboxedWithValid(mvalid), revokedAt != nil, nil
 }
 
-func (b *Boxer) ResolveSkippedUnboxeds(ctx context.Context, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err types.UnboxingError) {
+func (b *Boxer) ResolveSkippedUnboxeds(ctx context.Context, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, modifiedMap map[chat1.MessageID]bool, err types.UnboxingError) {
+	modifiedMap = make(map[chat1.MessageID]bool)
 	for _, msg := range msgs {
-		rmsg, err := b.ResolveSkippedUnboxed(ctx, msg)
+		rmsg, modified, err := b.ResolveSkippedUnboxed(ctx, msg)
 		if err != nil {
-			return res, err
+			return res, modifiedMap, err
 		}
+		modifiedMap[rmsg.GetMessageID()] = modified
 		res = append(res, rmsg)
 	}
-	return res, nil
+	return res, modifiedMap, nil
 }
 
 func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
@@ -1633,7 +1639,7 @@ func makeOnePairwiseMAC(private libkb.NaclDHKeyPrivate, public libkb.NaclDHKeyPu
 		panic(err) // key derivation should never fail
 	}
 	hmacState := hmac.New(sha256.New, derivedShared[:])
-	hmacState.Write(input)
+	_, _ = hmacState.Write(input)
 	return hmacState.Sum(nil)
 }
 
@@ -1769,7 +1775,7 @@ func (b *Boxer) seal(data interface{}, key libkb.NaclSecretBoxKey) (*chat1.Encry
 
 	var encKey [libkb.NaclSecretBoxKeySize]byte = key
 
-	sealed := secretbox.Seal(nil, []byte(s), &nonce, &encKey)
+	sealed := secretbox.Seal(nil, s, &nonce, &encKey)
 	enc := &chat1.EncryptedData{
 		V: 1,
 		E: sealed,
@@ -1939,6 +1945,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		if ierr != nil {
 			return verifyMessageRes{}, ierr
 		}
+	default:
+		// Nothing to do.
 	}
 
 	// check signature

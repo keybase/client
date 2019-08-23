@@ -45,8 +45,9 @@ type TestCase struct {
 	KeyOwners        map[keybase1.KID] /*kid*/ string/*username*/ `json:"key_owners"`
 	KeyPubKeyV2NaCls map[keybase1.KID]json.RawMessage `json:"key_pubkeyv2nacls"`
 	TeamMerkle       map[string] /*TeamID AND TeamID-seqno:Seqno*/ struct {
-		Seqno  keybase1.Seqno  `json:"seqno"`
-		LinkID keybase1.LinkID `json:"link_id"`
+		Seqno         keybase1.Seqno  `json:"seqno"`
+		LinkID        keybase1.LinkID `json:"link_id"`
+		HiddenIsFresh bool            `json:"hidden_is_fresh"`
 	} `json:"team_merkle"`
 	MerkleTriples map[string] /*LeafID-HashMeta*/ libkb.MerkleTriple `json:"merkle_triples"`
 
@@ -142,9 +143,29 @@ func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)
-	require.NoError(t, err, "reading unit file json")
+	if err != nil {
+		handleTestCaseLoadFailure(t, data, err)
+		return nil, true
+	}
 	unit.FileName = fileName
 	return runUnit(t, unit)
+}
+
+type loadFailure struct {
+	Failure struct {
+		Error         bool   `json:"error"`
+		ErrorTypeFull string `json:"error_type_full"`
+		ErrorSubstr   string `json:"error_substr"`
+	} `json:"load_failure"`
+}
+
+func handleTestCaseLoadFailure(t *testing.T, data []byte, loadErr error) {
+	var unit loadFailure
+	err := json.Unmarshal(data, &unit)
+	require.NoError(t, err, "reading unit file json (after failure)")
+	require.True(t, unit.Failure.Error)
+	require.Equal(t, unit.Failure.ErrorTypeFull, reflect.TypeOf(loadErr).String())
+	require.Contains(t, loadErr.Error(), unit.Failure.ErrorSubstr)
 }
 
 func runUnitFromFilename(t *testing.T, filename string) (*Team, bool) {

@@ -16,6 +16,10 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
         oldItems: action.payload.oldItems,
         version: action.payload.version,
       })
+    case PeopleGen.setResentEmail:
+      return state.merge({
+        resentEmail: action.payload.email,
+      })
     case PeopleGen.getPeopleData:
     case PeopleGen.markViewed:
     case PeopleGen.skipTodo:

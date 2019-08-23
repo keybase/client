@@ -19,8 +19,8 @@ import (
 
 func clientInfo(m MetaContext) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("version", jsonw.NewString(Version))
-	ret.SetKey("name", jsonw.NewString(GoClientID))
+	_ = ret.SetKey("version", jsonw.NewString(Version))
+	_ = ret.SetKey("name", jsonw.NewString(GoClientID))
 	return ret
 }
 
@@ -46,14 +46,23 @@ func LinkEntropy() (string, error) {
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 	ret := jsonw.NewDictionary()
 
-	ret.SetKey("kid", jsonw.NewString(arg.Key.GetKID().String()))
+	err := ret.SetKey("kid", jsonw.NewString(arg.Key.GetKID().String()))
+	if err != nil {
+		return nil, err
+	}
 
 	if arg.EldestKID != "" {
-		ret.SetKey("eldest_kid", jsonw.NewString(arg.EldestKID.String()))
+		err := ret.SetKey("eldest_kid", jsonw.NewString(arg.EldestKID.String()))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if arg.ParentKID != "" {
-		ret.SetKey("parent_kid", jsonw.NewString(arg.ParentKID.String()))
+		err := ret.SetKey("parent_kid", jsonw.NewString(arg.ParentKID.String()))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if arg.HasRevSig {
@@ -63,30 +72,54 @@ func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 		} else {
 			revSig = jsonw.NewNil()
 		}
-		ret.SetKey("reverse_sig", revSig)
+		err := ret.SetKey("reverse_sig", revSig)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if arg.SigningUser != nil {
-		ret.SetKey("host", jsonw.NewString(CanonicalHost))
-		ret.SetKey("uid", UIDWrapper(arg.SigningUser.GetUID()))
-		ret.SetKey("username", jsonw.NewString(arg.SigningUser.GetName()))
+		err := ret.SetKey("host", jsonw.NewString(CanonicalHost))
+		if err != nil {
+			return nil, err
+		}
+		err = ret.SetKey("uid", UIDWrapper(arg.SigningUser.GetUID()))
+		if err != nil {
+			return nil, err
+		}
+		err = ret.SetKey("username", jsonw.NewString(arg.SigningUser.GetName()))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if arg.PerUserKeyGeneration != 0 {
-		ret.SetKey("generation", jsonw.NewInt(int(arg.PerUserKeyGeneration)))
+		err := ret.SetKey("generation", jsonw.NewInt(int(arg.PerUserKeyGeneration)))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if pgp, ok := arg.Key.(*PGPKeyBundle); ok {
 		fingerprint := pgp.GetFingerprint()
-		ret.SetKey("fingerprint", jsonw.NewString(fingerprint.String()))
-		ret.SetKey("key_id", jsonw.NewString(fingerprint.ToKeyID()))
+		err := ret.SetKey("fingerprint", jsonw.NewString(fingerprint.String()))
+		if err != nil {
+			return nil, err
+		}
+		err = ret.SetKey("key_id", jsonw.NewString(fingerprint.ToKeyID()))
+		if err != nil {
+			return nil, err
+		}
 		if arg.IncludePGPHash {
 			hash, err := pgp.FullHash()
 			if err != nil {
 				return nil, err
 			}
 
-			ret.SetKey("full_hash", jsonw.NewString(hash))
+			err = ret.SetKey("full_hash", jsonw.NewString(hash))
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -100,10 +133,10 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 		*errp = fmt.Errorf("User %s doesn't have an active key", u.GetName())
 	} else {
 		kid := u.GetEldestKID()
-		ret.SetKey("kid", jsonw.NewString(kid.String()))
+		_ = ret.SetKey("kid", jsonw.NewString(kid.String()))
 		ckf := u.GetComputedKeyFamily()
 		if fingerprint, exists := ckf.kf.kid2pgp[kid]; exists {
-			ret.SetKey("key_fingerprint", jsonw.NewString(fingerprint.String()))
+			_ = ret.SetKey("key_fingerprint", jsonw.NewString(fingerprint.String()))
 		}
 	}
 	return ret
@@ -120,23 +153,23 @@ func (u *User) ToTrackingStatementPGPKeys(errp *error) *jsonw.Wrapper {
 		kd := jsonw.NewDictionary()
 		kid := k.GetKID()
 		fp := k.GetFingerprintP()
-		kd.SetKey("kid", jsonw.NewString(kid.String()))
+		_ = kd.SetKey("kid", jsonw.NewString(kid.String()))
 		if fp != nil {
-			kd.SetKey("key_fingerprint", jsonw.NewString(fp.String()))
+			_ = kd.SetKey("key_fingerprint", jsonw.NewString(fp.String()))
 		}
-		ret.SetIndex(i, kd)
+		_ = ret.SetIndex(i, kd)
 	}
 	return ret
 }
 
 func (u *User) ToTrackingStatementBasics(errp *error) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("username", jsonw.NewString(u.name))
+	_ = ret.SetKey("username", jsonw.NewString(u.name))
 	if lastIDChange, err := u.basics.AtKey("last_id_change").GetInt(); err == nil {
-		ret.SetKey("last_id_change", jsonw.NewInt(lastIDChange))
+		_ = ret.SetKey("last_id_change", jsonw.NewInt(lastIDChange))
 	}
 	if idVersion, err := u.basics.AtKey("id_version").GetInt(); err == nil {
-		ret.SetKey("id_version", jsonw.NewInt(idVersion))
+		_ = ret.SetKey("id_version", jsonw.NewInt(idVersion))
 	}
 	return ret
 }
@@ -147,9 +180,9 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 		return jsonw.NewNil()
 	}
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sig_id", jsonw.NewString(mul.SigID.ToString(true)))
-	ret.SetKey("seqno", jsonw.NewInt(int(mul.Seqno)))
-	ret.SetKey("payload_hash", jsonw.NewString(mul.LinkID.String()))
+	_ = ret.SetKey("sig_id", jsonw.NewString(mul.SigID.ToString(true)))
+	_ = ret.SetKey("seqno", jsonw.NewInt(int(mul.Seqno)))
+	_ = ret.SetKey("payload_hash", jsonw.NewString(mul.LinkID.String()))
 	return ret
 }
 
@@ -159,17 +192,28 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	if u.HasActiveKey() {
 		key := u.ToTrackingStatementKey(&err)
 		if key != nil {
-			track.SetKey("key", key)
+			_ = track.SetKey("key", key)
 		}
 	}
 	if pgpkeys := u.ToTrackingStatementPGPKeys(&err); pgpkeys != nil {
-		track.SetKey("pgp_keys", pgpkeys)
+		err := track.SetKey("pgp_keys", pgpkeys)
+		if err != nil {
+			return err
+		}
 	}
-	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
-	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
-	track.SetKey("id", UIDWrapper(u.id))
-	track.SetKey("remote_proofs", outcome.TrackingStatement())
-
+	err = track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
+	if err != nil {
+		return err
+	}
+	err = track.SetKey("basics", u.ToTrackingStatementBasics(&err))
+	if err != nil {
+		return err
+	}
+	err = track.SetKey("id", UIDWrapper(u.id))
+	if err != nil {
+		return err
+	}
+	err = track.SetKey("remote_proofs", outcome.TrackingStatement())
 	if err != nil {
 		return err
 	}
@@ -178,41 +222,51 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	if err != nil {
 		return err
 	}
-	track.SetKey("entropy", jsonw.NewString(entropy))
+	err = track.SetKey("entropy", jsonw.NewString(entropy))
+	if err != nil {
+		return err
+	}
 
-	w.SetKey("track", track)
-	return err
+	return w.SetKey("track", track)
 }
 
 func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("username", jsonw.NewString(u.name))
+	_ = ret.SetKey("username", jsonw.NewString(u.name))
 	return ret
 }
 
 func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack := jsonw.NewDictionary()
-	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
-	untrack.SetKey("id", UIDWrapper(u.GetUID()))
+	err = untrack.SetKey("basics", u.ToUntrackingStatementBasics())
+	if err != nil {
+		return err
+	}
+	err = untrack.SetKey("id", UIDWrapper(u.GetUID()))
+	if err != nil {
+		return err
+	}
 
 	entropy, err := LinkEntropy()
 	if err != nil {
 		return err
 	}
-	untrack.SetKey("entropy", jsonw.NewString(entropy))
+	err = untrack.SetKey("entropy", jsonw.NewString(entropy))
+	if err != nil {
+		return err
+	}
 
-	w.SetKey("untrack", untrack)
-	return err
+	return w.SetKey("untrack", untrack)
 }
 
 func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("curr", jsonw.NewString(g.id.String()))
-	ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().ToString(true)))
+	_ = ret.SetKey("curr", jsonw.NewString(g.id.String()))
+	_ = ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().ToString(true)))
 
 	rkp := jsonw.NewDictionary()
-	ret.SetKey("remote_key_proof", rkp)
-	rkp.SetKey("state", jsonw.NewInt(int(state)))
+	_ = ret.SetKey("remote_key_proof", rkp)
+	_ = rkp.SetKey("state", jsonw.NewInt(int(state)))
 
 	prev := g.GetPrev()
 	var prevVal *jsonw.Wrapper
@@ -222,17 +276,17 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 		prevVal = jsonw.NewString(prev.String())
 	}
 
-	ret.SetKey("prev", prevVal)
-	ret.SetKey("ctime", jsonw.NewInt64(g.unpacked.ctime))
-	ret.SetKey("etime", jsonw.NewInt64(g.unpacked.etime))
+	_ = ret.SetKey("prev", prevVal)
+	_ = ret.SetKey("ctime", jsonw.NewInt64(g.unpacked.ctime))
+	_ = ret.SetKey("etime", jsonw.NewInt64(g.unpacked.etime))
 	return ret
 }
 
 func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) {
 	proofType := s.GetProofType()
-	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(proofType)))
-	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
-	base.SetKey("sig_type", jsonw.NewInt(SigTypeRemoteProof))
+	_ = base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(proofType)))
+	_ = base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
+	_ = base.SetKey("sig_type", jsonw.NewInt(SigTypeRemoteProof))
 }
 
 type HighSkip struct {
@@ -351,11 +405,26 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	}
 
 	j := jsonw.NewDictionary()
-	j.SetKey("tag", jsonw.NewString("signature"))
-	j.SetKey("ctime", jsonw.NewInt64(ctime))
-	j.SetKey("expire_in", jsonw.NewInt(ei))
-	j.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
-	j.SetKey("prev", prev)
+	err = j.SetKey("tag", jsonw.NewString("signature"))
+	if err != nil {
+		return nil, err
+	}
+	err = j.SetKey("ctime", jsonw.NewInt64(ctime))
+	if err != nil {
+		return nil, err
+	}
+	err = j.SetKey("expire_in", jsonw.NewInt(ei))
+	if err != nil {
+		return nil, err
+	}
+	err = j.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
+	if err != nil {
+		return nil, err
+	}
+	err = j.SetKey("prev", prev)
+	if err != nil {
+		return nil, err
+	}
 
 	var highSkip *HighSkip
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
@@ -374,18 +443,33 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 
 		if highSkip != nil {
 			highSkipObj := jsonw.NewDictionary()
-			highSkipObj.SetKey("seqno", jsonw.NewInt64(int64(highSkip.Seqno)))
-			if hash := highSkip.Hash; hash != nil {
-				highSkipObj.SetKey("hash", jsonw.NewString(hash.String()))
-			} else {
-				highSkipObj.SetKey("hash", jsonw.NewNil())
+			err := highSkipObj.SetKey("seqno", jsonw.NewInt64(int64(highSkip.Seqno)))
+			if err != nil {
+				return nil, err
 			}
-			j.SetKey("high_skip", highSkipObj)
+			if hash := highSkip.Hash; hash != nil {
+				err := highSkipObj.SetKey("hash", jsonw.NewString(hash.String()))
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				err := highSkipObj.SetKey("hash", jsonw.NewNil())
+				if err != nil {
+					return nil, err
+				}
+			}
+			err = j.SetKey("high_skip", highSkipObj)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	if arg.IgnoreIfUnsupported {
-		j.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		err := j.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		if err != nil {
+			return nil, err
+		}
 	}
 	eldest := arg.Eldest
 	if eldest == "" {
@@ -398,12 +482,21 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	body := jsonw.NewDictionary()
 
 	if arg.SigVersion != 0 {
-		body.SetKey("version", jsonw.NewInt(int(arg.SigVersion)))
+		err := body.SetKey("version", jsonw.NewInt(int(arg.SigVersion)))
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		body.SetKey("version", jsonw.NewInt(int(KeybaseSignatureV1)))
+		err := body.SetKey("version", jsonw.NewInt(int(KeybaseSignatureV1)))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	body.SetKey("type", jsonw.NewString(string(arg.LinkType)))
+	err = body.SetKey("type", jsonw.NewString(string(arg.LinkType)))
+	if err != nil {
+		return nil, err
+	}
 
 	key, err := KeySection{
 		Key:            arg.SigningKey,
@@ -414,26 +507,41 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	if err != nil {
 		return nil, err
 	}
-	body.SetKey("key", key)
+	err = body.SetKey("key", key)
+	if err != nil {
+		return nil, err
+	}
 	// Capture the most recent Merkle Root, inside of "body"
 	// field.
 	if mr := arg.merkleRootInfo(m); mr != nil {
-		body.SetKey("merkle_root", mr)
+		err := body.SetKey("merkle_root", mr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	j.SetKey("body", body)
+	err = j.SetKey("body", body)
+	if err != nil {
+		return nil, err
+	}
 
 	// Save what kind of client we're running.
-	j.SetKey("client", clientInfo(m))
+	err = j.SetKey("client", clientInfo(m))
+	if err != nil {
+		return nil, err
+	}
 
 	if arg.SeqType != 0 {
-		j.SetKey("seq_type", jsonw.NewInt(int(arg.SeqType)))
+		err := j.SetKey("seq_type", jsonw.NewInt(int(arg.SeqType)))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &ProofMetadataRes{
 		J:     j,
 		Seqno: seqno,
-	}, err
+	}, nil
 }
 
 func (u *User) TrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User, outcome *IdentifyOutcome) (*ProofMetadataRes, error) {
@@ -536,10 +644,16 @@ func KeyProof2(m MetaContext, arg Delegator) (ret *ProofMetadataRes, err error) 
 		if err != nil {
 			return nil, err
 		}
-		body.SetKey("device", dw)
+		err = body.SetKey("device", dw)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if kp != nil {
-		body.SetKey(string(arg.DelegationType), kp)
+		err := body.SetKey(string(arg.DelegationType), kp)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ret, nil
 }
@@ -559,9 +673,15 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	if err != nil {
 		return nil, err
 	}
-	service.SetKey("entropy", jsonw.NewString(entropy))
-	ret.J.AtKey("body").SetKey("service", service)
-	return ret, err
+	err = service.SetKey("entropy", jsonw.NewString(entropy))
+	if err != nil {
+		return nil, err
+	}
+	err = ret.J.AtKey("body").SetKey("service", service)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
@@ -631,18 +751,36 @@ func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []key
 	}
 	body := ret.J.AtKey("body")
 	revokeSection := jsonw.NewDictionary()
-	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
-	body.SetKey("revoke", revokeSection)
+	err = revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("revoke", revokeSection)
+	if err != nil {
+		return nil, err
+	}
 	if deviceToDisable.Exists() {
 		device, err := u.GetDevice(deviceToDisable)
 		if err != nil {
 			return nil, err
 		}
 		deviceSection := jsonw.NewDictionary()
-		deviceSection.SetKey("id", jsonw.NewString(deviceToDisable.String()))
-		deviceSection.SetKey("type", jsonw.NewString(device.Type))
-		deviceSection.SetKey("status", jsonw.NewInt(DeviceStatusDefunct))
-		body.SetKey("device", deviceSection)
+		err = deviceSection.SetKey("id", jsonw.NewString(deviceToDisable.String()))
+		if err != nil {
+			return nil, err
+		}
+		err = deviceSection.SetKey("type", jsonw.NewString(device.Type))
+		if err != nil {
+			return nil, err
+		}
+		err = deviceSection.SetKey("status", jsonw.NewInt(DeviceStatusDefunct))
+		if err != nil {
+			return nil, err
+		}
+		err = body.SetKey("device", deviceSection)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ret, nil
 }
@@ -661,10 +799,19 @@ func (u *User) RevokeSigsProof(m MetaContext, key GenericKey, sigIDsToRevoke []k
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
 	for i, id := range sigIDsToRevoke {
-		idsArray.SetIndex(i, jsonw.NewString(id.ToString(true)))
+		err := idsArray.SetIndex(i, jsonw.NewString(id.ToString(true)))
+		if err != nil {
+			return nil, err
+		}
 	}
-	revokeSection.SetKey("sig_ids", idsArray)
-	body.SetKey("revoke", revokeSection)
+	err = revokeSection.SetKey("sig_ids", idsArray)
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("revoke", revokeSection)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -681,18 +828,36 @@ func (u *User) CryptocurrencySig(m MetaContext, key GenericKey, address string, 
 	}
 	body := ret.J.AtKey("body")
 	currencySection := jsonw.NewDictionary()
-	currencySection.SetKey("address", jsonw.NewString(address))
-	currencySection.SetKey("type", jsonw.NewString(typ.String()))
+	err = currencySection.SetKey("address", jsonw.NewString(address))
+	if err != nil {
+		return nil, err
+	}
+	err = currencySection.SetKey("type", jsonw.NewString(typ.String()))
+	if err != nil {
+		return nil, err
+	}
 	entropy, err := LinkEntropy()
 	if err != nil {
 		return nil, err
 	}
-	currencySection.SetKey("entropy", jsonw.NewString(entropy))
-	body.SetKey("cryptocurrency", currencySection)
+	err = currencySection.SetKey("entropy", jsonw.NewString(entropy))
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("cryptocurrency", currencySection)
+	if err != nil {
+		return nil, err
+	}
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
-		revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
-		body.SetKey("revoke", revokeSection)
+		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
+		if err != nil {
+			return nil, err
+		}
+		err = body.SetKey("revoke", revokeSection)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ret, nil
 }
@@ -708,11 +873,26 @@ func (u *User) UpdatePassphraseProof(m MetaContext, key GenericKey, pwh string, 
 	}
 	body := ret.AtKey("body")
 	pp := jsonw.NewDictionary()
-	pp.SetKey("hash", jsonw.NewString(pwh))
-	pp.SetKey("pdpka5_kid", jsonw.NewString(pdpka5kid))
-	pp.SetKey("version", jsonw.NewInt(int(ClientTriplesecVersion)))
-	pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
-	body.SetKey("update_passphrase_hash", pp)
+	err = pp.SetKey("hash", jsonw.NewString(pwh))
+	if err != nil {
+		return nil, err
+	}
+	err = pp.SetKey("pdpka5_kid", jsonw.NewString(pdpka5kid))
+	if err != nil {
+		return nil, err
+	}
+	err = pp.SetKey("version", jsonw.NewInt(int(ClientTriplesecVersion)))
+	if err != nil {
+		return nil, err
+	}
+	err = pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("update_passphrase_hash", pp)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -727,8 +907,14 @@ func (u *User) UpdateEmailProof(m MetaContext, key GenericKey, newEmail string) 
 	}
 	body := ret.AtKey("body")
 	settings := jsonw.NewDictionary()
-	settings.SetKey("email", jsonw.NewString(newEmail))
-	body.SetKey("update_settings", settings)
+	err = settings.SetKey("email", jsonw.NewString(newEmail))
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("update_settings", settings)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -778,15 +964,29 @@ func PerUserKeyProof(m MetaContext,
 	}
 
 	pukSection := jsonw.NewDictionary()
-	pukSection.SetKey("signing_kid", jsonw.NewString(pukSigKID.String()))
-	pukSection.SetKey("encryption_kid", jsonw.NewString(pukEncKID.String()))
-	pukSection.SetKey("generation", jsonw.NewInt(int(generation)))
+	err = pukSection.SetKey("signing_kid", jsonw.NewString(pukSigKID.String()))
+	if err != nil {
+		return nil, err
+	}
+	err = pukSection.SetKey("encryption_kid", jsonw.NewString(pukEncKID.String()))
+	if err != nil {
+		return nil, err
+	}
+	err = pukSection.SetKey("generation", jsonw.NewInt(int(generation)))
+	if err != nil {
+		return nil, err
+	}
 	// The caller is responsible for overwriting reverse_sig after signing.
-	pukSection.SetKey("reverse_sig", jsonw.NewNil())
+	err = pukSection.SetKey("reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.J.AtKey("body")
-	body.SetKey("per_user_key", pukSection)
-
+	err = body.SetKey("per_user_key", pukSection)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -824,7 +1024,10 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 
 	// Make sig
 	jw := forward.J
-	jw.SetValueAtPath("body.per_user_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = jw.SetValueAtPath("body.per_user_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return nil, err
+	}
 	sig, sigID, linkID, err := SignJSON(jw, signer)
 	if err != nil {
 		return nil, err
@@ -832,13 +1035,16 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 
 	// Update the user locally
 	me.SigChainBump(linkID, sigID, false)
-	me.localDelegatePerUserKey(keybase1.PerUserKey{
+	err = me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:         int(generation),
 		Seqno:       me.GetSigChainLastKnownSeqno(),
 		SigKID:      pukSigKey.GetKID(),
 		EncKID:      pukEncKey.GetKID(),
 		SignedByKID: signer.GetKID(),
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	publicKeysEntry := make(JSONPayload)
 	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
@@ -880,8 +1086,14 @@ func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
 	}
 
 	walletSection := jsonw.NewDictionary()
-	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
-	walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
+	err = walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
+	if err != nil {
+		return nil, err
+	}
+	err = walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
+	if err != nil {
+		return nil, err
+	}
 
 	// Inner links can be hidden. To prevent an attacker from figuring out the
 	// contents from the hash of the inner link, add 18 random bytes.
@@ -889,17 +1101,31 @@ func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
 	if err != nil {
 		return nil, err
 	}
-	walletSection.SetKey("entropy", jsonw.NewString(entropy))
+	err = walletSection.SetKey("entropy", jsonw.NewString(entropy))
+	if err != nil {
+		return nil, err
+	}
 
 	walletKeySection := jsonw.NewDictionary()
-	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
+	err = walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
+	if err != nil {
+		return nil, err
+	}
 	// The caller is responsible for overwriting reverse_sig after signing.
-	walletKeySection.SetKey("reverse_sig", jsonw.NewNil())
+	err = walletKeySection.SetKey("reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.J.AtKey("body")
-	body.SetKey("wallet", walletSection)
-	body.SetKey("wallet_key", walletKeySection)
-
+	err = body.SetKey("wallet", walletSection)
+	if err != nil {
+		return nil, err
+	}
+	err = body.SetKey("wallet_key", walletKeySection)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -917,14 +1143,17 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	if err != nil {
 		return nil, err
 	}
-	reverseSig, _, linkID, err := SignJSON(forward.J, stellarSignerKey)
+	reverseSig, _, _, err := SignJSON(forward.J, stellarSignerKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// Make sig
 	jw := forward.J
-	jw.SetValueAtPath("body.wallet_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = jw.SetValueAtPath("body.wallet_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return nil, err
+	}
 	innerJSON, err := jw.Marshal()
 	if err != nil {
 		return nil, err

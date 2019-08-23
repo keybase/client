@@ -22,6 +22,11 @@ type anotherMockContactsProvider struct {
 	queryCount int
 }
 
+func (c *anotherMockContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ContactLookupResults, error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
+}
+
 func (c *anotherMockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
 
@@ -87,7 +92,7 @@ func TestLookupCache(t *testing.T) {
 	require.Len(t, res0, 0)
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Joe",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("Home", "+1111222"),

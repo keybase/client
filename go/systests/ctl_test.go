@@ -39,7 +39,7 @@ type versionUI struct {
 }
 
 func (v *versionUI) checkVersionOutput(t *testing.T) {
-	rx := regexp.MustCompile(":\\s*")
+	rx := regexp.MustCompile(`:\s*`)
 	n := len(v.outbuf)
 	if n < 2 {
 		t.Fatalf("expected >= 2 lines of output; got %d\n", n)

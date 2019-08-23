@@ -59,6 +59,7 @@ type cachedLookupResult struct {
 
 type lookupResultCache struct {
 	Lookups map[ContactLookupKey]cachedLookupResult
+	Token   Token
 	Version struct {
 		Major int
 		Minor int
@@ -127,13 +128,14 @@ func (s *ContactCacheStore) getCache(mctx libkb.MetaContext) (obj lookupResultCa
 	var createCache bool
 	cacheKey := s.dbKey(mctx.CurrentUID())
 	found, err := s.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if err != nil {
+	switch {
+	case err != nil:
 		mctx.Warning("Unable to pull contact lookup cache: %s", err)
 		createCache = true
-	} else if !found {
+	case !found:
 		mctx.Debug("No contact lookup cache found, creating new cache object")
 		createCache = true
-	} else if conCache.Version.Major != cacheCurrentMajorVersion {
+	case conCache.Version.Major != cacheCurrentMajorVersion:
 		mctx.Debug("Found contact cache object but major version is %d (need %d)", conCache.Version.Major, cacheCurrentMajorVersion)
 		createCache = true
 	}
@@ -154,6 +156,11 @@ func (s *ContactCacheStore) putCache(mctx libkb.MetaContext, cacheObj lookupResu
 func (s *ContactCacheStore) ClearCache(mctx libkb.MetaContext) error {
 	cacheKey := s.dbKey(mctx.CurrentUID())
 	return s.encryptedDB.Delete(mctx.Ctx(), cacheKey)
+}
+
+func (c *CachedContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (res ContactLookupResults, err error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
 }
 
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
@@ -216,8 +223,10 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	mctx.Debug("After checking cache, %d emails and %d numbers left to be looked up", len(remainingEmails), len(remainingNumbers))
 
 	if len(remainingEmails)+len(remainingNumbers) > 0 {
-		apiRes, err := c.Provider.LookupAll(mctx, remainingEmails, remainingNumbers, userRegion)
+		apiRes, err := c.Provider.LookupAllWithToken(mctx, remainingEmails, remainingNumbers, userRegion, conCache.Token)
 		if err == nil {
+			conCache.Token = apiRes.Token
+
 			now := mctx.G().Clock().Now()
 			expiresAt := now.Add(apiRes.ResolvedFreshness)
 			for k, v := range apiRes.Results {

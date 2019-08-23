@@ -10,6 +10,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
+import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
 
 const initialState = Constants.makeState()
 
@@ -19,6 +20,7 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -207,8 +209,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.loadedAvatars:
-      return state.merge({avatars: state.avatars.merge(action.payload.avatars)})
     case ConfigGen.setNotifySound:
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
@@ -271,11 +271,26 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         runtimeStats: action.payload.params.stats,
       })
+    case ConfigGen.updateHTTPSrvInfo:
+      return state.merge({
+        httpSrvAddress: action.payload.address,
+        httpSrvToken: action.payload.token,
+      })
+    case EngineGen.keybase1NotifyTeamAvatarUpdated:
+      return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
+    case ConfigGen.setDarkModePreference:
+      _setDarkModePreference(action.payload.preference)
+      return state.merge({darkModePreference: action.payload.preference})
+    case ConfigGen.setSystemDarkMode:
+      _setSystemIsDarkMode(action.payload.dark)
+      return state.merge({systemDarkMode: action.payload.dark})
+    case ConfigGen.remoteWindowWantsProps: {
+      const {component, param} = action.payload
+      return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
+    }
     // Saga only actions
-    case ConfigGen.loadTeamAvatars:
-    case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
     case ConfigGen.mobileAppState:

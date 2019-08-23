@@ -1,16 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
+import {isDarwin, isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
 import {ProxySettings} from '../proxy/container'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 type Props = {
   openAtLogin: boolean
+  darkModePreference: DarkModePreference
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
   onSetOpenAtLogin: (open: boolean) => void
@@ -20,6 +22,7 @@ type Props = {
   onTrace: (durationSeconds: number) => void
   onProcessorProfile: (durationSeconds: number) => void
   onBack: () => void
+  onSetDarkModePreference: (pref: DarkModePreference) => void
   setLockdownModeError: string
   settingLockdownMode: boolean
   traceInProgress: boolean
@@ -62,7 +65,7 @@ const UseNativeFrame = (props: Props) => {
 const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.ScrollView>
+    <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.advancedContainer}>
         <Kb.Box style={styles.progressContainer}>
           {props.settingLockdownMode && <Kb.ProgressIndicator />}
@@ -111,6 +114,30 @@ const Advanced = (props: Props) => {
         )}
         <Kb.Divider style={styles.proxyDivider} />
         <ProxySettings />
+        {flags.darkMode && (
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Divider style={styles.proxyDivider} />
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="Body">Dark mode</Kb.Text>
+              <Kb.Checkbox
+                label="Respect system settings"
+                disabled={!isDarwin}
+                checked={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+                onCheck={() => props.onSetDarkModePreference('system')}
+              />
+              <Kb.Checkbox
+                label="Dark all the time"
+                checked={props.darkModePreference === 'alwaysDark'}
+                onCheck={() => props.onSetDarkModePreference('alwaysDark')}
+              />
+              <Kb.Checkbox
+                label="Light all the time 😎"
+                checked={props.darkModePreference === 'alwaysLight'}
+                onCheck={() => props.onSetDarkModePreference('alwaysLight')}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Developer {...props} />
       </Kb.Box>
     </Kb.ScrollView>
@@ -287,6 +314,9 @@ const styles = Styles.styleSheetCreate({
   },
   proxyDivider: {
     marginBottom: Styles.globalMargins.small,
+    width: '100%',
+  },
+  scrollview: {
     width: '100%',
   },
   text: Styles.platformStyles({

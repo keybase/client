@@ -12,7 +12,11 @@ export const stringToItemID: (id: string) => ItemID = id => id
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 
-export type _TodoMetaEmail = {type: 'email'; email: string}
+export type _TodoMetaEmail = {
+  type: 'email'
+  email: string
+  lastVerifyEmailDate: number // unix time in seconds
+}
 export type _TodoMetaPhone = {type: 'phone'; phone: string}
 
 export type TodoMetaEmail = I.RecordOf<_TodoMetaEmail>
@@ -75,6 +79,7 @@ export type _State = {
   newItems: I.List<PeopleScreenItem>
   oldItems: I.List<PeopleScreenItem>
   followSuggestions: I.List<FollowSuggestion>
+  resentEmail: string
 }
 
 export type State = I.RecordOf<_State>

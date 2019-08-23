@@ -145,6 +145,7 @@ export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
+export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -162,6 +163,7 @@ export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyT
 export const keybase1NotifyTrackingTrackingInfo = 'engine-gen:keybase1NotifyTrackingTrackingInfo'
 export const keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged =
   'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'
+export const keybase1NotifyUsersIdentifyUpdate = 'engine-gen:keybase1NotifyUsersIdentifyUpdate'
 export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUsersPasswordChanged'
 export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUserChanged'
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
@@ -1227,6 +1229,17 @@ type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
     ) => void
   }
 }
+type _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyServiceShutdownPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
@@ -1355,6 +1368,15 @@ type _Keybase1NotifyTrackingTrackingInfoPayload = {
 type _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {
     sessionID: number
+  }
+}
+type _Keybase1NotifyUsersIdentifyUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void
   }
 }
 type _Keybase1NotifyUsersPasswordChangedPayload = {
@@ -2216,6 +2238,9 @@ export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
   payload,
   type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
+export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
+  payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -2267,6 +2292,9 @@ export const createKeybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = (
   payload,
   type: keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged,
 })
+export const createKeybase1NotifyUsersIdentifyUpdate = (
+  payload: _Keybase1NotifyUsersIdentifyUpdatePayload
+): Keybase1NotifyUsersIdentifyUpdatePayload => ({payload, type: keybase1NotifyUsersIdentifyUpdate})
 export const createKeybase1NotifyUsersPasswordChanged = (
   payload: _Keybase1NotifyUsersPasswordChangedPayload
 ): Keybase1NotifyUsersPasswordChangedPayload => ({payload, type: keybase1NotifyUsersPasswordChanged})
@@ -2944,6 +2972,10 @@ export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
   readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
+export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
+  readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
+}
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
   readonly type: typeof keybase1NotifyServiceShutdown
@@ -3007,6 +3039,10 @@ export type Keybase1NotifyTrackingTrackingInfoPayload = {
 export type Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
   readonly payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
   readonly type: typeof keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged
+}
+export type Keybase1NotifyUsersIdentifyUpdatePayload = {
+  readonly payload: _Keybase1NotifyUsersIdentifyUpdatePayload
+  readonly type: typeof keybase1NotifyUsersIdentifyUpdate
 }
 export type Keybase1NotifyUsersPasswordChangedPayload = {
   readonly payload: _Keybase1NotifyUsersPasswordChangedPayload
@@ -3334,6 +3370,7 @@ export type Actions =
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload
@@ -3350,6 +3387,7 @@ export type Actions =
   | Keybase1NotifyTrackingTrackingChangedPayload
   | Keybase1NotifyTrackingTrackingInfoPayload
   | Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
+  | Keybase1NotifyUsersIdentifyUpdatePayload
   | Keybase1NotifyUsersPasswordChangedPayload
   | Keybase1NotifyUsersUserChangedPayload
   | Keybase1PgpUiFinishedPayload

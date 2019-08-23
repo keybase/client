@@ -170,7 +170,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	}
 
 	r.Debug(r.ctx, "Read: len(chunkPlainText): %v", len(chunkPlaintext))
-	plainText := r.extractPlaintext(chunkPlaintext, int64(num), chunks)
+	plainText := r.extractPlaintext(chunkPlaintext, num, chunks)
 	copy(res, plainText)
 	numRead := int64(len(plainText))
 	r.Debug(r.ctx, "Read: len(pt): %v", len(plainText))

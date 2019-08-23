@@ -108,7 +108,10 @@ func (c *Cache) Put(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 		Data:     data,
 		CachedAt: keybase1.ToTime(lctx.GetClock().Now()),
 	}
-	lctx.GetKVStore().PutObj(k.DbKey(), nil, w)
+	err := lctx.GetKVStore().PutObj(k.DbKey(), nil, w)
+	if err != nil {
+		return err
+	}
 	c.mem.Add(k.MemKey(), v)
 	return nil
 }

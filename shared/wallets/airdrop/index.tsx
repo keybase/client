@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/wallets'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
 
@@ -14,14 +15,7 @@ export type Props = {
   signedUp: boolean
   headerBody: string
   headerTitle: string
-  sections: ReadonlyArray<{
-    lines: ReadonlyArray<{
-      bullet: boolean
-      text: string
-    }>
-    section: string
-    icon: string | null
-  }>
+  sections: Types.StellarDetailsSections
   title: string
 }
 
@@ -138,8 +132,12 @@ class Airdrop extends React.Component<Props> {
                 <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
-                <Kb.Markdown selectable={true} styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
-                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={headerOverride}>
+                  {p.headerTitle}
+                </Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>
+                  {p.headerBody}
+                </Kb.Markdown>
                 <Kb.Button
                   backgroundColor="purple"
                   label="See if you qualify"
@@ -173,7 +171,9 @@ class Airdrop extends React.Component<Props> {
                           style={styles.bullet}
                         />
                       )}
-                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
+                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>
+                        {l.text}
+                      </Kb.Markdown>
                     </Kb.Box2>
                   ))}
                 </Kb.Box2>

@@ -5,42 +5,34 @@ import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import People, {Header} from './index'
 import * as PeopleGen from '../actions/people-gen'
-import {connect, RouteProps, isMobile} from '../util/container'
-import {createClearJustSignedUpEmail} from '../actions/signup-gen'
+import * as Container from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
-type OwnProps = RouteProps
+type OwnProps = {}
 
-const mapStateToPropsHeader = state => ({
-  myUsername: state.config.username,
-})
-
-const mapDispatchToPropsHeader = dispatch => ({
-  onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-  onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
-})
-
-const mergePropsHeader = (stateProps, dispatchProps, _: OwnProps) => ({
-  myUsername: stateProps.myUsername,
-  ...dispatchProps,
-})
-const ConnectedHeader = connect(
-  mapStateToPropsHeader,
-  mapDispatchToPropsHeader,
-  mergePropsHeader
+const ConnectedHeader = Container.connect(
+  state => ({
+    myUsername: state.config.username,
+  }),
+  dispatch => ({
+    onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+    onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    myUsername: stateProps.myUsername,
+    ...dispatchProps,
+  })
 )(Header)
 
 type Props = {
-  clearJustSignedUpEmail: () => void
   oldItems: I.List<Types.PeopleScreenItem>
   newItems: I.List<Types.PeopleScreenItem>
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
-  onOpenAccountSwitcher: () => void
   signupEmail: string
   showAirdrop: boolean
   myUsername: string
@@ -48,6 +40,15 @@ type Props = {
 }
 
 class LoadOnMount extends React.PureComponent<Props> {
+  static navigationOptions = {
+    header: undefined,
+    headerTitle: () => <ConnectedHeader />,
+    headerTitleContainerStyle: {
+      left: 40,
+      right: 0,
+    },
+    underNotch: true,
+  }
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)
   _onClickUser = (username: string) => this.props.onClickUser(username)
@@ -68,35 +69,31 @@ class LoadOnMount extends React.PureComponent<Props> {
           onClickUser={this._onClickUser}
           showAirdrop={this.props.showAirdrop}
           signupEmail={this.props.signupEmail}
-          clearJustSignedUpEmail={this.props.clearJustSignedUpEmail}
         />
       </Kb.Reloadable>
     )
   }
 }
 
-const mapStateToProps = state => ({
-  followSuggestions: state.people.followSuggestions,
-  myUsername: state.config.username,
-  newItems: state.people.newItems,
-  oldItems: state.people.oldItems,
-  showAirdrop: isMobile,
-  signupEmail: state.signup.justSignedUpEmail,
-  waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
-})
-
-const mapDispatchToProps = dispatch => ({
-  clearJustSignedUpEmail: () => dispatch(createClearJustSignedUpEmail()),
-  getData: (markViewed = true) =>
-    dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
-  onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-  onSearch: () => {
-    dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps) => {
-  return {
+export default Container.connect(
+  state => ({
+    followSuggestions: state.people.followSuggestions,
+    myUsername: state.config.username,
+    newItems: state.people.newItems,
+    oldItems: state.people.oldItems,
+    showAirdrop: Container.isMobile,
+    signupEmail: state.signup.justSignedUpEmail,
+    waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
+  }),
+  dispatch => ({
+    getData: (markViewed = true) =>
+      dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
+    onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+    onSearch: () => {
+      dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
+    },
+  }),
+  (stateProps, dispatchProps) => ({
     followSuggestions: stateProps.followSuggestions,
     myUsername: stateProps.myUsername,
     newItems: stateProps.newItems,
@@ -105,24 +102,5 @@ const mergeProps = (stateProps, dispatchProps) => {
     signupEmail: stateProps.signupEmail,
     waiting: stateProps.waiting,
     ...dispatchProps,
-  }
-}
-
-const connected = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  })
 )(LoadOnMount)
-
-// @ts-ignore lets fix this
-connected.navigationOptions = {
-  header: undefined,
-  // @ts-ignore
-  headerTitle: hp => <ConnectedHeader />,
-  headerTitleContainerStyle: {
-    left: 40,
-    right: 0,
-  },
-  underNotch: true,
-}
-export default connected

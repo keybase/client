@@ -107,6 +107,7 @@ export type _ChatState = {
 export type ChatState = I.RecordOf<_ChatState>
 
 export type _PhoneNumbersState = {
+  addedPhone: boolean
   error: string
   pendingVerification: string
   phones: I.Map<string, PhoneRow> | null
@@ -114,12 +115,14 @@ export type _PhoneNumbersState = {
 }
 export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
+export type PermissionStatus = 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
 export type _ContactsState = {
   importEnabled: boolean | null
+  importError: string
   importPromptDismissed: boolean
   importedCount: number | null
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
-  permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+  permissionStatus: PermissionStatus
   userCountryCode: string | null
 }
 export type ContactsState = I.RecordOf<_ContactsState>
@@ -127,7 +130,6 @@ export type ContactsState = I.RecordOf<_ContactsState>
 export type _State = {
   allowDeleteAccount: boolean
   contacts: ContactsState
-  waitingForResponse: boolean
   invites: InvitesState
   feedback: FeedbackState
   notifications: NotificationsState

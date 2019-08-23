@@ -1,19 +1,19 @@
-import {globalStyles, globalColors} from '../styles'
+import * as Styles from '../styles'
 import {MetaType, TextType, Background} from './text'
 
-function defaultColor(backgroundMode: Background | null) {
+export function defaultColor(backgroundMode: Background | null) {
   return {
-    Announcements: globalColors.white,
-    Documentation: globalColors.white,
-    HighRisk: globalColors.white,
-    Information: globalColors.brown_75,
-    Normal: globalColors.white,
-    Success: globalColors.white,
-    Terminal: globalColors.white,
+    Announcements: Styles.globalColors.white,
+    Documentation: Styles.globalColors.white,
+    HighRisk: Styles.globalColors.white,
+    Information: Styles.globalColors.brown_75,
+    Normal: Styles.globalColors.white,
+    Success: Styles.globalColors.white,
+    Terminal: Styles.globalColors.white,
   }[backgroundMode || 'Normal']
 }
 
-const lineClamp = (lines: number) => ({
+export const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
   display: '-webkit-box',
@@ -22,7 +22,7 @@ const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-function fontSizeToSizeStyle(fontSize: number): Object | null {
+export function fontSizeToSizeStyle(fontSize: number): Object | null {
   const height = {
     '12': 16,
     '13': 17,
@@ -39,285 +39,297 @@ function fontSizeToSizeStyle(fontSize: number): Object | null {
   }
 }
 
-const whiteNegative = {
-  negative: globalColors.white,
-  positive: globalColors.black,
+const _metaData = (): {[K in TextType]: MetaType} => {
+  const whiteNegative = {
+    negative: Styles.globalColors.white,
+    positive: Styles.globalColors.black,
+  }
+
+  const _blueLink = {
+    negative: Styles.globalColors.white,
+    positive: Styles.globalColors.blue,
+  }
+  return {
+    Body: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodyBig: {
+      colorForBackground: whiteNegative,
+      fontSize: 15,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodyBigExtrabold: {
+      colorForBackground: whiteNegative,
+      fontSize: 15,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    BodyBigLink: {
+      colorForBackground: _blueLink,
+      fontSize: 15,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodyExtrabold: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    BodyItalic: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: {
+        ...Styles.globalStyles.fontRegular,
+        fontStyle: 'italic',
+      },
+    },
+    BodyPrimaryLink: {
+      colorForBackground: _blueLink,
+      fontSize: 14,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySecondaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 14,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySemibold: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodySemiboldItalic: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: {
+        ...Styles.globalStyles.fontSemibold,
+        fontStyle: 'italic',
+      },
+    },
+    BodySemiboldLink: {
+      colorForBackground: _blueLink,
+      fontSize: 14,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodySmall: {
+      colorForBackground: {
+        ...whiteNegative,
+        positive: Styles.globalColors.black_50,
+      },
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySmallBold: {
+      colorForBackground: {
+        ...whiteNegative,
+        positive: Styles.globalColors.black_50,
+      },
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
+    BodySmallError: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.red},
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySmallExtrabold: {
+      colorForBackground: {
+        ...whiteNegative,
+        positive: Styles.globalColors.black_50,
+      },
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    BodySmallExtraboldSecondaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    BodySmallItalic: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      styleOverride: {
+        ...Styles.globalStyles.fontRegular,
+        fontStyle: 'italic',
+      },
+    },
+    BodySmallPrimaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blue},
+      fontSize: 13,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySmallSecondaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySmallSemibold: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodySmallSemiboldItalic: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'},
+    },
+    BodySmallSemiboldPrimaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blue},
+      fontSize: 13,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodySmallSemiboldSecondaryLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 13,
+      isLink: true,
+      styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined},
+    },
+    BodySmallSuccess: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.green},
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodySmallWallet: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.purple},
+      fontSize: 13,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodyTiny: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodyTinyBold: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
+    BodyTinyExtrabold: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    BodyTinyLink: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontRegular,
+    },
+    BodyTinySemibold: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      styleOverride: Styles.globalStyles.fontSemibold,
+    },
+    BodyTinySemiboldItalic: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      fontSize: 12,
+      styleOverride: {
+        ...Styles.globalStyles.fontSemibold,
+        fontStyle: 'italic',
+      },
+    },
+    Header: {
+      colorForBackground: whiteNegative,
+      fontSize: 18,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
+    HeaderBig: {
+      colorForBackground: whiteNegative,
+      fontSize: 24,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
+    HeaderBigExtrabold: {
+      colorForBackground: whiteNegative,
+      fontSize: 24,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    HeaderExtrabold: {
+      colorForBackground: whiteNegative,
+      fontSize: 18,
+      styleOverride: Styles.globalStyles.fontExtrabold,
+    },
+    HeaderItalic: {
+      colorForBackground: whiteNegative,
+      fontSize: 18,
+      styleOverride: {
+        ...Styles.globalStyles.fontBold,
+        fontStyle: 'italic',
+      },
+    },
+    HeaderLink: {
+      colorForBackground: _blueLink,
+      fontSize: 18,
+      isLink: true,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
+    Terminal: {
+      colorForBackground: {
+        negative: Styles.globalColors.blueLighter,
+        positive: Styles.globalColors.blueLighter,
+      },
+      fontSize: 13,
+      styleOverride: {
+        ...Styles.globalStyles.fontTerminal,
+        lineHeight: '20px',
+      },
+    },
+    TerminalComment: {
+      colorForBackground: {
+        negative: Styles.globalColors.blueLighter_40,
+        positive: Styles.globalColors.blueLighter_40,
+      },
+      fontSize: 13,
+      styleOverride: {
+        ...Styles.globalStyles.fontTerminal,
+        lineHeight: '20px',
+      },
+    },
+    TerminalEmpty: {
+      colorForBackground: {
+        negative: Styles.globalColors.blueLighter_40,
+        positive: Styles.globalColors.blueLighter_40,
+      },
+      fontSize: 13,
+      styleOverride: {
+        ...Styles.globalStyles.fontTerminal,
+        height: 20,
+        lineHeight: '20px',
+      },
+    },
+    TerminalInline: {
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDarker},
+      fontSize: 13,
+      styleOverride: {
+        ...Styles.globalStyles.fontTerminal,
+        backgroundColor: Styles.globalColors.blueLighter2,
+        borderRadius: 2,
+        display: 'inline-block',
+        height: 17,
+        lineHeight: '16px',
+        padding: 2,
+        wordWrap: 'break-word',
+      },
+    },
+  }
 }
 
-const _blueLink = {
-  negative: globalColors.white,
-  positive: globalColors.blue,
-}
+let _darkMetaData: {[K in TextType]: MetaType} | undefined
+let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-const metaData: {[K in TextType]: MetaType} = {
-  Body: {
-    colorForBackground: whiteNegative,
-    fontSize: 14,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodyBig: {
-    colorForBackground: whiteNegative,
-    fontSize: 15,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodyBigExtrabold: {
-    colorForBackground: whiteNegative,
-    fontSize: 15,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  BodyBigLink: {
-    colorForBackground: _blueLink,
-    fontSize: 15,
-    isLink: true,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodyExtrabold: {
-    colorForBackground: whiteNegative,
-    fontSize: 14,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  BodyItalic: {
-    colorForBackground: whiteNegative,
-    fontSize: 14,
-    styleOverride: {
-      ...globalStyles.fontRegular,
-      fontStyle: 'italic',
-    },
-  },
-  BodyPrimaryLink: {
-    colorForBackground: _blueLink,
-    fontSize: 14,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySecondaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 14,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySemibold: {
-    colorForBackground: whiteNegative,
-    fontSize: 14,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodySemiboldItalic: {
-    colorForBackground: whiteNegative,
-    fontSize: 14,
-    styleOverride: {
-      ...globalStyles.fontSemibold,
-      fontStyle: 'italic',
-    },
-  },
-  BodySemiboldLink: {
-    colorForBackground: _blueLink,
-    fontSize: 14,
-    isLink: true,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodySmall: {
-    colorForBackground: {
-      ...whiteNegative,
-      positive: globalColors.black_50,
-    },
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySmallBold: {
-    colorForBackground: {
-      ...whiteNegative,
-      positive: globalColors.black_50,
-    },
-    fontSize: 13,
-    styleOverride: globalStyles.fontBold,
-  },
-  BodySmallError: {
-    colorForBackground: {...whiteNegative, positive: globalColors.red},
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySmallExtrabold: {
-    colorForBackground: {
-      ...whiteNegative,
-      positive: globalColors.black_50,
-    },
-    fontSize: 13,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  BodySmallExtraboldSecondaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    isLink: true,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  BodySmallItalic: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    styleOverride: {
-      ...globalStyles.fontRegular,
-      fontStyle: 'italic',
-    },
-  },
-  BodySmallPrimaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.blue},
-    fontSize: 13,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySmallSecondaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySmallSemibold: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodySmallSemiboldItalic: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
-  },
-  BodySmallSemiboldPrimaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.blue},
-    fontSize: 13,
-    isLink: true,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodySmallSemiboldSecondaryLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 13,
-    isLink: true,
-    styleOverride: {...globalStyles.fontSemibold, textDecoration: undefined},
-  },
-  BodySmallSuccess: {
-    colorForBackground: {...whiteNegative, positive: globalColors.green},
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySmallWallet: {
-    colorForBackground: {...whiteNegative, positive: globalColors.purple},
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodyTiny: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodyTinyBold: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    styleOverride: globalStyles.fontBold,
-  },
-  BodyTinyExtrabold: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  BodyTinyLink: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodyTinySemibold: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  BodyTinySemiboldItalic: {
-    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 12,
-    styleOverride: {
-      ...globalStyles.fontSemibold,
-      fontStyle: 'italic',
-    },
-  },
-  Header: {
-    colorForBackground: whiteNegative,
-    fontSize: 18,
-    styleOverride: globalStyles.fontBold,
-  },
-  HeaderBig: {
-    colorForBackground: whiteNegative,
-    fontSize: 24,
-    styleOverride: globalStyles.fontBold,
-  },
-  HeaderBigExtrabold: {
-    colorForBackground: whiteNegative,
-    fontSize: 24,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  HeaderExtrabold: {
-    colorForBackground: whiteNegative,
-    fontSize: 18,
-    styleOverride: globalStyles.fontExtrabold,
-  },
-  HeaderItalic: {
-    colorForBackground: whiteNegative,
-    fontSize: 18,
-    styleOverride: {
-      ...globalStyles.fontBold,
-      fontStyle: 'italic',
-    },
-  },
-  HeaderLink: {
-    colorForBackground: _blueLink,
-    fontSize: 18,
-    isLink: true,
-    styleOverride: globalStyles.fontBold,
-  },
-  Terminal: {
-    colorForBackground: {
-      negative: globalColors.blueLighter,
-      positive: globalColors.blueLighter,
-    },
-    fontSize: 13,
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      lineHeight: '20px',
-    },
-  },
-  TerminalComment: {
-    colorForBackground: {
-      negative: globalColors.blueLighter_40,
-      positive: globalColors.blueLighter_40,
-    },
-    fontSize: 13,
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      lineHeight: '20px',
-    },
-  },
-  TerminalEmpty: {
-    colorForBackground: {
-      negative: globalColors.blueLighter_40,
-      positive: globalColors.blueLighter_40,
-    },
-    fontSize: 13,
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      height: 20,
-      lineHeight: '20px',
-    },
-  },
-  TerminalInline: {
-    colorForBackground: {...whiteNegative, positive: globalColors.blueDarker},
-    fontSize: 13,
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      backgroundColor: globalColors.blueLighter2,
-      borderRadius: 2,
-      display: 'inline-block',
-      height: 17,
-      lineHeight: '16px',
-      padding: 2,
-      wordWrap: 'break-word',
-    },
-  },
+export const metaData = (): {[K in TextType]: MetaType} => {
+  if (Styles.isDarkMode()) {
+    _darkMetaData = _darkMetaData || _metaData()
+    return _darkMetaData
+  } else {
+    _lightMetaData = _lightMetaData || _metaData()
+    return _lightMetaData
+  }
 }
-
-export {defaultColor, fontSizeToSizeStyle, lineClamp, metaData}

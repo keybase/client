@@ -5,7 +5,7 @@ import * as Effects from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
 import * as ConfigGen from '../actions/config-gen'
 import {TypedState} from '../constants/reducer'
-import {TypedActions} from '../actions/typed-actions-gen'
+import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import put from './typed-put'
 import {isArray} from 'lodash-es'
 
@@ -42,27 +42,49 @@ function* sequentially(effects: Array<any>): Iterable<Array<any>> {
 }
 
 export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
-function* chainAction<
-  Actions extends {
-    readonly type: string
-  }
->(
-  pattern: RS.Pattern, // TODO constrain to our actions
-  f: (
-    state: TypedState,
-    action: Actions,
-    logger: SagaLogger
-  ) => MaybeAction | ReadonlyArray<MaybeAction> | Promise<MaybeAction | ReadonlyArray<MaybeAction>>,
-  // tag for logger
-  fcnTag?: string
-): Iterable<any> {
-  // @ts-ignore TODO fix
-  return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(
-    action: Actions
+
+type ActionTypes = keyof TypedActionsMap
+type ChainActionReturnInner = void | false | TypedActions | null
+type ChainActionReturnInPromise = ChainActionReturnInner | Array<ChainActionReturnInner>
+export type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
+//
+// Get the values of an Array. i.e. ValuesOf<["FOO", "BAR"]> => "FOO" | "BAR"
+type ValuesOf<T extends any[]> = T[number]
+
+interface ChainAction {
+  <AT extends ActionTypes>(
+    actions: AT,
+    handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
+
+  <AT extends ActionTypes[]>(
+    actions: AT,
+    handler: (
+      state: TypedState,
+      action: TypedActionsMap[ValuesOf<AT>],
+      logger: SagaLogger
+    ) => ChainActionReturn,
+    loggerTag?: string
+  ): IterableIterator<any>
+}
+
+/**
+ * TODO deprecated less typed version. Use chainAction2 instead
+ */
+function* chainAction<Actions extends {readonly type: string}>(
+  pattern: RS.Pattern,
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn,
+  loggerTag?: string
+) {
+  // @ts-ignore
+  return yield Effects.takeEvery<TypedActions>(pattern as RS.Pattern, function* chainActionHelper(
+    action: TypedActions
   ) {
-    const sl = new SagaLogger(action.type, fcnTag || 'unknown')
+    const sl = new SagaLogger(action.type, loggerTag || 'unknown')
     try {
       const state: TypedState = yield* selectState()
+      // @ts-ignore
       let toPut = yield Effects.call(f, state, action, sl)
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
@@ -90,6 +112,8 @@ function* chainAction<
     }
   })
 }
+
+export const chainAction2: ChainAction = (chainAction as unknown) as any
 
 function* chainGenerator<
   Actions extends {
@@ -176,4 +200,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, chainAction, chainGenerator, callPromise, callRPCs}
+export {selectState, put, sequentially, chainGenerator, callPromise, callRPCs}

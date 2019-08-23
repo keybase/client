@@ -267,7 +267,7 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	status.Service.Log = getServiceLog(mctx, status.ExtStatus.LogDir)
 	status.Service.EkLog = filepath.Join(status.ExtStatus.LogDir, libkb.EKLogFileName)
 	status.Kbfs.Log = filepath.Join(status.ExtStatus.LogDir, libkb.KBFSLogFileName)
-	status.Desktop.Log = filepath.Join(status.ExtStatus.LogDir, libkb.DesktopLogFileName)
+	status.Desktop.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GUILogFileName)
 	status.Updater.Log = filepath.Join(status.ExtStatus.LogDir, libkb.UpdaterLogFileName)
 	status.Start.Log = filepath.Join(status.ExtStatus.LogDir, libkb.StartLogFileName)
 	status.Git.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GitLogFileName)

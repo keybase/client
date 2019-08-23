@@ -8,8 +8,6 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import {invert} from 'lodash-es'
 import {Props, IconType} from './icon'
 
-const invertedColors = invert(Styles.globalColors)
-
 class Icon extends Component<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
@@ -110,12 +108,11 @@ class Icon extends Component<Props, void> {
           hoverColor: 'inherit',
         }
       } else {
+        // invert the colors here so it reflects the colors in current theme
+        const invertedColors = invert(Styles.globalColors)
         const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
-        if (!colorName) {
-          throw new Error('Invalid color for icon, needs to be in stylesheet')
-        }
         colorStyleName = `color_${colorName}`
       }
 
@@ -205,10 +202,10 @@ export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   // Needed because otherwise the containing box doesn't calculate the size of
   // the inner span (incl padding) properly
   flex: {display: 'flex'},
-})
+}))
 
 export default Icon

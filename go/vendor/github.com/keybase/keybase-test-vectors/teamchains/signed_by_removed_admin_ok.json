@@ -57,7 +57,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "8db6988224af0238af66f0ade81fa98dc7d3787c9f632a78af0c4f9e50aec5fa"
+                    "debug_link_id": "8db6988224af0238af66f0ade81fa98dc7d3787c9f632a78af0c4f9e50aec5fa",
+                    "hidden_is_fresh": true
                 },
                 {
                     "seqno": 2,
@@ -96,7 +97,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "04403c8f658b649893799f490816791f578119c95a8de883ad534bfe2149c86d"
+                    "debug_link_id": "04403c8f658b649893799f490816791f578119c95a8de883ad534bfe2149c86d",
+                    "hidden_is_fresh": true
                 },
                 {
                     "seqno": 3,
@@ -135,7 +137,8 @@
                         },
                         "seq_type": 1
                     },
-                    "debug_link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e"
+                    "debug_link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e",
+                    "hidden_is_fresh": true
                 }
             ],
             "team_key_boxes": [
@@ -286,19 +289,23 @@
     "team_merkle": {
         "2123209b98b16083c69c91152b861724": {
             "seqno": 3,
-            "link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e"
+            "link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
-            "link_id": "8db6988224af0238af66f0ade81fa98dc7d3787c9f632a78af0c4f9e50aec5fa"
+            "link_id": "8db6988224af0238af66f0ade81fa98dc7d3787c9f632a78af0c4f9e50aec5fa",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:2": {
             "seqno": 2,
-            "link_id": "04403c8f658b649893799f490816791f578119c95a8de883ad534bfe2149c86d"
+            "link_id": "04403c8f658b649893799f490816791f578119c95a8de883ad534bfe2149c86d",
+            "hidden_is_fresh": true
         },
         "2123209b98b16083c69c91152b861724-seqno:3": {
             "seqno": 3,
-            "link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e"
+            "link_id": "0bda054a9bc9b1961285dac856551681f91c45c84c6101e1f84d3472e720063e",
+            "hidden_is_fresh": true
         }
     },
     "merkle_triples": {

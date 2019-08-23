@@ -11,6 +11,14 @@ import Icon from './icon'
 import {namedConnect} from '../util/container'
 import {RPCError} from '../util/errors'
 
+const Kb = {
+  Box2,
+  Button,
+  Icon,
+  ScrollView,
+  Text,
+}
+
 type ReloadProps = {
   onBack?: () => void
   onReload: () => void
@@ -28,24 +36,24 @@ class Reload extends React.PureComponent<
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
-      <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
         <Icon type="icon-skull-64" />
-        <Text center={true} type="Header">
+        <Kb.Text center={true} type="Header">
           We're having a hard time loading this page.
-        </Text>
+        </Kb.Text>
         {this.state.expanded && (
-          <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
-            <Text type="Terminal" style={styles.details}>
+          <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
+            <Kb.Text type="Terminal" style={styles.details}>
               {this.props.reason}
-            </Text>
-          </ScrollView>
+            </Kb.Text>
+          </Kb.ScrollView>
         )}
-        <Text type="BodySecondaryLink" onClick={this._toggle}>
+        <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
           {this.state.expanded ? 'Hide details' : 'Show details'}
-        </Text>
+        </Kb.Text>
 
-        <Button label="Retry" onClick={this.props.onReload} />
-      </Box2>
+        <Kb.Button label="Retry" onClick={this.props.onReload} />
+      </Kb.Box2>
     )
   }
 }
@@ -84,7 +92,7 @@ class Reloadable extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   details: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -119,7 +127,7 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-})
+}))
 
 export type OwnProps = {
   children: React.ReactNode
@@ -134,7 +142,7 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   let error = Constants.anyErrors(state, ownProps.waitingKeys)
   if (error && ownProps.errorFilter) {
-    error = ownProps.errorFilter(error) ? error : null
+    error = ownProps.errorFilter(error) ? error : undefined
   }
   return {
     needsReload: !!error,

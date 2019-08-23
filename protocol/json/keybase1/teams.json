@@ -448,8 +448,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "UserVersion"
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
           },
           "name": "restrictedBots"
         },
@@ -2595,6 +2596,13 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "TeamBotSettings"
+          ],
+          "name": "botSettings"
         }
       ]
     },
@@ -2853,6 +2861,34 @@
           "name": "disabledReason"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MemberEmail",
+      "fields": [
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberUsername",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3043,6 +3079,13 @@
           "type": "TeamRole"
         },
         {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
+        },
+        {
           "name": "sendChatNotification",
           "type": "boolean"
         }
@@ -3069,6 +3112,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
         },
         {
           "name": "sendChatNotification",
@@ -3160,6 +3210,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
         }
       ],
       "response": null

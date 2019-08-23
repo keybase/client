@@ -71,7 +71,7 @@ const noEmoji = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const me = state.config.username || ''
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-  if (!message || message.type === 'placeholder' || message.type === 'deleted') {
+  if (!message || !Constants.isDecoratedMessage(message)) {
     return noEmoji
   }
   const reaction = message.reactions.get(ownProps.emoji || '')

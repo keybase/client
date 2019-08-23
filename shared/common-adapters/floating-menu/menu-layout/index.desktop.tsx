@@ -7,9 +7,9 @@ import Meta from '../../meta'
 import * as Styles from '../../../styles'
 
 class MenuLayout extends Component<MenuLayoutProps> {
-  _renderDivider = (index: number) => <Divider style={styles.divider} key={index} />
+  private renderDivider = (index: number) => <Divider style={styles.divider} key={index} />
 
-  _renderMenuItem = (item: MenuItem, index: number) => {
+  private renderMenuItem = (item: MenuItem, index: number) => {
     let hoverClassName
     let styleDisabled = {}
     if (!item.disabled) {
@@ -101,7 +101,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
                   return arr
                 }, [])
                 .map((item, index) =>
-                  item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
+                  item === 'Divider' ? this.renderDivider(index) : this.renderMenuItem(item, index)
                 )}
             </Box>
           )}
@@ -111,7 +111,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     alignSelf: 'center',
     marginLeft: 'auto',
@@ -148,6 +148,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default MenuLayout

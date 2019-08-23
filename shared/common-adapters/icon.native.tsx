@@ -16,7 +16,7 @@ type TextProps = {
   children: React.ReactNode
   color?: Styles.Color
   fontSize?: number
-  onClick?: ((event: React.SyntheticEvent) => void) | null
+  onClick?: ((event: React.BaseSyntheticEvent) => void) | null
   opacity?: boolean
   sizeType: SizeType
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
@@ -70,11 +70,12 @@ const _Text = (p: TextProps, ref) => {
 
   return (
     <Kb.NativeText
+      // @ts-ignore TODO fix styles
       style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
       type={p.type}
       ref={ref}
-      onPress={p.onClick}
+      onPress={p.onClick || undefined}
       suppressHighlighting={true}
     >
       {p.children}
@@ -167,9 +168,8 @@ const _Icon = (p: Props, ref: any) => {
 
   return wrap ? (
     <Kb.NativeTouchableOpacity
-      onPress={p.onClick}
+      onPress={p.onClick || undefined}
       activeOpacity={0.8}
-      underlayColor={p.underlayColor || Styles.globalColors.white}
       ref={ref}
       style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
     >
@@ -224,12 +224,12 @@ export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {
     color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',
     fontWeight: 'normal', // MUST set this or it can be inherited from outside text
   },
-})
+}))
 
 export default Icon

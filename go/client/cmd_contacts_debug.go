@@ -140,7 +140,7 @@ func (c *CmdSaveContacts) Run() error {
 	if err != nil {
 		return err
 	}
-	err = cli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err = cli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: contacts,
 	})
 	if err != nil {

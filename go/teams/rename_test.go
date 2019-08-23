@@ -85,7 +85,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A.B1 as a writer")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName1.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName1.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 renames A.B1 -> A.B2")
@@ -100,7 +100,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err, "load subsubteam")
 
 	t.Logf("U0 adds U1 to A.B2.C as a writer")
-	_, err = AddMember(context.TODO(), tcs[0].G, subsubteamName2.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subsubteamName2.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B2.C which will cause it to inflate the new_subteam link in A.B2")
@@ -129,7 +129,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to R as a WRITER")
-	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	subteamNameB := createTeamName(t, parentName.String(), "bbb")
@@ -141,7 +141,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	_ = subteamID1
 
 	t.Logf("U0 adds U1 to R.B (1) as a WRITER")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")
@@ -165,7 +165,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	_ = subteamID2
 
 	t.Logf("U0 adds U1 to R.B (2) as a WRITER")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")
@@ -176,4 +176,52 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	// TODO check the subteam list
+}
+
+func testHiddenRotateRename(t *testing.T, rotateParent bool, rotateChild bool) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
+	require.NoError(t, err)
+	parentTeamID, err := CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
+	require.NoError(t, err)
+
+	subteamBasename := "bb1"
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+	desiredName, err := parentTeamName.Append("bb2")
+	require.NoError(t, err)
+
+	if rotateParent {
+		parentTeam, err := GetForTestByID(context.TODO(), tc.G, *parentTeamID)
+		require.NoError(t, err)
+		err = parentTeam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+	}
+
+	if rotateChild {
+		subteam, err := GetForTestByID(context.TODO(), tc.G, *subteamID)
+		require.NoError(t, err)
+		err = subteam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+	}
+
+	err = RenameSubteam(context.TODO(), tc.G, subteamName, desiredName)
+	require.NoError(t, err)
+}
+
+func TestHiddenRotateRenameChild(t *testing.T) {
+	testHiddenRotateRename(t, false, true)
+}
+func TestHiddenRotateRenameParent(t *testing.T) {
+	testHiddenRotateRename(t, true, false)
+}
+func TestHiddenRotateRenameParentAndChild(t *testing.T) {
+	testHiddenRotateRename(t, true, true)
 }

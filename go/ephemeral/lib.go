@@ -58,7 +58,9 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		clock:                  clockwork.NewRealClock(),
 		stopCh:                 make(chan struct{}),
 	}
-	go ekLib.backgroundKeygen(mctx)
+	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
+		go ekLib.backgroundKeygen(mctx)
+	}
 	return ekLib
 }
 
@@ -1096,9 +1098,11 @@ func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	if err := e.KeygenIfNeeded(mctx); err != nil {
-		mctx.Debug("OnLogin error: %v", err)
-	}
+	go func() {
+		if err := e.KeygenIfNeeded(mctx); err != nil {
+			mctx.Debug("OnLogin error: %v", err)
+		}
+	}()
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}

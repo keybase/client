@@ -35,7 +35,7 @@ func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 	}
 	g.Log.Notice("DUMPKEY %s -> %s", name, tmp.Name())
 	buf := bytes.NewBuffer(b)
-	io.Copy(tmp, buf)
+	_, _ = io.Copy(tmp, buf)
 	tmp.Close()
 }
 
@@ -116,7 +116,6 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen Pass
 
 func (s *SKB) Dump() {
 	if s == nil {
-		s.G().Log.Debug("SKB Dump: skb is nil\n")
 		return
 	}
 	s.G().Log.Debug("skb: %+v, uid = %s\n", s, s.uid)
@@ -221,7 +220,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever 
 	case LKSecVersion:
 		unlocked, err = s.lksUnlockWithSecretRetriever(m, secretRetriever)
 	default:
-		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", s.Priv.Encryption)}
 	}
 
 	if err == nil {
@@ -276,7 +275,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
 		}
 	default:
-		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret with protection type %d", s.Priv.Encryption)}
 		return nil, err
 	}
 	key, err = s.parseUnlocked(unlocked)

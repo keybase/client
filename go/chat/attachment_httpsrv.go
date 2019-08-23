@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/giphy"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -46,15 +46,16 @@ type AttachmentHTTPSrv struct {
 	giphyPrefix        string
 	giphyGalleryPrefix string
 	giphySelectPrefix  string
-	httpSrv            *kbhttp.Srv
 	urlMap             *lru.Cache
 	fetcher            types.AttachmentFetcher
 	ri                 func() chat1.RemoteInterface
+	httpSrv            *manager.Srv
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 
-func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
+func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher types.AttachmentFetcher,
+	ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
 	l, err := lru.New(2000)
 	if err != nil {
 		panic(err)
@@ -72,69 +73,15 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 		ri:                 ri,
 		urlMap:             l,
 		fetcher:            fetcher,
+		httpSrv:            httpSrv,
 	}
-	r.initHTTPSrv()
-	r.startHTTPSrv()
-	g.PushShutdownHook(func() error {
-		r.httpSrv.Stop()
-		return nil
-	})
-	go r.monitorAppState()
+	r.httpSrv.HandleFunc(r.endpoint, manager.SrvTokenModeUnchecked, r.serve)
 	r.fetcher.OnStart(libkb.NewMetaContextTODO(g.ExternalG()))
-
 	return r
 }
 
 func (r *AttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error {
-	r.fetcher.OnDbNuke(mctx)
-	return nil
-}
-
-func (r *AttachmentHTTPSrv) monitorAppState() {
-	ctx := context.Background()
-	r.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.MobileAppState_FOREGROUND
-	for {
-		state = <-r.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND:
-			r.startHTTPSrv()
-		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
-			r.httpSrv.Stop()
-		}
-	}
-}
-
-func (r *AttachmentHTTPSrv) initHTTPSrv() {
-	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
-	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
-}
-
-func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	maxTries := 2
-	success := false
-	for i := 0; i < maxTries; i++ {
-		if err := r.httpSrv.Start(); err != nil {
-			if err == kbhttp.ErrPinnedPortInUse {
-				// If we hit this, just try again and get a different port.
-				// The advantage is that backing in and out of the thread will restore attachments,
-				// whereas if we do nothing you need to bkg/foreground.
-				r.Debug(context.TODO(),
-					"startHTTPSrv: pinned port taken error, re-initializing and trying again")
-				r.initHTTPSrv()
-				continue
-			}
-			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
-			break
-		}
-		success = true
-		break
-	}
-	if !success {
-		r.Debug(context.TODO(), "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
-		return
-	}
-	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
+	return r.fetcher.OnDbNuke(mctx)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -320,7 +267,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 	}
 	ui, err := r.G().UIRouter.GetChatUI()
 	if err == nil && ui != nil {
-		ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		err := ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		if err != nil {
+			r.Debug(ctx, "serveGiphyGallerySelect: failed to toggle giphy: %s", err)
+		}
 	} else {
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
@@ -551,6 +501,17 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serve")()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "serve: failed to get HTTP server address: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "unable to determine addr")
+		return
+	}
+	if req.Host != addr {
+		r.Debug(ctx, "Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid host")
+		return
+	}
 	key := req.URL.Query().Get("key")
 	if len(key) < keyPrefixLen {
 		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
@@ -686,11 +647,16 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 	}
 }
 
-func (c *CachingAttachmentFetcher) getCacheDir() string {
+func (c *CachingAttachmentFetcher) getBaseDir() string {
+	baseDir := c.G().GetCacheDir()
 	if len(c.tempDir) > 0 {
-		return c.tempDir
+		baseDir = c.tempDir
 	}
-	return filepath.Join(c.G().GetCacheDir(), "attachments")
+	return baseDir
+}
+
+func (c *CachingAttachmentFetcher) getCacheDir() string {
+	return filepath.Join(c.getBaseDir(), "attachments")
 }
 
 func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
@@ -708,7 +674,10 @@ func (c *CachingAttachmentFetcher) cacheKey(asset chat1.Asset) string {
 }
 
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
-	os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
@@ -725,8 +694,11 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 // file path since it's possible for the path to the cache dir to change,
 // especially on mobile.
 func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	dir := filepath.Base(filepath.Dir(file))
 	file = filepath.Base(file)
-	return filepath.Join(c.getCacheDir(), file)
+	// some attachments may be in the "uploadedpreviews"/"uploadedfulls" dirs,
+	// so we preserve the parent directory here.
+	return filepath.Join(c.getBaseDir(), dir, file)
 }
 
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
@@ -764,7 +736,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 			found = false
 		}
 		if found {
@@ -859,7 +831,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 		}
 		if found {
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 		}
 	}
 

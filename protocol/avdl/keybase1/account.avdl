@@ -2,7 +2,7 @@
 @namespace("keybase.1")
 protocol account {
   import idl "passphrase_common.avdl";
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "../gregor1" as gregor1;
 
   /**
     Change the passphrase from old to new. If old isn't set, and force is false,

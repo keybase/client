@@ -2,6 +2,10 @@ import * as React from 'react'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as PeopleGen from '../actions/people-gen'
+import * as SignupGen from '../actions/signup-gen'
+import {noEmail} from '../constants/signup'
 import Todo from './todo/container'
 import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
@@ -57,10 +61,53 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
   return null
 }
 
-const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
+const EmailVerificationBanner = () => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(
+    () =>
+      // Only have a cleanup function
+      () => dispatch(SignupGen.createClearJustSignedUpEmail()),
+    []
+  )
+
+  const signupEmail = Container.useSelector(s => s.signup.justSignedUpEmail)
+  if (!signupEmail) {
+    return null
+  }
+
+  if (signupEmail === noEmail) {
+    return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
+  }
   return (
-    <Kb.Banner color="green" onClose={clearJustSignedUpEmail}>
-      {`Welcome to Keybase! A verification link was sent to ${email}.`}
+    <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
+  )
+}
+
+const ResentEmailVerificationBanner = () => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(
+    () =>
+      // Only have a cleanup function
+      () =>
+        dispatch(
+          PeopleGen.createSetResentEmail({
+            email: '',
+          })
+        ),
+    []
+  )
+
+  const resentEmail = Container.useSelector(s => s.people.resentEmail)
+  if (!resentEmail) {
+    return null
+  }
+
+  return (
+    <Kb.Banner color="yellow">
+      <Kb.BannerParagraph
+        bannerColor="yellow"
+        content={`Check your inbox! A verification link was sent to ${resentEmail}.`}
+      />
     </Kb.Banner>
   )
 }
@@ -68,13 +115,11 @@ const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
-    {!!props.signupEmail && (
-      <EmailVerificationBanner
-        email={props.signupEmail}
-        clearJustSignedUpEmail={props.clearJustSignedUpEmail}
-      />
-    )}
-    {props.newItems.map(item => itemToComponent(item, props))}
+    <EmailVerificationBanner />
+    <ResentEmailVerificationBanner />
+    {props.newItems
+      .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
+      .map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>

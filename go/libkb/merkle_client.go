@@ -523,9 +523,9 @@ func (mr *MerkleRoot) HasSkips() bool {
 
 func (mr *MerkleRoot) ToJSON() (jw *jsonw.Wrapper) {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sigs", mr.sigs)
-	ret.SetKey("payload_json", jsonw.NewString(mr.payload.packed))
-	ret.SetKey("fetched_ns", jsonw.NewInt64(mr.fetched.UnixNano()))
+	_ = ret.SetKey("sigs", mr.sigs)
+	_ = ret.SetKey("payload_json", jsonw.NewString(mr.payload.packed))
+	_ = ret.SetKey("fetched_ns", jsonw.NewInt64(mr.fetched.UnixNano()))
 	return ret
 }
 
@@ -1884,10 +1884,10 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 
 	ret = jsonw.NewDictionary()
-	ret.SetKey("seqno", jsonw.NewInt(int(*mr.Seqno())))
-	ret.SetKey("ctime", jsonw.NewInt64(int64(mr.Ctime())))
-	ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
-	ret.SetKey("hash_meta", jsonw.NewString(mr.ShortHash().String()))
+	_ = ret.SetKey("seqno", jsonw.NewInt(int(*mr.Seqno())))
+	_ = ret.SetKey("ctime", jsonw.NewInt64(mr.Ctime()))
+	_ = ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
+	_ = ret.SetKey("hash_meta", jsonw.NewString(mr.ShortHash().String()))
 
 	return
 }

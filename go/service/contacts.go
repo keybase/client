@@ -20,11 +20,18 @@ type bulkLookupContactsProvider struct{}
 
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
+func (c *bulkLookupContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, token contacts.Token) (contacts.ContactLookupResults, error) {
+	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
+		func() error { return nil })()
+	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion, token)
+}
+
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
-	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)
+	return c.LookupAllWithToken(mctx, emails, numbers, userRegion, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
@@ -135,7 +142,7 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts, arg.UserRegionCode)
 }
 
-func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (err error) {
+func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()

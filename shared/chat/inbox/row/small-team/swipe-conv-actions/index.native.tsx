@@ -17,7 +17,7 @@ const renderRightAction = (
   icon: React.ReactNode,
   x: number,
   handler: () => void,
-  progress: Kb.NativeAnimated.Interpolation
+  progress: Kb.NativeAnimated.AnimatedInterpolation
 ) => {
   const trans = progress.interpolate({
     inputRange: [0, 1],
@@ -25,7 +25,11 @@ const renderRightAction = (
   })
   return (
     <Kb.NativeAnimated.View style={{flex: 1, transform: [{translateX: trans}]}}>
-      <Kb.RectButton style={[styles.rightAction, {backgroundColor: color}]} onPress={handler}>
+      <Kb.RectButton
+        // @ts-ignore TODO fix styles
+        style={[styles.rightAction, {backgroundColor: color}]}
+        onPress={handler}
+      >
         {icon}
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
@@ -38,7 +42,7 @@ const renderRightAction = (
 const renderRightActions = (
   props: Props,
   ref: React.RefObject<Kb.Swipeable>,
-  progress: Kb.NativeAnimated.Interpolation
+  progress: Kb.NativeAnimated.AnimatedInterpolation
 ) => {
   return (
     <Kb.NativeView style={styles.container}>
@@ -70,11 +74,11 @@ const onOpen = ref => {
 }
 
 const SwipeConvActions = (props: Props) => {
-  const swiperef = React.useRef<Kb.Swipeable>()
+  const swiperef = React.useRef<Kb.Swipeable>(null)
   return (
     <Kb.Swipeable
       ref={swiperef}
-      renderRightActions={(progress: Kb.NativeAnimated.Interpolation) =>
+      renderRightActions={(progress: Kb.NativeAnimated.AnimatedInterpolation) =>
         renderRightActions(props, swiperef, progress)
       }
       onSwipeableWillOpen={() => onOpen(swiperef)}

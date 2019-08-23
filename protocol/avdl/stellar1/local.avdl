@@ -504,11 +504,12 @@ protocol local {
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // airdropDetailsLocal returns a json blob of details about the current
-  // airdrop.  If the current airdrop has expired, it will return an
-  // expired error.
+  // airdrop and a json blob of content of the wallet disclaimer.  If the
+  // current airdrop has expired, it will return an expired error.
   record AirdropDetails {
     boolean isPromoted;
     string details;
+    string disclaimer;
   }
   AirdropDetails airdropDetailsLocal(int sessionID);
 
@@ -585,6 +586,7 @@ protocol local {
                                   string publicNote, AccountID fromAccountID);
 
   SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+  TransactionID accountMergeCLILocal(AccountID fromAccountID, union { null, SecretKey } fromSecretKey, string to);
 
   // Claim a relay payment
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.

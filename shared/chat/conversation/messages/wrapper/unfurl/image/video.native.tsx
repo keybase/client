@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import logger from '../../../../../../logger'
-import RNVideo from 'react-native-video'
+import {Video as ExpoVideo} from 'expo-av'
 import {Props} from './video.types'
 
 type State = {
@@ -11,13 +11,20 @@ type State = {
 
 export class Video extends React.Component<Props, State> {
   state = {playingVideo: this.props.autoPlay}
+  private videoRef: any = React.createRef()
 
   _onClick = () => {
     if (this.props.onClick) {
       this.props.onClick()
       return
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(({playingVideo}) => {
+      if (!this.videoRef.current) {
+        return
+      }
+      playingVideo ? this.videoRef.current.pauseAsync() : this.videoRef.current.playAsync()
+      return {playingVideo: !playingVideo}
+    })
   }
 
   render() {
@@ -36,15 +43,17 @@ export class Video extends React.Component<Props, State> {
         onClick={this._onClick}
         style={Styles.collapseStyles([this.props.style, styles.container])}
       >
-        <RNVideo
+        <ExpoVideo
           source={source}
           onError={e => {
             logger.error(`Error loading vid: ${JSON.stringify(e)}`)
           }}
-          resizeMode="cover"
+          resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
           style={Styles.collapseStyles([styles.player, this.props.style])}
-          repeat={true}
-          paused={!this.state.playingVideo}
+          isLooping={true}
+          isMuted={true}
+          shouldPlay={this.props.autoPlay}
+          ref={this.videoRef}
         />
         <Kb.Box
           style={Styles.collapseStyles([

@@ -3,7 +3,13 @@ import {Box2, Text, FloatingPicker} from '../../../../common-adapters/mobile.nat
 import {Props} from './index.types'
 
 const Prompt = () => (
-  <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
+  <Box2
+    direction="horizontal"
+    fullWidth={true}
+    gap="xtiny"
+    // @ts-ignore TODO fix styles
+    style={promptContainerStyle}
+  >
     <Text type="BodySmallSemibold">Explode messages after:</Text>
   </Box2>
 )

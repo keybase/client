@@ -5,20 +5,24 @@ import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
-import flags from '../../util/feature-flags'
 
 export type Props = {
   addedEmail: string | null
+  addedPhone: boolean
   contactKeys: I.List<string>
   hasPassword: boolean
-  supersededPhoneNumber?: string
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
+  onClearAddedPhone: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
+  onStartPhoneConversation: () => void
   onReload: () => void
+  supersededPhoneNumber?: string
+  tooManyEmails: boolean
+  tooManyPhones: boolean
   waiting: boolean
 } & HeaderHocProps
 
@@ -27,7 +31,24 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-
+const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
+  const btn = (
+    <Kb.Button
+      mode="Secondary"
+      onClick={props.onClick}
+      label={`Add ${props.kind}`}
+      small={true}
+      disabled={props.disabled}
+    />
+  )
+  return props.disabled ? (
+    <Kb.WithTooltip text={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}>
+      {btn}
+    </Kb.WithTooltip>
+  ) : (
+    btn
+  )
+}
 const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -37,7 +58,10 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
-        find you by phone number or email.
+        find you by phone number or email.{' '}
+        <Kb.Text type="BodySmallSecondaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
+          Read more <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" boxStyle={styles.displayInline} />
+        </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
     {!!props.contactKeys.size && (
@@ -48,10 +72,8 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-      <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
-      {flags.sbsContacts && (
-        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone number" small={true} />
-      )}
+      <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
+      <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
     </Kb.ButtonBar>
   </SettingsSection>
 )
@@ -124,9 +146,27 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your unverified phone number ${
+            content={`Your phone number ${
               props.supersededPhoneNumber
             } is now associated with another Keybase user.`}
+          />
+          <Kb.Button
+            onClick={props.onAddPhone}
+            label="Add a new number"
+            small={true}
+            backgroundColor="yellow"
+            style={styles.topButton}
+          />
+        </Kb.Banner>
+      )}
+      {props.addedPhone && (
+        <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
+          <Kb.BannerParagraph
+            bannerColor="green"
+            content={[
+              'Success! And now you can message anyone on Keybase by phone number. ',
+              {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
+            ]}
           />
         </Kb.Banner>
       )}
@@ -155,6 +195,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
+  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
@@ -177,6 +218,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
     },
   }),
+  topButton: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
 })
 
 export default Kb.HeaderHoc(AccountSettings)

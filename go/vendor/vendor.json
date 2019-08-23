@@ -73,11 +73,10 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
-			"checksumSHA1": "tJKMeLzXOLFO5SvlhenHtF1hRw0=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/Keybase/keybase-test-vectors/teamchains",
+			"checksumSHA1": "QU/Pw0w1MSlvpRHyw3BeH4agXDI=",
 			"path": "github.com/Keybase/keybase-test-vectors/teamchains",
-			"revision": "7e425835c53f21102cc7d4703e5cbb982f3c2192",
-			"revisionTime": "2019-08-05T19:48:29Z",
+			"revision": "32a543ca82d8b250fe44a805609663ebcb1d573a",
+			"revisionTime": "2019-08-19T15:57:05Z",
 			"tree": true
 		},
 		{
@@ -777,10 +776,10 @@
 			"revisionTime": "2018-08-09T16:02:10Z"
 		},
 		{
-			"checksumSHA1": "xlc9p8YtRJqYx487QZAonCYNwfg=",
+			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "810876e4a1f9d92a5f4b2fdc4c341d9019b2c2d5",
-			"revisionTime": "2019-08-02T20:38:12Z"
+			"revision": "a10a61194d3cba1622c1061f1a214ed6b6504d84",
+			"revisionTime": "2019-08-12T19:14:27Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",

@@ -133,14 +133,16 @@ func (s *chatServer) newClient() *chatClient {
 }
 
 func (c *chatClient) run(ctx context.Context, ch chat1.ConversationID) {
-	go c.dealer.Run(ctx)
+	go func() {
+		_ = c.dealer.Run(ctx)
+	}()
 	for {
 		select {
 		case <-c.shutdownCh:
 			return
 		case msg := <-c.ch:
 			chKey := ch.String()
-			c.dealer.InjectIncomingChat(ctx, msg.Sender, ch, msg.GameID, msg.Body, !c.history[chKey])
+			_ = c.dealer.InjectIncomingChat(ctx, msg.Sender, ch, msg.GameID, msg.Body, !c.history[chKey])
 			c.history[chKey] = true
 		}
 	}

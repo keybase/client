@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher, {Props} from './index'
-import {connect, TypedState, TypedDispatch} from '../../util/container'
+import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
@@ -13,30 +13,26 @@ import HiddenString from '../../util/hidden-string'
 
 type OwnProps = {}
 
-const mapStateToProps = (state: TypedState) => ({
-  _fullnames: state.users.infoMap,
-  accountRows: state.config.configuredAccounts,
-  fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
-  username: state.config.username,
-})
-
-const mapDispatchToProps = (dispatch: TypedDispatch) => ({
-  _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile(username)),
-  onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
-  onSelectAccountLoggedIn: username =>
-    dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
-  onSelectAccountLoggedOut: username => {
-    dispatch(ConfigGen.createSetDefaultUsername({username}))
-    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
-  },
-  onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
-})
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+export default Container.connect(
+  state => ({
+    _fullnames: state.users.infoMap,
+    accountRows: state.config.configuredAccounts,
+    fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
+    username: state.config.username,
+  }),
+  dispatch => ({
+    _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+    onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
+    onSelectAccountLoggedIn: (username: string) =>
+      dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
+    onSelectAccountLoggedOut: (username: string) => {
+      dispatch(ConfigGen.createSetDefaultUsername({username}))
+      dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
+    },
+    onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
+  }),
   (stateProps, dispatchProps, _: OwnProps): Props => {
     const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
     return {

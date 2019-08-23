@@ -12,6 +12,9 @@ function copyToDownloadDir(path: string, mimeType: string) {
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   let stage = 'permission' // additional debug message for KBFS-4080
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+    buttonNegative: 'Cancel',
+    buttonNeutral: 'Ask me later',
+    buttonPositive: 'OK',
     message: 'Keybase needs access to your storage so we can download a file to it',
     title: 'Keybase Storage Permission',
   })
@@ -64,5 +67,5 @@ const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => 
 
 export default function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(nativeSaga)
-  yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessAndroid)
+  yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccessAndroid)
 }

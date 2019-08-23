@@ -164,7 +164,7 @@ func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string,
 		// Only need keys for private teams.
 		if !kbfsEncrypted {
 			refreshers.NeedApplicationsAtGenerations = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(keyGeneration): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+				keybase1.PerTeamKeyGeneration(keyGeneration): {keybase1.TeamApplication_CHAT},
 			}
 		} else {
 			refreshers.NeedKBFSKeyGeneration = keybase1.TeamKBFSKeyRefresher{
@@ -268,9 +268,6 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 		if team, err = teams.Load(ctx, t.G(), ltarg(teamID)); err != nil {
 			return team, err
 		}
-		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
-			return team, err
-		}
 		return team, nil
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		teamID, err := tlfIDToTeamID.Lookup(mctx, tlfID, t.G().API)
@@ -304,6 +301,8 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 				return team, err
 			}
 		}
+		// In upgraded implicit teams, make sure to check that tlfName matches
+		// team display name.
 		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
 			return team, err
 		}
@@ -568,10 +567,6 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *Im
 		loader:         NewTeamLoader(g.ExternalG()),
 		lookupUpgraded: lookupUpgraded,
 	}
-}
-
-type identifyFailure struct {
-	Msg string
 }
 
 // Identify participants of a conv.

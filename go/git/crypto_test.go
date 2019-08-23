@@ -145,7 +145,7 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 		require.NotNil(tc.T, unboxed)
 		require.Equal(tc.T, plaintext, unboxed)
 
-		canOpenWithPublicKey := false
+		var canOpenWithPublicKey bool
 		{
 			var encKey [libkb.NaclSecretBoxKeySize]byte = publicCryptKey.Key
 			var naclNonce [libkb.NaclDHNonceSize]byte = boxed.N

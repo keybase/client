@@ -258,8 +258,9 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	defer mctx.Trace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change),
 		func() error { return err })()
 
-	HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
-	HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
+	// Any errors are already logged in their respective functions.
+	_ = HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
+	_ = HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
 
 	// If we're handling a rename we should also purge the resolver cache and
 	// the KBFS favorites cache
@@ -300,14 +301,19 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	defer mctx.Trace(fmt.Sprintf("team.HandleDeleteNotification(%v)", len(rows)),
 		func() error { return err })()
 
+	var errs []error
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id)
+		err := TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
 		invalidateCaches(mctx, row.Id)
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
 
-	return nil
+	return libkb.CombineErrors(errs...)
 }
 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
@@ -315,13 +321,18 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 	defer mctx.Trace(fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)),
 		func() error { return err })()
 
+	var errs []error
 	for _, row := range rows {
 		mctx.Debug("team.HandleExitNotification: (%+v)", row)
-		FreezeTeam(mctx, row.Id)
+		err := FreezeTeam(mctx, row.Id)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
 		invalidateCaches(mctx, row.Id)
 		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
 	}
-	return nil
+	return libkb.CombineErrors(errs...)
 }
 
 func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
@@ -503,7 +514,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		tx := CreateAddMemberTx(team)
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
-			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
+			err := tx.AddMemberByUV(ctx, uv, joinAsRole, nil)
 			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
@@ -564,7 +575,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			continue
 		}
 
-		err = tx.AddMemberByUV(ctx, uv, invite.Role)
+		err = tx.AddMemberByUV(ctx, uv, invite.Role, nil)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to add %v to transaction: %v", uv, err)
 			continue
@@ -691,7 +702,7 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
-	copy(sig[:], decodedSig[:])
+	copy(sig[:], decodedSig)
 
 	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
 	// NOTE: Since we are re-serializing the values from seitan here to

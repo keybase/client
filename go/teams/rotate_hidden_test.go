@@ -2,13 +2,14 @@ package teams
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestRotateHiddenSelf(t *testing.T) {
@@ -72,7 +73,7 @@ func TestRotateHiddenOther(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	ctx := context.TODO()
@@ -124,7 +125,7 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	ctx := context.TODO()
@@ -170,7 +171,8 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	// Also test the gregor-powered refresh mechanism. We're going to mock out the gregor message for now.
 	rotate(true)
 	mctx1 := libkb.NewMetaContext(ctx, tcs[1].G)
-	tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(mctx1, teamID, keybase1.Seqno(4))
+	err = tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(mctx1, teamID, keybase1.Seqno(4))
+	require.NoError(t, err)
 	checkForUser(1, false)
 
 	ch, err := tcs[1].G.GetHiddenTeamChainManager().Load(mctx1, teamID)
@@ -200,7 +202,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		}
 		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
-		wait = wait * 2
+		wait *= 2
 	}
 	require.True(t, found, "whether condition was satisfied after polling ended")
 }
@@ -219,7 +221,7 @@ func TestHiddenNeedRotate(t *testing.T) {
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("B rotates the team once (via hidden)")

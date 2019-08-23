@@ -15,6 +15,7 @@ export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const clearAddedEmail = 'settings:clearAddedEmail'
+export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
@@ -81,20 +82,20 @@ export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
-export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
-type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
+type _AddPhoneNumberPayload = {readonly searchable: boolean; readonly phoneNumber: string}
 type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
-  readonly allowSearch: boolean
+  readonly searchable: boolean
   readonly error?: string
   readonly phoneNumber: string
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearAddedEmailPayload = void
+type _ClearAddedPhonePayload = void
 type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
@@ -166,7 +167,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
-type _SetContactImportedCountPayload = {readonly count: number | null}
+type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -182,7 +183,6 @@ type _UnfurlSettingsSavedPayload = {
 }
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
-type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
@@ -247,6 +247,13 @@ export const createResendVerificationForPhoneNumber = (
 export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
   payload,
   type: clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added a phone number.
+ */
+export const createClearAddedPhone = (payload: _ClearAddedPhonePayload): ClearAddedPhonePayload => ({
+  payload,
+  type: clearAddedPhone,
 })
 /**
  * Reset state used for showing we just added an email.
@@ -476,10 +483,6 @@ export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): T
   type: toggleRuntimeStats,
 })
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
-export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
-  payload,
-  type: waitingForResponse,
-})
 
 // Action Payloads
 export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
@@ -503,6 +506,10 @@ export type CheckPasswordPayload = {
 export type ClearAddedEmailPayload = {
   readonly payload: _ClearAddedEmailPayload
   readonly type: typeof clearAddedEmail
+}
+export type ClearAddedPhonePayload = {
+  readonly payload: _ClearAddedPhonePayload
+  readonly type: typeof clearAddedPhone
 }
 export type ClearAddingEmailPayload = {
   readonly payload: _ClearAddingEmailPayload
@@ -748,10 +755,6 @@ export type VerifyPhoneNumberPayload = {
   readonly payload: _VerifyPhoneNumberPayload
   readonly type: typeof verifyPhoneNumber
 }
-export type WaitingForResponsePayload = {
-  readonly payload: _WaitingForResponsePayload
-  readonly type: typeof waitingForResponse
-}
 
 // All Actions
 // prettier-ignore
@@ -763,6 +766,7 @@ export type Actions =
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
   | ClearAddedEmailPayload
+  | ClearAddedPhonePayload
   | ClearAddingEmailPayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
@@ -831,5 +835,4 @@ export type Actions =
   | UnfurlSettingsSavedPayload
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
-  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: {}}

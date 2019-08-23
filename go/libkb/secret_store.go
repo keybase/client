@@ -256,7 +256,7 @@ func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUse
 	}
 	tmp := s.mem.StoreSecret(m, username, res)
 	if tmp != nil {
-		m.Debug("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
+		m.Debug("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", tmp.Error())
 	}
 	return res, err
 }
@@ -375,7 +375,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	mctx.Debug("PrimeSecretStore: priming secret store with username %q and secret %v", testUsername, randBytes)
 	testNormUsername := NormalizedUsername(testUsername)
 	var secretF [LKSecLen]byte
-	copy(secretF[:], randBytes[:])
+	copy(secretF[:], randBytes)
 	testSecret := LKSecFullSecret{f: &secretF}
 
 	defer func() {

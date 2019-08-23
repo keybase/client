@@ -594,6 +594,8 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		forceFullReload:                       false,
 		forceRepoll:                           false,
 		staleOK:                               true, // stale is fine, as long as get those seqnos.
+		skipSeedCheck:                         true,
+		skipAudit:                             true,
 
 		needSeqnos:    needParentSeqnos,
 		readSubteamID: &readSubteamID,
@@ -678,7 +680,7 @@ func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamAp
 		return nil, libkb.DecryptBadNonceError{}
 	}
 	copy(nonce[:], keysetRecord.N)
-	plain, ok := secretbox.Open(nil, keysetRecord.E, &nonce, (*[32]byte)(&encKey))
+	plain, ok := secretbox.Open(nil, keysetRecord.E, &nonce, &encKey)
 	if !ok {
 		return nil, libkb.DecryptOpenError{}
 	}
@@ -697,7 +699,7 @@ func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamAp
 func (l *TeamLoader) addKBFSCryptKeys(mctx libkb.MetaContext, team Teamer, upgrades []keybase1.TeamGetLegacyTLFUpgrade) error {
 	m := make(map[keybase1.TeamApplication][]keybase1.CryptKey)
 	for _, upgrade := range upgrades {
-		key, err := ApplicationKeyAtGeneration(mctx, team, upgrade.AppType, keybase1.PerTeamKeyGeneration(upgrade.TeamGeneration))
+		key, err := ApplicationKeyAtGeneration(mctx, team, upgrade.AppType, upgrade.TeamGeneration)
 		if err != nil {
 			return err
 		}
@@ -921,10 +923,6 @@ func unboxPerTeamSecrets(m libkb.MetaContext, world LoaderContext, box *TeamBox,
 	return box.Generation, secrets, nil
 }
 
-func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
-	return l.world.perUserEncryptionKey(ctx, userSeqno)
-}
-
 // Whether the snapshot has fully loaded, non-stubbed, all of the links.
 func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 	state *keybase1.TeamData, needSeqnos []keybase1.Seqno) error {
@@ -997,7 +995,7 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), func() error { return err })()
 
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-	return computeSeedChecks(
+	err = computeSeedChecks(
 		ctx,
 		state.ID(),
 		latestChainGen,
@@ -1014,6 +1012,7 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 			state.PerTeamKeySeedsUnverified[g] = ptksu
 		},
 	)
+	return err
 }
 
 // consumeRatchets finds the hidden chain ratchets in the given link (if it's not stubbed), and adds them
@@ -1026,4 +1025,12 @@ func consumeRatchets(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage
 	}
 	err = hiddenPackage.AddRatchets(mctx, link.inner.Ratchets(), link.inner.Ctime, keybase1.RatchetType_MAIN)
 	return err
+}
+
+func checkPTKGenerationNotOnHiddenChain(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked) (err error) {
+	gen := link.PTKGeneration()
+	if gen == keybase1.PerTeamKeyGeneration(0) {
+		return nil
+	}
+	return hiddenPackage.CheckNoPTK(mctx, gen)
 }

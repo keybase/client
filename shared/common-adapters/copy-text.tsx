@@ -5,40 +5,11 @@ import Icon from './icon'
 import Button, {Props as ButtonProps} from './button'
 import Text from './text'
 import Toast from './toast'
-import HOCTimers, {PropsWithTimer} from './hoc-timers'
+import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
-import {compose, namedConnect} from '../util/container'
+import * as Container from '../util/container'
 
-type TProps = PropsWithTimer<{
-  getAttachmentRef: () => React.Component<any> | null
-}>
-
-type TState = {
-  showingToast: boolean
-}
-
-export class _ToastContainer extends React.Component<TProps, TState> {
-  state = {showingToast: false}
-  copy = () => {
-    this.setState({showingToast: true}, () =>
-      this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
-    )
-  }
-
-  render() {
-    return (
-      <Toast position="top center" attachTo={this.props.getAttachmentRef} visible={this.state.showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-        <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
-          Copied to clipboard
-        </Text>
-      </Toast>
-    )
-  }
-}
-export const ToastContainer = HOCTimers(_ToastContainer)
-
-type OwnProps = {
+type Props = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
   multiline?: boolean
@@ -49,97 +20,84 @@ type OwnProps = {
   text: string
 }
 
-export type Props = PropsWithTimer<
-  {
-    copyToClipboard: (arg0: string) => void
-  } & OwnProps
->
+const CopyText = (props: Props) => {
+  const [revealed, setRevealed] = React.useState(!props.withReveal)
+  const [showingToast, setShowingToast] = React.useState(false)
 
-type State = {
-  revealed: boolean
-}
+  const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
+  React.useEffect(() => {
+    showingToast && setShowingToastFalseLater()
+  }, [showingToast, setShowingToastFalseLater])
 
-class _CopyText extends React.Component<Props, State> {
-  state = {revealed: !this.props.withReveal}
+  const attachmentRef = React.useRef<Box2>(null)
+  const textRef = React.useRef<Text>(null)
 
-  _attachmentRef: Box2 | null = null
-  _toastRef: _ToastContainer | null = null
-  _textRef: Text | null = null
-
-  copy = () => {
-    this._toastRef && this._toastRef.copy()
-    this._textRef && this._textRef.highlightText()
-    this.props.copyToClipboard(this.props.text)
-    this.props.onCopy && this.props.onCopy()
-    if (this.props.hideOnCopy) {
-      this.setState({revealed: false})
+  const dispatch = Container.useDispatch()
+  const copyToClipboard = (text: string) => dispatch(ConfigGen.createCopyToClipboard({text}))
+  const copy = () => {
+    setShowingToast(true)
+    textRef.current && textRef.current.highlightText()
+    copyToClipboard(props.text)
+    props.onCopy && props.onCopy()
+    if (props.hideOnCopy) {
+      setRevealed(false)
     }
   }
-
-  reveal = () => {
-    this.props.onReveal && this.props.onReveal()
-    this.setState({revealed: true})
+  const reveal = () => {
+    props.onReveal && props.onReveal()
+    setRevealed(true)
   }
 
-  _isRevealed = () => !this.props.withReveal || this.state.revealed
-  _getAttachmentRef = () => this._attachmentRef
-
-  render() {
-    const lineClamp = !this.props.multiline && this._isRevealed() ? 1 : null
-    return (
-      <Box2
-        ref={r => (this._attachmentRef = r)}
-        direction="horizontal"
-        style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
-      >
-        <ToastContainer ref={(r: any) => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
-        <Text
-          lineClamp={lineClamp}
-          type="Body"
-          selectable={true}
-          center={true}
-          style={styles.text}
-          allowHighlightText={true}
-          ref={r => (this._textRef = r)}
-        >
-          {this._isRevealed() ? this.props.text : '••••••••••••'}
+  const isRevealed = !props.withReveal || revealed
+  const lineClamp = !props.multiline && isRevealed ? 1 : null
+  return (
+    <Box2
+      ref={attachmentRef}
+      direction="horizontal"
+      style={Styles.collapseStyles([styles.container, props.containerStyle])}
+    >
+      <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+        <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          Copied to clipboard
         </Text>
-        {!this._isRevealed() && (
-          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
-            Reveal
-          </Text>
-        )}
-        {this._isRevealed() && (
-          <Button
-            type={this.props.buttonType || 'Default'}
-            style={styles.button}
-            onClick={this.copy}
-            labelContainerStyle={styles.buttonLabelContainer}
-          >
-            <Icon
-              type="iconfont-clipboard"
-              color={Styles.globalColors.white}
-              fontSize={Styles.isMobile ? 20 : 16}
-            />
-          </Button>
-        )}
-      </Box2>
-    )
-  }
+      </Toast>
+      <Text
+        lineClamp={lineClamp}
+        type="Body"
+        selectable={true}
+        center={true}
+        style={styles.text}
+        allowHighlightText={true}
+        ref={textRef}
+      >
+        {isRevealed ? props.text : '••••••••••••'}
+      </Text>
+      {!isRevealed && (
+        <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
+          Reveal
+        </Text>
+      )}
+      {isRevealed && (
+        <Button
+          type={props.buttonType || 'Default'}
+          style={styles.button}
+          onClick={copy}
+          labelContainerStyle={styles.buttonLabelContainer}
+        >
+          <Icon
+            type="iconfont-clipboard"
+            color={Styles.globalColors.white}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
+        </Button>
+      )}
+    </Box2>
+  )
 }
 
-const mapDispatchToProps = dispatch => ({
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-})
-
-// @ts-ignore HOCTimers typing is wrong
-const CopyText: React.ComponentClass<OwnProps> = compose(
-  namedConnect(() => ({}), mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}), 'CopyText'),
-  HOCTimers
-)(_CopyText)
-
 // border radii aren't literally so big, just sets it to maximum
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'stretch',
@@ -218,6 +176,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 5,
     },
   }),
-})
+}))
 
 export default CopyText

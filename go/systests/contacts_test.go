@@ -45,9 +45,9 @@ func TestLookupContactList(t *testing.T) {
 	rawPhone := keybase1.RawPhoneNumber(phone)
 	res, err := contactsCli.LookupContactList(context.Background(), keybase1.LookupContactListArg{
 		Contacts: []keybase1.Contact{
-			keybase1.Contact{Name: "It's me",
+			{Name: "It's me",
 				Components: []keybase1.ContactComponent{
-					keybase1.ContactComponent{
+					{
 						PhoneNumber: &rawPhone,
 					},
 				},
@@ -76,9 +76,9 @@ func TestLookupContactList(t *testing.T) {
 
 	res, err = contactsCli.LookupContactList(context.Background(), keybase1.LookupContactListArg{
 		Contacts: []keybase1.Contact{
-			keybase1.Contact{Name: "It's me",
+			{Name: "It's me",
 				Components: []keybase1.ContactComponent{
-					keybase1.ContactComponent{
+					{
 						Email: &emailAddr,
 					},
 				},
@@ -198,6 +198,7 @@ func TestBulkLookupContacts(t *testing.T) {
 			randomNumber,
 		},
 		keybase1.RegionCode("US"),
+		contacts.NoneToken,
 	)
 	require.NoError(t, err)
 
@@ -279,12 +280,13 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 	emailAddr := keybase1.EmailAddress(randomUser("newemail").email)
 	{
 		// Add and verify an email address
-		emailCli.AddEmail(context.Background(), keybase1.AddEmailArg{
+		err := emailCli.AddEmail(context.Background(), keybase1.AddEmailArg{
 			Email:      emailAddr,
 			Visibility: keybase1.IdentityVisibility_PUBLIC,
 		})
+		require.NoError(t, err)
 
-		err := kbtest.VerifyEmailAuto(ann.MetaContext(), emailAddr)
+		err = kbtest.VerifyEmailAuto(ann.MetaContext(), emailAddr)
 		require.NoError(t, err)
 	}
 
@@ -296,38 +298,38 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 		{
 			Name: "Ann Test",
 			Components: []keybase1.ContactComponent{
-				keybase1.ContactComponent{Label: "phone", PhoneNumber: &rawPhone},
-				keybase1.ContactComponent{Label: "email", Email: &emailAddr},
+				{Label: "phone", PhoneNumber: &rawPhone},
+				{Label: "email", Email: &emailAddr},
 			},
 		},
 		{
 			Name: "Ann Test 2",
 			Components: []keybase1.ContactComponent{
-				keybase1.ContactComponent{Email: &emailAddr},
+				{Email: &emailAddr},
 			},
 		},
 		{
 			Name: "Test Ann",
 			Components: []keybase1.ContactComponent{
-				keybase1.ContactComponent{PhoneNumber: &rawPhone},
+				{PhoneNumber: &rawPhone},
 			},
 		},
 		{
 			Name: "Someone else",
 			Components: []keybase1.ContactComponent{
-				keybase1.ContactComponent{PhoneNumber: &miscPhoneNum},
+				{PhoneNumber: &miscPhoneNum},
 			},
 		},
 		{
 			Name: "Someone else",
 			Components: []keybase1.ContactComponent{
-				keybase1.ContactComponent{Email: &miscEmailAddr},
+				{Email: &miscEmailAddr},
 			},
 		},
 	}
 
 	{
-		err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		_, err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 			Contacts: rawContacts,
 		})
 		require.NoError(t, err)
@@ -430,7 +432,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 			require.Equal(t, 2, foundOurEmail)
 
 			if i == 0 {
-				err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+				_, err := contactsCli.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 					Contacts: rawContacts,
 				})
 				require.NoError(t, err)

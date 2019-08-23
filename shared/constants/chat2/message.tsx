@@ -291,13 +291,13 @@ export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>
 
 const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: I.Map(),
+  joiners: [],
+  leavers: [],
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: I.Map(),
   type: 'systemLeft',
 })
 
@@ -330,14 +330,14 @@ const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSim
   type: 'systemSimpleToComplex',
 })
 
-const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
+export const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
-const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
+export const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
   ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
@@ -838,9 +838,15 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.MessageType.join:
-      return makeMessageSystemJoined({...common, reactions})
+      return makeMessageSystemJoined({
+        ...common,
+        joiners: m.messageBody.join ? m.messageBody.join.joiners || [] : [],
+        leavers: m.messageBody.join ? m.messageBody.join.leavers || [] : [],
+      })
     case RPCChatTypes.MessageType.leave:
-      return makeMessageSystemLeft({...common, reactions})
+      return makeMessageSystemLeft({
+        ...common,
+      })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
@@ -1234,8 +1240,6 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemChangeRetention':
     case 'systemGitPush':
     case 'systemInviteAccepted':
-    case 'systemJoined':
-    case 'systemLeft':
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
@@ -1262,3 +1266,20 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
+
+export const messageAttachmentTransferStateToProgressLabel = (
+  transferState: Types.MessageAttachmentTransferState
+): string => {
+  switch (transferState) {
+    case 'downloading':
+      return 'Downloading'
+    case 'uploading':
+      return 'Uploading'
+    case 'mobileSaving':
+      return 'Saving...'
+    case 'remoteUploading':
+      return 'waiting...'
+    default:
+      return ''
+  }
+}

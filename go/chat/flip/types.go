@@ -38,7 +38,7 @@ func ToTime(t time.Time) Time {
 func GenerateGameID() chat1.FlipGameID {
 	l := 12
 	ret := make([]byte, l)
-	n, err := rand.Read(ret[:])
+	n, err := rand.Read(ret)
 	if n != l {
 		panic("short random read")
 	}

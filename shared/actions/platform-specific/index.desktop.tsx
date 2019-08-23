@@ -13,11 +13,12 @@ import {getEngine} from '../../engine'
 import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../util/quit-helper'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
+import * as Container from '../../util/container'
 import AppState from '../../app/app-state.desktop'
 
 export function showShareActionSheetFromURL() {
@@ -67,13 +68,27 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_, action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (
+  _: Container.TypedState,
+  action: ConfigGen.SetOpenAtLoginPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      payload: {data: {openAtLogin: action.payload.open}},
+      type: 'set',
+    })
+}
 
-const writeElectronSettingsNotifySound = (_, action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (
+  _: Container.TypedState,
+  action: ConfigGen.SetNotifySoundPayload
+) => {
   action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+    SafeElectron.getApp().emit('KBappState' as any, '', {
+      payload: {data: {notifySound: action.payload.sound}},
+      type: 'set',
+    })
+}
 
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
@@ -119,8 +134,11 @@ function* initializeInputMonitor(): Iterable<any> {
 function* initializeAppSettingsState(): Iterable<any> {
   const getAppState = () =>
     new Promise(resolve => {
-      SafeElectron.getIpcRenderer().once('getAppStateReply', (_, data) => resolve(data))
-      SafeElectron.getIpcRenderer().send('getAppState')
+      SafeElectron.getApp().once(
+        'KBappState' as any,
+        (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
+      )
+      SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
     })
 
   const state = yield* Saga.callPromise(getAppState)
@@ -130,7 +148,7 @@ function* initializeAppSettingsState(): Iterable<any> {
   }
 }
 
-export const dumpLogs = (_?: any, action?: ConfigGen.DumpLogsPayload) =>
+export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
   logger
     .dump()
     .then(fromRender => {
@@ -140,11 +158,11 @@ export const dumpLogs = (_?: any, action?: ConfigGen.DumpLogsPayload) =>
     .then(() => {
       // quit as soon as possible
       if (action && action.payload.reason === 'quitting through menu') {
-        quit('quitButton')
+        quit()
       }
     })
 
-function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
+function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -219,7 +237,7 @@ const onExit = () => {
   SafeElectron.getApp().exit(0)
 }
 
-const onFSActivity = (state, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
+const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
   kbfsNotification(action.payload.params.notification, NotifyPopup, state)
 }
 
@@ -228,7 +246,7 @@ const onPgpgKeySecret = () =>
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 
-const onShutdown = (_, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
+const onShutdown = (_: Container.TypedState, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   const {code} = action.payload.params
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
@@ -250,7 +268,10 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
-const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
+const onOutOfDate = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload
+) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -259,24 +280,24 @@ const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePa
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = (_: Container.TypedState, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   dumpLogs().then(() => {
     response && response.result()
   })
 }
 
-const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getIpcRenderer().send('kb-service-check')
+    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
   }
 }
 
@@ -336,8 +357,16 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = state =>
-  SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
+const setUseNativeFrame = (state: Container.TypedState) => {
+  SafeElectron.getApp().emit('KBappState' as any, '', {
+    payload: {
+      data: {
+        useNativeFrame: state.settings.useNativeFrame,
+      },
+    },
+    type: 'set',
+  })
+}
 
 function* initializeUseNativeFrame() {
   const useNativeFrame = new AppState().state.useNativeFrame
@@ -349,52 +378,27 @@ function* initializeUseNativeFrame() {
   )
 }
 
+export const requestLocationPermission = () => Promise.resolve()
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
-    ConfigGen.setOpenAtLogin,
-    writeElectronSettingsOpenAtLogin
-  )
-  yield* Saga.chainAction<ConfigGen.SetNotifySoundPayload>(
-    ConfigGen.setNotifySound,
-    writeElectronSettingsNotifySound
-  )
-  yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
+  yield* Saga.chainAction2(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
+  yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
+  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  yield* Saga.chainAction<EngineGen.Keybase1LogsendPrepareLogsendPayload>(
-    EngineGen.keybase1LogsendPrepareLogsend,
-    prepareLogSend
-  )
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
-    EngineGen.keybase1NotifyFSFSActivity,
-    onFSActivity
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
-    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
-    onPgpgKeySecret
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
-    EngineGen.keybase1NotifyServiceShutdown,
-    onShutdown
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
-    EngineGen.keybase1NotifySessionClientOutOfDate,
-    onOutOfDate
-  )
-  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
-  yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
-    ConfigGen.daemonHandshakeWait,
-    sendKBServiceCheck
-  )
-  yield* Saga.chainAction<SettingsGen.OnChangeUseNativeFramePayload>(
-    SettingsGen.onChangeUseNativeFrame,
-    setUseNativeFrame
-  )
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  yield* Saga.chainAction2(EngineGen.connected, onConnected)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
+  yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield* Saga.chainAction2(SettingsGen.onChangeUseNativeFrame, setUseNativeFrame)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)

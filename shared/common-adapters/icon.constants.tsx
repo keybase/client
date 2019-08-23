@@ -133,15 +133,15 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-success-48.png'),
   },
-  'icon-computer-text-code-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-computer-text-code-48.png'),
-  },
   'icon-dns-48': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
+  },
+  'icon-dns-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dns-64.png'),
   },
   'icon-email-add-48': {
     extension: 'png',
@@ -292,11 +292,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-fancy-encrypted-phone-mobile-226-96.png'),
-  },
-  'icon-fancy-feedback-96': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-feedback-96.png'),
   },
   'icon-fancy-finder-132-96': {
     extension: 'png',
@@ -608,16 +603,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-follow-me-32.png'),
   },
-  'icon-followers-new-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-followers-new-32.png'),
-  },
-  'icon-followers-new-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-followers-new-48.png'),
-  },
   'icon-following-21': {
     extension: 'png',
     isFont: false,
@@ -683,16 +668,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-hacker-news-logo-64.png'),
   },
-  'icon-history-clear-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-history-clear-48.png'),
-  },
-  'icon-history-clear-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-history-clear-64.png'),
-  },
   'icon-illustration-exploding-messages-240': {
     extension: 'png',
     isFont: false,
@@ -718,35 +693,10 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-illustration-teams-216.png'),
   },
-  'icon-invite-code-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-invite-code-48.png'),
-  },
-  'icon-invite-link-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-invite-link-16.png'),
-  },
-  'icon-invite-link-24': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-invite-link-24.png'),
-  },
-  'icon-invite-link-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-invite-link-32.png'),
-  },
   'icon-invite-link-48': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-invite-link-48.png'),
-  },
-  'icon-invite-link-negative-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-invite-link-negative-48.png'),
   },
   'icon-keybase-logo-128': {
     extension: 'png',
@@ -1187,11 +1137,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-paper-key-corner.png'),
-  },
-  'icon-paper-key-dark-blue-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-paper-key-dark-blue-32.png'),
   },
   'icon-paper-key-revoke-48': {
     extension: 'png',
@@ -1702,46 +1647,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
-  },
-  'icon-stellar-logo-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-16.png'),
-  },
-  'icon-stellar-logo-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-32.png'),
-  },
-  'icon-stellar-logo-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-48.png'),
-  },
-  'icon-stellar-logo-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-64.png'),
-  },
-  'icon-stellar-logo-grey-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
-  },
-  'icon-stellar-logo-grey-32': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-32.png'),
-  },
-  'icon-stellar-logo-grey-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-48.png'),
-  },
-  'icon-stellar-logo-grey-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-64.png'),
   },
   'icon-team-delete-28': {
     extension: 'png',
@@ -2510,6 +2415,11 @@ const iconMeta_ = {
   },
   'iconfont-notifications-mobile': {
     charCode: 0xe948,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-number-pad': {
+    charCode: 0xe996,
     gridSize: 16,
     isFont: true,
   },

@@ -258,40 +258,45 @@ const TeamShowcaseConnector = connect(
 )(Task)
 
 const VerifyAllEmailConnector = connect(
-  mapStateToProps,
+  state => ({...mapStateToProps(state), _addingEmail: state.settings.email.addingEmail}),
   dispatch => ({
     _onConfirm: email => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
+      dispatch(PeopleGen.createSetResentEmail({email}))
     },
     onManage: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
   }),
-  (_, dispatchProps, ownProps: TodoOwnProps) => ({
-    ...ownProps,
-    buttons: [
-      ...(ownProps.metadata
-        ? [
-            {
-              label: 'Verify',
-              onClick: () => {
-                const meta = ownProps.metadata
-                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+  (s, d, o: TodoOwnProps) => {
+    const meta = o.metadata && o.metadata.type === 'email' ? o.metadata : undefined
+
+    // Has the user received a verification email less than 30 minutes ago?
+    const hasRecentVerifyEmail =
+      meta && meta.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+
+    return {
+      ...o,
+      buttons: [
+        ...(meta
+          ? [
+              {
+                label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
+                onClick: () => d._onConfirm(meta.email),
+                type: 'Success',
+                waiting: s._addingEmail && s._addingEmail === meta.email,
               },
-              type: 'Success',
-            },
-          ]
-        : []),
-      {
-        label: 'Manage email',
-        mode: 'Secondary',
-        onClick: dispatchProps.onManage,
-      },
-    ] as Array<TaskButton>,
-  })
+            ]
+          : []),
+        {
+          label: 'Manage emails',
+          mode: 'Secondary',
+          onClick: d.onManage,
+        },
+      ] as Array<TaskButton>,
+    }
+  }
 )(Task)
 
 const VerifyAllPhoneNumberConnector = connect(
@@ -306,16 +311,16 @@ const VerifyAllPhoneNumberConnector = connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
   }),
-  (_, dispatchProps, ownProps: TodoOwnProps) => ({
-    ...ownProps,
+  (_, d, o: TodoOwnProps) => ({
+    ...o,
     buttons: [
-      ...(ownProps.metadata
+      ...(o.metadata
         ? [
             {
               label: 'Verify',
               onClick: () => {
-                const meta = ownProps.metadata
-                meta && meta.type === 'phone' && dispatchProps._onConfirm(meta.phone)
+                const meta = o.metadata
+                meta && meta.type === 'phone' && d._onConfirm(meta.phone)
               },
               type: 'Success',
             },
@@ -324,7 +329,7 @@ const VerifyAllPhoneNumberConnector = connect(
       {
         label: 'Manage numbers',
         mode: 'Secondary',
-        onClick: dispatchProps.onManage,
+        onClick: d.onManage,
       },
     ] as Array<TaskButton>,
   })

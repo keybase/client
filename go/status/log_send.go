@@ -30,7 +30,7 @@ const (
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop    string
+	GUI        string
 	Kbfs       string
 	Service    string
 	EK         string
@@ -96,14 +96,15 @@ func redactPotentialPaperKeys(s string) string {
 			start = -1
 			continue
 		}
-		if start == -1 {
+		switch {
+		case start == -1:
 			start = idx
-		} else if idx-start+1 == serialPaperKeyWordThreshold {
+		case idx-start+1 == serialPaperKeyWordThreshold:
 			for jdx := start; jdx <= idx; jdx++ {
 				allWords[checkWordLocations[jdx]] = redactedReplacer
 			}
 			didRedact = true
-		} else if idx-start+1 > serialPaperKeyWordThreshold {
+		case idx-start+1 > serialPaperKeyWordThreshold:
 			allWords[checkWordLocations[idx]] = redactedReplacer
 		}
 	}
@@ -145,15 +146,24 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	mpart := multipart.NewWriter(&body)
 
 	if l.Feedback != "" {
-		mpart.WriteField("feedback", l.Feedback)
+		err := mpart.WriteField("feedback", l.Feedback)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if len(l.InstallID) > 0 {
-		mpart.WriteField("install_id", string(l.InstallID))
+		err := mpart.WriteField("install_id", string(l.InstallID))
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if !l.UID.IsNil() {
-		mpart.WriteField("uid", l.UID.String())
+		err := mpart.WriteField("uid", l.UID.String())
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", l.StatusJSON); err != nil {
@@ -260,7 +270,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
 		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
-		l.desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		l.desktopLog = tail(l.G().Log, "gui", logs.GUI, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		// We don't use the systemd journal to store regular logs, since on
 		// some systems (e.g. Ubuntu 16.04) it's not persisted across boots.

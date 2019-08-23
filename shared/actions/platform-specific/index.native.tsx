@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as FsTypes from '../../constants/types/fs'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
@@ -26,16 +25,20 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import {TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {pluralize} from '../../util/string'
 
 type NextURI = string
 
 const requestPermissionsToWrite = (): Promise<void> => {
   if (isAndroid) {
     return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+      buttonNegative: 'Cancel',
+      buttonNeutral: 'Ask me later',
+      buttonPositive: 'OK',
       message: 'Keybase needs access to your storage so we can download a file.',
       title: 'Keybase Storage Permission',
     }).then(permissionStatus =>
@@ -47,7 +50,7 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
-const requestLocationPermission = (): Promise<void> => {
+export const requestLocationPermission = (): Promise<void> => {
   if (isAndroid) {
     return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
       buttonNegative: 'Cancel',
@@ -63,13 +66,13 @@ const requestLocationPermission = (): Promise<void> => {
   return Promise.resolve()
 }
 
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
@@ -91,14 +94,11 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-function showShareActionSheetFromURL(options: {
+export function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
-}): Promise<{
-  completed: boolean
-  method: string
-}> {
+}) {
   if (isIOS) {
     return new Promise((resolve, reject) =>
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
@@ -119,7 +119,7 @@ function showShareActionSheetFromURL(options: {
 }
 
 // Shows the shareactionsheet for a file, and deletes the file afterwards
-function showShareActionSheetFromFile(filePath: string): Promise<void> {
+export function showShareActionSheetFromFile(filePath: string): Promise<void> {
   return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
@@ -138,7 +138,7 @@ const openAppSettings = () => {
   }
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
 ) =>
@@ -181,9 +181,9 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
-const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
-  let appFocused
-  let logState
+const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
+  let appFocused: boolean
+  let logState: RPCTypes.MobileAppState
   switch (action.payload.nextAppState) {
     case 'active':
       appFocused = true
@@ -207,30 +207,8 @@ const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
   return ConfigGen.createChangedFocus({appFocused})
 }
 
-const getStartupDetailsFromShare = (): Promise<
-  | null
-  | {
-      localPath: FsTypes.LocalPath
-    }
-  | {
-      text: string
-    }
-> =>
-  isAndroid
-    ? NativeModules.IntentHandler.getShareData().then(p => {
-        if (!p) return null
-        if (p.localPath) {
-          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-        }
-        if (p.text) {
-          return {text: p.text}
-        }
-        return null
-      })
-    : Promise.resolve(null)
-
 let _lastPersist = ''
-function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
+function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
   const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
   if (!tab) return
@@ -267,7 +245,7 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
-const updateMobileNetState = (_, action) => {
+const updateMobileNetState = (_: Container.TypedState, action) => {
   RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
     console.warn('Error sending mobileNetStateUpdate', err)
   })
@@ -290,6 +268,7 @@ function* setupNetInfoWatcher() {
   }
 }
 
+// TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
   let startupConversation = null
@@ -305,8 +284,7 @@ function* loadStartupDetails() {
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const initialShare = yield Saga._fork(getStartupDetailsFromShare)
-  const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(() => {
@@ -326,12 +304,6 @@ function* loadStartupDetails() {
   } else if (link) {
     // Second priority, deep link
     startupLink = link
-  } else if (share) {
-    // Third priority, share
-    // TODO: handle share.localPath or share.text.
-    if (share.localPath) {
-      startupSharePath = share.localPath
-    }
   } else if (routeState) {
     // Last priority, saved from last session
     try {
@@ -358,7 +330,7 @@ function* loadStartupDetails() {
   )
 }
 
-function* waitForStartupDetails(state, action: ConfigGen.DaemonHandshakePayload) {
+function* waitForStartupDetails(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -381,15 +353,15 @@ function* waitForStartupDetails(state, action: ConfigGen.DaemonHandshakePayload)
   )
 }
 
-const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
-const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
+const handleFilePickerError = (_: Container.TypedState, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<Saga.MaybeAction> =>
+const editAvatar = () =>
   launchImageLibraryAsync('photo')
     .then(result =>
       result.cancelled === true
@@ -423,7 +395,7 @@ const loadContactPermissionFromNative = async () => {
 }
 
 const loadContactPermissions = async (
-  state: TypedState,
+  state: Container.TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger: Saga.SagaLogger
 ) => {
@@ -462,7 +434,10 @@ const askForContactPermissions = () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
+function* requestContactPermissions(
+  _: Container.TypedState,
+  action: SettingsGen.RequestContactPermissionsPayload
+) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
@@ -476,7 +451,7 @@ function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestCo
 }
 
 async function manageContactsCache(
-  state: TypedState,
+  state: Container.TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger: Saga.SagaLogger
 ) {
@@ -509,8 +484,16 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
-  let defaultCountryCode: string
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+  }
+  let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
     if (__DEV__ && !defaultCountryCode) {
@@ -543,17 +526,43 @@ async function manageContactsCache(
     return ret
   }, [])
   logger.info(`Importing ${mapped.length} contacts.`)
-  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
-    .then(() => {
-      logger.info(`Success`)
-      return [
-        SettingsGen.createSetContactImportedCount({count: mapped.length}),
-        SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode}),
-      ]
-    })
-    .catch(e => {
-      logger.error('Error saving contacts list: ', e.message)
-    })
+  const actions: Array<Container.TypedActions> = []
+  try {
+    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    logger.info(`Success`)
+    actions.push(
+      SettingsGen.createSetContactImportedCount({count: mapped.length}),
+      SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
+    )
+    if (newlyResolved && newlyResolved.length) {
+      PushNotifications.localNotification({
+        message: makeResolvedMessage(newlyResolved),
+      })
+    }
+  } catch (e) {
+    logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
+  }
+  return actions
+}
+
+const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `Your contact ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `Your contacts ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `Your contacts ${cts[0].contactName}, ${cts[1].contactName}, and ${lenMinusTwo} ${pluralize(
+        'other',
+        lenMinusTwo
+      )} joined Keybase!`
+    }
+  }
 }
 
 // Get phone number in e.164, or null if we can't parse it.
@@ -570,24 +579,21 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
-  yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
-  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
+  yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
+  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
     ConfigGen.daemonHandshake,
     waitForStartupDetails
   )
-  yield* Saga.chainAction<ConfigGen.OpenAppStorePayload>(ConfigGen.openAppStore, openAppStore)
-  yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
-  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
-  yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
-    ConfigGen.osNetworkStatusChanged,
-    updateMobileNetState
-  )
-  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainAction2(ConfigGen.openAppStore, openAppStore)
+  yield* Saga.chainAction2(ConfigGen.filePickerError, handleFilePickerError)
+  yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+  yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
@@ -597,7 +603,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     requestContactPermissions,
     'requestContactPermissions'
   )
-  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     manageContactsCache,
     'manageContactsCache'
@@ -606,14 +612,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-}
-
-export {
-  showShareActionSheetFromFile,
-  showShareActionSheetFromURL,
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  getContentTypeFromURL,
-  platformConfigSaga,
-  requestLocationPermission,
 }

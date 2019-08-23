@@ -71,6 +71,18 @@ type BodyProps = {
   resendWaiting: boolean
 }
 export const VerifyBody = (props: BodyProps) => {
+  // build in a delay to resend
+  // disable first, then enable after 2s
+  const [resendDisabled, setResendDisabled] = React.useState(true)
+  const enableResend = Kb.useTimeout(() => setResendDisabled(false), 4000)
+  React.useEffect(() => enableResend(), [enableResend])
+  const {onResend: _onResend} = props
+  const onResend = React.useCallback(() => {
+    _onResend()
+    setResendDisabled(true)
+    enableResend()
+  }, [_onResend, enableResend])
+
   return (
     <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
       <Kb.Text type="Body" negative={true} center={true}>
@@ -90,12 +102,18 @@ export const VerifyBody = (props: BodyProps) => {
           {props.code}
         </Kb.Text>
       </Kb.PlainInput>
-      <Kb.ClickableBox onClick={props.onResend} style={styles.positionRelative}>
+      <Kb.ClickableBox
+        onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
+        style={styles.positionRelative}
+      >
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
           gap="tiny"
-          style={Styles.collapseStyles([styles.resend, props.resendWaiting && styles.opacity30])}
+          style={Styles.collapseStyles([
+            styles.resend,
+            (props.resendWaiting || resendDisabled) && styles.opacity30,
+          ])}
         >
           <Kb.Icon
             type="iconfont-reload"

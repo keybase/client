@@ -138,6 +138,9 @@ func (p CommandLine) GetLogFile() string {
 func (p CommandLine) GetEKLogFile() string {
 	return p.GetGString("ek-log-file")
 }
+func (p CommandLine) GetGUILogFile() string {
+	return p.GetGString("gui-log-file")
+}
 func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
 	return p.GetBool("use-default-log-file", true)
 }
@@ -415,6 +418,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 
 func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
 	return p.GetBool("disable-team-box-auditor", true)
+}
+
+func (p CommandLine) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return p.GetBool("disable-ek-backgorund-keygen", true)
 }
 
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {

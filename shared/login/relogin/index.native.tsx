@@ -1,6 +1,7 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
+import {Props as InputProps} from '../../common-adapters/input'
 import Dropdown from './dropdown.native'
 import * as React from 'react'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
@@ -23,7 +24,7 @@ class LoginRender extends React.Component<Props> {
   }
 
   render() {
-    const inputProps = {
+    const inputProps: InputProps = {
       autoFocus: true,
       errorText: this.props.inputError ? this.props.error : '',
       hintText: 'Password',

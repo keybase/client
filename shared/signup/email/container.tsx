@@ -1,44 +1,68 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as SignupGen from '../../actions/signup-gen'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {InfoIcon} from '../common'
-import EnterEmail from '.'
+import * as SignupConstants from '../../constants/signup'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {anyWaiting} from '../../constants/waiting'
+import EnterEmail, {Props} from '.'
 
 type OwnProps = {}
 
+type WatcherProps = Props & {
+  addedEmail: string | null
+  onSuccess: (email: string) => void
+}
+const WatchForSuccess = (props: WatcherProps) => {
+  const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
+  React.useEffect(() => {
+    if (props.addedEmail === addEmailInProgress) {
+      props.onSuccess(addEmailInProgress)
+    }
+  }, [props.addedEmail, addEmailInProgress])
+
+  const onCreate = (email: string, searchable: boolean) => {
+    props.onCreate(email, searchable)
+    setAddEmailInProgress(email)
+  }
+
+  return (
+    <EnterEmail
+      error={props.error}
+      initialEmail={props.initialEmail}
+      onCreate={onCreate}
+      onSkip={props.onSkip}
+      waiting={props.waiting}
+    />
+  )
+}
+
 const ConnectedEnterEmail = Container.connect(
   (state: Container.TypedState) => ({
-    allowSearch: false,
-    error: state.signup.emailError,
+    addedEmail: state.settings.email.addedEmail,
+    error: state.settings.email.error ? state.settings.email.error.message : '',
     initialEmail: state.signup.email,
+    waiting: anyWaiting(state, SettingsConstants.addEmailWaitingKey),
   }),
   (dispatch: Container.TypedDispatch) => ({
-    onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-    onFinish: (email: string, allowSearch: boolean) =>
-      dispatch(SignupGen.createCheckEmail({allowSearch, email})),
+    onCreate: (email: string, searchable: boolean) => {
+      dispatch(SettingsGen.createAddEmail({email, searchable}))
+    },
+    onSkip: () => {
+      dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail}))
+      dispatch(RouteTreeGen.createClearModals())
+    },
+    onSuccess: (email: string) => {
+      dispatch(SignupGen.createSetJustSignedUpEmail({email}))
+      dispatch(RouteTreeGen.createClearModals())
+    },
   }),
   (s, d, o: OwnProps) => ({
     ...s,
     ...d,
     ...o,
   })
-)(EnterEmail)
-
-// @ts-ignore fix this
-ConnectedEnterEmail.navigationOptions = {
-  header: null,
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
+)(WatchForSuccess)
 
 export default ConnectedEnterEmail

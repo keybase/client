@@ -1,7 +1,7 @@
 @namespace("stellar.1")
 protocol bundle {
   import idl "common.avdl";
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("uint64") @lint("ignore") record BundleRevision {}
 

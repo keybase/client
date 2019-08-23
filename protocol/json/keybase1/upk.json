@@ -320,6 +320,10 @@
         {
           "type": "UPK2MinorVersion",
           "name": "minorVersion"
+        },
+        {
+          "type": "boolean",
+          "name": "stale"
         }
       ]
     },

@@ -20,13 +20,13 @@ export default function(
 
   switch (action.type) {
     case TeamBuildingGen.cancelTeamBuilding:
-      return Constants.makeSubState()
+      return Constants.makeSubState().set('teamBuildingLabelsSeen', state.teamBuildingLabelsSeen)
     case TeamBuildingGen.selectRole:
       return state.set('teamBuildingSelectedRole', action.payload.role)
     case TeamBuildingGen.changeSendNotification:
       return state.set('teamBuildingSendNotification', action.payload.sendNotification)
     case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.mergeIn(['teamBuildingTeamSoFar'], I.Set(action.payload.users))
+      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
@@ -42,6 +42,7 @@ export default function(
         teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
         teamBuildingFinishedSendNotification: state.teamBuildingSendNotification,
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
+        teamBuildingLabelsSeen: state.teamBuildingLabelsSeen,
         teamBuildingSelectedRole: initialState.teamBuildingSelectedRole,
         teamBuildingSendNotification: initialState.teamBuildingSendNotification,
         teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
@@ -60,9 +61,29 @@ export default function(
         teamBuildingSelectedService: service,
       })
     }
+    case TeamBuildingGen.searchEmailAddress: {
+      const {query} = action.payload
+      return state.merge({
+        teamBuildingEmailIsSearching: true,
+        teamBuildingEmailResult: null,
+        teamBuildingEmailSearchQuery: query.trim(),
+      })
+    }
+    case TeamBuildingGen.searchEmailAddressResultLoaded: {
+      const {user, query} = action.payload
+      if (query !== state.teamBuildingEmailSearchQuery) {
+        return state
+      }
+      return state.merge({
+        teamBuildingEmailIsSearching: false,
+        teamBuildingEmailResult: user,
+      })
+    }
 
     case TeamBuildingGen.fetchUserRecs:
       return state
+    case TeamBuildingGen.labelsSeen:
+      return state.set('teamBuildingLabelsSeen', true)
 
     default:
       return state

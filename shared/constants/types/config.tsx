@@ -5,6 +5,7 @@ import {Tab} from '../tabs'
 import {RPCError} from '../../util/errors'
 import {LocalPath} from '../../constants/types/fs'
 import * as NetInfo from '@react-native-community/netinfo'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 export type _OutOfDate = {
   critical: boolean
@@ -28,7 +29,7 @@ export type _State = {
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
-  avatars: I.Map<string, I.Map<number, string>>
+  avatarRefreshCounter: I.Map<string, number>
   configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState
@@ -37,6 +38,7 @@ export type _State = {
   daemonHandshakeWaiters: I.Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
+  darkModePreference: DarkModePreference
   debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
   deviceName: string | null
@@ -44,6 +46,8 @@ export type _State = {
   followers: I.Set<string>
   following: I.Set<string>
   globalError: null | Error | RPCError
+  httpSrvAddress: string
+  httpSrvToken: string
   justDeletedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: I.Map<string, number>
@@ -55,6 +59,7 @@ export type _State = {
   outOfDate?: OutOfDate | null
   pushLoaded: boolean
   registered: boolean
+  remoteWindowNeedsProps: I.Map<string, I.Map<string, number>>
   runtimeStats: RPCTypes.RuntimeStats | null
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
@@ -63,6 +68,7 @@ export type _State = {
   startupLink: string
   startupTab: Tab | null
   startupSharePath: LocalPath | null
+  systemDarkMode: boolean
   uid: string
   userActive: boolean
   username: string

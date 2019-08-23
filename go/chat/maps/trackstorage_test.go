@@ -20,12 +20,12 @@ func TestTrackStorage(t *testing.T) {
 	require.NoError(t, err)
 	ts := newTrackStorage(&globals.Context{GlobalContext: tc.G, ChatContext: nil})
 	trackers := []*locationTrack{
-		&locationTrack{
+		{
 			convID:  chat1.ConversationID([]byte{0, 0, 1}),
 			msgID:   5,
 			endTime: time.Now().Add(time.Hour),
 			allCoords: []chat1.Coordinate{
-				chat1.Coordinate{
+				{
 					Lat: -41.8983,
 					Lon: 79.882,
 				},

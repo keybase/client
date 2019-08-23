@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import TeamBuilding, {SearchResult, SearchRecSection} from '../index'
+import {sortAndSplitRecommendations} from '../container'
 import {userResultHeight} from '../user-result'
 import {SectionDivider} from '../../common-adapters/index'
 
@@ -129,5 +130,42 @@ describe('team building list', () => {
       length: 0,
       offset: 3 * sectionDividerHeight + 8 * dataRowHeight,
     })
+  })
+  it('sorts recommendations by romanized first ascii character', () => {
+    const testSearchResult = {
+      contact: true,
+      displayLabel: '',
+      followingState: 'NotFollowing' as const,
+      inTeam: false,
+      isPreExistingTeamMember: false,
+      key: '',
+      prettyName: '',
+      services: {},
+      userId: '',
+      username: '',
+    }
+    const makeTests = (arr: Array<[string, string]>) =>
+      arr.map(([name, expect]) => ({
+        expect,
+        result: {...testSearchResult, prettyName: name},
+      }))
+    const tests = makeTests([
+      ['James', 'J'],
+      ['Łukasz', 'L'],
+      ['高嵩', 'G'],
+      ['Über Foo', 'U'],
+      ['Этери', 'E'],
+      ['हिन्दी', 'H'],
+      ['தமிழ்', 'T'],
+      ['తెలుగు', 'T'],
+    ])
+    const sections = sortAndSplitRecommendations(tests.map(t => t.result), false) || []
+    const sectionMap = {}
+    for (const s of sections) {
+      sectionMap[s.label] = s.data
+    }
+    for (const t of tests) {
+      expect(sectionMap[t.expect]).toContainEqual(t.result)
+    }
   })
 })

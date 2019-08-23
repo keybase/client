@@ -78,8 +78,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     selectedConversationIDKey: conversationIDKey,
     selectedTab,
     smallTeam: meta.teamType !== 'big',
-    spinnerForHide:
-      state.waiting.counts.get(Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey), 0) > 0,
+    spinnerForHide: Container.anyWaiting(
+      state,
+      Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
+    ),
     teamname: meta.teamname,
   }
 }

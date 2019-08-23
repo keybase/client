@@ -5,10 +5,13 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
-import {isMobile} from '../../../constants/platform'
+import {isMobile, isIOS} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
 import {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
+import * as Kb from '../../../common-adapters'
+import {HeaderNewChatButton} from './new-chat-button'
+import Flags from '../../../util/feature-flags'
 
 type OwnProps = {}
 
@@ -110,11 +113,13 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
       dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
     onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    rightActions: [{label: 'New chat', onPress: () => {}}],
     rows: stateProps.rows,
     selectedConversationIDKey: isMobile
       ? Constants.noConversationIDKey
       : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
+    title: 'Chats',
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     unreadIndices: I.List(unreadIndices),
   }
@@ -129,6 +134,17 @@ type Props = {
 } & _Props
 
 class InboxWrapper extends React.PureComponent<Props> {
+  static navigationOptions = {
+    header: undefined,
+    headerRight: <HeaderNewChatButton />,
+    headerTitle: (
+      <Kb.Text type="BodyBig" lineClamp={1}>
+        {' '}
+        {Flags.wonderland && isIOS ? '' : 'Chats'}{' '}
+      </Kb.Text>
+    ),
+    title: 'Chats',
+  }
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 

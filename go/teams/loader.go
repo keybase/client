@@ -406,6 +406,7 @@ type load2ArgT struct {
 	public                    bool
 	skipAudit                 bool
 	skipNeedHiddenRotateCheck bool
+	skipSeedCheck             bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -720,6 +721,21 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
+		err = hiddenPackage.CheckPTKsForDuplicates(mctx, func(g keybase1.PerTeamKeyGeneration) bool {
+			_, ok := ret.Chain.PerTeamKeys[g]
+			return ok
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// The hidden team has pointers from the hidden chain up to the visible chain; check that they
+	// match the loaded team. We should have a full load of the team, so all parent pointers
+	// better hit their mark.
+	err = hiddenPackage.CheckParentPointersOnFullLoad(mctx, ret)
+	if err != nil {
+		return nil, err
 	}
 
 	preloadCancel()
@@ -816,9 +832,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
-	if err != nil {
-		return nil, err
+	if !arg.skipSeedCheck {
+		err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Make sure public works out
@@ -1071,6 +1089,10 @@ func (l *TeamLoader) doOneLink(mctx libkb.MetaContext, arg load2ArgT, ret *keyba
 	}
 
 	if err := consumeRatchets(mctx, hiddenPackage, link); err != nil {
+		return nil, nilPrev, err
+	}
+
+	if err := checkPTKGenerationNotOnHiddenChain(mctx, hiddenPackage, link); err != nil {
 		return nil, nilPrev, err
 	}
 
@@ -1487,7 +1509,7 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx libkb.M
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
-	if state == nil {
+	if state == nil || state.MainChain() == nil {
 		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
 	}
 	for ptkGen, apps := range needApplicationsAtGenerations {

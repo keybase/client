@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
-import {refreshNotificationsWaitingKey} from '../../constants/settings'
 import * as Container from '../../util/container'
 import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import * as Constants from '../../constants/settings'
 
 type OwnProps = {}
 
@@ -19,7 +19,7 @@ const ReloadableNotifications = (props: Props & ExtraProps) => {
   return (
     <Reloadable
       onBack={Container.isMobile ? props.onBack : undefined}
-      waitingKeys={refreshNotificationsWaitingKey}
+      waitingKeys={[Constants.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}
       title={title}
@@ -34,12 +34,17 @@ export default Container.connect(
     _groups: state.settings.notifications.groups,
     allowEdit: state.settings.notifications.allowEdit,
     mobileHasPermissions: state.push.hasPermissions,
+    showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
     sound: state.config.notifySound,
-    waitingForResponse: state.settings.waitingForResponse,
+    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
+    onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]})),
+    onRefresh: () => {
+      dispatch(SettingsGen.createLoadSettings())
+      dispatch(SettingsGen.createNotificationsRefresh())
+    },
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
     onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
@@ -50,6 +55,7 @@ export default Container.connect(
     allowEdit: stateProps.allowEdit,
     groups: (stateProps._groups.toObject() as unknown) as Props['groups'],
     mobileHasPermissions: stateProps.mobileHasPermissions,
+    showEmailSection: stateProps.showEmailSection,
     sound: stateProps.sound,
     title: 'Notifications',
     waitingForResponse: stateProps.waitingForResponse,

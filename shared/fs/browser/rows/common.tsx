@@ -10,7 +10,6 @@ export type StillCommonProps = {
   path: Types.Path
   inDestinationPicker?: boolean
   onOpen: () => void
-  showActionsWithGrow?: boolean | null
   showTlfTypeIcon?: boolean
 }
 
@@ -37,7 +36,7 @@ export const StillCommon = (
     firstItem={true /* we add divider in Rows */}
     onClick={props.onOpen}
     body={props.children}
-    onlyShowActionOnHover={props.showActionsWithGrow ? 'grow' : 'fade'}
+    onlyShowActionOnHover="fade"
     action={
       !props.inDestinationPicker &&
       Types.getPathLevel(props.path) > 2 && (

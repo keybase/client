@@ -19,7 +19,12 @@ import (
 // Get a PTK seed and verify against the sigchain that is the correct key.
 func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, team Teamer, gen keybase1.PerTeamKeyGeneration) (ret keybase1.PerTeamKeySeedItem, err error) {
 
-	ret, ok := team.MainChain().PerTeamKeySeedsUnverified[gen]
+	if team.MainChain() == nil {
+		return ret, libkb.NotFoundError{Msg: fmt.Sprintf("no team secret found at generation %v, since inner team was nil", gen)}
+	}
+
+	var ok bool
+	ret, ok = team.MainChain().PerTeamKeySeedsUnverified[gen]
 	if !ok {
 		return ret, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", gen)}
@@ -70,7 +75,7 @@ type PerTeamSharedSecretBoxes struct {
 }
 
 type PerTeamSharedSecretBox struct {
-	_struct         bool `codec:",toarray"`
+	_struct         bool `codec:",toarray"` //nolint
 	Version         uint
 	PerUserKeySeqno keybase1.Seqno
 	NonceCounter    uint32
@@ -301,7 +306,7 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 		return nil, err
 	}
 	return &SCPerTeamKey{
-		Generation: keybase1.PerTeamKeyGeneration(t.generation),
+		Generation: t.generation,
 		SigKID:     sigKey.GetKID(),
 		EncKID:     encKey.GetKID(),
 	}, nil
@@ -318,7 +323,7 @@ func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keyb
 	t.check = *check
 
 	// bump generation number
-	t.generation = t.generation + 1
+	t.generation++
 
 	// clear out derived keys
 	t.signingKey = nil
@@ -330,7 +335,7 @@ func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keyb
 }
 
 type prevKeySealedDecoded struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version int
 	Nonce   [24]byte
 	Key     []byte
@@ -384,7 +389,7 @@ func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
 		panic("Should never be using a zero key in derivedSecret; something went terribly wrong")
 	}
 	digest := hmac.New(sha512.New, secret[:])
-	digest.Write([]byte(context))
+	_, _ = digest.Write([]byte(context))
 	return digest.Sum(nil)[:32]
 }
 
@@ -424,15 +429,15 @@ func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *ke
 		tmp = append(tmp, byte(0))
 		tmp = append(tmp, id.ToBytes()...)
 		prevValue = keybase1.PerTeamSeedCheckValue(tmp)
-	case prev != nil && prev.Version != keybase1.PerTeamSeedCheckVersion_V1:
+	case prev.Version != keybase1.PerTeamSeedCheckVersion_V1:
 		return nil, fmt.Errorf("cannot handle PerTeamSeedCheck version > 1")
-	case prev != nil && prev.Version == keybase1.PerTeamSeedCheckVersion_V1:
+	case prev.Version == keybase1.PerTeamSeedCheckVersion_V1:
 		prevValue = prev.Value
 	}
 
 	g := func(seed keybase1.PerTeamKeySeed, prev keybase1.PerTeamSeedCheckValue) keybase1.PerTeamSeedCheckValue {
 		digest := hmac.New(sha512.New, seed[:])
-		digest.Write([]byte(prev))
+		_, _ = digest.Write([]byte(prev))
 		sum := digest.Sum(nil)[:32]
 		return keybase1.PerTeamSeedCheckValue(sum)
 	}

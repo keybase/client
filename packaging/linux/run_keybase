@@ -159,7 +159,11 @@ init() {
 
   warn_if_exists_and_unwritable "$logdir"
   warn_if_exists_and_unwritable "$runtime_dir"
+  warn_if_exists_and_unwritable "$HOME/.config"
   warn_if_exists_and_unwritable "$HOME/.local/share/keybase/keybase.leveldb"
+  warn_if_exists_and_unwritable "$HOME/.config/keybase"
+  warn_if_exists_and_unwritable "$HOME/.config/keybase/gui_config.json"
+  warn_if_exists_and_unwritable "$HOME/.cache/keybase"
 
   # Cannot do in go due to background processes being piped to log in bash
   mkdir -p "$logdir"

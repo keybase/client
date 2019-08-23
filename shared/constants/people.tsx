@@ -127,13 +127,22 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   }
 }
 
-export function extractMetaFromTodoItem(todo: RPCTypes.HomeScreenTodo) {
+export function extractMetaFromTodoItem(
+  todo: RPCTypes.HomeScreenTodo,
+  todoExt: RPCTypes.HomeScreenTodoExt | null
+) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
       return makeTodoMetaEmail({email: todo.legacyEmailVisibility || ''})
     case T.verifyAllEmail:
-      return makeTodoMetaEmail({email: todo.verifyAllEmail || ''})
+      return makeTodoMetaEmail({
+        email: todo.verifyAllEmail || '',
+        lastVerifyEmailDate:
+          todoExt && todoExt.t === T.verifyAllEmail && todoExt.verifyAllEmail
+            ? todoExt.verifyAllEmail.lastVerifyEmailDate
+            : 0,
+      })
     case T.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber || ''})
     default:
@@ -151,8 +160,11 @@ export const reduceRPCItemToPeopleItem = (
     if (!todo) {
       return list
     }
+    const todoExt: RPCTypes.HomeScreenTodoExt | null =
+      item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : null
+
     const todoType = todoTypeEnumToType[todo.t || 0]
-    const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo)
+    const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
     return list.push(
       makeTodo({
         badged: badged,
@@ -276,8 +288,13 @@ export const makeState = I.Record<Types._State>({
   lastViewed: new Date(),
   newItems: I.List(),
   oldItems: I.List(),
+  resentEmail: '',
   version: -1,
 })
 
-export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({email: '', type: 'email'})
+export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({
+  email: '',
+  lastVerifyEmailDate: 0,
+  type: 'email',
+})
 export const makeTodoMetaPhone = I.Record<Types._TodoMetaPhone>({phone: '', type: 'phone'})
