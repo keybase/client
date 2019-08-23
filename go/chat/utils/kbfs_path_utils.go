@@ -1,140 +1,146 @@
+package utils
+
 import (
 	"context"
-	"fmt"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func getKBFSPathRegExpComponents(isWindows bool) (keybase, tlf, inTlf, tlfType, specialFiles, slash string) {
-	var escape string
-	slash, escape = "/", `\\`
-	if isWindows {
-		slash, escape = `\\`, `\^`
-	}
-	username := `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
-	socialAssertion := `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
-	user := `(?:(?:` + username + `)|(?:` + socialAssertion + `))`
-	usernames := user + `(?:,` + user + `)*`
-	teamName := username + `(?:\.` + username + `)*`
-	tlfType = slash + "(?:private|public|team)"
-	tlf = slash + "(?:(?:private|public)" + slash + usernames + "(?:#" + usernames + ")?|team" + slash + teamName + `)`
-	inTlf = slash + "(?:" + escape + escape + "|" + escape + ` |\S)+`
-	specialFiles = slash + "(?:.kbfs_.+)"
-	keybase = `(?:/keybase|keybase:/|/Volumes/Keybase|/Volumes/Keybase\\ \(` + username + `\))`
-	if isWindows {
-		keybase = `(?:K:|k:)`
-	}
-	return
-}
+const usernameRE = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
 
-var kbfsPathRegExp = func() *regexp.Regexp {
-	keybase, tlf, inTlf, tlfType, specialFiles, slash := getKBFSPathRegExpComponents(false)
-	unixRegExp := `(?:` + keybase + `((?:` + tlf + `(?:` + inTlf + `)?)|(?:` + tlfType + `)|(?:` + specialFiles + `))?` + slash + `?)`
-	keybase, tlf, inTlf, tlfType, specialFiles, slash = getKBFSPathRegExpComponents(true)
-	windowsRegExp := `(?:` + keybase + `((?:` + tlf + `(?:` + inTlf + `)?)|(?:` + tlfType + `)|(?:` + specialFiles + `))?` + slash + `?)`
-	return regexp.MustCompile(`(?:\W|^)(` + unixRegExp + "|" + windowsRegExp + `)(?:\s|$)`)
+var kbfsPathOuterRegExp = func() *regexp.Regexp {
+	const slashDivided = `(?:(?:/keybase|/Volumes/Keybase\\ \(` + usernameRE + `\)|/Volumes/Keybase)((?:\\ |\S)*))`
+	const slashDividedQuoted = `"(?:(?:/keybase|/Volumes/Keybase \(` + usernameRE + `\)|/Volumes/Keybase)(.*))"`
+	const windows = `(?:(?:K:|k:)(\\\S*))` // don't support escape on windows
+	const windowsQuoted = `"(?:(?:K:|k:)(\\.*))"`
+	const deeplink = `(?:(?:keybase:/)((?:\S)*))`
+	return regexp.MustCompile(`(?:[^\w"]|^)(` + slashDivided + "|" + slashDividedQuoted + "|" + windows + "|" + windowsQuoted + "|" + deeplink + `)`)
 }()
 
-func postprocessMatchedPath(isWindows bool, matchedRawPath string, matchedAfterKeybasePath string) processedKBFSPath {
-	fmt.Printf("postprocessMatchedPath isWindows=%v matchedRawPath=%v matchedAfterKeybasePath=%v\n", isWindows, matchedRawPath, matchedAfterKeybasePath)
-	var rawPath, matchedAfterKeybasePathUnified string
-	if isWindows {
-		rawPath = strings.TrimRight(matchedRawPath, "\\")
-		matchedAfterKeybasePathUnified = strings.TrimRight(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
+var kbfsPathInnerRegExp = func() *regexp.Regexp {
+	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	const user = `(?:(?:` + usernameRE + `)|(?:` + socialAssertion + `))`
+	const usernames = user + `(?:,` + user + `)*`
+	const teamName = usernameRE + `(?:\.` + usernameRE + `)*`
+	const tlfType = "/(?:private|public|team)$"
+	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
+	const specialFiles = "/(?:.kbfs_.+)"
+	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
+}()
+
+type outerMatch struct {
+	matchStartIndex int
+	wholeMatch      string
+	afterKeybase    string
+}
+
+func (m *outerMatch) isKBFSPath() bool {
+	return m.matchStartIndex >= 0 && (len(m.afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(m.afterKeybase))
+}
+func (m *outerMatch) rebasedPath() string {
+	return "/keybase" + m.afterKeybase
+}
+
+func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
+	res := kbfsPathOuterRegExp.FindAllStringSubmatchIndex(body, -1)
+	for _, indices := range res {
+		// 2:3 match
+		// 4:5 slash-divided inside /keybase
+		// 6:7 quoted slash-divided inside /keybase
+		// 8:9 windows inside /keybase
+		// 10:11 quoted windows inside /keybase
+		// 12:13 deeplink after "keybase:/"
+		if len(indices) != 14 {
+			panic("bad regexp: len(indices): " + strconv.Itoa(len(indices)))
+		}
+		switch {
+		case indices[4] > 0:
+			outerMatches = append(outerMatches, outerMatch{
+				matchStartIndex: indices[2],
+				wholeMatch:      body[indices[2]:indices[3]],
+				afterKeybase: strings.TrimRight(
 					strings.ReplaceAll(
-						matchedAfterKeybasePath,
-						"^^",
-						"^",
+						strings.ReplaceAll(
+							body[indices[4]:indices[5]],
+							`\\`,
+							`\`,
+						),
+						`\ `,
+						` `,
 					),
-					"^ ",
-					" ",
+					"/",
 				),
-				`\`,
-				`/`,
-			),
-			"/",
-		)
-	} else {
-		rawPath = strings.TrimRight(matchedRawPath, "/")
-		matchedAfterKeybasePathUnified = strings.TrimRight(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
-					matchedAfterKeybasePath,
-					`\\`,
-					`\`,
+			})
+		case indices[6] > 0:
+			outerMatches = append(outerMatches, outerMatch{
+				matchStartIndex: indices[2],
+				wholeMatch:      body[indices[2]:indices[3]],
+				afterKeybase: strings.TrimRight(
+					body[indices[6]:indices[7]],
+					"/",
 				),
-				`\ `,
-				" ",
-			),
-			"/",
-		)
+			})
+		case indices[8] > 0:
+			outerMatches = append(outerMatches, outerMatch{
+				matchStartIndex: indices[2],
+				wholeMatch:      body[indices[2]:indices[3]],
+				afterKeybase: strings.TrimRight(
+					strings.ReplaceAll(
+						body[indices[8]:indices[9]],
+						`\`,
+						`/`,
+					),
+					"/",
+				),
+			})
+		case indices[10] > 0:
+			outerMatches = append(outerMatches, outerMatch{
+				matchStartIndex: indices[2],
+				wholeMatch:      body[indices[2]:indices[3]],
+				afterKeybase: strings.TrimRight(
+					strings.ReplaceAll(
+						body[indices[10]:indices[11]],
+						`\`,
+						`/`,
+					),
+					"/",
+				),
+			})
+		case indices[12] > 0:
+			unescaped, err := url.PathUnescape(body[indices[12]:indices[13]])
+			if err != nil {
+				continue
+			}
+			outerMatches = append(outerMatches, outerMatch{
+				matchStartIndex: indices[2],
+				wholeMatch:      body[indices[2]:indices[3]],
+				afterKeybase: strings.TrimRight(
+					unescaped,
+					"/",
+				),
+			})
+		}
 	}
-	return processedKBFSPath{
-		rawPath:                        rawPath,
-		matchedAfterKeybasePathUnified: matchedAfterKeybasePathUnified,
-	}
-}
-
-type processedKBFSPath struct {
-	rawPath                        string
-	matchedAfterKeybasePathUnified string
-}
-
-func (p processedKBFSPath) rebasedPath() string {
-	return "/keybase" + p.matchedAfterKeybasePathUnified
-}
-
-func (p processedKBFSPath) getPlatformPath(g *libkb.GlobalContext) string {
-	mountDir := g.Env.GetMountDir()
-	if libkb.RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE {
-		return mountDir +
-			strings.ReplaceAll(
-				p.matchedAfterKeybasePathUnified,
-				"/",
-				`\`,
-			)
-	}
-	return mountDir + p.matchedAfterKeybasePathUnified
-}
-
-func makeKBFSPath(g *libkb.GlobalContext, index int, processedPath processedKBFSPath) chat1.KBFSPath {
-	return chat1.KBFSPath{
-		Index:        index,
-		RawPath:      processedPath.rawPath,
-		RebasedPath:  processedPath.rebasedPath(),
-		PlatformPath: processedPath.getPlatformPath(g),
-	}
+	return outerMatches
 }
 
 func ParseKBFSPaths(ctx context.Context, g *libkb.GlobalContext, body string) (paths []chat1.KBFSPath) {
-	body = ReplaceQuotedSubstrings(body, false)
-	allIndexMatches := kbfsPathRegExp.FindAllStringSubmatchIndex(body, -1)
-	fmt.Printf("input: %s\nmatches: %v\n\n", body, allIndexMatches)
-	for _, matches := range allIndexMatches {
-		if len(matches) != 8 {
-			continue
+	outerMatches := matchKBFSPathOuter(body)
+	for _, match := range outerMatches {
+		if match.isKBFSPath() {
+			paths = append(paths,
+				chat1.KBFSPath{
+					Index:        match.matchStartIndex,
+					RawPath:      match.wholeMatch,
+					RebasedPath:  match.rebasedPath(),
+					PlatformPath: "",
+				})
 		}
-		rawPath := body[matches[2]:matches[3]]
-		var matchedAfterKeybasePath string
-		var isWindows bool
-		if matches[4] > 0 && matches[5] > 0 {
-			matchedAfterKeybasePath = body[matches[4]:matches[5]]
-			isWindows = false
-		} else if matches[6] > 0 && matches[7] > 0 {
-			matchedAfterKeybasePath = body[matches[6]:matches[7]]
-			isWindows = true
-		} else {
-			matchedAfterKeybasePath = ""
-		}
-		processedPath := postprocessMatchedPath(isWindows, rawPath, matchedAfterKeybasePath)
-		paths = append(paths, makeKBFSPath(g, matches[2], processedPath))
 	}
 	return paths
 }
-
