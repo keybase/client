@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat"
@@ -88,21 +89,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	}
 	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
-	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		return err
-	}
-
 	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to get conversation info", err)
 		return err
 	}
-
-	isBot := msgUnboxed.SenderIsBot()
-	username := msgUnboxed.Valid().SenderUsername
 
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
@@ -110,8 +101,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 			ID:            intMessageID,
 			ServerMessage: serverMessageBody,
 			From: &Person{
-				KeybaseUsername: username,
-				IsBot:           isBot,
+				KeybaseUsername: "",
+				IsBot:           false,
 			},
 			At: int64(unixTime) * 1000,
 		},
@@ -124,33 +115,44 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		BadgeCount:          badgeCount,
 	}
 
-	if displayPlaintext {
-		// We show avatars on Android
-		if runtime.GOOS == "android" {
-			avatar, err := kbSvc.GetUserAvatar(username)
+	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
+	if err == nil {
+		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
+		username := msgUnboxed.Valid().SenderUsername
+		chatNotification.Message.From.KeybaseUsername = username
 
-			if err != nil {
-				kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
-			} else {
-				chatNotification.Message.From.KeybaseAvatar = avatar
+		if displayPlaintext {
+			// We show avatars on Android
+			if runtime.GOOS == "android" {
+				avatar, err := kbSvc.GetUserAvatar(username)
+
+				if err != nil {
+					kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
+				} else {
+					chatNotification.Message.From.KeybaseAvatar = avatar
+				}
+			}
+
+			switch msgUnboxed.GetMessageType() {
+			case chat1.MessageType_TEXT:
+				chatNotification.Message.Kind = "Text"
+				chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
+			case chat1.MessageType_REACTION:
+				chatNotification.Message.Kind = "Reaction"
+				reaction, err := utils.GetReaction(msgUnboxed)
+				if err != nil {
+					return err
+				}
+				chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
+			default:
+				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
+				return errors.New("invalid message type for plaintext")
 			}
 		}
-
-		switch msgUnboxed.GetMessageType() {
-		case chat1.MessageType_TEXT:
-			chatNotification.Message.Kind = "Text"
-			chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
-		case chat1.MessageType_REACTION:
-			chatNotification.Message.Kind = "Reaction"
-			reaction, err := utils.GetReaction(msgUnboxed)
-			if err != nil {
-				return err
-			}
-			chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
-		default:
-			kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
-			return errors.New("invalid message type for plaintext")
-		}
+	} else {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
+		// Guess the username? We need this for android
+		chatNotification.Message.From.KeybaseUsername = strings.Split(serverMessageBody, " ")[0]
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
