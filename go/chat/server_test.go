@@ -6965,15 +6965,27 @@ func TestTeamBotSettings(t *testing.T) {
 			botSettings := keybase1.TeamBotSettings{
 				Triggers: []string{".*"},
 			}
-			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua.Username,
-				keybase1.TeamRole_RESTRICTEDBOT, &botSettings)
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings,
+				MembersType: mt,
+				TlfPublic:   false,
+			})
 			require.NoError(t, err)
 
 			botSettings2 := keybase1.TeamBotSettings{
 				Mentions: true,
 			}
-			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
-				keybase1.TeamRole_RESTRICTEDBOT, &botSettings2)
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings2,
+				MembersType: mt,
+				TlfPublic:   false,
+			})
 			require.NoError(t, err)
 
 			var unboxed chat1.UIMessage
@@ -7116,8 +7128,13 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
-			err = teams.SetBotSettings(ctx, tc.m.G(), team.Name().String(),
-				botua.Username, botSettings)
+			err = ctc.as(t, users[0]).chatLocalHandler().SetBotSettings(tc.startCtx, chat1.SetBotSettingsArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				BotSettings: botSettings,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
 			require.NoError(t, err)
 
 			actualBotSettings, err := teams.GetBotSettings(ctx, tc.m.G(), team.Name().String(),
@@ -7222,8 +7239,14 @@ func TestTeamBotSettings(t *testing.T) {
 			}
 
 			// take out botua2 by upgrading them to BOT
-			err = teams.EditMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
-				keybase1.TeamRole_BOT, nil)
+			err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				Role:        keybase1.TeamRole_BOT,
+				BotSettings: nil,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
 			require.NoError(t, err)
 
 			// messages is not keyed for any restricted bot
@@ -7240,6 +7263,30 @@ func TestTeamBotSettings(t *testing.T) {
 			consumeBotMessage(nil, chat1.MessageType_TEXT, listener)
 			consumeBotMessage(nil, chat1.MessageType_TEXT, botuaListener2)
 			assertNoMessage(botuaListener)
+
+			// remove both bots.
+			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
+				ID: teamID,
+			})
+			require.NoError(t, err)
+			isMember := team.IsMember(ctx, botua.GetUserVersion())
+			require.False(t, isMember)
+			isMember = team.IsMember(ctx, botua2.GetUserVersion())
+			require.False(t, isMember)
 		})
 	})
 }
