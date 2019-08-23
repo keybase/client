@@ -6957,17 +6957,13 @@ func TestTeamBotSettings(t *testing.T) {
 			botuaUID2 := gregor1.UID(botua2.User.GetUID().ToBytes())
 			teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
 			require.NoError(t, err)
-			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
-				ID: teamID,
-			})
-			require.NoError(t, err)
 
 			pollForSeqno := func(expectedSeqno keybase1.Seqno) {
 				found := false
 				for !found {
 					select {
 					case teamChange := <-listener.teamChangedByID:
-						found = teamChange.TeamID == team.ID &&
+						found = teamChange.TeamID == teamID &&
 							teamChange.LatestSeqno == expectedSeqno
 					case <-time.After(20 * time.Second):
 						require.Fail(t, "no event received")
@@ -7143,7 +7139,7 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
-			err = ctc.as(t, users[0]).chatLocalHandler().SetBotSettings(tc.startCtx, chat1.SetBotSettingsArg{
+			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
 				TlfName:     created.TlfName,
 				Username:    botua.Username,
 				BotSettings: botSettings,
@@ -7152,8 +7148,13 @@ func TestTeamBotSettings(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			actualBotSettings, err := teams.GetBotSettings(ctx, tc.m.G(), team.Name().String(),
-				botua.Username)
+			actualBotSettings, err := ctc.as(t, users[0]).chatLocalHandler().GetBotMemberSettings(tc.startCtx, chat1.GetBotMemberSettingsArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
 			require.Equal(t, botSettings, actualBotSettings)
 
 			pollForSeqno(6)
@@ -7281,7 +7282,7 @@ func TestTeamBotSettings(t *testing.T) {
 				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
-			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
+			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
 				ID: teamID,
 			})
 			require.NoError(t, err)

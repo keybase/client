@@ -79,20 +79,20 @@ func ParseUserAndRole(ctx *cli.Context) (string, keybase1.TeamRole, error) {
 var botSettingsFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:  "allow-commands",
-		Usage: "Bots will receive messages that begin with commands they support. TODO keybase chat bot-advertise-list.",
+		Usage: "Restricted bots will receive messages that begin with commands they support.",
 	},
 	cli.BoolFlag{
 		Name:  "allow-mentions",
-		Usage: "Bots will receive messages when they are @-mentioned.",
+		Usage: "Restricted bots will receive messages when they are @-mentioned.",
 	},
 	cli.StringSliceFlag{
 		Name: "allow-trigger",
-		Usage: `Bots will receive messages that match the given text. Can be a regular expression.
+		Usage: `Restricted bots will receive messages that match the given text. Can be a regular expression.
 			Can be specified multiple times.`,
 	},
 	cli.StringSliceFlag{
 		Name: "allow-conversation",
-		Usage: `Bots will only be able to send/receive messages in the given conversations. If not specified all conversations are allowed.
+		Usage: `Restricted bots will only be able to send/receive messages in the given conversations. If not specified all conversations are allowed.
 			Can be specified multiple times.`,
 	},
 }
@@ -112,8 +112,8 @@ func ParseBotSettings(ctx *cli.Context) *keybase1.TeamBotSettings {
 	}
 }
 
-func ValidateBotSettingsConvs(g *libkb.GlobalContext, teamName string,
-	botSettings *keybase1.TeamBotSettings) error {
+func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
+	mt chat1.ConversationMembersType, botSettings *keybase1.TeamBotSettings) error {
 	if botSettings == nil {
 		return nil
 	}
@@ -126,10 +126,10 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, teamName string,
 	for _, topicName := range botSettings.Convs {
 		topicName = utils.SanitizeTopicName(topicName)
 		conv, _, err := resolver.Resolve(context.TODO(), chatConversationResolvingRequest{
-			TlfName:     teamName,
+			TlfName:     tlfName,
 			TopicName:   topicName,
 			TopicType:   chat1.TopicType_CHAT,
-			MembersType: chat1.ConversationMembersType_TEAM,
+			MembersType: mt,
 		}, chatConversationResolvingBehavior{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})

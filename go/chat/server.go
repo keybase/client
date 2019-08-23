@@ -2814,11 +2814,7 @@ func (h *Server) EditBotMember(ctx context.Context, arg chat1.EditBotMemberArg) 
 		return err
 	}
 
-	err = teams.EditMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
-	if err != nil {
-		return err
-	}
-	return nil
+	return teams.EditMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
 }
 
 func (h *Server) RemoveBotMember(ctx context.Context, arg chat1.RemoveBotMemberArg) (err error) {
@@ -2834,17 +2830,13 @@ func (h *Server) RemoveBotMember(ctx context.Context, arg chat1.RemoveBotMemberA
 		return err
 	}
 
-	err = teams.RemoveMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username)
-	if err != nil {
-		return err
-	}
-	return nil
+	return teams.RemoveMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username)
 }
 
-func (h *Server) SetBotSettings(ctx context.Context, arg chat1.SetBotSettingsArg) (err error) {
+func (h *Server) SetBotMemberSettings(ctx context.Context, arg chat1.SetBotMemberSettingsArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetBotSettings")()
+	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
@@ -2854,9 +2846,21 @@ func (h *Server) SetBotSettings(ctx context.Context, arg chat1.SetBotSettingsArg
 		return err
 	}
 
-	err = teams.SetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.BotSettings)
-	if err != nil {
-		return err
+	return teams.SetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.BotSettings)
+}
+
+func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
 	}
-	return nil
+
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return res, err
+	}
+
+	return teams.GetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username)
 }

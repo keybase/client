@@ -1160,5 +1160,6 @@ protocol local {
   void addBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
   void editBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
   void removeBotMember(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
-  void setBotSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
+  void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
+  keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
 }

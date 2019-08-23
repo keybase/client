@@ -5017,7 +5017,7 @@
       ],
       "response": null
     },
-    "setBotSettings": {
+    "setBotMemberSettings": {
       "request": [
         {
           "name": "tlfName",
@@ -5041,6 +5041,27 @@
         }
       ],
       "response": null
+    },
+    "getBotMemberSettings": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "keybase1.TeamBotSettings"
     }
   },
   "namespace": "chat.1"

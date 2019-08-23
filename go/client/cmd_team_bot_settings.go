@@ -63,7 +63,8 @@ func (c *CmdTeamBotSettings) Run() error {
 		return err
 	}
 
-	if err := ValidateBotSettingsConvs(c.G(), c.Team, c.BotSettings); err != nil {
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
 		return err
 	}
 
@@ -88,10 +89,16 @@ func (c *CmdTeamBotSettings) Run() error {
 			return err
 		}
 	}
+	if err := renderBotSettings(c.G(), c.Username, botSettings); err != nil {
+		return err
+	}
+	return nil
+}
 
+func renderBotSettings(g *libkb.GlobalContext, username string, botSettings keybase1.TeamBotSettings) error {
 	var output string
 	if botSettings.Cmds {
-		// TODO call bot advertise list for public commands, build output
+		// TODO HOTPOT-661 call bot advertise list for public commands, build output
 		output += "\t- command messages\n"
 	}
 
@@ -107,28 +114,27 @@ func (c *CmdTeamBotSettings) Run() error {
 		output += "\n"
 	}
 
-	dui := c.G().UI.GetDumbOutputUI()
+	dui := g.UI.GetDumbOutputUI()
 	if len(output) == 0 {
-		dui.Printf("%s will not receive any messages with the current bot settings\n", c.Username)
+		dui.Printf("%s will not receive any messages with the current bot settings\n", username)
 	} else {
-		dui.Printf("%s will receive messages in the follow cases:\n%s", c.Username, output)
+		dui.Printf("%s will receive messages in the follow cases:\n%s", username, output)
 	}
 	if len(botSettings.Convs) == 0 {
-		dui.Printf("%s can send/receive into all conversations", c.Username)
+		dui.Printf("%s can send/receive into all conversations", username)
 	} else {
-		dui.Printf("%s can send/receive into the following conversations:\n\t", c.Username)
-		convNames, err := c.getConvNames(botSettings)
+		dui.Printf("%s can send/receive into the following conversations:\n\t", username)
+		convNames, err := getConvNames(g, botSettings)
 		if err != nil {
 			return err
 		}
 		dui.Printf(strings.Join(convNames, "\n\t"))
 	}
 	dui.Printf("\n")
-
 	return nil
 }
 
-func (c *CmdTeamBotSettings) getConvNames(botSettings keybase1.TeamBotSettings) (convNames []string, err error) {
+func getConvNames(g *libkb.GlobalContext, botSettings keybase1.TeamBotSettings) (convNames []string, err error) {
 	fetcher := chatCLIInboxFetcher{}
 	for _, convIDStr := range botSettings.Convs {
 		convID, err := chat1.MakeConvID(convIDStr)
@@ -137,13 +143,13 @@ func (c *CmdTeamBotSettings) getConvNames(botSettings keybase1.TeamBotSettings) 
 		}
 		fetcher.query.ConvIDs = append(fetcher.query.ConvIDs, convID)
 	}
-	conversations, err := fetcher.fetch(context.TODO(), c.G())
+	conversations, err := fetcher.fetch(context.TODO(), g)
 	if err != nil {
 		return nil, err
 	}
 	v := conversationListView(conversations)
 	for _, conv := range v {
-		convNames = append(convNames, v.convName(c.G(), conv, c.G().Env.GetUsername().String()))
+		convNames = append(convNames, v.convName(g, conv, g.Env.GetUsername().String()))
 	}
 
 	return convNames, nil

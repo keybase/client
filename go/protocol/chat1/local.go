@@ -5988,12 +5988,19 @@ type RemoveBotMemberArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
-type SetBotSettingsArg struct {
+type SetBotMemberSettingsArg struct {
 	TlfName     string                   `codec:"tlfName" json:"tlfName"`
 	Username    string                   `codec:"username" json:"username"`
 	BotSettings keybase1.TeamBotSettings `codec:"botSettings" json:"botSettings"`
 	MembersType ConversationMembersType  `codec:"membersType" json:"membersType"`
 	TlfPublic   bool                     `codec:"tlfPublic" json:"tlfPublic"`
+}
+
+type GetBotMemberSettingsArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	Username    string                  `codec:"username" json:"username"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type LocalInterface interface {
@@ -6076,7 +6083,8 @@ type LocalInterface interface {
 	AddBotMember(context.Context, AddBotMemberArg) error
 	EditBotMember(context.Context, EditBotMemberArg) error
 	RemoveBotMember(context.Context, RemoveBotMemberArg) error
-	SetBotSettings(context.Context, SetBotSettingsArg) error
+	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
+	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7233,18 +7241,33 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"setBotSettings": {
+			"setBotMemberSettings": {
 				MakeArg: func() interface{} {
-					var ret [1]SetBotSettingsArg
+					var ret [1]SetBotMemberSettingsArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SetBotSettingsArg)
+					typedArgs, ok := args.(*[1]SetBotMemberSettingsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]SetBotSettingsArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SetBotMemberSettingsArg)(nil), args)
 						return
 					}
-					err = i.SetBotSettings(ctx, typedArgs[0])
+					err = i.SetBotMemberSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getBotMemberSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]GetBotMemberSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetBotMemberSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetBotMemberSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBotMemberSettings(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7666,7 +7689,12 @@ func (c LocalClient) RemoveBotMember(ctx context.Context, __arg RemoveBotMemberA
 	return
 }
 
-func (c LocalClient) SetBotSettings(ctx context.Context, __arg SetBotSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.setBotSettings", []interface{}{__arg}, nil)
+func (c LocalClient) SetBotMemberSettings(ctx context.Context, __arg SetBotMemberSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setBotMemberSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getBotMemberSettings", []interface{}{__arg}, &res)
 	return
 }

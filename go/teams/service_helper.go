@@ -753,12 +753,14 @@ func setBotSettings(ctx context.Context, g *libkb.GlobalContext, teamGetter func
 		if err != nil {
 			return err
 		}
-		// TODO attempt to post for non-restricted bot member in tests
-		if !t.IsMember(ctx, uv) {
-			// TODO not member of team error, fixup with tlf name
-			//return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
-			//	username, uv.Uid)}
-			return fmt.Errorf("user %q is not a member of team", username)
+
+		role, err := t.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+		if !role.IsRestrictedBot() {
+			return fmt.Errorf("%s is not a %v, but has the role %v",
+				username, keybase1.TeamRole_RESTRICTEDBOT, role)
 		}
 
 		return t.PostTeamBotSettings(ctx, map[keybase1.UserVersion]keybase1.TeamBotSettings{
@@ -776,7 +778,23 @@ func GetBotSettings(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return res, err
 	}
+	return getBotSettings(ctx, g, team, username)
+}
 
+func GetBotSettingsByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) (res keybase1.TeamBotSettings, err error) {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return getBotSettings(ctx, g, team, username)
+}
+
+func getBotSettings(ctx context.Context, g *libkb.GlobalContext,
+	team *Team, username string) (res keybase1.TeamBotSettings, err error) {
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return res, err
@@ -1654,9 +1672,9 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:    teamname,
-		StaleOK: true,
-		Public:  false, // assume private team
+		Name:                      teamname,
+		StaleOK:                   true,
+		Public:                    false, // assume private team
 		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {

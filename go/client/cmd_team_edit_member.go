@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -79,7 +80,8 @@ func (c *CmdTeamEditMember) Run() error {
 		return err
 	}
 
-	if err := ValidateBotSettingsConvs(c.G(), c.Team, c.BotSettings); err != nil {
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
 		return err
 	}
 
