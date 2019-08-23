@@ -49,10 +49,7 @@ const ServiceIcon = (props: IconProps) => {
           direction="vertical"
           style={Styles.collapseStyles([
             styles.labelContainer,
-            {
-              marginTop: Styles.globalMargins.xtiny,
-              overflow: 'hidden',
-            },
+            {height: labelHeight * props.labelPresence, marginTop: Styles.globalMargins.xtiny},
           ])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
