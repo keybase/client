@@ -24,7 +24,7 @@ func getSocket(g *libkb.GlobalContext, clearError bool) (xp rpc.Transporter, err
 	var isNew bool
 	_, xp, isNew, err = g.GetSocket(clearError)
 	if err == nil && isNew {
-		_ = introduceMyself(g, xp)
+		err = introduceMyself(g, xp)
 	}
 	return xp, err
 }
