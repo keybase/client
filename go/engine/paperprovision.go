@@ -56,7 +56,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	err = e.G().Logout(m.Ctx())
 	if err != nil {
-		return err
+		m.Debug("error on logout: %+v", err)
 	}
 
 	m = m.WithNewProvisionalLoginContext()

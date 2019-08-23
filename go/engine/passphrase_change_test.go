@@ -676,9 +676,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 		PushSecret: true,
 	}
 	err := arg.Gen.MakeAllIds(tc.G)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -752,9 +750,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		AllowMulti: true,
 	}
 	err := parg.Gen.MakeAllIds(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -873,9 +869,7 @@ func TestPassphraseGenerationStored(t *testing.T) {
 		},
 	}
 	err = pgpArg.Gen.MakeAllIds(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	pgpEng := NewPGPKeyImportEngine(tc.G, pgpArg)
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),

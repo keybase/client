@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoginDeviceIDConfigIssues(t *testing.T) {
@@ -16,9 +17,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 
 	// remove device id from config file
 	err := tc.G.Env.GetConfigWriter().SetDeviceID("")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// now try to log in on current device
 	uis := libkb.UIs{
@@ -35,9 +34,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 
 	// put a device id into config file that is not this user's device
 	err = tc.G.Env.GetConfigWriter().SetDeviceID("31a7669bfa163eed3619780ebac8ee18")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	eng = NewLoginProvisionedDevice(tc.G, fu.Username)
 	err = RunEngine2(m, eng)
 	if err != errNoDevice {

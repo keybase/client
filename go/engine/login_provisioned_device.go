@@ -268,7 +268,7 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 
 	err = e.runBug3964Repairman(m)
 	if err != nil {
-		return err
+		m.Debug("couldn't run bug 3964 repairman: %+v", err)
 	}
 
 	success, err = e.reattemptUnlock(m)
