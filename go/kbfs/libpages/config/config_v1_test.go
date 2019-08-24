@@ -386,6 +386,5 @@ func TestV1DeprecatingACLsField(t *testing.T) {
 		ACLs:           perPathConfigs,
 		PerPathConfigs: perPathConfigs,
 	}).EnsureInit()
-	require.Error(t, err)
 	require.IsType(t, ErrACLsPerPathConfigsBothPresent{}, err)
 }

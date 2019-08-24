@@ -105,7 +105,7 @@ func (c *V1) init() {
 // initialization. Additionally, it also moves ACLs into PerPathConfigs if
 // needed.
 //
-// It is not necessary to call EnsureInit. Methods that need it does it
+// It is not necessary to call EnsureInit. Methods that need it do it
 // automatically.
 func (c *V1) EnsureInit() error {
 	c.initOnce.Do(c.init)
@@ -156,9 +156,9 @@ func (c *V1) Encode(w io.Writer, prettify bool) error {
 // Validate checks all public fields of c, and returns an error if any of them
 // is invalid, or a nil-error if they are all valid.
 //
-// Although changes to per-path config fields have no effect to per-path config
+// Although changes to per-path config fields have no effect on per-path config
 // checkings once the internal per-path config reader is intialized (see
-// comment on V1), this method still checks the updated per-path config feilds.
+// comment on V1), this method still checks the updated per-path config fields.
 // So it's OK to use Validate directly on a *V1 that has been modified since it
 // was initialized.
 //

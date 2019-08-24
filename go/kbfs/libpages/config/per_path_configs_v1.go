@@ -30,7 +30,7 @@ type PerPathConfigV1 struct {
 	// unauthenticated/anonymous requests.
 	AnonymousPermissions string `json:"anonymous_permissions"`
 
-	// AccessControlAllowOrigin, if set, causes the setting the
+	// AccessControlAllowOrigin, if set, causes the setting of the
 	// Access-Control-Allow-Origin header when serving requests under the
 	// corresponding path.
 	AccessControlAllowOrigin string `json:"Access-Control-Allow-Origin,omitempty"`
@@ -109,7 +109,7 @@ func checkCustomPagePath(p string) (cleaned string, err error) {
 		return "", nil
 	}
 	cleaned = path.Clean(p)
-	if strings.HasPrefix(cleaned, "..") || !strings.HasSuffix(cleaned, ".html") {
+	if strings.HasPrefix(cleaned, "..") {
 		return "", ErrInvalidConfig{"invalid custom page path: " + p}
 	}
 	return cleaned, nil
