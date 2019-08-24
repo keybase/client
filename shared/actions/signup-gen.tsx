@@ -13,6 +13,7 @@ export const checkUsername = 'signup:checkUsername'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
+export const clearJustSignedUp = 'signup:clearJustSignedUp'
 export const clearJustSignedUpEmail = 'signup:clearJustSignedUpEmail'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
@@ -38,6 +39,7 @@ type _CheckedUsernamePayload = {
   readonly error: string
 }
 type _ClearJustSignedUpEmailPayload = void
+type _ClearJustSignedUpPayload = void
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
 type _RequestInvitePayload = {readonly email: string; readonly name: string}
@@ -89,6 +91,10 @@ export const createCheckedInviteCodeError = (
 export const createCheckedUsername = (payload: _CheckedUsernamePayload): CheckedUsernamePayload => ({
   payload,
   type: checkedUsername,
+})
+export const createClearJustSignedUp = (payload: _ClearJustSignedUpPayload): ClearJustSignedUpPayload => ({
+  payload,
+  type: clearJustSignedUp,
 })
 export const createClearJustSignedUpEmail = (
   payload: _ClearJustSignedUpEmailPayload
@@ -174,6 +180,10 @@ export type ClearJustSignedUpEmailPayload = {
   readonly payload: _ClearJustSignedUpEmailPayload
   readonly type: typeof clearJustSignedUpEmail
 }
+export type ClearJustSignedUpPayload = {
+  readonly payload: _ClearJustSignedUpPayload
+  readonly type: typeof clearJustSignedUp
+}
 export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
   readonly type: typeof goBackAndClearErrors
@@ -232,6 +242,7 @@ export type Actions =
   | CheckedInviteCodePayloadError
   | CheckedUsernamePayload
   | ClearJustSignedUpEmailPayload
+  | ClearJustSignedUpPayload
   | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload

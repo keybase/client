@@ -63,6 +63,7 @@
     "setJustSignedUpEmail": {
       "email": "string"
     },
-    "clearJustSignedUpEmail": {}
+    "clearJustSignedUpEmail": {},
+    "clearJustSignedUp": {},
   }
 }

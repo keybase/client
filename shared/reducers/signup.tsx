@@ -16,6 +16,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case SignupGen.resetStore: // fallthrough
     case SignupGen.restartSignup:
       return initialState.merge({
+        justSignedUp: false,
         justSignedUpEmail: state.email,
       })
     case SignupGen.goBackAndClearErrors:
@@ -23,6 +24,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         devicenameError: '',
         emailError: '',
         inviteCodeError: '',
+        justSignedUp: false,
         nameError: '',
         passwordError: new HiddenString(''),
         signupError: null,
@@ -91,16 +93,19 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.signedup:
-      return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+      return state.merge({
+        justSignedUp: true,
+        signupError: actionHasError(action) ? action.payload.error : null,
+      })
     case SignupGen.setJustSignedUpEmail:
       return state.merge({
         justSignedUpEmail: action.payload.email,
       })
     case SignupGen.clearJustSignedUpEmail:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      return state.merge({
-        justSignedUpEmail: '',
-      })
+      return state.merge({justSignedUpEmail: ''})
+    case SignupGen.clearJustSignedUp:
+      return state.merge({justSignedUp: false})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state
