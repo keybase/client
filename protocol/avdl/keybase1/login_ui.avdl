@@ -7,4 +7,32 @@ protocol loginUi {
   boolean promptRevokePaperKeys(int sessionID, Device device, int index);
   void displayPaperKeyPhrase(int sessionID, string phrase);
   void displayPrimaryPaperKey(int sessionID, string phrase);
+
+  enum ResetPromptType {
+    COMPLETE_0,         // reset completion if the countdown is done
+    ENTER_NO_DEVICES_1, // no devices available in provisioning, suggest entering
+    ENTER_FORGOT_PW_2   // forgot the password, suggest entering the pipeline w/o pw
+  }
+  /**
+   Called during login / provisioning flows to ask the user whether they
+   would like to either enter the autoreset pipeline or perform the reset
+   of the account.
+   */
+  boolean promptResetAccount(int sessionID, ResetPromptType kind);
+
+  /**
+   In some flows the user will get notified of the reset progress
+   */
+  void displayResetProgress(int sessionID, string text);
+
+  /**
+   During recovery the service might want to explain to the user how they can change
+   their password by using the "change password" functionality on other devices.
+   */
+  void explainDeviceRecovery(int sessionID, DeviceType kind, string name);
+
+  enum PassphraseRecoveryPromptType {
+    ENCRYPTED_PGP_KEYS_0 // explain to the user that they'll lose encrypted pgp keys
+  }
+  bool promptPassphraseRecovery(int sessionID, PassphraseRecoveryPromptType kind);
 }

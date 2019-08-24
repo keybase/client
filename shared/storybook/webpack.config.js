@@ -1,4 +1,3 @@
-// @noflow
 const webpack = require('webpack')
 const path = require('path')
 // you can use this file to add your custom webpack plugins, loaders and anything you like.
@@ -14,7 +13,7 @@ const fileLoaderRule = {
 
 module.exports = (storybookBaseConfig, configType) => {
   storybookBaseConfig.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
   storybookBaseConfig.plugins.push(
@@ -25,14 +24,18 @@ module.exports = (storybookBaseConfig, configType) => {
       'process.platform': JSON.stringify('darwin'),
     }),
     new webpack.NormalModuleReplacementPlugin(
-      /^react-redux$/,
-      path.join(__dirname, '/../__mocks__/react-redux.js')
+      /typed-connect/,
+      path.join(__dirname, '/../util/__mocks__/typed-connect.tsx')
     ),
     new webpack.NormalModuleReplacementPlugin(
       /^electron$/,
       path.join(__dirname, '/../__mocks__/electron.js')
     ),
     new webpack.NormalModuleReplacementPlugin(/engine/, path.join(__dirname, '/../__mocks__/engine.js')),
+    new webpack.NormalModuleReplacementPlugin(
+      /dark-mode/,
+      path.join(__dirname, '../styles/__mocks__/dark-mode.tsx')
+    ),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, path.join(__dirname, '/../__mocks__/saga.js')),
     new webpack.NormalModuleReplacementPlugin(/route-tree/, path.join(__dirname, '/../__mocks__/empty.js')),
     new webpack.NormalModuleReplacementPlugin(

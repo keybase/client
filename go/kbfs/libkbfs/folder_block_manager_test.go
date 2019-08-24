@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -32,61 +35,50 @@ func totalBlockRefs(m map[kbfsblock.ID]blockRefMap) int {
 // Test that quota reclamation works for a simple case where the user
 // does a few updates, then lets quota reclamation run, and we make
 // sure that all historical blocks have been deleted.
-func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
-	userName kbname.NormalizedUsername) {
-	clock, now := newTestClockAndTimeNow()
+func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
+	userName kbname.NormalizedUsername) (
+	ops *folderBranchOps, preBlocks map[kbfsblock.ID]blockRefMap) {
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config.SetClock(clock)
 
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
+	_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync all: %v", err)
-	}
-	err = kbfsOps.RemoveDir(ctx, rootNode, "a")
-	if err != nil {
-		t.Fatalf("Couldn't remove dir: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync all: %v", err)
+	err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err, "Couldn't remove dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync all: %v", err)
-	}
+	require.NoError(t, err, "Couldn't sync all: %v", err)
 
 	// Wait for outstanding archives
 	err = kbfsOps.SyncFromServer(ctx,
 		rootNode.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Make sure no blocks are deleted before there's a new-enough update.
-	bserverLocal, ok := config.BlockServer().(blockServerLocal)
+	bserver := config.BlockServer()
+	if jbserver, ok := bserver.(journalBlockServer); ok {
+		bserver = jbserver.BlockServer
+	}
+	bserverLocal, ok := bserver.(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
 	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
+	ops = kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	postQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
 		t.Fatalf("Blocks deleted too early (%v vs %v)!",
@@ -96,46 +88,79 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	// Increase the time and make a new revision, but don't run quota
 	// reclamation yet.
 	clock.Set(now.Add(2 * config.Mode().QuotaReclamationMinUnrefAge()))
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("b"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync all: %v", err)
-	}
+	require.NoError(t, err, "Couldn't sync all: %v", err)
 
 	preQR2Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
+	return ops, preQR2Blocks
+}
+
+func ensureFewerBlocksPostQR(
+	ctx context.Context, t *testing.T, config *ConfigLocal,
+	ops *folderBranchOps, preBlocks map[kbfsblock.ID]blockRefMap) {
 	ops.fbm.forceQuotaReclamation()
-	err = ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	err := ops.fbm.waitForQuotaReclamations(ctx)
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
-	postQR2Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
+	bserver := config.BlockServer()
+	if jbserver, ok := bserver.(journalBlockServer); ok {
+		bserver = jbserver.BlockServer
 	}
+	bserverLocal, ok := bserver.(blockServerLocal)
+	require.True(t, ok)
 
-	if pre, post := totalBlockRefs(preQR2Blocks),
-		totalBlockRefs(postQR2Blocks); post >= pre {
-		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
-			pre, post)
-	}
+	postBlocks, err := bserverLocal.getAllRefsForTest(ctx, ops.id())
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
+
+	pre, post := totalBlockRefs(preBlocks), totalBlockRefs(postBlocks)
+	require.True(t, post < pre,
+		"Blocks didn't shrink after reclamation: pre: %d, post %d",
+		pre, post)
 }
 
 func TestQuotaReclamationSimple(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
-	testQuotaReclamation(t, ctx, config, userName)
+	ops, preBlocks := testQuotaReclamation(ctx, t, config, userName)
+	ensureFewerBlocksPostQR(ctx, t, config, ops, preBlocks)
+}
+
+type modeTestWithNoTimedQR struct {
+	InitMode
+}
+
+func (mtwmpl modeTestWithNoTimedQR) QuotaReclamationPeriod() time.Duration {
+	return 0
+}
+
+type modeTestWithMaxPtrsLimit struct {
+	InitMode
+}
+
+func (mtwmpl modeTestWithMaxPtrsLimit) MaxBlockPtrsToManageAtOnce() int {
+	return 1
+}
+
+func TestQuotaReclamationConstrained(t *testing.T) {
+	var userName kbname.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	config.SetMode(modeTestWithNoTimedQR{config.Mode()})
+	originalMode := config.Mode()
+	config.SetMode(modeTestWithMaxPtrsLimit{originalMode})
+
+	ops, preBlocks := testQuotaReclamation(ctx, t, config, userName)
+
+	// Unconstrain it for the final QR.
+	config.SetMode(originalMode)
+	ensureFewerBlocksPostQR(ctx, t, config, ops, preBlocks)
 }
 
 // Just like the simple case, except tests that it unembeds large sets
@@ -143,22 +168,60 @@ func TestQuotaReclamationSimple(t *testing.T) {
 func TestQuotaReclamationUnembedded(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
-	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(32)
 
-	testQuotaReclamation(t, ctx, config, userName)
+	ops, preBlocks := testQuotaReclamation(ctx, t, config, userName)
+	ensureFewerBlocksPostQR(ctx, t, config, ops, preBlocks)
 
 	// Make sure the MD has an unembedded change block.
-	rootNode := GetRootNodeOrBust(
-		ctx, t, config, userName.String(), tlf.Private)
-	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get MD: %+v", err)
-	}
-	if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
+	md, err := config.MDOps().GetForTLF(ctx, ops.id(), nil)
+	require.NoError(t, err, "Couldn't get MD: %+v", err)
+	if md.data.cachedChanges.Info.BlockPointer == data.ZeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
+}
+
+// Just like the simple case, except tests that it unembeds large sets
+// of pointers correctly.
+func TestQuotaReclamationUnembeddedJournal(t *testing.T) {
+	var userName kbname.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(32)
+
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
+	jManager, err := GetJournalManager(config)
+	require.NoError(t, err)
+	jManager.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+
+	ops, _ := testQuotaReclamation(ctx, t, config, userName)
+
+	t.Log("Check that the latest merged revision didn't get updated")
+	rev := ops.getLatestMergedRevision(makeFBOLockState())
+	require.Equal(t, kbfsmd.RevisionInitial, rev)
+
+	jManager.ResumeBackgroundWork(ctx, ops.id())
+	err = jManager.Wait(ctx, ops.id())
+	require.NoError(t, err)
 }
 
 // Test that a single quota reclamation run doesn't try to reclaim too
@@ -166,16 +229,17 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	now := time.Now()
-	var clock TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config.SetClock(&clock)
 
 	// Allow for big embedded block changes, so they don't confuse our
 	// block-checking logic.
-	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 16 << 20
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(16 << 20)
 
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
@@ -183,22 +247,14 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	testPointersPerGCThreshold := 10
 	for i := 0; i < testPointersPerGCThreshold; i++ {
-		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
-		if err != nil {
-			t.Fatalf("Couldn't create dir: %+v", err)
-		}
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync all: %v", err)
-		}
-		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
-		if err != nil {
-			t.Fatalf("Couldn't remove dir: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't sync all: %v", err)
+		err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
+		require.NoError(t, err, "Couldn't remove dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync all: %v", err)
-		}
+		require.NoError(t, err, "Couldn't sync all: %v", err)
 	}
 
 	// Increase the time, and make sure that there is still more than
@@ -210,9 +266,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	ops.fbm.numPointersPerGCThreshold = testPointersPerGCThreshold
 	ops.fbm.forceQuotaReclamation()
 	err := ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	bserverLocal, ok := config.BlockServer().(blockServerLocal)
 	if !ok {
@@ -220,9 +274,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	}
 	blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	b := totalBlockRefs(blocks)
 	if b <= 1 {
@@ -233,15 +285,11 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	for b > 1 {
 		ops.fbm.forceQuotaReclamation()
 		err = ops.fbm.waitForQuotaReclamations(ctx)
-		if err != nil {
-			t.Fatalf("Couldn't wait for QR: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 		blocks, err := bserverLocal.getAllRefsForTest(
 			ctx, rootNode.GetFolderBranch().Tlf)
-		if err != nil {
-			t.Fatalf("Couldn't get blocks: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't get blocks: %+v", err)
 		oldB := b
 		b = totalBlockRefs(blocks)
 		if b >= oldB {
@@ -255,9 +303,9 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2)
-	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config1, cancel)
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	// Initialize the MD using a different config
@@ -267,87 +315,61 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	name := u1.String() + "," + u2.String()
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
-	data := []byte{1, 2, 3, 4, 5}
+	data1 := []byte{1, 2, 3, 4, 5}
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
-	err = kbfsOps1.Write(ctx, aNode1, data, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	aNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
+	require.NoError(t, err)
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+	err = kbfsOps1.Write(ctx, aNode1, data1, 0)
+	require.NoError(t, err, "Couldn't write file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, aNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync file: %+v", err)
 
 	// Make two more files that share a block, only one of which will
 	// be deleted.
 	otherData := []byte{5, 4, 3, 2, 1}
-	for _, name := range []string{"b", "c"} {
+	for _, name := range []data.PathPartString{testPPS("b"), testPPS("c")} {
 		node, _, err := kbfsOps1.CreateFile(ctx, rootNode1, name, false, NoExcl)
-		if err != nil {
-			t.Fatalf("Couldn't create dir: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps1.Write(ctx, node, otherData, 0)
-		if err != nil {
-			t.Fatalf("Couldn't write file: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't write file: %+v", err)
 		err = kbfsOps1.SyncAll(ctx, node.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync file: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't sync file: %+v", err)
 	}
 
 	// u2 reads the file
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 	kbfsOps2 := config2.KBFSOps()
-	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
-	data2 := make([]byte, len(data))
+	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+	data2 := make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, aNode2, data2, 0)
-	if err != nil {
-		t.Fatalf("Couldn't read file: %+v", err)
-	}
-	if !bytes.Equal(data, data2) {
+	require.NoError(t, err, "Couldn't read file: %+v", err)
+	if !bytes.Equal(data1, data2) {
 		t.Fatalf("Read bad data: %v", data2)
 	}
-	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "b")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
-	data2 = make([]byte, len(data))
+	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("b"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+	data2 = make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, bNode2, data2, 0)
-	if err != nil {
-		t.Fatalf("Couldn't read file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't read file: %+v", err)
 	if !bytes.Equal(otherData, data2) {
 		t.Fatalf("Read bad data: %v", data2)
 	}
 
 	// Remove two of the files
-	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "a")
-	if err != nil {
-		t.Fatalf("Couldn't remove file: %+v", err)
-	}
-	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "b")
-	if err != nil {
-		t.Fatalf("Couldn't remove file: %+v", err)
-	}
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err, "Couldn't remove file: %+v", err)
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, testPPS("b"))
+	require.NoError(t, err, "Couldn't remove file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync file: %+v", err)
 
 	// Wait for outstanding archives
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Get the current set of blocks
 	bserverLocal, ok := config1.BlockServer().(blockServerLocal)
@@ -356,23 +378,17 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 	preQRBlocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	clock.Set(now.Add(2 * config1.Mode().QuotaReclamationMinUnrefAge()))
 	ops1 := kbfsOps1.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	postQRBlocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	if pre, post := totalBlockRefs(preQRBlocks),
 		totalBlockRefs(postQRBlocks); post >= pre {
@@ -383,51 +399,35 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// Sync u2
 	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Make a file with the other data on node 2, which uses a block
 	// for which one reference has been deleted, but the other should
 	// still be live.  This will cause one dedup reference, and 3 new
 	// blocks (2 from the create, and 1 from the sync).
-	dNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "d", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %+v", err)
-	}
+	dNode, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("d"), false, NoExcl)
+	require.NoError(t, err, "Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync file: %+v", err)
 	err = kbfsOps2.Write(ctx, dNode, otherData, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't write file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, dNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't write file: %+v", err)
 	// Wait for outstanding archives
 	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Make the same file on node 2, making sure this doesn't try to
 	// reuse the same block (i.e., there are only 2 put calls).
-	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
+	eNode, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("e"), false, NoExcl)
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
-	err = kbfsOps2.Write(ctx, eNode, data, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync file: %+v", err)
+	err = kbfsOps2.Write(ctx, eNode, data1, 0)
+	require.NoError(t, err, "Couldn't write file: %+v", err)
 
 	// Stall the puts that comes as part of the sync call.
 	oldBServer := config2.BlockServer()
@@ -447,31 +447,23 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// Don't close the channel, we want to make sure other Puts get
 	// stalled.
 	err = <-errChan
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync file: %+v", err)
 
 	// Wait for outstanding archives
 	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Delete any blocks that happened to be put during a failed (due
 	// to recoverable block errors) update.
 	clock.Set(now.Add(2 * config1.Mode().QuotaReclamationMinUnrefAge()))
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	endBlocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	// There should be exactly 8 extra blocks refs (2 for the create,
 	// and 2 for the write/sync, for both files above) as a result of
@@ -484,11 +476,21 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 	oneDedupFound := false
 	for id, refs := range endBlocks {
+		areAllRefsArchived := true
+		for _, ref := range refs {
+			if ref.Status != archivedBlockRef {
+				areAllRefsArchived = false
+				break
+			}
+		}
+		if areAllRefsArchived {
+			continue
+		}
 		if len(refs) > 2 {
-			t.Errorf("Block %v unexpectedly had %d refs %v", id, len(refs), refs)
+			t.Errorf("Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
 		} else if len(refs) == 2 {
 			if oneDedupFound {
-				t.Errorf("Extra dedup block %v with refs %v", id, refs)
+				t.Errorf("Extra dedup block %v with refs %+v", id, refs)
 			} else {
 				oneDedupFound = true
 			}
@@ -504,8 +506,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, u2)
@@ -542,9 +544,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't rekey: %+v", err)
 
 	// Make sure QR returns an error.
 	ops := config2Dev2.KBFSOps().(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
@@ -559,26 +559,18 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't rekey: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't rekey: %+v", err)
 
 	// Retry the QR; should work now.
 	err = kbfsOps2Dev2.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 	ops.fbm.reclamationGroup.Add(1)
 	err = ops.fbm.doReclamation(timer)
-	if err != nil {
-		t.Fatalf("Unexpected rekey error: %+v", err)
-	}
+	require.NoError(t, err, "Unexpected rekey error: %+v", err)
 }
 
 type modeTestWithQR struct {
@@ -594,11 +586,11 @@ func (mtwqr modeTestWithQR) IsTestMode() bool {
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 	// Re-enable QR in test mode.
-	config1.mode = modeTestWithQR{NewInitModeFromType(InitDefault)}
+	config1.SetMode(modeTestWithQR{NewInitModeFromType(InitDefault)})
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -608,29 +600,21 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	// u1 does the writes, and u2 tries to do the QR.
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
-	err = kbfsOps1.RemoveDir(ctx, rootNode1, "a")
-	if err != nil {
-		t.Fatalf("Couldn't remove dir: %+v", err)
-	}
+	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+	err = kbfsOps1.RemoveDir(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err, "Couldn't remove dir: %+v", err)
 
 	// Increase the time and make a new revision, and make sure quota
 	// reclamation doesn't run.
 	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
-	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, testPPS("b"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
 
 	// Wait for outstanding archives
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
@@ -642,22 +626,16 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	ops := kbfsOps2.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode2)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	postQR1Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
 		t.Fatalf("Blocks deleted too early (%v vs %v)!",
@@ -669,21 +647,15 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	preQR2Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	postQR2Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	if pre, post := totalBlockRefs(preQR2Blocks),
 		totalBlockRefs(postQR2Blocks); post >= pre {
@@ -692,37 +664,27 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	// If u2 does a write, we don't have to wait the minimum head age.
-	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "c")
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %+v", err)
-	}
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, testPPS("c"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
 
 	// Wait for outstanding archives
 	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
 
 	preQR3Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't wait for QR: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 	postQR3Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
 	if pre, post := totalBlockRefs(preQR3Blocks),
 		totalBlockRefs(postQR3Blocks); post >= pre {
@@ -737,8 +699,8 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
-	clock := newTestClockNow()
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
 	rootNode := GetRootNodeOrBust(
@@ -751,22 +713,14 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 
 	numCycles := 4
 	for i := 0; i < numCycles; i++ {
-		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
-		if err != nil {
-			t.Fatalf("Couldn't create dir: %+v", err)
-		}
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync all: %v", err)
-		}
-		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
-		if err != nil {
-			t.Fatalf("Couldn't remove dir: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't sync all: %v", err)
+		err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
+		require.NoError(t, err, "Couldn't remove dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
-		if err != nil {
-			t.Fatalf("Couldn't sync all: %v", err)
-		}
+		require.NoError(t, err, "Couldn't sync all: %v", err)
 	}
 	clock.Add(2 * config.Mode().QuotaReclamationMinUnrefAge())
 
@@ -774,9 +728,7 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	// previous revision.
 	md, err := config.MDOps().GetForTLF(
 		ctx, rootNode.GetFolderBranch().Tlf, nil)
-	if err != nil {
-		t.Fatalf("Couldn't get MD: %+v", err)
-	}
+	require.NoError(t, err, "Couldn't get MD: %+v", err)
 
 	// Run reclamation until the head doesn't change anymore, which
 	// should cover revision #3, as well as the two subsequent GCops.
@@ -785,15 +737,11 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	for {
 		ops.fbm.forceQuotaReclamation()
 		err = ops.fbm.waitForQuotaReclamations(ctx)
-		if err != nil {
-			t.Fatalf("Couldn't wait for QR: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
 		md, err = config.MDOps().GetForTLF(
 			ctx, rootNode.GetFolderBranch().Tlf, nil)
-		if err != nil {
-			t.Fatalf("Couldn't get MD: %+v", err)
-		}
+		require.NoError(t, err, "Couldn't get MD: %+v", err)
 
 		if md.Revision() == lastRev {
 			break
@@ -827,14 +775,23 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
-	defer ioutil.RemoveAll(tempdir)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
 
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	config.SetVLogLevel(libkb.VLog2String)
 
-	config.EnableDiskLimiter(tempdir)
-	config.loadSyncedTlfsLocked()
+	// Test the pointer-constraint logic.
+	config.SetMode(modeTestWithMaxPtrsLimit{config.Mode()})
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.loadSyncedTlfsLocked()
+	require.NoError(t, err)
 	config.diskCacheMode = DiskCacheModeLocal
 	err = config.MakeDiskBlockCacheIfNotExists()
 	require.NoError(t, err)
@@ -848,11 +805,11 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
-	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -862,7 +819,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.Equal(t, uint64(2), status[syncCacheName].NumBlocks)
 
 	t.Log("Make a second revision that will unref some blocks")
-	_, _, err = kbfsOps.CreateDir(ctx, aNode, "b")
+	_, _, err = kbfsOps.CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -874,13 +831,36 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	status = dbc.Status(ctx)
 	require.Equal(t, uint64(3), status[syncCacheName].NumBlocks)
 
-	t.Log("Test another TLF that isn't synced until after a few revisions")
-	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
-	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	t.Log("Add two empty files, to cause deduplication")
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	bNode, _, err := kbfsOps.CreateDir(ctx, aNode, "b")
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, testPPS("d"), false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Logf("Remove one file, but not the other")
+	err = kbfsOps.RemoveEntry(ctx, aNode, testPPS("d"))
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Wait for cleanup")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	// 4 blocks == root, a, b, and d without the old unref'd blocks.
+	status = dbc.Status(ctx)
+	require.Equal(t, uint64(4), status[syncCacheName].NumBlocks)
+
+	t.Log("Test another TLF that isn't synced until after a few revisions")
+	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
+	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	bNode, _, err := kbfsOps.CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -891,11 +871,11 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 
 	t.Log("Set new TLF to syncing, and add a new revision")
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
-	_, _, err = kbfsOps.CreateDir(ctx, bNode, "c")
+	_, _, err = kbfsOps.CreateDir(ctx, bNode, testPPS("c"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

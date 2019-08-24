@@ -63,7 +63,7 @@ func (key *LedgerKey) SetData(account AccountId, name string) error {
 // SetOffer mutates `key` such that it represents the identity of the
 // data entry owned by `account` and for offer `id`.
 func (key *LedgerKey) SetOffer(account AccountId, id uint64) error {
-	data := LedgerKeyOffer{account, Uint64(id)}
+	data := LedgerKeyOffer{account, Int64(id)}
 	nkey, err := NewLedgerKey(LedgerEntryTypeOffer, data)
 	if err != nil {
 		return err

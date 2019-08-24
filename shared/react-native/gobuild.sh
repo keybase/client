@@ -90,7 +90,7 @@ vendor_path="$GOPATH/src/github.com/keybase/vendor"
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 gomobileinit ()
 {
@@ -104,30 +104,30 @@ gomobileinit ()
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dir=${DEST_DIR:-"$dir/ios"}
+  ios_dir=${DEST_DIR:-"$dir/../ios"}
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
-  OUTPUT="$(gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+    gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
     echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
-  android_dir=${DEST_DIR:-"$dir/android/keybaselib"}
+  android_dir=${DEST_DIR:-"$dir/../android/keybaselib"}
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e
-  OUTPUT="$(gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+    gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package"
   else
     echo $OUTPUT
   fi

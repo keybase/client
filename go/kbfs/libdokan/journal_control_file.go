@@ -31,13 +31,13 @@ func (f *JournalControlFile) WriteFile(ctx context.Context,
 		return 0, nil
 	}
 
-	jServer, err := libkbfs.GetJournalServer(f.folder.fs.config)
+	jManager, err := libkbfs.GetJournalManager(f.folder.fs.config)
 	if err != nil {
 		return 0, err
 	}
 
 	err = f.action.Execute(
-		ctx, jServer, f.folder.getFolderBranch().Tlf, f.folder.h)
+		ctx, jManager, f.folder.getFolderBranch().Tlf, f.folder.h)
 	if err != nil {
 		return 0, err
 	}

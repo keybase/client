@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -40,7 +41,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	}()
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	s := makeMDServerTlfStorage(tlfID, codec, wallClock{}, nil,
+	s := makeMDServerTlfStorage(tlfID, codec, data.WallClock{}, nil,
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
 

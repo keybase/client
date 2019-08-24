@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -38,6 +40,7 @@ type FolderBranchStatus struct {
 	GitUsageBytes       int64
 	GitArchiveBytes     int64
 	GitLimitBytes       int64
+	LocalTimestamp      time.Time
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -47,6 +50,9 @@ type FolderBranchStatus struct {
 	// diverging operations per-file
 	Unmerged []*crChainSummary
 	Merged   []*crChainSummary
+
+	ConflictResolutionAttempts []conflictRecord            `json:",omitempty"`
+	ConflictStatus             keybase1.FolderConflictType `json:",omitempty"`
 
 	Journal *TLFJournalStatus `json:",omitempty"`
 
@@ -66,7 +72,7 @@ type KBFSStatus struct {
 	GitArchiveBytes      int64
 	GitLimitBytes        int64
 	FailingServices      map[string]error
-	JournalServer        *JournalServerStatus            `json:",omitempty"`
+	JournalManager       *JournalManagerStatus           `json:",omitempty"`
 	DiskBlockCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`
 	DiskMDCacheStatus    DiskMDCacheStatus               `json:",omitempty"`
 	DiskQuotaCacheStatus DiskQuotaCacheStatus            `json:",omitempty"`
@@ -90,19 +96,23 @@ type folderBranchStatusKeeper struct {
 	merged     []*crChainSummary
 	quotaUsage *EventuallyConsistentQuotaUsage
 
+	fboIDBytes []byte
+
 	updateChan  chan StatusUpdate
 	updateMutex sync.Mutex
 }
 
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache,
-	quotaUsage *EventuallyConsistentQuotaUsage) *folderBranchStatusKeeper {
+	quotaUsage *EventuallyConsistentQuotaUsage,
+	fboIDBytes []byte) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
 		config:     config,
 		nodeCache:  nodeCache,
 		dirtyNodes: make(map[NodeID]Node),
 		updateChan: make(chan StatusUpdate, 1),
 		quotaUsage: quotaUsage,
+		fboIDBytes: fboIDBytes,
 	}
 }
 
@@ -206,7 +216,8 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.Staged = fbsk.md.IsUnmergedSet()
 		fbs.BranchID = fbsk.md.BID().String()
 		name, err := fbsk.config.KBPKI().GetNormalizedUsername(
-			ctx, fbsk.md.LastModifyingWriter().AsUserOrTeam())
+			ctx, fbsk.md.LastModifyingWriter().AsUserOrTeam(),
+			fbsk.config.OfflineAvailabilityForID(tlfID))
 		if err != nil {
 			return FolderBranchStatus{}, nil, tlf.NullID, err
 		}
@@ -223,12 +234,15 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 			fbsk.md.Data().Dir.BlockPointer)
 		fbs.PrefetchStatus = prefetchStatus.String()
 		fbs.RootBlockID = fbsk.md.Data().Dir.BlockPointer.ID.String()
+		fbs.LocalTimestamp = fbsk.md.localTimestamp
 
 		if fbsk.quotaUsage == nil {
-			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())
+			log := fbsk.config.MakeLogger(QuotaUsageLogModule(fmt.Sprintf(
+				"status-%s", fbsk.md.TlfID())))
+			vlog := fbsk.config.MakeVLogger(log)
 			chargedTo, err := chargedToForTLF(
 				ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
-				fbsk.md.GetTlfHandle())
+				fbsk.config, fbsk.md.GetTlfHandle())
 			if err != nil {
 				return FolderBranchStatus{}, nil, tlf.NullID, err
 			}
@@ -236,13 +250,13 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 				// TODO: somehow share this team quota usage instance
 				// with the journal for the team (and subteam) TLFs?
 				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
-					fbsk.config, chargedTo.AsTeamOrBust(), loggerSuffix)
+					fbsk.config, chargedTo.AsTeamOrBust(), log, vlog)
 			} else {
 				// Almost certainly this should be being passed in by
 				// the caller of fbsk's constructor, and in that case
 				// we wouldn't be making a new one here
 				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
-					fbsk.config, loggerSuffix)
+					fbsk.config, log, vlog)
 			}
 		}
 		_, usageBytes, archiveBytes, limitBytes,
@@ -261,6 +275,21 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.GitUsageBytes = gitUsageBytes
 		fbs.GitArchiveBytes = gitArchiveBytes
 		fbs.GitLimitBytes = gitLimitBytes
+	}
+
+	var crErr error
+	fbs.ConflictResolutionAttempts, crErr = getAndDeserializeConflicts(
+		fbsk.config, fbsk.config.GetConflictResolutionDB(), fbsk.fboIDBytes)
+	if crErr != nil {
+		// The error is ignored here so that other fields can
+		// still be populated even if this fails.
+		log := fbsk.config.MakeLogger("")
+		log.CDebugf(ctx, "Getting CR status error: %+v", crErr)
+	}
+	if isCRStuckFromRecords(fbs.ConflictResolutionAttempts) {
+		fbs.ConflictStatus = keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+	} else if fbs.BranchID != kbfsmd.NullBranchID.String() {
+		fbs.ConflictStatus = keybase1.FolderConflictType_IN_CONFLICT
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
@@ -296,18 +325,16 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 	// TODO: Ideally, the journal would push status
 	// updates to this object instead, so we can notify
 	// listeners.
-	jServer, err := GetJournalServer(fbsk.config)
+	jManager, err := GetJournalManager(fbsk.config)
 	if err != nil {
 		return fbs, ch, nil
 	}
 
 	var jStatus TLFJournalStatus
 	if blocks != nil {
-		jStatus, err =
-			jServer.JournalStatusWithPaths(ctx, tlfID, blocks)
+		jStatus, err = jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
 	} else {
-		jStatus, err =
-			jServer.JournalStatus(tlfID)
+		jStatus, err = jManager.JournalStatus(tlfID)
 	}
 	if err != nil {
 		log := fbsk.config.MakeLogger("")

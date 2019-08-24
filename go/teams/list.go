@@ -6,7 +6,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/uidmap"
@@ -22,7 +21,7 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 }
 
 func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool,
-	countMembers bool, includeImplicitTeams bool) ([]keybase1.MemberInfo, error) {
+	countMembers bool, includeImplicitTeams bool, rootTeamID keybase1.TeamID) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -37,13 +36,16 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	if countMembers {
 		a.Args["count_members"] = libkb.B{Val: true}
 	}
+	if !rootTeamID.IsNil() {
+		a.Args["root_team_id"] = libkb.S{Val: rootTeamID.String()}
+	}
 	if includeImplicitTeams {
 		a.Args["include_implicit_teams"] = libkb.B{Val: true}
 	}
-	a.NetContext = ctx
+	mctx := libkb.NewMetaContext(ctx, g)
 	a.SessionType = libkb.APISessionTypeREQUIRED
 	var list statusList
-	if err := g.API.GetDecode(a, &list); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, a, &list); err != nil {
 		return nil, err
 	}
 	return list.Teams, nil
@@ -142,7 +144,7 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return "", "", err
 	}
-	fullName, err = engine.GetFullName(libkb.NewMetaContext(ctx, g), uid)
+	fullName, err = libkb.GetFullName(libkb.NewMetaContext(ctx, g), uid)
 	if err != nil {
 		return "", "", err
 	}
@@ -173,7 +175,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 
 	tracer.Stage("Server")
 	teams, err := getTeamsListFromServer(ctx, g, queryUID, false, /* all */
-		false /* countMembers */, arg.IncludeImplicitTeams)
+		false /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +191,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams: nil,
+		Teams:                  nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
@@ -206,20 +208,20 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 		team, _, err := loadedTeams.getTeamForMember(ctx, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
-			m.CDebugf("| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			m.Debug("| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
 			continue
 		}
 
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			m.CDebugf("| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.Debug("| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
 		expectEmptyList = false
 
 		if memberInfo.UserID != queryUID {
-			m.CDebugf("| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+			m.Debug("| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
 			continue
 		}
 
@@ -242,7 +244,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		if team.IsImplicit() {
 			displayName, err := team.ImplicitTeamDisplayNameString(ctx)
 			if err != nil {
-				m.CDebugf("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
+				m.Warning("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
 			} else {
 				anMemberInfo.ImpTeamDisplayName = displayName
 			}
@@ -250,7 +252,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 
 		members, err := team.Members()
 		if err != nil {
-			m.CDebugf("| Failed to get Members() for team %q: %v", team.ID, err)
+			m.Debug("| Failed to get Members() for team %q: %v", team.ID, err)
 			continue
 		}
 
@@ -263,14 +265,14 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		for invID, invite := range invites {
 			category, err := invite.Type.C()
 			if err != nil {
-				m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+				m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 				continue
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
 				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
-					m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+					m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 
@@ -300,13 +302,13 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	if err != nil {
 		return nil, err
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams: nil,
+		Teams:                  nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
@@ -476,9 +478,9 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 			smsName = sms.N
 		}
 		return keybase1.TeamInviteName(smsName), nil
+	default:
+		return "", nil
 	}
-
-	return "", nil
 }
 
 type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
@@ -717,7 +719,7 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
 	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false, /* all */
-		false /* countMembers */, false /* includeImplicitTeams */)
+		false /* countMembers */, false /* includeImplicitTeams */, arg.Name.RootID())
 	if err != nil {
 		return res, err
 	}

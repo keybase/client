@@ -891,12 +891,13 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	if err != nil {
 		return err
 	}
+	log.Info("UninstallKBFSOnStop: uninstalling from mountdir: %s", mountDir)
 
 	if err := UninstallKBFS(context, mountDir, false, log); err != nil {
 		return err
 	}
 
-	log.Info("Uninstall mount: %s", mountDir)
+	log.Info("Uninstalled mount: %s", mountDir)
 	if err := libnativeinstaller.UninstallMountDir(runMode, log); err != nil {
 		return fmt.Errorf("Error uninstalling mount: %s", err)
 	}
@@ -1398,6 +1399,9 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 		return err
 	}
 	cmd := exec.Command(updaterPath, "check")
+	// Run it in a new process group so when we are killed eventually by the
+	// updater, we don't bring down the updater too.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err = cmd.Start(); err != nil {
 		return err
 	}

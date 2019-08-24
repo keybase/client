@@ -54,6 +54,82 @@
           "name": "label"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3Row",
+      "fields": [
+        {
+          "type": "Identify3GUIID",
+          "name": "guiID"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": "int",
+          "name": "priority"
+        },
+        {
+          "type": "string",
+          "name": "siteURL",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFull"
+        },
+        {
+          "type": "string",
+          "name": "proofURL",
+          "lint": "ignore"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "Identify3RowState",
+          "name": "state"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        },
+        {
+          "type": "Identify3RowColor",
+          "name": "color"
+        },
+        {
+          "type": [
+            null,
+            "KID"
+          ],
+          "name": "kid"
+        }
+      ]
     }
   ],
   "messages": {
@@ -82,43 +158,8 @@
     "identify3UpdateRow": {
       "request": [
         {
-          "name": "guiID",
-          "type": "Identify3GUIID"
-        },
-        {
-          "name": "key",
-          "type": "string"
-        },
-        {
-          "name": "value",
-          "type": "string"
-        },
-        {
-          "name": "siteURL",
-          "type": "string"
-        },
-        {
-          "name": "siteIcon",
-          "type": "string"
-        },
-        {
-          "name": "proofURL",
-          "type": "string"
-        },
-        {
-          "name": "state",
-          "type": "Identify3RowState"
-        },
-        {
-          "name": "metas",
-          "type": {
-            "type": "array",
-            "items": "Identify3RowMeta"
-          }
-        },
-        {
-          "name": "color",
-          "type": "Identify3RowColor"
+          "name": "row",
+          "type": "Identify3Row"
         }
       ],
       "response": null,

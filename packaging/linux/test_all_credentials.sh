@@ -18,6 +18,7 @@ s3cmd ls "s3://$bucket" > /dev/null
 
 echo 'Checking Arch AUR credentials (~/.ssh)...'
 git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null
+git ls-remote aur@aur.archlinux.org:keybase-bin > /dev/null
 
 # The release tool needs a GitHub API token to check test status. This is
 # independent of the SSH keys we checked above.

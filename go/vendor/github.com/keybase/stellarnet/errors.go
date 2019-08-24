@@ -35,12 +35,28 @@ var ErrUnknownKeypairType = errors.New("unknown keypair type")
 // ErrAssetNotFound is returned if no asset matches a code/issuer pair.
 var ErrAssetNotFound = errors.New("asset not found")
 
+// ErrMemoExists is returned if more than one memo is added to a Tx.
+var ErrMemoExists = errors.New("memo already exists in this tx")
+
+// ErrTimeBoundsExist is returned if more than one time bounds is added to a Tx.
+var ErrTimeBoundsExist = errors.New("time bounds already exist in this tx")
+
+// ErrTxOpFull is returned if an operation is added to a Tx that has 100 ops in it.
+var ErrTxOpFull = errors.New("tx cannot hold more operations")
+
+// ErrNoOps means a Tx has no operations.
+var ErrNoOps = errors.New("no operations in tx")
+
+// ErrAssetAlreadyExists means an asset cannot be created because it already exists
+var ErrAssetAlreadyExists = errors.New("asset already exists")
+
 // Error provides a hopefully user-friendly default in Error()
 // but with some details that might actually help debug in Verbose().
 type Error struct {
-	Display      string
-	Details      string
-	HorizonError *horizon.Error
+	Display       string
+	Details       string
+	HorizonError  *horizon.Error
+	OriginalError error
 }
 
 // Error implements the error interface.
@@ -76,9 +92,10 @@ func errMap(err error) error {
 
 		// catch-all
 		return Error{
-			Display:      "stellar network error",
-			Details:      fmt.Sprintf("horizon Problem: %+v", xerr.Problem),
-			HorizonError: xerr,
+			Display:       "stellar network error",
+			Details:       fmt.Sprintf("horizon Problem: %+v", xerr.Problem),
+			HorizonError:  xerr,
+			OriginalError: err,
 		}
 	case *url.Error:
 		if xerr.Timeout() {
@@ -86,8 +103,9 @@ func errMap(err error) error {
 				TimeoutHandler()
 			}
 			return Error{
-				Display: "stellar network timeout",
-				Details: fmt.Sprintf("stellar network timeout, url: %s, error: %s", xerr.URL, xerr.Error()),
+				Display:       "stellar network timeout",
+				Details:       fmt.Sprintf("stellar network timeout, url: %s, error: %s", xerr.URL, xerr.Error()),
+				OriginalError: err,
 			}
 		}
 

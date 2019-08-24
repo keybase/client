@@ -9,6 +9,9 @@ import (
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -25,7 +28,7 @@ type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
 	switch err := e.inner.(type) {
-	case EphemeralUnboxingError:
+	case EphemeralUnboxingError, NotAuthenticatedForThisDeviceError:
 		return err.Error()
 	default:
 		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
@@ -85,6 +88,20 @@ func (e PermanentUnboxingError) InternalError() string {
 	}
 }
 
+func (e PermanentUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) types.UnboxingError {
@@ -126,9 +143,23 @@ func (e TransientUnboxingError) InternalError() string {
 	}
 }
 
+func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
-type EphemeralAlreadyExpiredError struct{ inner error }
+type EphemeralAlreadyExpiredError struct{}
 
 func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
 	return EphemeralAlreadyExpiredError{}
@@ -144,7 +175,9 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
+type EphemeralUnboxingError struct {
+	inner ephemeral.EphemeralKeyError
+}
 
 func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
@@ -172,14 +205,20 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 
 //=============================================================================
 
-type NotAuthenticatedForThisDeviceError struct{}
+type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
-	return NotAuthenticatedForThisDeviceError{}
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID,
+	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, tlfID, contentCtime)
+	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
 
 func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "Message is not authenticated for this device"
+	return e.inner.HumanError()
+}
+
+func (e NotAuthenticatedForThisDeviceError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
@@ -259,6 +298,13 @@ func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 type BoxingCryptKeysError struct {
 	Err error
+}
+
+// Cause implements the pkg/errors Cause() method, also cloned in libkb via HumanError,
+// so that we know which error to show to the human being using keybase (rather than
+// for our own internal uses).
+func (e BoxingCryptKeysError) Cause() error {
+	return e.Err
 }
 
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
@@ -501,14 +547,37 @@ func IsOfflineError(err error) OfflineErrorKind {
 	switch err {
 	case context.DeadlineExceeded:
 		fallthrough
-	case context.Canceled:
-		fallthrough
 	case ErrChatServerTimeout:
 		return OfflineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
 	}
+
+	// Unfortunately, Go throws these without a type and they can occasionally
+	// propagate up. The strings were copied from
+	// https://golang.org/src/crypto/tls/conn.go
+	switch err.Error() {
+	case "tls: use of closed connection",
+		"tls: protocol is shutdown":
+		return OfflineErrorKindOfflineReconnect
+	}
 	return OfflineErrorKindOnline
+}
+
+func IsRekeyError(err error) (typ chat1.ConversationErrorType, ok bool) {
+	switch err := err.(type) {
+	case types.UnboxingError:
+		return IsRekeyError(err.Inner())
+	case libkb.NeedSelfRekeyError:
+		return chat1.ConversationErrorType_SELFREKEYNEEDED, true
+	case libkb.NeedOtherRekeyError:
+		return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+	default:
+		if teams.IsTeamReadError(err) {
+			return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+		}
+	}
+	return chat1.ConversationErrorType_NONE, false
 }
 
 //=============================================================================

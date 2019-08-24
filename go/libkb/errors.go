@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -127,7 +128,7 @@ func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...interface
 
 func XapiError(err error, u string) *ProofAPIError {
 	if ae, ok := err.(*APIError); ok {
-		code := keybase1.ProofStatus_NONE
+		var code keybase1.ProofStatus
 		switch ae.Code / 100 {
 		case 3:
 			code = keybase1.ProofStatus_HTTP_300
@@ -155,7 +156,7 @@ type FailedAssertionError struct {
 }
 
 func (u FailedAssertionError) Error() string {
-	v := make([]string, len(u.bad), len(u.bad))
+	v := make([]string, len(u.bad))
 	for i, u := range u.bad {
 		v[i] = u.String()
 	}
@@ -375,9 +376,7 @@ func (e TooManyKeysError) Error() string {
 
 //=============================================================================
 
-type NoSelectedKeyError struct {
-	wanted *PGPFingerprint
-}
+type NoSelectedKeyError struct{}
 
 func (n NoSelectedKeyError) Error() string {
 	return "Please login again to verify your public key"
@@ -418,7 +417,7 @@ type PassphraseError struct {
 }
 
 func (p PassphraseError) Error() string {
-	msg := "Bad passphrase"
+	msg := "Bad password"
 	if len(p.Msg) != 0 {
 		msg = msg + ": " + p.Msg + "."
 	}
@@ -506,12 +505,13 @@ func (a AppStatusError) WithDesc(desc string) AppStatusError {
 	return a
 }
 
-func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	switch err := err.(type) {
 	case AppStatusError:
 		return err.Code == int(code)
+	default:
+		return false
 	}
-	return false
 }
 
 //=============================================================================
@@ -747,14 +747,6 @@ func NewBadUsernameErrorWithFullMessage(msg string) BadUsernameError {
 
 //=============================================================================
 
-type BadNameError string
-
-func (e BadNameError) Error() string {
-	return fmt.Sprintf("Bad username or email: %s", string(e))
-}
-
-//=============================================================================
-
 type NoUsernameError struct{}
 
 func (e NoUsernameError) Error() string {
@@ -953,11 +945,10 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	service := e.Service
-	if len(service) > 0 {
-		service = fmt.Sprintf("%q", service)
+	if len(e.Service) == 0 {
+		return fmt.Sprintf("New proofs of that type are not supported")
 	}
-	return fmt.Sprintf("New %s proofs are no longer supported", service)
+	return fmt.Sprintf("New %s proofs are not supported", e.Service)
 }
 
 //=============================================================================
@@ -1239,11 +1230,34 @@ const (
 	merkleErrorOutOfOrderCtime
 	merkleErrorWrongSkipSequence
 	merkleErrorWrongRootSkips
+	merkleErrorFailedCheckpoint
+	merkleErrorTooMuchClockDrift
 )
 
 type MerkleClientError struct {
 	m string
 	t merkleClientErrorType
+}
+
+func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipHashMismatch,
+		m: m,
+	}
+}
+
+func NewClientMerkleSkipMissingError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
+func NewClientMerkleFailedCheckpointError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorFailedCheckpoint,
+		m: m,
+	}
 }
 
 func (m MerkleClientError) Error() string {
@@ -1256,6 +1270,10 @@ func (m MerkleClientError) IsNotFound() bool {
 
 func (m MerkleClientError) IsOldTree() bool {
 	return m.t == merkleErrorOldTree
+}
+
+func (m MerkleClientError) IsSkipHashMismatch() bool {
+	return m.t == merkleErrorSkipHashMismatch
 }
 
 type MerklePathNotFoundError struct {
@@ -1563,6 +1581,10 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
 }
 
+func (e IdentifySummaryError) Problems() []string {
+	return e.problems
+}
+
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
 	case ProofError, IdentifySummaryError:
@@ -1862,9 +1884,6 @@ func (e UserDeletedError) Error() string {
 	return e.Msg
 }
 
-// Keep the previous name around until KBFS revendors and updates.
-type DeletedError = UserDeletedError
-
 //=============================================================================
 
 type DeviceNameInUseError struct{}
@@ -2073,6 +2092,16 @@ type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
 	return "Unable to change chat channels"
+}
+
+//=============================================================================
+
+type ChatEphemeralRetentionPolicyViolatedError struct {
+	MaxAge gregor1.DurationSec
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
+	return fmt.Sprintf("messages in this conversation are required to be exploding with a maximum lifetime of %v", e.MaxAge.ToDuration())
 }
 
 //=============================================================================
@@ -2577,6 +2606,19 @@ func (e UserReverifyNeededError) Error() string {
 
 //=============================================================================
 
+type OfflineError struct {
+}
+
+func NewOfflineError() error {
+	return OfflineError{}
+}
+
+func (e OfflineError) Error() string {
+	return "Offline, and no cached results found"
+}
+
+//=============================================================================
+
 type VerboseError interface {
 	Error() string
 	Verbose() string
@@ -2598,4 +2640,94 @@ func (e InvalidStellarAccountIDError) Error() string {
 
 func (e InvalidStellarAccountIDError) Verbose() string {
 	return fmt.Sprintf("Invalid Stellar address: %s", e.details)
+}
+
+//=============================================================================
+
+type ResetWithActiveDeviceError struct {
+}
+
+func NewResetWithActiveDeviceError() error {
+	return ResetWithActiveDeviceError{}
+}
+
+func (e ResetWithActiveDeviceError) Error() string {
+	return "You cannot reset your account if you have an active device!"
+}
+
+//=============================================================================
+
+type ResetMissingParamsError struct {
+	msg string
+}
+
+func NewResetMissingParamsError(msg string) error {
+	return ResetMissingParamsError{msg: msg}
+}
+
+func (e ResetMissingParamsError) Error() string {
+	return e.msg
+}
+
+//============================================================================
+
+type ChainLinkBadUnstubError struct {
+	msg string
+}
+
+func NewChainLinkBadUnstubError(s string) error {
+	return ChainLinkBadUnstubError{s}
+}
+
+func (c ChainLinkBadUnstubError) Error() string {
+	return c.msg
+}
+
+//============================================================================
+
+type PushSecretWithoutPasswordError struct {
+	msg string
+}
+
+func NewPushSecretWithoutPasswordError(msg string) error {
+	return PushSecretWithoutPasswordError{msg: msg}
+}
+
+func (e PushSecretWithoutPasswordError) Error() string {
+	return e.msg
+}
+
+// HumanErrorer is an interface that errors can implement if they want to expose what went wrong to
+// humans, either via the CLI or via the electron interface. It sometimes happens that errors get
+// wrapped inside of other errors up a stack, and it's hard to know what to show the user.
+// This can help.
+type HumanErrorer interface {
+	HumanError() error
+}
+
+// HumanError takes an error and returns the topmost human error that's in the error, maybe to export
+// to the CLI, KBFS, or Electron. It's a mashup of the pkg/errors Error() function, and also our
+// own desire to return the topmost HumanError.
+//
+// See https://github.com/pkg/errors/blob/master/errors.go for the original pkg/errors code
+func HumanError(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		humanErrorer, ok := err.(HumanErrorer)
+		if ok {
+			tmp := humanErrorer.HumanError()
+			if tmp != nil {
+				return tmp
+			}
+		}
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
 }

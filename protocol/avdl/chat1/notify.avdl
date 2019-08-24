@@ -2,7 +2,7 @@
 
 protocol NotifyChat {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   enum ChatActivitySource {
     LOCAL_0,
@@ -81,7 +81,6 @@ protocol NotifyChat {
   record ExpungeInfo {
     ConversationID convID;
     Expunge expunge;
-    union { null, InboxUIItem } conv;
   }
 
   record EphemeralPurgeNotifInfo {
@@ -96,9 +95,9 @@ protocol NotifyChat {
 
   record ReactionUpdateNotif {
     ConversationID convID;
+    keybase1.UserReacjis userReacjis;
     array<ReactionUpdate> reactionUpdates;
   }
-
 
   record MessagesUpdated {
     ConversationID convID;
@@ -151,6 +150,7 @@ protocol NotifyChat {
 
   record ChatSyncIncrementalInfo {
     array<ChatSyncIncrementalConv> items;
+    array<string> removals; // Removed ConvIDs
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {

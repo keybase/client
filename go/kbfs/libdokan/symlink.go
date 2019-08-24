@@ -30,7 +30,8 @@ func (s *Symlink) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a
 	s.parent.folder.fs.logEnter(ctx, "Symlink GetFileInformation")
 	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
-	_, _, err = s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
+	_, _, err = s.parent.folder.fs.config.KBFSOps().Lookup(
+		ctx, s.parent.node, s.parent.node.ChildName(s.name))
 	if err != nil {
 		return nil, errToDokan(err)
 	}

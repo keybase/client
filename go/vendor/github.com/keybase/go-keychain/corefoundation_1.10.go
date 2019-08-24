@@ -246,8 +246,8 @@ func Convert(ref C.CFTypeRef) (interface{}, error) {
 				return nil, err
 			}
 			results = append(results, v)
-			return results, nil
 		}
+		return results, nil
 	} else if typeID == C.CFDataGetTypeID() {
 		b, err := CFDataToBytes(C.CFDataRef(ref))
 		if err != nil {

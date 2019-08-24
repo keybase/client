@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
@@ -16,10 +17,11 @@ import (
 
 func getDownloadTempDir(g *globals.Context, basename string) (string, error) {
 	p := filepath.Join(g.GetEnv().GetCacheDir(), "dltemp")
-	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	filename := filepath.Join(p, basename)
+	if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
 		return "", err
 	}
-	return filepath.Join(p, basename), nil
+	return filename, nil
 }
 
 func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -27,6 +29,7 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	filename string) (string, io.WriteCloser, error) {
 	var sink io.WriteCloser
 	var err error
+	const openFlag int = os.O_RDWR | os.O_CREATE | os.O_TRUNC
 	if filename == "" {
 		// No filename means we will create one in the OS temp dir
 		// Get the sent file name first
@@ -50,14 +53,17 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		if err != nil {
 			return "", nil, err
 		}
-		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		f, err := os.OpenFile(fullpath, openFlag, libkb.PermFile)
 		if err != nil {
 			return "", nil, err
 		}
 		filename = fullpath
 		sink = f
 	} else {
-		if sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
+			return "", nil, err
+		}
+		if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
 			return "", nil, err
 		}
 	}

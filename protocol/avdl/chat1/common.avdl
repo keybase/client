@@ -1,7 +1,7 @@
 @namespace("chat.1") protocol common {
 
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
@@ -11,9 +11,11 @@
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}
+  @typedef("uint64") @lint("ignore") record LocalConversationVers {}
   @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
+  @typedef("bytes")  record FlipGameID {}
 
   record InboxVersInfo {
     gregor1.UID uid;
@@ -58,7 +60,9 @@
     REACTION_13,
     SENDPAYMENT_14,
     REQUESTPAYMENT_15,
-    UNFURL_16
+    UNFURL_16,
+    FLIP_17,
+    PIN_18 // sent when pinning a message
   }
 
   @go("nostring")
@@ -81,12 +85,13 @@
     ATMENTION_1
   }
 
-  // Global notification settings (on by default)
+  // Global notification settings
   enum GlobalAppNotificationSetting {
     NEWMESSAGES_0,
     PLAINTEXTMOBILE_1,
     PLAINTEXTDESKTOP_2,
-    DEFAULTSOUNDMOBILE_3
+    DEFAULTSOUNDMOBILE_3,
+    DISABLETYPING_4
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;
@@ -154,6 +159,7 @@
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
     boolean last; // Will be true if the number of results is less than requested
+    boolean forceFirstPage; // Let downstream consumers of this Pagination know this is an initial request
   }
 
   record RateLimit {
@@ -171,10 +177,11 @@
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
+    union { null, string } topicName; // used only by local inbox cache
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
-    // If left empty, default is to return active and preview status
+    // If left empty, default is to return active, preview, and reset status
     array<ConversationMemberStatus> memberStatus;
     // If left empty, default is active
     array<ConversationExistence> existences;
@@ -189,6 +196,7 @@
     boolean readOnly;
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
+    boolean skipBgLoads; // optionally skip queuing the conversation in the background loader.
   }
 
   record ConversationIDTriple {
@@ -217,7 +225,6 @@
     MessageID basis;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -227,6 +234,7 @@
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
+    LocalConversationVers localVersion;
 
     // Finalize info for underlying TLF (only makes sense for KBFS convos)
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -290,6 +298,9 @@
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
 
+    // Latest pinned message
+    union { null, MessageID } pinnedMsg;
+
     // The latest history deletion. Defaults to zeroes.
     // The client keeps this synced for retention but not for delete-history messages.
     Expunge expunge;
@@ -324,6 +335,7 @@
     array<MessageID> reactionIDs;
     @mpackkey("u") @jsonkey("u")
     array<MessageID> unfurlIDs;
+    array<MessageID> replies;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
@@ -344,7 +356,6 @@
     gregor1.Time composeTime;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
     @mpackkey("l") @jsonkey("l")
     gregor1.DurationSec lifetime; // used to computed etime
@@ -354,7 +365,6 @@
     union { null, string } explodedBy;
   }
 
-  @mpackkey("pi") @jsonkey("pi")
   record EphemeralPurgeInfo {
     @mpackkey("c") @jsonkey("c")
     ConversationID convID;
@@ -406,6 +416,12 @@
     //           small teams. In V4, if MACs are present, the verifyKey is a dummy.
     @mpackkey("pm") @jsonkey("pm")
     map<keybase1.KID, bytes> pairwiseMacs;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which member is the bot recipient, if any, to select
+    //           appropriate crypt keys.
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   record MessageClientHeaderVerified {
@@ -440,6 +456,9 @@
 
     @mpackkey("pm") @jsonkey("pm")
     boolean hasPairwiseMacs;
+
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
@@ -529,37 +548,47 @@
     PREPARE_5,
     SEARCHER_6,
     INDEXED_SEARCH_7,
-    KBFSFILEACTIVITY_8
+    KBFSFILEACTIVITY_8,
+    COINFLIP_9,
+    BOTCOMMANDS_10
+  }
+
+  enum ReIndexingMode {
+    NONE_0,
+    PRESEARCH_SYNC_1,
+    POSTSEARCH_SYNC_2
   }
 
   record SearchOpts {
+    boolean isRegex;
+
+    // message filters
     string sentBy;
+    string sentTo;
+    // only set to true if sentTo is the current user.
+    boolean matchMentions;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
+
+    // search parameters
     int maxHits;
     // only used by regexp search
     int maxMessages;
     int beforeContext;
     int afterContext;
+    union { null, Pagination } initialPagination;
     // only used by in inbox search
-    boolean forceReindex;
-    int maxConvs;
+    ReIndexingMode reindexMode;
+    int maxConvsSearched;
+    int maxConvsHit;
+    union { null, ConversationID } convID;
+    // only used by conversation name search
+    int maxNameConvs;
   }
 
-  record ConversationIndexMetadata {
-    @mpackkey("s") @jsonkey("s")
-    map<MessageID, boolean> seenIDs;
-    @mpackkey("v") @jsonkey("v")
-    int version;
-  }
-
-  record ConversationIndex {
-    // search token -> msgID
-    @mpackkey("i") @jsonkey("i")
-    map<string, map<MessageID, boolean>> index;
-    @mpackkey("m") @jsonkey("m")
-    ConversationIndexMetadata metadata;
-  }
+  // The search indexer uses the EmptyStruct to implement a set using a map
+  // with a zero sized value.
+  record EmptyStruct{}
 
   record ChatSearchMatch {
     int startIndex;
@@ -576,7 +605,10 @@
 
   record ChatSearchInboxHit {
     ConversationID convID;
+    TeamType teamType;
     string convName;
+    string query;
+    gregor1.Time time;
     array<ChatSearchHit> hits;
   }
 
@@ -589,6 +621,7 @@
     int numHits;
     int numConvs;
     int percentIndexed;
+    boolean delegated;
   }
 
   record ChatSearchIndexStatus {
@@ -646,4 +679,16 @@
     AssetTag tag;              // for multiple previews, a tag to differentiate
   }
 
+  // Bot Commands
+  enum BotCommandsAdvertisementTyp {
+    PUBLIC_0,
+    TLFID_MEMBERS_1,
+    TLFID_CONVS_2
+  }
+
+  record TeamMember {
+    gregor1.UID uid;
+    keybase1.TeamRole role;
+    keybase1.TeamMemberStatus status;
+  }
 }

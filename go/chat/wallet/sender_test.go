@@ -25,7 +25,8 @@ type mockInboxSource struct {
 
 func (m *mockInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizeTyp types.ConversationLocalizerTyp,
-	useLocalData bool, maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
+	dataSource types.InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery,
+	p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
 	parts := m.partsFn()
 	var convParts []chat1.ConversationLocalParticipant
 	for _, p := range parts {
@@ -34,7 +35,7 @@ func (m *mockInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		})
 	}
 	return types.Inbox{
-		Convs: []chat1.ConversationLocal{chat1.ConversationLocal{
+		Convs: []chat1.ConversationLocal{{
 			Info: chat1.ConversationInfoLocal{
 				MembersType:  m.membersTypFn(),
 				Participants: convParts,
@@ -52,10 +53,13 @@ func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.
 	return m.miniFn(payments)
 }
 
+func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
 type mockUpakLoader struct {
 	libkb.UPAKLoader
-	usernameFn func(gregor1.UID) string
-	usernames  map[string]string
+	usernames map[string]string
 }
 
 func newMockUpakLoader() *mockUpakLoader {
@@ -77,11 +81,13 @@ func (m *mockUpakLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (
 }
 
 func TestStellarSender(t *testing.T) {
+	tc := externalstest.SetupTest(t, "stellarsender", 0)
+	defer tc.Cleanup()
+
 	mikeUID := gregor1.UID([]byte{0, 1})
 	patrickUID := gregor1.UID([]byte{0, 2})
 	maxUID := gregor1.UID([]byte{0, 4})
 	convID := chat1.ConversationID([]byte{0, 3})
-	tc := externalstest.SetupTest(t, "stellarsender", 0)
 	ms := mockStellar{}
 	mi := mockInboxSource{}
 	mu := newMockUpakLoader()
@@ -142,44 +148,44 @@ func TestStellarSender(t *testing.T) {
 	}
 
 	t.Logf("imp team")
-	testCase("+1XLM", []paymentRes{paymentRes{
+	testCase("+1XLM", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM",
 	}}, mikeUID, mikePatrickFn, nativeFn, successFn(nil, patrickUID))
-	testCase("+1XLM", []paymentRes{paymentRes{
+	testCase("+1XLM", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_ERROR,
 		text:      "+1XLM",
 	}}, mikeUID, mikePatrickFn, nativeFn, successFn(errors.New("NOOOO"), patrickUID))
 	testCase("+1XLM", nil, mikeUID, allFn, nativeFn, successFn(nil))
-	testCase("+1XLM@patrick", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
 	}}, mikeUID, allFn, nativeFn, successFn(nil, patrickUID))
-	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, nativeFn, successFn(nil, patrickUID, maxUID))
 
 	t.Logf("team successes")
 	testCase("+1XLM", nil, mikeUID, mikePatrickFn, teamFn, successFn(nil))
-	testCase("+1XLM@patrick", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
 	}}, mikeUID, mikePatrickFn, teamFn, successFn(nil, patrickUID))
-	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))
-	testCase("+1XLM@patrick and also +10USD@max, and +10cad@karenm", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max, and +10cad@karenm", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))

@@ -6,9 +6,9 @@ import (
 	"net"
 	"sync"
 
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -40,7 +40,6 @@ func (eu KBFSErrorUnwrapper) UnwrapError(arg interface{}) (appError error,
 	switch s.Code {
 	case StatusCodeDiskBlockCacheError:
 		appError = DiskBlockCacheError{Msg: s.Desc}
-		break
 	default:
 		ase := libkb.AppStatusError{
 			Code:   s.Code,
@@ -102,7 +101,7 @@ func NewKBFSService(kbCtx Context, config kbfsServiceConfig) (
 
 // Run starts listening on the passed-in listener.
 func (k *KBFSService) Run(l net.Listener) {
-	go k.listenLoop(l)
+	go func() { _ = k.listenLoop(l) }()
 }
 
 // registerProtocols registers protocols for this KBFSService.

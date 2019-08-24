@@ -1,9 +1,14 @@
+// Copyright 2018 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package libfs
 
 import (
 	"net/http"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 )
@@ -30,7 +35,7 @@ func (d *dir) Readdir(count int) (fis []os.FileInfo, err error) {
 type fileOrDir struct {
 	file *File
 	dir  *dir
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 }
 
 var _ http.File = fileOrDir{}
@@ -104,14 +109,14 @@ func (fod fileOrDir) Stat() (fi os.FileInfo, err error) {
 			fs:   fod.file.fs,
 			ei:   fod.ei,
 			node: fod.file.node,
-			name: fod.file.node.GetBasename(),
+			name: fod.file.node.GetBasename().Plaintext(),
 		}, nil
 	} else if fod.dir != nil {
 		return &FileInfo{
 			fs:   fod.dir.fs,
 			ei:   fod.ei,
 			node: fod.dir.node,
-			name: fod.dir.node.GetBasename(),
+			name: fod.dir.node.GetBasename().Plaintext(),
 		}, nil
 	}
 	return nil, errors.New("invalid fod")
@@ -128,7 +133,7 @@ var _ http.FileSystem = httpFileSystem{}
 // Open implements the http.FileSystem interface.
 func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 	hfs.fs.log.CDebugf(
-		hfs.fs.ctx, "hfs.Open %s", filename)
+		hfs.fs.ctx, "hfs.Open %s", hfs.fs.PathForLogging(filename))
 	defer func() {
 		hfs.fs.deferLog.CDebugf(hfs.fs.ctx, "hfs.Open done: %+v", err)
 		if err != nil {
@@ -145,7 +150,7 @@ func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 		return fileOrDir{
 			file: &File{
 				fs:       hfs.fs,
-				filename: n.GetBasename(),
+				filename: n.GetBasename().Plaintext(),
 				node:     n,
 				readOnly: true,
 				offset:   0,
@@ -156,7 +161,7 @@ func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 	return fileOrDir{
 		dir: &dir{
 			fs:      hfs.fs,
-			dirname: n.GetBasename(),
+			dirname: n.GetBasename().Plaintext(),
 			node:    n,
 		},
 		ei: ei,

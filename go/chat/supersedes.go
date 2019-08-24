@@ -12,11 +12,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type supersedesTransform interface {
-	Run(ctx context.Context,
-		conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
-}
-
 type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
 	*chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 
@@ -32,7 +27,7 @@ type basicSupersedesTransform struct {
 	opts         basicSupersedesTransformOpts
 }
 
-var _ supersedesTransform = (*basicSupersedesTransform)(nil)
+var _ types.SupersedesTransform = (*basicSupersedesTransform)(nil)
 
 func newBasicSupersedesTransform(g *globals.Context, opts basicSupersedesTransformOpts) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
@@ -59,17 +54,22 @@ func (t *basicSupersedesTransform) transformDelete(msg chat1.MessageUnboxed, sup
 func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 	mvalid := msg.Valid()
 	var payments []chat1.TextPayment
-	if mvalid.ClientHeader.MessageType == chat1.MessageType_TEXT {
+	var replyTo *chat1.MessageID
+	if mvalid.MessageBody.IsType(chat1.MessageType_TEXT) {
 		payments = mvalid.MessageBody.Text().Payments
+		replyTo = mvalid.MessageBody.Text().ReplyTo
 	}
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body:     superMsg.Valid().MessageBody.Edit().Body,
 		Payments: payments,
+		ReplyTo:  replyTo,
 	})
 	mvalid.AtMentions = superMsg.Valid().AtMentions
 	mvalid.AtMentionUsernames = superMsg.Valid().AtMentionUsernames
 	mvalid.ChannelMention = superMsg.Valid().ChannelMention
 	mvalid.ChannelNameMentions = superMsg.Valid().ChannelNameMentions
+	mvalid.SenderDeviceName = superMsg.Valid().SenderDeviceName
+	mvalid.SenderDeviceType = superMsg.Valid().SenderDeviceType
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }
@@ -254,7 +254,10 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// exploding message.
 				mvalid := newMsg.Valid()
 				if !mvalid.IsEphemeral() || mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), time.Now()) {
-					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
+					btyp, _ := mvalid.MessageBody.MessageType()
+					t.Debug(ctx, "skipping: %d because not valid full: typ: %v bodymatch: %v btyp: %v",
+						msg.GetMessageID(), msg.GetMessageType(),
+						mvalid.MessageBody.IsType(msg.GetMessageType()), btyp)
 					xformDelete(msg.GetMessageID())
 					continue
 				}

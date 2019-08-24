@@ -112,9 +112,10 @@ protocol proveCommon {
   }
 
   record ParamProofLogoConfig {
-    string url;
-    @jsonkey("fa_icon")
-    string faIcon;
+    @jsonkey("svg_black")
+    string svgBlack;
+    @jsonkey("svg_full")
+    string svgFull;
   }
 
   record ParamProofServiceConfig {
@@ -146,6 +147,9 @@ protocol proveCommon {
     int priority;
     string key;
     union { null, string } group;
+    boolean new;
+    @jsonkey("logo_key")
+    string logoKey;
   }
 
   record ExternalServiceConfig {

@@ -15,9 +15,10 @@ func TestInvitationArgs(t *testing.T) {
 
 	rec := newSendInvitationMock()
 	tc.G.API = rec
+	mctx := NewMetaContextForTest(tc)
 
 	email := "email@nomail.keybase.io"
-	inv, err := SendInvitation(tc.G, email, InviteArg{Message: "message", NoteToSelf: "note"})
+	inv, err := SendInvitation(mctx, email, InviteArg{Message: "message", NoteToSelf: "note"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +33,7 @@ func TestInvitationArgs(t *testing.T) {
 
 	rec.Reset()
 
-	inv, err = GenerateInvitationCode(tc.G, InviteArg{})
+	inv, err = GenerateInvitationCode(mctx, InviteArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +51,7 @@ func TestInvitationArgs(t *testing.T) {
 	if !ok {
 		t.Fatal("invalid social assertion")
 	}
-	inv, err = GenerateInvitationCodeForAssertion(tc.G, assertion, InviteArg{})
+	inv, err = GenerateInvitationCodeForAssertion(mctx, assertion, InviteArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,8 +98,8 @@ func newSendInvitationMock() *sendInvitationMock {
 	return &sendInvitationMock{NewAPIArgRecorder()}
 }
 
-func (s *sendInvitationMock) Post(arg APIArg) (*APIRes, error) {
-	if _, err := s.APIArgRecorder.Post(arg); err != nil {
+func (s *sendInvitationMock) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	if _, err := s.APIArgRecorder.Post(mctx, arg); err != nil {
 		return nil, err
 	}
 	jw, err := jsonw.Unmarshal([]byte(`{"status":{"code":0,"name":"OK"},"short_code":"clip outside broccoli culture","invitation_id":"2b25175f6da1d9155f23800d","csrf_token":"lgHZIDBlNjRhNDBhOTQ3ZWYyMTMxOWQ4MzM1Y2M4YjQ1YjE5zlcVNMHOAAFRgMDEIFyHOIg/AetihKRvVMNT2NoBNNG1QoCVxtDfzEK7/rdF"}`))

@@ -31,7 +31,7 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_IMPTEAMNATIVE, nil, nil)
 	firstMessageBoxed := prepareRes.Boxed
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -144,7 +144,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
+	_ = tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, nil, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
@@ -155,7 +155,7 @@ func TestConvLoaderAppState(t *testing.T) {
 		require.Fail(t, "no remote call")
 	}
 	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-appStateCh:
 		require.Fail(t, "no app state")
@@ -180,7 +180,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	t.Logf("testing foreground/background")
 	// Test that background/foreground works
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
+	_ = tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
@@ -195,14 +195,14 @@ func TestConvLoaderAppState(t *testing.T) {
 	case <-time.After(failDuration):
 		require.Fail(t, "no remote call")
 	}
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	select {
 	case <-appStateCh:
 	case <-time.After(failDuration):
 		require.Fail(t, "no app state")
 	}
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-appStateCh:
 	case <-time.After(failDuration):

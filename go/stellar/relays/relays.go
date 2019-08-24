@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -70,11 +71,12 @@ type Input struct {
 	From       stellar1.SecretKey
 	AmountXLM  string
 	Note       string
-	PublicMemo string
+	PublicMemo *stellarnet.Memo
 	// Implicit-team key to encrypt for
 	EncryptFor    keybase1.TeamApplicationKey
 	SeqnoProvider build.SequenceProvider
 	Timebounds    *build.Timebounds
+	BaseFee       uint64
 }
 
 type Output struct {
@@ -103,12 +105,12 @@ func Create(in Input) (res Output, err error) {
 	if err != nil {
 		return res, err
 	}
-	sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed, relayAccountID, in.AmountXLM,
-		in.PublicMemo, in.SeqnoProvider, in.Timebounds)
+	sig, err := stellarnet.CreateAccountXLMTransactionWithMemo(senderSeed, relayAccountID, in.AmountXLM,
+		in.PublicMemo, in.SeqnoProvider, in.Timebounds, in.BaseFee)
 	if err != nil {
 		return res, err
 	}
-	enc, err := encrypt(stellar1.RelayContents{
+	enc, err := Encrypt(stellar1.RelayContents{
 		StellarID: stellar1.TransactionID(sig.TxHash),
 		Sk:        stellar1.SecretKey(relayKp.Seed()),
 		Note:      in.Note,
@@ -116,7 +118,7 @@ func Create(in Input) (res Output, err error) {
 	if err != nil {
 		return res, err
 	}
-	pack, err := libkb.MsgpackEncode(enc)
+	pack, err := msgpack.Encode(enc)
 	if err != nil {
 		return res, err
 	}
@@ -127,11 +129,11 @@ func Create(in Input) (res Output, err error) {
 	}, nil
 }
 
-func encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKey) (res stellar1.EncryptedRelaySecret, err error) {
+func Encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKey) (res stellar1.EncryptedRelaySecret, err error) {
 	if encryptFor.Key.IsBlank() {
 		return res, errors.New("attempt to use blank team application key")
 	}
-	clearpack, err := libkb.MsgpackEncode(relay)
+	clearpack, err := msgpack.Encode(relay)
 	if err != nil {
 		return res, err
 	}
@@ -140,7 +142,7 @@ func encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKe
 		return res, err
 	}
 	secbox := secretbox.Seal(
-		nil, clearpack[:], &nonce, (*[32]byte)(&encryptFor.Key))
+		nil, clearpack, &nonce, (*[32]byte)(&encryptFor.Key))
 	return stellar1.EncryptedRelaySecret{
 		V:   1,
 		E:   secbox,
@@ -156,7 +158,7 @@ func DecryptB64(mctx libkb.MetaContext, teamID keybase1.TeamID, boxB64 string) (
 		return res, fmt.Errorf("error decoding relay box: %v", err)
 	}
 	var box stellar1.EncryptedRelaySecret
-	err = libkb.MsgpackDecode(&box, pack)
+	err = msgpack.Decode(&box, pack)
 	if err != nil {
 		return res, err
 	}
@@ -176,7 +178,7 @@ func decrypt(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey)
 	if !ok {
 		return res, libkb.NewDecryptOpenError("relay payment secretbox")
 	}
-	err = libkb.MsgpackDecode(&res, clearpack)
+	err = msgpack.Decode(&res, clearpack)
 	if err != nil {
 		return res, err
 	}

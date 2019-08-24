@@ -262,7 +262,6 @@ func TestHello(t *testing.T) {
 	} else if !bytes.Equal(buf[0:n], txt2) {
 		t.Fatal("wrong ponged text")
 	}
-	return
 }
 
 func TestBadMetadata(t *testing.T) {

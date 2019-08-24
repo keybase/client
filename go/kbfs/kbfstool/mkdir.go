@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/fsrpc"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -21,7 +22,8 @@ func maybePrintPath(path string, err error, verbose bool) {
 }
 
 func createDir(ctx context.Context, kbfsOps libkbfs.KBFSOps, parentNode libkbfs.Node, dirname, path string, verbose bool) (libkbfs.Node, error) {
-	childNode, _, err := kbfsOps.CreateDir(ctx, parentNode, dirname)
+	childNode, _, err := kbfsOps.CreateDir(
+		ctx, parentNode, parentNode.ChildName(dirname))
 	maybePrintPath(path, err, verbose)
 	return childNode, err
 }
@@ -60,8 +62,9 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 			}
 
 			nextNode, err := createDir(ctx, kbfsOps, currNode, dirname, currP.String(), verbose)
-			if err == (libkbfs.NameExistsError{Name: dirname}) {
-				nextNode, _, err = kbfsOps.Lookup(ctx, currNode, dirname)
+			if err == (data.NameExistsError{Name: dirname}) {
+				nextNode, _, err = kbfsOps.Lookup(
+					ctx, currNode, currNode.ChildName(dirname))
 			}
 			if err != nil {
 				return err
@@ -70,7 +73,7 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 		}
 	} else {
 		if p.PathType != fsrpc.TLFPathType {
-			return libkbfs.NameExistsError{Name: p.String()}
+			return data.NameExistsError{Name: p.String()}
 		}
 
 		parentDir, dirname, err := p.DirAndBasename()

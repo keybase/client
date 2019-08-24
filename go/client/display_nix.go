@@ -8,3 +8,4 @@ package client
 var CHECK = "✔"
 var BADX = "✖"
 var BTC = "฿"
+var XLM = "🚀"

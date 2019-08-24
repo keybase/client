@@ -70,3 +70,16 @@ type InvalidNonceError struct {
 func (e InvalidNonceError) Error() string {
 	return fmt.Sprintf("Invalid nonce %v", e.Nonce)
 }
+
+// PaddedBlockReadError occurs if the number of bytes read do not
+// equal the number of bytes specified.
+type PaddedBlockReadError struct {
+	ActualLen   int
+	ExpectedLen int
+}
+
+// Error implements the error interface of PaddedBlockReadError.
+func (e PaddedBlockReadError) Error() string {
+	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
+		e.ActualLen, e.ExpectedLen)
+}

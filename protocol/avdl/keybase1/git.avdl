@@ -45,7 +45,7 @@ protocol git {
     RENAMEREPO_3
   }
   record GitRefMetadata {
-    string refName;    
+    string refName;
     array<GitCommit> commits;
     boolean moreCommitsAvailable; // true if `commits` doesn't include all
     boolean isDelete; // true if this is a branch/ref delete operation
@@ -73,8 +73,8 @@ protocol git {
   }
 
   // These RPCs are only exposed for testing. Public commands won't call it directly.
-  void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata, boolean notifyTeam);
-  void deleteGitMetadata(Folder folder, GitRepoName repoName);
+  void putGitMetadata(FolderHandle folder, RepoID repoID, GitLocalMetadata metadata, boolean notifyTeam);
+  void deleteGitMetadata(FolderHandle folder, GitRepoName repoName);
 
   enum GitRepoResultState {
     ERR_0,
@@ -87,7 +87,7 @@ protocol git {
   }
 
   record GitRepoInfo {
-    Folder folder;
+    FolderHandle folder;
     RepoID repoID;
     GitLocalMetadata localMetadata;
     GitServerMetadata serverMetadata;
@@ -99,7 +99,7 @@ protocol git {
 
   // fetch git repos for a single team / implicit team
   // (note that non-team TLFs are mapped to implicit teams on the core side of this)
-  array<GitRepoResult> getGitMetadata(Folder folder);
+  array<GitRepoResult> getGitMetadata(FolderHandle folder);
 
   // fetch git repos for all teams that the user has access to
   array<GitRepoResult> getAllGitMetadata();
@@ -124,8 +124,8 @@ protocol git {
 
   record GitTeamRepoSettings {
     union { null, string } channelName;
-    boolean chatDisabled; 
+    boolean chatDisabled;
   }
-  GitTeamRepoSettings getTeamRepoSettings(Folder folder, RepoID repoID);
-  void setTeamRepoSettings(Folder folder, RepoID repoID, union { null, string } channelName, boolean chatDisabled);
+  GitTeamRepoSettings getTeamRepoSettings(FolderHandle folder, RepoID repoID);
+  void setTeamRepoSettings(FolderHandle folder, RepoID repoID, union { null, string } channelName, boolean chatDisabled);
 }

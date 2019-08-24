@@ -42,6 +42,10 @@ func (r DummyChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFul
 	return nil
 }
 
+func (r DummyChatUI) ChatThreadStatus(ctx context.Context, arg chat1.ChatThreadStatusArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return true, nil
 }
@@ -54,6 +58,10 @@ func (r DummyChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDon
 	return nil
 }
 
+func (r DummyChatUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	return nil
 }
@@ -63,6 +71,10 @@ func (r DummyChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSear
 }
 
 func (r DummyChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
 	return nil
 }
 
@@ -79,6 +91,51 @@ func (r DummyChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatSte
 }
 
 func (r DummyChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
+	arg chat1.ChatGiphyToggleResultWindowArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
 	return nil
 }
 

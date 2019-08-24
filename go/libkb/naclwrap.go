@@ -320,31 +320,36 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string
 	var fullSigBody []byte
 	keyInSignature, msg, fullSigBody, err = kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return
+		return nil, id, err
 	}
 
 	kidInSig := keyInSignature.GetKID()
 	kidWanted := k.GetKID()
 	if kidWanted.NotEqual(kidInSig) {
 		err = WrongKidError{kidInSig, kidWanted}
-		return
+		return nil, id, err
 	}
 
 	id = kbcrypto.ComputeSigIDFromSigBody(fullSigBody)
-	return
+	return msg, id, nil
 }
 
 func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
+	var keyInSignature *kbcrypto.NaclSigningKeyPublic
+	var fullSigBody []byte
+	keyInSignature, fullSigBody, err = kbcrypto.NaclVerifyWithPayload(sig, msg)
 	if err != nil {
-		return
+		return id, err
 	}
-	if !FastByteArrayEq(extractedMsg, msg) {
-		err = BadSigError{"wrong payload"}
-		return
+	kidInSig := keyInSignature.GetKID()
+	kidWanted := k.GetKID()
+	if kidWanted.NotEqual(kidInSig) {
+		err = WrongKidError{kidInSig, kidWanted}
+		return id, err
 	}
-	id = resID
-	return
+
+	id = kbcrypto.ComputeSigIDFromSigBody(fullSigBody)
+	return id, nil
 }
 
 func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
@@ -469,6 +474,10 @@ func MakeNaclDHKeyPairFromSecret(secret [NaclDHKeySecretSize]byte) (NaclDHKeyPai
 
 func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 	return makeNaclDHKeyPair(rand.Reader)
+}
+
+func GenerateNaclSigningKeyPairFromSeed(seed [ed25519.SeedSize]byte) (NaclSigningKeyPair, error) {
+	return makeNaclSigningKeyPair(bytes.NewReader(seed[:]))
 }
 
 func KbOpenSig(armored string) ([]byte, error) {

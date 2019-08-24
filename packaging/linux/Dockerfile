@@ -27,7 +27,15 @@ RUN apt-get update
 RUN apt-get install -y nodejs yarn
 
 # Install Go directly from Google, because the Debian repos tend to be behind.
-RUN wget "https://storage.googleapis.com/golang/go1.10.4.linux-amd64.tar.gz" -O /root/go.tar
-RUN tar -C /usr/local -xzf /root/go.tar
-RUN rm /root/go.tar
+# When updating the version, remember to bump keybase_packaging_v# in docker_build.sh.
+# Copy over the new hash when upgrading version. But if not upgrading version,
+# the check should not ever fail.
+ENV GOLANG_VERSION 1.12.9
+ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
+ENV GOLANG_DOWNLOAD_SHA256 ac2a6efcc1f5ec8bdc0db0a988bb1d301d64b6d61b7e8d9e42f662fbb75a2b9b
+
+RUN wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
+RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
+RUN tar -C /usr/local -xzf /root/go.tar.gz
+RUN rm /root/go.tar.gz
 ENV PATH "$PATH:/usr/local/go/bin"

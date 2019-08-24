@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 )
 
 // AddMemberTx helps build a transaction that may contain multiple
@@ -131,20 +132,22 @@ func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
 	payload.None = append(payload.None, uv)
 }
 
-func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) {
+func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 	// Preconditions: UV is a PUKful user, role is valid enum value
 	// and not NONE.
 	payload := tx.changeMembershipPayload(uv.Uid)
-	payload.AddUVWithRole(uv, role)
+	err := payload.AddUVWithRole(uv, role, botSettings)
+	return err
 }
 
 func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
-	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) {
-	// Preconditions: UV is a PUKful user, role is valid and not NONE,
-	// invite exists.
+	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) error {
+	// Preconditions: UV is a PUKful user, role is valid and not NONE, invite
+	// exists. Role is not RESTRICTEDBOT as botSettings are set to nil.
 	payload := tx.changeMembershipPayload(uv.Uid)
-	payload.AddUVWithRole(uv, role)
+	err := payload.AddUVWithRole(uv, role, nil)
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
+	return err
 }
 
 func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite {
@@ -157,14 +160,14 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 }
 
 // createKeybaseInvite queues Keybase-type invite for given UV and role.
-func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
+func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
 	// Preconditions: UV is a PUKless user, and not already in the
 	// team, role is valid enum value and not NONE or OWNER.
-	tx.createInvite("keybase", uv.TeamInviteName(), role, uv.Uid)
+	return tx.createInvite("keybase", uv.TeamInviteName(), role, uv.Uid)
 }
 
 // createInvite queues an invite for invite name with role.
-func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) {
+func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) error {
 	var payload *SCTeamInvites
 	if typ == "keybase" {
 		payload = tx.inviteKeybasePayload(uid)
@@ -187,15 +190,33 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 		payload.Admins = appendToInviteList(invite, payload.Admins)
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
+	default:
+		// TODO HOTPOT-460 add support for BOT invites
+		return fmt.Errorf("invalid role for invite %v", role)
 	}
+	return nil
 }
 
-// sweepCryptoMembers will queue "removes" for all cryptomembers with given
-// UID.
-func (tx *AddMemberTx) sweepCryptoMembers(uid keybase1.UID) {
+// sweepCryptoMembers will queue "removes" for all cryptomembers with given UID.
+// exceptAdminsRemovingOwners - But don't try to remove owners if we are admin.
+func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID,
+	exceptAdminsRemovingOwners bool) {
 	team := tx.team
+	var myRole keybase1.TeamRole
+	if exceptAdminsRemovingOwners {
+		var err error
+		myRole, err = tx.team.myRole(ctx)
+		if err != nil {
+			myRole = keybase1.TeamRole_NONE
+		}
+	}
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
+		chainRole := team.chain().getUserRole(chainUv)
+		if chainUv.Uid.Equal(uid) && chainRole != keybase1.TeamRole_NONE {
+			if exceptAdminsRemovingOwners && myRole == keybase1.TeamRole_ADMIN && chainRole == keybase1.TeamRole_OWNER {
+				// Skip if we're an admin and they're an owner.
+				continue
+			}
 			tx.removeMember(chainUv)
 		}
 	}
@@ -247,7 +268,8 @@ func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.Tea
 // current incarnation of UPAK. Public APIs are AddMemberByUV and
 // AddMemberByUsername that load UPAK and pass it to this function
 // to continue membership changes.
-func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole) (invite bool, err error) {
+func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (invite bool, err error) {
 	team := tx.team
 	g := team.G()
 
@@ -313,13 +335,23 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	// No going back after this point!
 
 	tx.sweepKeybaseInvites(uv.Uid)
-	tx.sweepCryptoMembers(uv.Uid)
+
+	// An admin is only allowed to remove an owner UV when, in the same link, replacing them with
+	// a 'newer' UV with a greater eldest seqno.
+	// So, if we're an admin re-adding an owner who does not yet have a PUK
+	// then don't try to remove the owner's pre-reset UV.
+	exceptAdminsRemovingOwners := !hasPUK
+	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {
-		tx.createKeybaseInvite(uv, role)
+		if err = tx.createKeybaseInvite(uv, role); err != nil {
+			return false, err
+		}
 		return true, nil
 	}
-	tx.addMember(uv, role)
+	if err := tx.addMember(uv, role, botSettings); err != nil {
+		return false, err
+	}
 	return false, nil
 }
 
@@ -347,8 +379,12 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
-		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+	case keybase1.TeamRole_RESTRICTEDBOT,
+		keybase1.TeamRole_BOT,
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_ADMIN,
+		keybase1.TeamRole_OWNER:
 		return nil
 	default:
 		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))
@@ -359,7 +395,8 @@ func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 // given UV is valid (that we don't have outdated EldestSeqno), and if
 // user has PUK, and if not, it properly handles that by adding
 // Keybase-type invite. It also cleans up old invites and memberships.
-func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
 	g := team.G()
 
@@ -374,7 +411,7 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 		return fmt.Errorf("Bad eldestseqno for %s: expected %d, got %d", uv.Uid, current.EldestSeqno, uv.EldestSeqno)
 	}
 
-	_, err = tx.addMemberByUPKV2(ctx, current, role)
+	_, err = tx.addMemberByUPKV2(ctx, current, role, botSettings)
 	return err
 }
 
@@ -382,18 +419,19 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 // checks if given username can become crypto member or a PUKless
 // member. It will also clean up old invites and memberships if
 // necessary.
-func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
 	upak, err := engine.ResolveAndCheck(m, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
-	_, err = tx.addMemberByUPKV2(ctx, upak, role)
+	_, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 	return err
 }
 
@@ -401,7 +439,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 // If it's an email (or phone) assertion, we assert that it only has one part (and isn't a+b compound).
 // If there is only one factor in the assertion, then that's returned. Otherwise, nil.
 func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, err error) {
-	a, err := externals.AssertionParseAndOnly(m.G(), s)
+	a, err := externals.AssertionParseAndOnly(m, s)
 	if err != nil {
 		return false, nil, err
 	}
@@ -427,12 +465,13 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 //  3. [bob@gmail.com]@email WHERE there's an email-based invitation in play
 // **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
 // The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
-func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
+func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
+	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
 	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
 	if err != nil {
@@ -456,8 +495,8 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 
 	if !doInvite {
 		username = libkb.NewNormalizedUsername(upak.Username)
-		invite, err = tx.addMemberByUPKV2(ctx, upak, role)
-		m.CDebugf("Adding keybase member: %s (isInvite=%v)", username, invite)
+		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
+		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
 	}
 
@@ -466,11 +505,13 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	}
 
 	typ, name := single.ToKeyValuePair()
-	m.CDebugf("team %s invite sbs member %s/%s", team.Name(), typ, name)
+	m.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
-	tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */)
+	if err = tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */); err != nil {
+		return "", uv, false, err
+	}
 	return "", uv, true, nil
 }
 
@@ -558,26 +599,35 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	return nil
 }
 
-func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole,
+	botSettings *keybase1.TeamBotSettings) error {
+	if !tx.team.IsImplicit() {
+		return fmt.Errorf("ReAddMemberToImplicitTeam only works on implicit teams")
+	}
 	if err := assertValidNewTeamMemberRole(role); err != nil {
 		return err
 	}
 
 	if hasPUK {
-		tx.addMember(uv, role)
-		tx.sweepCryptoMembers(uv.Uid)
+		if err := tx.addMember(uv, role, botSettings); err != nil {
+			return err
+		}
+		tx.sweepCryptoMembers(ctx, uv.Uid, false)
 		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
 			return err
 		}
 	} else {
-		tx.createKeybaseInvite(uv, role)
+		if err := tx.createKeybaseInvite(uv, role); err != nil {
+			return err
+		}
 		tx.sweepKeybaseInvites(uv.Uid)
-		// We cannot sweep crypto members here because we need to
-		// ensure that we are only posting one link, and if we want to
-		// add pukless member, it has to be invite link. So old crypto
-		// members have to stay for now. However, old crypto member
-		// should be sweeped when Keybase-type invite goes through SBS
-		// handler and invited member becomes a real crypto dude.
+		// We cannot sweep crypto members here because we need to ensure that
+		// we are only posting one link, and if we want to add a pukless
+		// member, it has to be invite link. Otherwise we would attempt to
+		// remove the old member without adding a new one. So old crypto
+		// members have to stay for now. However, old crypto member should be
+		// swept when Keybase-type invite goes through SBS handler and invited
+		// member becomes a real crypto dude.
 	}
 
 	if len(tx.payloads) != 1 {
@@ -648,7 +698,9 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 	tx.sweepKeybaseInvites(uv.Uid)
 	tx.sweepCryptoMembersOlderThan(uv)
 
-	tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID)
+	if err := tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -682,6 +734,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	var sections []SCTeamSection
 	memSet := newMemberSet()
 	var sectionsWithBoxSummaries []int
+	var ratchet *hidden.Ratchet
 
 	// Transform payloads to SCTeamSections.
 	for i, p := range tx.payloads {
@@ -691,6 +744,16 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			Implicit: team.IsImplicit(),
 			Public:   team.IsPublic(),
 		}
+
+		// Only add a ratchet to the first link in the sequence, it doesn't make sense
+		// to add more than one, and it may as well be the first.
+		if ratchet == nil {
+			ratchet, err = team.makeRatchet(mctx.Ctx())
+			if err != nil {
+				return err
+			}
+		}
+		section.Ratchets = ratchet.ToTeamSection()
 
 		switch p.Tag {
 		case txPayloadTagCryptomembers:
@@ -712,7 +775,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
 
-			// If there are addditions, then there will be a new key involved.
+			// If there are additions, then there will be a new key involved.
 			// If there are deletions, then we'll be rotating. So either way,
 			// this section needs a box summary.
 			sectionsWithBoxSummaries = append(sectionsWithBoxSummaries, i)
@@ -723,6 +786,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.Invites = p.Val.(*SCTeamInvites)
+			if section.Invites.Len() == 0 {
+				return fmt.Errorf("invalid invite, 0 members invited")
+			}
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
@@ -795,7 +861,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		ekLib := g.GetEKLib()
 		if ekLib != nil && len(memSet.recipients) > 0 {
 			uids := memSet.recipientUids()
-			teamEKBoxes, err = ekLib.BoxLatestTeamEK(mctx.Ctx(), team.ID, uids)
+			teamEKBoxes, err = ekLib.BoxLatestTeamEK(mctx, team.ID, uids)
 			if err != nil {
 				return err
 			}
@@ -832,17 +898,36 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		readySigs = append(readySigs, sigMultiItem)
 	}
 
+	// Add a single bot_settings link if we are adding any RESTRICTEDBOT members
+	if len(memSet.restrictedBotSettings) > 0 {
+		section, err := team.botSettingsSection(mctx.Ctx(), memSet.restrictedBotSettings, merkleRoot)
+		if err != nil {
+			return err
+		}
+		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, libkb.LinkTypeTeamBotSettings,
+			nextSeqno, latestLinkID, merkleRoot)
+		if err != nil {
+			return err
+		}
+
+		g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Prepared bot_settings signature: SeqNo: %d Hash: %q",
+			nextSeqno, linkID)
+		nextSeqno++
+		readySigs = append(readySigs, sigMultiItem)
+	}
+
 	if err := team.precheckLinksToPost(mctx.Ctx(), readySigs); err != nil {
 		g.Log.CDebugf(mctx.Ctx(), "Precheck failed: %v", err)
 		return err
 	}
 
 	payloadArgs := sigPayloadArgs{
-		secretBoxes:        secretBoxes,
-		lease:              lease,
-		implicitAdminBoxes: implicitAdminBoxes,
-		teamEKPayload:      teamEKPayload,
-		teamEKBoxes:        teamEKBoxes,
+		secretBoxes:         secretBoxes,
+		lease:               lease,
+		implicitAdminBoxes:  implicitAdminBoxes,
+		teamEKPayload:       teamEKPayload,
+		teamEKBoxes:         teamEKBoxes,
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 	payload := team.sigPayload(readySigs, payloadArgs)
 
@@ -850,8 +935,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
+	err = team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
+	if err != nil {
+		return err
+	}
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
+	createTeambotKeys(team.G(), team.ID, memSet.restrictedBotRecipientUids())
+
 	return nil
 }

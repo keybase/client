@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -22,6 +23,7 @@ type fetchDecider struct {
 	clockGetter
 
 	log     logger.Logger
+	vlog    *libkb.VDebugLog
 	fetcher func(ctx context.Context) error
 	tagKey  interface{}
 	tagName string
@@ -34,11 +36,12 @@ type fetchDecider struct {
 }
 
 func newFetchDecider(
-	log logger.Logger, fetcher func(ctx context.Context) error,
-	tagKey interface{}, tagName string,
+	log logger.Logger, vlog *libkb.VDebugLog,
+	fetcher func(ctx context.Context) error, tagKey interface{}, tagName string,
 	clock clockGetter) *fetchDecider {
 	return &fetchDecider{
 		log:         log,
+		vlog:        vlog,
 		fetcher:     fetcher,
 		tagKey:      tagKey,
 		tagName:     tagName,
@@ -52,7 +55,7 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 	defer fd.lock.Unlock()
 
 	if fd.readyCh != nil {
-		fd.log.CDebugf(ctx, "Waiting on existing fetch")
+		fd.vlog.CLogf(ctx, libkb.VLog1, "Waiting on existing fetch")
 		// There's already a fetch in progress.
 		return fd.readyCh, fd.errPtr
 	}
@@ -64,8 +67,9 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 	if err != nil {
 		fd.log.Warning("Couldn't generate a random request ID: %v", err)
 	}
-	fd.log.CDebugf(
-		ctx, "Spawning fetch in background with tag:%s=%v", fd.tagName, id)
+	fd.vlog.CLogf(
+		ctx, libkb.VLog1, "Spawning fetch in background with tag:%s=%v",
+		fd.tagName, id)
 	go func() {
 		// Make a new context so that it doesn't get canceled
 		// when returned.
@@ -85,7 +89,7 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 		// Notify everyone we're done fetching.
 		fd.lock.Lock()
 		defer fd.lock.Unlock()
-		fd.log.CDebugf(bgCtx, "Finished fetch: %+v", err)
+		fd.vlog.CLogf(bgCtx, libkb.VLog1, "Finished fetch: %+v", err)
 		*fd.errPtr = err
 		close(fd.readyCh)
 		fd.readyCh = nil
@@ -113,8 +117,8 @@ func (fd *fetchDecider) Do(
 	past := fd.Clock().Now().Sub(cachedTimestamp)
 	switch {
 	case past > blockTolerance || cachedTimestamp.IsZero():
-		fd.log.CDebugf(
-			ctx, "Blocking on fetch; cached data is %s old", past)
+		fd.vlog.CLogf(
+			ctx, libkb.VLog1, "Blocking on fetch; cached data is %s old", past)
 		readyCh, errPtr := fd.launchBackgroundFetch(ctx)
 
 		if fd.blockingForTest != nil {
@@ -128,13 +132,13 @@ func (fd *fetchDecider) Do(
 			return ctx.Err()
 		}
 	case past > bgTolerance:
-		fd.log.CDebugf(ctx, "Cached data is %s old", past)
+		fd.vlog.CLogf(ctx, libkb.VLog1, "Cached data is %s old", past)
 		_, _ = fd.launchBackgroundFetch(ctx)
 		// Return immediately, with no error, since the caller can
 		// just use the existing cache value.
 		return nil
 	default:
-		fd.log.CDebugf(ctx, "Using cached data from %s ago", past)
+		fd.vlog.CLogf(ctx, libkb.VLog1, "Using cached data from %s ago", past)
 		return nil
 	}
 }

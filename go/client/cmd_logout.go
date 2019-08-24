@@ -12,6 +12,7 @@ import (
 
 type CmdLogout struct {
 	libkb.Contextified
+	Force bool
 }
 
 func NewCmdLogoutRunner(g *libkb.GlobalContext) *CmdLogout {
@@ -23,7 +24,14 @@ func (v *CmdLogout) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.Logout(context.TODO(), 0)
+	ctx := context.TODO()
+	if !v.Force {
+		err := ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(v.G()))
+		if err != nil {
+			return err
+		}
+	}
+	return cli.Logout(ctx, 0)
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,6 +40,12 @@ func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Usage: "Logout and remove session information",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLogoutRunner(g), "logout", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "If there are any reasons not to logout right now, ignore them",
+			},
 		},
 	}
 }
@@ -43,4 +57,7 @@ func (v *CmdLogout) GetUsage() libkb.Usage {
 	}
 }
 
-func (v *CmdLogout) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdLogout) ParseArgv(ctx *cli.Context) error {
+	v.Force = ctx.Bool("force")
+	return nil
+}

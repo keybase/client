@@ -27,12 +27,12 @@ func NewSender(gc *globals.Context) *Sender {
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MakePreview")()
-	src, err := NewFileReadResetter(filename)
+	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
 	defer src.Close()
-	pre, err := PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
+	pre, err := PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -49,11 +49,12 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 }
 
 func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview *chat1.MakePreviewRes) (res Preprocess, err error) {
-	src, err := NewFileReadResetter(filename)
+	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
-	return PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
+	defer src.Close()
+	return PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
 }
 
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
@@ -110,7 +111,7 @@ func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sen
 		return outboxID, msgID, err
 	}
 	s.Debug(ctx, "PostFileAttachmentMessage: generated message with outbox ID: %s", outboxID)
-	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID)
+	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil, nil)
 	if err != nil {
 		return outboxID, msgID, err
 	}
@@ -157,7 +158,7 @@ func (s *Sender) PostFileAttachment(ctx context.Context, sender types.Sender, ui
 	msg.MessageBody = chat1.NewMessageBodyWithAttachment(attachment)
 
 	s.Debug(ctx, "PostFileAttachment: attachment assets uploaded, posting attachment message")
-	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID)
+	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil, nil)
 	if err != nil {
 		return outboxID, msgID, err
 	}

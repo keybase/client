@@ -69,12 +69,12 @@ func ParseAmount(s string) (*big.Rat, error) {
 // `rate` is the amount of outside currency that 1 XLM is worth. Example: "0.9389014463" = PLN / XLM
 // The result is rounded to 7 digits past the decimal.
 // The rounding is arbitrary but expected to be sufficient precision.
-func ConvertXLMToOutside(XLMAmount, rate string) (outsideAmount string, err error) {
+func ConvertXLMToOutside(xlmAmount, rate string) (outsideAmount string, err error) {
 	rateRat, err := parseExchangeRate(rate)
 	if err != nil {
 		return "", err
 	}
-	amountInt64, err := ParseStellarAmount(XLMAmount)
+	amountInt64, err := ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return "", fmt.Errorf("parsing amount to convert: %q", err)
 	}
@@ -87,7 +87,7 @@ func ConvertXLMToOutside(XLMAmount, rate string) (outsideAmount string, err erro
 // `rate` is the amount of outside currency that 1 XLM is worth. Example: "0.9389014463" = PLN / XLM
 // The result is rounded to 7 digits past the decimal (which is what XLM supports).
 // The result returned can of a greater magnitude than XLM supports.
-func ConvertOutsideToXLM(outsideAmount, rate string) (XLMAmount string, err error) {
+func ConvertOutsideToXLM(outsideAmount, rate string) (xlmAmount string, err error) {
 	rateRat, err := parseExchangeRate(rate)
 	if err != nil {
 		return "", err
@@ -180,4 +180,42 @@ func parseExchangeRate(rate string) (*big.Rat, error) {
 	default:
 		return nil, fmt.Errorf("exchange rate of unknown sign (%v)", sign)
 	}
+}
+
+// PathPaymentMaxValue returns 105% * amount.
+func PathPaymentMaxValue(amount string) (string, error) {
+	amtInt, err := stellaramount.ParseInt64(amount)
+	if err != nil {
+		return "", err
+	}
+	amtMax := (105 * amtInt) / 100
+
+	return StringFromStellarAmount(amtMax), nil
+}
+
+// FeeString converts a horizon.Transaction.FeePaid int32 from
+// stroops to a lumens string.
+func FeeString(fee int32) string {
+	n := big.NewRat(int64(fee), StroopsPerLumen)
+	return n.FloatString(7)
+}
+
+// GetStellarExchangeRate takes two amounts, and returns the exchange rate of 1 source unit to destination units.
+// This is useful for comparing two different assets on the Stellar network, say XLM and AnchorUSD.
+func GetStellarExchangeRate(source, destination string) (string, error) {
+	s, err := ParseStellarAmount(source)
+	if err != nil {
+		return "", fmt.Errorf("parsing source amount: %q", err)
+	}
+	if s == 0 {
+		return "", fmt.Errorf("cannot have a source amount of 0")
+	}
+
+	d, err := ParseStellarAmount(destination)
+	if err != nil {
+		return "", fmt.Errorf("parsing destination amount: %q", err)
+	}
+
+	rate := big.NewRat(d, s)
+	return rate.FloatString(7), nil
 }

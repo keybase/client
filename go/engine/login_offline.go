@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type LoginOffline struct {
@@ -35,24 +36,24 @@ func (e *LoginOffline) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *LoginOffline) Run(m libkb.MetaContext) error {
-	if err := e.run(m); err != nil {
+	uid, err := e.run(m)
+	if err != nil {
 		return err
 	}
-
-	m.CDebugf("LoginOffline success, sending login notification")
-	m.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	m.CDebugf("LoginOffline success, calling login hooks")
-	m.G().CallLoginHooks()
+	m.Debug("LoginOffline success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsernameForUID(uid)))
+	m.Debug("LoginOffline success, calling login hooks")
+	m.G().CallLoginHooks(m)
 
 	return nil
 }
 
-func (e *LoginOffline) run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("LoginOffline#run", func() error { return err })()
-	_, err = libkb.BootstrapActiveDeviceFromConfig(m, false)
+func (e *LoginOffline) run(m libkb.MetaContext) (uid keybase1.UID, err error) {
+	defer m.Trace("LoginOffline#run", func() error { return err })()
+	uid, err = libkb.BootstrapActiveDeviceFromConfig(m, false)
 	if err != nil {
 		err = libkb.NewLoginRequiredError(err.Error())
-		return err
+		return uid, err
 	}
-	return nil
+	return uid, nil
 }

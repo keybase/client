@@ -13,7 +13,7 @@ import (
 )
 
 type journalBlockServer struct {
-	jServer *JournalServer
+	jManager *JournalManager
 	BlockServer
 	enableAddBlockReference bool
 }
@@ -21,10 +21,10 @@ type journalBlockServer struct {
 var _ BlockServer = journalBlockServer{}
 
 func (j journalBlockServer) getBlockFromJournal(
-	tlfID tlf.ID, id kbfsblock.ID) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	found bool, err error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil)
+	tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, nil
 	}
@@ -32,7 +32,7 @@ func (j journalBlockServer) getBlockFromJournal(
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
-	data, serverHalf, err = tlfJournal.getBlockData(id)
+	data, serverHalf, err = tlfJournal.getBlockData(ctx, id)
 	switch errors.Cause(err).(type) {
 	case nil:
 		return data, serverHalf, true, nil
@@ -46,9 +46,9 @@ func (j journalBlockServer) getBlockFromJournal(
 }
 
 func (j journalBlockServer) getBlockSizeFromJournal(
-	tlfID tlf.ID, id kbfsblock.ID) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (
 	size uint32, found bool, err error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil)
+	tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
 		return 0, false, nil
 	}
@@ -56,7 +56,7 @@ func (j journalBlockServer) getBlockSizeFromJournal(
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
-	size, err = tlfJournal.getBlockSize(id)
+	size, err = tlfJournal.getBlockSize(ctx, id)
 	switch errors.Cause(err).(type) {
 	case nil:
 		return size, true, nil
@@ -73,12 +73,12 @@ func (j journalBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
-	j.jServer.log.LazyTrace(ctx, "jBServer: Get %s", id)
+	j.jManager.log.LazyTrace(ctx, "jBServer: Get %s", id)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jBServer: Get %s done (err=%v)", id, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jBServer: Get %s done (err=%v)", id, err)
 	}()
 
-	data, serverHalf, found, err := j.getBlockFromJournal(tlfID, id)
+	data, serverHalf, found, err := j.getBlockFromJournal(ctx, tlfID, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -98,7 +98,7 @@ func (j journalBlockServer) Put(
 	// called in parallel anyway. Rely on caller (usually
 	// doBlockPuts) to do the tracing.
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
+	if tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
@@ -106,12 +106,12 @@ func (j journalBlockServer) Put(
 		switch e := errors.Cause(err).(type) {
 		case nil:
 			usedQuotaBytes, quotaBytes := tlfJournal.getQuotaInfo()
-			return j.jServer.maybeReturnOverQuotaError(
+			return j.jManager.maybeReturnOverQuotaError(
 				usedQuotaBytes, quotaBytes)
 		case errTLFJournalDisabled:
 			break
 		case *ErrDiskLimitTimeout:
-			return j.jServer.maybeMakeDiskLimitErrorReportable(e)
+			return j.jManager.maybeMakeDiskLimitErrorReportable(e)
 		default:
 			return err
 		}
@@ -124,12 +124,12 @@ func (j journalBlockServer) Put(
 func (j journalBlockServer) AddBlockReference(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (err error) {
-	j.jServer.log.LazyTrace(ctx, "jBServer: AddRef %s", id)
+	j.jManager.log.LazyTrace(ctx, "jBServer: AddRef %s", id)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jBServer: AddRef %s done (err=%v)", id, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jBServer: AddRef %s done (err=%v)", id, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
+	if tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil); ok {
 		if !j.enableAddBlockReference {
 			// TODO: Temporarily return an error until KBFS-1149 is
 			// fixed. This is needed despite
@@ -160,9 +160,9 @@ func (j journalBlockServer) RemoveBlockReferences(
 	ctx context.Context, tlfID tlf.ID,
 	contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
-	j.jServer.log.LazyTrace(ctx, "jBServer: RemRef %v", contexts)
+	j.jManager.log.LazyTrace(ctx, "jBServer: RemRef %v", contexts)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jBServer: RemRef %v done (err=%v)", contexts, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jBServer: RemRef %v done (err=%v)", contexts, err)
 	}()
 
 	// Deletes always go straight to the server, since they slow down
@@ -176,9 +176,9 @@ func (j journalBlockServer) RemoveBlockReferences(
 func (j journalBlockServer) ArchiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID,
 	contexts kbfsblock.ContextMap) (err error) {
-	j.jServer.log.LazyTrace(ctx, "jBServer: ArchiveRef %v", contexts)
+	j.jManager.log.LazyTrace(ctx, "jBServer: ArchiveRef %v", contexts)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jBServer: ArchiveRef %v done (err=%v)", contexts, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jBServer: ArchiveRef %v done (err=%v)", contexts, err)
 	}()
 
 	// Archives always go straight to the server, since they slow down
@@ -191,22 +191,22 @@ func (j journalBlockServer) ArchiveBlockReferences(
 
 func (j journalBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID) (isLocal bool, err error) {
-	j.jServer.log.LazyTrace(ctx, "jBServer: IsUnflushed %s", id)
+	j.jManager.log.LazyTrace(ctx, "jBServer: IsUnflushed %s", id)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jBServer: IsUnflushed %s done (err=%v)", id, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jBServer: IsUnflushed %s done (err=%v)", id, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
+	if tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		return tlfJournal.isBlockUnflushed(id)
+		return tlfJournal.isBlockUnflushed(ctx, id)
 	}
 
 	return j.BlockServer.IsUnflushed(ctx, tlfID, id)
 }
 
 func (j journalBlockServer) Shutdown(ctx context.Context) {
-	j.jServer.shutdown(ctx)
+	j.jManager.shutdown(ctx)
 	j.BlockServer.Shutdown(ctx)
 }

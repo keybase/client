@@ -38,7 +38,7 @@ func (s *SimpleSource) formatArg(formats []keybase1.AvatarFormat) string {
 
 func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names []string,
 	formats []keybase1.AvatarFormat) (apiAvatarRes, error) {
-	arg := libkb.NewAPIArgWithMetaContext(m, endpoint)
+	arg := libkb.NewAPIArg(endpoint)
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	uarg := strings.Join(names, ",")
@@ -47,7 +47,7 @@ func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names
 	arg.Args.Add("formats", libkb.S{Val: farg})
 	s.debug(m, "issuing %s avatar req: uarg: %s farg: %s", param, uarg, farg)
 	var apiRes apiAvatarRes
-	if err := m.G().API.GetDecode(arg, &apiRes); err != nil {
+	if err := m.G().API.GetDecode(m, arg, &apiRes); err != nil {
 		s.debug(m, "apiReq: API fail: %s", err)
 		return apiRes, err
 	}
@@ -70,11 +70,11 @@ func (s *SimpleSource) makeRes(res *keybase1.LoadAvatarsRes, apiRes apiAvatarRes
 }
 
 func (s *SimpleSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
-	m.CDebugf("Avatars.SimpleSource: %s", fmt.Sprintf(msg, args...))
+	m.Debug("Avatars.SimpleSource: %s", fmt.Sprintf(msg, args...))
 }
 
 func (s *SimpleSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("SimpleSource.LoadUsers", func() error { return err })()
+	defer m.Trace("SimpleSource.LoadUsers", func() error { return err })()
 	apiRes, err := s.apiReq(m, "image/username_pic_lookups", "usernames", usernames, formats)
 	if err != nil {
 		return res, err
@@ -86,7 +86,7 @@ func (s *SimpleSource) LoadUsers(m libkb.MetaContext, usernames []string, format
 }
 
 func (s *SimpleSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("SimpleSource.LoadTeams", func() error { return err })()
+	defer m.Trace("SimpleSource.LoadTeams", func() error { return err })()
 	apiRes, err := s.apiReq(m, "image/team_avatar_lookups", "team_names", teams, formats)
 	if err != nil {
 		return res, err
@@ -101,4 +101,4 @@ func (s *SimpleSource) ClearCacheForName(m libkb.MetaContext, name string, forma
 	return nil
 }
 
-func (s *SimpleSource) OnCacheCleared(m libkb.MetaContext) {}
+func (s *SimpleSource) OnDbNuke(m libkb.MetaContext) error { return nil }

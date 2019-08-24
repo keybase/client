@@ -64,46 +64,8 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	return i.remoteProofLinks().TrackSet()
 }
 
-func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-	// TODO Remove with CORE-8969
-	useDisplayPriority := i.G().Env.GetRunMode() == DevelRunMode || i.G().Env.RunningInCI()
-	if useDisplayPriority {
-		return i.proofChecksSortedByDisplayPriority()
-	}
-	return i.proofChecksSortedByProofType()
-
-}
-
-// TODO Remove with CORE-8969
-func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
-	// Treat DNS and Web as the same type, and sort them together
-	// in the same bucket.
-	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
-		if t == keybase1.ProofType_DNS {
-			return keybase1.ProofType_GENERIC_WEB_SITE
-		}
-		return t
-	}
-
-	m := make(map[keybase1.ProofType][]*LinkCheckResult)
-	for _, p := range i.ProofChecks {
-		pt := dnsToWeb(p.link.GetProofType())
-		m[pt] = append(m[pt], p)
-	}
-
-	var res []*LinkCheckResult
-	for _, pt := range RemoteServiceOrder {
-		pc, ok := m[pt]
-		if !ok {
-			continue
-		}
-		sort.Sort(byDisplayString(pc))
-		res = append(res, pc...)
-	}
-	return res
-}
-
-func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResult {
+func (i *IdentifyOutcome) ProofChecksSorted(mctx MetaContext) []*LinkCheckResult {
+	// Sort by display priority
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
 	proofServices := i.G().GetProofServices()
@@ -111,7 +73,7 @@ func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResul
 	for _, lcr := range pc {
 		key := lcr.link.DisplayPriorityKey()
 		if _, ok := serviceTypes[key]; !ok {
-			st := proofServices.GetServiceType(key)
+			st := proofServices.GetServiceType(mctx.Ctx(), key)
 			displayPriority := 0
 			if st != nil {
 				displayPriority = st.DisplayPriority()
@@ -298,12 +260,4 @@ func (i IdentifyOutcome) GetError() error {
 
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
 	return i.GetErrorAndWarnings(false)
-}
-
-type byDisplayString []*LinkCheckResult
-
-func (a byDisplayString) Len() int      { return len(a) }
-func (a byDisplayString) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byDisplayString) Less(i, j int) bool {
-	return a[i].link.ToDisplayString() < a[j].link.ToDisplayString()
 }

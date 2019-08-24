@@ -62,12 +62,12 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 
 	m = m.WithLogTag("PPCHNG")
 
-	defer m.CTrace("PassphraseChange#Run", func() error { return err })()
+	defer m.Trace("PassphraseChange#Run", func() error { return err })()
 	defer func() {
 		m.G().SKBKeyringMu.Unlock()
 	}()
 	m.G().SKBKeyringMu.Lock()
-	m.CDebugf("| Acquired SKBKeyringMu mutex")
+	m.Debug("| Acquired SKBKeyringMu mutex")
 
 	if len(c.arg.Passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: "too short"}
@@ -78,7 +78,7 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if _, w := m.ActiveDevice().SyncSecrets(m); w != nil {
-		m.CDebugf("| failed to run secret syncer: %s", w)
+		m.Debug("| failed to run secret syncer: %s", w)
 	}
 
 	m = m.WithNewProvisionalLoginContextForUser(c.me)
@@ -105,10 +105,10 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
 	kp, err := findPaperKeys(m, c.me)
 	if err != nil {
-		m.CDebugf("findPaperKeys error: %s", err)
+		m.Debug("findPaperKeys error: %s", err)
 		return nil, err
 	}
-	m.CDebugf("findPaperKeys success")
+	m.Debug("findPaperKeys success")
 	c.usingPaper = true
 	return kp, nil
 }
@@ -118,24 +118,24 @@ func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*libkb.DeviceWith
 // for backup keys.  If backup keys are necessary, then it will
 // also log the user in with the backup keys.
 func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.ActiveDevice, err error) {
-	defer m.CTrace("PassphraseChange#findUpdateDevice", func() error { return err })()
+	defer m.Trace("PassphraseChange#findUpdateDevice", func() error { return err })()
 	if ad = m.G().ActiveDevice; ad.Valid() {
-		m.CDebugf("| returning globally active device key")
+		m.Debug("| returning globally active device key")
 		return ad, nil
 	}
 	kp, err := c.findPaperKeys(m)
 	if err != nil {
-		m.CDebugf("| error fetching paper keys")
+		m.Debug("| error fetching paper keys")
 		return nil, err
 	}
 	ad = libkb.NewActiveDeviceWithDeviceWithKeys(m, m.CurrentUserVersion(), kp)
-	m.CDebugf("| installing paper key as thread-local active device")
+	m.Debug("| installing paper key as thread-local active device")
 	return ad, nil
 }
 
 func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) (err error) {
 
-	defer m.CTrace("PassphraseChange#forceUpdatePassphrase", func() error { return err })()
+	defer m.Trace("PassphraseChange#forceUpdatePassphrase", func() error { return err })()
 
 	// Don't update server-synced pgp keys when recovering.
 	// This will render any server-synced pgp keys unrecoverable from the server.
@@ -146,7 +146,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 	}
 
 	if nPgpKeysLost > 0 {
-		m.CDebugf("PassphraseChange.runForcedUpdate: Losing %v synced keys", nPgpKeysLost)
+		m.Debug("PassphraseChange.runForcedUpdate: Losing %v synced keys", nPgpKeysLost)
 	}
 
 	// Ready the update argument; almost done, but we need some more stuff.
@@ -184,12 +184,11 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 		Endpoint:    "passphrase/sign",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		// Important to pass a MetaContext here to pick up the provisional login context
-		// or an ActiveDevice that is thread-local.
-		MetaContext: m,
 	}
 
-	_, err = m.G().API.PostJSON(postArg)
+	// Important to pass a MetaContext here to pick up the provisional login context
+	// or an ActiveDevice that is thread-local.
+	_, err = m.G().API.PostJSON(m, postArg)
 	if err != nil {
 		return fmt.Errorf("api post to passphrase/sign error: %s", err)
 	}
@@ -201,7 +200,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 // 3. Get lks client half from server
 // 4. Post an update passphrase proof
 func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PassphraseChange#runForcedUpdate", func() error { return err })()
+	defer m.Trace("PassphraseChange#runForcedUpdate", func() error { return err })()
 
 	ad, err := c.findUpdateDevice(m)
 	if err != nil {
@@ -247,7 +246,7 @@ func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
 // runStandardUpdate is for when the user knows the current password.
 func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 
-	defer m.CTrace("PassphraseChange.runStandardUpdate", func() error { return err })()
+	defer m.Trace("PassphraseChange.runStandardUpdate", func() error { return err })()
 
 	var ppStream *libkb.PassphraseStream
 	if len(c.arg.OldPassphrase) == 0 {
@@ -285,10 +284,9 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 		Endpoint:    "passphrase/replace",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		MetaContext: m,
 	}
 
-	_, err = c.G().API.PostJSON(postArg)
+	_, err = c.G().API.PostJSON(m, postArg)
 	if err != nil {
 		return err
 	}
@@ -375,7 +373,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(m libkb.MetaContext) ([]
 
 	// Using a paper key makes TripleSec-synced keys unrecoverable
 	if c.usingPaper {
-		m.CDebugf("using a paper key, thus TripleSec-synced keys are unrecoverable")
+		m.Debug("using a paper key, thus TripleSec-synced keys are unrecoverable")
 		return keyList, nil
 	}
 
@@ -424,7 +422,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(m libkb.MetaContext
 				return nil, 0, err
 			}
 			nLost++
-			m.CDebugf("findAndDecryptPrivatePGPKeysLossy: ignoring failure to decrypt key without prompt")
+			m.Debug("findAndDecryptPrivatePGPKeysLossy: ignoring failure to decrypt key without prompt")
 		}
 	}
 

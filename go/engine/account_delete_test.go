@@ -84,6 +84,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "acct")
 	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	require.NoError(t, err)
+	t.Logf("created user %v %v", u.GetNormalizedName(), u.GetUID())
 
 	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
@@ -92,6 +93,12 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	eng := NewAccountDelete(tc.G)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
+	t.Logf("deleted user")
+
+	// Punch through the UPAK cache. Not dealing with upak vs delete race right now.
+	tc.G.GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)).WithPublicKeyOptional().
+			WithUID(u.GetUID()).WithForcePoll(true))
 
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.SetProofServices(i)
@@ -102,6 +109,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	ieng := NewIdentify2WithUID(tc.G, arg)
 	uis = libkb.UIs{IdentifyUI: i}
 	m = NewMetaContextForTest(tc).WithUIs(uis)
+	t.Logf("identifying...")
 	err = RunEngine2(m, ieng)
 	require.Error(t, err)
 
@@ -129,7 +137,7 @@ func TestAccountDeleteAfterRestart(t *testing.T) {
 	if err == nil {
 		t.Fatal("no error loading deleted user")
 	}
-	if _, ok := err.(libkb.DeletedError); !ok {
+	if _, ok := err.(libkb.UserDeletedError); !ok {
 		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
 	}
 }

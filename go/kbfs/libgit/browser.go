@@ -5,6 +5,7 @@
 package libgit
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -25,7 +26,7 @@ func translateGitError(err *error) {
 	if *err == nil {
 		return
 	}
-	switch *err {
+	switch errors.Cause(*err) {
 	case object.ErrEntryNotFound:
 		*err = os.ErrNotExist
 	default:
@@ -36,6 +37,7 @@ func translateGitError(err *error) {
 // Browser presents the contents of a git repo as a read-only file
 // system, using only the dotgit directory of the repo.
 type Browser struct {
+	repo       *gogit.Repository
 	tree       *object.Tree
 	root       string
 	mtime      time.Time
@@ -61,6 +63,13 @@ func NewBrowser(
 		return nil, err
 	}
 
+	const masterBranch = "refs/heads/master"
+	if gitBranchName == "" {
+		gitBranchName = masterBranch
+	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
+		gitBranchName = "refs/heads/" + gitBranchName
+	}
+
 	repo, err := gogit.Open(storage, nil)
 	if errors.Cause(err) == gogit.ErrWorktreeNotProvided {
 		// This is not a bare repo (it might be for a test).  So we
@@ -69,18 +78,25 @@ func NewBrowser(
 		// matter what we pass in.
 		repo, err = gogit.Open(storage, repoFS)
 	}
-	if err != nil {
+
+	if err == gogit.ErrRepositoryNotExists && gitBranchName == masterBranch {
+		// This repo is not initialized yet, so pretend it's empty.
+		return &Browser{
+			root:        string(gitBranchName),
+			sharedCache: sharedCache,
+		}, nil
+	} else if err != nil {
 		return nil, err
 	}
 
-	if gitBranchName == "" {
-		gitBranchName = "refs/heads/master"
-	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
-		gitBranchName = "refs/heads/" + gitBranchName
-	}
-
 	ref, err := repo.Reference(gitBranchName, true)
-	if err != nil {
+	if err == plumbing.ErrReferenceNotFound && gitBranchName == masterBranch {
+		// This branch has no commits, so pretend it's empty.
+		return &Browser{
+			root:        string(gitBranchName),
+			sharedCache: sharedCache,
+		}, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -98,12 +114,22 @@ func NewBrowser(
 	}
 
 	return &Browser{
+		repo:        repo,
 		tree:        tree,
 		root:        string(gitBranchName),
 		mtime:       c.Author.When,
 		commitHash:  c.Hash,
 		sharedCache: sharedCache,
 	}, nil
+}
+
+func (b *Browser) getCommitFile(
+	ctx context.Context, hash plumbing.Hash) (*diffFile, error) {
+	commit, err := b.repo.CommitObject(hash)
+	if err != nil {
+		return nil, err
+	}
+	return newCommitFile(ctx, commit)
 }
 
 ///// Read-only functions:
@@ -154,11 +180,20 @@ func (b *Browser) followSymlink(filename string) (string, error) {
 
 // Open implements the billy.Filesystem interface for Browser.
 func (b *Browser) Open(filename string) (f billy.File, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	defer translateGitError(&err)
 	for i := 0; i < maxSymlinkLevels; i++ {
 		fi, err := b.Lstat(filename)
 		if err != nil {
 			return nil, err
+		}
+
+		// Check if this is a submodule.
+		if sfi, ok := fi.(*submoduleFileInfo); ok {
+			return sfi.sf, nil
 		}
 
 		// If it's not a symlink, we can return right away.
@@ -181,6 +216,10 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 // OpenFile implements the billy.Filesystem interface for Browser.
 func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 	f billy.File, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	if flag&os.O_CREATE != 0 {
 		return nil, errors.New("browser can't create files")
 	}
@@ -190,6 +229,20 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 // Lstat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
+	if strings.HasPrefix(filename, AutogitCommitPrefix) {
+		commit := strings.TrimPrefix(filename, AutogitCommitPrefix)
+		hash := plumbing.NewHash(commit)
+		f, err := b.getCommitFile(context.Background(), hash)
+		if err != nil {
+			return nil, err
+		}
+		return f.GetInfo(), nil
+	}
+
 	cachePath := path.Join(b.root, filename)
 	if fi, ok := b.sharedCache.getFileInfo(b.commitHash, cachePath); ok {
 		return fi, nil
@@ -197,20 +250,24 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 	defer translateGitError(&err)
 	entry, err := b.tree.FindEntry(filename)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	size, err := b.tree.Size(filename)
-	if err != nil {
-		return nil, err
+	switch errors.Cause(err) {
+	case nil:
+		// Git doesn't keep track of the mtime of individual files
+		// anywhere, so just use the timestamp from the commit.
+		fi = &browserFileInfo{entry, size, b.mtime}
+	case plumbing.ErrObjectNotFound:
+		// This is likely a git submodule.
+		sf := newSubmoduleFile(entry.Hash, filename, b.mtime)
+		fi = sf.GetInfo()
+	default:
+		return nil, errors.WithStack(err)
 	}
 
-	// Git doesn't keep track of the mtime of individual files
-	// anywhere, so just use the timestamp from the commit.
-	fi = &browserFileInfo{entry, size, b.mtime}
-
 	b.sharedCache.setFileInfo(b.commitHash, cachePath, fi)
-
 	return fi, nil
 }
 
@@ -244,6 +301,14 @@ func (b *Browser) Join(elem ...string) string {
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 	if p == "" {
 		p = "."
+	}
+
+	if b.tree == nil {
+		if p == "." {
+			// Branch with no commits.
+			return nil, nil
+		}
+		return nil, errors.New("Empty repo")
 	}
 
 	cachePath := path.Join(b.root, p)
@@ -296,6 +361,10 @@ func (b *Browser) Readlink(link string) (target string, err error) {
 
 // Chroot implements the billy.Filesystem interface for Browser.
 func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	defer translateGitError(&err)
 	newTree, err := b.tree.Tree(p)
 	if err != nil {

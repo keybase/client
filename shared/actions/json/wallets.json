@@ -12,6 +12,22 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "acceptSEP7Path": {
+      "_description": "Accept the prepared SEP7 path payment",
+      "inputURI": "string"
+    },
+    "acceptSEP7Pay": {
+      "_description": "Accept the prepared SEP7 payment",
+      "amount": "string",
+      "inputURI": "string"
+    },
+    "acceptSEP7Tx": {
+      "_description": "Accept the prepared SEP7 tx",
+      "inputURI": "string"
+    },
+    "resetAcceptingDisclaimer": {
+      "_description": "Reset to the pre-accepting-disclaimer state."
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
@@ -20,10 +36,17 @@
       "_description": "We received an updated account record",
       "account": "Types.Account"
     },
-    "addNewPayment": {
-      "_description": "Mark a payment we were just notified about as being unseen",
+    "assetDeposit": {
+      "_description": "Handle a SEP6 Deposit link",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
+    },
+    "assetWithdraw": {
+      "_description": "Handle a SEP6 Withdraw link",
+      "accountID": "Types.AccountID",
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
@@ -36,7 +59,7 @@
     },
     "buildingPaymentIDReceived": {
       "_description": "Update our store with an ID for a new building payment",
-      "bid": "string",
+      "bid": "string"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
@@ -63,10 +86,6 @@
     },
     "clearErrors": {
       "_description": "Clear errors from the store at times like opening or closing a form dialog."
-    },
-    "clearNewPayments": {
-      "_description": "Clear our idea of which payments have not been seen by the user yet",
-      "accountID": "Types.AccountID"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
@@ -95,6 +114,13 @@
         "error": "string"
       }
     },
+    "externalPartnersReceived": {
+      "_description": "Update our list of external tools and partners",
+      "externalPartners": "I.List<Types.PartnerUrl>"
+    },
+    "exitFailedPayment": {
+      "_description": "Close the send form and show the user their transactions so they can review."
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID"
@@ -104,7 +130,28 @@
       "accountID": "Types.AccountID"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "_description": "Refresh our list of accounts",
+      "reason": "'initial-load' | 'open-send-req-form'"
+    },
+    "loadExternalPartners": {
+      "_description": "Refresh our list of external tools and partner links"
+    },
+    "loadInflationDestination": {
+      "_description": "Refresh inflation destination and options",
+      "accountID": "Types.AccountID"
+    },
+    "setInflationDestination": {
+      "_description": "Set our inflation destination",
+      "accountID": "Types.AccountID",
+      "destination": "Types.AccountID",
+      "name": "string"
+    },
+    "inflationDestinationReceived": {
+      "_description": "Got inflation destination",
+      "accountID": "Types.AccountID",
+      "selected": "Types.AccountInflationDestination",
+      "options?": "Array<Types.InflationDestination>",
+      "canError": {"error": "string"}
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
@@ -154,9 +201,10 @@
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
-      "accountID": "Types.AccountID",
+      "account": "Types.Account",
       "canError": {
         "name": "string",
+        "account": "Types.Account",
         "error": "string"
       }
     },
@@ -166,7 +214,7 @@
     },
     "didSetAccountAsDefault": {
       "_description": "A response from the service after an account is set as the default",
-      "accountID": "Types.AccountID"
+      "accounts": "Array<Types.Account>"
     },
     "deleteAccount": {
       "_description": "Delete an account",
@@ -177,12 +225,12 @@
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
-      "accountID": "?Types.AccountID",
+      "accountID": "Types.AccountID | null",
       "setBuildingCurrency?": "boolean"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
-      "accountID": "?Types.AccountID",
+      "accountID": "Types.AccountID | null",
       "currency": "Types.Currency",
       "setBuildingCurrency?": "boolean"
     },
@@ -190,10 +238,6 @@
       "_description": "Change display currency for an account",
       "accountID": "Types.AccountID",
       "code": "Types.CurrencyCode"
-    },
-    "loadRequestDetail": {
-      "_description": "Load a request's details",
-      "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "requestPayment": {
       "_description": "Request payment"
@@ -212,7 +256,8 @@
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
-      "paymentCursor": "?StellarRPCTypes.PageCursor",
+      "allowClearOldestUnread": "boolean",
+      "paymentCursor": "StellarRPCTypes.PageCursor | null",
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>",
       "pending": "Array<Types.PaymentResult>"
@@ -225,13 +270,9 @@
     "recentPaymentsReceived": {
       "_description": "Received a fresh first page of recent payments",
       "accountID": "Types.AccountID",
-      "paymentCursor": "?StellarRPCTypes.PageCursor",
+      "paymentCursor": "StellarRPCTypes.PageCursor | null",
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>"
-    },
-    "requestDetailReceived": {
-      "_description": "Store a request's details",
-      "request": "StellarRPCTypes.RequestDetailsLocal"
     },
     "reviewedPaymentReceived": {
       "_description": "Update our store with the results of reviewing a built payment",
@@ -239,7 +280,7 @@
       "reviewID": "number",
       "seqno": "number",
       "nextButton": "string",
-      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>",
+      "banners?": "Array<StellarRPCTypes.SendBannerLocal> | null"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -253,10 +294,16 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
+      "reason": "'user-selected' | 'auto-selected' | 'from-chat' | 'show-transaction'",
       "show?": "boolean"
     },
-    "refreshPayments": {
-      "_description": "In response to a notification, resync payment info",
+    "setSEP7Tx": {
+      "_description": "Prepare a SEP7 tx to be shown to the user for confirmation",
+      "confirmURI": "string",
+      "tx": "Types.SEP7ConfirmInfo"
+    },
+    "showTransaction": {
+      "_description": "Navigate to the details page for the given transaction.",
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID"
     },
@@ -269,12 +316,14 @@
     "sentPayment": {
       "_description": "Successfully sent a payment",
       "kbTxID": "HiddenString",
-      "lastSentXLM": "boolean"
+      "lastSentXLM": "boolean",
+      "jumpToChat": "string"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
       "error": "string"
     },
+
     "setBuildingAmount": {
       "_description": "Set building amount",
       "amount": "string"
@@ -307,6 +356,23 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "clearBuildingAdvanced": {
+      "_description": "replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones"
+    },
+    "setBuildingAdvancedRecipient": {"recipient": "string"},
+    "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "Types.CounterpartyType"},
+    "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+    "calculateBuildingAdvanced": {"forSEP7": "boolean"},
+    "setBuiltPaymentAdvanced": {
+      "builtPaymentAdvanced": "Types.BuiltPaymentAdvanced",
+      "forSEP7": "boolean"
+    },
+    "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
@@ -375,6 +441,14 @@
         "error": "string"
       }
     },
+    "validateSEP7Link": {
+      "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
+      "link": "string"
+    },
+    "validateSEP7LinkError": {
+      "_description": "Set the error field for a SEP7 validation.",
+      "error": "string"
+    },
     "loadMobileOnlyMode": {
       "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"
@@ -388,6 +462,77 @@
       "_description": "Change mobile only mode for Stellar account.",
       "accountID": "Types.AccountID",
       "enabled": "boolean"
+    },
+    "changeAirdrop": {
+      "_description": "Turn participation in airdrop on/off",
+      "accept": "boolean"
+    },
+    "hideAirdropBanner": {},
+    "updateAirdropBannerState": {"show": "boolean"},
+    "updateAirdropState": {},
+    "updatedAirdropState": {
+      "airdropQualifications": "Array<Types.AirdropQualification>",
+      "airdropState": "Types.AirdropState"
+    },
+    "updateAirdropDetails": {},
+    "updatedAirdropDetails": {
+      "details": "Types.StellarDetailsResponse",
+      "disclaimer": "Types.StellarDetailsResponse",
+      "isPromoted": "boolean"
+    },
+    "refreshTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID"
+    },
+    "refreshTrustlineAcceptedAssetsByUsername": {
+      "username": "string"
+    },
+    "refreshTrustlinePopularAssets": {},
+    "addTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "deleteTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "changedTrustline": {
+      "canError": {
+        "error": "string"
+      }
+    },
+    "setTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlineAcceptedAssetsByUsername": {
+      "username": "string",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlinePopularAssets": {
+      "assets": "Array<Types.AssetDescription>",
+      "totalCount": "number"
+    },
+    "setTrustlineSearchText": {
+      "text": "string"
+    },
+    "setTrustlineSearchResults": {
+      "assets": "Array<Types.AssetDescription>"
+    },
+    "clearTrustlineSearchResults": {},
+    "setTrustlineExpanded": {
+      "expanded": "boolean",
+      "assetID": "Types.AssetID"
+    },
+    "staticConfigLoaded": {
+      "_description": "Static configuration info was loaded from the service.",
+      "staticConfig": "Types.StaticConfig"
+    },
+    "setSEP6Message": {
+      "_description": "Show the user an external message from a SEP6 action",
+      "error": "boolean",
+      "message": "string"
     }
   }
 }

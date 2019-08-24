@@ -69,13 +69,12 @@ func (e *UserConfigEngine) Run(m libkb.MetaContext) (err error) {
 		}
 
 		var err error
-		_, err = m.G().API.Post(libkb.APIArg{
+		_, err = m.G().API.Post(m, libkb.APIArg{
 			Endpoint:    "image/set_preference",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				key: libkb.S{Val: value},
 			},
-			NetContext: m.Ctx(),
 		})
 		if err != nil {
 			return err

@@ -37,7 +37,9 @@ func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (
 	if err != nil {
 		return err
 	}
-	h.G().ConfigReload()
-	libkb.ChangeMountIcon(oldMount, drive)
-	return nil
+	err = h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
+	return libkb.ChangeMountIcon(oldMount, drive)
 }

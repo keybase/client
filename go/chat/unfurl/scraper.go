@@ -3,33 +3,45 @@ package unfurl
 import (
 	"context"
 
-	"github.com/gocolly/colly"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
+const userAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
+
 type Scraper struct {
+	globals.Contextified
 	utils.DebugLabeler
-	cache *unfurlCache
+	cache      *unfurlCache
+	giphyProxy bool
 }
 
-func NewScraper(logger logger.Logger) *Scraper {
+func NewScraper(g *globals.Context) *Scraper {
 	return &Scraper{
-		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
 		cache:        newUnfurlCache(),
+		giphyProxy:   true,
 	}
 }
 
 func (s *Scraper) makeCollector() *colly.Collector {
 	c := colly.NewCollector(
-		colly.UserAgent("Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"),
+		colly.UserAgent(userAgent),
 	)
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("connection", "keep-alive")
 		r.Headers.Set("upgrade-insecure-requests", "1")
 	})
+	if s.G().Env.GetProxyType() != libkb.NoProxy {
+		err := c.SetProxy(libkb.BuildProxyAddressWithProtocol(s.G().Env.GetProxyType(), s.G().Env.GetProxy()))
+		if err != nil {
+			s.Debug(context.TODO(), "makeCollector: error setting proxy: %+v", err)
+		}
+	}
 	return c
 }
 
@@ -63,6 +75,8 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 		return s.scrapeGeneric(ctx, uri, domain)
 	case chat1.UnfurlType_GIPHY:
 		return s.scrapeGiphy(ctx, uri)
+	case chat1.UnfurlType_MAPS:
+		return s.scrapeMap(ctx, uri)
 	default:
 		return s.scrapeGeneric(ctx, uri, domain)
 	}

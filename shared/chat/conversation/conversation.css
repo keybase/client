@@ -7,6 +7,11 @@
   flex-direction: column;
   position: relative;
   width: 100%;
+}
+.WrapperMessage-systemMessage {
+  padding-left: 16px;
+}
+.WrapperMessage-noOverflow {
   overflow: hidden;
 }
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
@@ -16,7 +21,8 @@
   width: 100%;
   margin-left: 8px;
 }
-.WrapperMessage-hoverBox:hover .WrapperMessage-buttons {
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
+.WrapperMessage-decorated.active .WrapperMessage-buttons {
   display: flex;
   flex-direction: row;
   max-width: 100%;
@@ -25,13 +31,38 @@
 }
 .WrapperMessage-hoverColor:hover {
   background-color: #f7f9fc;
+  /* Using a second box shadow instead of a border to prevent changing the height of the box. */
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
 }
-.WrapperMessage-decorated {
-}
-.WrapperMessage-decorated:active {
+.WrapperMessage-decorated.active {
   background-color: #f7f9fc;
 }
 .WrapperMessage-author {
   padding-left: 0;
   padding-top: 8px;
+}
+.WrapperMessage-hoverBox .WrapperMessage-emojiButton {
+  transition: box-shadow 0.1s ease-out;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
+  box-shadow: none;
+}
+.WrapperMessage-hoverBox .WrapperMessage-newEmojiButton {
+  visibility: hidden;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-newEmojiButton {
+  visibility: visible;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiRow {
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
+}
+.WrapperMessage-centered {
+  background-color: #fff75a;
+}
+.ReplyBox:hover {
+  background-color: white;
 }

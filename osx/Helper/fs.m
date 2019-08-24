@@ -56,12 +56,37 @@
     NSString *nsRequirement = [NSString stringWithFormat:@"anchor apple generic %@ and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")", identifier];
 
     SecRequirementCreateWithString((__bridge CFStringRef)nsRequirement,kSecCSDefaultFlags, &keybaseRequirement);
-    OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
+    OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, (kSecCSDefaultFlags | kSecCSStrictValidate | kSecCSCheckNestedCode | kSecCSCheckAllArchitectures | kSecCSEnforceRevocationChecks), keybaseRequirement, NULL);
     if (codeCheckResult != errSecSuccess) {
       *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
     }
     if (staticCode) CFRelease(staticCode);
     if (keybaseRequirement) CFRelease(keybaseRequirement);
+}
+
++(BOOL)checkIfPathIsFishy:(NSString *)path {
+    NSArray *v = [path componentsSeparatedByString:@"/"];
+    for (int i = 0; i < v.count; i++) {
+        if ([v[i] isEqualToString:@".."]) {
+            return YES;
+        }
+        if ([v[i] isEqualToString:@"."]) {
+            return YES;
+        }
+    }
+
+    // Only allow vanilla characters in our paths. A whitelist approach, as opposed to a
+    // blacklist.
+    NSError *error = NULL;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^[a-zA-Z0-9./_() -]+$" options:0 error:&error];
+    if (!regex) {
+        return YES;
+    }
+    NSTextCheckingResult *match = [regex firstMatchInString:path options:0 range:NSMakeRange(0, [path length])];
+    if (!match) {
+        return YES;
+    }
+    return NO;
 }
 
 /*
@@ -75,8 +100,14 @@
     if (!path.absolutePath) {
         return NO;
     }
-    NSArray *a = [path.stringByStandardizingPath componentsSeparatedByString:@"/"];
-    NSArray *b = [prefix.stringByStandardizingPath componentsSeparatedByString:@"/"];
+    if ([self checkIfPathIsFishy:path]) {
+        return NO;
+    }
+    if ([self checkIfPathIsFishy:prefix]) {
+        return NO;
+    }
+    NSArray *a = [path   componentsSeparatedByString:@"/"];
+    NSArray *b = [prefix componentsSeparatedByString:@"/"];
     if (a.count < b.count) {
         return NO;
     }

@@ -1,0 +1,60 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// https://github.com/DylanVann/react-native-fast-image/issues/516
+project.ext {
+    excludeAppGlideModule = true
+    glideVersion = "4.9.0"
+}
+
+buildscript {
+    ext {
+        buildToolsVersion = "28.0.3"
+        minSdkVersion = 16
+        compileSdkVersion = 28
+        targetSdkVersion = 28
+        supportLibVersion = "28.0.0"
+     }
+
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.1'
+        // KB: this is an old version, could look into updating
+        classpath 'com.github.triplet.gradle:play-publisher:2.1.1' // To publish from gradle
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+// KB
+// Work around dependencies with old gradle versions depending on
+// com.android.tools:common:25.3.3 , which disappeared from jcenter.
+// Once these dependencies update their gradle version or otherwise fix
+// the problem themselves, we can remove this.
+//
+// See https://github.com/DylanVann/react-native-fast-image/issues/366 .
+subprojects {project ->
+    if (project.name.contains('react-native-fast-image')) {
+            buildscript {
+                repositories {
+                maven { url = 'https://dl.bintray.com/android/android-tools/'  }
+            }
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        jcenter()
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url "$rootDir/../node_modules/react-native/android"
+        }
+    }
+}

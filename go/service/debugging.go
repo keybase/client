@@ -13,13 +13,15 @@ import (
 type DebuggingHandler struct {
 	libkb.Contextified
 	*BaseHandler
+	userHandler   *UserHandler
 	walletHandler *walletHandler
 }
 
-func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext, walletHandler *walletHandler) *DebuggingHandler {
+func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext, userHandler *UserHandler, walletHandler *walletHandler) *DebuggingHandler {
 	return &DebuggingHandler{
 		Contextified:  libkb.NewContextified(g),
 		BaseHandler:   NewBaseHandler(g, xp),
+		userHandler:   userHandler,
 		walletHandler: walletHandler,
 	}
 }

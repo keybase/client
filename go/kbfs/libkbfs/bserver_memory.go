@@ -146,7 +146,7 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
 	}
 
-	if context.GetCreator() != keybase1.UserOrTeamID(context.GetWriter()) {
+	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())
 	}
@@ -276,13 +276,6 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 			entry.tlfID, tlfID)
 	}
 
-	// Only add it if there's a non-archived reference.
-	if !entry.refs.hasNonArchivedRef() {
-		return kbfsblock.ServerErrorBlockArchived{
-			Msg: fmt.Sprintf("Block ID %s has "+
-				"been archived and cannot be referenced.", id)}
-	}
-
 	return entry.refs.put(context, liveBlockRef, "")
 }
 
@@ -404,6 +397,40 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 	}
 
 	return nil
+}
+
+// GetLiveBlockReferences implements the BlockServer interface for
+// BlockServerMemory.
+func (b *BlockServerMemory) GetLiveBlockReferences(
+	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx, "BlockServerMemory.GetLiveBlockReferences "+
+		"tlfID=%s contexts=%v", tlfID, contexts)
+
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	if b.m == nil {
+		return nil, errBlockServerMemoryShutdown
+	}
+
+	liveCounts = make(map[kbfsblock.ID]int)
+	for id := range contexts {
+		count := 0
+		entry, ok := b.m[id]
+		if ok {
+			count = entry.refs.getLiveCount()
+		}
+		liveCounts[id] = count
+	}
+	return liveCounts, nil
 }
 
 // getAllRefsForTest implements the blockServerLocal interface for

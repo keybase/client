@@ -59,7 +59,7 @@ func (e *SaltpackKBFSKeyfinderEngineForTesting) SubConsumers() []libkb.UIConsume
 }
 
 func (e *SaltpackKBFSKeyfinderEngineForTesting) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackKBFSKeyfinderEngineForTesting#Run", func() error { return err })()
+	defer m.Trace("SaltpackKBFSKeyfinderEngineForTesting#Run", func() error { return err })()
 
 	e.SaltpackSymmetricKeys, err = e.makeSymmetricReceivers(m)
 
@@ -82,7 +82,7 @@ func (e *SaltpackKBFSKeyfinderEngineForTesting) makeSymmetricReceivers(m libkb.M
 	var pseudonymInfos []libkb.TlfPseudonymInfo
 	for _, user := range e.arg.Recipients {
 		tlfName := fmt.Sprintf("%s,%s", m.G().Env.GetUsername(), user)
-		m.CDebugf("saltpack signcryption fetching TLF key for %s", tlfName)
+		m.Debug("saltpack signcryption fetching TLF key for %s", tlfName)
 		res, err := e.completeAndCanonicalize(m, tlfName)
 		if err != nil {
 			return nil, err

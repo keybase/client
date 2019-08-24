@@ -94,7 +94,7 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 
 	// Convert argument
 	var fcArg chat1.FindConversationsLocalArg
-	if arg.Query.Name != nil {
+	if arg.Query.Name != nil && len(arg.Query.Name.Name) > 0 {
 		fcArg.TlfName = arg.Query.Name.Name
 		fcArg.MembersType = arg.Query.Name.MembersType
 	}
@@ -148,24 +148,17 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 func (r *chatConversationResolver) create(ctx context.Context, req chatConversationResolvingRequest) (
 	conversationInfo *chat1.ConversationLocal, err error) {
 
+	if len(req.TlfName) == 0 {
+		return nil, errors.New("Cannot create a new conversation without more information")
+	}
+
 	var newConversation string
 	if req.TopicType == chat1.TopicType_CHAT {
 		newConversation = fmt.Sprintf("Creating a new %s %s conversation", req.Visibility, req.TopicType)
 	} else {
 		newConversation = fmt.Sprintf("Creating a new %s %s conversation [%s]", req.Visibility, req.TopicType, req.TopicName)
 	}
-
-	if len(req.TlfName) == 0 {
-		tlfName, err := r.G.UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatTLFName, fmt.Sprintf(
-			"No conversation found. %s. Hit Ctrl-C to cancel, or specify a TLF name to continue: ",
-			newConversation))
-		if err != nil {
-			return nil, err
-		}
-		req.TlfName = tlfName
-	} else {
-		r.G.UI.GetTerminalUI().Printf("%s\n", newConversation)
-	}
+	r.G.UI.GetTerminalUI().Printf("%s\n", newConversation)
 
 	var tnp *string
 	if len(req.TopicName) > 0 {

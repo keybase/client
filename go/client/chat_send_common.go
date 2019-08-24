@@ -48,7 +48,12 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
-	if err != nil {
+	switch err.(type) {
+	case nil:
+		break
+	case libkb.ResolutionError:
+		return fmt.Errorf("could not resolve `%s` into Keybase user(s) or a team", c.resolvingRequest.TlfName)
+	default:
 		return err
 	}
 	conversationInfo := conversation.Info

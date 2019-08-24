@@ -18,6 +18,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -129,6 +130,10 @@ func NameCmp(n1, n2 string) bool {
 	return NameTrim(n1) == NameTrim(n2)
 }
 
+func IsLowercase(s string) bool {
+	return strings.ToLower(s) == s
+}
+
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {
@@ -195,7 +200,7 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 	}
 	g.Debug("| Temporary file generated: %s", tmpfn)
 	defer tmp.Close()
-	defer ShredFile(tmpfn)
+	defer func() { _ = ShredFile(tmpfn) }()
 
 	g.Debug("| WriteTo %s", tmpfn)
 	n, err := t.WriteTo(tmp)
@@ -294,17 +299,25 @@ func IsValidHostname(s string) bool {
 		}
 	}
 	// TLDs must be >=2 chars
-	if len(parts[len(parts)-1]) < 2 {
-		return false
-	}
-	return true
+	return len(parts[len(parts)-1]) >= 2
 }
 
-var phoneRE = regexp.MustCompile("^[1-9][0-9]{1,14}$")
+var phoneAssertionRE = regexp.MustCompile(`^[1-9]\d{1,14}$`)
 
-// IsPossiblePhoneNumber checks if s is string of digits starting with 1.
-func IsPossiblePhoneNumber(s string) bool {
-	return phoneRE.MatchString(s)
+// IsPossiblePhoneNumberAssertion checks if s is string of digits without a `+`
+// prefix for SBS assertions
+func IsPossiblePhoneNumberAssertion(s string) bool {
+	return phoneAssertionRE.MatchString(s)
+}
+
+var phoneRE = regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
+
+// IsPossiblePhoneNumber checks if s is string of digits in phone number format
+func IsPossiblePhoneNumber(phone keybase1.PhoneNumber) error {
+	if !phoneRE.MatchString(string(phone)) {
+		return fmt.Errorf("Invalid phone number, expected +11234567890 format")
+	}
+	return nil
 }
 
 func RandBytes(length int) ([]byte, error) {
@@ -489,7 +502,22 @@ func TraceTimed(log logger.Logger, msg string, f func() error) func() {
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
-	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
+	return func() {
+		err := f()
+		if err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T", msg, err, err)
+		} else {
+			log.CDebugf(ctx, "- %s -> ok", msg)
+		}
+	}
+}
+
+func CTraceString(ctx context.Context, log logger.Logger, msg string, f func() string) func() {
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() {
+		log.CDebugf(ctx, "- %s -> %s", msg, f())
+	}
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
@@ -497,7 +525,12 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
-		log.CDebugf(ctx, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+		err := f()
+		if err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, err, err, cl.Since(start))
+		} else {
+			log.CDebugf(ctx, "- %s -> ok [time=%s]", msg, cl.Since(start))
+		}
 	}
 }
 
@@ -728,14 +761,6 @@ func CITimeMultiplier(g *GlobalContext) time.Duration {
 	return time.Duration(1)
 }
 
-func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
-	switch err := err.(type) {
-	case AppStatusError:
-		return err.Code == int(code)
-	}
-	return false
-}
-
 func CanExec(p string) error {
 	return canExec(p)
 }
@@ -753,25 +778,31 @@ func CurrentBinaryRealpath() (string, error) {
 }
 
 var adminFeatureList = map[keybase1.UID]bool{
-	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
-	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
-	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
-	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
-	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
-	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
-	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
-	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
-	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
-	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
-	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
-	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
-	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
-	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
-	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
-	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
-	"743338e8d5987e0e5077f0fddc763f19": true, // Taru Karttunen, "taruti"
-	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // Michał Zochniak, "zapu"
-	"8c7c57995cd14780e351fc90ca7dc819": true, // Danny Ayoub, "ayoubd"
+	"23260c2ce19420f97b58d7d95b68ca00": true, // | chris        |
+	"dbb165b7879fe7b1174df73bed0b9500": true, // | max          |
+	"1563ec26dc20fd162a4f783551141200": true, // | patrick      |
+	"d73af57c418a917ba6665575eba13500": true, // | adamjspooner |
+	"95e88f2087e480cae28f08d81554bc00": true, // | mikem        |
+	"d1b3a5fa977ce53da2c2142a4511bc00": true, // | joshblum     |
+	"08abe80bd2da8984534b2d8f7b12c700": true, // | songgao      |
+	"237e85db5d939fbd4b84999331638200": true, // | cjb          |
+	"46fa8104092d0a680ad854bfc8507700": true, // | xgess        |
+	"69da56f622a2ac750b8e590c3658a700": true, // | jzila        |
+	"ef2e49961eddaa77094b45ed635cfc00": true, // | strib        |
+	"ebbe1d99410ab70123262cf8dfc87900": true, // | akalin       |
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // | marcopolo    |
+	"9403ede05906b942fd7361f40a679500": true, // | jinyang      |
+	"e0b4166c9c839275cf5633ff65c3e819": true, // | chrisnojima  |
+	"5f72055750c37c02a630122781508219": true, // | jakob223     |
+	"d95f137b3b4a3600bc9e39350adba819": true, // | cecileb      |
+	"eb08cb06e608ea41bd893946445d7919": true, // | mlsteele     |
+	"4a2c5d27346497ad64e3b7d457a1f919": true, // | pzduniak     |
+	"673a740cd20fb4bd348738b16d228219": true, // | zanderz      |
+	"743338e8d5987e0e5077f0fddc763f19": true, // | taruti       |
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // | zapu         |
+	"8c7c57995cd14780e351fc90ca7dc819": true, // | ayoubd       |
+	"b848bce3d54a76e4da323aad2957e819": true, // | modalduality |
+	"f06926a91bc53c80561ee4e74813dc19": true, // | aimeedavid   |
 }
 
 // IsKeybaseAdmin returns true if uid is a keybase admin.
@@ -967,4 +998,29 @@ func Once(f func()) func() {
 	return func() {
 		once.Do(f)
 	}
+}
+
+func RuntimeGroup() keybase1.RuntimeGroup {
+	switch runtime.GOOS {
+	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd":
+		return keybase1.RuntimeGroup_LINUXLIKE
+	case "darwin":
+		return keybase1.RuntimeGroup_DARWINLIKE
+	case "windows":
+		return keybase1.RuntimeGroup_WINDOWSLIKE
+	default:
+		return keybase1.RuntimeGroup_UNKNOWN
+	}
+}
+
+// execToString returns the space-trimmed output of a command or an error.
+func execToString(bin string, args []string) (string, error) {
+	result, err := exec.Command(bin, args...).Output()
+	if err != nil {
+		return "", err
+	}
+	if result == nil {
+		return "", fmt.Errorf("Nil result")
+	}
+	return strings.TrimSpace(string(result)), nil
 }

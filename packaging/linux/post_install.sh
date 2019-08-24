@@ -13,24 +13,14 @@ set -u
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
-rootConfigFile="/etc/keybase/config.json"
-disableConfigKey="disable-root-redirector"
-disableAutorestartConfigKey="disable-autorestart"
+BASH=$(command -v bash)
 
 redirector_enabled() {
-  disableRedirector="false"
-  if [ -r "$rootConfigFile" ] ; then
-    if keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
-      disableRedirector="$(keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
-    fi
-  fi
-  [ "$disableRedirector" != "true" ]
+  keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector &> /dev/null
 }
 
 autorestart_enabled() {
-    [ -r "$rootConfigFile" ] || return 0
-    disableAutorestart=$(keybase --standalone -c "$rootConfigFile" config get -d "$disableAutorestartConfigKey" 2> /dev/null) || return 0
-    [ "$disableAutorestart" != "true" ]
+  keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-autorestart &> /dev/null
 }
 
 make_mountpoint() {
@@ -58,13 +48,16 @@ systemd_exec_as() {
     user_xdg_runtime_dir=""
     # shellcheck disable=SC2016
     # Intentionally do not expand $XDG_RUNTIME_DIR; we want the user's shell to expand it
-    if ! user_xdg_runtime_dir="$(su --login "$user" -c 'echo $XDG_RUNTIME_DIR')" || [ -z "$user_xdg_runtime_dir" ]; then
+    if ! user_xdg_runtime_dir="$(su -s "$BASH" --login "$user" -c 'echo $XDG_RUNTIME_DIR')" || [ -z "$user_xdg_runtime_dir" ]; then
         user_xdg_runtime_dir="/run/user/$(id -u "$user")" || return 1
     fi
 
     # To support restarting without systemd, we'd also have to pass in DISPLAY,
     # but there's no easy way to figure that out.
-    su --login "$user" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
+    # With run_keybase, we pipe environment variables to the user's runtime directory,
+    # so Keybase units will get the necessary environment from there, even though this su
+    # shell doesn't have, e.g., DISPLAY.
+    su --login "$user" -s "$BASH" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
 }
 
 # Exits with 0 iff the given user is running the service with systemd
@@ -72,6 +65,14 @@ systemd_unit_active_for() {
     user=$1
     service=$2
     command -v systemctl &> /dev/null && systemd_exec_as "$user" "systemctl --user -q is-active $service"
+}
+
+systemd_restart_if_active() {
+    user=$1
+    service=$2
+    if systemd_unit_active_for "$user" "$service"; then
+        systemd_exec_as "$user" "systemctl --user restart $service"
+    fi
 }
 
 safe_restart_systemd_services() {
@@ -89,6 +90,12 @@ safe_restart_systemd_services() {
         # and the mountdir is configured (so, it is not a fresh install).
         user="$(ps -o user= -p "$pid")"
 
+        # If the process terminated since the loop started somehow, skip
+        # restarting
+        if [ -z "$user" ]; then
+            continue
+        fi
+
         restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
         abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
 
@@ -99,10 +106,7 @@ safe_restart_systemd_services() {
         fi
 
         if systemd_unit_active_for "$user" "kbfs.service"; then
-            # TODO: CORE-9789
-            # We don't pass --direct to keybase config get because it doesn't work on non-root users
-            # It should still work because the service should be running
-            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --bare mountdir")" || [ -z "$mount" ]; then
+            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --direct --bare mountdir")" || [ -z "$mount" ]; then
                 echo "Could not find mountdir for $user via systemd."
                 echo "$abort_instructions"
                 continue
@@ -121,8 +125,45 @@ safe_restart_systemd_services() {
         fi
 
         echo "Autorestarting Keybase via systemd for $user."
-        systemd_exec_as "$user" "systemctl --user restart keybase kbfs keybase.gui"
+        # Reload possibly-new systemd unit files first
+        systemd_exec_as "$user" "systemctl --user daemon-reload"
+        systemd_restart_if_active "$user" "keybase.service"
+        systemd_restart_if_active "$user" "kbfs.service"
+        systemd_restart_if_active "$user" "keybase.gui.service"
+        systemd_restart_if_active "$user" "keybase-redirector.service"
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
+}
+
+is_owned_by_root() {
+    owner_uid="$(stat --format=%u "$1" 2> /dev/null)" && [ "0" = "$owner_uid" ]
+}
+
+# In 4.3.0, 4.3.1, we had a bug where this post install script's usage of
+# Keybase commands would create .config/keybase/ with root permissions if it
+# didn't already exist.
+fix_bad_config_perms() {
+    if userhomes=$(find /home -maxdepth 1 -mindepth 1 -type d); then
+        while read -r userhome; do
+            user="$(basename "$userhome")"
+            # Don't attempt to fix for users with custom XDG_CONFIG_HOME,
+            # hopefully they will read release notes.
+            configdir="/home/$user/.config"
+            keybase_configdir="$configdir/keybase"
+            keybase_configfile="$configdir/keybase/gui_config.json"
+            if [ -e "$keybase_configdir" ]; then
+                if is_owned_by_root "$configdir"; then
+                    echo "Fixing bad permissions in $configdir; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$configdir"
+                elif is_owned_by_root "$keybase_configdir"; then
+                    echo "Fixing bad permissions in $keybase_configdir; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configdir"
+                elif is_owned_by_root "$keybase_configfile"; then
+                    echo "Fixing bad permissions in $keybase_configfile; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configfile"
+                fi
+            fi
+        done <<< "$userhomes"
+    fi
 }
 
 if redirector_enabled ; then
@@ -176,9 +217,9 @@ elif [ -d "$rootmount" ] ; then
                 # Try our best to get the user's $XDG_CACHE_HOME,
                 # though depending on how it's set, it might not be
                 # available to su.
-                userCacheHome="$(su -c "echo -n \$XDG_CACHE_HOME" - "$newUser")"
+                userCacheHome="$(su -s "$BASH" -c "echo -n \$XDG_CACHE_HOME" - "$newUser")"
                 log="${userCacheHome:-~$newUser/.cache}/keybase/keybase.redirector.log"
-                su -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
+                su -s "$BASH" -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
                 echo "Root redirector now running as $newUser."
             else
                 # The redirector is running as root, and either root
@@ -204,6 +245,8 @@ elif [ -d "$rootmount" ] ; then
        done
     fi
 fi
+
+fix_bad_config_perms
 
 # Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint

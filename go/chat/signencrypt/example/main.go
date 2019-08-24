@@ -14,15 +14,15 @@ import (
 	"github.com/keybase/go-crypto/ed25519"
 )
 
-func fail(args ...interface{}) {
-	log.Print(fmt.Sprintln(args...))
+func failf(format string, args ...interface{}) {
+	log.Print(fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 
 func decodeHexArg(arg string) []byte {
 	decoded, err := hex.DecodeString(arg)
 	if err != nil {
-		fail("'%s' is not valid hex: %s", arg, err)
+		failf("'%s' is not valid hex: %s", arg, err)
 	}
 	return decoded
 }
@@ -158,7 +158,7 @@ Options:
 	if arguments["--chunklen"] != nil {
 		parsed, err := strconv.Atoi(arguments["--chunklen"].(string))
 		if err != nil {
-			fail(err)
+			failf("error converting: %s", err)
 		}
 		chunklen = int64(parsed)
 	}
@@ -170,6 +170,6 @@ Options:
 		err = open(enckey, verifykey, signaturePrefix, nonce, chunklen)
 	}
 	if err != nil {
-		fail(err)
+		failf("crypto error: %s", err)
 	}
 }

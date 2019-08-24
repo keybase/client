@@ -21,9 +21,10 @@ func TestShowcaseTeam(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
-	name := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	name := namex.String()
 	t.Logf("Created team %q", name)
 
 	isShowcased := true
@@ -32,6 +33,13 @@ func TestShowcaseTeam(t *testing.T) {
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
 	showcase, err := GetTeamShowcase(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	require.Equal(t, true, showcase.IsShowcased)
+	require.NotNil(t, showcase.SetByUID)
+	require.Equal(t, user.User.GetUID(), *showcase.SetByUID)
+	require.Nil(t, nil, showcase.Description)
+
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, true, showcase.IsShowcased)
 	require.NotNil(t, showcase.SetByUID)
@@ -51,12 +59,23 @@ func TestShowcaseTeam(t *testing.T) {
 	require.NotNil(t, showcase.Description)
 	require.Equal(t, "Hello world", *showcase.Description)
 
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
+	require.NoError(t, err)
+	require.Equal(t, true, showcase.IsShowcased)
+	require.NotNil(t, showcase.SetByUID)
+	require.Equal(t, user.User.GetUID(), *showcase.SetByUID)
+	require.NotNil(t, showcase.Description)
+	require.Equal(t, "Hello world", *showcase.Description)
+
 	isShowcased = false
 	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
 	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 
 	require.Equal(t, false, showcase.IsShowcased)
@@ -80,7 +99,7 @@ func TestShowcaseMember(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)
@@ -127,12 +146,13 @@ func TestShowcasePermissions(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
-	team := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	team := namex.String()
 	t.Logf("Created team %q", team)
 
 	isShowcased := true
@@ -145,10 +165,11 @@ func TestShowcasePermissions(t *testing.T) {
 	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
 	require.NoError(t, err)
 
-	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 
@@ -181,6 +202,10 @@ func TestShowcasePermissions(t *testing.T) {
 	ret2, err := GetTeamShowcase(context.TODO(), tc.G, team)
 	require.NoError(t, err)
 	require.Equal(t, ret.TeamShowcase, ret2)
+
+	ret2, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
+	require.NoError(t, err)
+	require.Equal(t, ret.TeamShowcase, ret2)
 }
 
 func TestShowcaseAnyMember(t *testing.T) {
@@ -196,10 +221,11 @@ func TestShowcaseAnyMember(t *testing.T) {
 	team := createTeam(tc)
 	t.Logf("Created team %q", team)
 
-	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 

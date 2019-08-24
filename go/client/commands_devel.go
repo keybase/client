@@ -30,7 +30,8 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
-		newCmdUploadAvatar(cl, g),
+		NwCmdContacts(cl, g),
+		NewCmdPeopleSearch(cl, g),
 	}
 }
 
@@ -46,12 +47,16 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdAccountReset(cl, g),
+		NewCmdAccountResetStart(cl, g),
+		NewCmdAccountResetCancel(cl, g),
+		NewCmdAccountResetTimeTravel(cl, g),
 	}
 }
 
 func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
+		newCmdWalletHandleURI(cl, g),
 		newCmdWalletInit(cl, g),
 	}
 }
@@ -65,6 +70,7 @@ func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdSimpleFSUpgrade(cl, g),
+		NewCmdSimpleFSForceConflict(cl, g),
 	}
 }
 
@@ -84,6 +90,10 @@ var restrictedSignupFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:  "pgp",
 		Usage: "Add a server-synced pgp key",
+	},
+	cli.BoolFlag{
+		Name:  "no-passphrase",
+		Usage: "Sign up without passphrase.",
 	},
 }
 

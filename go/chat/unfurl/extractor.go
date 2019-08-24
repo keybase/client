@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/mvdan/xurls"
+	"github.com/keybase/xurls"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -58,6 +58,23 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 	return res
 }
 
+func (e *Extractor) isAutoWhitelist(domain string) bool {
+	switch domain {
+	case "giphy.com", types.MapsDomain:
+		return true
+	}
+	return false
+}
+
+func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool {
+	domain, err := GetDomain(hit)
+	if err != nil {
+		e.Debug(ctx, "isAutoWhitelistFromHit: failed to get domain: %s", err)
+		return false
+	}
+	return e.isAutoWhitelist(domain)
+}
+
 func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList) bool {
 	domain, err := GetDomain(hit)
@@ -65,7 +82,7 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.Conversatio
 		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
 		return false
 	}
-	if whitelist[domain] {
+	if e.isAutoWhitelist(domain) || whitelist[domain] {
 		return true
 	}
 	// Check exemptions
@@ -88,9 +105,6 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 	if err != nil {
 		return res, err
 	}
-	if settings.Mode == chat1.UnfurlMode_NEVER {
-		return res, nil
-	}
 	for _, h := range hits {
 		ehit := ExtractorHit{
 			URL: h,
@@ -102,6 +116,12 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 		case chat1.UnfurlMode_WHITELISTED:
 			if e.isWhitelistHit(ctx, convID, msgID, h, settings.Whitelist, e.getExemptionList(uid)) {
 				ehit.Typ = ExtractorHitUnfurl
+			}
+		case chat1.UnfurlMode_NEVER:
+			if e.isAutoWhitelistFromHit(ctx, h) {
+				ehit.Typ = ExtractorHitUnfurl
+			} else {
+				continue
 			}
 		}
 		res = append(res, ehit)

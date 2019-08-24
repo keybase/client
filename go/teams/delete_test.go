@@ -11,19 +11,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func assertCanUserPerformTeamDelete(t *testing.T, g *libkb.GlobalContext, teamname string) {
+	teamOp, err := CanUserPerform(context.Background(), g, teamname)
+	require.NoError(t, err)
+	require.True(t, teamOp.DeleteTeam)
+}
+
 func TestDeleteRoot(t *testing.T) {
 	tc, u, teamname := memberSetup(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, teamname, u.Username, keybase1.TeamRole_OWNER)
 
+	assertCanUserPerformTeamDelete(t, tc.G, teamname)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, teamname); err != nil {
 		t.Fatal(err)
 	}
 
 	_, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
-	require.True(t, IsTeamReadError(err))
+	_, ok := err.(*TeamTombstonedError)
+	require.True(t, ok) // ensure server cannot temporarily pretend a team was deleted
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {
@@ -33,7 +41,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
 
-	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,11 +49,13 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_ADMIN)
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
@@ -73,16 +83,18 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_NONE)
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err := tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
 	if err == nil {
 		t.Fatal("no error getting deleted team")
 	}
@@ -100,11 +112,13 @@ func TestRecreateSubteam(t *testing.T) {
 	defer tc.Cleanup()
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err := tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
@@ -142,6 +156,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.B")
+	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName1.String())
 	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName1.String())
 	require.NoError(t, err)
 
@@ -150,11 +165,12 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.C")
+	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName2.String())
 	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName2.String())
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A")
-	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A")

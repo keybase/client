@@ -147,9 +147,10 @@ In either mode, we print warnings any time you identify another user with HTTP
 or DNS proofs, because your Tor exit node will be able to spoof these.
 
 In leaky mode, all server requests are made over Tor to the Keybase onion URL
-(http://fncuwbiisyh6ak3i.onion), but the client still sends your session ID and
-other authentication info as part of its requests. Features that require you to
-be logged in, like "keybase prove", still work as usual.
+(http://keybase5wmilwokqirssclfnsqrjdsi7jdir5wy7y7iu3tanwmtp6oid.onion), but
+the client still sends your session ID and other authentication info as part of
+its requests. Features that require you to be logged in, like "keybase prove",
+still work as usual.
 
 In strict mode, the client tries to avoid identifying you even to the Keybase
 server. We strip all headers from API requests. Any commands that require
@@ -161,6 +162,9 @@ information will creep in. A better guarantee would be to run the client inside
 of a Tails VM (https://tails.boum.org), with no identifying information
 available to the client at all. Even still, it's possible for your own behavior
 to identify you, like if you fetch the PGP keys of all of your friends.
+
+More details about Tor mode are available in the "Tor support" docs on our
+website: https://keybase.io/docs/command_line/tor
 `,
 }
 

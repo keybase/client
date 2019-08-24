@@ -50,13 +50,14 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	_, maliciousPayload, err := sikey2.GenerateAcceptanceKey(roo.uid, roo.userVersion().EldestSeqno, unixNow)
 	require.NoError(t, err)
 
-	arg := libkb.NewAPIArgWithNetContext(context.Background(), "team/seitan")
+	arg := libkb.NewAPIArg("team/seitan")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("akey", libkb.S{Val: maliciousPayload})
 	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = roo.tc.G.API.Post(arg)
+	mctx := libkb.NewMetaContextBackground(roo.tc.G)
+	_, err = roo.tc.G.API.Post(mctx, arg)
 	require.NoError(t, err)
 
 	t.Logf("handle synthesized rekeyd command")

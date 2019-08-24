@@ -5,6 +5,8 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -18,13 +20,36 @@ import (
 )
 
 func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "s, switch",
+			Usage: "switch out the current user for another",
+		},
+		cli.StringFlag{
+			Name:  "paperkey",
+			Usage: "DANGEROUS: automatically provision using this paper key",
+		},
+		cli.StringFlag{
+			Name:  "devicename",
+			Usage: "Device name used in automated provisioning",
+		},
+	}
 	cmd := cli.Command{
 		Name:         "login",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
+		Description: `"keybase login" allows you to authenticate your local service against
+the keybase server. By default this runs an interactive flow, but
+you can automate this if your service has never been logged into
+a particular account before and the account has a paper key - in order
+to do so, pass the username as an argument, your desired unique device
+name as the "-devicename" flag and pass the paper key as the standard
+input. Alternatively, these parameters can be passed as "KEYBASE_PAPERKEY"
+and "KEYBASE_DEVICENAME" environment variables.`,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
+		Flags: flags,
 	}
 
 	// Note we'll only be able to set this via mode via Environment variable
@@ -40,7 +65,12 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 
 type CmdLogin struct {
 	libkb.Contextified
-	Username   string
+	Username     string
+	doUserSwitch bool
+
+	PaperKey   string
+	DeviceName string
+
 	clientType keybase1.ClientType
 	cancel     func()
 	done       chan struct{}
@@ -80,12 +110,24 @@ func (c *CmdLogin) Run() error {
 		c.cancel = nil
 	}()
 
+	var paperKey string
+	if c.DeviceName != "" {
+		paperKey, err = c.getPaperKey()
+		if err != nil {
+			return err
+		}
+	}
+
 	err = client.Login(ctx,
 		keybase1.LoginArg{
-			UsernameOrEmail: c.Username,
-			DeviceType:      libkb.DeviceTypeDesktop,
-			ClientType:      c.clientType,
-			SessionID:       c.SessionID,
+			Username:     c.Username,
+			DeviceType:   libkb.DeviceTypeDesktop,
+			ClientType:   c.clientType,
+			SessionID:    c.SessionID,
+			DoUserSwitch: c.doUserSwitch,
+
+			PaperKey:   paperKey,
+			DeviceName: c.DeviceName,
 		})
 	c.done <- struct{}{}
 
@@ -103,6 +145,8 @@ func (c *CmdLogin) Run() error {
 		err = c.errProvisionUnavailable()
 	case libkb.GPGUnavailableError:
 		err = c.errGPGUnavailable()
+	case libkb.NotFoundError:
+		err = c.errNotFound()
 	}
 
 	return err
@@ -116,12 +160,30 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 
 	if nargs == 1 {
 		c.Username = ctx.Args()[0]
-		if !libkb.CheckEmailOrUsername.F(c.Username) {
-			return errors.New("Invalid username or email address format. Please login again via `keybase login [username or email]`")
+		checker := libkb.CheckUsername
+		if !checker.F(c.Username) {
+			return fmt.Errorf("Invalid username. Valid usernames are: %s", checker.Hint)
 		}
 	}
+	c.doUserSwitch = ctx.Bool("switch")
+
+	c.PaperKey = c.getOption(ctx, "paperkey")
+	c.DeviceName = c.getOption(ctx, "devicename")
 
 	return nil
+}
+
+func (c *CmdLogin) getOption(ctx *cli.Context, s string) string {
+	v := ctx.String(s)
+	if len(v) > 0 {
+		return v
+	}
+	envVarName := fmt.Sprintf("KEYBASE_%s", strings.ToUpper(strings.Replace(s, "-", "_", -1)))
+	v = os.Getenv(envVarName)
+	if len(v) > 0 {
+		return v
+	}
+	return ""
 }
 
 func (c *CmdLogin) GetUsage() libkb.Usage {
@@ -150,6 +212,14 @@ func (c *CmdLogin) Cancel() error {
 		}
 	}
 	return nil
+}
+
+func (c *CmdLogin) getPaperKey() (ret string, err error) {
+	if len(c.PaperKey) > 0 {
+		return c.PaperKey, nil
+	}
+	ret, err = c.G().UI.GetTerminalUI().PromptPasswordMaybeScripted(PromptDescriptorPaperKey, "paper key: ")
+	return ret, err
 }
 
 func (c *CmdLogin) errNoSyncedKey() error {
@@ -228,4 +298,10 @@ you're you. We suggest one of the following:
    - install GPG and put your PGP private key on this machine and try again
    - reset your account and start fresh: https://keybase.io/#account-reset
 `)
+}
+
+func (c *CmdLogin) errNotFound() error {
+	return errors.New(`in Login
+
+This username doesn't exist.`)
 }

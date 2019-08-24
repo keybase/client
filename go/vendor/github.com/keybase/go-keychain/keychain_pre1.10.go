@@ -37,10 +37,15 @@ CFIndex CFStringGetLengthSafe(uintptr_t theString) {
 CFIndex CFStringGetBytesSafe(uintptr_t theString, CFRange range, CFStringEncoding encoding, UInt8 lossByte, Boolean isExternalRepresentation, UInt8 *buffer, CFIndex maxBufLen, CFIndex *usedBufLen) {
   return CFStringGetBytes((CFStringRef)theString, range, encoding, lossByte, isExternalRepresentation, buffer, maxBufLen, usedBufLen);
 }
+
+CFAbsoluteTime CFDateGetAbsoluteTimeSafe(uintptr_t theDate) {
+  return CFDateGetAbsoluteTime((CFDateRef)theDate);
+}
 */
 import "C"
 import (
 	"fmt"
+	"time"
 	"unsafe"
 )
 
@@ -68,6 +73,8 @@ var (
 	ErrorDecode = Error(C.errSecDecode)
 	// ErrorNoSuchKeychain corresponds to errSecNoSuchKeychain result code
 	ErrorNoSuchKeychain = Error(C.errSecNoSuchKeychain)
+	// ErrorNoAcccessForItem corresponds to errSecNoAccessForItem result code
+	ErrorNoAccessForItem = Error(C.errSecNoAccessForItem)
 )
 
 func checkError(errCode C.OSStatus) error {
@@ -77,24 +84,36 @@ func checkError(errCode C.OSStatus) error {
 	return Error(errCode)
 }
 
-func (k Error) Error() string {
-	var msg string
+func (k Error) Error() (msg string) {
 	// SecCopyErrorMessageString is only available on OSX, so derive manually.
+	// Messages derived from `$ security error $errcode`.
 	switch k {
-	case ErrorItemNotFound:
-		msg = fmt.Sprintf("Item not found (%d)", k)
-	case ErrorDuplicateItem:
-		msg = fmt.Sprintf("Duplicate item (%d)", k)
+	case ErrorUnimplemented:
+		msg = "Function or operation not implemented."
 	case ErrorParam:
-		msg = fmt.Sprintf("One or more parameters passed to the function were not valid (%d)", k)
+		msg = "One or more parameters passed to the function were not valid."
+	case ErrorAllocate:
+		msg = "Failed to allocate memory."
+	case ErrorNotAvailable:
+		msg = "No keychain is available. You may need to restart your computer."
+	case ErrorAuthFailed:
+		msg = "The user name or passphrase you entered is not correct."
+	case ErrorDuplicateItem:
+		msg = "The specified item already exists in the keychain."
+	case ErrorItemNotFound:
+		msg = "The specified item could not be found in the keychain."
+	case ErrorInteractionNotAllowed:
+		msg = "User interaction is not allowed."
+	case ErrorDecode:
+		msg = "Unable to decode the provided data."
 	case ErrorNoSuchKeychain:
-		msg = fmt.Sprintf("No such keychain (%d)", k)
-	case -25243:
-		msg = fmt.Sprintf("No access for item (%d)", k)
+		msg = "The specified keychain could not be found."
+	case ErrorNoAccessForItem:
+		msg = "The specified item has no access control."
 	default:
-		msg = fmt.Sprintf("Keychain Error (%d)", k)
+		msg = "Keychain Error."
 	}
-	return msg
+	return fmt.Sprintf("%s (%d)", msg, k)
 }
 
 // SecClass is the items class code
@@ -132,6 +151,10 @@ var (
 	DataKey = attrKey(C.CFTypeRef(C.kSecValueData))
 	// DescriptionKey is for kSecAttrDescription
 	DescriptionKey = attrKey(C.CFTypeRef(C.kSecAttrDescription))
+	// CreationDateKey is for kSecAttrCreationDate
+	CreationDateKey = attrKey(C.CFTypeRef(C.kSecAttrCreationDate))
+	// ModificationDateKey is for kSecAttrModificationDate
+	ModificationDateKey = attrKey(C.CFTypeRef(C.kSecAttrModificationDate))
 )
 
 // Synchronizable is the items synchronizable status
@@ -352,12 +375,14 @@ func UpdateItem(queryItem Item, updateItem Item) error {
 // QueryResult stores all possible results from queries.
 // Not all fields are applicable all the time. Results depend on query.
 type QueryResult struct {
-	Service     string
-	Account     string
-	AccessGroup string
-	Label       string
-	Description string
-	Data        []byte
+	Service          string
+	Account          string
+	AccessGroup      string
+	Label            string
+	Description      string
+	Data             []byte
+	CreationDate     time.Time
+	ModificationDate time.Time
 }
 
 // QueryItemRef returns query result as CFTypeRef. You must release it when you are done.
@@ -463,6 +488,16 @@ func uintptrCFStringToString(s uintptr) string {
 	return string(buf[:usedBufLen])
 }
 
+// untptrCFDateToTime converts a uintptr (assumed to have been
+// converted from a CFDateRef) to a time.Time.
+//
+// This is an adaptation of CFDateTimeToTime.
+func uintptrCFDateToTime(p uintptr) time.Time {
+	abs := C.CFDateGetAbsoluteTimeSafe(C.uintptr_t(p))
+	s, ns := absoluteTimeToUnix(abs)
+	return time.Unix(s, ns)
+}
+
 func convertResult(d C.CFDictionaryRef) (*QueryResult, error) {
 	m := CFDictionaryToMap(C.CFDictionaryRef(d))
 	result := QueryResult{}
@@ -484,6 +519,10 @@ func convertResult(d C.CFDictionaryRef) (*QueryResult, error) {
 				return nil, err
 			}
 			result.Data = b
+		case CreationDateKey:
+			result.CreationDate = uintptrCFDateToTime(v)
+		case ModificationDateKey:
+			result.ModificationDate = uintptrCFDateToTime(v)
 			// default:
 			// fmt.Printf("Unhandled key in conversion: %v = %v\n", cfTypeValue(k), cfTypeValue(p))
 		}

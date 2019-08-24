@@ -1,0 +1,99 @@
+.tab-container {
+  background-color: #3663ea;
+  flex-shrink: 0;
+  width: 160px;
+}
+.darkMode .tab-container {
+  background-color: #2a51c5;
+}
+.tab {
+  flex-shrink: 0;
+  height: 40px;
+}
+.tab-selected {
+  background-color: rgba(76, 142, 255, 0.4);
+  color: #ffffff;
+  flex-shrink: 0;
+  height: 40px;
+  transition-duration: 0.4s;
+  transition-property: background-color;
+}
+.darkMode .tab-selected {
+  color: #000000;
+}
+.tab .tab-icon {
+  color: #1036ac;
+  margin-left: 24px;
+  margin-right: 12px;
+}
+.tab:hover .tab-icon,
+.tab-selected .tab-icon {
+  color: #ffffff;
+  margin-left: 24px;
+  margin-right: 12px;
+}
+.darkMode .tab:hover .tab-icon,
+.darkMode .tab-selected .tab-icon {
+  color: #000000;
+}
+.tab .tab-label {
+  color: #a8ccff;
+  flex-grow: 1;
+}
+.darkMode .tab .tab-label {
+  color: #111111;
+}
+.tab:hover .tab-label,
+.tab-selected .tab-label {
+  color: #ffffff;
+  flex-grow: 1;
+}
+.darkMode .tab:hover .tab-label,
+.darkMode .tab-selected .tab-label {
+  color: #000000;
+}
+
+.tab-highlight {
+  transition-property: background-color;
+  transition-duration: 0.4s;
+}
+.tab .tab-highlight {
+  width: 3px;
+}
+.tab-selected .tab-highlight {
+  background-color: #ffffff;
+  width: 3px;
+  border-radius: 2px;
+}
+.darkMode .tab-selected .tab-highlight {
+  background-color: #000000;
+}
+.tab-tooltip {
+  display: none !important;
+}
+.tab-badge {
+}
+
+@media all and (max-width: 800px) and (min-width: 0px) {
+  .tab-container {
+    width: 80px;
+  }
+  .tab {
+    height: 48px;
+  }
+  .tab-selected {
+    height: 48px;
+  }
+  .tab-label,
+  .username {
+    display: none !important;
+  }
+  .tab-tooltip {
+    display: flex !important;
+  }
+  .tab-badge {
+    position: absolute;
+    top: 8px;
+    left: 43px;
+  }
+}

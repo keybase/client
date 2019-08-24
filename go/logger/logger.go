@@ -52,11 +52,8 @@ type Logger interface {
 	Profile(fmts string, arg ...interface{})
 	// Configure sets the style, debug level, and filename of the
 	// logger.  Output isn't redirected to the file until
-	// RotateLogFile is called for the first time.
+	// the log file rotation is configured.
 	Configure(style string, debug bool, filename string)
-	// RotateLogFile rotates the log file, if the underlying logger is
-	// writing to a file.
-	RotateLogFile() error
 
 	// Returns a logger that is like the current one, except with
 	// more logging depth added on.

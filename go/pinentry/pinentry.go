@@ -99,7 +99,7 @@ func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryR
 
 func (pi *pinentryInstance) Close() {
 	pi.stdin.Close()
-	pi.cmd.Wait()
+	_ = pi.cmd.Wait()
 }
 
 type pinentryInstance struct {
@@ -123,7 +123,6 @@ func (pi *pinentryInstance) Set(cmd, val string, errp *error) {
 	if string(line) != "OK" {
 		*errp = fmt.Errorf("Response to " + cmd + " was " + string(line))
 	}
-	return
 }
 
 func (pi *pinentryInstance) Init() (err error) {

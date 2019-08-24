@@ -134,12 +134,7 @@ see [iOS docs](./docs/ios/running.md)
 
 ### Updating `react-native`
 
-Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
-
- `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
-
- generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.
-
+Look at [this page](https://react-native-community.github.io/upgrade-helper/) to help see what you need to change locally
 
 ### Updating `electron`
 
@@ -149,17 +144,7 @@ We host the electron binaries used for our build process in keybase.pub. If you 
 
 The app uses [storybook](https://storybook.js.org/) snapshots. If you make a change that changes the html output of a story, tests will catch the difference.
 
-To update the stories, first determine which stories changed. Run the tests `yarn test Storyshots` and look for lines containing:
-
-```
-Received value does not match stored snapshot
-# for example
-Received value does not match stored snapshot "Storyshots Wallets/Transaction Account (receiverOnly) 1".
-```
-
-```
-yarn test Storyshots 2>&1 | grep "Received value does not match stored snapshot"
-```
+To update the stories, first determine which stories changed. Run the tests `yarn test Storyshots` and look for lines containing '●':
 
 Run the local storybook server. Verify that the affected stories look correct.
 
@@ -171,4 +156,21 @@ To update the snapshot file run:
 
 ```
 yarn test -u Storyshots
+```
+
+## Misc
+
+### Updating the list of countries with SMS support
+
+In order to update the list of countries supported by Amazon SNS, run
+the [update-data.sh](https://github.com/keybase/client/blob/master/shared/util/phone-numbers/sms-support/update-data.sh)
+script. It will first fetch the JSON from Amazon's public S3 bucket and
+transform it for use in our internal country filtering code.
+
+### ESLint in VSCode
+
+VSCode's ESLint extension needs to know where to look for .eslintrc. Add this to `REPO/.vscode/settings.json`.
+
+```
+{ "eslint.workingDirectories": ["shared"] }
 ```

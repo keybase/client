@@ -5,7 +5,6 @@ package keybase
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -17,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
 
 	"strings"
@@ -32,7 +31,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
@@ -42,9 +40,10 @@ import (
 
 var kbCtx *libkb.GlobalContext
 var kbChatCtx *globals.ChatContext
+var kbSvc *service.Service
 var conn net.Conn
 var startOnce sync.Once
-var logSendContext libkb.LogSendContext
+var logSendContext status.LogSendContext
 var kbfsConfig libkbfs.Config
 
 var initMutex sync.Mutex
@@ -52,6 +51,7 @@ var initComplete bool
 
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+	DisplayChatNotification(notification *ChatNotification)
 }
 
 type NativeVideoHelper interface {
@@ -120,18 +120,20 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
+	mobileOsVersion string) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
+	mobileOsVersion string) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -140,8 +142,13 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	var ekLogFile, guiLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
+		ekLogFile = logFile + ".ek"
+		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
+		guiLogFile = logFile + ".gui"
+		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
@@ -162,6 +169,9 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
 
+	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
+	kbCtx.MobileOsVersion = mobileOsVersion
+
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
 	usage := libkb.Usage{
@@ -177,6 +187,8 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		HomeDir:                        homeDir,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
+		EKLogFile:                      ekLogFile,
+		GUILogFile:                     guiLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
 		LocalRPCDebug:                  "",
@@ -190,8 +202,8 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		return err
 	}
 
-	svc := service.NewService(kbCtx, false)
-	err = svc.StartLoopbackServer()
+	kbSvc = service.NewService(kbCtx, false)
+	err = kbSvc.StartLoopbackServer()
 	if err != nil {
 		return err
 	}
@@ -199,25 +211,29 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	svc.SetupCriticalSubServices()
-	svc.SetupChatModules(nil)
-	svc.RunBackgroundOperations(uir)
-	kbChatCtx = svc.ChatContextified.ChatG()
+	err = kbSvc.SetupCriticalSubServices()
+	if err != nil {
+		return err
+	}
+	kbSvc.SetupChatModules(nil)
+	kbSvc.RunBackgroundOperations(uir)
+	kbChatCtx = kbSvc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
-	serviceLog := config.GetLogFile()
-	logs := libkb.Logs{
-		Service: serviceLog,
+	logs := status.Logs{
+		Service: config.GetLogFile(),
+		EK:      config.GetEKLogFile(),
 	}
 
-	logSendContext = libkb.LogSendContext{
+	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
+
+	logSendContext = status.LogSendContext{
 		Contextified: libkb.NewContextified(kbCtx),
 		Logs:         logs,
 	}
 
 	// open the connection
-	err = Reset()
-	if err != nil {
+	if err = Reset(); err != nil {
 		return err
 	}
 
@@ -231,16 +247,14 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
 	}()
 
 	return nil
 }
 
-type serviceCn struct {
-	ctx *libkb.GlobalContext
-}
+type serviceCn struct{}
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	// TODO: plumb the func somewhere it can be called on shutdown?
@@ -266,13 +280,30 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
-	logSendContext.Logs.Desktop = uiLogPath
+	env := kbCtx.Env
+	logSendContext.UID = env.GetUID()
+	logSendContext.InstallID = env.GetInstallID()
+	logSendContext.StatusJSON = statusJSON
+	logSendContext.Feedback = feedback
+	logSendContext.Logs.GUI = env.GetGUILogFile()
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
-	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
+	var numBytes int
+	switch kbCtx.MobileNetState.State() {
+	case keybase1.MobileNetworkState_WIFI:
+		numBytes = status.LogSendDefaultBytesMobileWifi
+	default:
+		numBytes = status.LogSendDefaultBytesMobileNoWifi
+	}
+	if sendMaxBytes {
+		numBytes = status.LogSendMaxBytes
+	}
+
+	logSendID, err := logSendContext.LogSend(sendLogs, numBytes, true /* mergeExtendedStatus */)
+	logSendContext.Clear()
+	return string(logSendID), err
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
@@ -295,7 +326,7 @@ func WriteB64(str string) (err error) {
 	return nil
 }
 
-const targetBufferSize = 50 * 1024
+const targetBufferSize = 300 * 1024
 
 // bufferSize must be divisible by 3 to ensure that we don't split
 // our b64 encode across a payload boundary if we go over our buffer
@@ -320,7 +351,7 @@ func ReadB64() (res string, err error) {
 
 	if err != nil {
 		// Attempt to fix the connection
-		Reset()
+		_ = Reset()
 		return "", fmt.Errorf("Read error: %s", err)
 	}
 
@@ -362,28 +393,28 @@ func SetAppStateForeground() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateForeground", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_FOREGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 }
 func SetAppStateBackground() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackground", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
 func SetAppStateInactive() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateInactive", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_INACTIVE)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 }
 func SetAppStateBackgroundActive() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackgroundActive", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 }
 
 func waitForInit(maxDur time.Duration) error {
@@ -412,88 +443,50 @@ func BackgroundSync() {
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
 
 	// Skip the sync if we aren't in the background
-	if state := kbCtx.AppState.State(); state != keybase1.AppState_BACKGROUND {
+	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
 		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
 		return
 	}
 
-	nextState := keybase1.AppState_BACKGROUNDACTIVE
-	kbCtx.AppState.Update(nextState)
+	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
+	kbCtx.MobileAppState.Update(nextState)
 	doneCh := make(chan struct{})
 	go func() {
 		defer func() { close(doneCh) }()
 		select {
-		case state := <-kbCtx.AppState.NextUpdate(&nextState):
+		case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
 			// if literally anything happens, let's get out of here
 			kbCtx.Log.Debug("BackgroundSync: bailing out early, appstate change: %v", state)
 			return
 		case <-time.After(10 * time.Second):
-			kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+			kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 			return
 		}
 	}()
 	<-doneCh
 }
 
-func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
-	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
-	if err := waitForInit(5 * time.Second); err != nil {
-		return nil
+func formatConversationName(info chat1.ConversationInfoLocal) string {
+	if info.TopicName != "" {
+		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
 	}
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
-		func() error { return err })()
-	defer func() { err = flattenError(err) }()
-
-	// Unbox
-	if !kbCtx.ActiveDevice.HaveKeys() {
-		return libkb.LoginRequiredError{}
-	}
-	mp := chat.NewMobilePush(gc)
-	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	bConvID, err := hex.DecodeString(strConvID)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
-		return err
-	}
-	convID := chat1.ConversationID(bConvID)
-	membersType := chat1.ConversationMembersType(intMembersType)
-	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		return err
-	}
-	if !displayPlaintext {
-		return nil
-	}
-
-	// Send notification
-	msg, err := mp.FormatPushText(ctx, uid, convID, membersType, msgUnboxed)
-	if err != nil {
-		return err
-	}
-	age := time.Since(time.Unix(int64(unixTime), 0))
-	if age >= 15*time.Second {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
-		return errors.New("stale notification")
-	}
-	// Send up the local notification with our message
-	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
-	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
-	// Hit the remote server to let it know we succeeded in showing something useful
-	mp.AckNotificationSuccess(ctx, []string{pushID})
-	return nil
+	return info.TlfName
 }
 
-func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {
-	kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", convID)
-	pusher.LocalNotification("failedpending",
-		"Heads up! One or more pending messages failed to send. Tap here to retry them.",
-		-1, "default", convID.String(), "chat.failedpending")
+// pushPendingMessageFailure sends at most one notification that a message
+// failed to send. We don't notify the user about background failures like
+// unfurling.
+func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
+	for _, obr := range obrs {
+		if !obr.IsUnfurl() {
+			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
+			pusher.LocalNotification("failedpending",
+				"Heads up! One or more pending messages failed to send. Tap here to retry them.",
+				-1, "default", obr.ConvID.String(), "chat.failedpending")
+			return
+		}
+	}
+	kbCtx.Log.Debug("pushPendingMessageFailure: skipped notification for: %d items", len(obrs))
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate
@@ -504,13 +497,13 @@ func AppWillExit(pusher PushNotifier) {
 	}
 	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
 	ctx := context.Background()
-	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
-	if err == nil && len(convs) > 0 {
-		// We are about to get killed with messages still to send, let the user know they will get
-		// stuck
-		pushPendingMessageFailure(convs[0], pusher)
+	obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
+	if err == nil {
+		// We are about to get killed with messages still to send, let the user
+		// know they will get stuck
+		pushPendingMessageFailure(obrs, pusher)
 	}
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
 
 // AppDidEnterBackground notifies the service that the app is in the background
@@ -524,11 +517,23 @@ func AppDidEnterBackground() bool {
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
 		kbCtx.Log.Debug("AppDidEnterBackground: failed to get active deliveries: %s", err)
-		return false
+		convs = nil
 	}
-	if len(convs) > 0 {
-		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in play, setting background active")
-		kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
+	stayRunning := false
+	switch {
+	case len(convs) > 0:
+		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in progress")
+		stayRunning = true
+	case kbChatCtx.LiveLocationTracker.ActivelyTracking(ctx):
+		kbCtx.Log.Debug("AppDidEnterBackground: active live location in progress")
+		stayRunning = true
+	case kbChatCtx.CoinFlipManager.HasActiveGames(ctx):
+		kbCtx.Log.Debug("AppDidEnterBackground: active coin flip games in progress")
+		stayRunning = true
+	}
+	if stayRunning {
+		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
+		kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 		return true
 	}
 	SetAppStateBackground()
@@ -554,8 +559,8 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())
 	ticker := time.NewTicker(5 * time.Second)
-	appState := kbCtx.AppState.State()
-	if appState != keybase1.AppState_BACKGROUNDACTIVE {
+	appState := kbCtx.MobileAppState.State()
+	if appState != keybase1.MobileAppState_BACKGROUNDACTIVE {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
 		return
 	}
@@ -563,7 +568,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	g, ctx = errgroup.WithContext(ctx)
 	g.Go(func() error {
 		select {
-		case appState = <-kbCtx.AppState.NextUpdate(&appState):
+		case appState = <-kbCtx.MobileAppState.NextUpdate(&appState):
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
 			return errors.New("app state change")
@@ -578,7 +583,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 		case obrs := <-ch:
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
-			pushPendingMessageFailure(obrs[0].ConvID, pusher)
+			pushPendingMessageFailure(obrs, pusher)
 			return errors.New("failure received")
 		case <-ctx.Done():
 			return ctx.Err()
@@ -589,12 +594,12 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 		for {
 			select {
 			case <-ticker.C:
-				convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
+				obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 				if err != nil {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to query active deliveries: %s", err)
 					continue
 				}
-				if len(convs) == 0 {
+				if len(obrs) == 0 {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything: successCount: %d",
 						successCount)
 					// We can race the failure case here, so lets go a couple passes of no pending
@@ -607,7 +612,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 				curTime := libkb.ForceWallClock(time.Now())
 				if curTime.Sub(beginTime) >= 10*time.Minute {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
-					pushPendingMessageFailure(convs[0], pusher)
+					pushPendingMessageFailure(obrs, pusher)
 					return errors.New("time expired")
 				}
 			case <-ctx.Done():
@@ -632,7 +637,7 @@ func startTrace(logFile string) {
 		return
 	}
 	fmt.Printf("Go: starting trace %s\n", tname)
-	trace.Start(f)
+	_ = trace.Start(f)
 	go func() {
 		fmt.Printf("Go: sleeping 30s for trace\n")
 		time.Sleep(30 * time.Second)

@@ -145,6 +145,10 @@
         {
           "name": "assertion",
           "type": "string"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "UserOrTeamLite",
@@ -171,58 +175,47 @@
         },
         {
           "name": "useDelegateUI",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "alwaysBlock",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "noErrorOnTrackFailure",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "forceRemoteCheck",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "needProofSet",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "allowEmptySelfID",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "noSkipSelf",
-          "type": "boolean",
-          "default": true
+          "type": "boolean"
         },
         {
           "name": "canSuppressUI",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior",
-          "default": 0
+          "type": "TLFIdentifyBehavior"
         },
         {
           "name": "forceDisplay",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "actLoggedOut",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         }
       ],
       "response": "Identify2Res"
@@ -247,53 +240,47 @@
         },
         {
           "name": "useDelegateUI",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "alwaysBlock",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "noErrorOnTrackFailure",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "forceRemoteCheck",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "needProofSet",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "allowEmptySelfID",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "noSkipSelf",
-          "type": "boolean",
-          "default": true
+          "type": "boolean"
         },
         {
           "name": "canSuppressUI",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior",
-          "default": 0
+          "type": "TLFIdentifyBehavior"
         },
         {
           "name": "forceDisplay",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "IdentifyLiteRes"
@@ -331,6 +318,10 @@
         {
           "name": "identifyBehavior",
           "type": "TLFIdentifyBehavior"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "ResolveIdentifyImplicitTeamRes"

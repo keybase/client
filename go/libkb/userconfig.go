@@ -114,7 +114,6 @@ func (u *UserConfig) SetDevice(d keybase1.DeviceID) {
 		s = &tmp
 	}
 	u.Device = s
-	return
 }
 
 //==================================================================

@@ -50,16 +50,16 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	// so should only be used if we are trying to return a best-effort result.
 	cacheKey := listTeamsUnverifiedCacheKey(meUID, queryUID, arg.IncludeImplicitTeams)
 	teams, err := getTeamsListFromServer(ctx, g, queryUID,
-		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams)
+		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	switch err.(type) {
 	case nil:
 		if err = g.GetKVStore().PutObj(cacheKey, nil, teams); err != nil {
-			m.CDebugf("| ListTeamsUnverified unable to put cache item: %v", err)
+			m.Debug("| ListTeamsUnverified unable to put cache item: %v", err)
 		}
 	case libkb.APINetError:
 		if found, cerr := g.GetKVStore().GetInto(&teams, cacheKey); cerr != nil || !found {
 			// Nothing we can do here.
-			m.CDebugf("| ListTeamsUnverified unable to get cache item: %v, found: %v", cerr, found)
+			m.Debug("| ListTeamsUnverified unable to get cache item: %v, found: %v", cerr, found)
 			return nil, err
 		}
 	default:
@@ -67,7 +67,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams: nil,
+		Teams:                  nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
@@ -87,7 +87,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 
 	for _, memberInfo := range teams {
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			m.CDebugf("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.Debug("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
@@ -131,7 +131,7 @@ func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res
 
 	emptyUID := keybase1.UID("")
 	teams, err := getTeamsListFromServer(mctx.Ctx(), mctx.G(), emptyUID,
-		false /* all */, true /* countMembers */, true /* includeImplicitTeams */)
+		false /* all */, true /* countMembers */, false /* includeImplicitTeams */, name.RootID())
 	if err != nil {
 		return res, libkb.LoginRequiredError{}
 	}

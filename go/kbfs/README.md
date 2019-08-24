@@ -21,10 +21,17 @@ servers).
 
 The code is organized as follows:
 
+* [cache](cache/): Generic cache data structures.
+* [data](data/): Data structures and logic for KBFS file and directory data.
 * [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
 * [env](env/): Code to implement libkbfs.Context in terms of libkb.
+* [favorites](favorites/): Data structures for the favorited lists of
+  top-level folders (TLFs) that appear under private/, public/, and
+  team/.
 * [fsrpc](fsrpc/): RPC interfaces that connected clients can call in KBFS,
   to do certain operations, such as listing files.
+* [idutil](idutil/): Basic data structures, interfaces, and helper
+  code for dealing with identity data for users and teams.
 * [ioutil](ioutil/): Helper functions for I/O.
 * [kbfsblock](kbfsblock/): Types and functions to work with KBFS blocks.
 * [kbfscodec](kbfscodec/): Interfaces and types used for serialization in KBFS.
@@ -33,24 +40,44 @@ The code is organized as follows:
   Windows.
 * [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
   and OS X.
+* [kbfsgit](kbfsgit/): The main executable for the Keybase git remote helper.
 * [kbfshash](kbfshash/): An implementation of the KBFS hash spec.
 * [kbfsmd](kbfsmd/): Types and functions to work with KBFS TLF metadata.
 * [kbfssync](kbfssync/): KBFS-specific synchronization primitives.
 * [kbfstool](kbfstool/): A thin command line utility for interacting with KBFS
   without using a filesystem mountpoint.
+* [kbpagesconfig](kbpagesconfig/): Configuration code for Keybase Pages.
+* [kbpagesd](kbpagesd/): The main executable for Keybase Pages.
+* [libcontext](libcontext/): KBFS-specific context helper code.
 * [libdokan](libdokan/): Library code gluing together KBFS and the
   Dokan protocol.
 * [libfs](libfs/): Common library code useful to any filesystem
   presentation layer for KBFS.
 * [libfuse](libfuse/): Library code gluing together KBFS and the FUSE
   protocol.
+* [libgit](libgit/): Library for git-related logic.
+* [libhttpserver](libhttpserver/): Library for serving KBFS files with
+  a local HTTP server.
+* [libkey](libkey/): Library for managing KBFS server keys and key metadata.
 * [libkbfs](libkbfs/): The core logic for KBFS.
+* [libmime](libmime/): Library for determining the MIME types of KBFS
+  files.
+* [libpages](libpages/): Library for the logic behind Keybase Pages.
 * [metricsutil](metricsutil/): Helper code for collecting metrics.
+* [redirector](redirector/): The executable that redirects user FUSe
+  requests to the correct user KBFS mount.  The redirector is usually
+  mounted at `/keybase` on Linux and macOS.
+* [simplefs](simplefs/): A simple RPC-based interface to KBFS.
+* [stderrutils](stderrutils/): A simple library for dealing with
+  stderr on different platforms.
+* [sysutils](sysutils/): Library for dealing with platform-specific
+  systems stuff.
 * [test](test/): A test harness with a domain-specific test language
   and tests in that language.
 * [tlf](tlf/): Code and structures for top-level folders (TLFs).
-* [vendor](vendor/): Vendored versions of the open-source libraries
-  used by KBFS.
+* [tlfhandle](tlfhandle/): The data structure for "Handles" to
+  top-level folders (TLFs), which represent an identifier for each
+  TLF, containing all the user or team IDs associated with the it.
 
 ### Status
 

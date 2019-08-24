@@ -58,12 +58,16 @@ func (e *SelfProvisionEngine) Result() error {
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "SelfProvisionEngine")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "SelfProvisionEngine")
-	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
+	defer m.Trace("SelfProvisionEngine#Run", func() error { return err })()
 
 	if d, err := libkb.GetDeviceCloneState(m); err != nil {
 		return err
 	} else if !d.IsClone() {
 		return fmt.Errorf("to self provision, you must be a cloned device")
+	}
+
+	if err = m.G().SecretStore().PrimeSecretStores(m); err != nil {
+		return SecretStoreNotFunctionalError{err}
 	}
 
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
@@ -85,7 +89,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.ekReboxer = newEphemeralKeyReboxer(m)
+	e.ekReboxer = newEphemeralKeyReboxer()
 
 	// Make new device keys and sign them with current device keys
 	if err := e.provision(m, keys); err != nil {
@@ -100,24 +104,24 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Cleanup EKs belonging to the old device.
 	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
-		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
-			m.CDebugf("unable to remove old ephemeral keys: %v", err)
+		if err = deviceEKStorage.ForceDeleteAll(m, e.User.GetNormalizedName()); err != nil {
+			m.Debug("unable to remove old ephemeral keys: %v", err)
 		}
 	}
 
 	// Store and encrypt the new deviceEK with the new globally set
 	// active device.
 	if e.ekReboxer.storeEKs(m); err != nil {
-		m.CDebugf("unable to store ephemeral keys: %v", err)
+		m.Debug("unable to store ephemeral keys: %v", err)
 	}
 
 	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
 	if err := e.syncSecretStore(m); err != nil {
-		m.CDebugf("unable to syncSecretStore: %v", err)
+		m.Debug("unable to syncSecretStore: %v", err)
 	}
 
 	e.clearCaches(m)
-	e.sendNotification()
+	e.sendNotification(m)
 	return nil
 }
 
@@ -247,21 +251,22 @@ func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
 		return err
 	}
 
-	return libkb.StoreSecretAfterLoginWithLKS(m, e.User.GetNormalizedName(), e.lks)
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
+	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, e.User.GetNormalizedName(), e.lks, &options)
 }
 
-func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
+func (e *SelfProvisionEngine) clearCaches(mctx libkb.MetaContext) {
 	// Any caches that are encrypted with the old device key should be cleared
 	// out here so we can re-populate and encrypt with the new key.
 	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
-		m.CDebugf("unable to nuke LocalChatDb: %v", err)
+		mctx.Debug("unable to nuke LocalChatDb: %v", err)
 	}
 	if ekLib := e.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
+		ekLib.ClearCaches(mctx)
 	}
 }
 
-func (e *SelfProvisionEngine) sendNotification() {
-	e.G().KeyfamilyChanged(e.User.GetUID())
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+func (e *SelfProvisionEngine) sendNotification(m libkb.MetaContext) {
+	e.G().KeyfamilyChanged(m.Ctx(), e.User.GetUID())
+	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }

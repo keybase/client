@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -258,8 +259,6 @@ func TestIssue280(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	return
 }
 
 func TestSignupGeneratesPaperKey(t *testing.T) {
@@ -320,4 +319,81 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
 		require.IsType(t, err, testVal.err)
 	}
+}
+
+func TestSignupNOPWBadParams(t *testing.T) {
+	tc := SetupEngineTest(t, "signup_nopw")
+	defer tc.Cleanup()
+
+	fu, _ := NewFakeUser("sup")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = false
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
+	require.Error(t, err)
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+}
+
+func TestSignupWithoutSecretStore(t *testing.T) {
+	tc := SetupEngineTest(t, "signup_nopw")
+	defer tc.Cleanup()
+
+	// Setup memory-only secret store.
+	libkb.ReplaceSecretStoreForTests(tc, "" /* dataDir */)
+
+	fu, _ := NewFakeUser("sup")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "persistent secret store is required")
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+}
+
+func TestSignupWithBadSecretStore(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("this test uses chmod, skipping on Windows")
+	}
+
+	tc := SetupEngineTest(t, "signup_nopw")
+	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
+
+	// Create a secret store that's read only - even though
+	// secret store exists, secrets cannot be stored.
+	td, cleanup := libkb.CreateReadOnlySecretStoreDir(tc)
+	defer cleanup()
+	libkb.ReplaceSecretStoreForTests(tc, td)
+
+	fu, _ := NewFakeUser("sup")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
+	require.Error(t, err)
+	require.IsType(t, SecretStoreNotFunctionalError{}, err)
+	require.Contains(t, err.Error(), "permission denied")
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }

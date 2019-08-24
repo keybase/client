@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"
@@ -29,7 +30,7 @@ func TestDecode0(t *testing.T) {
 	require.NoError(t, err)
 	var h codec.MsgpackHandle
 	var foo Foo
-	err = MsgpackDecodeAll(bytes, &h, &foo)
+	err = msgpack.DecodeAll(bytes, &h, &foo)
 	require.NoError(t, err)
 	require.Equal(t, 10, foo.Bar)
 }
@@ -90,7 +91,8 @@ func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (Met
 	salt, err := RandBytes(triplesec.SaltLen)
 	require.NoError(t, err)
 	m = m.WithNewProvisionalLoginContext()
-	m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	err = m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	require.NoError(t, err)
 
 	return m, skb
 }
@@ -147,8 +149,10 @@ func TestCorruptSecretStore(t *testing.T) {
 
 	var skb *SKB
 	m, skb = makeTestSKB(t, m, lks, tc.G)
-	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
-	tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	fs, err := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
+	require.NoError(t, err)
+	err = tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	require.NoError(t, err)
 	testPromptAndUnlock(t, m, skb)
 
 	// The corrupt secret value should be overwritten by the new
@@ -191,7 +195,7 @@ func TestPromptCancelCache(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	m := NewMetaContextForTest(tc)
 	var skb *SKB
-	m, skb = makeTestSKB(t, m, lks, tc.G)
+	_, skb = makeTestSKB(t, m, lks, tc.G)
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)

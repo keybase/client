@@ -28,7 +28,7 @@ const (
 type AppStateUpdater interface {
 	// NextAppStateUpdate returns a channel that app state changes
 	// are sent to.
-	NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState
+	NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState
 }
 
 // EmptyAppStateUpdater is an implementation of AppStateUpdater that
@@ -36,7 +36,7 @@ type AppStateUpdater interface {
 type EmptyAppStateUpdater struct{}
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
+func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
@@ -47,6 +47,7 @@ type Context interface {
 	GetRunMode() kbconst.RunMode
 	GetLogDir() string
 	GetDataDir() string
+	GetEnv() *libkb.Env
 	GetMountDir() (string, error)
 	ConfigureSocketInfo() (err error)
 	CheckService() error
@@ -54,6 +55,7 @@ type Context interface {
 	NewRPCLogFactory() rpc.LogFactory
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
+	GetVDebugSetting() string
 }
 
 // KBFSContext is an implementation for libkbfs.Context
@@ -87,10 +89,22 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 // main functions.
 func NewContext() *KBFSContext {
 	g := libkb.NewGlobalContextInit()
-	g.ConfigureConfig()
-	g.ConfigureLogging()
-	g.ConfigureCaches()
-	g.ConfigureMerkleClient()
+	err := g.ConfigureConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureLogging()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureCaches()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureMerkleClient()
+	if err != nil {
+		panic(err)
+	}
 	return NewContextFromGlobalContext(g)
 }
 
@@ -109,14 +123,19 @@ func (c *KBFSContext) GetMountDir() (string, error) {
 	return c.g.Env.GetMountDir()
 }
 
+// GetEnv returns the global Env
+func (c *KBFSContext) GetEnv() *libkb.Env {
+	return c.g.Env
+}
+
 // GetRunMode returns run mode
 func (c *KBFSContext) GetRunMode() kbconst.RunMode {
 	return c.g.GetRunMode()
 }
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
-	return c.g.AppState.NextUpdate(lastState)
+func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+	return c.g.MobileAppState.NextUpdate(lastState)
 }
 
 // CheckService checks if the service is running and returns nil if
@@ -173,7 +192,7 @@ func (c *KBFSContext) getSandboxSocketFile() string {
 func (c *KBFSContext) getKBFSSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
-		func() string { return c.getSandboxSocketFile() },
+		c.getSandboxSocketFile,
 		// TODO: maybe add command-line option here
 		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
 		func() string { return filepath.Join(e.GetRuntimeDir(), kbfsSocketFile) },
@@ -262,4 +281,9 @@ func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
 		return nil, err
 	}
 	return c.kbfsSocket.BindToSocket()
+}
+
+// GetVDebugSetting returns the verbose debug logger.
+func (c *KBFSContext) GetVDebugSetting() string {
+	return c.g.Env.GetVDebugSetting()
 }

@@ -247,6 +247,31 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 	return fu.LoginWithSecretUI(s, g)
 }
 
+type nullSecretUI struct{}
+
+func (n nullSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, errors.New("nullSecretUI should never be called")
+}
+
+func (fu *FakeUser) SwitchTo(g *libkb.GlobalContext, withPassword bool) error {
+	var secui libkb.SecretUI
+	if withPassword {
+		secui = fu.NewSecretUI()
+	} else {
+		secui = nullSecretUI{}
+	}
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUI(),
+		LogUI:       g.UI.GetLogUI(),
+		GPGUI:       &gpgtestui{},
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
+	}
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	li := NewLoginWithUserSwitch(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI, true)
+	return RunEngine2(m, li)
+}
+
 func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
 	if err := fu.Login(tc.G); err != nil {
 		tc.T.Fatal(err)
@@ -443,7 +468,8 @@ func ForcePUK(tc libkb.TestContext) {
 }
 
 func getUserSeqno(tc *libkb.TestContext, uid keybase1.UID) keybase1.Seqno {
-	res, err := tc.G.API.Get(libkb.APIArg{
+	mctx := NewMetaContextForTest(*tc)
+	res, err := tc.G.API.Get(mctx, libkb.APIArg{
 		Endpoint: "user/lookup",
 		Args: libkb.HTTPArgs{
 			"uid": libkb.UIDArg(uid),

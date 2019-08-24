@@ -87,17 +87,17 @@ func (e *PerUserKeyUpkeepBackground) Shutdown() {
 
 func PerUserKeyUpkeepBackgroundRound(m libkb.MetaContext) error {
 	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
-		m.CDebugf("PerUserKeyUpkeepBackgroundRound giving up offline")
+		m.Debug("PerUserKeyUpkeepBackgroundRound giving up offline")
 		return nil
 	}
 
 	if !m.G().ActiveDevice.Valid() {
-		m.CDebugf("PerUserKeyUpkeepBackgroundRound not logged in")
+		m.Debug("PerUserKeyUpkeepBackgroundRound not logged in")
 		return nil
 	}
 
 	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "PerUserKeyUpkeepBackgroundRound") {
-		m.CDebugf("PerUserKeyUpkeepBackgroundRound yielding to guard")
+		m.Debug("PerUserKeyUpkeepBackgroundRound yielding to guard")
 		return nil
 	}
 

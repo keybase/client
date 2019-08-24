@@ -87,6 +87,9 @@ type RootMetadataV3 struct {
 	// of writing to the given folder.
 	FinalizedInfo *tlf.HandleExtension `codec:"fi,omitempty"`
 
+	// KBMerkleRoot is now DEPRECATED, and shouldn't be relied on for
+	// future features.  Below is the original text for historians:
+	//
 	// The root of the global Keybase Merkle tree at the time this
 	// update was created (from the writer's perspective).  This field
 	// was added to V3 after it was live for a while, and older
@@ -435,7 +438,8 @@ func (md *RootMetadataV3) isNonTeamWriter(
 func (md *RootMetadataV3) IsWriter(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, verifyingKey kbfscrypto.VerifyingKey,
-	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+	offline keybase1.OfflineAvailability) (bool, error) {
 	switch md.TypeForKeying() {
 	case tlf.TeamKeying:
 		err := md.checkNonPrivateExtra(extra)
@@ -451,7 +455,7 @@ func (md *RootMetadataV3) IsWriter(
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
 		isWriter, err := teamMemChecker.IsTeamWriter(
-			ctx, tid, user, verifyingKey)
+			ctx, tid, user, verifyingKey, offline)
 		if err != nil {
 			return false, err
 		}
@@ -465,7 +469,7 @@ func (md *RootMetadataV3) IsWriter(
 func (md *RootMetadataV3) IsReader(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
-	extra ExtraMetadata) (bool, error) {
+	extra ExtraMetadata, offline keybase1.OfflineAvailability) (bool, error) {
 	switch md.TypeForKeying() {
 	case tlf.PublicKeying:
 		err := md.checkNonPrivateExtra(extra)
@@ -505,7 +509,7 @@ func (md *RootMetadataV3) IsReader(
 
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
-		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user)
+		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user, offline)
 		if err != nil {
 			return false, err
 		}
@@ -902,7 +906,8 @@ func CheckRKBID(codec kbfscodec.Codec,
 func (md *RootMetadataV3) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
-	writerVerifyingKey kbfscrypto.VerifyingKey) error {
+	writerVerifyingKey kbfscrypto.VerifyingKey,
+	offline keybase1.OfflineAvailability) error {
 	if md.TypeForKeying() == tlf.PrivateKeying {
 		wkb, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
@@ -971,8 +976,7 @@ func (md *RootMetadataV3) IsValidAndSigned(
 
 	writer := md.LastModifyingWriter()
 	user := md.LastModifyingUser
-	isWriter := false
-	isReader := false
+	var isWriter, isReader bool
 	if md.TypeForKeying() == tlf.TeamKeying {
 		tid, err := md.WriterMetadata.Writers[0].AsTeam()
 		if err != nil {
@@ -980,12 +984,12 @@ func (md *RootMetadataV3) IsValidAndSigned(
 		}
 
 		isWriter, err = teamMemChecker.IsTeamWriter(
-			ctx, tid, writer, writerVerifyingKey)
+			ctx, tid, writer, writerVerifyingKey, offline)
 		if err != nil {
 			return err
 		}
 
-		isReader, err = teamMemChecker.IsTeamReader(ctx, tid, user)
+		isReader, err = teamMemChecker.IsTeamReader(ctx, tid, user, offline)
 		if err != nil {
 			return err
 		}
@@ -1117,12 +1121,6 @@ func (md *RootMetadataV3) RevisionNumber() Revision {
 	return md.Revision
 }
 
-// MerkleRoot implements the RootMetadata interface for
-// RootMetadataV3.
-func (md *RootMetadataV3) MerkleRoot() keybase1.MerkleRootV2 {
-	return *md.KBMerkleRoot
-}
-
 // BID implements the RootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) BID() BranchID {
 	return md.WriterMetadata.BID
@@ -1218,12 +1216,6 @@ func (md *RootMetadataV3) SetWriterMetadataCopiedBit() {
 // SetRevision implements the MutableRootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) SetRevision(revision Revision) {
 	md.Revision = revision
-}
-
-// SetMerkleRoot implements the MutableRootMetadata interface for
-// RootMetadataV3.
-func (md *RootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	md.KBMerkleRoot = &root
 }
 
 func (md *RootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,

@@ -16,19 +16,29 @@ import (
 )
 
 type handlerTracker struct {
-	listV1         int
-	readV1         int
-	getV1          int
-	sendV1         int
-	editV1         int
-	reactionV1     int
-	deleteV1       int
-	attachV1       int
-	downloadV1     int
-	setstatusV1    int
-	markV1         int
-	searchInboxV1  int
-	searchRegexpV1 int
+	listV1              int
+	readV1              int
+	getV1               int
+	sendV1              int
+	editV1              int
+	reactionV1          int
+	deleteV1            int
+	attachV1            int
+	downloadV1          int
+	setstatusV1         int
+	markV1              int
+	searchInboxV1       int
+	searchRegexpV1      int
+	newConvV1           int
+	listConvsOnNameV1   int
+	joinV1              int
+	leaveV1             int
+	loadFlipV1          int
+	getUnfurlSettingsV1 int
+	setUnfurlSettingsV1 int
+	advertiseCommandsV1 int
+	clearCommandsV1     int
+	listCommandsV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -96,6 +106,56 @@ func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error 
 	return nil
 }
 
+func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
+	h.newConvV1++
+	return nil
+}
+
+func (h *handlerTracker) ListConvsOnNameV1(context.Context, Call, io.Writer) error {
+	h.listConvsOnNameV1++
+	return nil
+}
+
+func (h *handlerTracker) JoinV1(context.Context, Call, io.Writer) error {
+	h.joinV1++
+	return nil
+}
+
+func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
+	h.leaveV1++
+	return nil
+}
+
+func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
+	h.loadFlipV1++
+	return nil
+}
+
+func (h *handlerTracker) GetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.getUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) SetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.setUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) AdvertiseCommandsV1(context.Context, Call, io.Writer) error {
+	h.advertiseCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ClearCommandsV1(context.Context, Call, io.Writer) error {
+	h.clearCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ListCommandsV1(context.Context, Call, io.Writer) error {
+	h.listCommandsV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -157,20 +217,62 @@ func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply 
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) NewConvV1(context.Context, newConvOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) JoinV1(context.Context, joinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetUnfurlSettingsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ClearCommandsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+func (c *chatEcho) ListCommandsV1(context.Context, listCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
-	input          string
-	err            error
-	listV1         int
-	readV1         int
-	sendV1         int
-	editV1         int
-	reactionV1     int
-	deleteV1       int
-	attachV1       int
-	downloadV1     int
-	markV1         int
-	searchInboxV1  int
-	searchRegexpV1 int
+	input             string
+	err               error
+	listV1            int
+	readV1            int
+	sendV1            int
+	editV1            int
+	reactionV1        int
+	deleteV1          int
+	attachV1          int
+	downloadV1        int
+	markV1            int
+	searchInboxV1     int
+	searchRegexpV1    int
+	joinV1            int
+	leaveV1           int
+	listConvsOnNameV1 int
 }
 
 var topTests = []topTest{
@@ -197,6 +299,9 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
 	{input: `{"id": 39, "method": "searchinbox", "params":{"version": 1}}`, searchInboxV1: 1},
 	{input: `{"id": 39, "method": "searchregexp", "params":{"version": 1}}`, searchRegexpV1: 1},
+	{input: `{"id": 39, "method": "join", "params":{"version": 1}}`, joinV1: 1},
+	{input: `{"id": 39, "method": "leave", "params":{"version": 1}}`, leaveV1: 1},
+	{input: `{"id": 39, "method": "listconvsonname", "params":{"version": 1}}`, listConvsOnNameV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -249,6 +354,16 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.searchRegexpV1 != test.searchRegexpV1 {
 			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
+		}
+		if h.joinV1 != test.joinV1 {
+			t.Errorf("test %d: input %s => joinV1 = %d, expected %d", i, test.input, h.joinV1, test.joinV1)
+		}
+		if h.leaveV1 != test.leaveV1 {
+			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
+		}
+		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
+			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",
+				i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
 		}
 	}
 }
@@ -470,6 +585,41 @@ var optTests = []optTest{
 	{
 		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
 	},
+	{
+		input: `{"method": "join", "params":{"version": 1, "options": {} }}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
+	{
+		input: `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+	},
+	{
+		input: `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "leave", "params":{"version": 1, "options": {} }}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
+	{
+		input: `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+	},
+	{
+		input: `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "listconvsonname", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "listconvsonname", "params":{"version": 1, "options": {"name": "alice,bob"}}}`,
+	},
 }
 
 // TestChatAPIVersionHandlerOptions tests the option decoding.
@@ -574,6 +724,18 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "searchregexp", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "query": "hi"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "listconvsonname", "params":{"version": 1, "options": {"name":"alice,bob"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }

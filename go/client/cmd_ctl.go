@@ -6,30 +6,32 @@ package client
 import (
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	commands := []cli.Command{
+		NewCmdCtlStart(cl, g),
+		NewCmdCtlStop(cl, g),
+		NewCmdCtlReload(cl, g),
+		NewCmdCtlRestart(cl, g),
+		NewCmdCtlLogRotate(cl, g),
+		NewCmdWatchdog(cl, g),
+		NewCmdWatchdog2(cl, g),
+		NewCmdCtlAppExit(cl, g),
+	}
+
+	for _, cmd := range platformSpecificCtlCommands(cl, g) {
+		commands = append(commands, cmd)
+	}
 
 	return cli.Command{
-		Name:  "ctl",
-		Usage: "Control the background keybase service",
-		Subcommands: []cli.Command{
-			NewCmdCtlStart(cl, g),
-			NewCmdCtlStop(cl, g),
-			NewCmdCtlReload(cl, g),
-			NewCmdCtlRestart(cl, g),
-			NewCmdCtlLogRotate(cl, g),
-			NewCmdWatchdog(cl, g),
-			NewCmdWatchdog2(cl, g),
-			NewCmdCtlAppExit(cl, g),
-		},
+		Name:        "ctl",
+		Usage:       "Control the background keybase service",
+		Subcommands: commands,
 	}
 }
 
@@ -67,13 +69,4 @@ func ctlParseArgv(ctx *cli.Context) map[string]bool {
 		}
 	}
 	return components
-}
-
-// CtlServiceStop will stop a running service via RPC call
-func CtlServiceStop(g *libkb.GlobalContext) error {
-	cli, err := GetCtlClient(g)
-	if err != nil {
-		return err
-	}
-	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
 }

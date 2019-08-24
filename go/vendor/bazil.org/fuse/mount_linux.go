@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -132,7 +133,47 @@ func doDirectMountAsRoot(
 	return f, nil
 }
 
+// pollHack was written by hanwen for the go-fuse package, and the
+// comment and code below was taken from
+// https://github.com/hanwen/go-fuse/commit/4f10e248ebabd3cdf9c0aa3ae58fd15235f82a79
+//
+// Go 1.9 introduced polling for file I/O. The implementation causes
+// the runtime's epoll to take up the last GOMAXPROCS slot, and if
+// that happens, we won't have any threads left to service FUSE's
+// _OP_POLL request. Prevent this by forcing _OP_POLL to happen, so we
+// can say ENOSYS and prevent further _OP_POLL requests.
+func pollHack(mountPoint string) error {
+	fd, err := syscall.Creat(
+		filepath.Join(mountPoint, PollHackName), syscall.O_CREAT)
+	if err != nil {
+		return err
+	}
+	pollData := []sysunix.PollFd{{
+		Fd:     int32(fd),
+		Events: sysunix.POLLIN | sysunix.POLLPRI | sysunix.POLLOUT,
+	}}
+
+	// Trigger _OP_POLL, so we can say ENOSYS. We don't care about
+	// the return value.
+	sysunix.Poll(pollData, 0)
+	syscall.Close(fd)
+	return nil
+}
+
 func mount(dir string, conf *mountConfig, ready chan<- struct{}, _ *error) (fusefd *os.File, err error) {
+	defer func() {
+		if err == nil {
+			// If we successfully mounted, then force a poll lookup as
+			// one of the first mountpoint requests, so that the
+			// kernel will receive an ENOSYS immediately and not risk
+			// deadlocks on future poll requests coming in via
+			// different threads.
+			go func() {
+				_ = pollHack(dir)
+			}()
+		}
+	}()
+
 	// linux mount is never delayed
 	close(ready)
 

@@ -167,7 +167,7 @@ func TestBoxAndEncodeCatchesMalformedBundles(t *testing.T) {
 	newAcctID, newSecret, err := randomStellarKeypair()
 	require.NoError(t, err)
 	newAB := map[stellar1.AccountID]stellar1.AccountBundle{
-		newAcctID: stellar1.AccountBundle{
+		newAcctID: {
 			AccountID: newAcctID,
 			Signers:   []stellar1.SecretKey{newSecret},
 		},
@@ -309,11 +309,11 @@ func TestCanningFacility(t *testing.T) {
 			EncAcctBundleHash:  nil,
 		}},
 		AccountBundles: map[stellar1.AccountID]stellar1.AccountBundle{
-			a1: stellar1.AccountBundle{
+			a1: {
 				AccountID: a1,
 				Signers:   []stellar1.SecretKey{s1},
 			},
-			a2: stellar1.AccountBundle{
+			a2: {
 				AccountID: a2,
 				Signers:   []stellar1.SecretKey{s2},
 			},
@@ -327,7 +327,7 @@ func TestCanningFacility(t *testing.T) {
 	t.Logf("puk seed: %v", toB64(pukSeed[:]))
 	t.Logf("puk gen: %v", pukGen)
 	t.Logf("nonce: %v", toB64(boxed.EncParent.N[:]))
-	t.Logf("enc E: %v", toB64(boxed.EncParent.E[:]))
+	t.Logf("enc E: %v", toB64(boxed.EncParent.E))
 	t.Logf("\nEncParentB64: %v", boxed.EncParentB64)
 	t.Logf("VisParentB64: %v\n", boxed.VisParentB64)
 	for acctID, encodedAcct := range boxed.AcctBundles {

@@ -15,10 +15,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/kardianos/osext"
-
 	"unicode/utf16"
 
+	"github.com/keybase/client/go/utils"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
@@ -215,7 +214,7 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	if err != nil {
 		return err
 	}
-	keybaseExe, err := osext.Executable()
+	keybaseExe, err := utils.BinPath()
 	if err != nil {
 		return err
 	}
@@ -231,23 +230,4 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	err = k2.SetStringValue("", "Keybase")
 	notifyShell(newMount)
 	return err
-}
-
-// CheckInstance returns true if no other instance is found
-// see https://stackoverflow.com/questions/23162986/restricting-to-single-instance-of-executable-with-golang
-func CheckInstance(name string) bool {
-	namep, err := syscall.UTF16PtrFromString(name)
-	if err != nil {
-		return true // should never happen
-	}
-	_, _, err = procCreateMutex.Call(
-		0,
-		0,
-		uintptr(unsafe.Pointer(namep)),
-	)
-
-	if int(err.(syscall.Errno)) == 0 {
-		return true
-	}
-	return false
 }

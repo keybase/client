@@ -18,9 +18,8 @@ func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurg
 // time we need to purge this conv.
 func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
-
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	if purgeInfo == nil {
 		return nil, nil, nil
@@ -96,7 +95,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ephemeralPurgeHelper convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))()
 
-	if msgs == nil || len(msgs) == 0 {
+	if len(msgs) == 0 {
 		return nil, nil, nil
 	}
 
@@ -129,7 +128,6 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-				debugPurge("skipping unexpired ephemeral", msg, now)
 			} else if mvalid.MessageBody.IsNil() {
 				// do nothing
 			} else {
@@ -146,7 +144,12 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	go func() {
+		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		if err != nil {
+			s.Debug(ctx, "Error removing from indexer: %+v", err)
+		}
+	}()
 
 	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
 	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {

@@ -134,7 +134,7 @@ func IsSaltpackArmored(stream *bufio.Reader) (brand string, msgType MessageType,
 	return IsSaltpackArmoredPrefix(string(buf))
 }
 
-// IsSaltpackArmored tries to determine whether the string is the prefix of a valid ASCII-armored saltpack message.
+// IsSaltpackArmoredPrefix tries to determine whether the string is the prefix of a valid ASCII-armored saltpack message.
 // The prefix must be large enough to contain the header frame plus the first Base62 encoded block of the payload. It returns a non nil error if the buffer
 // size of the reader is not large enough to make this determination (ErrShortSliceOrBuffer), or if the stream does not appear to contain a valid
 // saltpack message. If err is nil, then the brand, version and expected type of the message will be returned, but this does *NOT* guarantee that the
@@ -274,6 +274,6 @@ func ClassifyEncryptedStreamAndMakeDecoder(source io.Reader, decryptionKeyring S
 		}
 		return plainsource, msgType, nil, senderPublic, isArmored, brand, ver, err
 	default:
-		return nil, MessageTypeUnknown, nil, nil, false, "", Version{}, ErrWrongMessageType{}
+		return nil, MessageTypeUnknown, nil, nil, false, "", Version{}, ErrWrongMessageType{MessageTypeEncryption, msgType}
 	}
 }

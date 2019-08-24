@@ -6,7 +6,24 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ResetPromptType",
+      "symbols": [
+        "COMPLETE_0",
+        "ENTER_NO_DEVICES_1",
+        "ENTER_FORGOT_PW_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PassphraseRecoveryPromptType",
+      "symbols": [
+        "ENCRYPTED_PGP_KEYS_0"
+      ]
+    }
+  ],
   "messages": {
     "getEmailOrUsername": {
       "request": [
@@ -59,6 +76,65 @@
         }
       ],
       "response": null
+    },
+    "promptResetAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "ResetPromptType"
+        }
+      ],
+      "response": "boolean",
+      "doc": "Called during login / provisioning flows to ask the user whether they\n   would like to either enter the autoreset pipeline or perform the reset\n   of the account."
+    },
+    "displayResetProgress": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "In some flows the user will get notified of the reset progress"
+    },
+    "explainDeviceRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "DeviceType"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "During recovery the service might want to explain to the user how they can change\n   their password by using the \"change password\" functionality on other devices."
+    },
+    "promptPassphraseRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "PassphraseRecoveryPromptType"
+        }
+      ],
+      "response": "bool"
     }
   },
   "namespace": "keybase.1"

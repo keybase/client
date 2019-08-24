@@ -13,11 +13,14 @@
       "version": "number"
     },
     "dismissAnnouncement": {
-      id: "RPCTypes.HomeScreenAnnouncementID",
+      "id": "RPCTypes.HomeScreenAnnouncementID"
     },
     "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"
     },
+    "setResentEmail": {
+      "email": "string"
+    }
   }
 }

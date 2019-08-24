@@ -301,7 +301,8 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 	require.NoError(t, err)
 	kbtest.Logout(tc)
 
-	u2.Login(tc.G)
+	err = u2.Login(tc.G)
+	require.NoError(t, err)
 
 	// This should create an implicit team, as u3 has no PUK
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -349,10 +350,11 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
-	tc.G.BustLocalUserCache(u2.GetUID())
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
+	m := libkb.NewMetaContextForTest(tc)
+	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
-	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -368,7 +370,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		UseDeviceKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	m = m.WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
@@ -580,10 +582,11 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
-	tc.G.BustLocalUserCache(u2.GetUID())
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
+	m := libkb.NewMetaContextForTest(tc)
+	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
-	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
@@ -601,7 +604,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 		UseEntityKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	m = m.WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
@@ -700,13 +703,14 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
 
-	u3.Login(tc.G)
+	err = u3.Login(tc.G)
+	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{
 		Proofs: make(map[string]string),
@@ -727,7 +731,8 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	kbtest.Logout(tc)
 
 	// u2 is part of the team, keyfinding should succeed.
-	u2.Login(tc.G)
+	err = u2.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
 	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -834,7 +839,7 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 	require.NoError(t, err)
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// u2 is part of the team, keyfinding should succeed.
@@ -895,7 +900,8 @@ func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
 	// Now we delete user u2, and we check that u1 is still able to find keys for the team (which do not include keys for u2).
 	kbtest.DeleteAccount(tc, u2)
 
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -967,7 +973,8 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 	// Now, retry with a valid user logged in, which should succeed
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
 	arg = libkb.SaltpackRecipientKeyfinderArg{
@@ -1014,7 +1021,8 @@ func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
 	// First, try to get keys for a non existing user assertion with NoSelfEncrypt, which should fail
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	b, err := libkb.RandBytes(4)
 	require.NoError(tc.T, err)

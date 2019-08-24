@@ -140,7 +140,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		}
 		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
-		wait = wait * 2
+		wait *= 2
 	}
 	require.True(t, found, "whether condition was satisfied after polling ended")
 }
@@ -161,7 +161,10 @@ func TestHome(t *testing.T) {
 	initialVersion := home.Version
 
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
+	// Our first todo is VERIFY_ALL_EMAIL, that's badged
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_VERIFY_ALL_EMAIL, true /* isBadged */)
+	// followed by BIO todo
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, false /* isBadged */)
 
 	var countPre int
 	pollForTrue(t, g, func(i int) bool {

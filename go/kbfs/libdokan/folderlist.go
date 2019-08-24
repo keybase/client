@@ -9,10 +9,13 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -46,7 +49,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 		defer cancelFn()
 	}
 	if err == nil {
-		fl.fs.log.CDebugf(ctx, "Request complete")
+		fl.fs.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return
 	}
 
@@ -60,17 +63,10 @@ func (fl *FolderList) reportErr(ctx context.Context,
 
 }
 
-func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (err error) {
-	cName := h.GetCanonicalName()
-	fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
-	fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
-	return nil
-}
-
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, cst dokan.CreateStatus, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %#v type=%s upper=%v",
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Lookup %#v type=%s upper=%v",
 		path, fl.tlfType, oc.isUppercasePath)
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
@@ -92,7 +88,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		name := path[0]
 
 		if name == "desktop.ini" || name == "DESKTOP.INI" {
-			fl.fs.log.CDebugf(ctx, "FL Lookup ignoring desktop.ini")
+			fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Lookup ignoring desktop.ini")
 			return nil, 0, dokan.ErrObjectNameNotFound
 		}
 
@@ -105,7 +101,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		fl.mu.Unlock()
 
 		if ok {
-			fl.fs.log.CDebugf(ctx, "FL Lookup recursing to child %q", name)
+			fl.fs.vlog.CLogf(
+				ctx, libkb.VLog1, "FL Lookup recursing to child %q", name)
 			return child.open(ctx, oc, path[1:])
 		}
 
@@ -113,14 +110,17 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			if !oc.isCreateDirectory() {
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
-			fl.fs.log.CDebugf(ctx, "FL Lookup creating EmptyFolder for Explorer")
+			fl.fs.vlog.CLogf(
+				ctx, libkb.VLog1, "FL Lookup creating EmptyFolder for Explorer")
 			e := &EmptyFolder{}
 			fl.lockedAddChild(name, e)
 			return e, dokan.NewDir, nil
 		}
 
 		if aliasTarget != "" {
-			fl.fs.log.CDebugf(ctx, "FL Lookup aliasCache hit: %q -> %q", name, aliasTarget)
+			fl.fs.vlog.CLogf(
+				ctx, libkb.VLog1, "FL Lookup aliasCache hit: %q -> %q",
+				name, aliasTarget)
 			if len(path) == 1 && oc.isOpenReparsePoint() {
 				// TODO handle dir/non-dir here, semantics?
 				return &Alias{canon: aliasTarget}, dokan.ExistingDir, nil
@@ -129,19 +129,24 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
-		h, err := libfs.ParseTlfHandlePreferredQuick(
-			ctx, fl.fs.config.KBPKI(), name, fl.tlfType)
-		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
+		h, err := tlfhandle.ParseHandlePreferredQuick(
+			ctx, fl.fs.config.KBPKI(), fl.fs.config, name, fl.tlfType)
+		fl.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "FL Lookup continuing -> %v,%v", h, err)
 		switch e := errors.Cause(err).(type) {
 		case nil:
 			// no error
 
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.
 			aliasTarget = e.NameToTry
-			fl.fs.log.CDebugf(ctx, "FL Lookup set alias: %q -> %q", name, aliasTarget)
+			fl.fs.vlog.CLogf(
+				ctx, libkb.VLog1, "FL Lookup set alias: %q -> %q",
+				name, aliasTarget)
 			if !fl.isValidAliasTarget(ctx, aliasTarget) {
-				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)
+				fl.fs.vlog.CLogf(
+					ctx, libkb.VLog1,
+					"FL Refusing alias to non-valid target %q", aliasTarget)
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
 			fl.mu.Lock()
@@ -150,13 +155,16 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 
 			if len(path) == 1 && oc.isOpenReparsePoint() {
 				// TODO handle dir/non-dir here, semantics?
-				fl.fs.log.CDebugf(ctx, "FL Lookup ret alias, oc: %#v", oc.CreateData)
+				fl.fs.vlog.CLogf(
+					ctx, libkb.VLog1, "FL Lookup ret alias, oc: %#v",
+					oc.CreateData)
 				return &Alias{canon: aliasTarget}, dokan.ExistingDir, nil
 			}
 			path[0] = aliasTarget
 			continue
 
-		case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
+		case idutil.NoSuchNameError, idutil.BadTLFNameError,
+			tlf.NoSuchUserError, idutil.NoSuchUserError:
 			return nil, 0, dokan.ErrObjectNameNotFound
 
 		default:
@@ -164,8 +172,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return nil, 0, err
 		}
 
-		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
+		fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Lookup adding new child")
+		session, err := idutil.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -190,7 +198,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {
@@ -224,7 +232,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
+	return tlfhandle.CheckHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) lockedAddChild(name string, val fileOpener) {

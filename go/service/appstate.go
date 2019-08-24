@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,10 +25,41 @@ func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *appStateHan
 	}
 }
 
-func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.AppState) (err error) {
+func (a *appStateHandler) Shutdown() {
+	a.G().DesktopAppState.Disconnected(a.xp)
+}
+
+func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.MobileAppState) (err error) {
 	a.G().Trace(fmt.Sprintf("UpdateAppState(%v)", state), func() error { return err })()
 
 	// Update app state
-	a.G().AppState.Update(state)
+	a.G().MobileAppState.Update(state)
+	return nil
+}
+
+func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr string) (err error) {
+	a.G().Log.CDebugf(ctx, "UpdateMobileNetState(%v)", stateStr)
+
+	// normalize what the frontend gives us, `bluetooth`, `ethernet`, and
+	// `wimax` are android only values.
+	var state keybase1.MobileNetworkState
+	switch stateStr {
+	case "bluetooth", "ethernet":
+		stateStr = "wifi"
+	case "wimax":
+		stateStr = "cellular"
+	}
+
+	state, ok := keybase1.MobileNetworkStateMap[strings.ToUpper(stateStr)]
+	if !ok {
+		state = keybase1.MobileNetworkState_UNKNOWN
+	}
+	a.G().MobileNetState.Update(state)
+	return nil
+}
+
+func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
+	a.G().Log.CDebugf(ctx, "PowerMonitorEvent(%v)", event)
+	a.G().DesktopAppState.Update(a.MetaContext(ctx), event, a.xp)
 	return nil
 }

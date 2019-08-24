@@ -60,6 +60,19 @@
       "response": null,
       "notify": ""
     },
+    "accountsUpdate": {
+      "request": [
+        {
+          "name": "accounts",
+          "type": {
+            "type": "array",
+            "items": "WalletAccountLocal"
+          }
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
     "pendingPaymentsUpdate": {
       "request": [
         {

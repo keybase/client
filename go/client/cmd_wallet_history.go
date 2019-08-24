@@ -79,7 +79,7 @@ func (c *cmdWalletHistory) Run() (err error) {
 	for i := len(payments) - 1; i >= 0; i-- {
 		p := payments[i]
 		if p.Payment != nil {
-			printPayment(c.G(), *p.Payment, c.verbose, dui)
+			printPayment(c.G(), *p.Payment, c.verbose, false /* details */, dui)
 		} else {
 			lineUnescaped(ColorString(c.G(), "red", "error in payment: %v", p.Err))
 		}

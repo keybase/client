@@ -1,0 +1,171 @@
+{
+  "protocol": "contacts",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "ContactComponent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "label"
+        },
+        {
+          "type": [
+            null,
+            "RawPhoneNumber"
+          ],
+          "name": "phoneNumber"
+        },
+        {
+          "type": [
+            null,
+            "EmailAddress"
+          ],
+          "name": "email"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Contact",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ContactComponent"
+          },
+          "name": "components"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProcessedContact",
+      "fields": [
+        {
+          "type": "int",
+          "name": "contactIndex"
+        },
+        {
+          "type": "string",
+          "name": "contactName"
+        },
+        {
+          "type": "ContactComponent",
+          "name": "component"
+        },
+        {
+          "type": "boolean",
+          "name": "resolved"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "boolean",
+          "name": "following"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "displayName"
+        },
+        {
+          "type": "string",
+          "name": "displayLabel"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "lookupContactList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "contacts",
+          "type": {
+            "type": "array",
+            "items": "Contact"
+          }
+        },
+        {
+          "name": "userRegionCode",
+          "type": "RegionCode"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "saveContactList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "contacts",
+          "type": {
+            "type": "array",
+            "items": "Contact"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "lookupSavedContactsList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "getContactsForUserRecommendations": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -29,13 +30,13 @@ func (o keybaseServiceSelfOwner) KeybaseService() KeybaseService {
 }
 
 func makeTestKBPKIClient(t *testing.T) (
-	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser,
-	teams []TeamInfo) {
+	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser,
+	teams []idutil.TeamInfo) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
-	users = MakeLocalUsers(names)
+	users = idutil.MakeLocalUsers(names)
 	teamNames := []kbname.NormalizedUsername{"test_team1", "test_team2"}
-	teams = MakeLocalTeams(teamNames)
+	teams = idutil.MakeLocalTeams(teamNames)
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, teams, codec)
 	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
@@ -43,18 +44,19 @@ func makeTestKBPKIClient(t *testing.T) (
 }
 
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
-	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
+	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
-	users = MakeLocalUsers(names)
+	users = idutil.MakeLocalUsers(names)
 	// Give each user a revoked key
 	for i, user := range users {
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
-		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]revokedKeyInfo{
-			newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
-		}
+		newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
+		user.RevokedVerifyingKeys =
+			map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo{
+				newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
+			}
 		users[i] = user
 	}
 	codec := kbfscodec.NewMsgpack()
@@ -66,7 +68,9 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 func TestKBPKIClientIdentify(t *testing.T) {
 	c, _, _, _ := makeTestKBPKIClient(t)
 
-	_, id, err := c.Identify(context.Background(), "test_name1", "")
+	_, id, err := c.Identify(
+		context.Background(), "test_name1", "",
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +83,8 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	c, _, _, _ := makeTestKBPKIClient(t)
 
 	name, err := c.GetNormalizedUsername(
-		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam())
+		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,14 +96,18 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
-	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		localUsers[0].VerifyingKeys[0], time.Now())
+	err := c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		localUsers[0].VerifyingKeys[0], time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		kbfscrypto.VerifyingKey{}, time.Now())
+	err = c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		kbfscrypto.VerifyingKey{}, time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -115,15 +124,18 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 	}
 
 	// Something verified before the key was revoked
-	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(-10*time.Second))
+	err := c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		revokedKey, revokeTime.Add(-10*time.Second),
+		keybase1.OfflineAvailability_NONE)
 	if _, ok := errors.Cause(err).(RevokedDeviceVerificationError); !ok {
 		t.Error(err)
 	}
 
 	// Something verified after the key was revoked
-	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(70*time.Second))
+	err = c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1), revokedKey,
+		revokeTime.Add(70*time.Second), keybase1.OfflineAvailability_NONE)
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -143,22 +155,25 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	}()
 
 	u := keybase1.MakeTestUID(1)
-	key1 := MakeLocalUserVerifyingKeyOrBust("u_1")
-	key2 := MakeLocalUserVerifyingKeyOrBust("u_2")
-	info1 := UserInfo{
+	key1 := idutil.MakeLocalUserVerifyingKeyOrBust("u_1")
+	key2 := idutil.MakeLocalUserVerifyingKeyOrBust("u_2")
+	info1 := idutil.UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1},
 	}
-	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u, gomock.Any()).
-		Return(info1, nil)
+	config.mockKbs.EXPECT().LoadUserPlusKeys(
+		gomock.Any(), u, gomock.Any(), gomock.Any()).Return(info1, nil)
 
 	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
-	info2 := UserInfo{
+	info2 := idutil.UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1, key2},
 	}
-	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u, key2.KID()).
+	config.mockKbs.EXPECT().LoadUserPlusKeys(
+		gomock.Any(), u, key2.KID(), gomock.Any()).
 		Return(info2, nil)
 
-	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now())
+	err := c.HasVerifyingKey(
+		context.Background(), u, key2, time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Error(err)
 	}
@@ -167,8 +182,9 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
-	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
-		keybase1.MakeTestUID(1))
+	cryptPublicKeys, err := c.GetCryptPublicKeys(
+		context.Background(), keybase1.MakeTestUID(1),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +224,8 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
-			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen)
+			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			t.Error(err)
 		}

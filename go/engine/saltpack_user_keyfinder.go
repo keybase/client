@@ -29,7 +29,7 @@ func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg
 
 func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
 	return &SaltpackUserKeyfinder{
-		Arg: Arg,
+		Arg:                           Arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}
@@ -72,10 +72,10 @@ func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymme
 }
 
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackUserKeyfinder#Run", func() error { return err })()
+	defer m.Trace("SaltpackUserKeyfinder#Run", func() error { return err })()
 
 	if len(e.Arg.TeamRecipients) != 0 {
-		m.CDebugf("tried to use SaltpackUserKeyfinder for a team. This should never happen")
+		m.Debug("tried to use SaltpackUserKeyfinder for a team. This should never happen")
 		return fmt.Errorf("cannot find keys for teams")
 	}
 
@@ -201,7 +201,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasPaperKey = true
 			if e.Arg.UsePaperKeys {
 				keys = append(keys, KID)
-				m.CDebugf("adding user %v's paper key", upk.Username)
+				m.Debug("adding user %v's paper key", upk.Username)
 			}
 		}
 
@@ -209,7 +209,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasDeviceKey = true
 			if e.Arg.UseDeviceKeys {
 				keys = append(keys, KID)
-				m.CDebugf("adding user %v's device key", upk.Username)
+				m.Debug("adding user %v's device key", upk.Username)
 			}
 		}
 	}
@@ -217,7 +217,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
 
 	if len(keys) == 0 {
-		m.CDebugf("did not add any device or paper keys for %v", upk.Username)
+		m.Debug("did not add any device or paper keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -256,7 +256,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 			}
 		}
 
-		m.CDebugf("did not add any per user keys for %v", upk.Username)
+		m.Debug("did not add any per user keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -279,7 +279,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 		panic("This should never happen, user has a PUK with a nil KID")
 	}
 
-	m.CDebugf("adding user %v's latest per user key", upk.Username)
+	m.Debug("adding user %v's latest per user key", upk.Username)
 	e.RecipientEntityKeyMap[upk.Uid.AsUserOrTeam()] = []keybase1.KID{lk}
 
 	return nil

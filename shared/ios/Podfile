@@ -1,0 +1,61 @@
+# Reference: https://sandstorm.de/de/blog/post/react-native-managing-native-dependencies-using-xcode-and-cocoapods.html
+platform :ios, '10.0'
+
+require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
+
+target 'Keybase' do
+  pod 'React', :path => '../node_modules/react-native', :subspecs => [
+    'Core',
+    'CxxBridge',
+    'DevSupport',
+    'RCTText',
+    'RCTNetwork',
+    'RCTWebSocket',
+    'RCTAnimation',
+    'RCTImage',
+    'RCTActionSheet',
+    'RCTLinkingIOS',
+    'RCTPushNotification',
+    'RCTSettings',
+    'RCTCameraRoll',
+    'RCTGeolocation',
+  ]
+
+  # Do not leave dependencies commented out here - it messes with `react-native link/unlink` behavior
+  pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+  pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
+  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
+  pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+
+  pod 'lottie-ios', :path => '../node_modules/lottie-ios'
+  pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+  pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
+  pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'
+  pod 'react-native-fast-image', :path => '../node_modules/react-native-fast-image'
+  pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
+  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
+  pod 'RNScreens', :path => '../node_modules/react-native-screens'
+
+  use_unimodules!(modules_paths: ['../node_modules'])
+
+end
+
+# # The following is needed to ensure the "archive" step works in XCode.
+# # It removes React from the Pods project, as it is already included in the main project.
+# post_install do |installer|
+#   installer.pods_project.targets.each do |target|
+#     if target.name == "React"
+#       target.remove_from_project
+#     end
+#   end
+# end
+
+target 'KeybaseShare' do
+  # Uncomment the next line if you're using Swift or would like to use dynamic frameworks
+  # use_frameworks!
+
+  # Pods for KeybaseShare
+  inherit! :search_paths
+end

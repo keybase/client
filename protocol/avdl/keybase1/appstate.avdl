@@ -1,13 +1,28 @@
 @namespace("keybase.1")
 protocol appState {
 
-    enum AppState {
-        FOREGROUND_0,
-        BACKGROUND_1,
-        INACTIVE_2,
-        BACKGROUNDACTIVE_3
-    }
+  enum MobileAppState {
+    FOREGROUND_0,
+    BACKGROUND_1,
+    INACTIVE_2,
+    BACKGROUNDACTIVE_3
+  }
 
-    void updateAppState(AppState state);
-    
+  enum MobileNetworkState {
+    NONE_0,
+    WIFI_1,
+    CELLUAR_2,
+    UNKNOWN_3,
+    // Default for desktop, not treated as a 'limited' connection
+    NOTAVAILABLE_4
+  }
+
+  // gui -> service
+  // mobile only
+  void updateMobileNetState(string state);
+
+  // gui -> service
+  // desktop only
+  // https://electronjs.org/docs/api/power-monitor
+  void powerMonitorEvent(string event);
 }

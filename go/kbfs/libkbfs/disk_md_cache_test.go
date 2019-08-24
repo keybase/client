@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -29,7 +30,7 @@ func newDiskMDCacheLocalForTestWithStorage(
 	cache, err := newDiskMDCacheLocalFromStorage(&testDiskMDCacheConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),
-	}, s)
+	}, s, modeTest{modeDefault{}})
 	require.NoError(t, err)
 	err = cache.WaitUntilStarted()
 	require.NoError(t, err)
@@ -67,7 +68,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	defer func() {
 		shutdownDiskMDCacheTest(cache, tempdir)
 	}()
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 
 	tlf1 := tlf.FakeID(0, tlf.Private)
 	ctx := context.Background()
@@ -149,7 +150,7 @@ func TestDiskMDCacheMultiStage(t *testing.T) {
 	defer func() {
 		shutdownDiskMDCacheTest(cache, tempdir)
 	}()
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 
 	tlf1 := tlf.FakeID(0, tlf.Private)
 	ctx := context.Background()

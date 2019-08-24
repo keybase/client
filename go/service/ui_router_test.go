@@ -54,4 +54,12 @@ func (f fakeUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInt
 	return nil, nil
 }
 
+func (f fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return nil, nil
+}
+
+func (f fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	return nil
+}
+
 func (f fakeUIRouter) Shutdown() {}

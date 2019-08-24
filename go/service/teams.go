@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -20,18 +21,18 @@ import (
 type TeamsHandler struct {
 	*BaseHandler
 	globals.Contextified
-	gregor *gregorHandler
-	connID libkb.ConnectionID
+	connID  libkb.ConnectionID
+	service *Service
 }
 
 var _ keybase1.TeamsInterface = (*TeamsHandler)(nil)
 
-func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, gregor *gregorHandler) *TeamsHandler {
+func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, service *Service) *TeamsHandler {
 	return &TeamsHandler{
 		BaseHandler:  NewBaseHandler(g.ExternalG(), xp),
 		Contextified: globals.NewContextified(g),
-		gregor:       gregor,
 		connID:       id,
+		service:      service,
 	}
 }
 
@@ -137,6 +138,18 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	return res, nil
 }
 
+func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), func() error { return err })()
+	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
+		Name: arg.Name,
+	})
+	if err != nil {
+		return res, err
+	}
+	return teams.MembersDetails(ctx, h.G().ExternalG(), t)
+}
+
 func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), func() error { return err })()
@@ -217,7 +230,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		}
 		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
 	}
-	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role, arg.BotSettings)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -278,7 +291,18 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	}
 
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Users)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+	case teams.AddMembersError:
+		switch e := err.Err.(type) {
+		case libkb.IdentifySummaryError:
+			// Return the IdentifySummaryError, which is exportable.
+			// Frontend presents this error specifically.
+			return e
+		default:
+			return err
+		}
+	default:
 		return err
 	}
 	if arg.SendChatNotification {
@@ -346,7 +370,7 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role, arg.BotSettings)
 }
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) (err error) {
@@ -459,8 +483,28 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "LTPAK")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
-	return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
-		arg.IncludeKBFSKeys)
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
+			arg.IncludeKBFSKeys)
+	}
+
+	// argKey is a copy of arg that's going to be used for a cache key, so clear out
+	// refreshers and sessionID, since they don't affect the cache key value.
+	argKey := arg
+	argKey.Refreshers = keybase1.TeamRefreshers{}
+	argKey.SessionID = 0
+	argKey.IncludeKBFSKeys = false
+
+	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "teams.loadTeamPlusApplicationKeys", true, argKey, &res, loader)
+	if err != nil {
+		return keybase1.TeamPlusApplicationKeys{}, err
+	}
+	if s, ok := servedRes.(keybase1.TeamPlusApplicationKeys); ok {
+		res = s
+	}
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.TeamCreateSeitanTokenArg) (token keybase1.SeitanIKey, err error) {
@@ -579,10 +623,10 @@ func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret
 	return ret, err
 }
 
-func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (h *TeamsHandler) TeamRotateKey(ctx context.Context, arg keybase1.TeamRotateKeyArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", teamID), func() error { return err })()
-	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", arg.TeamID), func() error { return err })()
+	return teams.RotateKey(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {

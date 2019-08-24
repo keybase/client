@@ -14,26 +14,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type transporterAndConnectionID struct {
-	transporter  rpc.Transporter
-	connectionID libkb.ConnectionID
-}
-
-type getObj struct {
-	ui    libkb.UIKind
-	retCh chan<- transporterAndConnectionID
-}
-
-type uiWrapper struct {
-	cid       libkb.ConnectionID
-	sessionID int
-}
-
-type setObj struct {
-	cid libkb.ConnectionID
-	ui  libkb.UIKind
-}
-
 type UIRouter struct {
 	sync.Mutex
 	libkb.Contextified
@@ -70,6 +50,18 @@ func (u *UIRouter) getUI(k libkb.UIKind) (rpc.Transporter, libkb.ConnectionID) {
 		}
 	}
 	return ret, cid
+}
+
+func (u *UIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	u.Lock()
+	defer u.Unlock()
+
+	// Copy the map
+	res := map[libkb.UIKind]libkb.ConnectionID{}
+	for k, v := range u.uis {
+		res[k] = v
+	}
+	return res
 }
 
 func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
@@ -114,6 +106,15 @@ func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI,
 		return nil, nil
 	}
 	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
+}
+
+func (u *UIRouter) GetChatUI() (libkb.ChatUI, error) {
+	x, _ := u.getUI(libkb.ChatUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	return NewRemoteChatUI(0, cli), nil
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

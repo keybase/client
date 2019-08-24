@@ -20,6 +20,7 @@ type AccountMergeMutator interface {
 }
 
 // AccountMergeBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.AccountMerge instead
 type AccountMergeBuilder struct {
 	O           xdr.Operation
 	Destination xdr.AccountId

@@ -21,7 +21,11 @@
       "name": "DbType",
       "symbols": [
         "MAIN_0",
-        "CHAT_1"
+        "CHAT_1",
+        "FS_BLOCK_CACHE_2",
+        "FS_BLOCK_CACHE_META_3",
+        "FS_SYNC_BLOCK_CACHE_4",
+        "FS_SYNC_BLOCK_CACHE_META_5"
       ]
     },
     {
@@ -63,6 +67,19 @@
       ],
       "response": null
     },
+    "stopService": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "exitCode",
+          "type": "ExitCode"
+        }
+      ],
+      "response": null
+    },
     "logRotate": {
       "request": [
         {
@@ -86,6 +103,23 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "dbClean": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        },
+        {
+          "name": "dbType",
+          "type": "DbType"
         }
       ],
       "response": null

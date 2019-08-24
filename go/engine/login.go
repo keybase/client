@@ -20,20 +20,42 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType      string
-	usernameOrEmail string
-	clientType      keybase1.ClientType
+	deviceType string
+	username   string
+	clientType keybase1.ClientType
+
+	doUserSwitch bool
+
+	// Used for non-interactive provisioning
+	PaperKey   string
+	DeviceName string
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
+
+	resetPending bool
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewLogin(g *libkb.GlobalContext, deviceType string, usernameOrEmail string, ct keybase1.ClientType) *Login {
+func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
+	return NewLoginWithUserSwitch(g, deviceType, username, ct, false)
+}
+
+// NewLoginWithUserSwitch creates a Login engine. username is optional.
+// deviceType should be libkb.DeviceTypeDesktop or libkb.DeviceTypeMobile.
+// You can also specify a bool to say whether you'd like to doUserSwitch or not.
+// By default, this flag is off (see above), but as we roll out user switching,
+// we can start to turn this on in more places.
+func NewLoginWithUserSwitch(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
 	return &Login{
-		Contextified:    libkb.NewContextified(g),
-		deviceType:      deviceType,
-		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
-		clientType:      ct,
+		Contextified: libkb.NewContextified(g),
+		deviceType:   deviceType,
+		username:     strings.TrimSpace(username),
+		clientType:   ct,
+		doUserSwitch: doUserSwitch,
 	}
 }
 
@@ -58,51 +80,67 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
+		&AccountReset{},
 	}
 }
 
 // Run starts the engine.
 func (e *Login) Run(m libkb.MetaContext) (err error) {
-
 	m = m.WithLogTag("LOGIN")
+	defer m.Trace("Login#Run", func() error { return err })()
 
-	defer m.CTrace("Login#Run", func() error { return err })()
+	if len(e.username) > 0 && libkb.CheckEmail.F(e.username) {
+		// We used to support logging in with e-mail but we don't anymore,
+		// since 2019-03-20.(CORE-10470).
+		return libkb.NewBadUsernameErrorWithFullMessage("Logging in with e-mail address is not supported")
+	}
+
+	var currentUsername libkb.NormalizedUsername
+	if dev := m.ActiveDevice(); dev != nil {
+		currentUsername = m.ActiveDevice().Username(m)
+	}
+
 	// check to see if already logged in
-
 	var loggedInOK bool
 	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
 	if err != nil {
-		m.CDebugf("Login: error checking if user is logged in: %s", err)
+		m.Debug("Login: error checking if user is logged in: %s", err)
 		return err
 	}
 	if loggedInOK {
 		return nil
 	}
-	m.CDebugf("Login: not currently logged in")
+	m.Debug("Login: not currently logged in")
 
-	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
-		// If e.usernameOrEmail is provided and it is an email address, then
-		// loginProvisionedDevice is pointless.  It would return an error,
-		// but might as well not even use it.
-		m.CDebugf("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
-	} else {
-		// First see if this device is already provisioned and it is possible to log in.
-		loggedInOK, err := e.loginProvisionedDevice(m, e.usernameOrEmail)
-		if err != nil {
-			m.CDebugf("loginProvisionedDevice error: %s", err)
-			return err
-		}
-		if loggedInOK {
-			m.CDebugf("loginProvisionedDevice success")
-			return nil
-		}
-
-		m.CDebugf("loginProvisionedDevice failed, continuing with device provisioning")
+	if e.doUserSwitch && !currentUsername.IsNil() {
+		defer e.restoreSession(m, currentUsername, func() error { return err })
 	}
 
+	// First see if this device is already provisioned and it is possible to log in.
+	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
+	if err != nil {
+		m.Debug("loginProvisionedDevice error: %s", err)
+
+		if m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
+			// Suggest autoreset if user failed to log in and we're provisioned
+			if _, ok := err.(libkb.PassphraseError); ok {
+				return e.suggestRecoveryForgotPassword(m)
+			}
+		}
+
+		return err
+	}
+	if loggedInOK {
+		m.Debug("loginProvisionedDevice success")
+		return nil
+	}
+
+	m.Debug("loginProvisionedDevice failed, continuing with device provisioning")
+
 	// clear out any existing session:
-	m.CDebugf("clearing any existing login session with Logout before loading user for login")
-	m.G().Logout(m.Ctx())
+	m.Debug("clearing any existing login session with Logout before loading user for login")
+	// If the doUserSwitch flag is specified, we don't want to kill the existing session
+	m.G().LogoutCurrentUserWithSecretKill(m, !e.doUserSwitch)
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
@@ -116,49 +154,82 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
-	m.CDebugf("loading login user for %q", e.usernameOrEmail)
-	ueng := newLoginLoadUser(m.G(), e.usernameOrEmail)
-	if err := RunEngine2(m, ueng); err != nil {
+	resetPending, err := e.loginProvision(m)
+	if err != nil {
 		return err
 	}
-
-	// make sure the user isn't already provisioned (can
-	// get here if usernameOrEmail is an email address
-	// for an already provisioned on this device user).
-	if ueng.User().HasCurrentDeviceInCurrentInstall() {
-		m.CDebugf("user %q (%s) has previously provisioned this device, trying to login on it", e.usernameOrEmail, ueng.User().GetName())
-		loggedInOK, err := e.loginProvisionedDevice(m, ueng.User().GetName())
-		if err != nil {
-			m.CDebugf("loginProvisionedDevice after loginLoadUser error: %s", err)
-			return err
-		}
-		if loggedInOK {
-			m.CDebugf("loginProvisionedDevice after loginLoadUser success")
-			return nil
-		}
-
-		// this shouldn't happen:
-		m.CDebugf("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
-		return libkb.DeviceAlreadyProvisionedError{}
+	if resetPending {
+		// We've just started a reset process
+		e.resetPending = true
+		return nil
 	}
 
-	m.CDebugf("attempting device provisioning")
+	e.perUserKeyUpgradeSoft(m)
+
+	m.Debug("Login provisioning success, sending login notification")
+	e.sendNotification(m)
+	return nil
+}
+
+func (e *Login) restoreSession(m libkb.MetaContext, originalUsername libkb.NormalizedUsername, errfn func() error) {
+	err := errfn()
+	if err == nil {
+		return
+	}
+
+	loggedInOK, err := e.loginProvisionedDevice(m, originalUsername.String())
+	if err != nil {
+		m.Debug("Login#restoreSession-loginProvisionedDevice error: %s", err)
+		return
+	}
+	if loggedInOK {
+		m.Debug("Login#restoreSession-loginProvisionedDevice success")
+	}
+}
+
+func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
+	m.Debug("loading login user for %q", e.username)
+	ueng := newLoginLoadUser(m.G(), e.username)
+	if err := RunEngine2(m, ueng); err != nil {
+		return false, err
+	}
+
+	if ueng.User().HasCurrentDeviceInCurrentInstall() {
+		// Somehow after loading a user we discovered that we are already
+		// provisioned. This should not happen.
+		m.Debug("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
+		return false, libkb.DeviceAlreadyProvisionedError{}
+	}
+
+	m.Debug("attempting device provisioning")
 
 	darg := &loginProvisionArg{
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,
 		User:       ueng.User(),
+
+		PaperKey:   e.PaperKey,
+		DeviceName: e.DeviceName,
+
+		naclSigningKeyPair:    e.naclSigningKeyPair,
+		naclEncryptionKeyPair: e.naclEncryptionKeyPair,
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {
-		return err
+		return false, err
 	}
 
-	e.perUserKeyUpgradeSoft(m)
+	// Skip notifications if we haven't provisioned
+	if !deng.LoggedIn() {
+		return true, nil
+	}
 
-	m.CDebugf("Login provisioning success, sending login notification")
-	e.sendNotification(m)
-	return nil
+	// If account was reset, rerun the provisioning with the existing session
+	if deng.AccountReset() {
+		return e.loginProvision(m)
+	}
+
+	return false, nil
 }
 
 // notProvisionedErr will return true if err signifies that login
@@ -171,13 +242,13 @@ func (e *Login) notProvisionedErr(m libkb.MetaContext, err error) bool {
 		return true
 	}
 
-	m.CDebugf("notProvisioned, not handling error %s (err type: %T)", err, err)
+	m.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
 	return false
 }
 
 func (e *Login) sendNotification(m libkb.MetaContext) {
-	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
-	m.G().CallLoginHooks()
+	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(m.G().Env.GetUsername()))
+	m.G().CallLoginHooks(m)
 }
 
 // Get a per-user key.
@@ -186,15 +257,15 @@ func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) error {
 	eng := NewPerUserKeyUpgrade(m.G(), &PerUserKeyUpgradeArgs{})
 	err := RunEngine2(m, eng)
 	if err != nil {
-		m.CWarningf("loginProvision PerUserKeyUpgrade failed: %v", err)
+		m.Warning("loginProvision PerUserKeyUpgrade failed: %v", err)
 	}
 	return err
 }
 
 func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
-	m.CDebugf("checkLoggedInAndNotRevoked()")
+	m.Debug("checkLoggedInAndNotRevoked()")
 
-	username := libkb.NewNormalizedUsername(e.usernameOrEmail)
+	username := libkb.NewNormalizedUsername(e.username)
 
 	// CheckForUsername() gets a consistent picture of the current active device,
 	// and sees if it matches the given username, and isn't revoked. If all goes
@@ -208,23 +279,23 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	case libkb.NoActiveDeviceError:
 		return false, nil
 	case libkb.UserNotFoundError:
-		m.CDebugf("Login: %s", err.Error())
+		m.Debug("Login: %s", err.Error())
 		return false, err
 	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
-		m.CDebugf("Login on revoked or reset device: %s", err.Error())
-		if err = m.G().Logout(m.Ctx()); err != nil {
-			m.CDebugf("logout error: %s", err)
+		m.Debug("Login on revoked or reset device: %s", err.Error())
+		if err = m.G().LogoutUsernameWithSecretKill(m, username, true); err != nil {
+			m.Debug("logout error: %s", err)
 		}
 		return false, err
 	case libkb.LoggedInWrongUserError:
-		if libkb.CheckEmail.F(e.usernameOrEmail) {
-			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user (%q) without further work, so just returning LoggedInError", e.usernameOrEmail, err.ExistingName)
-		} else {
-			m.CDebugf(err.Error())
+		m.Debug(err.Error())
+		if e.doUserSwitch {
+			m.G().ClearStateForSwitchUsers(m)
+			return false, nil
 		}
 		return true, libkb.LoggedInError{}
 	default:
-		m.CDebugf("Login: unexpected error: %s", err.Error())
+		m.Debug("Login: unexpected error: %s", err.Error())
 		return false, fmt.Errorf("unexpected error in Login: %s", err.Error())
 	}
 }
@@ -234,7 +305,7 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 	err := RunEngine2(m, eng)
 	if err == nil {
 		// login successful
-		m.CDebugf("LoginProvisionedDevice.Run() was successful")
+		m.Debug("LoginProvisionedDevice.Run() was successful")
 		// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
 		// send here.
 		return true, nil
@@ -246,7 +317,25 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 		return false, err
 	}
 
-	m.CDebugf("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
+	m.Debug("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
 
 	return false, nil
+}
+
+func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Cancel the engine as the user decided to end the flow early.
+		return nil
+	}
+
+	// We are certain the user will not know their password, so we can disable the prompt.
+	eng := NewAccountReset(mctx.G(), e.username)
+	eng.skipPasswordPrompt = true
+	return eng.Run(mctx)
 }

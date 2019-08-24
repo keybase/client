@@ -3,12 +3,14 @@ package systests
 import (
 	"bytes"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -67,7 +69,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	divDebug(ctx, "Bob logged in after reset")
 
 	t.Logf("fail to decrypt as post-reset self")
-	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
+	_, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
 	require.Error(t, err)
 	require.Equal(t, "note not encrypted for logged-in user", err.Error())
 
@@ -79,6 +81,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -87,6 +90,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -120,6 +124,8 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 	t.Logf("alice gets funded")
 	acceptDisclaimer(alice)
+
+	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest().BaseFee(alice.tc.MetaContext()))
 
 	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -178,22 +184,23 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	}
 
 	pollFor(t, "claims to complete", pollTime, bob.tc.G, func(i int) bool {
+		// The first claims takes a create_account + account_merge. The second only account_merge.
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-1-%v: %v", i, res[0].BalanceDescription)
 		if res[0].BalanceDescription == "0 XLM" {
 			return false
 		}
-		if res[0].BalanceDescription == "49.9999800 XLM" {
+		if isWithinFeeBounds(t, res[0].BalanceDescription, "50", baseFeeStroops*2) {
 			t.Logf("poll-1-%v: received T1 but not T2", i)
 			return false
 		}
-		if res[0].BalanceDescription == "29.9999800 XLM" {
+		if isWithinFeeBounds(t, res[0].BalanceDescription, "30", baseFeeStroops*2) {
 			t.Logf("poll-1-%v: received T2 but not T1", i)
 			return false
 		}
 		t.Logf("poll-1-%v: received both payments", i)
-		require.Equal(t, "79.9999700 XLM", res[0].BalanceDescription)
+		assertWithinFeeBounds(t, res[0].BalanceDescription, "80", baseFeeStroops*3)
 		return true
 	})
 
@@ -222,14 +229,117 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-2-%v: %v", i, res[0].BalanceDescription)
-		if res[0].BalanceDescription == "79.9999700 XLM" {
+		if isWithinFeeBounds(t, res[0].BalanceDescription, "80", baseFeeStroops*3) {
 			return false
 		}
 		t.Logf("poll-1-%v: received final payment", i)
-		require.Equal(t, "89.9999600 XLM", res[0].BalanceDescription)
+		assertWithinFeeBounds(t, res[0].BalanceDescription, "90", baseFeeStroops*4)
 		return true
 	})
 
+}
+
+// XLM is sent to a rooter assertion that does not resolve.
+// The recipient-to-be signs up, gets a wallet, and then proves the assertion.
+// The recipient enters the impteam which kicks autoclaim into gear.
+//
+// To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
+// Test took 20s on a dev server 2019-01-23
+func TestStellarRelayAutoClaimsSBS(t *testing.T) {
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
+	if disable {
+		t.Skip(disableMsg)
+	}
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	useStellarTestNet(t)
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	rooterAssertion := bob.username + "@rooter"
+	alice.kickTeamRekeyd()
+
+	t.Logf("alice gets funded")
+	acceptDisclaimer(alice)
+
+	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	gift(t, res[0].AccountID)
+
+	t.Logf("alice sends a first relay payment to bob P1")
+	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
+	cmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    rooterAssertion,
+		Amount:       "50",
+	}
+	for i := 0; i < retryCount; i++ {
+		err = cmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
+	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest().BaseFee(alice.tc.MetaContext()))
+	t.Logf("baseFeeStroops %v", baseFeeStroops)
+
+	t.Logf("get the impteam seqno to wait on later")
+	team, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, alice.username+","+rooterAssertion, false, teams.ImplicitTeamOptions{})
+	require.NoError(t, err)
+	nextSeqno := team.NextSeqno()
+
+	t.Logf("bob proves his rooter")
+	tt.users[1].proveRooter()
+	t.Logf("bob gets a wallet")
+	acceptDisclaimer(bob)
+
+	t.Logf("wait for alice to add bob to their impteam")
+	alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
+
+	pollTime := 20 * time.Second
+	if libkb.UseCITime(bob.tc.G) {
+		// This test is especially slow.
+		pollTime = 30 * time.Second
+	}
+
+	pollFor(t, "claim to complete", pollTime, bob.tc.G, func(i int) bool {
+		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+		require.NoError(t, err)
+		t.Logf("poll-1-%v: %v", i, res[0].BalanceDescription)
+		if res[0].BalanceDescription == "0 XLM" {
+			return false
+		}
+		t.Logf("poll-1-%v: received P1", i)
+		require.NoError(t, err)
+		// This assertion could potentially fail if baseFee changes between the send and BaseFee calls above.
+		assertWithinFeeBounds(t, res[0].BalanceDescription, "50", baseFeeStroops*2) // paying for create_account + account_merge
+		return true
+	})
+}
+
+// Assert that: target - maxMissingStroops <= amount <= target
+// Strips suffix off amount.
+func assertWithinFeeBounds(t testing.TB, amount string, target string, maxFeeStroops int64) {
+	suffix := " XLM"
+	amount = strings.TrimSuffix(amount, suffix)
+	amountX, err := stellarnet.ParseStellarAmount(amount)
+	require.NoError(t, err)
+	targetX, err := stellarnet.ParseStellarAmount(target)
+	require.NoError(t, err)
+	lowestX := targetX - maxFeeStroops
+	require.LessOrEqual(t, amountX, targetX)
+	require.LessOrEqual(t, lowestX, amountX)
+}
+
+func isWithinFeeBounds(t testing.TB, amount string, target string, maxFeeStroops int64) bool {
+	suffix := " XLM"
+	amount = strings.TrimSuffix(amount, suffix)
+	amountX, err := stellarnet.ParseStellarAmount(amount)
+	require.NoError(t, err)
+	targetX, err := stellarnet.ParseStellarAmount(target)
+	require.NoError(t, err)
+	lowestX := targetX - maxFeeStroops
+	return amountX <= targetX && amountX >= lowestX
 }
 
 func sampleNote() stellar1.NoteContents {
@@ -251,7 +361,8 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 			continue
 		}
 		bodyBuf := new(bytes.Buffer)
-		bodyBuf.ReadFrom(res.Body)
+		_, err = bodyBuf.ReadFrom(res.Body)
+		require.NoError(t, err)
 		res.Body.Close()
 		t.Logf("gift res: %v", bodyBuf.String())
 		if res.StatusCode == 200 {
@@ -269,4 +380,65 @@ func useStellarTestNet(t testing.TB) {
 func acceptDisclaimer(u *userPlusDevice) {
 	err := u.stellarClient.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(u.tc.T, err)
+}
+
+func TestAccountMerge(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	useStellarTestNet(t)
+	ctx := context.Background()
+	alice := tt.addUser("alice")
+
+	t.Logf("fund two accounts for alice from one friendbot gift for 10k lumens")
+	acceptDisclaimer(alice)
+	walletState := alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest()
+	getRes, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+	firstAccountID := getRes[0].AccountID
+	require.NoError(t, err)
+	secondAccountID, err := alice.stellarClient.CreateWalletAccountLocal(ctx, stellar1.CreateWalletAccountLocalArg{Name: "second"})
+	require.NoError(t, err)
+	gift(t, firstAccountID)
+
+	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
+	sendCmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    secondAccountID.String(),
+		Amount:       "50",
+	}
+	for i := 0; i < retryCount; i++ {
+		err = sendCmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
+
+	err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
+	require.NoError(t, err)
+	err = walletState.Refresh(alice.tc.MetaContext(), secondAccountID, "test")
+	require.NoError(t, err)
+	secondAcctBalances, err := walletState.Balances(ctx, secondAccountID)
+	require.NoError(t, err)
+	require.Equal(t, secondAcctBalances[0].Amount, "50.0000000")
+	t.Logf("10k lumens split into two accounts: ~99,949.999 and 50")
+
+	mergeCmd := client.CmdWalletMerge{
+		Contextified:  libkb.NewContextified(alice.tc.G),
+		FromAccountID: secondAccountID,
+		To:            firstAccountID.String(),
+	}
+	err = mergeCmd.Run()
+	require.NoError(t, err)
+	t.Logf("merged the second into the first")
+
+	err = walletState.RefreshAll(alice.tc.MetaContext(), "test")
+	require.NoError(t, err)
+	endingBalances, err := walletState.Balances(ctx, firstAccountID)
+	require.NoError(t, err)
+	require.Len(t, endingBalances, 1)
+	actualFinalAmount, err := stellarnet.ParseStellarAmount(endingBalances[0].Amount)
+	require.NoError(t, err)
+	lowerBoundFinalExpectedAmount := int64(stellarnet.StroopsPerLumen * 9999.999)
+	require.True(t, actualFinalAmount > lowerBoundFinalExpectedAmount)
+	t.Logf("value of the second account was merged into the first account")
 }

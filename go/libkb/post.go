@@ -18,10 +18,13 @@ type PostProofRes struct {
 }
 
 type PostProofArg struct {
+	UID               keybase1.UID
+	Seqno             keybase1.Seqno
 	Sig               string
 	SigInner          []byte
 	RemoteServiceType string
-	ID                keybase1.SigID
+	SigID             keybase1.SigID
+	LinkID            LinkID
 	RemoteUsername    string
 	ProofType         string
 	Supersede         bool
@@ -31,8 +34,8 @@ type PostProofArg struct {
 
 func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
-		"sig_id_base":     S{arg.ID.ToString(false)},
-		"sig_id_short":    S{arg.ID.ToShortID()},
+		"sig_id_base":     S{arg.SigID.ToString(false)},
+		"sig_id_short":    S{arg.SigID.ToShortID()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
@@ -49,25 +52,31 @@ func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := m.G().API.Post(APIArg{
+	apiRes, err := m.G().API.Post(m, APIArg{
 		Endpoint:    "sig/post",
 		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
-		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err
 	}
-	var tmp PostProofRes
-	res.Body.AtKey("proof_text").GetStringVoid(&tmp.Text, &err)
-	res.Body.AtKey("proof_id").GetStringVoid(&tmp.ID, &err)
-	tmp.Metadata = res.Body.AtKey("proof_metadata")
 
-	var ret *PostProofRes
-	if err == nil {
-		ret = &tmp
+	err = MerkleCheckPostedUserSig(m, arg.UID, arg.Seqno, arg.LinkID)
+	if err != nil {
+		return nil, err
 	}
-	return ret, err
+
+	var res PostProofRes
+	res.Text, err = apiRes.Body.AtKey("proof_text").GetString()
+	if err != nil {
+		return nil, err
+	}
+	res.ID, err = apiRes.Body.AtKey("proof_id").GetString()
+	if err != nil {
+		return nil, err
+	}
+	res.Metadata = apiRes.Body.AtKey("proof_metadata")
+	return &res, nil
 }
 
 type PostAuthProofArg struct {
@@ -91,11 +100,10 @@ func PostAuthProof(m MetaContext, arg PostAuthProofArg) (*PostAuthProofRes, erro
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKID().String()},
 	}
-	res, err := m.G().API.Post(APIArg{
+	res, err := m.G().API.Post(m, APIArg{
 		Endpoint:    "sig/post_auth",
 		SessionType: APISessionTypeNONE,
 		Args:        hargs,
-		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err
@@ -115,64 +123,50 @@ type InviteRequestArg struct {
 }
 
 func PostInviteRequest(m MetaContext, arg InviteRequestArg) (err error) {
-	_, err = m.G().API.Post(APIArg{
+	_, err = m.G().API.Post(m, APIArg{
 		Endpoint: "invitation_request",
 		Args: HTTPArgs{
 			"email":     S{arg.Email},
 			"full_name": S{arg.Fullname},
 			"notes":     S{arg.Notes},
 		},
-		MetaContext: m,
 	})
 	return err
 }
 
 func DeletePrimary(m MetaContext) (err error) {
-	_, err = m.G().API.Post(APIArg{
+	_, err = m.G().API.Post(m, APIArg{
 		Endpoint:    "key/revoke",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{RevSimpleDelete},
 		},
-		MetaContext: m,
 	})
 	return
 }
 
-func CheckPosted(m MetaContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := m.G().API.Post(APIArg{
-		Endpoint:    "sig/posted",
-		SessionType: APISessionTypeREQUIRED,
-		Args: HTTPArgs{
-			"proof_id": S{proofID},
-		},
-		MetaContext: m,
-	})
-	if e2 != nil {
-		err = e2
-		return
+func CheckPosted(mctx MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("CheckPosted(%v)", sigID), func() error { return err })()
+	found, status, state, err = checkPostedAPICall(mctx, sigID)
+	if err != nil {
+		return found, status, state, err
 	}
-	var (
-		rfound  bool
-		rstatus int
-		rstate  int
-		rerr    error
-	)
-	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
-	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
-	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
-	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
+	// Bust proof cache if it disagrees about success.
+	err = checkPostedMaybeBustProofCache(mctx, sigID, found, status, state)
+	if err != nil {
+		mctx.Debug("| CheckPosted error maybe busting proof cache: %v", err)
+	}
+	return found, status, state, nil
 }
 
-func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := m.G().API.Post(APIArg{
+func checkPostedAPICall(mctx MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := mctx.G().API.Post(mctx, APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
-		MetaContext: m,
 	})
 	if e2 != nil {
 		err = e2
@@ -191,15 +185,37 @@ func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, statu
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
+func checkPostedMaybeBustProofCache(mctx MetaContext, sigID keybase1.SigID, found bool, status keybase1.ProofStatus, state keybase1.ProofState) error {
+	pvlSource := mctx.G().GetPvlSource()
+	if pvlSource == nil {
+		return fmt.Errorf("no pvl source")
+	}
+	pvlU, err := pvlSource.GetLatestEntry(mctx)
+	if err != nil {
+		return fmt.Errorf("error getting pvl: %v", err)
+	}
+	checkResult := mctx.G().ProofCache.Get(sigID, pvlU.Hash)
+	if checkResult == nil {
+		return nil
+	}
+	serverOk := found && state == keybase1.ProofState_OK
+	cacheOk := checkResult.Status == nil || checkResult.Status.GetProofStatus() == keybase1.ProofStatus_OK
+	if serverOk != cacheOk {
+		mctx.Debug("CheckPosted busting %v", sigID)
+		return mctx.G().ProofCache.Delete(sigID)
+	}
+	return nil
+}
+
 func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
-	m.CDebugf("| PostDeviceLKS: %s", deviceID)
+	m.Debug("| PostDeviceLKS: %s", deviceID)
 	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
-		m.CWarningf("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		m.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
 	arg := APIArg{
@@ -214,12 +230,11 @@ func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string,
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
 			"platform":        S{Val: GetPlatformString()},
 		},
-		RetryCount:  10,
-		MetaContext: m,
+		RetryCount: 10,
 	}
-	_, err := m.G().API.Post(arg)
+	_, err := m.G().API.Post(m, arg)
 	if err != nil {
-		m.CInfof("device/update(%+v) failed: %s", arg.Args, err)
+		m.Info("device/update(%+v) failed: %s", arg.Args, err)
 	}
 	return err
 }
@@ -231,9 +246,8 @@ func CheckInvitationCode(m MetaContext, code string) error {
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
-		MetaContext: m,
 	}
-	_, err := m.G().API.Get(arg)
+	_, err := m.G().API.Get(m, arg)
 	return err
 }
 
@@ -241,9 +255,8 @@ func GetInvitationCode(m MetaContext) (string, error) {
 	arg := APIArg{
 		Endpoint:    "invitation_bypass_request",
 		SessionType: APISessionTypeNONE,
-		MetaContext: m,
 	}
-	res, err := m.G().API.Get(arg)
+	res, err := m.G().API.Get(m, arg)
 	var invitationID string
 	if err == nil {
 		invitationID, err = res.Body.AtKey("invitation_id").GetString()

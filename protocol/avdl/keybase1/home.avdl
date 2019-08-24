@@ -17,6 +17,10 @@ protocol home {
     case ANNOUNCEMENT: HomeScreenAnnouncement;
     default: void; // Note, if badged, we should urge an upgrade here.
   }
+  variant HomeScreenItemDataExt switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodoExt;
+    default: void;
+  }
 
   enum AppLinkType {
     NONE_0,
@@ -47,6 +51,12 @@ protocol home {
     string url;
   }
 
+  /* The following are deprecated. */
+  /* DEPRECATED_ADD_PHONE_NUMBER_13, */
+  /* DEPRECATED_VERIFY_ALL_PHONE_NUMBER_14, */
+  /* DEPRECATED_VERIFY_ALL_EMAIL_15, */
+  /* DEPRECATED_LEGACY_EMAIL_VISIBILITY_16, */
+  /* DEPRECATED_ADD_EMAIL_17, */
   enum HomeScreenTodoType {
     NONE_0,
     BIO_1,
@@ -61,11 +71,37 @@ protocol home {
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
     AVATAR_TEAM_12,
+    ADD_PHONE_NUMBER_18,
+    VERIFY_ALL_PHONE_NUMBER_19,
+    VERIFY_ALL_EMAIL_20,
+    LEGACY_EMAIL_VISIBILITY_21,
+    ADD_EMAIL_22,
     ANNONCEMENT_PLACEHOLDER_10000
   }
 
+  /**
+    Most of TODO items do not carry additional data, but some do. e.g. TODO
+    item to tell user to verify their email address will carry that email
+    address.
+
+    All new TODO data bundle types should be records rather than single fields
+    to support adding new data to existing TODOs. If a legacy TODO (such as
+    VERIFY_ALL_EMAIL) uses a single field, the "TodoExt" field should be used to
+    introduce more data to the payload.
+  */
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_PHONE_NUMBER: PhoneNumber;
+    case VERIFY_ALL_EMAIL: EmailAddress;
+    case LEGACY_EMAIL_VISIBILITY: EmailAddress;
     default: void;
+  }
+  variant HomeScreenTodoExt switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_EMAIL: VerifyAllEmailTodoExt;
+    default: void;
+  }
+
+  record VerifyAllEmailTodoExt {
+    UnixTime lastVerifyEmailDate;
   }
 
   enum HomeScreenPeopleNotificationType {
@@ -92,6 +128,7 @@ protocol home {
   record HomeScreenItem {
     boolean badged;
     HomeScreenItemData data;
+    HomeScreenItemDataExt dataExt;
   }
 
   record Pics {
@@ -118,6 +155,7 @@ protocol home {
     int visits;
     array<HomeScreenItem> items;
     array<HomeUserSummary> followSuggestions;
+    int announcementsVersion;
   }
 
   /**

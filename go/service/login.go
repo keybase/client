@@ -14,7 +14,6 @@ import (
 type LoginHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	identifyUI libkb.IdentifyUI
 }
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
@@ -30,7 +29,9 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 
 func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
-	return h.G().Logout(ctx)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOGOUT")
+	eng := engine.NewLogout()
+	return engine.RunEngine2(mctx, eng)
 }
 
 func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {
@@ -44,8 +45,9 @@ func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.Deprovision
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
-	res, err := h.G().API.Post(libkb.APIArg{
+func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email string) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	res, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "send-reset-pw",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{
@@ -121,7 +123,9 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		SessionID:   arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
+	eng := engine.NewLoginWithUserSwitch(h.G(), arg.DeviceType, arg.Username, arg.ClientType, arg.DoUserSwitch)
+	eng.PaperKey = arg.PaperKey
+	eng.DeviceName = arg.DeviceName
 	return engine.RunEngine2(m, eng)
 }
 
@@ -144,15 +148,16 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
+func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.LoginWithPaperKeyArg) error {
 	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID, h.G()),
-		SessionID: sessionID,
+		LogUI:     h.getLogUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
 	}
-	eng := engine.NewLoginWithPaperKey(h.G())
+	eng := engine.NewLoginWithPaperKey(h.G(), arg.Username)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	return engine.RunEngine2(m, eng)
+	err := engine.RunEngine2(m, eng)
+	return err
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
@@ -174,5 +179,24 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 	eng := engine.NewLoginOneshot(h.G(), arg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
+}
 
+func (h *LoginHandler) IsOnline(ctx context.Context) (bool, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	_, err := h.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
+	return err == nil, nil
+}
+
+func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {
+	uis := libkb.UIs{
+		LogUI:       h.getLogUI(arg.SessionID),
+		LoginUI:     h.getLoginUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
+		ProvisionUI: h.getProvisionUI(arg.SessionID),
+		SessionID:   arg.SessionID,
+	}
+	eng := engine.NewPassphraseRecover(h.G(), arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }

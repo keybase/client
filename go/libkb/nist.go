@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -78,6 +79,16 @@ func NewNISTFactory(g *GlobalContext, uid keybase1.UID, deviceID keybase1.Device
 		deviceID:     deviceID,
 		key:          key,
 	}
+}
+
+func (f *NISTFactory) UID() keybase1.UID {
+	if f == nil {
+		return keybase1.UID("")
+	}
+
+	f.Lock()
+	defer f.Unlock()
+	return f.uid
 }
 
 func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
@@ -157,7 +168,7 @@ func newNIST(g *GlobalContext) *NIST {
 }
 
 type nistPayload struct {
-	_struct   bool `codec:",toarray"`
+	_struct   bool `codec:",toarray"` //nolint
 	Version   sessionVersion
 	Mode      nistMode
 	Hostname  string
@@ -170,7 +181,7 @@ type nistPayload struct {
 }
 
 type nistSig struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version sessionVersion
 	Mode    nistMode
 	Sig     []byte
@@ -178,7 +189,7 @@ type nistSig struct {
 }
 
 type nistPayloadShort struct {
-	_struct   bool `codec:",toarray"`
+	_struct   bool `codec:",toarray"` //nolint
 	UID       []byte
 	DeviceID  []byte
 	Generated int64
@@ -187,14 +198,14 @@ type nistPayloadShort struct {
 }
 
 type nistHash struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version sessionVersion
 	Mode    nistMode
 	Hash    []byte
 }
 
 func (h nistSig) pack() (NISTToken, error) {
-	b, err := MsgpackEncode(h)
+	b, err := msgpack.Encode(h)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +213,7 @@ func (h nistSig) pack() (NISTToken, error) {
 }
 
 func (h nistHash) pack() (NISTToken, error) {
-	b, err := MsgpackEncode(h)
+	b, err := msgpack.Encode(h)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +274,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	}
 	var sigInfo kbcrypto.NaclSigInfo
 	var payloadPacked []byte
-	payloadPacked, err = MsgpackEncode(payload)
+	payloadPacked, err = msgpack.Encode(payload)
 	if err != nil {
 		return err
 	}

@@ -161,6 +161,22 @@ func GetEmailsClient(g *libkb.GlobalContext) (cli keybase1.EmailsClient, err err
 	return
 }
 
+func GetContactsClient(g *libkb.GlobalContext) (cli keybase1.ContactsClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.ContactsClient{Cli: rcli}
+	}
+	return
+}
+
+func GetUserSearchClient(g *libkb.GlobalContext) (cli keybase1.UserSearchClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.UserSearchClient{Cli: rcli}
+	}
+	return
+}
+
 func GetSigsClient(g *libkb.GlobalContext) (cli keybase1.SigsClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
@@ -423,4 +439,12 @@ func GetWalletClient(g *libkb.GlobalContext) (cli stellar1.LocalClient, err erro
 	}
 	cli = stellar1.LocalClient{Cli: rcli}
 	return cli, nil
+}
+
+func GetAuditClient(g *libkb.GlobalContext) (cli keybase1.AuditClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.AuditClient{Cli: rcli}
+	}
+	return
 }

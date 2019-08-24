@@ -4,6 +4,24 @@ cd "$(dirname "$BASH_SOURCE")/.."
 
 set -f -u -e
 
+options=$(getopt c $*)
+if [ $? -ne 0 ]; then
+    echo "Incorrect options provided"
+    exit 1
+fi
+
+FLAGS="-timeout 50m"
+
+for i
+do
+    case "$1" in
+    -c)
+        FLAGS=-c
+        ;;
+    esac
+    shift
+done
+
 # Log the Go version.
 echo "Running tests on commit $(git rev-parse --short HEAD) with $(go version)."
 
@@ -18,13 +36,8 @@ go get "github.com/stretchr/testify/assert"
 failures=()
 
 for i in $DIRS; do
-  if [ "$i" = "bind" ]; then
-    echo "Skipping bind"
-    continue
-  fi
-
   echo -n "$i......."
-  if ! (cd $i && go test -timeout 50m ) ; then
+  if ! (cd $i && go test $FLAGS ) ; then
     failures+=("$i")
   fi
 done

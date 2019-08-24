@@ -26,9 +26,8 @@ func TestGitTeamer(t *testing.T) {
 	aliceTeamer := git.NewTeamer(alice.tc.G)
 
 	t.Logf("team that doesn't exist")
-	res, err := aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
+	res, err := aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 		Name:       "notateamxxx",
-		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.Error(t, err)
@@ -36,24 +35,13 @@ func TestGitTeamer(t *testing.T) {
 
 	t.Logf("team that exists")
 	teamID, teamName := tt.users[0].createTeam2()
-	res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
+	res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 		Name:       teamName.String(),
-		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.NoError(t, err)
 	require.Equal(t, res.TeamID, teamID)
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
-
-	t.Logf("public team")
-	_, teamName = tt.users[0].createTeam2()
-	res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       teamName.String(),
-		Private:    false,
-		FolderType: keybase1.FolderType_TEAM,
-	})
-	require.Error(t, err)
-	require.Regexp(t, `not supported`, err.Error())
 
 	for _, public := range []bool{false, true} {
 		t.Logf("public:%v", public)
@@ -72,9 +60,8 @@ func TestGitTeamer(t *testing.T) {
 		bob := tt.addUser("bob")
 		gil := tt.addUser("gil")
 		frag := fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
+		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 			Name:       frag,
-			Private:    !public,
 			FolderType: folderType,
 		})
 		require.NoError(t, err)
@@ -92,9 +79,8 @@ func TestGitTeamer(t *testing.T) {
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, frag, public)
 		require.NoError(t, err)
 		require.Equal(t, public, team.ID.IsPublic())
-		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
+		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 			Name:       frag,
-			Private:    !public,
 			FolderType: folderType,
 		})
 		require.NoError(t, err)
@@ -133,9 +119,8 @@ func TestGitTeamer(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, conflicts, 1)
 		t.Logf("check")
-		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
+		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 			Name:       iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
-			Private:    !public,
 			FolderType: folderType,
 		})
 		require.NoError(t, err)

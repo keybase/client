@@ -13,6 +13,10 @@
         {
           "name": "username",
           "type": "string"
+        },
+        {
+          "name": "signedUp",
+          "type": "boolean"
         }
       ],
       "response": null

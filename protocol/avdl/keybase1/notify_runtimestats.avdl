@@ -1,0 +1,45 @@
+@namespace("keybase.1")
+protocol NotifyRuntimeStats {
+  import idl "common.avdl";
+
+  enum StatsSeverityLevel {
+    NORMAL_0,
+    WARNING_1,
+    SEVERE_2
+  }
+
+  record DbStats {
+    DbType type;
+    boolean memCompActive;
+    boolean tableCompActive;
+  }
+
+  enum ProcessType {
+    MAIN_0,
+    KBFS_1
+  }
+
+  record ProcessRuntimeStats {
+    ProcessType type;
+    string cpu;
+    string resident;
+    string virt;
+    string free;
+    string goheap;
+    string goheapsys;
+    string goreleased;
+    StatsSeverityLevel cpuSeverity;
+    StatsSeverityLevel residentSeverity;
+  }
+
+  record RuntimeStats {
+    array<ProcessRuntimeStats> processStats;
+
+    array<DbStats> dbStats;
+
+    // Chat specific
+    boolean convLoaderActive;
+    boolean selectiveSyncActive;
+  }
+  void runtimeStatsUpdate(union { null, RuntimeStats } stats) oneway;
+}

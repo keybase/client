@@ -14,8 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/kyokomi/emoji"
 	"golang.org/x/net/context"
-	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 const publicConvNamePrefix = "(public) "
@@ -68,8 +68,8 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		8, // vis
+		5,                                 // visualIndex
+		8,                                 // vis
 		flexibletable.ExpandableWrappable, // participants
 		flexibletable.ExpandableWrappable, // reset
 	}); err != nil {
@@ -231,23 +231,9 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 		unread := ""
 		// Show the last visible message.
-		var msg *chat1.MessageUnboxed
-		for _, m := range conv.MaxMessages {
-			mv2, err := newMessageView(g, conv.Info.Id, m)
-			if err != nil {
-				g.Log.CDebugf(context.TODO(), "Message render error: %s", err)
-				continue
-			}
-			if !mv2.Renderable {
-				continue
-			}
-			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
-				unread = "*"
-			}
-			if msg == nil || m.GetMessageID() > msg.GetMessageID() {
-				mCopy := m
-				msg = &mCopy
-			}
+		msg := conv.Info.SnippetMsg
+		if msg != nil && conv.ReaderInfo.ReadMsgid < msg.GetMessageID() {
+			unread = "*"
 		}
 		mv := newMessageViewNoMessages()
 		if msg != nil {
@@ -313,8 +299,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		1, // unread
+		5,                                     // visualIndex
+		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // convName
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
@@ -341,10 +327,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	w, _ := ui.TerminalSize()
 	showRevokeAdvisory := false
 
-	headline, err := v.headline(g)
-	if err != nil {
-		return err
-	}
+	headline := v.conversation.Info.Headline
 	if headline != "" {
 		g.UI.GetTerminalUI().Printf("headline: %s\n\n", headline)
 	}
@@ -410,8 +393,8 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		1, // unread
+		5,                                     // visualIndex
+		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
@@ -425,29 +408,6 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	return nil
-}
-
-// Read the headline off the HEADLINE message in MaxMessages.
-// Returns "" when there is no headline set.
-func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
-	for _, m := range v.conversation.MaxMessages {
-		if !m.IsValid() {
-			continue
-		}
-		body := m.Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil {
-			continue
-		}
-		switch typ {
-		case chat1.MessageType_HEADLINE:
-			return body.Headline().Headline, nil
-		default:
-			continue
-		}
-	}
-
-	return "", nil
 }
 
 // Everything you need to show a message.
@@ -469,36 +429,11 @@ type messageView struct {
 }
 
 func formatSystemMessage(body chat1.MessageSystem) string {
-	typ, err := body.SystemType()
-	if err != nil {
+	m := body.String()
+	if m == "" {
 		return "<unknown system message>"
 	}
-	switch typ {
-	case chat1.MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("[Added @%s to the team]", body.Addedtoteam().Addee)
-	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
-			body.Inviteaddedtoteam().Invitee, body.Inviteaddedtoteam().Inviter)
-	case chat1.MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("[Created a new channel in %s]", body.Complexteam().Team)
-	case chat1.MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("[%s created the team %s]", body.Createteam().Creator, body.Createteam().Team)
-	case chat1.MessageSystemType_GITPUSH:
-		switch body.Gitpush().PushType {
-		case keybase1.GitPushType_CREATEREPO:
-			return fmt.Sprintf("[git %s created the repo %s]", body.Gitpush().Pusher, body.Gitpush().RepoName)
-		case keybase1.GitPushType_RENAMEREPO:
-			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Gitpush().Pusher, body.Gitpush().PreviousRepoName, body.Gitpush().RepoName)
-		default:
-			total := keybase1.TotalNumberOfCommits(body.Gitpush().Refs)
-			names := keybase1.RefNames(body.Gitpush().Refs)
-			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
-				body.Gitpush().Pusher, total, names)
-		}
-	case chat1.MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("[%s changed team avatar]", body.Changeavatar().User)
-	}
-	return "<unknown system message>"
+	return fmt.Sprintf("[%s]", m)
 }
 
 func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {

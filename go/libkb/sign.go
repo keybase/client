@@ -74,7 +74,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	in, err = openpgp.AttachedSign(hwc, signed, hints, config)
 	h = func() []byte { return hwc.hasher.Sum(nil) }
 
-	return
+	return in, h, err
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (

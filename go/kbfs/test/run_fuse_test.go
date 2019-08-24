@@ -13,6 +13,8 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libfuse"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
@@ -38,6 +40,7 @@ func createEngine(tb testing.TB) Engine {
 
 func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
+	libfs.AddRootWrapper(config)
 	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{})
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
@@ -60,8 +63,8 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	tb.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 
 	ctx, cancelFn := context.WithCancel(context.Background())
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
 			ctx, func(c context.Context) context.Context {
 				return ctx
 			}))

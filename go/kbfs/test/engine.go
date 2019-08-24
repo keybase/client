@@ -7,6 +7,7 @@ package test
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -117,7 +118,7 @@ type Engine interface {
 	GetMtime(u User, file Node) (mtime time.Time, err error)
 	// GetPrevResions is called by the test harness as the given user
 	// to get the previous revisions of the given file.
-	GetPrevRevisions(u User, file Node) (revs libkbfs.PrevRevisions, err error)
+	GetPrevRevisions(u User, file Node) (revs data.PrevRevisions, err error)
 	// SyncAll is called by the test harness as the given user to
 	// flush all writes buffered in memory to disk.
 	SyncAll(u User, tlfName string, t tlf.Type) (err error)
@@ -176,6 +177,11 @@ type Engine interface {
 	// TogglePrefetch is called by the test harness as the given user to toggle
 	// whether prefetching should be enabled
 	TogglePrefetch(u User, enable bool) error
+	// ForceConflict can force a stuck conflict in the given TLF.
+	ForceConflict(u User, tlfName string, t tlf.Type) (err error)
+	// ClearConflicts can clear the conflicts in a TLF by moving the
+	// conflict view out of the way.
+	ClearConflicts(u User, tlfName string, t tlf.Type) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error

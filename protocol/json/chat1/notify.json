@@ -2,7 +2,7 @@
   "protocol": "NotifyChat",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -231,13 +231,6 @@
         {
           "type": "Expunge",
           "name": "expunge"
-        },
-        {
-          "type": [
-            null,
-            "InboxUIItem"
-          ],
-          "name": "conv"
         }
       ]
     },
@@ -279,6 +272,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "keybase1.UserReacjis",
+          "name": "userReacjis"
         },
         {
           "type": {
@@ -490,6 +487,13 @@
             "items": "ChatSyncIncrementalConv"
           },
           "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "removals"
         }
       ]
     },

@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/status"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -192,13 +193,13 @@ func WarnOutdatedKBFS(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) 
 		return err
 	}
 
-	extStatus, err := cli.GetExtendedStatus(context.TODO(), 0)
+	clientStatus, err := cli.GetClientStatus(context.TODO(), 0)
 	if err != nil {
 		return err
 	}
 	var kbfsClientVersion string
 
-	kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS)
+	kbfs := status.GetFirstClient(clientStatus, keybase1.ClientType_KBFS)
 	if kbfs == nil {
 		g.Log.Debug("| KBFS not running; skip KBFS version check")
 		return nil

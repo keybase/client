@@ -20,7 +20,7 @@ func TestFeatureFlagSet(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, on)
 
-	_, err = tc.G.API.Post(libkb.APIArg{
+	_, err = tc.G.API.Post(m, libkb.APIArg{
 		Endpoint:    "test/feature",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -28,7 +28,6 @@ func TestFeatureFlagSet(t *testing.T) {
 			"value":     libkb.I{Val: 0},
 			"cache_sec": libkb.I{Val: 100},
 		},
-		MetaContext: m,
 	})
 	require.NoError(t, err)
 

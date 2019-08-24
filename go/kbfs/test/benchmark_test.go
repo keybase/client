@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -48,7 +48,7 @@ func BenchmarkWrite1mb512k(b *testing.B) {
 func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	benchmark(b, silentBenchmark{b},
+	benchmark(b,
 		users("alice"),
 		as(alice,
 			custom(func(cb func(fileOp) error) error {
@@ -56,15 +56,22 @@ func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 				if err != nil {
 					return err
 				}
-				b.ResetTimer()
-				for i := 0; i < b.N; i++ {
-					err = cb(pwriteBS("bench", buf, (int64(i)*n)&mask))
+				var n int
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				for i := 0; i < n; i++ {
+					err = cb(pwriteBS("bench", buf, (int64(i*n))&mask))
 					if err != nil {
 						return err
 					}
 				}
-				b.StopTimer()
-				return nil
+				return cb(stopTimer())
 			}),
 		),
 	)
@@ -101,7 +108,7 @@ func BenchmarkReadHole1mb512k(b *testing.B) {
 func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	benchmark(b, silentBenchmark{b},
+	benchmark(b,
 		users("alice"),
 		as(alice,
 			custom(func(cb func(fileOp) error) error {
@@ -113,15 +120,22 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 				if err != nil {
 					return err
 				}
-				b.ResetTimer()
-				for i := 0; i < b.N; i++ {
-					err = cb(preadBS("bench", buf, (int64(i)*n)&mask))
+				var n int
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				for i := 0; i < n; i++ {
+					err = cb(preadBS("bench", buf, (int64(i*n))&mask))
 					if err != nil {
 						return err
 					}
 				}
-				b.StopTimer()
-				return nil
+				return cb(stopTimer())
 			}),
 		),
 	)
@@ -129,7 +143,12 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 
 func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 	numWritesPerFile int, buf []byte, startIter int) error {
-	for i := startIter; i < b.N+startIter; i++ {
+	var n int
+	err := cb(getBenchN(&n))
+	if err != nil {
+		return err
+	}
+	for i := startIter; i < n+startIter; i++ {
 		name := fmt.Sprintf("bench%d", i)
 		err := cb(mkfile(name, ""))
 		if err != nil {
@@ -137,7 +156,7 @@ func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 		}
 		for j := 0; j < numWritesPerFile; j++ {
 			// make each block unique
-			for k := 0; k < 1+len(buf)/libkbfs.MaxBlockSizeBytesDefault; k++ {
+			for k := 0; k < 1+len(buf)/data.MaxBlockSizeBytesDefault; k++ {
 				buf[k] = byte(i)
 				buf[k+1] = byte(j)
 				buf[k+2] = byte(k)
@@ -159,23 +178,36 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 	buf := make([]byte, perWriteBytes)
 	b.SetBytes(fileBytes)
 	numWritesPerFile := int(fileBytes / perWriteBytes)
-	benchmark(b, silentBenchmark{b},
+	benchmark(b,
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(writebwKBps),
 		opTimeout(19*time.Second),
 		as(alice,
-			custom(func(cb func(fileOp) error) error {
+			custom(func(cb func(fileOp) error) (err error) {
 				startIter := 0
+				var n int
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
 				if doWarmUp {
 					if err := benchmarkDoBenchWrites(b, cb,
 						numWritesPerFile, buf, 0); err != nil {
 						return err
 					}
-					startIter = b.N
+					startIter = n
 				}
-				b.ResetTimer()
-				defer b.StopTimer()
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
 				return benchmarkDoBenchWrites(b, cb, numWritesPerFile, buf,
 					startIter)
 			}),
@@ -231,15 +263,28 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 	}
 	b.SetBytes(totalSize)
 
-	benchmark(b, silentBenchmark{b},
+	benchmark(b,
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(11*1024/8 /* 11 Mbps */),
 		opTimeout(19*time.Second),
 		as(alice,
-			custom(func(cb func(fileOp) error) error {
-				b.ResetTimer()
-				defer b.StopTimer()
+			custom(func(cb func(fileOp) error) (err error) {
+				var n int
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
 				currIter := 0
 				for _, fileSize := range fileSizes {
 					numWrites := int(fileSize / perWriteBytes)
@@ -247,7 +292,116 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 						numWrites, buf, currIter); err != nil {
 						return err
 					}
-					currIter += b.N
+					currIter += n
+				}
+				return nil
+			}),
+		),
+	)
+}
+
+func benchmarkMultiFileSync(
+	b *testing.B, numFiles, fileSize int, timeWrites, timeFlush bool) {
+	isolateStages := !timeWrites || !timeFlush
+	benchmark(b,
+		journal(),
+		users("alice"),
+		batchSize(20),
+		as(alice,
+			mkdir("a"),
+		),
+		as(alice,
+			enableJournal(),
+			custom(func(cb func(fileOp) error) (err error) {
+				if isolateStages {
+					// If we want to time one of the stages
+					// separately, pause the journal.
+					err = cb(pauseJournal())
+					if err != nil {
+						return err
+					}
+				}
+
+				var n int
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				buf := make([]byte, numFiles*fileSize+fileSize)
+				for i := 0; i < numFiles*fileSize; i++ {
+					// Make sure we mix up the byte values a bit, so
+					// we don't accidentally trigger any deduplication.
+					buf[i] = byte(i)
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
+				for iter := 0; iter < n; iter++ {
+					if !timeWrites {
+						err = cb(stopTimer())
+						if err != nil {
+							return err
+						}
+					}
+					// Write to each file without syncing.
+					for i := iter * numFiles; i < (iter+1)*numFiles; i++ {
+						f := fmt.Sprintf("a/b/c/file%d", i)
+						start := (i%numFiles)*fileSize + (iter % fileSize)
+						err := cb(pwriteBSSync(
+							f, buf[start:start+fileSize], 0, false))
+						if err != nil {
+							return err
+						}
+					}
+					// Sync each file by doing a no-op truncate.
+					for i := iter * numFiles; i < (iter+1)*numFiles; i++ {
+						f := fmt.Sprintf("a/b/c/file%d", i)
+						err := cb(truncate(f, uint64(fileSize)))
+						if err != nil {
+							return err
+						}
+					}
+					if !timeWrites {
+						err = cb(startTimer())
+						if err != nil {
+							return err
+						}
+					}
+					if !timeFlush {
+						err = cb(stopTimer())
+						if err != nil {
+							return err
+						}
+					}
+					if isolateStages {
+						err = cb(resumeJournal())
+						if err != nil {
+							return err
+						}
+					}
+					err = cb(flushJournal())
+					if err != nil {
+						return err
+					}
+					if isolateStages {
+						err = cb(pauseJournal())
+						if err != nil {
+							return err
+						}
+					}
+					if !timeFlush {
+						err = cb(startTimer())
+						if err != nil {
+							return err
+						}
+					}
 				}
 				return nil
 			}),
@@ -256,47 +410,29 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 }
 
 func BenchmarkMultiFileSync(b *testing.B) {
-	numFiles := 20
-	fileSize := 5
-	benchmark(b, silentBenchmark{b},
-		journal(),
-		users("alice"),
-		as(alice,
-			enableJournal(),
-			custom(func(cb func(fileOp) error) error {
-				files := make([]string, numFiles*b.N)
-				bufs := make([][]byte, numFiles*b.N)
-				for i := 0; i < numFiles*b.N; i++ {
-					files[i] = fmt.Sprintf("a/b/c/file%d", i)
-					bufs[i] = make([]byte, fileSize)
-					for j := 0; j < fileSize; j++ {
-						bufs[i][j] = byte(i*fileSize + j)
-					}
-					err := cb(truncate(files[i], 0))
-					if err != nil {
-						return err
-					}
-				}
-				b.ResetTimer()
-				defer b.StopTimer()
-				for iter := 0; iter < b.N; iter++ {
-					// Write to each file without syncing.
-					for i := iter * numFiles; i < numFiles; i++ {
-						err := cb(pwriteBSSync(files[i], bufs[i], 0, false))
-						if err != nil {
-							return err
-						}
-					}
-					// Sync each file by doing a no-op truncate.
-					for i := iter * numFiles; i < numFiles; i++ {
-						err := cb(truncate(files[i], uint64(fileSize)))
-						if err != nil {
-							return err
-						}
-					}
-				}
-				return nil
-			}),
-		),
-	)
+	benchmarkMultiFileSync(b, 20, 5, true, false)
+}
+
+func BenchmarkMultiFileSyncLargeWrites(b *testing.B) {
+	benchmarkMultiFileSync(b, 1000, 5, true, false)
+}
+
+func BenchmarkMultiFileSyncLargeFlush(b *testing.B) {
+	benchmarkMultiFileSync(b, 1000, 5, false, true)
+}
+
+func BenchmarkMultiFileSyncLarge(b *testing.B) {
+	benchmarkMultiFileSync(b, 1000, 5, true, true)
+}
+
+func BenchmarkMultiFileSyncBigFilesWrites(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, true, false)
+}
+
+func BenchmarkMultiFileSyncBigFilesFlush(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, false, true)
+}
+
+func BenchmarkMultiFileSyncBigFiles(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, true, true)
 }

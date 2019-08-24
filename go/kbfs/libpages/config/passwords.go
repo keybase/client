@@ -136,7 +136,7 @@ func GenerateSHA256PasswordHash(cleartext string) (string, error) {
 
 	hash := sha256.Sum256(append(salt, cleartext...))
 	return sha256PasswordHashPrefix + passwordHashDivider +
-		hex.EncodeToString(salt[:]) + passwordHashDivider +
+		hex.EncodeToString(salt) + passwordHashDivider +
 		hex.EncodeToString(hash[:]), nil
 }
 

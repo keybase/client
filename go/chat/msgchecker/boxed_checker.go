@@ -37,7 +37,7 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		chat1.MessageType_ATTACHMENTUPLOADED,
 		chat1.MessageType_UNFURL:
 		return boxedFieldLengthChecker("sanity check", len(msg.BodyCiphertext.E), BoxedSanityLength)
-	case chat1.MessageType_TEXT:
+	case chat1.MessageType_TEXT, chat1.MessageType_FLIP:
 		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), textMsgLength)
 	case chat1.MessageType_EDIT:
 		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), textMsgLength)

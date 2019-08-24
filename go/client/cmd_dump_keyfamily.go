@@ -41,9 +41,10 @@ func NewCmdDumpKeyfamily(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	return cli.Command{
 		Name:         "dump-keyfamily",
 		ArgumentHelp: "[username]",
-		Usage:        "Print out a user's current key family",
-		Description:  "Print out a user's current key family. Don't specify a username to dump out your own keys.",
-		Flags:        []cli.Flag{},
+		// hide
+		// Usage:        "Print out a user's current key family",
+		Description: "Print out a user's current key family. Don't specify a username to dump out your own keys.",
+		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDumpKeyfamily{Contextified: libkb.NewContextified(g)}, "dump-keyfamily", c)
 		},

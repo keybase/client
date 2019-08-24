@@ -39,7 +39,17 @@ func (p BadKeyError) Error() string {
 }
 
 type VerificationError struct {
+	// XXX - NOTE(maxtaco) - 20190418 - this is not to be confused with Cause(), which interacts with the pkg/errors
+	// system. There should probably be a better solution than this, but let's leave it for now.
 	Cause error
+}
+
+func newVerificationErrorWithString(s string) VerificationError {
+	return VerificationError{Cause: errors.New(s)}
+}
+
+func NewVerificationError(e error) VerificationError {
+	return VerificationError{Cause: e}
 }
 
 const (
@@ -50,15 +60,19 @@ func (e VerificationError) Error() string {
 	if e.Cause == nil {
 		return "Verification failed"
 	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
+	return fmt.Sprintf("Verification failed: %s", e.Cause.Error())
 }
 
 func (e VerificationError) ToStatus() keybase1.Status {
+	cause := ""
+	if e.Cause != nil {
+		cause = e.Cause.Error()
+	}
 	return keybase1.Status{
 		Code: SCSigCannotVerify,
 		Name: "SC_SIG_CANNOT_VERIFY",
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
+			{Key: "Cause", Value: cause},
 		},
 	}
 }
@@ -72,22 +86,44 @@ func (e UnhandledSignatureError) Error() string {
 }
 
 func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
+	return s.verifyWithPayload(s.Payload, false)
+}
+
+// verifyWithPayload verifies the NaclSigInfo s, with the payload payload. Note that
+// s may or may not have a payload already baked into it. If it does, and checkPayloadEquality
+// is true, then we assert that the "baked-in" payload is equal to the specified payload.
+// We'll only pass `false` for this flag from just above, to avoid checking that s.Payload == s.Payload,
+// which we know it does. We need this unfortunate complexity because some signatures the client
+// tries to verify are "attached," meaning the payload comes along with the sig info. And in other
+// cases, the signatures are "detached", meaning they are supplied out-of-band. This function
+// handles both cases.
+func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool) (*NaclSigningKeyPublic, error) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
 		return nil, BadKeyError{}
 	}
+	if payload == nil {
+		return nil, newVerificationErrorWithString("nil payload")
+	}
+	if len(payload) == 0 {
+		return nil, newVerificationErrorWithString("empty payload")
+	}
+
+	if checkPayloadEquality && s.Payload != nil && !SecureByteArrayEq(payload, s.Payload) {
+		return nil, newVerificationErrorWithString("payload mismatch")
+	}
 
 	switch s.Version {
 	case 0, 1:
-		if !key.Verify(s.Payload, s.Sig) {
-			return nil, VerificationError{}
+		if !key.Verify(payload, s.Sig) {
+			return nil, newVerificationErrorWithString("verify failed")
 		}
 	case 2:
 		if !s.Prefix.IsWhitelisted() {
-			return nil, VerificationError{errors.New("unknown prefix")}
+			return nil, newVerificationErrorWithString("unknown prefix")
 		}
-		if !key.Verify(s.Prefix.Prefix(s.Payload), s.Sig) {
-			return nil, VerificationError{}
+		if !key.Verify(s.Prefix.Prefix(payload), s.Sig) {
+			return nil, newVerificationErrorWithString("verify failed")
 		}
 	default:
 		return nil, UnhandledSignatureError{s.Version}
@@ -139,4 +175,23 @@ func NaclVerifyAndExtract(s string) (nk *NaclSigningKeyPublic, payload []byte, f
 
 	payload = naclSig.Payload
 	return nk, payload, fullBody, nil
+}
+
+func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPublic, fullBody []byte, err error) {
+	fullBody, err = base64.StdEncoding.DecodeString(sig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nk, err = naclSig.verifyWithPayload(payloadIn, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nk, fullBody, nil
 }

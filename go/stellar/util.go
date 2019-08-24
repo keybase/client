@@ -3,12 +3,14 @@ package stellar
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 )
 
 func loadUvUpk(mctx libkb.MetaContext, uv keybase1.UserVersion) (res *keybase1.UserPlusKeysV2, err error) {
@@ -57,6 +59,7 @@ type ownAccountLookupCacheImpl struct {
 }
 
 // NewOwnAccountLookupCache fetches the list of accounts in the background and stores them.
+// Was created before Stellar.accounts, and could probably benefit from using that cache.
 func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 	c := &ownAccountLookupCacheImpl{
 		accounts: make(map[stellar1.AccountID]*string),
@@ -95,4 +98,29 @@ func (c *ownAccountLookupCacheImpl) OwnAccount(ctx context.Context, accountID st
 		return false, "", nil
 	}
 	return true, *name, nil
+}
+
+func LookupSenderSeed(mctx libkb.MetaContext) (stellar1.AccountID, stellarnet.SeedStr, error) {
+	senderEntry, senderAccountBundle, err := LookupSenderPrimary(mctx)
+	if err != nil {
+		return "", "", err
+	}
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return "", "", err
+	}
+
+	return senderEntry.AccountID, senderSeed, nil
+}
+
+func isAmountLessThanMin(amount, min string) bool {
+	cmp, err := stellarnet.CompareStellarAmounts(amount, min)
+	if err == nil && cmp == -1 {
+		return true
+	}
+	return false
+}
+
+func EmptyAmountStack(mctx libkb.MetaContext) {
+	mctx.Debug("unexpected empty amount\n%v", string(debug.Stack()))
 }

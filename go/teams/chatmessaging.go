@@ -16,7 +16,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 		return fmt.Errorf("getting team details: %v", err)
 	}
 
-	var ownerNames, adminNames, writerNames, readerNames []string
+	var ownerNames, adminNames, writerNames, readerNames, botNames, restrictedBotNames []string
 	for _, owner := range teamDetails.Members.Owners {
 		ownerNames = append(ownerNames, owner.Username)
 	}
@@ -29,15 +29,23 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	for _, reader := range teamDetails.Members.Readers {
 		readerNames = append(readerNames, reader.Username)
 	}
+	for _, bot := range teamDetails.Members.Bots {
+		botNames = append(botNames, bot.Username)
+	}
+	for _, restrictedBot := range teamDetails.Members.RestrictedBots {
+		restrictedBotNames = append(restrictedBotNames, restrictedBot.Username)
+	}
 	username := g.Env.GetUsername()
 	subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
-		Adder:   username.String(),
-		Addee:   user,
-		Team:    team,
-		Owners:  ownerNames,
-		Admins:  adminNames,
-		Writers: writerNames,
-		Readers: readerNames,
+		Adder:          username.String(),
+		Addee:          user,
+		Team:           team,
+		Owners:         ownerNames,
+		Admins:         adminNames,
+		Writers:        writerNames,
+		Readers:        readerNames,
+		Bots:           botNames,
+		RestrictedBots: restrictedBotNames,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 
@@ -124,13 +132,13 @@ func SendTeamChatChangeAvatar(mctx libkb.MetaContext, team, username string) boo
 	var err error
 
 	if !mctx.G().Env.SendSystemChatMessages() {
-		mctx.CDebugf("Skipping SendTeamChatChangeAvatar via environment flag")
+		mctx.Debug("Skipping SendTeamChatChangeAvatar via environment flag")
 		return false
 	}
 
 	defer func() {
 		if err != nil {
-			mctx.CWarningf("failed to send team change avatar message: %s", err.Error())
+			mctx.Warning("failed to send team change avatar message: %s", err.Error())
 		}
 	}()
 

@@ -6,9 +6,8 @@ package libkbfs
 
 import (
 	"crypto/rand"
-	"encoding/binary"
-	"io"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -121,68 +120,9 @@ func (c CryptoCommon) DecryptPrivateMetadata(
 	return pmd, nil
 }
 
-const minBlockSize = 256
-
-// powerOfTwoEqualOrGreater returns smallest power of 2 greater than or equal
-// to the input n.
-// https://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
-func powerOfTwoEqualOrGreater(n int) int {
-	if n <= minBlockSize {
-		return minBlockSize
-	}
-	if n&(n-1) == 0 {
-		// if n is already power of 2, return it
-		return n
-	}
-
-	n--
-	n = n | (n >> 1)
-	n = n | (n >> 2)
-	n = n | (n >> 4)
-	n = n | (n >> 8)
-	n = n | (n >> 16)
-	n = n | (n >> 16 >> 16) // make it work with 64 bit int; no effect on 32bit.
-	n++
-
-	return n
-}
-
-const padPrefixSize = 4
-
-// padBlock adds zero padding to an encoded block.
-func (c CryptoCommon) padBlock(block []byte) ([]byte, error) {
-	totalLen := powerOfTwoEqualOrGreater(len(block))
-
-	buf := make([]byte, padPrefixSize+totalLen)
-	binary.LittleEndian.PutUint32(buf, uint32(len(block)))
-
-	copy(buf[padPrefixSize:], block)
-	return buf, nil
-}
-
-// depadBlock extracts the actual block data from a padded block.
-func (c CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
-	totalLen := len(paddedBlock)
-	if totalLen < padPrefixSize {
-		return nil, errors.WithStack(io.ErrUnexpectedEOF)
-	}
-
-	blockLen := binary.LittleEndian.Uint32(paddedBlock)
-	blockEndPos := int(blockLen + padPrefixSize)
-
-	if totalLen < blockEndPos {
-		return nil, errors.WithStack(
-			PaddedBlockReadError{
-				ActualLen:   totalLen,
-				ExpectedLen: blockEndPos,
-			})
-	}
-	return paddedBlock[padPrefixSize:blockEndPos], nil
-}
-
 // EncryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptBlock(
-	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
@@ -190,7 +130,7 @@ func (c CryptoCommon) EncryptBlock(
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
-	paddedBlock, err := c.padBlock(encodedBlock)
+	paddedBlock, err := kbfscrypto.PadBlock(encodedBlock)
 	if err != nil {
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
@@ -211,7 +151,7 @@ func (c CryptoCommon) EncryptBlock(
 func (c CryptoCommon) DecryptBlock(
 	encryptedBlock kbfscrypto.EncryptedBlock,
 	tlfCryptKey kbfscrypto.TLFCryptKey,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block data.Block) error {
 	var paddedBlock []byte
 	paddedBlock, err := kbfscrypto.DecryptBlock(
 		encryptedBlock, tlfCryptKey, blockServerHalf)
@@ -219,7 +159,7 @@ func (c CryptoCommon) DecryptBlock(
 		return err
 	}
 
-	encodedBlock, err := c.depadBlock(paddedBlock)
+	encodedBlock, err := kbfscrypto.DepadBlock(paddedBlock)
 	if err != nil {
 		return err
 	}

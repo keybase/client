@@ -142,13 +142,16 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	_, maliciousPayload, err := sikey2.GenerateSignature(roo.uid, roo.userVersion().EldestSeqno, teams.SCTeamInviteID(inviteID), now)
 	require.NoError(t, err)
 
-	arg := libkb.NewAPIArgWithNetContext(context.Background(), "team/seitan_v2")
+	ctx := context.Background()
+
+	arg := libkb.NewAPIArg("team/seitan_v2")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("sig", libkb.S{Val: maliciousPayload})
 	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(int64(now), 10)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = roo.tc.G.API.Post(arg)
+	mctx := libkb.NewMetaContext(ctx, roo.tc.G)
+	_, err = roo.tc.G.API.Post(mctx, arg)
 	require.NoError(t, err)
 	t.Logf("handle synthesized rekeyd command")
 	msg := keybase1.TeamSeitanMsg{
@@ -322,13 +325,13 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 
 		// We need to send this request so HandleTeamSeitan links can
 		// do completed_invites, otherwise server will reject these.
-		arg := libkb.NewAPIArgWithNetContext(context.Background(), "team/seitan_v2")
+		arg := libkb.NewAPIArg("team/seitan_v2")
 		arg.Args = libkb.NewHTTPArgs()
 		arg.SessionType = libkb.APISessionTypeREQUIRED
 		arg.Args.Add("sig", libkb.S{Val: sig})
 		arg.Args.Add("now", libkb.HTTPTime{Val: now})
 		arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-		_, err = u.tc.G.API.Post(arg)
+		_, err = u.tc.G.API.Post(libkb.NewMetaContextBackground(u.tc.G), arg)
 		require.NoError(t, err)
 
 		return keybase1.TeamSeitanRequest{

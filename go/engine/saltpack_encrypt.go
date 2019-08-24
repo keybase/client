@@ -80,7 +80,7 @@ func (e *SaltpackEncrypt) loadMe(m libkb.MetaContext) error {
 
 // Run starts the engine.
 func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackEncrypt::Run", func() error { return err })()
+	defer m.Trace("SaltpackEncrypt::Run", func() error { return err })()
 
 	if err = e.loadMe(m); err != nil {
 		return err

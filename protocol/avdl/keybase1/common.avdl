@@ -46,6 +46,12 @@ protocol Common {
   @typedef("string")
   record PhoneNumber {}
 
+  // Phone number, coming from the user, in no particular format. 
+  // Possibly invalid. Should be validated and converted to PhoneNumber
+  // for internal use.
+  @typedef("string")
+  record RawPhoneNumber {}
+
   // 2-letter country region code
   // Used for phone number and email assertions
   @typedef("string")
@@ -54,6 +60,9 @@ protocol Common {
   // Chain link IDs
   @typedef("string")
   record LinkID {}
+
+  @typedef("bytes")
+  record BinaryLinkID {}
 
   // But sometimes we need binary kids...
   @typedef("bytes")
@@ -115,7 +124,9 @@ protocol Common {
     NONE_0,
     PUBLIC_1,
     PRIVATE_2,
-    SEMIPRIVATE_3
+    SEMIPRIVATE_3,
+    USER_PRIVATE_HIDDEN_16,
+    TEAM_PRIVATE_HIDDEN_17
   }
 
   fixed Bytes32(32);
@@ -350,5 +361,24 @@ protocol Common {
   enum IdentityVisibility {
       PRIVATE_0,
       PUBLIC_1
+  }
+
+  record SizedImage {
+    string path;
+    int width;
+  }
+
+  enum OfflineAvailability {
+    NONE_0,
+    BEST_EFFORT_1
+  }
+
+  // Primarily used in chat but defined here to avoid a circular import
+  @typedef("int") record ReacjiSkinTone {}
+  record UserReacjis {
+    // sorted array of frequently used reacjis
+    array<string> topReacjis;
+    // user preference for default reacji skin tone
+    ReacjiSkinTone skinTone;
   }
 }

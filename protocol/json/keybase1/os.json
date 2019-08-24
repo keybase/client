@@ -1,0 +1,18 @@
+{
+  "protocol": "runtime",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "RuntimeGroup",
+      "symbols": [
+        "UNKNOWN_0",
+        "LINUXLIKE_1",
+        "DARWINLIKE_2",
+        "WINDOWSLIKE_3"
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

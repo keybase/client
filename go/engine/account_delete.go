@@ -7,6 +7,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // AccountDelete is an engine.
@@ -46,16 +47,29 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *AccountDelete) Run(m libkb.MetaContext) error {
 	username := m.G().GetEnv().GetUsername()
-	arg := libkb.DefaultPassphrasePromptArg(m, username.String())
-	res, err := m.UIs().SecretUI.GetPassphrase(arg, nil)
+
+	randomPW, err := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{})
 	if err != nil {
 		return err
 	}
-	err = libkb.DeleteAccount(m, username, res.Passphrase)
+
+	var passphrase *string
+	if !randomPW {
+		// Passphrase is required to create PDPKA, but that's not required for
+		// randomPW users.
+		arg := libkb.DefaultPassphrasePromptArg(m, username.String())
+		res, err := m.UIs().SecretUI.GetPassphrase(arg, nil)
+		if err != nil {
+			return err
+		}
+		passphrase = &res.Passphrase
+	}
+
+	err = libkb.DeleteAccount(m, username, passphrase)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("account deleted, logging out")
+	m.Debug("account deleted, logging out")
 	m.G().Logout(m.Ctx())
 
 	return nil

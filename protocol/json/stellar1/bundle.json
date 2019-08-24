@@ -6,7 +6,7 @@
       "type": "idl"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -18,15 +18,6 @@
       "fields": [],
       "typedef": "uint64",
       "lint": "ignore"
-    },
-    {
-      "type": "enum",
-      "name": "AccountMode",
-      "symbols": [
-        "NONE_0",
-        "USER_1",
-        "MOBILE_2"
-      ]
     },
     {
       "type": "record",

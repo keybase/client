@@ -68,7 +68,7 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPVerify) Run(m libkb.MetaContext) error {
 	var err error
-	defer m.CTrace("PGPVerify#Run", func() error { return err })()
+	defer m.Trace("PGPVerify#Run", func() error { return err })()
 	var sc libkb.StreamClassification
 	sc, e.source, err = libkb.ClassifyStream(e.arg.Source)
 
@@ -245,7 +245,7 @@ func (e *PGPVerify) checkSignedBy(m libkb.MetaContext) error {
 
 	// have: a valid signature, the signature's owner, and a user assertion to
 	// match against
-	m.CDebugf("checking signed by assertion: %q", e.arg.SignedBy)
+	m.Debug("checking signed by assertion: %q", e.arg.SignedBy)
 
 	// load the user in SignedBy
 	arg := keybase1.Identify2Arg{

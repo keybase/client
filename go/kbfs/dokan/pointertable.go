@@ -16,9 +16,9 @@ import (
 
 var fsTableLock sync.Mutex
 var fsTable = make([]fsTableEntry, 0, 2)
-var fiTableLock sync.Mutex
-var fiTable = map[uint32]File{}
-var fiIdx uint32
+var fiTableLock sync.Mutex      // nolint
+var fiTable = map[uint32]File{} // nolint
+var fiIdx uint32                // nolint
 
 type fsTableEntry struct {
 	fs        FileSystem
@@ -41,7 +41,7 @@ func fsTableStore(fs FileSystem, ec chan error) uint32 {
 	return uint32(len(fsTable) - 1)
 }
 
-func fsTableFree(slot uint32) {
+func fsTableFree(slot uint32) { // nolint
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 	if int(slot) < len(fsTable) {
@@ -49,13 +49,13 @@ func fsTableFree(slot uint32) {
 	}
 }
 
-func fsTableGet(slot uint32) FileSystem {
+func fsTableGet(slot uint32) FileSystem { // nolint
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 	return fsTable[slot].fs
 }
 
-func fsTableGetErrChan(slot uint32) chan error {
+func fsTableGetErrChan(slot uint32) chan error { // nolint
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 	return fsTable[slot].errChan
@@ -67,7 +67,7 @@ func fsTableGetFileCount(slot uint32) uint32 {
 	return fsTable[slot].fileCount
 }
 
-func fiTableStoreFile(global uint32, fi File) uint32 {
+func fiTableStoreFile(global uint32, fi File) uint32 { // nolint
 	fsTableLock.Lock()
 	fsTable[global].fileCount++
 	fsTableLock.Unlock()
@@ -91,7 +91,7 @@ func fiTableStoreFile(global uint32, fi File) uint32 {
 	}
 }
 
-func fiTableGetFile(file uint32) File {
+func fiTableGetFile(file uint32) File { // nolint
 	fiTableLock.Lock()
 	var fi = fiTable[file]
 	fiTableLock.Unlock()
@@ -99,7 +99,7 @@ func fiTableGetFile(file uint32) File {
 	return fi
 }
 
-func fiTableFreeFile(global uint32, file uint32) {
+func fiTableFreeFile(global uint32, file uint32) { // nolint
 	fsTableLock.Lock()
 	fsTable[global].fileCount--
 	fsTableLock.Unlock()

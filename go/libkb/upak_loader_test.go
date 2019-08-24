@@ -18,6 +18,8 @@ import (
 
 func TestCachedUserLoad(t *testing.T) {
 	tc := SetupTest(t, "GetUPAKLoader()", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -66,10 +68,17 @@ func TestCachedUserLoad(t *testing.T) {
 	if !info.InCache || !info.TimedOut || info.StaleVersion || !info.LoadedLeaf || info.LoadedUser {
 		t.Fatalf("wrong info: %+v", info)
 	}
+
+	require.True(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "t_alice"))
+	require.False(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "t_alice_xxx"))
+	// This hardcoded user was put into the TestUIDMapper, so it should return a result
+	require.True(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "max"))
 }
 
 func TestCheckKIDForUID(t *testing.T) {
 	tc := SetupTest(t, "CheckKIDForUID", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -105,6 +114,7 @@ func TestCheckKIDForUID(t *testing.T) {
 func TestCacheFallbacks(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -189,6 +199,7 @@ func TestLookupUID(t *testing.T) {
 func TestLookupUsername(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
+
 	uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 	un, err := tc.G.GetUPAKLoader().LookupUsername(context.Background(), uid)
 	require.NoError(t, err)

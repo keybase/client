@@ -17,7 +17,7 @@ func TestPaperKeySubmit(t *testing.T) {
 
 	tc.G.SetService()
 	listener := &nlistener{}
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// signup and get the paper key
 	fu := NewFakeUserOrBust(t, "paper")

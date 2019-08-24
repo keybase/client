@@ -9,8 +9,8 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 )
 
 type diskBlockCacheServiceConfig interface {
@@ -67,6 +67,38 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	}, nil
 }
 
+// GetPrefetchStatus implements the DiskBlockCacheInterface interface
+// for DiskBlockCacheService.
+func (cache *DiskBlockCacheService) GetPrefetchStatus(
+	ctx context.Context, arg kbgitkbfs.GetPrefetchStatusArg) (
+	prefetchStatus kbgitkbfs.PrefetchStatus, err error) {
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return NoPrefetch.ToProtocol(), DiskBlockCacheError{"Disk cache is nil"}
+	}
+	tlfID := tlf.ID{}
+	err = tlfID.UnmarshalBinary(arg.TlfID)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+
+	cacheType := DiskBlockAnyCache
+	if cache.config.IsSyncedTlf(tlfID) {
+		cacheType = DiskBlockSyncCache
+	}
+
+	dbStatus, err := dbc.GetPrefetchStatus(ctx, tlfID, blockID, cacheType)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+	return dbStatus.ToProtocol(), nil
+}
+
 // PutBlock implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
@@ -119,7 +151,7 @@ func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 		}
 		blocks = append(blocks, blockID)
 	}
-	numRemoved, sizeRemoved, err := dbc.Delete(ctx, blocks)
+	numRemoved, sizeRemoved, err := dbc.Delete(ctx, blocks, DiskBlockAnyCache)
 	if err != nil {
 		return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
 	}
@@ -137,12 +169,19 @@ func (cache *DiskBlockCacheService) UpdateBlockMetadata(ctx context.Context,
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}
 	}
-	blockID := kbfsblock.ID{}
-	err := blockID.UnmarshalBinary(arg.BlockID)
+	tlfID := tlf.ID{}
+	err := tlfID.UnmarshalBinary(arg.TlfID)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
-	err = dbc.UpdateMetadata(ctx, blockID, PrefetchStatus(arg.PrefetchStatus))
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	err = dbc.UpdateMetadata(
+		ctx, tlfID, blockID, PrefetchStatus(arg.PrefetchStatus),
+		DiskBlockAnyCache)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}

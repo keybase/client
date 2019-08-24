@@ -39,23 +39,29 @@ go/revision
 
 npm-debug.log
 yarn-error.log
+shared/dist
 shared/coverage
 shared/node_modules
 shared/.static-storybook
+shared/fonts-for-web
+shared/constants/types/rpc*js*
+shared/report.*.json
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
+shared/.tsOuts/.*
 # Storybook
 shared/.cache
 
 Keybase.app.dSYM.zip
 
-shared/react-native/ios/fastlane
-shared/react-native/android/keybaselib/keybaselib-sources.jar
-shared/react-native/android/app/.idea/
-shared/react-native/android/captures
-shared/react-native/android/app/local.properties
+# shared/ios/fastlane # already checked in?
+shared/android/keybaselib/keybaselib-sources.jar
+shared/android/app/.idea/
+shared/android/captures
+shared/android/app/local.properties
 
 browser/node_modules
 browser/js/bundle.js
+go/.go_package_deps*

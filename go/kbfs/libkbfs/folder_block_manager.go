@@ -10,22 +10,25 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type fbmHelper interface {
 	getMostRecentFullyMergedMD(ctx context.Context) (
 		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *GCOp) error
-	getLatestMergedRevision(lState *lockState) kbfsmd.Revision
+	getLatestMergedRevision(lState *kbfssync.LockState) kbfsmd.Revision
 }
 
 const (
@@ -37,10 +40,6 @@ const (
 	numPointersPerGCThresholdDefault = 100
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
-
-	// The delay to wait for before trying a failed block deletion
-	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
-	deleteBlocksRetryDelay = 10 * time.Millisecond
 )
 
 type blockDeleteType int
@@ -59,7 +58,7 @@ const (
 
 type blocksToDelete struct {
 	md      ReadOnlyRootMetadata
-	blocks  []BlockPointer
+	blocks  []data.BlockPointer
 	bdType  blockDeleteType
 	backoff backoff.BackOff
 }
@@ -125,30 +124,30 @@ type folderBlockManager struct {
 	// Remembers what happened last time during quota reclamation.
 	lastQRLock          sync.Mutex
 	lastQRHeadRev       kbfsmd.Revision
-	lastQROldEnoughRev  kbfsmd.Revision
 	wasLastQRComplete   bool
 	lastReclamationTime time.Time
+	lastReclaimedRev    kbfsmd.Revision
 }
 
 func newFolderBlockManager(
-	appStateUpdater env.AppStateUpdater, config Config, fb FolderBranch,
+	appStateUpdater env.AppStateUpdater, config Config, fb data.FolderBranch,
 	bType branchType, helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 
 	var latestMergedChan chan struct{}
 	qrEnabled :=
-		fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled()
+		fb.Branch == data.MasterBranch && config.Mode().QuotaReclamationEnabled()
 	if qrEnabled {
 		latestMergedChan = make(chan struct{}, 1)
 	}
 
 	fbm := &folderBlockManager{
-		appStateUpdater: appStateUpdater,
-		config:          config,
-		log:             log,
-		shutdownChan:    make(chan struct{}),
-		id:              fb.Tlf,
+		appStateUpdater:           appStateUpdater,
+		config:                    config,
+		log:                       log,
+		shutdownChan:              make(chan struct{}),
+		id:                        fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),
@@ -276,7 +275,8 @@ func (fbm *folderBlockManager) shutdown() {
 // this should be called when the operation finally succeeds.
 func (fbm *folderBlockManager) cleanUpBlockState(
 	md ReadOnlyRootMetadata, bps blockPutState, bdType blockDeleteType) {
-	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision(),
+	fbm.log.CDebugf(
+		context.TODO(), "Clean up md %d %s, bdType=%d", md.Revision(),
 		md.MergedStatus(), bdType)
 	expBackoff := backoff.NewExponentialBackOff()
 	// Never give up when trying to delete blocks; it might just take
@@ -288,7 +288,7 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 		bdType:  bdType,
 		backoff: expBackoff,
 	}
-	toDelete.blocks = append(toDelete.blocks, bps.ptrs()...)
+	toDelete.blocks = append(toDelete.blocks, bps.Ptrs()...)
 	fbm.enqueueBlocksToDelete(toDelete)
 }
 
@@ -449,7 +449,7 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 // block server for the given block pointers.  For deletes, it returns
 // a list of block IDs that no longer have any references.
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer, archive bool) (
+	tlfID tlf.ID, ptrs []data.BlockPointer, archive bool) (
 	[]kbfsblock.ID, error) {
 	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
 		len(ptrs), archive)
@@ -462,7 +462,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	chunks := make(chan []BlockPointer, numChunks)
+	chunks := make(chan []data.BlockPointer, numChunks)
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
@@ -533,7 +533,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 // for the given block pointers.  It returns a list of block IDs that
 // no longer have any references.
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) ([]kbfsblock.ID, error) {
+	tlfID tlf.ID, ptrs []data.BlockPointer) ([]kbfsblock.ID, error) {
 	return fbm.doChunkedDowngrades(ctx, tlfID, ptrs, false)
 }
 
@@ -544,9 +544,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	// Make sure all blocks in the journal (if journaling is enabled)
 	// are flushed before attempting to delete any of them.
-	if jServer, err := GetJournalServer(fbm.config); err == nil {
+	if jManager, err := GetJournalManager(fbm.config); err == nil {
 		fbm.log.CDebugf(ctx, "Waiting for journal to flush")
-		if err := jServer.WaitForCompleteFlush(ctx, fbm.id); err != nil {
+		if err := jManager.WaitForCompleteFlush(ctx, fbm.id); err != nil {
 			return err
 		}
 	}
@@ -659,9 +659,8 @@ func (fbm *folderBlockManager) ctxWithFBMID(
 }
 
 // Run the passed function with a context that's canceled on shutdown.
-func (fbm *folderBlockManager) runUnlessShutdown(
-	fn func(ctx context.Context) error) error {
-	ctx := fbm.ctxWithFBMID(context.Background())
+func (fbm *folderBlockManager) runUnlessShutdownWithCtx(
+	ctx context.Context, fn func(ctx context.Context) error) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 	errChan := make(chan error, 1)
@@ -677,58 +676,141 @@ func (fbm *folderBlockManager) runUnlessShutdown(
 	}
 }
 
+// Run the passed function with a context that's canceled on shutdown.
+func (fbm *folderBlockManager) runUnlessShutdown(
+	fn func(ctx context.Context) error) error {
+	ctx := fbm.ctxWithFBMID(context.Background())
+	return fbm.runUnlessShutdownWithCtx(ctx, fn)
+}
+
 func (fbm *folderBlockManager) archiveBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) error {
+	tlfID tlf.ID, ptrs []data.BlockPointer) error {
 	_, err := fbm.doChunkedDowngrades(ctx, tlfID, ptrs, true)
 	return err
+}
+
+type unrefIterator struct {
+	nextPtr int
+}
+
+// getUnrefPointersFromMD returns a slice of BlockPointers that were
+// unreferenced by the given `rmd`.  If there are too many pointers to
+// process, given the current mode, then it will return a partial
+// list, plus a non-nil `iter` parameter that can be passed into a
+// subsequent call to get the next set of unreferenced BlockPointers
+// from the same MD.  If a nil `iter` is given, pointers are returned
+// from the beginning of the list.
+func (fbm *folderBlockManager) getUnrefPointersFromMD(
+	rmd ReadOnlyRootMetadata, includeGC bool, iter *unrefIterator) (
+	ptrs []data.BlockPointer, nextIter *unrefIterator) {
+	currPtr := 0
+	complete := true
+	nextPtr := 0
+	if iter != nil {
+		nextPtr = iter.nextPtr
+	}
+	ptrMap := make(map[data.BlockPointer]bool)
+	max := fbm.config.Mode().MaxBlockPtrsToManageAtOnce()
+opLoop:
+	for _, op := range rmd.data.Changes.Ops {
+		if _, ok := op.(*GCOp); !includeGC && ok {
+			continue
+		}
+		for _, ptr := range op.Unrefs() {
+			currPtr++
+			// Skip past any ptrs we've already processed.
+			if currPtr <= nextPtr {
+				continue
+			}
+
+			// Can be zeroPtr in weird failed sync scenarios.
+			// See syncInfo.replaceRemovedBlock for an example
+			// of how this can happen.
+			if ptr != data.ZeroPtr && !ptrMap[ptr] {
+				ptrMap[ptr] = true
+			}
+			nextPtr++
+			if max >= 0 && len(ptrMap) >= max {
+				complete = false
+				break opLoop
+			}
+		}
+		for _, update := range op.allUpdates() {
+			currPtr++
+			// Skip past any ptrs we've already processed.
+			if currPtr <= nextPtr {
+				continue
+			}
+
+			// It's legal for there to be an "update" between
+			// two identical pointers (usually because of
+			// conflict resolution), so ignore that for quota
+			// reclamation purposes.
+			if update.Ref != update.Unref && !ptrMap[update.Unref] {
+				ptrMap[update.Unref] = true
+			}
+			nextPtr++
+			if max >= 0 && len(ptrMap) >= max {
+				complete = false
+				break opLoop
+			}
+		}
+	}
+	ptrs = make([]data.BlockPointer, 0, len(ptrMap))
+	for ptr := range ptrMap {
+		ptrs = append(ptrs, ptr)
+	}
+	if !complete {
+		nextIter = &unrefIterator{nextPtr}
+	}
+	return ptrs, nextIter
+}
+
+func (fbm *folderBlockManager) archiveAllBlocksInMD(md ReadOnlyRootMetadata) {
+	// This func doesn't take any locks, though it can
+	// block md writes due to the buffered channel.
+	// So use the long timeout to make sure things get
+	// unblocked eventually, but no need for a short
+	// timeout.
+	ctx := fbm.ctxWithFBMID(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, data.BackgroundTaskTimeout)
+	fbm.setArchiveCancel(cancel)
+	defer fbm.cancelArchive()
+
+	iter := &unrefIterator{0}
+	defer fbm.archiveGroup.Done()
+	for iter != nil {
+		var ptrs []data.BlockPointer
+		ptrs, iter = fbm.getUnrefPointersFromMD(md, true, iter)
+		_ = fbm.runUnlessShutdownWithCtx(
+			ctx, func(ctx context.Context) (err error) {
+				fbm.log.CDebugf(
+					ctx, "Archiving %d block pointers as a result "+
+						"of revision %d", len(ptrs), md.Revision())
+				err = fbm.archiveBlockRefs(ctx, md.TlfID(), ptrs)
+				if err != nil {
+					fbm.log.CWarningf(
+						ctx, "Couldn't archive blocks: %v", err)
+					return err
+				}
+
+				return nil
+			})
+		if iter != nil {
+			fbm.log.CDebugf(
+				ctx, "Archived %d pointers for revision %d, "+
+					"now looking for more", len(ptrs), md.Revision())
+		}
+	}
 }
 
 func (fbm *folderBlockManager) archiveBlocksInBackground() {
 	for {
 		select {
 		case md := <-fbm.archiveChan:
-			var ptrs []BlockPointer
-			for _, op := range md.data.Changes.Ops {
-				for _, ptr := range op.Unrefs() {
-					// Can be zeroPtr in weird failed sync scenarios.
-					// See syncInfo.replaceRemovedBlock for an example
-					// of how this can happen.
-					if ptr != zeroPtr {
-						ptrs = append(ptrs, ptr)
-					}
-				}
-				for _, update := range op.allUpdates() {
-					// It's legal for there to be an "update" between
-					// two identical pointers (usually because of
-					// conflict resolution), so ignore that for
-					// archival purposes.
-					if update.Ref != update.Unref {
-						ptrs = append(ptrs, update.Unref)
-					}
-				}
-			}
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				defer fbm.archiveGroup.Done()
-				// This func doesn't take any locks, though it can
-				// block md writes due to the buffered channel.  So
-				// use the long timeout to make sure things get
-				// unblocked eventually, but no need for a short timeout.
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
-				fbm.setArchiveCancel(cancel)
-				defer fbm.cancelArchive()
-
-				fbm.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
-					"of revision %d", len(ptrs), md.Revision())
-				err = fbm.archiveBlockRefs(ctx, md.TlfID(), ptrs)
-				if err != nil {
-					fbm.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
-					return err
-				}
-
-				return nil
-			})
+			fbm.archiveAllBlocksInMD(md)
 		case unpause := <-fbm.archivePauseChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				fbm.log.CInfof(ctx, "Archives paused")
 				// wait to be unpaused
 				select {
@@ -749,8 +831,9 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 	for {
 		select {
 		case toDelete := <-fbm.blocksToDeleteChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+				ctx, cancel := context.WithTimeout(
+					ctx, data.BackgroundTaskTimeout)
 				fbm.setBlocksToDeleteCancel(cancel)
 				defer fbm.cancelBlocksToDelete()
 
@@ -762,7 +845,7 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 				return nil
 			})
 		case unpause := <-fbm.blocksToDeletePauseChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				fbm.log.CInfof(ctx, "deleteBlocks paused")
 				select {
 				case <-unpause:
@@ -785,126 +868,62 @@ func (fbm *folderBlockManager) isOldEnough(rmd ImmutableRootMetadata) bool {
 	return mtime.Add(unrefAge).Before(fbm.config.Clock().Now())
 }
 
-// getMostRecentOldEnoughAndGCRevisions returns the most recent MD
-// that's older than the unref age, as well as the latest revision
-// that was scrubbed by the previous gc op.
-func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
+// getMostRecentGCRevision returns the latest revision that was
+// scrubbed by the previous gc op.
+func (fbm *folderBlockManager) getMostRecentGCRevision(
 	ctx context.Context, head ReadOnlyRootMetadata) (
-	mostRecentOldEnoughRev, lastGCRev kbfsmd.Revision, err error) {
-	// Walk backwards until we find one that is old enough.  Also,
-	// look out for the previous GCOp.  TODO: Eventually get rid of
-	// this scan once we have some way to get the MD corresponding to
-	// a given timestamp.
-	currHead := head.Revision()
-	mostRecentOldEnoughRev = kbfsmd.RevisionUninitialized
-	lastGCRev = kbfsmd.RevisionUninitialized
+	lastGCRev kbfsmd.Revision, err error) {
 	if head.data.LastGCRevision >= kbfsmd.RevisionInitial {
 		fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
 			"head MD revision %d", head.data.LastGCRevision,
 			head.Revision())
-		lastGCRev = head.data.LastGCRevision
+		return head.data.LastGCRevision, nil
 	}
 
+	// Very old TLFs might not have a filled-in `LastGCRevision`, so
+	// we need to walk backwards to find the latest gcOp.
+	endRev := head.Revision()
 	for {
-		startRev := currHead - maxMDsAtATime + 1 // (kbfsmd.Revision is signed)
+		startRev := endRev - maxMDsAtATime + 1 // (kbfsmd.Revision is signed)
 		if startRev < kbfsmd.RevisionInitial {
 			startRev = kbfsmd.RevisionInitial
 		}
 
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
-			currHead, kbfsmd.Merged, nil)
+		rmds, err := getMDRange(
+			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
+			endRev, kbfsmd.Merged, nil)
 		if err != nil {
-			return kbfsmd.RevisionUninitialized,
-				kbfsmd.RevisionUninitialized, err
+			return kbfsmd.RevisionUninitialized, err
 		}
 
 		numNew := len(rmds)
 		for i := len(rmds) - 1; i >= 0; i-- {
 			rmd := rmds[i]
-			if mostRecentOldEnoughRev == kbfsmd.RevisionUninitialized &&
-				fbm.isOldEnough(rmd) {
-				fbm.log.CDebugf(ctx, "Revision %d is older than the unref "+
-					"age %s", rmd.Revision(),
-					fbm.config.Mode().QuotaReclamationMinUnrefAge())
-				mostRecentOldEnoughRev = rmd.Revision()
+			if rmd.data.LastGCRevision >= kbfsmd.RevisionInitial {
+				fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
+					"MD revision %d", rmd.data.LastGCRevision,
+					rmd.Revision())
+				return rmd.data.LastGCRevision, nil
 			}
-
-			if lastGCRev == kbfsmd.RevisionUninitialized {
-				if rmd.data.LastGCRevision >= kbfsmd.RevisionInitial {
-					fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
-						"MD revision %d", rmd.data.LastGCRevision,
-						rmd.Revision())
-					lastGCRev = rmd.data.LastGCRevision
-				} else {
-					for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
-						GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
-						if !ok {
-							continue
-						}
-						fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
-						lastGCRev = GCOp.LatestRev
-						break
-					}
+			for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
+				GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
+				if !ok || GCOp.LatestRev == kbfsmd.RevisionUninitialized {
+					continue
 				}
-			}
-
-			// Once both return values are set, we are done
-			if mostRecentOldEnoughRev != kbfsmd.RevisionUninitialized &&
-				lastGCRev != kbfsmd.RevisionUninitialized {
-				return mostRecentOldEnoughRev, lastGCRev, nil
+				fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
+				return GCOp.LatestRev, nil
 			}
 		}
 
 		if numNew > 0 {
-			currHead = rmds[0].Revision() - 1
+			endRev = rmds[0].Revision() - 1
 		}
 
-		if numNew < maxMDsAtATime || currHead < kbfsmd.RevisionInitial {
-			break
-		}
-
-		if lastGCRev != kbfsmd.RevisionUninitialized &&
-			currHead < head.Revision()-numMaxRevisionsPerQR {
-			// If we've already found the latest gc rev, we should
-			// avoid scanning too far back into the update history
-			// because it's expensive.  We can rely on the fact that
-			// eventually there will be a lull in updates, and we'll
-			// be able to find the mostRecentOldEnoughRev quickly by
-			// just looking at the head.
-			fbm.log.CDebugf(ctx, "Stopping QR early because we can't easily "+
-				"find the most recent old-enough revision (last GC rev %d)",
-				lastGCRev)
-			break
+		if numNew < maxMDsAtATime || endRev < kbfsmd.RevisionInitial {
+			// Never been GC'd.
+			return kbfsmd.RevisionUninitialized, nil
 		}
 	}
-
-	return mostRecentOldEnoughRev, lastGCRev, nil
-}
-
-func getUnrefPointersFromMD(rmd ImmutableRootMetadata) (ptrs []BlockPointer) {
-	for _, op := range rmd.data.Changes.Ops {
-		if _, ok := op.(*GCOp); ok {
-			continue
-		}
-		for _, ptr := range op.Unrefs() {
-			// Can be zeroPtr in weird failed sync scenarios.
-			// See syncInfo.replaceRemovedBlock for an example
-			// of how this can happen.
-			if ptr != zeroPtr {
-				ptrs = append(ptrs, ptr)
-			}
-		}
-		for _, update := range op.allUpdates() {
-			// It's legal for there to be an "update" between
-			// two identical pointers (usually because of
-			// conflict resolution), so ignore that for quota
-			// reclamation purposes.
-			if update.Ref != update.Unref {
-				ptrs = append(ptrs, update.Unref)
-			}
-		}
-	}
-	return ptrs
 }
 
 // getUnrefBlocks returns a slice containing all the block pointers
@@ -913,51 +932,57 @@ func getUnrefPointersFromMD(rmd ImmutableRootMetadata) (ptrs []BlockPointer) {
 // will shorten the range of the revisions being reclaimed, and return
 // the latest revision represented in the returned slice of pointers.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
-	ctx context.Context, latestRev, earliestRev kbfsmd.Revision) (
-	ptrs []BlockPointer, lastRevConsidered kbfsmd.Revision,
+	ctx context.Context, earliestRev, mostRecentRev kbfsmd.Revision) (
+	ptrs []data.BlockPointer, lastRev kbfsmd.Revision,
 	complete bool, err error) {
 	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
-		"%d and %d", earliestRev, latestRev)
+		"%d and %d", earliestRev, mostRecentRev)
 	defer func() {
 		if err == nil {
 			fbm.log.CDebugf(ctx, "Found %d pointers to clean between "+
-				"revisions %d and %d", len(ptrs), earliestRev, latestRev)
+				"revisions %d and %d", len(ptrs), earliestRev, lastRev)
 		}
 	}()
 
-	if latestRev <= earliestRev {
-		// Nothing to do.
-		fbm.log.CDebugf(ctx, "Latest rev %d is included in the previous "+
-			"gc op (%d)", latestRev, earliestRev)
-		return nil, kbfsmd.RevisionUninitialized, true, nil
-	}
-
-	// Walk backward, starting from latestRev, until just after
-	// earliestRev, gathering block pointers.
-	currHead := latestRev
-	revStartPositions := make(map[kbfsmd.Revision]int)
+	// Walk forward, starting from just after earliestRev, until we
+	// get enough pointers or until we reach the head or a revision
+	// that's not old enough, gathering pointers to GC.
+	startRev := earliestRev + 1
 outer:
 	for {
-		startRev := currHead - maxMDsAtATime + 1 // (kbfsmd.Revision is signed)
-		if startRev < kbfsmd.RevisionInitial {
-			startRev = kbfsmd.RevisionInitial
+		endRev := startRev + maxMDsAtATime
+		if endRev > mostRecentRev {
+			endRev = mostRecentRev
 		}
 
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
-			currHead, kbfsmd.Merged, nil)
+		rmds, err := getMDRange(
+			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
+			endRev, kbfsmd.Merged, nil)
 		if err != nil {
 			return nil, kbfsmd.RevisionUninitialized, false, err
 		}
 
 		numNew := len(rmds)
-		for i := len(rmds) - 1; i >= 0; i-- {
-			rmd := rmds[i]
-			if rmd.Revision() <= earliestRev {
+		for _, rmd := range rmds {
+			if !fbm.isOldEnough(rmd) {
+				fbm.log.CDebugf(ctx, "Revision %d is too recent; stopping QR",
+					rmd.Revision())
+				complete = true
 				break outer
 			}
-			// Save the latest revision starting at this position:
-			revStartPositions[rmd.Revision()] = len(ptrs)
-			newPtrs := getUnrefPointersFromMD(rmd)
+			lastRev = rmd.Revision()
+			// A garbage-collection op *must* contain all pointers in
+			// its respective op.  If this device can't handle it,
+			// error the process and let another device take care of
+			// it.
+			newPtrs, iter := fbm.getUnrefPointersFromMD(
+				rmd.ReadOnlyRootMetadata, false, &unrefIterator{0})
+			if iter != nil {
+				return nil, kbfsmd.RevisionUninitialized, false, errors.New(
+					fmt.Sprintf(
+						"Can't handle the unref'd pointers of revision %d",
+						lastRev))
+			}
 			ptrs = append(ptrs, newPtrs...)
 			// TODO: when can we clean up the MD's unembedded block
 			// changes pointer?  It's not safe until we know for sure
@@ -965,53 +990,35 @@ outer:
 			// update (and also that there are no outstanding staged
 			// branches).  Let's do that as part of the bigger issue
 			// KBFS-793 -- for now we have to leak those blocks.
+			if len(ptrs) > fbm.numPointersPerGCThreshold {
+				fbm.log.CDebugf(ctx, "Shortening GC range to [%d:%d]",
+					earliestRev, rmd.Revision())
+				break outer
+			}
 		}
 
 		if numNew > 0 {
-			currHead = rmds[0].Revision() - 1
+			startRev = rmds[len(rmds)-1].Revision() + 1
 		}
 
-		if numNew < maxMDsAtATime || currHead < kbfsmd.RevisionInitial {
+		if numNew < maxMDsAtATime || startRev > mostRecentRev {
+			complete = true
 			break
 		}
 	}
 
-	complete = true
-	if len(ptrs) > fbm.numPointersPerGCThreshold {
-		// Find the earliest revision to clean up that lets us send at
-		// least numPointersPerGCThreshold pointers.  The earliest
-		// pointers are at the end of the list, so subtract the
-		// threshold from the back.
-		threshStart := len(ptrs) - fbm.numPointersPerGCThreshold
-		origLatestRev := latestRev
-		origPtrsLen := len(ptrs)
-		// TODO: optimize by keeping rev->pos mappings in sorted order.
-		for rev, i := range revStartPositions {
-			if i < threshStart && rev < latestRev {
-				latestRev = rev
-			}
-		}
-		if latestRev < origLatestRev {
-			ptrs = ptrs[revStartPositions[latestRev]:]
-			fbm.log.CDebugf(ctx, "Shortening GC range from [%d:%d] to [%d:%d],"+
-				" reducing pointers from %d to %d", earliestRev, origLatestRev,
-				earliestRev, latestRev, origPtrsLen, len(ptrs))
-			complete = false
-		}
-	}
-
-	return ptrs, latestRev, complete, nil
+	return ptrs, lastRev, complete, nil
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
-	ptrs []BlockPointer, zeroRefCounts []kbfsblock.ID,
+	ptrs []data.BlockPointer, zeroRefCounts []kbfsblock.ID,
 	latestRev kbfsmd.Revision) error {
 	gco := newGCOp(latestRev)
 	for _, id := range zeroRefCounts {
-		gco.AddUnrefBlock(BlockPointer{ID: id})
+		gco.AddUnrefBlock(data.BlockPointer{ID: id})
 	}
 
-	ctx, err := MakeExtendedIdentify(
+	ctx, err := tlfhandle.MakeExtendedIdentify(
 		// TLFIdentifyBehavior_KBFS_QR makes service suppress the tracker popup.
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_QR)
 	if err != nil {
@@ -1070,14 +1077,9 @@ func (fbm *folderBlockManager) isQRNecessary(
 
 	// Do QR if:
 	//   * The head has changed since last time, OR
-	//   * The last QR did not completely clean every available thing
-	if head.Revision() != fbm.lastQRHeadRev || !fbm.wasLastQRComplete {
-		return true
-	}
-
-	// Do QR if the head was not reclaimable at the last QR time, but
-	// is old enough now.
-	return fbm.lastQRHeadRev > fbm.lastQROldEnoughRev &&
+	//   * The last QR did not completely clean every available thing, OR
+	//   * The head is now old enough for QR
+	return head.Revision() != fbm.lastQRHeadRev || !fbm.wasLastQRComplete ||
 		fbm.isOldEnough(head)
 }
 
@@ -1086,7 +1088,12 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.setReclamationCancel(cancel)
 	defer fbm.cancelReclamation()
 	nextPeriod := fbm.config.Mode().QuotaReclamationPeriod()
-	defer timer.Reset(nextPeriod)
+	defer func() {
+		// `nextPeriod` may be changed by later code in this function,
+		// to speed up the next QR cycle when we couldn't reclaim a
+		// complete set of blocks during this run.
+		timer.Reset(nextPeriod)
+	}()
 	defer fbm.reclamationGroup.Done()
 
 	// Don't set a context deadline.  For users that have written a
@@ -1101,11 +1108,15 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(ctx, fbm.config.KBPKI(), head.ReadOnly()); err != nil {
+	}
+	if err := isReadableOrError(
+		ctx, fbm.config.KBPKI(), fbm.config, head.ReadOnly()); err != nil {
 		return err
-	} else if head.MergedStatus() != kbfsmd.Merged {
+	}
+	switch {
+	case head.MergedStatus() != kbfsmd.Merged:
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
-	} else if head.IsFinal() {
+	case head.IsFinal():
 		return kbfsmd.MetadataIsFinalError{}
 	}
 
@@ -1115,12 +1126,12 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	isWriter, err := head.IsWriter(
-		ctx, fbm.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbm.config.KBPKI(), fbm.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
 	if !isWriter {
-		return NewWriteAccessError(head.GetTlfHandle(), session.Name,
+		return tlfhandle.NewWriteAccessError(head.GetTlfHandle(), session.Name,
 			head.GetTlfHandle().GetCanonicalPath())
 	}
 
@@ -1129,20 +1140,22 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		// too new, so no need to do any QR.
 		return nil
 	}
-	var mostRecentOldEnoughRev kbfsmd.Revision
 	var complete bool
 	var reclamationTime time.Time
+	var lastRev kbfsmd.Revision
 	defer func() {
 		fbm.lastQRLock.Lock()
 		defer fbm.lastQRLock.Unlock()
 		// Remember the QR we just performed.
 		if err == nil && head != (ImmutableRootMetadata{}) {
 			fbm.lastQRHeadRev = head.Revision()
-			fbm.lastQROldEnoughRev = mostRecentOldEnoughRev
 			fbm.wasLastQRComplete = complete
 		}
 		if !reclamationTime.IsZero() {
 			fbm.lastReclamationTime = reclamationTime
+		}
+		if lastRev > kbfsmd.RevisionUninitialized {
+			fbm.lastReclaimedRev = lastRev
 		}
 		if !complete {
 			// If there's more data to reclaim, only wait a short
@@ -1173,13 +1186,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		}
 	}()
 
-	mostRecentOldEnoughRev, lastGCRev, err :=
-		fbm.getMostRecentOldEnoughAndGCRevisions(ctx, head.ReadOnly())
+	lastGCRev, err := fbm.getMostRecentGCRevision(ctx, head.ReadOnly())
 	if err != nil {
 		return err
 	}
-	if mostRecentOldEnoughRev == kbfsmd.RevisionUninitialized ||
-		mostRecentOldEnoughRev <= lastGCRev {
+	if head.Revision() <= lastGCRev {
 		// TODO: need a log level more fine-grained than Debug to
 		// print out that we're not doing reclamation.
 		complete = true
@@ -1188,8 +1199,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 
 	// Don't try to do too many at a time.
 	shortened := false
-	if mostRecentOldEnoughRev-lastGCRev > numMaxRevisionsPerQR {
-		mostRecentOldEnoughRev = lastGCRev + numMaxRevisionsPerQR
+	mostRecentRev := head.Revision()
+	if mostRecentRev-lastGCRev > numMaxRevisionsPerQR {
+		mostRecentRev = lastGCRev + numMaxRevisionsPerQR
 		shortened = true
 	}
 
@@ -1201,17 +1213,24 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		reclamationTime = fbm.config.Clock().Now()
 	}()
 
-	ptrs, latestRev, complete, err :=
-		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
+	ptrs, lastRev, complete, err := fbm.getUnreferencedBlocks(
+		ctx, lastGCRev, mostRecentRev)
 	if err != nil {
 		return err
+	}
+	if lastRev == kbfsmd.RevisionUninitialized {
+		fbm.log.CDebugf(ctx, "No recent revisions to GC")
+		complete = true
+		return nil
 	}
 	if len(ptrs) == 0 && !shortened {
 		complete = true
 
 		// Add a new gcOp to show other clients that they don't need
 		// to explore this range again.
-		return fbm.finalizeReclamation(ctx, nil, nil, latestRev)
+		return fbm.finalizeReclamation(ctx, nil, nil, lastRev)
+	} else if shortened {
+		complete = false
 	}
 
 	zeroRefCounts, err := fbm.deleteBlockRefs(ctx, head.TlfID(), ptrs)
@@ -1219,12 +1238,12 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 
-	return fbm.finalizeReclamation(ctx, ptrs, zeroRefCounts, latestRev)
+	return fbm.finalizeReclamation(ctx, ptrs, zeroRefCounts, lastRev)
 }
 
 func isPermanentQRError(err error) bool {
 	switch errors.Cause(err).(type) {
-	case WriteAccessError, kbfsmd.MetadataIsFinalError,
+	case tlfhandle.WriteAccessError, kbfsmd.MetadataIsFinalError,
 		RevokedDeviceVerificationError:
 		return true
 	default:
@@ -1257,12 +1276,12 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			timerChan = make(chan time.Time)
 		}
 
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
 				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
@@ -1292,16 +1311,84 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 func (fbm *folderBlockManager) getLastQRData() (time.Time, kbfsmd.Revision) {
 	fbm.lastQRLock.Lock()
 	defer fbm.lastQRLock.Unlock()
-	return fbm.lastReclamationTime, fbm.lastQROldEnoughRev
+	return fbm.lastReclamationTime, fbm.lastReclaimedRev
 }
 
 func (fbm *folderBlockManager) clearLastQRData() {
 	fbm.lastQRLock.Lock()
 	defer fbm.lastQRLock.Unlock()
 	fbm.lastQRHeadRev = kbfsmd.RevisionUninitialized
-	fbm.lastQROldEnoughRev = kbfsmd.RevisionUninitialized
 	fbm.wasLastQRComplete = false
 	fbm.lastReclamationTime = time.Time{}
+	fbm.lastReclaimedRev = kbfsmd.RevisionUninitialized
+}
+
+func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
+	ctx context.Context, ptrs []data.BlockPointer) (
+	nonLiveBlocks []kbfsblock.ID, err error) {
+	fbm.log.CDebugf(ctx, "Get live count for %d pointers", len(ptrs))
+	bops := fbm.config.BlockOps()
+
+	// Round up to find the number of chunks.
+	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
+		numPointersToDowngradePerChunk
+	numWorkers := numChunks
+	if numWorkers > maxParallelBlockPuts {
+		numWorkers = maxParallelBlockPuts
+	}
+	chunks := make(chan []data.BlockPointer, numChunks)
+
+	eg, groupCtx := errgroup.WithContext(ctx)
+	chunkResults := make(chan []kbfsblock.ID, numChunks)
+	for i := 0; i < numWorkers; i++ {
+		eg.Go(func() error {
+			for chunk := range chunks {
+				fbm.log.CDebugf(groupCtx,
+					"Getting live count for chunk of %d pointers", len(chunk))
+				liveCounts, err := bops.GetLiveCount(ctx, fbm.id, chunk)
+				if err != nil {
+					return err
+				}
+				ids := make([]kbfsblock.ID, 0, len(liveCounts))
+				for id, count := range liveCounts {
+					if count == 0 {
+						ids = append(ids, id)
+					} else {
+						fbm.log.CDebugf(groupCtx,
+							"Ignoring live block %s with %d refs", id, count)
+					}
+				}
+				chunkResults <- ids
+				select {
+				// return early if the context has been canceled
+				case <-groupCtx.Done():
+					return groupCtx.Err()
+				default:
+				}
+			}
+			return nil
+		})
+	}
+
+	for start := 0; start < len(ptrs); start += numPointersToDowngradePerChunk {
+		end := start + numPointersToDowngradePerChunk
+		if end > len(ptrs) {
+			end = len(ptrs)
+		}
+		chunks <- ptrs[start:end]
+	}
+	close(chunks)
+
+	err = eg.Wait()
+	if err != nil {
+		return nil, err
+	}
+	close(chunkResults)
+
+	for result := range chunkResults {
+		nonLiveBlocks = append(nonLiveBlocks, result...)
+	}
+	return nonLiveBlocks, nil
 }
 
 func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
@@ -1363,14 +1450,79 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 			return err
 		}
 
-		ptrs := getUnrefPointersFromMD(rmd)
-		ids := make([]kbfsblock.ID, len(ptrs))
-		for i, ptr := range ptrs {
-			ids[i] = ptr.ID
-		}
-		_, _, err = dbc.Delete(ctx, ids)
-		if err != nil {
-			return err
+		iter := &unrefIterator{0}
+		for iter != nil {
+			// Include unrefs from `gcOp`s here, as a double-check
+			// against archive races (see comment below).
+			var ptrs []data.BlockPointer
+			ptrs, iter = fbm.getUnrefPointersFromMD(
+				rmd.ReadOnlyRootMetadata, true, iter)
+
+			// Cancel any prefetches for these blocks that might be in
+			// flight, to make sure they don't get put into the cache
+			// after we're done cleaning it.  Ideally we would cancel
+			// them in a particular order (the lowest level ones
+			// first, up to the root), but since we already do one
+			// round of prefetch-canceling as part of applying the MD
+			// and updating the pointers, doing a second round here
+			// should be good enough to catch any weird relationships
+			// between the pointers where one non-yet-canceled
+			// prefetch can revive the prefetch of an already-canceled
+			// child block.
+			for _, ptr := range ptrs {
+				fbm.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
+				c, err := fbm.config.BlockOps().Prefetcher().
+					WaitChannelForBlockPrefetch(ctx, ptr)
+				if err != nil {
+					return err
+				}
+				select {
+				case <-c:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+
+			var ids []kbfsblock.ID
+			if cacheType == DiskBlockSyncCache {
+				// Wait for our own archives to complete, to make sure
+				// the bserver already knows this block isn't live yet
+				// when we make the call below.  However, when dealing
+				// with MDs written by other clients, there could be a
+				// race here where we see the ID is live before the
+				// other client gets to archive the block, leading to
+				// a leak.  Once the revision is GC'd though, we
+				// should run through this code again with the `gcOp`,
+				// and we'll delete the block then.  (Note there's
+				// always a chance for a race here, since the client
+				// could crash before archiving the blocks.  But the
+				// GC should always catch it eventually.)
+				err := fbm.waitForArchives(ctx)
+				if err != nil {
+					return err
+				}
+
+				ids, err = fbm.doChunkedGetNonLiveBlocks(ctx, ptrs)
+				if err != nil {
+					return err
+				}
+			} else {
+				ids = make([]kbfsblock.ID, 0, len(ptrs))
+				for _, ptr := range ptrs {
+					ids = append(ids, ptr.ID)
+				}
+			}
+			fbm.log.CDebugf(ctx, "Deleting %d blocks from cache", len(ids))
+			_, _, err = dbc.Delete(ctx, ids, cacheType)
+			if err != nil {
+				return err
+			}
+
+			if iter != nil {
+				fbm.log.CDebugf(
+					ctx, "Cleaned %d pointers for revision %d, "+
+						"now looking for more", len(ptrs), rmd.Revision())
+			}
 		}
 
 		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev, cacheType)
@@ -1400,13 +1552,13 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 	// While in the foreground, clean the disk caches every time we learn about
 	// a newer latest merged revision for this TLF.
 	for {
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.latestMergedChan:
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)

@@ -29,7 +29,8 @@ func NewSender(g *globals.Context) *Sender {
 
 func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	// slow path just in case (still should be fast)
-	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
@@ -76,7 +77,7 @@ func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID c
 	return res, nil
 }
 
-func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []string,
+func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, parts []string,
 	membersType chat1.ConversationMembersType) (res string, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
@@ -113,11 +114,22 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	if len(parsed) == 0 {
 		return nil
 	}
+
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
+		return nil
+	}
+	seen := make(map[string]struct{})
 	for _, p := range parsed {
 		var username string
+		// The currency might be legit but `KnownCurrencyCodeInstant` may not have data yet.
+		// In that case (false, false) comes back and the entry is _not_ skipped.
+		if known, ok := s.G().GetStellar().KnownCurrencyCodeInstant(ctx, p.CurrencyCode); ok && !known {
+			continue
+		}
 		if p.Username == nil {
-			if username, err = s.getUsername(ctx, uid, parts, membersType); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
@@ -127,8 +139,17 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			s.Debug(ctx, "ParsePayments: skipping mention for not being in conv")
 			continue
 		}
+		if _, ok := seen[p.Full]; ok {
+			continue
+		}
+		seen[p.Full] = struct{}{}
+		normalizedUn := libkb.NewNormalizedUsername(username)
+		if _, ok := seen[normalizedUn.String()]; ok {
+			continue
+		}
+		seen[normalizedUn.String()] = struct{}{}
 		res = append(res, types.ParsedStellarPayment{
-			Username: libkb.NewNormalizedUsername(username),
+			Username: normalizedUn,
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
 			Full:     p.Full,

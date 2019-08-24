@@ -19,7 +19,8 @@ protocol kbfsCommon {
     FILE_MODIFIED_8,
     FILE_DELETED_9,
     FILE_RENAMED_10,
-    INITIALIZED_11
+    INITIALIZED_11,
+    SYNC_CONFIG_CHANGED_12
   }
 
   enum FSErrorType {
@@ -69,6 +70,7 @@ protocol kbfsCommon {
   record FSFolderWriterEditHistory {
     string writerName;
     array<FSFolderWriterEdit> edits;
+    array<FSFolderWriterEdit> deletes;
   }
 
   record FSFolderEditHistory {
@@ -99,5 +101,15 @@ protocol kbfsCommon {
     int64 totalSyncingBytes;
     array<string> syncingPaths;
     union { null, Time} endEstimate;
+  }
+
+  record FolderSyncStatus {
+    // Bytes available and total on the partition hosting the sync cache.
+    int64 localDiskBytesAvailable;
+    int64 localDiskBytesTotal;
+    PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
+    int64 storedBytesTotal;
+    boolean outOfSyncSpace;
   }
 }

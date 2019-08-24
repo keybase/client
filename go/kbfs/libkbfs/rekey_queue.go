@@ -41,11 +41,12 @@ const (
 
 // RekeyQueueStandard implements the RekeyQueue interface.
 type RekeyQueueStandard struct {
-	config  Config
-	log     logger.Logger
-	queue   chan tlf.ID
-	limiter *rate.Limiter
-	cancel  context.CancelFunc
+	config         Config
+	log            logger.Logger
+	queue          chan tlf.ID
+	limiter        *rate.Limiter
+	cancel         context.CancelFunc
+	shutdownDoneCh chan struct{}
 
 	mu       sync.RWMutex // guards everything below
 	pendings map[tlf.ID]bool
@@ -58,15 +59,19 @@ var _ RekeyQueue = (*RekeyQueueStandard)(nil)
 func NewRekeyQueueStandard(config Config) (rkq *RekeyQueueStandard) {
 	ctx, cancel := context.WithCancel(context.Background())
 	rkq = &RekeyQueueStandard{
-		config:   config,
-		log:      config.MakeLogger("RQ"),
-		queue:    make(chan tlf.ID, config.Mode().RekeyQueueSize()),
-		limiter:  rate.NewLimiter(rekeysPerSecond, numConcurrentRekeys),
-		pendings: make(map[tlf.ID]bool),
-		cancel:   cancel,
+		config:         config,
+		log:            config.MakeLogger("RQ"),
+		queue:          make(chan tlf.ID, config.Mode().RekeyQueueSize()),
+		limiter:        rate.NewLimiter(rekeysPerSecond, numConcurrentRekeys),
+		pendings:       make(map[tlf.ID]bool),
+		cancel:         cancel,
+		shutdownDoneCh: make(chan struct{}),
 	}
 	if config.Mode().RekeyWorkers() > 0 {
 		rkq.start(ctx)
+	} else {
+		cancel()
+		rkq.cancel = nil
 	}
 	return rkq
 }
@@ -75,6 +80,7 @@ func NewRekeyQueueStandard(config Config) (rkq *RekeyQueueStandard) {
 // branch ops while conforming to the rater limiter.
 func (rkq *RekeyQueueStandard) start(ctx context.Context) {
 	go func() {
+		defer close(rkq.shutdownDoneCh)
 		for {
 			select {
 			case id := <-rkq.queue:
@@ -125,5 +131,6 @@ func (rkq *RekeyQueueStandard) Shutdown() {
 	if rkq.cancel != nil {
 		rkq.cancel()
 		rkq.cancel = nil
+		<-rkq.shutdownDoneCh
 	}
 }

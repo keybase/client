@@ -27,7 +27,6 @@ const (
 
 const fetchInitialInterval = 3 * time.Second
 const fetchMultiplier = 1.5
-const fetchMaxTime = 24 * time.Hour
 const fetchMaxAttempts = 100
 
 type ConversationRetry struct {
@@ -61,7 +60,7 @@ func (c *ConversationRetry) RekeyFixable(ctx context.Context, tlfID chat1.TLFID)
 }
 
 func (c *ConversationRetry) SendStale(ctx context.Context, uid gregor1.UID) {
-	supdates := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+	supdates := []chat1.ConversationStaleUpdate{{
 		ConvID:     c.convID,
 		UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 	}}
@@ -79,7 +78,8 @@ func (c *ConversationRetry) fixInboxFetch(ctx context.Context, uid gregor1.UID) 
 	c.Debug(ctx, "fixInboxFetch: retrying conversation")
 
 	// Reload this conversation and hope it works
-	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{c.convID},
 		}, nil)
@@ -145,7 +145,10 @@ func (f FullInboxRetry) String() string {
 		mh := codec.MsgpackHandle{WriteExt: true}
 		var data []byte
 		enc := codec.NewEncoderBytes(&data, &mh)
-		enc.Encode(*f.query)
+		err := enc.Encode(*f.query)
+		if err != nil {
+			panic(err)
+		}
 		qstr = hex.EncodeToString(data)
 	}
 	pstr := "<empty>"
@@ -169,7 +172,7 @@ func (f FullInboxRetry) Fix(ctx context.Context, uid gregor1.UID) error {
 		f.Debug(ctx, "Fix: failed to convert query: %s", err.Error())
 		return err
 	}
-	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, true, query, f.pagination)
+	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, query, f.pagination)
 	if err != nil {
 		f.Debug(ctx, "Fix: failed to load again: %d", err.Error())
 	}
@@ -241,7 +244,7 @@ func (f *FetchRetrier) key(uid gregor1.UID, desc types.RetryDescription) string 
 // decay calculation.
 func (f *FetchRetrier) nextAttemptTime(attempts int, lastAttempt time.Time) time.Time {
 	wait := time.Duration(float64(attempts) * fetchMultiplier * float64(fetchInitialInterval))
-	return lastAttempt.Add(time.Duration(wait))
+	return lastAttempt.Add(wait)
 }
 
 func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc types.RetryDescription,
@@ -249,7 +252,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 
 	attempts := 1
 	nextTime := f.nextAttemptTime(attempts, f.clock.Now())
-	ctx = BackgroundContext(ctx, f.G())
+	ctx = globals.BackgroundChatCtx(ctx, f.G())
 	go func() {
 		for {
 			select {
@@ -295,13 +298,13 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 }
 
 // Failure indicates a failure of type kind has happened when loading a conversation.
-func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) (err error) {
+func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Failure(%s)", desc))()
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Failure(%s)", desc))()
 	if !f.running {
 		f.Debug(ctx, "Failure: not starting new retrier, not running")
-		return nil
+		return
 	}
 	key := f.key(uid, desc)
 	if _, ok := f.retriers[key]; !ok {
@@ -310,23 +313,18 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 		f.retriers[key] = control
 		f.spawnRetrier(ctx, uid, desc, control)
 	}
-
-	return nil
 }
 
 // Success indicates a success of type kind loading a conversation. This effectively removes
 // that conversation from the retry queue.
-func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) (err error) {
+func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Success(%s)", desc))()
-
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Success(%s)", desc))()
 	key := f.key(uid, desc)
 	if control, ok := f.retriers[key]; ok {
 		control.Shutdown()
 	}
-
-	return nil
 }
 
 // Connected is called when a connection to the chat server is established, and forces a

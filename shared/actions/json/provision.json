@@ -5,17 +5,17 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "startProvision": {},
-    "provisionError": { "error": "?HiddenString" },
-    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
-    "submitPassphrase": { "passphrase": "HiddenString", },
-    "submitPaperkey": { "paperkey": "HiddenString", },
-    "submitTextCode": { "phrase": "HiddenString" },
-    "submitDeviceSelect": { "name": "string" },
-    "submitDeviceName": { "name": "string" },
-    "submitGPGMethod": { "exportKey": "boolean" },
-    "switchToGPGSignOnly": { "importError": "string" },
-    "submitGPGSignOK": { "accepted": "boolean" },
+    "startProvision": {"initUsername?": "string"},
+    "provisionError": {"error": "HiddenString | null"},
+    "submitUsername": {"username": "string"},
+    "submitPassword": {"password": "HiddenString"},
+    "submitPaperkey": {"paperkey": "HiddenString"},
+    "submitTextCode": {"phrase": "HiddenString"},
+    "submitDeviceSelect": {"name": "string"},
+    "submitDeviceName": {"name": "string"},
+    "submitGPGMethod": {"exportKey": "boolean"},
+    "switchToGPGSignOnly": {"importError": "string"},
+    "submitGPGSignOK": {"accepted": "boolean"},
     "showDeviceListPage": {
       "_description": "Show the list of devices the user can use to provision a device",
       "devices": "Array<Types.Device>"
@@ -23,23 +23,32 @@
     "showNewDeviceNamePage": {
       "_description": "Ask the user for a new device name",
       "existingDevices": "Array<string>",
-      "error": "?HiddenString"
+      "error": "HiddenString | null"
     },
     "showCodePage": {
       "code": "HiddenString",
-      "error": "?HiddenString"
+      "error": "HiddenString | null"
     },
     "showFinalErrorPage": {
       "finalError": "RPCError",
       "fromDeviceAdd": "boolean"
     },
     "showGPGPage": {},
-    "showPassphrasePage": {
-      "error": "?HiddenString"
+    "showInlineError": {
+      "inlineError": "RPCError"
+    },
+    "showPasswordPage": {
+      "error": "HiddenString | null"
     },
     "showPaperkeyPage": {
-      "error": "?HiddenString"
+      "error": "HiddenString | null"
     },
-    "addNewDevice": { "otherDeviceType": ["'desktop'", "'mobile'"] },
+    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
+    "forgotUsername": {
+      "email": "string"
+    },
+    "forgotUsernameResult": {
+      "result": "string"
+    }
   }
 }

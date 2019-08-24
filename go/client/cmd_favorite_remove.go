@@ -16,7 +16,7 @@ import (
 
 type CmdFavoriteRemove struct {
 	libkb.Contextified
-	folder keybase1.Folder
+	folder keybase1.FolderHandle
 }
 
 func NewCmdFavoriteRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

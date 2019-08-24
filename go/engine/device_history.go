@@ -181,7 +181,7 @@ func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *
 }
 
 func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.DeviceID]time.Time, err error) {
-	defer m.CTrace("DeviceHistory#getLastUsedTimes", func() error { return err })()
+	defer m.Trace("DeviceHistory#getLastUsedTimes", func() error { return err })()
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
 	ss, err = m.ActiveDevice().SyncSecretsForce(m)

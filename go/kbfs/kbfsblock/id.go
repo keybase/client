@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"math"
+	"math/rand"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
@@ -99,32 +100,55 @@ func (id *ID) HashType() kbfshash.HashType {
 	return id.h.GetHashType()
 }
 
-// MakeTemporaryID generates a temporary block ID using a CSPRNG. This
-// is used for indirect blocks before they're committed to the server.
-func MakeTemporaryID() (ID, error) {
+func makeRandomID(ht kbfshash.HashType) (ID, error) {
 	var dh kbfshash.RawDefaultHash
 	err := kbfscrypto.RandRead(dh[:])
 	if err != nil {
 		return ID{}, err
 	}
-	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
+	h, err := kbfshash.HashFromRaw(ht, dh[:])
 	if err != nil {
 		return ID{}, err
 	}
 	return ID{h}, nil
 }
 
+// MakeTemporaryID generates a temporary block ID with an invalid hash
+// type using a CSPRNG. This is used for indirect blocks before
+// they're committed to the server.
+func MakeTemporaryID() (ID, error) {
+	return makeRandomID(kbfshash.TemporaryHashType)
+}
+
+// MakeFakeID generates a fake block ID with a valid hash type using a
+// CSPRNG. This is used for fake block IDs in tests.
+func MakeFakeID() (ID, error) {
+	return makeRandomID(kbfshash.DefaultHashType)
+}
+
+const (
+	// UseMathRandForTest tells MakeRandomIDInRange to use math/rand for PRNG.
+	UseMathRandForTest = true
+	// UseRealRandomness tells MakeRandomIDInRange to use crypto/rand for PRNG.
+	UseRealRandomness = false
+)
+
 // MakeRandomIDInRange generates a random block ID using a CSPRNG, distributing
 // the random variable over the interval [start, end), where the full range is
 // [0, MaxUint64). This corresponds to a normalized representation of the
 // range [kbfshash.RawDefaultHash{}, kbfshash.MaxDefaultHash).
-func MakeRandomIDInRange(start, end float64) (ID, error) {
+func MakeRandomIDInRange(start, end float64, mathRandForTest bool) (ID, error) {
 	if start < 0.0 || 1.0 < end || end <= start {
 		return ID{}, errors.New("Expected range within the interval [0.0, 1.0)")
 	}
 	rangeSize := end - start
 	randBuf := [8]byte{}
-	err := kbfscrypto.RandRead(randBuf[:])
+	var err error
+	if mathRandForTest {
+		_, err = rand.Read(randBuf[:])
+	} else {
+		err = kbfscrypto.RandRead(randBuf[:])
+	}
 	if err != nil {
 		return ID{}, err
 	}

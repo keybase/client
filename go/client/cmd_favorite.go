@@ -36,22 +36,19 @@ func NewCmdFavorite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 //
 // and creates suitable folders with the name portion and the
 // private flag set correctly.
-func ParseTLF(path string) (keybase1.Folder, error) {
+func ParseTLF(path string) (keybase1.FolderHandle, error) {
 	dir, name := filepath.Split(path)
 
-	var f keybase1.Folder
+	var f keybase1.FolderHandle
 
 	// get the last element of the directory, which should be public or private
 	acc := filepath.Base(dir)
 	switch acc {
 	case "public":
-		f.Private = false
 		f.FolderType = keybase1.FolderType_PUBLIC
 	case "private":
-		f.Private = true
 		f.FolderType = keybase1.FolderType_PRIVATE
 	case "team":
-		f.Private = true
 		f.FolderType = keybase1.FolderType_TEAM
 	default:
 		return f, fmt.Errorf("folder path needs to contain a public, private, or team subdirectory")

@@ -1,0 +1,22 @@
+{
+  "name": "rn-fetch-blob",
+  "version": "0.10.6",
+  "summary": "A project committed to make file acess and data transfer easier, effiecient for React Native developers.",
+  "requires_arc": true,
+  "license": "MIT",
+  "homepage": "n/a",
+  "source": {
+    "git": "https://github.com/joltup/rn-fetch-blob",
+    "tag": "v0.10.10"
+  },
+  "authors": "Joltup",
+  "source_files": "ios/**/*.{h,m}",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "dependencies": {
+    "React/Core": [
+
+    ]
+  }
+}

@@ -163,11 +163,11 @@ func (f *File) Lock() (err error) {
 	if err != nil {
 		return err
 	}
-	jServer, err := libkbfs.GetJournalServer(f.fs.config)
+	jManager, err := libkbfs.GetJournalManager(f.fs.config)
 	if err != nil {
 		return err
 	}
-	if err = jServer.FinishSingleOp(f.fs.ctx,
+	if err = jManager.FinishSingleOp(f.fs.ctx,
 		f.fs.root.GetFolderBranch().Tlf, nil, f.fs.priority); err != nil {
 		return err
 	}
@@ -206,11 +206,11 @@ func (f *File) Unlock() (err error) {
 	if err != nil {
 		return err
 	}
-	jServer, err := libkbfs.GetJournalServer(f.fs.config)
+	jManager, err := libkbfs.GetJournalManager(f.fs.config)
 	if err != nil {
 		return err
 	}
-	jStatus, _ := jServer.JournalStatus(f.fs.root.GetFolderBranch().Tlf)
+	jStatus, _ := jManager.JournalStatus(f.fs.root.GetFolderBranch().Tlf)
 	if jStatus.RevisionStart == kbfsmd.RevisionUninitialized {
 		// Journal MDs are all flushed and we haven't made any more writes.
 		// Calling FinishSingleOp won't make it to the server, so we make a
@@ -220,7 +220,7 @@ func (f *File) Unlock() (err error) {
 	}
 
 	if f.fs.config.Mode().Type() == libkbfs.InitSingleOp {
-		err = jServer.FinishSingleOp(f.fs.ctx,
+		err = jManager.FinishSingleOp(f.fs.ctx,
 			f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
 				RequireLockID:       f.getLockID(),
 				ReleaseAfterSuccess: true,
@@ -229,7 +229,7 @@ func (f *File) Unlock() (err error) {
 			return err
 		}
 	} else {
-		err = jServer.WaitForCompleteFlush(
+		err = jManager.WaitForCompleteFlush(
 			f.fs.ctx, f.fs.root.GetFolderBranch().Tlf)
 		if err != nil {
 			return err

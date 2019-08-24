@@ -5,9 +5,10 @@ package engine
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"time"
 )
 
 type PGPPullEngineArg struct {
@@ -89,7 +90,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	// First parse all the assertion expressions.
 	parsedAsserts := make(map[string]libkb.AssertionExpression)
 	for _, assertString := range e.userAsserts {
-		assertExpr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertString)
+		assertExpr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(m), assertString)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -117,7 +118,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	// Make sure every assertion found a match.
 	for _, assertString := range e.userAsserts {
 		if !assertionsUsed[assertString] {
-			m.CInfof("Assertion \"%s\" did not match any tracked users.", assertString)
+			m.Info("Assertion \"%s\" did not match any tracked users.", assertString)
 			leftovers = append(leftovers, assertString)
 		}
 	}
@@ -144,7 +145,7 @@ func (e *PGPPullEngine) runLoggedOut(m libkb.MetaContext) error {
 }
 
 func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) error {
-	m.CDebugf("Processing with identify: %s", u)
+	m.Debug("Processing with identify: %s", u)
 
 	iarg := keybase1.Identify2Arg{
 		UserAssertion:    u,
@@ -158,14 +159,14 @@ func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) e
 	}
 	ieng := NewResolveThenIdentify2WithTrack(m.G(), &iarg, topts)
 	if err := RunEngine2(m, ieng); err != nil {
-		m.CInfof("identify run err: %s", err)
+		m.Info("identify run err: %s", err)
 		return err
 	}
 
 	// prompt if the identify is correct
 	result := ieng.ConfirmResult()
 	if !result.IdentityConfirmed {
-		m.CWarningf("Not confirmed; skipping key import")
+		m.Warning("Not confirmed; skipping key import")
 		return nil
 	}
 
@@ -224,11 +225,11 @@ func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext) error {
 			libkb.NewLoadUserByNameArg(e.G(), userSummary.Username).
 				WithPublicKeyOptional())
 		if err != nil {
-			m.CErrorf("Failed to load user %s: %s", userSummary.Username, err)
+			m.Error("Failed to load user %s: %s", userSummary.Username, err)
 			continue
 		}
 		if user.GetStatus() == keybase1.StatusCode_SCDeleted {
-			m.CDebugf("User %q is deleted, skipping", userSummary.Username)
+			m.Debug("User %q is deleted, skipping", userSummary.Username)
 			continue
 		}
 
@@ -252,15 +253,16 @@ func (e *PGPPullEngine) exportKeysToGPG(m libkb.MetaContext, user *libkb.User, t
 	for _, bundle := range user.GetActivePGPKeys(false) {
 		// Check each key against the tracked set.
 		if tfp != nil && !tfp[bundle.GetFingerprint().String()] {
-			m.CWarningf("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
+			m.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
 			continue
 		}
 
 		if err := e.gpgClient.ExportKey(*bundle, false /* export public key only */, false /* no batch */); err != nil {
-			return err
+			m.Warning("Failed to import %'s public key %s: %s", user.GetName(), bundle.GetFingerprint(), err.Error())
+			continue
 		}
 
-		m.CInfof("Imported key for %s.", user.GetName())
+		m.Info("Imported key for %s.", user.GetName())
 	}
 	return nil
 }

@@ -26,7 +26,7 @@ func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
 	err = c.cli.Call(ctx, method, arg, res)
 	if err == nil {
 		if rlRes, ok := res.(types.RateLimitedResult); ok {
-			CtxAddRateLimit(ctx, rlRes.GetRateLimit())
+			globals.CtxAddRateLimit(ctx, rlRes.GetRateLimit())
 		}
 	}
 	return err
@@ -37,7 +37,7 @@ func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg in
 	err = c.cli.CallCompressed(ctx, method, arg, res, ctype)
 	if err == nil {
 		if rlRes, ok := res.(types.RateLimitedResult); ok {
-			CtxAddRateLimit(ctx, rlRes.GetRateLimit())
+			globals.CtxAddRateLimit(ctx, rlRes.GetRateLimit())
 		}
 	}
 	return err

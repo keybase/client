@@ -42,7 +42,8 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *kbtest.FakeUser, secret
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}
-		res, err := g.API.Post(apiArg)
+		mctx := libkb.NewMetaContextTODO(g)
+		res, err := g.API.Post(mctx, apiArg)
 		ok := err == nil
 		var postID string
 		if ok {
@@ -103,6 +104,15 @@ func (p *ProveUIMock) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (b
 		return ok, err
 	}
 	return false, fmt.Errorf("Check should have worked the first time!")
+}
+
+func (p *ProveUIMock) Checking(_ context.Context, arg keybase1.CheckingArg) error {
+	p.checked = true
+	return nil
+}
+
+func (p *ProveUIMock) ContinueChecking(_ context.Context, _ int) (bool, error) {
+	return true, nil
 }
 
 func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {

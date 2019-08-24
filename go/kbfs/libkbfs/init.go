@@ -12,12 +12,16 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -41,6 +45,19 @@ const (
 	// resources.
 	InitMemoryLimitedString = "memoryLimited"
 )
+
+// CtxInitTagKey is the type used for unique context tags for KBFS init.
+type CtxInitTagKey int
+
+const (
+	// CtxInitKey is the type of the tag for unique operation IDs
+	// for KBFS init.
+	CtxInitKey CtxInitTagKey = iota
+)
+
+// CtxInitID is the display name for the unique operation
+// init ID tag.
+const CtxInitID = "KBFSINIT"
 
 // AdditionalProtocolCreator creates an additional protocol.
 type AdditionalProtocolCreator func(Context, Config) (rpc.Protocol, error)
@@ -94,7 +111,7 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 
 	// TLFJournalBackgroundWorkStatus is the status to use to
-	// pass into JournalServer.enableJournaling. Only has an effect when
+	// pass into JournalManager.enableJournaling. Only has an effect when
 	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
@@ -197,7 +214,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		MDServerAddr:      defaultMDServer(ctx),
 		TLFValidDuration:  tlfValidDurationDefault,
 		MetadataVersion:   defaultMetadataVersion(ctx),
-		BlockCryptVersion: kbfscrypto.EncryptionSecretbox,
+		BlockCryptVersion: kbfscrypto.EncryptionSecretboxWithKeyNonce,
 		LogFileConfig: logger.LogFileConfig{
 			MaxAge:       30 * 24 * time.Hour,
 			MaxSize:      128 * 1024 * 1024,
@@ -211,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -278,8 +295,8 @@ func AddFlagsWithDefaults(
 		defaultParams.BGFlushPeriod,
 		"The amount of time to wait before syncing data in a TLF, if the "+
 			"batch size doesn't fill up.")
-	flags.IntVar((*int)(&params.BGFlushDirOpBatchSize), "sync-batch-size",
-		int(defaultParams.BGFlushDirOpBatchSize),
+	flags.IntVar(&params.BGFlushDirOpBatchSize, "sync-batch-size",
+		defaultParams.BGFlushDirOpBatchSize,
 		"The number of unflushed directory operations in a TLF that will "+
 			"trigger an immediate data sync.")
 
@@ -295,11 +312,11 @@ func AddFlagsWithDefaults(
 			InitMinimalString, InitSingleOpString, InitConstrainedString,
 			InitMemoryLimitedString))
 
-	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
+	flags.Float64Var(&params.DiskBlockCacheFraction,
 		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for caching ")
 
-	flags.Float64Var((*float64)(&params.SyncBlockCacheFraction),
+	flags.Float64Var(&params.SyncBlockCacheFraction,
 		"sync-block-cache-fraction", defaultParams.SyncBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for offline storage")
 
@@ -359,7 +376,7 @@ func parseRootDir(addr string) (string, bool) {
 	return serverRootDir, true
 }
 
-func makeMDServer(config Config, mdserverAddr string,
+func makeMDServer(kbCtx Context, config Config, mdserverAddr string,
 	rpcLogFactory rpc.LogFactory, log logger.Logger) (
 	MDServer, error) {
 	if mdserverAddr == memoryAddr {
@@ -386,16 +403,18 @@ func makeMDServer(config Config, mdserverAddr string,
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
 	log.Debug("Using remote mdserver %s", remote)
-	mdServer := NewMDServerRemote(config, remote, rpcLogFactory)
+	mdServer := NewMDServerRemote(kbCtx, config, remote, rpcLogFactory)
 	return mdServer, nil
 }
 
-func makeKeyServer(config Config, keyserverAddr string,
-	log logger.Logger) (KeyServer, error) {
+func makeKeyServer(
+	config Config, keyserverAddr string, log logger.Logger) (
+	libkey.KeyServer, error) {
+	keyOpsConfig := keyOpsConfigWrapper{config}
 	if keyserverAddr == memoryAddr {
 		log.Debug("Using in-memory keyserver")
 		// local in-memory key server
-		return NewKeyServerMemory(config)
+		return libkey.NewKeyServerMemory(keyOpsConfig, log)
 	}
 
 	if len(keyserverAddr) == 0 {
@@ -406,19 +425,19 @@ func makeKeyServer(config Config, keyserverAddr string,
 		log.Debug("Using on-disk keyserver at %s", serverRootDir)
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return NewKeyServerDir(config, keyPath)
+		return libkey.NewKeyServerDir(keyOpsConfig, log, keyPath)
 	}
 
 	log.Debug("Using remote keyserver %s (same as mdserver)", keyserverAddr)
 	// currently the MD server also acts as the key server.
-	keyServer, ok := config.MDServer().(KeyServer)
+	keyServer, ok := config.MDServer().(libkey.KeyServer)
 	if !ok {
 		return nil, errors.New("MD server is not a key server")
 	}
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, bserverAddr string,
+func makeBlockServer(kbCtx Context, config Config, bserverAddr string,
 	rpcLogFactory rpc.LogFactory,
 	log logger.Logger) (BlockServer, error) {
 	if bserverAddr == memoryAddr {
@@ -446,7 +465,7 @@ func makeBlockServer(config Config, bserverAddr string,
 		return nil, err
 	}
 	log.Debug("Using remote bserver %s", remote)
-	return NewBlockServerRemote(config, remote, rpcLogFactory), nil
+	return NewBlockServerRemote(kbCtx, config, remote, rpcLogFactory), nil
 }
 
 // InitLogWithPrefix sets up logging switching to a log file if
@@ -506,37 +525,54 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // use the default RPC implementation.
 func InitWithLogPrefix(
 	ctx context.Context, kbCtx Context, params InitParams,
-	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func() error,
 	log logger.Logger, logPrefix string) (cfg Config, err error) {
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
-	signal.Notify(interruptChan, os.Interrupt)
+
+	SIGINT := os.Interrupt
+	signal.Notify(interruptChan, SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGABRT)
+	if SIGPWR != NonexistentSignal {
+		signal.Notify(interruptChan, SIGPWR)
+	}
+
+	var initInterruptSignal os.Signal
+	var interruptErr error
 	go func() {
-		_ = <-interruptChan
+		closed := false
+		for sig := range interruptChan {
+			initInterruptSignal = sig
 
-		close(done)
+			if !closed {
+				close(done)
+				closed = true
+			}
 
-		if onInterruptFn != nil {
-			onInterruptFn()
+			// Restore stacktraces of signals that are supposed to print them
+			// https://golang.org/pkg/os/signal/#hdr-Default_behavior_of_signals_in_Go_programs
+			switch sig {
+			case syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT:
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+			}
 
-			// Unmount can fail if there are open file handles. In
-			// this case, the files need to be closed before calling
-			// unmount again. We keep listening on the signal channel
-			// in case unmount fails the first time, so user can press
-			// Ctrl-C again after closing open files.
-			//
-			// Not closing the channel here because we need to keep it
-			// open to handle further incoming signals. We don't
-			// explicitly call os.Exit here so that the process exits
-			// through normal workflow as a result of Ctrl-C.  If the
-			// process needs to exit immediately no matter unmount
-			// succeeds or not, a different interrupt (e.g. SIGTERM)
-			// can be used to skip this.
-			for range interruptChan {
-				onInterruptFn()
+			if onInterruptFn != nil {
+				interruptErr = onInterruptFn()
+			}
+
+			// Continue loop only on SIGINT; exit immediately on other codes
+			// even if unmount has failed.
+			switch sig {
+			case SIGINT:
+			default:
+				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
+					os.Exit(1)
+				} else {
+					// Do not return 128 + signal since kbfsfuse is not a shell command
+					os.Exit(0)
+				}
 			}
 		}
-
 	}()
 
 	// Spawn a new goroutine for `doInit` so that we can `select` on
@@ -554,7 +590,7 @@ func InitWithLogPrefix(
 
 	select {
 	case <-done:
-		return nil, errors.New(os.Interrupt.String())
+		return nil, fmt.Errorf("kbfsfuse received signal=<%s>", initInterruptSignal)
 	case err = <-errCh:
 		return cfg, err
 	}
@@ -574,7 +610,7 @@ func InitWithLogPrefix(
 // use the default RPC implementation.
 func Init(
 	ctx context.Context, kbCtx Context, params InitParams,
-	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func() error,
 	log logger.Logger) (cfg Config, err error) {
 	return InitWithLogPrefix(
 		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
@@ -584,6 +620,8 @@ func doInit(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, log logger.Logger,
 	logPrefix string) (Config, error) {
+	ctx = CtxWithRandomIDReplayable(ctx, CtxInitKey, CtxInitID, log)
+
 	mode := InitDefault
 	switch params.Mode {
 	case InitDefaultString:
@@ -621,6 +659,7 @@ func doInit(
 			}
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
+	config.SetVLogLevel(kbCtx.GetVDebugSetting())
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -633,10 +672,12 @@ func doInit(
 
 	workers := config.Mode().BlockWorkers()
 	prefetchWorkers := config.Mode().PrefetchWorkers()
-	config.SetBlockOps(NewBlockOpsStandard(config, workers, prefetchWorkers))
+	throttledPrefetchPeriod := config.Mode().ThrottledPrefetchPeriod()
+	config.SetBlockOps(NewBlockOpsStandard(
+		config, workers, prefetchWorkers, throttledPrefetchPeriod))
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
-		config.Codec())
+	bsplitter, err := data.NewBlockSplitterSimple(
+		data.MaxBlockSizeBytesDefault, 8*1024, config.Codec())
 	if err != nil {
 		return nil, err
 	}
@@ -652,13 +693,13 @@ func doInit(
 		config.SetKeyCache(keyCache)
 
 		keyBundleCache := config.KeyBundleCache()
-		keyBundleCache = NewKeyBundleCacheMeasured(keyBundleCache, registry)
+		keyBundleCache = libkey.NewKeyBundleCacheMeasured(
+			keyBundleCache, registry)
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
-	config.SetMetadataVersion(kbfsmd.MetadataVer(params.MetadataVersion))
-	config.SetBlockCryptVersion(
-		kbfscrypto.EncryptionVer(params.BlockCryptVersion))
+	config.SetMetadataVersion(params.MetadataVersion)
+	config.SetBlockCryptVersion(params.BlockCryptVersion)
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 
@@ -674,6 +715,10 @@ func doInit(
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
 
+	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
 	// Initialize Chat client (for file edit notifications).
 	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
 	if err != nil {
@@ -681,15 +726,22 @@ func doInit(
 	}
 	config.SetChat(chat)
 
-	// Initialize KBPKI client (needed for KBFSOps and MD Server).
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
-
 	kbfsOps := NewKBFSOpsStandard(kbCtx, config)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
+
+	// Enable the disk limiter before the keybase service, since if
+	// that service receives a logged-in event it will create a disk
+	// block cache, which requires the disk limiter.
+	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
+	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
@@ -708,8 +760,7 @@ func doInit(
 	config.SetCrypto(crypto)
 
 	// Initialize MDServer connection.
-	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	mdServer, err := makeMDServer(kbCtx, config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
@@ -726,13 +777,13 @@ func doInit(
 		return nil, fmt.Errorf("problem creating key server: %+v", err)
 	}
 	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
+		keyServer = libkey.NewKeyServerMeasured(keyServer, registry)
 	}
 	config.SetKeyServer(keyServer)
 
 	// Initialize BlockServer connection.
 	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+		kbCtx, config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
@@ -740,9 +791,6 @@ func doInit(
 		bserv = NewBlockServerMeasured(bserv, registry)
 	}
 	config.SetBlockServer(bserv)
-
-	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
-	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
 
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
@@ -788,9 +836,6 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		return nil, err
-		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
-		//                   this, instead of failing the init.
 		/*
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,
@@ -816,18 +861,13 @@ func doInit(
 		}
 	}
 
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
-	ctx10s, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx60s, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
 	if params.EnableJournal && config.Mode().JournalEnabled() {
 		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
-		err = config.EnableJournaling(ctx10s, journalRoot,
+		err = config.EnableJournaling(ctx60s, journalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.CWarningf(ctx, "Could not initialize journal server: %+v", err)
@@ -842,6 +882,10 @@ func doInit(
 	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+
+	if config.Mode().OldStorageRootCleaningEnabled() {
+		go cleanOldTempStorageRoots(config)
+	}
 
 	return config, nil
 }

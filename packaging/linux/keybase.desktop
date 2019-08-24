@@ -1,8 +1,9 @@
 [Desktop Entry]
 Name=Keybase
-Exec=run_keybase
+Exec=run_keybase %u
 Icon=keybase
 Terminal=false
 Type=Application
 Categories=Network;
 StartupNotify=false
+MimeType=x-scheme-handler/web+stellar;x-scheme-handler/keybase;

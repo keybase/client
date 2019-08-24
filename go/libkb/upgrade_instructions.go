@@ -13,8 +13,9 @@ func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return linuxUpgradeInstructionsString()
+	default:
+		return "", nil
 	}
-	return "", nil
 }
 
 func PlatformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
@@ -55,7 +56,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 		start = "sudo yum upgrade " + packageName
 	} else if hasPackageManager("pacman") {
 		if len(PrereleaseBuild) > 0 {
-			start = "yaourt -S keybase-git"
+			start = "pacaur -S keybase-bin"
 		} else {
 			start = "sudo pacman -Syu"
 		}

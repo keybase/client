@@ -84,14 +84,14 @@ func (r *avatarGregorHandler) Name() string {
 
 func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("avatarGregorHandler: avatar.clear_cache_for_name received")
+	m.Debug("avatarGregorHandler: avatar.clear_cache_for_name received")
 	var msgs []keybase1.AvatarClearCacheMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msgs); err != nil {
-		m.CDebugf("error unmarshaling avatar.clear_cache_for_name item: %s", err)
+		m.Debug("error unmarshaling avatar.clear_cache_for_name item: %s", err)
 		return err
 	}
 
-	m.CDebugf("avatar.clear_cache_for_name unmarshaled: %+v", msgs)
+	m.Debug("avatar.clear_cache_for_name unmarshaled: %+v", msgs)
 
 	for _, msg := range msgs {
 		if err := r.source.ClearCacheForName(m, msg.Name, msg.Formats); err != nil {
@@ -100,5 +100,5 @@ func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.Incomin
 		r.G().NotifyRouter.HandleAvatarUpdated(ctx, msg.Name, msg.Formats, msg.Typ)
 	}
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

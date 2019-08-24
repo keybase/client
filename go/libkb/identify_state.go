@@ -60,7 +60,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 
 	// These are the proofs that user previously tracked that
 	// are not in the current profile:
-	diff := (*tracked).Subtract(*found)
+	diff := tracked.Subtract(*found)
 
 	for _, e := range diff {
 		if e.GetProofState() != keybase1.ProofState_OK {
@@ -131,6 +131,22 @@ func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey) error, rhook
 	s.computeRevokedProofs(rhook)
 }
 
+func (s *IdentifyState) getLastDelegationSig(kid keybase1.KID) (ret keybase1.SigID) {
+	ckf := s.u.GetComputedKeyFamily()
+	if ckf == nil {
+		return ret
+	}
+	cki := ckf.getCkiUnchecked(kid)
+	if cki == nil {
+		return ret
+	}
+	dels := cki.DelegationsList
+	if len(dels) == 0 {
+		return ret
+	}
+	return dels[len(dels)-1].SigID
+}
+
 func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) {
 	mapify := func(v []keybase1.KID) map[keybase1.KID]bool {
 		ret := make(map[keybase1.KID]bool)
@@ -148,19 +164,28 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) 
 		if fp, ok := s.u.GetKeyFamily().kid2pgp[kid]; ok {
 			k.PGPFingerprint = fp[:]
 		}
+
+		// Get the last signature chronologically that delegated to
+		// this key.
+		k.SigID = s.getLastDelegationSig(kid)
+
 		// Anything other than a no difference here should be displayed to
 		// the user.
 		if diff != nil {
 			k.BreaksTracking = diff.BreaksTracking()
 		}
-		dhook(k)
+		err := dhook(k)
+		if err != nil {
+			s.G().Log.Debug("computeKeyDiffs: dhook error: %+v", err)
+		}
 	}
 
 	// first check the eldest key
 	observedEldest := s.u.GetEldestKID()
 	if s.track != nil {
 		trackedEldest := s.track.GetEldestKID()
-		if observedEldest.NotEqual(trackedEldest) {
+		if observedEldest.NotEqual(trackedEldest) ||
+			s.u.GetCurrentEldestSeqno() > s.track.GetTrackedLinkSeqno() {
 			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(observedEldest, diff)

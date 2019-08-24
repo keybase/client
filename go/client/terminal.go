@@ -40,7 +40,6 @@ func (t *Terminal) open() error {
 			return
 		}
 		t.engine = eng
-		return
 	})
 	return err
 }

@@ -93,11 +93,13 @@ func determineGoVersion() error {
 	if err != nil {
 		return fmt.Errorf("'go version' failed: %v, %s", err, goVersionOut)
 	}
-	switch {
-	case bytes.HasPrefix(goVersionOut, []byte("go version go1.4")),
-		bytes.HasPrefix(goVersionOut, []byte("go version go1.5")),
-		bytes.HasPrefix(goVersionOut, []byte("go version go1.6")):
-		return errors.New("Go 1.7 or newer is required")
+	var minor int
+	if _, err := fmt.Sscanf(string(goVersionOut), "go version go1.%d", &minor); err != nil {
+		// Ignore unknown versions; it's probably a devel version.
+		return nil
+	}
+	if minor < 10 {
+		return errors.New("Go 1.10 or newer is required")
 	}
 	return nil
 }
@@ -191,7 +193,7 @@ To install:
 	$ go get golang.org/x/mobile/cmd/gomobile
 	$ gomobile init
 
-At least Go 1.7 is required.
+At least Go 1.10 is required.
 For detailed instructions, see https://golang.org/wiki/Mobile.
 
 Usage:

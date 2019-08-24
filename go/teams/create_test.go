@@ -173,11 +173,11 @@ func TestCreateImplicitTeam(t *testing.T) {
 
 	// Imp team with invites
 	impTeam.Writers.UnresolvedUsers = []keybase1.SocialAssertion{
-		keybase1.SocialAssertion{
+		{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("twitter"),
 		},
-		keybase1.SocialAssertion{
+		{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("github"),
 		},

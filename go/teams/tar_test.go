@@ -17,7 +17,7 @@ func TestSetTarsDisabled(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)

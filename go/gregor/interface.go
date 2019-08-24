@@ -217,8 +217,9 @@ type StateMachine interface {
 
 	// Outbox gives all of the pending messages in the outbox
 	Outbox(context.Context, UID) ([]Message, error)
+	RemoveFromOutbox(context.Context, UID, MsgID) error
 
-	// InitOutbox sets the outbox for the give user
+	// InitOutbox initializes a users outbox with the given messages
 	InitOutbox(context.Context, UID, []Message) error
 
 	// ConsumeOutboxMessage add a message to the outbox

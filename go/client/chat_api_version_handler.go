@@ -56,6 +56,26 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.SearchInboxV1(ctx, c, w)
 	case methodSearchRegexp:
 		return d.handler.SearchRegexpV1(ctx, c, w)
+	case methodNewConv:
+		return d.handler.NewConvV1(ctx, c, w)
+	case methodListConvsOnName:
+		return d.handler.ListConvsOnNameV1(ctx, c, w)
+	case methodJoin:
+		return d.handler.JoinV1(ctx, c, w)
+	case methodLeave:
+		return d.handler.LeaveV1(ctx, c, w)
+	case methodLoadFlip:
+		return d.handler.LoadFlipV1(ctx, c, w)
+	case methodGetUnfurlSettings:
+		return d.handler.GetUnfurlSettingsV1(ctx, c, w)
+	case methodSetUnfurlSettings:
+		return d.handler.SetUnfurlSettingsV1(ctx, c, w)
+	case methodAdvertiseCommands:
+		return d.handler.AdvertiseCommandsV1(ctx, c, w)
+	case methodClearCommands:
+		return d.handler.ClearCommandsV1(ctx, c, w)
+	case methodListCommands:
+		return d.handler.ListCommandsV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

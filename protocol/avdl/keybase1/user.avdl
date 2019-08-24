@@ -2,16 +2,6 @@
 protocol user {
   import idl "common.avdl";
 
-  record Tracker {
-    UID tracker;
-    int status; // 0 == none, 1 == tracking
-    Time mTime;
-  }
-
-  array<Tracker> listTrackers(int sessionID, UID uid);
-  array<Tracker> listTrackersByName(int sessionID, string username);
-  array<Tracker> listTrackersSelf(int sessionID);
-
   record TrackProof {
     string proofType;
     string proofName;
@@ -41,15 +31,20 @@ protocol user {
     Time trackTime;
   }
 
+  @typedef("string")
+  record EmailAddress {}
+
   record Email {
     EmailAddress email;
     boolean isVerified;
     boolean isPrimary;
     IdentityVisibility visibility;
+    UnixTime lastVerifyEmailDate;
   }
 
   record UserSettings {
     array<Email> emails;
+    array<UserPhoneNumber> phoneNumbers;
   }
 
   /**
@@ -69,7 +64,12 @@ protocol user {
     Load a user + device keys from the server.
     */
   UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, KID pollForKID);
-  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(int sessionID, UID uid, KID pollForKID);
+  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(
+    int sessionID,
+    UID uid,
+    KID pollForKID,
+    OfflineAvailability oa
+  );
 
   /**
     Load public keys for a user.
@@ -123,6 +123,7 @@ protocol user {
   record InterestingPerson {
     UID uid;
     string username;
+    string fullname;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 
@@ -142,6 +143,24 @@ protocol user {
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
+  ProofSuggestionsRes proofSuggestions(int sessionID);
+  record ProofSuggestionsRes{
+    array<ProofSuggestion> suggestions;
+    boolean showMore;
+  }
+
+  // A proof the user doesn't have.
+  record ProofSuggestion {
+    string key;
+    boolean belowFold;
+    string profileText; // "Prove your Twitter", "Add a PGP key"
+    array<SizedImage> profileIcon;
+    string pickerText; // "Twitter", "Your own website", "octodon.xyz"
+    string pickerSubtext; // "twitter.com", "Mastodon instance"
+    array<SizedImage> pickerIcon;
+    array<Identify3RowMeta> metas; // for 'new' proof types
+  }
+
   record NextMerkleRootRes {
     union { null, MerkleRootV2 } res;
   }
@@ -160,6 +179,17 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  @typedef("string")
-  record EmailAddress {}
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll, boolean noShortTimeout);
+
+  record CanLogoutRes {
+    boolean canLogout;
+    string reason; // CLI prints this string.
+    boolean setPassphrase; // GUI is driven by this boolean.
+  }
+  CanLogoutRes canLogout(int sessionID);
+
+  union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
+
+  void blockUser(string username);
+  void unblockUser(string username);
 }

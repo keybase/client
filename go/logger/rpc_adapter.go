@@ -88,10 +88,6 @@ func (l RPCLoggerAdapter) Configure(style string, debug bool, filename string) {
 
 }
 
-func (l RPCLoggerAdapter) RotateLogFile() error {
-	return nil
-}
-
 func (l RPCLoggerAdapter) CloneWithAddedDepth(depth int) Logger {
 	return l
 }

@@ -128,7 +128,7 @@ func (e *ScanProofsEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("ScanProofsEngine#Run", func() error { return err })()
+	defer m.Trace("ScanProofsEngine#Run", func() error { return err })()
 
 	var cache *ScanProofsCache
 	saveevery := 10
@@ -137,10 +137,10 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 	if len(e.cachefile) > 0 {
 		lcache, err := LoadScanProofsCache(e.cachefile)
 		if err == nil {
-			m.CInfof("Using cache: %v (%v entries)", e.cachefile, len(lcache.data.Proofs))
+			m.Info("Using cache: %v (%v entries)", e.cachefile, len(lcache.data.Proofs))
 			cache = lcache
 		} else {
-			m.CWarningf("Could not load cache: %v", err)
+			m.Warning("Could not load cache: %v", err)
 			cache = NewScanProofsCache()
 		}
 	}
@@ -150,7 +150,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return fmt.Errorf("Could not open ignore file: %v", err)
 		}
-		m.CInfof("Using ignore file: %v (%v entries)", e.ignorefile, len(ignored))
+		m.Info("Using ignore file: %v (%v entries)", e.ignorefile, len(ignored))
 	}
 
 	if len(e.sigid) > 0 && len(e.indices) > 0 {
@@ -159,7 +159,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 
 	// One ticker for each proof type.
 	var tickers = make(map[keybase1.ProofType]*time.Ticker)
-	m.CInfof("Running with ratelimit: %v ms", e.ratelimit)
+	m.Info("Running with ratelimit: %v ms", e.ratelimit)
 	if e.ratelimit < 0 {
 		return fmt.Errorf("Ratelimit value can not be negative: %v", e.ratelimit)
 	}
@@ -194,7 +194,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("Could not read header: %v", err)
 	}
 
-	m.CDebugf("Reading csv... ")
+	m.Debug("Reading csv... ")
 	for {
 		rec, err := r.Read()
 		if err == io.EOF {
@@ -209,7 +209,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 		}
 		records = append(records, record)
 	}
-	m.CDebugf("done")
+	m.Debug("done")
 
 	startindex := 0
 	endindex := len(records)
@@ -236,36 +236,36 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 			continue
 		}
 
-		m.CInfof("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
+		m.Info("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
 
 		err := e.ProcessOne(m, i, rec, cache, ignored, tickers)
 		nrun++
 		if err == nil {
-			m.CInfof("Ok\n")
+			m.Info("Ok\n")
 			nok++
 			if cache != nil {
 				cache.Set(rec["sig_id"])
 				if i%saveevery == 0 {
 					saveerr := cache.Save(e.cachefile)
 					if saveerr != nil {
-						m.CWarningf("Could not save cache: %v", saveerr)
+						m.Warning("Could not save cache: %v", saveerr)
 					}
 				}
 			}
 		} else {
-			m.CErrorf("%v FAILED: %v\n", i, err)
+			m.Error("%v FAILED: %v\n", i, err)
 		}
 	}
 
-	m.CInfof("---")
-	m.CInfof("proofs checked  : %v", nrun)
-	m.CInfof("oks             : %v", nok)
-	m.CInfof("fails           : %v", nrun-nok)
+	m.Info("---")
+	m.Info("proofs checked  : %v", nrun)
+	m.Info("oks             : %v", nok)
+	m.Info("fails           : %v", nrun-nok)
 
 	if cache != nil {
 		saveerr := cache.Save(e.cachefile)
 		if saveerr != nil {
-			m.CWarningf("Could not save cache: %v", saveerr)
+			m.Warning("Could not save cache: %v", saveerr)
 		}
 	}
 
@@ -326,7 +326,7 @@ func (e *ScanProofsEngine) ProcessOne(m libkb.MetaContext, i int, rec map[string
 	}
 
 	if skip {
-		m.CInfof("skipping: %v", skipreason)
+		m.Info("skipping: %v", skipreason)
 		return nil
 	}
 
@@ -334,7 +334,7 @@ func (e *ScanProofsEngine) ProcessOne(m libkb.MetaContext, i int, rec map[string
 	perr1, foundhint1, err := e.CheckOne(m, rec, tickers)
 	if err != nil {
 		if err.Error() == deluserstr {
-			m.CInfof("deleted user")
+			m.Info("deleted user")
 			return nil
 		}
 		return err
@@ -385,7 +385,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 		return nil, foundhint, err
 	}
 
-	pc, err := libkb.MakeProofChecker(m.G().GetProofServices(), link)
+	pc, err := libkb.MakeProofChecker(m, m.G().GetProofServices(), link)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -393,7 +393,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 	// Beyond this point, external requests will occur, and rate limiting is used
 	ptype := link.GetProofType()
 	if tickers[ptype] != nil {
-		m.CInfof("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
+		m.Info("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
 		<-tickers[ptype].C
 	}
 

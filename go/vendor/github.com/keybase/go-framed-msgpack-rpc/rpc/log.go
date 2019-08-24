@@ -80,7 +80,7 @@ type SimpleLog struct {
 type SimpleLogOutput struct{}
 type SimpleLogOptions struct{}
 
-func (so SimpleLogOutput) log(ch string, fmts string, args []interface{}) {
+func (s SimpleLogOutput) log(ch string, fmts string, args []interface{}) {
 	fmts = fmt.Sprintf("[%s] %s\n", ch, fmts)
 	fmt.Fprintf(os.Stderr, fmts, args...)
 }
@@ -174,19 +174,18 @@ func AddrToString(addr net.Addr) string {
 	}
 }
 
-func (l SimpleLog) TransportStart() {
-	if l.Opts.TransportStart() {
-		l.Out.Debug(l.msg(true, "New connection"))
+func (s SimpleLog) TransportStart() {
+	if s.Opts.TransportStart() {
+		s.Out.Debug(s.msg(true, "New connection"))
 	}
 }
 
-func (l SimpleLog) TransportError(e error) {
+func (s SimpleLog) TransportError(e error) {
 	if e != io.EOF {
-		l.Out.Error(l.msg(true, "Error in transport: %s", e.Error()))
-	} else if l.Opts.TransportStart() {
-		l.Out.Debug(l.msg(true, "EOF"))
+		s.Out.Error(s.msg(true, "Error in transport: %s", e.Error()))
+	} else if s.Opts.TransportStart() {
+		s.Out.Debug(s.msg(true, "EOF"))
 	}
-	return
 }
 
 func (s SimpleLog) FrameRead(bytes []byte) {
@@ -324,10 +323,10 @@ func (s SimpleLog) Info(format string, args ...interface{}) {
 	s.Out.Info(s.msg(false, format, args...))
 }
 
-func (l SimpleLog) msg(force bool, format string, args ...interface{}) string {
+func (s SimpleLog) msg(force bool, format string, args ...interface{}) string {
 	m1 := fmt.Sprintf(format, args...)
-	if l.Opts.ShowAddress() || force {
-		m2 := fmt.Sprintf("{%s} %s", AddrToString(l.Addr), m1)
+	if s.Opts.ShowAddress() || force {
+		m2 := fmt.Sprintf("{%s} %s", AddrToString(s.Addr), m1)
 		m1 = m2
 	}
 	return m1

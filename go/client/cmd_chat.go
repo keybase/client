@@ -11,7 +11,9 @@ import (
 
 func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
+		newCmdChatAddToChannel(cl, g),
 		newCmdChatAPI(cl, g),
+		newCmdChatAPIListen(cl, g),
 		newCmdChatDeleteChannel(cl, g),
 		newCmdChatDeleteHistory(cl, g),
 		newCmdChatDownload(cl, g),
@@ -30,11 +32,11 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatReport(cl, g),
 		newCmdChatSetRetention(cl, g),
 		newCmdChatSetConvMinWriterRole(cl, g),
+		newCmdChatSetNotificationSettings(cl, g),
 		newCmdChatSearchInbox(cl, g),
 		newCmdChatSearchRegexp(cl, g),
 		newCmdChatSend(cl, g),
 		newCmdChatUpload(cl, g),
-		newCmdChatAPIListen(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
 	return cli.Command{

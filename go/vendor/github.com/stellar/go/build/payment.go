@@ -21,6 +21,7 @@ type PaymentMutator interface {
 }
 
 // PaymentBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.Payment instead
 type PaymentBuilder struct {
 	PathPayment bool
 	O           xdr.Operation

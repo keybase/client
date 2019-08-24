@@ -89,9 +89,10 @@ type ImpatientDebugDumper struct {
 	log    logger.Logger
 	dumpIn time.Duration
 
-	ticker       *time.Ticker
-	limiter      *rate.Limiter
-	shutdownFunc func()
+	ticker         *time.Ticker
+	limiter        *rate.Limiter
+	shutdownFunc   func()
+	shutdownDoneCh chan struct{}
 
 	lock                         sync.Mutex
 	chronologicalTimeTrackerList *ctxTimeTrackerList
@@ -113,6 +114,7 @@ func NewImpatientDebugDumper(config Config, dumpIn time.Duration) *ImpatientDebu
 		limiter: rate.NewLimiter(
 			rate.Every(impatientDebugDumperDumpMinInterval), 1),
 		shutdownFunc:                 cancel,
+		shutdownDoneCh:               make(chan struct{}),
 		chronologicalTimeTrackerList: &ctxTimeTrackerList{},
 	}
 	go d.dumpLoop(ctx.Done())
@@ -201,6 +203,7 @@ func (d *ImpatientDebugDumper) dumpTick() {
 }
 
 func (d *ImpatientDebugDumper) dumpLoop(shutdownCh <-chan struct{}) {
+	defer close(d.shutdownDoneCh)
 	for {
 		select {
 		case <-d.ticker.C:
@@ -234,5 +237,6 @@ func (d *ImpatientDebugDumper) Begin(ctx context.Context) (done func()) {
 func (d *ImpatientDebugDumper) Shutdown() {
 	if d.shutdownFunc != nil {
 		d.shutdownFunc()
+		<-d.shutdownDoneCh
 	}
 }

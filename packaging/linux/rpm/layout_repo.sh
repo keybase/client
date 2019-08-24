@@ -92,6 +92,9 @@ for arch in i386 x86_64 ; do
   # Run createrepo to update the database files.
   "$CREATEREPO" "$repo_root/repo/$arch"
 
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+      -o "$repo_root/repo/$arch/repodata/repomd.xml.asc" "$repo_root/repo/$arch/repodata/repomd.xml"
+
   # Add updateinfo.xml changelog to the repo
   "$MODIFYREPO" "$here/updateinfo.xml" "$repo_root/repo/$arch/repodata"
 done

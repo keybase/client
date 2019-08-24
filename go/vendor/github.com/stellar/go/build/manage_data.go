@@ -27,6 +27,7 @@ func SetData(name string, value []byte, muts ...interface{}) (result ManageDataB
 }
 
 // ManageDataBuilder helps to build ManageDataOp structs.
+// Deprecated use txnbuild.ManageData instead
 type ManageDataBuilder struct {
 	O   xdr.Operation
 	MD  xdr.ManageDataOp

@@ -38,6 +38,7 @@ type bufferedIdentifyUI struct {
 	start               *start
 	proofChecks         []proofCheck
 	cryptocurrency      []keybase1.Cryptocurrency
+	stellar             *keybase1.StellarAccount
 	launchNetworkChecks *launchNetworkChecks
 	keys                []keybase1.IdentifyKey
 	lastTrack           **keybase1.TrackSummary
@@ -45,6 +46,8 @@ type bufferedIdentifyUI struct {
 	suppressed          bool
 	userCard            *keybase1.UserCard
 }
+
+var _ libkb.IdentifyUI = (*bufferedIdentifyUI)(nil)
 
 func newBufferedIdentifyUI(g *libkb.GlobalContext, u libkb.IdentifyUI, c keybase1.ConfirmResult) *bufferedIdentifyUI {
 	return &bufferedIdentifyUI{
@@ -55,14 +58,14 @@ func newBufferedIdentifyUI(g *libkb.GlobalContext, u libkb.IdentifyUI, c keybase
 	}
 }
 
-func (b *bufferedIdentifyUI) Start(s string, r keybase1.IdentifyReason, f bool) error {
+func (b *bufferedIdentifyUI) Start(m libkb.MetaContext, s string, r keybase1.IdentifyReason, f bool) error {
 	b.Lock()
 	defer b.Unlock()
 	b.start = &start{s, r, f}
-	return b.flush(false)
+	return b.flush(m, false)
 }
 
-func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
+func (b *bufferedIdentifyUI) flush(m libkb.MetaContext, trackingBroke bool) (err error) {
 
 	// Look up the calling function for debugging purposes
 	pc := make([]uintptr, 10) // at least 1 entry needed
@@ -70,48 +73,48 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	f := runtime.FuncForPC(pc[0])
 	caller := path.Base(f.Name())
 
-	b.G().Log.Debug("+ bufferedIdentifyUI#flush(%v) [caller=%s, buffered=%v, suppressed=%v]", trackingBroke, caller, b.bufferedMode, b.suppressed)
+	m.Debug("+ bufferedIdentifyUI#flush(%v) [caller=%s, buffered=%v, suppressed=%v]", trackingBroke, caller, b.bufferedMode, b.suppressed)
 
 	if !trackingBroke && b.bufferedMode {
-		b.G().Log.Debug("- bufferedIdentifyUI#flush: short-circuit")
+		m.Debug("- bufferedIdentifyUI#flush: short-circuit")
 		return nil
 	}
 
 	defer func() {
 		b.flushCleanup()
-		b.G().Log.Debug("- bufferedIdentifyUI#flush -> %v", err)
+		m.Debug("- bufferedIdentifyUI#flush -> %v", err)
 	}()
 
 	if b.start != nil {
-		err = b.raw.Start(b.start.s, b.start.r, b.start.f)
+		err = b.raw.Start(m, b.start.s, b.start.r, b.start.f)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, k := range b.keys {
-		err = b.raw.DisplayKey(k)
+		err = b.raw.DisplayKey(m, k)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.lastTrack != nil {
-		err = b.raw.ReportLastTrack(*b.lastTrack)
+		err = b.raw.ReportLastTrack(m, *b.lastTrack)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.launchNetworkChecks != nil {
-		err = b.raw.LaunchNetworkChecks(b.launchNetworkChecks.i, b.launchNetworkChecks.u)
+		err = b.raw.LaunchNetworkChecks(m, b.launchNetworkChecks.i, b.launchNetworkChecks.u)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.userCard != nil {
-		err = b.raw.DisplayUserCard(*b.userCard)
+		err = b.raw.DisplayUserCard(m, *b.userCard)
 		if err != nil {
 			return err
 		}
@@ -120,9 +123,9 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	for _, w := range b.proofChecks {
 		var err error
 		if w.social {
-			err = b.raw.FinishSocialProofCheck(w.p, w.l)
+			err = b.raw.FinishSocialProofCheck(m, w.p, w.l)
 		} else {
-			err = b.raw.FinishWebProofCheck(w.p, w.l)
+			err = b.raw.FinishWebProofCheck(m, w.p, w.l)
 		}
 		if err != nil {
 			return err
@@ -130,7 +133,14 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	}
 
 	for _, c := range b.cryptocurrency {
-		err = b.raw.DisplayCryptocurrency(c)
+		err = b.raw.DisplayCryptocurrency(m, c)
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.stellar != nil {
+		err = b.raw.DisplayStellarAccount(m, *b.stellar)
 		if err != nil {
 			return err
 		}
@@ -143,6 +153,7 @@ func (b *bufferedIdentifyUI) flushCleanup() {
 	b.start = nil
 	b.proofChecks = nil
 	b.cryptocurrency = nil
+	b.stellar = nil
 	b.bufferedMode = false
 	b.launchNetworkChecks = nil
 	b.keys = nil
@@ -150,110 +161,117 @@ func (b *bufferedIdentifyUI) flushCleanup() {
 	b.userCard = nil
 }
 
-func (b *bufferedIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (b *bufferedIdentifyUI) FinishWebProofCheck(m libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	b.Lock()
 	defer b.Unlock()
 	b.proofChecks = append(b.proofChecks, proofCheck{false, p, l})
-	return b.flush(l.BreaksTracking)
+	return b.flush(m, l.BreaksTracking)
 }
 
-func (b *bufferedIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (b *bufferedIdentifyUI) FinishSocialProofCheck(m libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	b.Lock()
 	defer b.Unlock()
 	b.proofChecks = append(b.proofChecks, proofCheck{true, p, l})
-	return b.flush(l.BreaksTracking)
+	return b.flush(m, l.BreaksTracking)
 }
 
-func (b *bufferedIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (b *bufferedIdentifyUI) Confirm(m libkb.MetaContext, o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	b.Lock()
 	defer b.Unlock()
 	if b.bufferedMode {
-		b.G().Log.Debug("| bufferedIdentifyUI#Confirm: suppressing output")
+		m.Debug("| bufferedIdentifyUI#Confirm: suppressing output")
 		b.suppressed = true
 		return b.confirmIfSuppressed, nil
 	}
-	b.G().Log.Debug("| bufferedIdentifyUI#Confirm: enabling output")
-	b.flush(true)
-	return b.raw.Confirm(o)
+	m.Debug("| bufferedIdentifyUI#Confirm: enabling output")
+	b.flush(m, true)
+	return b.raw.Confirm(m, o)
 }
 
-func (b *bufferedIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) error {
+func (b *bufferedIdentifyUI) DisplayCryptocurrency(m libkb.MetaContext, c keybase1.Cryptocurrency) error {
 	b.Lock()
 	defer b.Unlock()
 	b.cryptocurrency = append(b.cryptocurrency, c)
-	return b.flush(false)
+	return b.flush(m, false)
 }
 
-func (b *bufferedIdentifyUI) DisplayKey(k keybase1.IdentifyKey) error {
+func (b *bufferedIdentifyUI) DisplayStellarAccount(m libkb.MetaContext, c keybase1.StellarAccount) error {
+	b.Lock()
+	defer b.Unlock()
+	b.stellar = &c
+	return b.flush(m, false)
+}
+
+func (b *bufferedIdentifyUI) DisplayKey(m libkb.MetaContext, k keybase1.IdentifyKey) error {
 	b.Lock()
 	defer b.Unlock()
 	b.keys = append(b.keys, k)
-	return b.flush(k.BreaksTracking)
+	return b.flush(m, k.BreaksTracking)
 }
 
-func (b *bufferedIdentifyUI) ReportLastTrack(s *keybase1.TrackSummary) error {
+func (b *bufferedIdentifyUI) ReportLastTrack(m libkb.MetaContext, s *keybase1.TrackSummary) error {
 	b.Lock()
 	defer b.Unlock()
 	b.lastTrack = &s
-	return b.flush(false)
+	return b.flush(m, false)
 }
 
-func (b *bufferedIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) error {
+func (b *bufferedIdentifyUI) LaunchNetworkChecks(m libkb.MetaContext, i *keybase1.Identity, u *keybase1.User) error {
 	b.Lock()
 	defer b.Unlock()
 	b.launchNetworkChecks = &launchNetworkChecks{i, u}
-	return b.flush(i.BreaksTracking)
+	return b.flush(m, i.BreaksTracking)
 }
 
-func (b *bufferedIdentifyUI) DisplayTrackStatement(s string) error {
-	return b.raw.DisplayTrackStatement(s)
+func (b *bufferedIdentifyUI) DisplayTrackStatement(m libkb.MetaContext, s string) error {
+	return b.raw.DisplayTrackStatement(m, s)
 }
 
-func (b *bufferedIdentifyUI) DisplayUserCard(c keybase1.UserCard) error {
+func (b *bufferedIdentifyUI) DisplayUserCard(m libkb.MetaContext, c keybase1.UserCard) error {
 	b.Lock()
 	defer b.Unlock()
 	b.userCard = &c
-	return b.flush(false)
+	return b.flush(m, false)
 }
 
-func (b *bufferedIdentifyUI) ReportTrackToken(t keybase1.TrackToken) error {
+func (b *bufferedIdentifyUI) ReportTrackToken(m libkb.MetaContext, t keybase1.TrackToken) error {
 	b.Lock()
 	defer b.Unlock()
 	if b.suppressed {
 		return nil
 	}
-	return b.raw.ReportTrackToken(t)
+	return b.raw.ReportTrackToken(m, t)
 }
 
-func (b *bufferedIdentifyUI) Cancel() error {
+func (b *bufferedIdentifyUI) Cancel(m libkb.MetaContext) error {
 	b.Lock()
 	defer b.Unlock()
 
 	// Cancel should always go through to UI server
-	return b.raw.Cancel()
+	return b.raw.Cancel(m)
 }
 
-func (b *bufferedIdentifyUI) Finish() error {
+func (b *bufferedIdentifyUI) Finish(m libkb.MetaContext) error {
 	b.Lock()
 	defer b.Unlock()
 	if b.suppressed {
-		b.G().Log.Debug("| bufferedIdentifyUI#Finish: suppressed")
+		m.Debug("| bufferedIdentifyUI#Finish: suppressed")
 		return nil
 	}
-	b.G().Log.Debug("| bufferedIdentifyUI#Finish: went through to UI")
+	m.Debug("| bufferedIdentifyUI#Finish: went through to UI")
 
 	// This is likely a noop since we already covered this case in the `Confirm` step
 	// above. However, if due a bug we forgot to call `Confirm` from the UI, this
 	// is still useful.
-	b.flush(true)
+	b.flush(m, true)
 
-	return b.raw.Finish()
+	return b.raw.Finish(m)
 }
 
-func (b *bufferedIdentifyUI) DisplayTLFCreateWithInvite(d keybase1.DisplayTLFCreateWithInviteArg) error {
-	return b.raw.DisplayTLFCreateWithInvite(d)
+func (b *bufferedIdentifyUI) DisplayTLFCreateWithInvite(m libkb.MetaContext, d keybase1.DisplayTLFCreateWithInviteArg) error {
+	return b.raw.DisplayTLFCreateWithInvite(m, d)
 }
 
-func (b *bufferedIdentifyUI) Dismiss(s string, r keybase1.DismissReason) error {
-	return b.raw.Dismiss(s, r)
+func (b *bufferedIdentifyUI) Dismiss(m libkb.MetaContext, s string, r keybase1.DismissReason) error {
+	return b.raw.Dismiss(m, s, r)
 }

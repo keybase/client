@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -98,7 +97,6 @@ func (p *CmdProve) Run() error {
 		if err != nil {
 			return err
 		}
-		sort.Strings(services)
 		ui := p.G().UI.GetTerminalUI()
 		ui.Printf("Supported services are: %s.\n", strings.Join(services, ", "))
 		return nil

@@ -3,6 +3,7 @@ package attachments
 import (
 	"errors"
 	"io"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -97,7 +98,8 @@ func TestAttachmentUploader(t *testing.T) {
 	g.ActivityNotifier = notifier
 	g.MessageDeliverer = deliverer
 	getRi := func() chat1.RemoteInterface { return ri }
-	uploader := NewUploader(g, store, NewS3Signer(getRi), getRi)
+	cacheSize := 1
+	uploader := NewUploader(g, store, NewS3Signer(getRi), getRi, cacheSize)
 	convID := chat1.ConversationID([]byte{0, 1, 0})
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
@@ -240,8 +242,32 @@ func TestAttachmentUploader(t *testing.T) {
 	require.NoError(t, uploader.Cancel(context.TODO(), outboxID))
 	_, _, err = uploader.Status(context.TODO(), outboxID)
 	require.Error(t, err)
-	select {
-	case res := <-resChan.Wait():
-		require.NotNil(t, res.Error)
-	}
+	res := <-resChan.Wait()
+	require.NotNil(t, res.Error)
+
+	// verify uploadedPreviewsDir respects the cache size
+	baseDir := uploader.getBaseDir()
+	uploadedPreviews, err := filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
+	require.NoError(t, err)
+	require.Len(t, uploadedPreviews, 1)
+
+	// verify uploadedFullsDir is respects the cache size
+	uploadedFulls, err := filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
+	require.NoError(t, err)
+	require.Len(t, uploadedFulls, 1)
+	mctx := kbtest.NewMetaContextForTest(*tc)
+
+	// verify db nuke
+	_, err = g.LocalDb.Nuke()
+	require.NoError(t, err)
+	err = uploader.OnDbNuke(mctx)
+	require.NoError(t, err)
+
+	uploadedPreviews, err = filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedPreviews))
+
+	uploadedFulls, err = filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedFulls))
 }

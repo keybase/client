@@ -8,6 +8,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -115,7 +117,7 @@ func (r *Root) MakeFS(
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
-	fsCtx, err = libkbfs.NewContextWithCancellationDelayer(
+	fsCtx, err = libcontext.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
 			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {
@@ -125,12 +127,13 @@ func (r *Root) MakeFS(
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
+			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		tlfFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch, "", "",
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch, "", "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
@@ -150,13 +153,13 @@ func (r *Root) MakeFS(
 		return cacheableFS, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
 			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		autogitTLFFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch,
 			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err

@@ -17,6 +17,31 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "passwordChanged": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    },
+    "identifyUpdate": {
+      "request": [
+        {
+          "name": "okUsernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "brokenUsernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

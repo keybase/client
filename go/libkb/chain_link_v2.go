@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -38,8 +39,7 @@ const (
 	// - A corresponding libkb.LinkType in constants.go
 	// - SigchainV2TypeFromV1TypeTeams
 	// - SigChainV2Type.IsSupportedTeamType
-	// - SigChainV2Type.RequiresAdminPermission
-	// - SigChainV2Type.TeamAllowStub
+	// - SigChainV2Type.TeamAllowStubWithAdminFlag
 	// - TeamSigChainPlayer.addInnerLink (add a case)
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
 	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
@@ -56,6 +56,7 @@ const (
 	// Note that 45 is skipped, since it's retired; used to be LegacyTLFUpgrade
 	SigchainV2TypeTeamSettings     SigchainV2Type = 46
 	SigchainV2TypeTeamKBFSSettings SigchainV2Type = 47
+	SigchainV2TypeTeamBotSettings  SigchainV2Type = 48
 )
 
 // NeedsSignature is untrue of most supported link types. If a link can
@@ -129,7 +130,8 @@ func (t SigchainV2Type) IsSupportedTeamType() bool {
 		SigchainV2TypeTeamDeleteSubteam,
 		SigchainV2TypeTeamDeleteUpPointer,
 		SigchainV2TypeTeamKBFSSettings,
-		SigchainV2TypeTeamSettings:
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		return false
@@ -140,12 +142,13 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	if !t.IsSupportedTeamType() {
 		// Links from the future require a bare minimum.
 		// They should be checked later by a code update that busts the cache.
-		return keybase1.TeamRole_READER
+		return keybase1.TeamRole_RESTRICTEDBOT
 	}
 	switch t {
-	case SigchainV2TypeTeamRoot,
-		SigchainV2TypeTeamLeave:
-		return keybase1.TeamRole_READER
+	case SigchainV2TypeTeamLeave:
+		return keybase1.TeamRole_RESTRICTEDBOT
+	case SigchainV2TypeTeamRoot:
+		return keybase1.TeamRole_BOT
 	case SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamKBFSSettings:
 		return keybase1.TeamRole_WRITER
@@ -155,16 +158,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 }
 
 func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
-	role := keybase1.TeamRole_READER
 	if isAdmin {
-		role = keybase1.TeamRole_ADMIN
-	}
-	return t.TeamAllowStub(role)
-}
-
-// Whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	if role.IsAdminOrAbove() {
 		// Links cannot be stubbed for owners and admins
 		return false
 	}
@@ -172,7 +166,10 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 	case SigchainV2TypeTeamNewSubteam,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamDeleteSubteam,
-		SigchainV2TypeTeamInvite:
+		SigchainV2TypeTeamInvite,
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamKBFSSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		// Disallow stubbing of other known links.
@@ -183,7 +180,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool           `codec:",toarray"`
+	_struct  bool           `codec:",toarray"` //nolint
 	Version  SigVersion     `codec:"version"`
 	Seqno    keybase1.Seqno `codec:"seqno"`
 	Prev     LinkID         `codec:"prev"`
@@ -207,7 +204,7 @@ type OuterLinkV2 struct {
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
-	return MsgpackEncode(o)
+	return msgpack.Encode(o)
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -287,9 +284,9 @@ func encodeOuterLink(
 		// for arrays. So, we send up the serialization of the
 		// appropriate struct depending on whether we are making a 2.3 link.
 		// When 2.3 links are mandatory, this struct can be deleted.
-		encodedOuterLink, err = MsgpackEncode(
+		encodedOuterLink, err = msgpack.Encode(
 			struct {
-				_struct             bool                   `codec:",toarray"`
+				_struct             bool                   `codec:",toarray"` //nolint
 				Version             int                    `codec:"version"`
 				Seqno               keybase1.Seqno         `codec:"seqno"`
 				Prev                LinkID                 `codec:"prev"`
@@ -347,11 +344,11 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
-	if !IsEncodedMsgpackArray(payload) {
+	if !msgpack.IsEncodedMsgpackArray(payload) {
 		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
 	}
 	var ol OuterLinkV2
-	if err = MsgpackDecode(&ol, payload); err != nil {
+	if err = msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
@@ -390,12 +387,12 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !IsEncodedMsgpackArray(payload) {
+	if !msgpack.IsEncodedMsgpackArray(payload) {
 		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
 	}
 
 	var ol OuterLinkV2
-	if err := MsgpackDecode(&ol, payload); err != nil {
+	if err := msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
 	ret := OuterLinkV2WithMetadata{
@@ -494,6 +491,8 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamKBFSSettings
 	case LinkTypeSettings:
 		ret = SigchainV2TypeTeamSettings
+	case LinkTypeTeamBotSettings:
+		ret = SigchainV2TypeTeamBotSettings
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

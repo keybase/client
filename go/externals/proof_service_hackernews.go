@@ -46,7 +46,7 @@ func KarmaURL(un string) string {
 
 func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: u, MetaContext: mctx})
+	res, err := mctx.G().GetExternalAPI().Get(mctx, libkb.APIArg{Endpoint: u})
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}
@@ -88,8 +88,9 @@ func (t *HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
 following text. Click here: https://news.ycombinator.com/user?id=` + un)
 }
 
-func (t *HackerNewsServiceType) DisplayName(un string) string { return "HackerNews" }
-func (t *HackerNewsServiceType) GetTypeName() string          { return "hackernews" }
+func (t *HackerNewsServiceType) DisplayName() string   { return "Hacker News" }
+func (t *HackerNewsServiceType) GetTypeName() string   { return "hackernews" }
+func (t *HackerNewsServiceType) PickerSubtext() string { return "news.ycombinator.com" }
 
 func (t *HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning = libkb.FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)
@@ -113,9 +114,7 @@ func (t *HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string)
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
-		if e != nil {
-			mctx.CDebugf("Error from HN: %s", e)
-		}
+		mctx.Debug("Error from HN: %s", e)
 		err = libkb.NewInsufficientKarmaError(un)
 	}
 	return

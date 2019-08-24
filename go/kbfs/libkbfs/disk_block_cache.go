@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
@@ -23,6 +24,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -30,15 +32,15 @@ import (
 )
 
 const (
-	// 10 GB maximum storage by default
-	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
+	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
+	defaultBlockCacheCapacity       int    = 8 * opt.MiB
 	evictionConsiderationFactor     int    = 3
 	defaultNumBlocksToEvict         int    = 10
 	defaultNumBlocksToEvictOnClear  int    = 100
 	defaultNumUnmarkedBlocksToCheck int    = 100
 	defaultClearTickerDuration             = 1 * time.Second
-	maxEvictionsPerPut              int    = 4
+	maxEvictionsPerPut              int    = 100
 	blockDbFilename                 string = "diskCacheBlocks.leveldb"
 	metaDbFilename                  string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                   string = "diskCacheTLF.leveldb"
@@ -47,6 +49,8 @@ const (
 	currentDiskBlockCacheVersion    uint64 = initialDiskBlockCacheVersion
 	syncCacheName                   string = "SyncBlockCache"
 	workingSetCacheName             string = "WorkingSetBlockCache"
+	crDirtyBlockCacheName           string = "DirtyBlockCache"
+	minDiskBlockWriteBufferSize            = 3 * data.MaxBlockSizeBytesDefault // ~ 1 MB
 )
 
 var errTeamOrUnknownTLFAddedAsHome = errors.New(
@@ -84,10 +88,10 @@ type DiskBlockCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock        sync.RWMutex
-	blockDb     *levelDb
-	metaDb      *levelDb
-	tlfDb       *levelDb
-	lastUnrefDb *levelDb
+	blockDb     *LevelDb
+	metaDb      *LevelDb
+	tlfDb       *LevelDb
+	lastUnrefDb *LevelDb
 	cacheType   diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
@@ -97,13 +101,18 @@ type DiskBlockCacheLocal struct {
 	priorityBlockCounts map[evictionPriority]int
 	priorityTlfMap      map[evictionPriority]map[tlf.ID]int
 	// Track the aggregate size of blocks in the cache per TLF and overall.
-	tlfSizes  map[tlf.ID]uint64
-	currBytes uint64
+	tlfSizes map[tlf.ID]uint64
 	// Track the last unref'd revisions for each TLF.
 	tlfLastUnrefs map[tlf.ID]kbfsmd.Revision
 	// Don't evict files from the user's private or public home directory.
 	// Higher numbers are more important not to evict.
 	homeDirs map[tlf.ID]evictionPriority
+
+	// currBytes gets its own lock, since tests need to access it
+	// directly and taking the full lock causes deadlocks under some
+	// situations.
+	currBytesLock sync.RWMutex
+	currBytes     uint64
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -158,6 +167,15 @@ type DiskBlockCacheStatus struct {
 
 	LocalDiskBytesAvailable uint64
 	LocalDiskBytesTotal     uint64
+
+	BlockDBStats        []string `json:",omitempty"`
+	MetaDBStats         []string `json:",omitempty"`
+	TLFDBStats          []string `json:",omitempty"`
+	LastUnrefStats      []string `json:",omitempty"`
+	MemCompActive       bool     `json:",omitempty"`
+	TableCompActive     bool     `json:",omitempty"`
+	MetaMemCompActive   bool     `json:",omitempty"`
+	MetaTableCompActive bool     `json:",omitempty"`
 }
 
 type lastUnrefEntry struct {
@@ -171,7 +189,7 @@ type lastUnrefEntry struct {
 func newDiskBlockCacheLocalFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
 	blockStorage, metadataStorage, tlfStorage,
-	lastUnrefStorage storage.Storage) (
+	lastUnrefStorage storage.Storage, mode InitMode) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("KBC")
 	closers := make([]io.Closer, 0, 3)
@@ -189,34 +207,40 @@ func newDiskBlockCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	blockDbOptions := *leveldbOptions
+	blockDbOptions := leveldbOptionsFromMode(mode)
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
-	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
+	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
+	blockDbOptions.Filter = filter.NewBloomFilter(16)
+	if blockDbOptions.WriteBuffer < minDiskBlockWriteBufferSize {
+		blockDbOptions.WriteBuffer = minDiskBlockWriteBufferSize
+	}
+	blockDb, err := openLevelDBWithOptions(blockStorage, blockDbOptions)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, blockDb)
 
-	metaDb, err := openLevelDB(metadataStorage)
+	metaDb, err := openLevelDB(metadataStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, metaDb)
 
-	tlfDb, err := openLevelDB(tlfStorage)
+	tlfDb, err := openLevelDB(tlfStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, tlfDb)
 
-	lastUnrefDb, err := openLevelDB(lastUnrefStorage)
+	lastUnrefDb, err := openLevelDB(lastUnrefStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, lastUnrefDb)
 
-	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType,
-		kbfshash.MaxDefaultHash[:])
+	maxBlockID, err := kbfshash.HashFromRaw(
+		kbfshash.MaxHashType, kbfshash.MaxDefaultHash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -271,12 +295,12 @@ func newDiskBlockCacheLocalFromStorage(
 			return
 		}
 		diskLimiter := cache.config.DiskLimiter()
-		if diskLimiter != nil {
+		if diskLimiter != nil && cache.useLimiter() {
 			// Notify the disk limiter of the disk cache's size once we've
 			// determined it.
 			ctx := context.Background()
 			cache.config.DiskLimiter().onSimpleByteTrackerEnable(ctx,
-				cache.cacheType, int64(cache.currBytes))
+				cache.cacheType, int64(cache.getCurrBytes()))
 		}
 		close(startedCh)
 	}()
@@ -286,7 +310,7 @@ func newDiskBlockCacheLocalFromStorage(
 // newDiskBlockCacheLocal creates a new *DiskBlockCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheLocal(config diskBlockCacheConfig,
-	cacheType diskLimitTrackerType, dirPath string) (
+	cacheType diskLimitTrackerType, dirPath string, mode InitMode) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("DBC")
 	defer func() {
@@ -340,7 +364,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		}
 	}()
 	cache, err = newDiskBlockCacheLocalFromStorage(config, cacheType,
-		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage)
+		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +377,35 @@ func newDiskBlockCacheLocalForTest(config diskBlockCacheConfig,
 	return newDiskBlockCacheLocalFromStorage(
 		config, cacheType, storage.NewMemStorage(),
 		storage.NewMemStorage(), storage.NewMemStorage(),
-		storage.NewMemStorage())
+		storage.NewMemStorage(), &modeTest{modeDefault{}})
+}
+
+func (cache *DiskBlockCacheLocal) useLimiter() bool {
+	return cache.cacheType != crDirtyBlockCacheLimitTrackerType
+}
+
+func (cache *DiskBlockCacheLocal) getCurrBytes() uint64 {
+	cache.currBytesLock.RLock()
+	defer cache.currBytesLock.RUnlock()
+	return cache.currBytes
+}
+
+func (cache *DiskBlockCacheLocal) setCurrBytes(b uint64) {
+	cache.currBytesLock.Lock()
+	defer cache.currBytesLock.Unlock()
+	cache.currBytes = b
+}
+
+func (cache *DiskBlockCacheLocal) addCurrBytes(b uint64) {
+	cache.currBytesLock.Lock()
+	defer cache.currBytesLock.Unlock()
+	cache.currBytes += b
+}
+
+func (cache *DiskBlockCacheLocal) subCurrBytes(b uint64) {
+	cache.currBytesLock.Lock()
+	defer cache.currBytesLock.Unlock()
+	cache.currBytes -= b
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -422,7 +474,7 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
 	cache.tlfCounts = tlfCounts
 	cache.numBlocks = numBlocks
 	cache.tlfSizes = tlfSizes
-	cache.currBytes = totalSize
+	cache.setCurrBytes(totalSize)
 	cache.priorityTlfMap = priorityTlfMap
 	cache.priorityBlockCounts = priorityBlockCounts
 
@@ -571,7 +623,7 @@ func (cache *DiskBlockCacheLocal) Get(
 	entry, err := cache.blockDb.Get(blockKey, nil)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
-			NoSuchBlockError{blockID}
+			data.NoSuchBlockError{ID: blockID}
 	}
 	md, err := cache.getMetadataLocked(blockID, true)
 	if err != nil {
@@ -582,17 +634,14 @@ func (cache *DiskBlockCacheLocal) Get(
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 	buf, serverHalf, err = cache.decodeBlockCacheEntry(entry)
-	prefetchStatus = NoPrefetch
-	if md.FinishedPrefetch {
-		prefetchStatus = FinishedPrefetch
-	} else if md.TriggeredPrefetch {
-		prefetchStatus = TriggeredPrefetch
-	}
-	return buf, serverHalf, prefetchStatus, err
+	return buf, serverHalf, md.PrefetchStatus(), err
 }
 
 func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 	ctx context.Context, encodedLen int64) (hasEnoughSpace bool, err error) {
+	if !cache.useLimiter() {
+		return true, nil
+	}
 	for i := 0; i < maxEvictionsPerPut; i++ {
 		select {
 		// Ensure we don't loop infinitely
@@ -642,7 +691,8 @@ func (cache *DiskBlockCacheLocal) Put(
 	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
+			"cacheType=%s err=%+v", blockID, tlfID, blockLen, encodedLen,
+			cache.cacheType, err)
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
@@ -661,7 +711,7 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if bytesAvailable < 0 {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{BlockID: blockID}
 			}
 		} else {
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
@@ -669,24 +719,28 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if !hasEnoughSpace {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{BlockID: blockID}
 			}
 		}
 		err = cache.blockDb.PutWithMeter(blockKey, entry, cache.putMeter)
 		if err != nil {
-			cache.config.DiskLimiter().commitOrRollback(ctx,
-				cache.cacheType, encodedLen, 0, false, "")
+			if cache.useLimiter() {
+				cache.config.DiskLimiter().commitOrRollback(ctx,
+					cache.cacheType, encodedLen, 0, false, "")
+			}
 			return err
 		}
-		cache.config.DiskLimiter().commitOrRollback(ctx, cache.cacheType,
-			encodedLen, 0, true, "")
+		if cache.useLimiter() {
+			cache.config.DiskLimiter().commitOrRollback(ctx, cache.cacheType,
+				encodedLen, 0, true, "")
+		}
 		cache.tlfCounts[tlfID]++
 		cache.priorityBlockCounts[cache.homeDirs[tlfID]]++
 		cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID]++
 		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
 		cache.tlfSizes[tlfID] += encodedLenUint
-		cache.currBytes += encodedLenUint
+		cache.addCurrBytes(encodedLenUint)
 	}
 	tlfKey := cache.tlfKey(tlfID, blockKey)
 	hasKey, err = cache.tlfDb.Has(tlfKey, nil)
@@ -719,6 +773,10 @@ func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	err := cache.checkCacheLocked("Block(GetMetadata)")
+	if err != nil {
+		return DiskBlockCacheMetadata{}, err
+	}
 	return cache.getMetadataLocked(blockID, false)
 }
 
@@ -735,7 +793,11 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{ID: blockID}
+	}
+	if md.FinishedPrefetch {
+		// Don't update md that's already completed.
+		return nil
 	}
 	md.TriggeredPrefetch = false
 	md.FinishedPrefetch = false
@@ -807,10 +869,12 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 		cache.priorityTlfMap[cache.homeDirs[k]][k] -= v
 		cache.numBlocks -= v
 		cache.tlfSizes[k] -= removalSizes[k]
-		cache.currBytes -= removalSizes[k]
+		cache.subCurrBytes(removalSizes[k])
 	}
-	cache.config.DiskLimiter().release(ctx, cache.cacheType,
-		sizeRemoved, 0)
+	if cache.useLimiter() {
+		cache.config.DiskLimiter().release(ctx, cache.cacheType,
+			sizeRemoved, 0)
+	}
 
 	return numRemoved, sizeRemoved, nil
 }
@@ -826,6 +890,15 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	}
 
 	cache.log.CDebugf(ctx, "Cache Delete numBlocks=%d", len(blockIDs))
+	defer func() {
+		cache.log.CDebugf(ctx, "Deleted numRequested=%d numRemoved=%d sizeRemoved=%d err=%+v", len(blockIDs), numRemoved, sizeRemoved, err)
+	}()
+	if cache.config.IsTestMode() {
+		for _, bID := range blockIDs {
+			cache.log.CDebugf(ctx, "Cache type=%d delete block ID %s",
+				cache.cacheType, bID)
+		}
+	}
 	return cache.deleteLocked(ctx, blockIDs)
 }
 
@@ -835,7 +908,7 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 // if we need to consider 100 out of 400 blocks, and we assume that the block
 // IDs are uniformly distributed, then our random start point should be in the
 // [0,0.75) interval on the [0,1.0) block ID space.
-func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
+func (cache *DiskBlockCacheLocal) getRandomBlockID(numElements,
 	totalElements int) (kbfsblock.ID, error) {
 	if totalElements == 0 {
 		return kbfsblock.ID{}, errors.New("")
@@ -846,8 +919,12 @@ func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
 		return kbfsblock.ID{}, nil
 	}
 	// Generate a random block ID to start the range.
-	pivot := (1.0 - (float64(numElements) / float64(totalElements)))
-	return kbfsblock.MakeRandomIDInRange(0, pivot)
+	pivot := 1.0 - (float64(numElements) / float64(totalElements))
+	if cache.config.IsTestMode() {
+		return kbfsblock.MakeRandomIDInRange(0, pivot,
+			kbfsblock.UseMathRandForTest)
+	}
+	return kbfsblock.MakeRandomIDInRange(0, pivot, kbfsblock.UseRealRandomness)
 }
 
 // evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If
@@ -979,11 +1056,13 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 		for _, tlfIDStruct := range shuffledSlice {
 			tlfID := tlfIDStruct.value
 			if cache.tlfCounts[tlfID] == 0 {
+				cache.log.CDebugf(ctx, "No blocks to delete in TLF %s", tlfID)
 				continue
 			}
 			tlfBytes := tlfID.Bytes()
 
-			blockID, err := cache.getRandomBlockID(numElements, cache.tlfCounts[tlfID])
+			blockID, err := cache.getRandomBlockID(numElements,
+				cache.tlfCounts[tlfID])
 			if err != nil {
 				return 0, 0, err
 			}
@@ -1155,6 +1234,8 @@ func (cache *DiskBlockCacheLocal) Status(
 	case workingSetCacheLimitTrackerType:
 		name = workingSetCacheName
 		maxLimit = uint64(limiterStatus.DiskCacheByteStatus.Max)
+	case crDirtyBlockCacheLimitTrackerType:
+		name = crDirtyBlockCacheName
 	}
 	select {
 	case <-cache.startedCh:
@@ -1174,13 +1255,51 @@ func (cache *DiskBlockCacheLocal) Status(
 
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+
+	var blockStats, metaStats, tlfStats, lastUnrefStats []string
+	var memCompActive, tableCompActive bool
+	var metaMemCompActive, metaTableCompActive bool
+	if err := cache.checkCacheLocked("Block(Status)"); err == nil {
+		blockStats, err = cache.blockDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get block db stats: %+v", err)
+		}
+		metaStats, err = cache.metaDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get meta db stats: %+v", err)
+		}
+		tlfStats, err = cache.tlfDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get TLF db stats: %+v", err)
+		}
+		lastUnrefStats, err = cache.lastUnrefDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get last unref db stats: %+v", err)
+		}
+		var dbStats leveldb.DBStats
+		err = cache.blockDb.Stats(&dbStats)
+		if err != nil {
+			cache.log.CDebugf(
+				ctx, "Couldn't get block db compaction stats: %+v", err)
+		}
+		memCompActive, tableCompActive =
+			dbStats.MemCompactionActive, dbStats.TableCompactionActive
+		err = cache.metaDb.Stats(&dbStats)
+		if err != nil {
+			cache.log.CDebugf(
+				ctx, "Couldn't get meta db compaction stats: %+v", err)
+		}
+		metaMemCompActive, metaTableCompActive =
+			dbStats.MemCompactionActive, dbStats.TableCompactionActive
+	}
+
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
 	return map[string]DiskBlockCacheStatus{
 		name: {
 			StartState:              DiskBlockCacheStartStateStarted,
 			NumBlocks:               uint64(cache.numBlocks),
-			BlockBytes:              cache.currBytes,
+			BlockBytes:              cache.getCurrBytes(),
 			CurrByteLimit:           maxLimit,
 			LastUnrefCount:          uint64(len(cache.tlfLastUnrefs)),
 			Hits:                    rateMeterToStatus(cache.hitMeter),
@@ -1193,6 +1312,14 @@ func (cache *DiskBlockCacheLocal) Status(
 			SizeDeleted:             rateMeterToStatus(cache.deleteSizeMeter),
 			LocalDiskBytesAvailable: availableBytes,
 			LocalDiskBytesTotal:     totalBytes,
+			BlockDBStats:            blockStats,
+			MetaDBStats:             metaStats,
+			MemCompActive:           memCompActive,
+			TableCompActive:         tableCompActive,
+			MetaMemCompActive:       metaMemCompActive,
+			MetaTableCompActive:     metaTableCompActive,
+			TLFDBStats:              tlfStats,
+			LastUnrefStats:          lastUnrefStats,
 		},
 	}
 }
@@ -1200,14 +1327,22 @@ func (cache *DiskBlockCacheLocal) Status(
 // DoesCacheHaveSpace returns true if we have more than 1% of space
 // left in the cache.
 func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
-	ctx context.Context) bool {
+	ctx context.Context) (hasSpace bool, howMuch int64, err error) {
 	limiterStatus := cache.config.DiskLimiter().getStatus(
 		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	switch cache.cacheType {
 	case syncCacheLimitTrackerType:
-		return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+		// The tracker doesn't track sync cache usage because we never
+		// want to throttle it, so rely on our local byte usage count
+		// instead of the fraction returned by the tracker.
+		limit := float64(limiterStatus.SyncCacheByteStatus.Max)
+		return float64(cache.getCurrBytes())/limit <= .99,
+			limiterStatus.DiskCacheByteStatus.Free, nil
 	case workingSetCacheLimitTrackerType:
-		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99
+		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99,
+			limiterStatus.DiskCacheByteStatus.Free, nil
+	case crDirtyBlockCacheLimitTrackerType:
+		return true, 0, nil
 	default:
 		panic(fmt.Sprintf("Unknown cache type: %d", cache.cacheType))
 	}
@@ -1225,7 +1360,7 @@ func (cache *DiskBlockCacheLocal) Mark(
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{ID: blockID}
 	}
 	md.Tag = tag
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, false)
@@ -1364,6 +1499,28 @@ func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 	return nil
 }
 
+// GetTlfSize returns the number of bytes stored for the given TLF in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfSize(
+	_ context.Context, tlfID tlf.ID) (uint64, error) {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	return cache.tlfSizes[tlfID], nil
+}
+
+// GetTlfIDs returns the IDs of all the TLFs with blocks stored in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfIDs(
+	_ context.Context) (tlfIDs []tlf.ID, err error) {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	tlfIDs = make([]tlf.ID, 0, len(cache.tlfSizes))
+	for id := range cache.tlfSizes {
+		tlfIDs = append(tlfIDs, id)
+	}
+	return tlfIDs, nil
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	// Wait for the cache to either finish starting or error.
@@ -1388,8 +1545,10 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	cache.blockDb = nil
 	cache.metaDb = nil
 	cache.tlfDb = nil
-	cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
-		cache.cacheType, int64(cache.currBytes))
+	if cache.useLimiter() {
+		cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
+			cache.cacheType, int64(cache.getCurrBytes()))
+	}
 	cache.hitMeter.Shutdown()
 	cache.missMeter.Shutdown()
 	cache.putMeter.Shutdown()

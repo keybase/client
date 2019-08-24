@@ -1,15 +1,16 @@
 # Go Keychain
 
-A library for accessing the Keychain for macOS and iOS in Go (golang).
+A library for accessing the Keychain for macOS, iOS, and Linux in Go (golang).
 
-Requires macOS 10.9 or greater and iOS 8 or greater.
+Requires macOS 10.9 or greater and iOS 8 or greater. On Linux, communicates to
+a provider of the DBUS SecretService spec like gnome-keyring or ksecretservice.
 
 ```go
 import "github.com/keybase/go-keychain"
 ```
 
 
-## Usage
+## Mac/iOS Usage
 
 The API is meant to mirror the macOS/iOS Keychain API and is not necessarily idiomatic go.
 

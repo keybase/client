@@ -45,7 +45,7 @@ func (d *delegateID3UI) Identify3ShowTracker(_ context.Context, arg keybase1.Ide
 	return nil
 }
 
-func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Identify3UpdateRowArg) error {
+func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Identify3Row) error {
 	d.Lock()
 	defer d.Unlock()
 	require.Equal(d.T, d.guiid, arg.GuiID)
@@ -145,10 +145,11 @@ func (d *delegateID3UI) checkSuccess() {
 
 func TestDelegateIdentify3UI(t *testing.T) {
 	tc := setupTest(t, "delegate_ui")
-	tc1 := cloneContext(tc)
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -193,7 +194,7 @@ func TestDelegateIdentify3UI(t *testing.T) {
 	require.False(t, eof)
 	dui.checkSuccess()
 
-	err = client.CtlServiceStop(tc1.G)
+	err = CtlStop(tc1.G)
 	require.NoError(t, err)
 
 	// If the server failed, it's also an error

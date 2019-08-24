@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "checkJs": false,
+    "incremental": true,
+    "isolatedModules": false,
+    "jsx": "preserve",
+    "lib": ["es2017", "dom"],
+    "module": "commonjs",
+    "paths": {
+      "@react-navigation/core": ["override-d.ts/@react-navigation/core/index.d.ts"],
+      "@react-navigation/native": ["override-d.ts/@react-navigation/native/index.d.ts"],
+      "immutable": ["override-d.ts/immutable/index.d.ts"],
+      "popper": ["override-d.ts/popper/index.d.ts"],
+      "react-native-fast-image": ["override-d.ts/react-native-fast-image/index.d.ts"],
+      "react-native-gesture-handler": ["override-d.ts/react-native-gesture-handler/index.d.ts"],
+      "react-native-image-picker": ["override-d.ts/react-native-image-picker/index.d.ts"],
+      "react-navigation": ["override-d.ts/react-navigation/index.d.ts"],
+      "react-navigation-stack": ["override-d.ts/react-navigation-stack/index.d.ts"],
+      "react-navigation-tabs": ["override-d.ts/react-navigation-tabs/index.d.ts"],
+      "react-redux": ["override-d.ts/react-redux/index.d.ts"],
+      "redux": ["override-d.ts/redux/index.d.ts"],
+      "rn-fetch-blob": ["override-d.ts/rn-fetch-blob/index.d.ts"]
+    },
+    "noErrorTruncation": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./.tsOuts/.tsOut/emit",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
+    "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
+  },
+  "include": ["globals.d.ts"],
+  "exclude": [
+    "./node_modules",
+    "./react-native",
+    "./desktop/dist",
+    "./desktop/build"
+  ]
+}

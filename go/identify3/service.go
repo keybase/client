@@ -2,13 +2,14 @@ package identify3
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg keybase1.Identify3Arg) (err error) {
-	ui1, err := NewUIAdapterMakeSession(mctx, ui3, arg.GuiID)
+	ui1, err := NewUIAdapterMakeSession(mctx.BackgroundWithLogTags(), ui3, arg.GuiID)
 	if err != nil {
 		return err
 	}
@@ -17,6 +18,7 @@ func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg ke
 		ForceRemoteCheck: arg.IgnoreCache,
 		ForceDisplay:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI_PROFILE,
+		NoSkipSelf:       true,
 	}
 	mctx = mctx.WithIdentifyUI(ui1)
 	eng := engine.NewResolveThenIdentify2(mctx.G(), &i2arg)
@@ -43,11 +45,10 @@ func FollowUser(mctx libkb.MetaContext, arg keybase1.Identify3FollowUserArg) (er
 	} else {
 		action = identify3ActionUnfollow
 	}
-	return doAction(mctx, arg.GuiID, action)
+	return doActionAndRemove(mctx, arg.GuiID, action)
 }
 
 func doAction(mctx libkb.MetaContext, guiID keybase1.Identify3GUIID, action identify3Action) error {
-
 	sess, err := mctx.G().Identify3State.Get(guiID)
 	if err != nil {
 		return err
@@ -56,9 +57,13 @@ func doAction(mctx libkb.MetaContext, guiID keybase1.Identify3GUIID, action iden
 		return libkb.NewNotFoundError(fmt.Sprintf("session %s wasn't found", guiID))
 	}
 
+	// Lock the session mainly because we want to protect the outcome, which unfortunately
+	// is difficult to copy. But be certain never to grab the Identify3State lock while
+	// holding the session lock (see comment below in doActionAndRemove).
 	sess.Lock()
 	defer sess.Unlock()
-	outcome := sess.OutcomeUnlocked()
+	outcome := sess.OutcomeLocked()
+
 	if outcome == nil {
 		return libkb.NewNotFoundError(fmt.Sprintf("outcome for session %s wasn't ready; is there a race?", guiID))
 	}
@@ -69,9 +74,20 @@ func doAction(mctx libkb.MetaContext, guiID keybase1.Identify3GUIID, action iden
 	case identify3ActionUnfollow:
 		err = doUnfollow(mctx, outcome)
 	}
-	if err == nil {
-		mctx.G().Identify3State.Remove(guiID)
+
+	return err
+}
+
+func doActionAndRemove(mctx libkb.MetaContext, guiID keybase1.Identify3GUIID, action identify3Action) error {
+	err := doAction(mctx, guiID, action)
+	if err != nil {
+		return err
 	}
+
+	// It's important not to hold the session lock when calling this function, since the background expire
+	// thread in identify3 grabs the state lock and then the session locks.
+	mctx.G().Identify3State.Remove(guiID)
+
 	return err
 }
 
@@ -101,5 +117,5 @@ func doFollow(mctx libkb.MetaContext, action identify3Action, outcome *libkb.Ide
 }
 
 func IgnoreUser(mctx libkb.MetaContext, guiID keybase1.Identify3GUIID) (err error) {
-	return doAction(mctx, guiID, identify3ActionIgnore)
+	return doActionAndRemove(mctx, guiID, identify3ActionIgnore)
 }

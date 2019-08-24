@@ -31,7 +31,7 @@ func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libk
 	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	if pcm != libkb.ProofCheckerModeActive {
-		m.CDebugf("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		m.Debug("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return nil, libkb.ProofErrorUnchecked
 	}
 	return nil, CheckProofPvl(m, keybase1.ProofType_DNS, rc.proof, h, pvlU)
@@ -66,13 +66,13 @@ func (t *DNSServiceType) GetPrompt() string {
 
 func (t *DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("protocol", jsonw.NewString("dns"))
-	ret.SetKey("domain", jsonw.NewString(un))
+	_ = ret.SetKey("protocol", jsonw.NewString("dns"))
+	_ = ret.SetKey("domain", jsonw.NewString(un))
 	return ret
 }
 
 func (t *DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (string, error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 
@@ -81,8 +81,9 @@ func (t *DNSServiceType) PostInstructions(un string) *libkb.Markup {
 <strong>` + un + `</strong> OR <strong>_keybase.` + un + `</strong>:`)
 }
 
-func (t *DNSServiceType) DisplayName(un string) string { return "Dns" }
-func (t *DNSServiceType) GetTypeName() string          { return "dns" }
+func (t *DNSServiceType) DisplayName() string   { return "Dns" }
+func (t *DNSServiceType) GetTypeName() string   { return "dns" }
+func (t *DNSServiceType) PickerSubtext() string { return t.GetTypeName() }
 
 func (t *DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, dn string) (warning *libkb.Markup, err error) {
 	warning = libkb.FmtMarkup(`<p>We couldn't find a DNS proof for ` + dn + ` ... <strong>yet</strong></p>

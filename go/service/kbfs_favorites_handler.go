@@ -7,8 +7,9 @@ package service
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"strings"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 
 	"golang.org/x/net/context"
 
@@ -63,7 +64,7 @@ func (r *kbfsFavoritesHandler) favoritesChanged(ctx context.Context,
 		"favorites received")
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx,
 			"failed to locally dismiss favoritesChanged notification: %s", err)
 	}

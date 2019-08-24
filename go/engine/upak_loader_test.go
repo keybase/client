@@ -285,7 +285,7 @@ func TestUPAKDeadlock(t *testing.T) {
 	fu := CreateAndSignupFakeUserPaper(tc, "upak")
 
 	// First clear the cache
-	tc.G.KeyfamilyChanged(fu.UID())
+	tc.G.KeyfamilyChanged(context.TODO(), fu.UID())
 
 	var wg sync.WaitGroup
 
@@ -349,7 +349,7 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 
 	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false).WithForceMerkleServerPolling(true)
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
@@ -422,6 +422,8 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 	// add new device keys.
 	ResetAccount(resetUserTC, fu)
 	tcp := SetupEngineTest(t, "login")
+	defer tcp.Cleanup()
+
 	fu.LoginOrBust(tcp)
 	if err := AssertProvisioned(tcp); err != nil {
 		t.Fatal(err)
@@ -492,4 +494,88 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load user: %+v", err)
 	}
+}
+
+func TestUPAKUnstub(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "first")
+	Logout(tc)
+	u2 := CreateAndSignupFakeUser(tc, "secon")
+
+	testTrack(t, tc, libkb.KeybaseSignatureV2, "t_alice")
+	testTrack(t, tc, libkb.KeybaseSignatureV2, u1.Username)
+
+	// The last link is always unstubbed, so this is a throw-away so that we have some links that
+	// are stubbed (the two just above).
+	testTrack(t, tc, libkb.KeybaseSignatureV2, "t_bob")
+
+	Logout(tc)
+	t.Logf("first logging back in")
+	u1.LoginOrBust(tc)
+
+	upl := tc.G.GetUPAKLoader()
+	mctx := NewMetaContextForTest(tc)
+
+	// wipe out all the caches
+	tc.G.LocalDb.Nuke()
+	upl.Invalidate(mctx.Ctx(), u2.UID())
+
+	assertStubbed := func() {
+		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID())
+		upak, _, err := upl.LoadV2(arg)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(upak.Current.RemoteTracks))
+		require.Equal(t, "t_bob", upak.Current.RemoteTracks[keybase1.UID("afb5eda3154bc13c1df0189ce93ba119")].Username)
+		require.False(t, upak.Current.Unstubbed)
+	}
+
+	assertStubbed()
+
+	Logout(tc)
+	t.Logf("second logging back in")
+	u2.LoginOrBust(tc)
+
+	assertStubbed()
+
+	assertAllLinks := func(stubMode libkb.StubMode) {
+		arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u2.UID()).WithStubMode(stubMode)
+		upak, _, err := upl.LoadV2(arg)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(upak.Current.RemoteTracks))
+		require.Equal(t, u1.Username, upak.Current.RemoteTracks[u1.UID()].Username)
+		require.True(t, upak.Current.Unstubbed)
+	}
+
+	assertAllLinks(libkb.StubModeUnstubbed)
+
+	Logout(tc)
+	t.Logf("first logging back in")
+	u1.LoginOrBust(tc)
+
+	assertAllLinks(libkb.StubModeUnstubbed)
+	assertAllLinks(libkb.StubModeStubbed)
+}
+
+func TestInvalidation(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	u := CreateAndSignupFakeUser(tc, "first")
+	upl := tc.G.GetUPAKLoader()
+	mctx := NewMetaContextForTest(tc)
+	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID())
+	upak, _, err := upl.LoadV2(arg)
+	require.NoError(t, err)
+	require.NotNil(t, upak)
+	upl.Invalidate(mctx.Ctx(), u.UID())
+	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly()
+	_, _, err = upl.LoadV2(arg)
+	require.Error(t, err)
+	require.IsType(t, libkb.UserNotFoundError{}, err)
+	require.Contains(t, err.Error(), "cached user found, but it was stale, and cached only")
+	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly().WithStaleOK(true)
+	upak, _, err = upl.LoadV2(arg)
+	require.NoError(t, err)
+	require.NotNil(t, upak)
 }

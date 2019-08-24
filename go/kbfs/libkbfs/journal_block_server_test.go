@@ -20,7 +20,7 @@ import (
 
 func setupJournalBlockServerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, jServer *JournalServer) {
+	config *ConfigLocal, jManager *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
 
@@ -57,19 +57,19 @@ func setupJournalBlockServerTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalServer(config)
+	jManager, err = GetJournalManager(config)
 	require.NoError(t, err)
-	blockServer := jServer.blockServer()
+	blockServer := jManager.blockServer()
 	// Turn this on for testing.
 	blockServer.enableAddBlockReference = true
 	config.SetBlockServer(blockServer)
 
 	setupSucceeded = true
-	return tempdir, ctx, cancel, config, jServer
+	return tempdir, ctx, cancel, config, jManager
 }
 
 func teardownJournalBlockServerTest(
-	t *testing.T, tempdir string, ctx context.Context,
+	ctx context.Context, t *testing.T, tempdir string,
 	cancel context.CancelFunc, config Config) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
@@ -82,15 +82,15 @@ type shutdownOnlyBlockServer struct{ BlockServer }
 func (shutdownOnlyBlockServer) Shutdown(context.Context) {}
 
 func TestJournalBlockServerPutGetAddReference(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalBlockServerTest(t)
-	defer teardownJournalBlockServerTest(t, tempdir, ctx, cancel, config)
+	tempdir, ctx, cancel, config, jManager := setupJournalBlockServerTest(t)
+	defer teardownJournalBlockServerTest(ctx, t, tempdir, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
-	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
+	jManager.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
+	err := jManager.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -99,7 +99,8 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	bCtx := kbfsblock.MakeFirstContext(
 		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	// Put a block.

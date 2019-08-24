@@ -9,7 +9,7 @@ protocol identify {
     Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
    */
   @lint("ignore")
-  UserOrTeamLite Resolve3(string assertion);
+  UserOrTeamLite Resolve3(string assertion, OfflineAvailability oa);
 
   record IdentifyProofBreak {
     RemoteProof remoteProof;
@@ -44,17 +44,17 @@ protocol identify {
     UID uid,
     string userAssertion,
     IdentifyReason reason,
-    boolean useDelegateUI=false,
-    boolean alwaysBlock=false,
-    boolean noErrorOnTrackFailure=false,
-    boolean forceRemoteCheck=false,
-    boolean needProofSet=false,
-    boolean allowEmptySelfID=false,
-    boolean noSkipSelf=true,
-    boolean canSuppressUI=false,
-    TLFIdentifyBehavior identifyBehavior=0,
-    boolean forceDisplay=false,
-    boolean actLoggedOut=false
+    boolean useDelegateUI,
+    boolean alwaysBlock,
+    boolean noErrorOnTrackFailure,
+    boolean forceRemoteCheck,
+    boolean needProofSet,
+    boolean allowEmptySelfID,
+    boolean noSkipSelf,
+    boolean canSuppressUI,
+    TLFIdentifyBehavior identifyBehavior,
+    boolean forceDisplay,
+    boolean actLoggedOut
   );
   record IdentifyLiteRes {
     UserOrTeamLite ul;
@@ -68,16 +68,17 @@ protocol identify {
     int sessionID,
     UserOrTeamID id,
     string assertion, IdentifyReason reason,
-    boolean useDelegateUI=false,
-    boolean alwaysBlock=false,
-    boolean noErrorOnTrackFailure=false,
-    boolean forceRemoteCheck=false,
-    boolean needProofSet=false,
-    boolean allowEmptySelfID=false,
-    boolean noSkipSelf=true,
-    boolean canSuppressUI=false,
-    TLFIdentifyBehavior identifyBehavior=0,
-    boolean forceDisplay=false
+    boolean useDelegateUI,
+    boolean alwaysBlock,
+    boolean noErrorOnTrackFailure,
+    boolean forceRemoteCheck,
+    boolean needProofSet,
+    boolean allowEmptySelfID,
+    boolean noSkipSelf,
+    boolean canSuppressUI,
+    TLFIdentifyBehavior identifyBehavior,
+    boolean forceDisplay,
+    OfflineAvailability oa
   );
 
   /*
@@ -92,7 +93,8 @@ protocol identify {
     boolean doIdentifies,  // Whether core runs identifies on all the people or assertions
     boolean create,        // Whether to create the team if none exists
     IdentifyReason reason, // Displayed in the header of the tracker popup
-    TLFIdentifyBehavior identifyBehavior
+    TLFIdentifyBehavior identifyBehavior,
+    OfflineAvailability oa
   );
   record ResolveIdentifyImplicitTeamRes {
     // Display name possibly updated by resolutions and conflicts.

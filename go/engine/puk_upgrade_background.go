@@ -88,29 +88,29 @@ func (e *PerUserKeyUpgradeBackground) Shutdown() {
 
 func PerUserKeyUpgradeBackgroundRound(m libkb.MetaContext) error {
 	if !m.G().Env.GetUpgradePerUserKey() {
-		m.CDebugf("PerUserKeyUpgradeBackground disabled")
+		m.Debug("PerUserKeyUpgradeBackground disabled")
 		return nil
 	}
 
 	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "PerUserKeyUpgradeBackgroundRound") {
-		m.CDebugf("PerUserKeyUpgradeBackground yielding to guard")
+		m.Debug("PerUserKeyUpgradeBackground yielding to guard")
 		return nil
 	}
 
 	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
-		m.CDebugf("PerUserKeyUpgradeBackground giving up offline")
+		m.Debug("PerUserKeyUpgradeBackground giving up offline")
 		return nil
 	}
 
 	// Do a fast local check to see if our work is done.
 	pukring, err := m.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
-		m.CDebugf("PerUserKeyUpgradeBackground error getting keyring: %v", err)
+		m.Debug("PerUserKeyUpgradeBackground error getting keyring: %v", err)
 		// ignore error
 	}
 	if err == nil {
 		if pukring.HasAnyKeys() {
-			m.CDebugf("PerUserKeyUpgradeBackground already has keys")
+			m.Debug("PerUserKeyUpgradeBackground already has keys")
 			return nil
 		}
 	}

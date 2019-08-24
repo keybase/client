@@ -5,7 +5,7 @@ Install xcode
 
 1. `yarn rn-gobuild-ios`  (build the go library)
 1. `yarn rn-start ios` (start the packager)
-1. `open react-native/ios/Keybase.xcworkspace` (Open workspace (not xcodeproj))
+1. `open ios/Keybase.xcworkspace` (Open workspace (not xcodeproj))
 1. In xcode, select the target `Keybase` and run.
 
 
@@ -29,7 +29,7 @@ Keybase team. Once you accept the invite, you should be able to
 connect your phone to your computer and get XCode to build onto it.
 
 However, you first have to edit
-`react-native/ios/Keybase/AppDelegate.m` to use the bundler running on
+`ios/Keybase/AppDelegate.m` to use the bundler running on
 your computer. Look for the comment "Uncomment for prod JS in dev
 mode" and follow the instructions there.
 
@@ -70,6 +70,10 @@ the easiest way to fix it is simply to install watchman:
 ```
 brew install watchman
 ```
+
+## clang: error: no such file or directory: ... 
+
+If you have Xcode 10 or later and see an error that `.../node_modules/react-native/third-party/double-conversion-1.1.6/src/strtod.cc` is missing, set Build System to `Legacy Build System` under file -> Workspace Settings.
 
 ## Also see general react-native troubleshooting
 [Here](../react-native/troubleshooting.md)

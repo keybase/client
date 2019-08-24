@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"golang.org/x/net/context"
@@ -72,9 +73,24 @@ func realMain() (exitStatus int) {
 
 	log := logger.New("")
 
-	// Turn these off to not interfere with a running kbfs daemon.
+	tempDir, err := ioutil.TempDir(kbCtx.GetDataDir(), "kbfstool")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer func() {
+		rmErr := os.RemoveAll(tempDir)
+		if rmErr != nil {
+			fmt.Fprintf(os.Stderr,
+				"Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+		}
+	}()
+
+	// Turn these off, and use a temp dir for the storage root, to not
+	// interfere with a running kbfs daemon.
 	kbfsParams.EnableJournal = false
 	kbfsParams.DiskCacheMode = libkbfs.DiskCacheModeOff
+	kbfsParams.Mode = libkbfs.InitSingleOpString
+	kbfsParams.StorageRoot = tempDir
 
 	ctx := context.Background()
 	config, err := libkbfs.Init(ctx, kbCtx, *kbfsParams, nil, nil, log)

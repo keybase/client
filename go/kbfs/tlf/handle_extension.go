@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	kbname "github.com/keybase/client/go/kbun"
@@ -32,6 +33,9 @@ const (
 	handleExtensionUsernameRegex = "[a-z0-9_]+"
 	// HandleExtensionConflictString is the string identifying a conflict extension.
 	handleExtensionConflictString = "conflicted copy"
+	// HandleExtensionLocalConflictString is the string identifying a
+	// conflict extension for a local-only conflict branch of a TLF.
+	handleExtensionLocalConflictString = "local conflicted copy"
 	// HandleExtensionFinalizedString is the format string identifying a finalized extension.
 	handleExtensionFinalizedString = "files before %saccount reset"
 	// HandleExtensionFormat is the formate string for a HandleExtension.
@@ -50,6 +54,9 @@ const (
 	// HandleExtensionFinalized means the folder ended up with no more valid writers as
 	// a result of an account reset.
 	HandleExtensionFinalized
+	// HandleExtensionLocalConflict means the handle conflicted as a
+	// result of a local conflict branch.
+	HandleExtensionLocalConflict
 	// HandleExtensionUnknown means the type is unknown.
 	HandleExtensionUnknown
 )
@@ -60,7 +67,9 @@ var handleExtensionFinalizedStringRegex = fmt.Sprintf(
 )
 
 // HandleExtensionTypeRegex is the regular expression matching the HandleExtension string.
-var handleExtensionTypeRegex = handleExtensionConflictString + "|" + handleExtensionFinalizedStringRegex
+var handleExtensionTypeRegex = handleExtensionConflictString + "|" +
+	handleExtensionLocalConflictString + "|" +
+	handleExtensionFinalizedStringRegex
 
 // HandleExtensionFinalizedRegex is the compiled regular expression matching a finalized
 // handle extension.
@@ -73,6 +82,8 @@ func (et HandleExtensionType) String(username kbname.NormalizedUsername) string 
 	switch et {
 	case HandleExtensionConflict:
 		return handleExtensionConflictString
+	case HandleExtensionLocalConflict:
+		return handleExtensionLocalConflictString
 	case HandleExtensionFinalized:
 		if len(username) != 0 {
 			username += " "
@@ -86,6 +97,8 @@ func (et HandleExtensionType) String(username kbname.NormalizedUsername) string 
 func parseHandleExtensionString(s string) (HandleExtensionType, kbname.NormalizedUsername) {
 	if handleExtensionConflictString == s {
 		return HandleExtensionConflict, ""
+	} else if handleExtensionLocalConflictString == s {
+		return HandleExtensionLocalConflict, ""
 	}
 	m := handleExtensionFinalizedRegex.FindStringSubmatch(s)
 	if len(m) < 2 {
@@ -265,9 +278,13 @@ func (l HandleExtensionList) Swap(i, j int) {
 func (l HandleExtensionList) Splat() (ci, fi *HandleExtension) {
 	for _, extension := range l {
 		tmp := extension
-		if extension.Type == HandleExtensionConflict {
+		switch extension.Type {
+		case HandleExtensionConflict, HandleExtensionLocalConflict:
+			if ci != nil {
+				panic("Conflict extension already exists")
+			}
 			ci = &tmp
-		} else if extension.Type == HandleExtensionFinalized {
+		case HandleExtensionFinalized:
 			fi = &tmp
 		}
 	}
@@ -284,4 +301,10 @@ func (l HandleExtensionList) Suffix() string {
 // team, since there aren't any suffixes for regulat teams).
 func (l HandleExtensionList) SuffixForTeamHandle() string {
 	return newHandleExtensionSuffix(l, true)
+}
+
+// ContainsLocalConflictExtensionPrefix returns true if the string
+// contains the local conflict string.
+func ContainsLocalConflictExtensionPrefix(s string) bool {
+	return strings.Contains(s, "("+handleExtensionLocalConflictString)
 }

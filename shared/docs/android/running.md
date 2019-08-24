@@ -4,7 +4,7 @@
 1. `adb reverse tcp:8081 tcp:8081` (port forward so react-native can reach its packager)
 1. `yarn rn-gobuild-android`  (build the go library)
 1. `yarn rn-start android` (start the packager)
-1. `yarn rn-build-android` (builds the apk. or `gradle installDebug` inside react-native/android)
+1. `yarn rn-build-android` (builds the apk. or `gradle installDebug` inside android)
 1. `yarn rn-push-android` (To install the apk on the device. NOTE: `gradle installDebug` does this automatically)
 
 # Building the Go Library
@@ -57,6 +57,16 @@ yes:
 
   yes:
     You're in uncharted territories. Try using the java debugger in android studio and setting a break point in react-native's BundleDownloader and reading the actual error since it might be more informative than rn's generic handler. After you fix it, come back and update this page!
+
+## Can't find variable: Promise
+
+Same as below.
+
+
+## React Native version mismatch
+
+
+`yarn rn-build-clean-android`
 
 
 ## Hot reloading / File Watching

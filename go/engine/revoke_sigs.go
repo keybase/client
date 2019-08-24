@@ -96,12 +96,12 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	sig, _, linkID, err := libkb.SignJSON(proof.J, sigKey)
 	if err != nil {
 		return err
 	}
 	kid := sigKey.GetKID()
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -109,11 +109,10 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 			"sig":                libkb.S{Val: sig},
 			"downgrade_lease_id": libkb.S{Val: string(lease.LeaseID)},
 		},
-		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return libkb.MerkleCheckPostedUserSig(m, me.GetUID(), proof.Seqno, linkID)
 }

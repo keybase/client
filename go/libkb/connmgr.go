@@ -22,12 +22,17 @@ type ConnectionID int
 // true to keep going and false to stop.
 type ApplyFn func(i ConnectionID, xp rpc.Transporter) bool
 
+// ApplyDetailsFn can be applied to every connection. It is called with the
+// RPC transporter, and also the connectionID. It should return a bool
+// true to keep going and false to stop.
+type ApplyDetailsFn func(i ConnectionID, xp rpc.Transporter, details *keybase1.ClientDetails) bool
+
 // LabelCb is a callback to be run when a client connects and labels itself.
 type LabelCb func(typ keybase1.ClientType)
 
 type rpcConnection struct {
 	transporter rpc.Transporter
-	details     *keybase1.ClientDetails
+	details     *keybase1.ClientStatus
 }
 
 // ConnectionManager manages all active connections for a given service.
@@ -83,7 +88,7 @@ func (c *ConnectionManager) LookupByClientType(clientType keybase1.ClientType) r
 	c.Lock()
 	defer c.Unlock()
 	for _, v := range c.lookup {
-		if v.details != nil && v.details.ClientType == clientType {
+		if v.details != nil && v.details.Details.ClientType == clientType {
 			return v.transporter
 		}
 	}
@@ -96,7 +101,10 @@ func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) err
 
 	var err error
 	if conn := c.lookup[id]; conn != nil {
-		conn.details = &d
+		conn.details = &keybase1.ClientStatus{
+			Details:      d,
+			ConnectionID: int(id),
+		}
 	} else {
 		err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}
 	}
@@ -117,7 +125,7 @@ func (c *ConnectionManager) RegisterLabelCallback(f LabelCb) {
 
 func (c *ConnectionManager) hasClientType(clientType keybase1.ClientType) bool {
 	for _, con := range c.ListAllLabeledConnections() {
-		if clientType == con.ClientType {
+		if clientType == con.Details.ClientType {
 			return true
 		}
 	}
@@ -144,7 +152,7 @@ func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, ti
 	}
 }
 
-func (c *ConnectionManager) ListAllLabeledConnections() (ret []keybase1.ClientDetails) {
+func (c *ConnectionManager) ListAllLabeledConnections() (ret []keybase1.ClientStatus) {
 	c.Lock()
 	defer c.Unlock()
 	for _, v := range c.lookup {
@@ -156,11 +164,11 @@ func (c *ConnectionManager) ListAllLabeledConnections() (ret []keybase1.ClientDe
 	return ret
 }
 
-type byClientType []keybase1.ClientDetails
+type byClientType []keybase1.ClientStatus
 
 func (a byClientType) Len() int           { return len(a) }
 func (a byClientType) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byClientType) Less(i, j int) bool { return a[i].ClientType < a[j].ClientType }
+func (a byClientType) Less(i, j int) bool { return a[i].Details.ClientType < a[j].Details.ClientType }
 
 // ApplyAll applies the given function f to all connections in the table.
 // If you're going to do something blocking, please do it in a GoRoutine,
@@ -170,6 +178,24 @@ func (c *ConnectionManager) ApplyAll(f ApplyFn) {
 	defer c.Unlock()
 	for k, v := range c.lookup {
 		if !f(k, v.transporter) {
+			break
+		}
+	}
+}
+
+// ApplyAllDetails applies the given function f to all connections in the table.
+// If you're going to do something blocking, please do it in a GoRoutine,
+// since we're holding the lock for all connections as we do this.
+func (c *ConnectionManager) ApplyAllDetails(f ApplyDetailsFn) {
+	c.Lock()
+	defer c.Unlock()
+	for k, v := range c.lookup {
+		status := v.details
+		var details *keybase1.ClientDetails
+		if status != nil {
+			details = &status.Details
+		}
+		if !f(k, v.transporter, details) {
 			break
 		}
 	}

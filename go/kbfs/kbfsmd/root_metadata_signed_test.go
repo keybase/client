@@ -45,7 +45,8 @@ func testRootMetadataSignedFinalVerify(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// verify it
-	err = rmds.IsValidAndSigned(ctx, codec, nil, extra)
+	err = rmds.IsValidAndSigned(
+		ctx, codec, nil, extra, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	ext, err := tlf.NewHandleExtension(
@@ -57,7 +58,8 @@ func testRootMetadataSignedFinalVerify(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// verify the finalized copy
-	err = rmds2.IsValidAndSigned(ctx, codec, nil, extra)
+	err = rmds2.IsValidAndSigned(
+		ctx, codec, nil, extra, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	// touch something the server shouldn't be allowed to edit for
@@ -67,7 +69,8 @@ func testRootMetadataSignedFinalVerify(t *testing.T, ver MetadataVer) {
 	md3.SetRekeyBit()
 	rmds3 := rmds2
 	rmds2.MD = md3
-	err = rmds3.IsValidAndSigned(ctx, codec, nil, extra)
+	err = rmds3.IsValidAndSigned(
+		ctx, codec, nil, extra, keybase1.OfflineAvailability_NONE)
 	require.NotNil(t, err)
 }
 

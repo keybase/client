@@ -12,6 +12,7 @@ func Inflation(muts ...interface{}) (result InflationBuilder) {
 }
 
 // InflationBuilder represents an operation that is being built.
+// Deprecated use txnbuild.Inflation instead
 type InflationBuilder struct {
 	O   xdr.Operation
 	Err error

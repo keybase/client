@@ -44,9 +44,12 @@ func TestFetchRetry(t *testing.T) {
 
 	var convIDs []chat1.ConversationID
 	var convs []chat1.Conversation
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username))
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username)
+	convs = append(convs, conv)
 	for _, conv := range convs {
 		convIDs = append(convIDs, conv.GetConvID())
 	}
@@ -58,7 +61,8 @@ func TestFetchRetry(t *testing.T) {
 	errorRI := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: errorClient{}} }
 	tc.ChatG.ConvSource.SetRemoteInterface(errorRI)
 
-	inbox, _, err := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	inbox, _, err := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: convIDs,
 		}, nil)

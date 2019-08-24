@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 	"errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -36,14 +37,14 @@ func newProvisionalLoginContextWithUserVersionAndUsername(m MetaContext, uv keyb
 }
 
 func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
-	m.CDebugf("%sUsername: %s", prefix, p.username)
-	m.CDebugf("%sUserVersion: %v", prefix, p.uv)
+	m.Debug("%sUsername: %s", prefix, p.username)
+	m.Debug("%sUserVersion: %v", prefix, p.uv)
 	if p.salt != nil {
-		m.CDebugf("%sSalt: %s", prefix, hex.EncodeToString(p.salt))
+		m.Debug("%sSalt: %s", prefix, hex.EncodeToString(p.salt))
 	}
-	m.CDebugf("%sPassphraseCache: %v", prefix, (p.streamCache != nil))
-	m.CDebugf("%sLocalSession: %v", prefix, (p.localSession != nil))
-	m.CDebugf("%sLoginSession: %v", prefix, (p.loginSession != nil))
+	m.Debug("%sPassphraseCache: %v", prefix, (p.streamCache != nil))
+	m.Debug("%sLocalSession: %v", prefix, (p.localSession != nil))
+	m.Debug("%sLoginSession: %v", prefix, (p.loginSession != nil))
 }
 
 func (p *ProvisionalLoginContext) LoggedInLoad() (bool, error) {
@@ -109,7 +110,7 @@ func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uv keyb
 }
 
 func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uv keybase1.UserVersion, deviceID keybase1.DeviceID) (err error) {
-	defer p.M().CTrace("ProvisionalLoginContext#SaveState", func() error { return err })()
+	defer p.M().Trace("ProvisionalLoginContext#SaveState", func() error { return err })()
 	if err := p.assertNotReused(username, uv); err != nil {
 		return err
 	}
@@ -119,15 +120,15 @@ func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username Nor
 }
 
 func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
-	defer m.CTrace("ProvisionalLoginContext#Keyring", func() error { return err })()
+	defer m.Trace("ProvisionalLoginContext#Keyring", func() error { return err })()
 	if p.skbKeyring != nil {
 		return p.skbKeyring, nil
 	}
 	if p.username.IsNil() {
-		p.M().CInfof("ProvisionalLoginContext#Keyring: no username set")
+		p.M().Info("ProvisionalLoginContext#Keyring: no username set")
 		return nil, NewNoUsernameError()
 	}
-	p.M().CDebugf("Account: loading keyring for %s", p.username)
+	p.M().Debug("Account: loading keyring for %s", p.username)
 	ret, err = LoadSKBKeyring(p.username, p.M().G())
 	if err != nil {
 		return nil, err

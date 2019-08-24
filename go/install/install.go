@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/utils"
 )
 
 // Log is the logging interface for this package
@@ -133,7 +133,8 @@ func ComponentNameFromString(s string) ComponentName {
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string, log Log) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
-	if version != "" && bundleVersion != "" {
+	switch {
+	case version != "" && bundleVersion != "":
 		sv, err := semver.Make(version)
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
@@ -149,21 +150,22 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			status = keybase1.StatusFromCode(keybase1.StatusCode_SCInvalidVersionError, err.Error())
 			return
 		}
-		if bsv.GT(sv) {
+		switch {
+		case bsv.GT(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_UPGRADE
-		} else if bsv.EQ(sv) {
+		case bsv.EQ(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
-		} else if bsv.LT(sv) {
+		case bsv.LT(sv):
 			// It's ok if we have a bundled version less than what was installed
 			log.Warning("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
 		}
-	} else if version != "" && bundleVersion == "" {
+	case version != "" && bundleVersion == "":
 		installStatus = keybase1.InstallStatus_INSTALLED
-	} else if version == "" && bundleVersion != "" {
+	case version == "" && bundleVersion != "":
 		installStatus = keybase1.InstallStatus_NOT_INSTALLED
 		installAction = keybase1.InstallAction_INSTALL
 	}
@@ -194,7 +196,7 @@ func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	return kbfsVersion, nil
 }
 
-func createCommandLine(binPath string, linkPath string, log Log) error {
+func createCommandLine(binPath string, linkPath string, log Log) error { //nolint
 	if _, err := os.Lstat(linkPath); err == nil {
 		err := os.Remove(linkPath)
 		if err != nil {
@@ -206,7 +208,7 @@ func createCommandLine(binPath string, linkPath string, log Log) error {
 	return os.Symlink(binPath, linkPath)
 }
 
-func defaultLinkPath() (string, error) {
+func defaultLinkPath() (string, error) { //nolint
 	if runtime.GOOS == "windows" {
 		return "", fmt.Errorf("Unsupported on Windows")
 	}
@@ -218,7 +220,7 @@ func defaultLinkPath() (string, error) {
 	return linkPath, nil
 }
 
-func uninstallLink(linkPath string, log Log) error {
+func uninstallLink(linkPath string, log Log) error { //nolint
 	log.Debug("Link path: %s", linkPath)
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -233,7 +235,7 @@ func uninstallLink(linkPath string, log Log) error {
 	return os.Remove(linkPath)
 }
 
-func uninstallCommandLine(log Log) error {
+func uninstallCommandLine(log Log) error { //nolint
 	linkPath, err := defaultLinkPath()
 	if err != nil {
 		return nil
@@ -257,12 +259,13 @@ func chooseBinPath(bp string) (string, error) {
 	return BinPath()
 }
 
-// BinPath returns path to the keybase executable
+// BinPath returns path to the keybase executable. If the executable path is a
+// symlink, the target path is returned.
 func BinPath() (string, error) {
-	return osext.Executable()
+	return utils.BinPath()
 }
 
-func binName() (string, error) {
+func binName() (string, error) { //nolint
 	path, err := BinPath()
 	if err != nil {
 		return "", err

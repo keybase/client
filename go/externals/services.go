@@ -6,6 +6,7 @@ package externals
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"strings"
 	"sync"
 
@@ -16,59 +17,15 @@ import (
 // SupportedVersion is which version of ParamProofs is supported by this client.
 const SupportedVersion int = 1
 
-// staticProofServies are only used for testing or for basic assertion
-// validation
-type staticProofServices struct {
-	externalServices map[string]libkb.ServiceType
-}
-
-func newStaticProofServices() libkb.ExternalServicesCollector {
-	staticServices := getStaticProofServices()
-	p := staticProofServices{
-		externalServices: make(map[string]libkb.ServiceType),
-	}
-	p.register(staticServices)
-	return &p
-}
-
-func (p *staticProofServices) register(services []libkb.ServiceType) {
-	for _, st := range services {
-		if !useDevelProofCheckers && st.IsDevelOnly() {
-			continue
-		}
-		p.externalServices[st.Key()] = st
-	}
-}
-
-func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
-	return p.externalServices[strings.ToLower(s)]
-}
-
-func (p *staticProofServices) ListProofCheckers() []string {
-	var ret []string
-	for k := range p.externalServices {
-		ret = append(ret, k)
-	}
-	return ret
-}
-
-func (p *staticProofServices) ListServicesThatAcceptNewProofs() []string {
-	var ret []string
-	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs() {
-			ret = append(ret, k)
-		}
-	}
-	return ret
-}
-
 // Contains both the statically known services and loads the configurations for
 // known services from the server
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
-	externalServices map[string]libkb.ServiceType
-	loaded           bool
+	loadedHash       *keybase1.MerkleStoreKitHash
+	externalServices map[string]libkb.ServiceType // map keys are ServiceType.Key()
+	displayConfigs   map[string]keybase1.ServiceDisplayConfig
+	suggestionFold   int
 }
 
 func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
@@ -79,13 +36,15 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 	p := &proofServices{
 		Contextified:     libkb.NewContextified(g),
 		externalServices: make(map[string]libkb.ServiceType),
+		displayConfigs:   make(map[string]keybase1.ServiceDisplayConfig),
 	}
-
-	staticServices := getStaticProofServices()
-	p.Lock()
-	defer p.Unlock()
-	p.registerServiceTypes(staticServices)
+	p.registerServiceTypes(getStaticProofServices())
 	return p
+}
+
+func (p *proofServices) clearServiceTypes() {
+	p.externalServices = make(map[string]libkb.ServiceType)
+	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
 }
 
 func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
@@ -97,17 +56,17 @@ func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
 	}
 }
 
-func (p *proofServices) GetServiceType(s string) libkb.ServiceType {
+func (p *proofServices) GetServiceType(ctx context.Context, s string) libkb.ServiceType {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(p.MetaContext(ctx))
 	return p.externalServices[strings.ToLower(s)]
 }
 
-func (p *proofServices) ListProofCheckers() []string {
+func (p *proofServices) ListProofCheckers(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(mctx)
 	var ret []string
 	for k := range p.externalServices {
 		ret = append(ret, k)
@@ -115,79 +74,127 @@ func (p *proofServices) ListProofCheckers() []string {
 	return ret
 }
 
-func (p *proofServices) ListServicesThatAcceptNewProofs() []string {
-	p.Lock()
-	defer p.Unlock()
-	p.loadServiceConfigs()
-	var ret []string
-	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs() {
-			ret = append(ret, k)
-		}
-	}
-	return ret
+type serviceAndPriority struct {
+	name     string
+	priority int
 }
 
-func (p *proofServices) loadServiceConfigs() {
-	// TODO Remove with CORE-8969
-	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
+func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) []string {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs(mctx)
+	var services []serviceAndPriority
+	experimentalGenericProofs := mctx.G().FeatureFlags.Enabled(mctx, libkb.ExperimentalGenericProofs)
+	for k, v := range p.externalServices {
+		if experimentalGenericProofs || v.CanMakeNewProofsSkipFeatureFlag(mctx) {
+			s := serviceAndPriority{name: k, priority: v.DisplayPriority()}
+			services = append(services, s)
+		}
+	}
+	sort.Slice(services, func(i, j int) bool {
+		return services[i].priority < services[j].priority
+	})
+	var serviceNames []string
+	for _, service := range services {
+		serviceNames = append(serviceNames, service.name)
+	}
+	return serviceNames
+}
 
-	if !shouldRun {
-		return
+func (p *proofServices) ListDisplayConfigs(mctx libkb.MetaContext) (res []keybase1.ServiceDisplayConfig) {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs(mctx)
+	for _, config := range p.displayConfigs {
+		res = append(res, config)
 	}
+	return res
+}
 
-	mctx := libkb.NewMetaContext(context.TODO(), p.G())
-	entry, err := p.G().GetParamProofStore().GetLatestEntry(mctx)
+func (p *proofServices) SuggestionFoldPriority(mctx libkb.MetaContext) int {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs(mctx)
+	return p.suggestionFold
+}
+
+func (p *proofServices) loadServiceConfigs(mctx libkb.MetaContext) {
+	tracer := p.G().CTimeTracer(mctx.Ctx(), "proofServices.loadServiceConfigs", false)
+	defer tracer.Finish()
+
+	entry, err := p.G().GetParamProofStore().GetLatestEntryWithKnown(mctx, p.loadedHash)
 	if err != nil {
-		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
+		mctx.Debug("unable to load paramproofs: %v", err)
 		return
 	}
-	proofConfigs, displayConfigs, err := p.parseServiceConfigs(entry)
-	if err != nil {
-		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
+	if entry == nil {
+		// Latest config already loaded.
 		return
 	}
+	defer mctx.TraceTimed("proofServices.loadServiceConfigsBulk", func() error { return err })()
+	tracer.Stage("parse")
+	config, err := p.parseServerConfig(mctx, *entry)
+	if err != nil {
+		mctx.Debug("unable to parse paramproofs: %v", err)
+		return
+	}
+	tracer.Stage("fill")
+	p.suggestionFold = config.SuggestionFold
 	services := []libkb.ServiceType{}
-	for _, config := range proofConfigs {
+	for _, config := range config.ProofConfigs {
 		services = append(services, NewGenericSocialProofServiceType(config))
 	}
+	tracer.Stage("register")
+	p.clearServiceTypes()
+	p.registerServiceTypes(getStaticProofServices())
 	p.registerServiceTypes(services)
-	for _, config := range displayConfigs {
+	tracer.Stage("disp")
+	for _, config := range config.DisplayConfigs {
+		p.displayConfigs[config.Key] = *config
 		if service, ok := p.externalServices[config.Key]; ok {
 			service.SetDisplayConfig(config)
 		}
 	}
+	p.loadedHash = &entry.Hash
+}
+
+type parsedServerConfig struct {
+	SuggestionFold int
+	ProofConfigs   []*GenericSocialProofConfig
+	DisplayConfigs []*keybase1.ServiceDisplayConfig
 }
 
 type proofServicesT struct {
-	Services []keybase1.ExternalServiceConfig `json:"services"`
+	SuggestionFold int                              `json:"suggestion_fold"`
+	Services       []keybase1.ExternalServiceConfig `json:"services"`
 }
 
-func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (proofConfigs []*GenericSocialProofConfig, displayConfigs []*keybase1.ServiceDisplayConfig, err error) {
+func (p *proofServices) parseServerConfig(mctx libkb.MetaContext, entry keybase1.MerkleStoreEntry) (res parsedServerConfig, err error) {
 	b := []byte(entry.Entry)
 	services := proofServicesT{}
 
 	if err := json.Unmarshal(b, &services); err != nil {
-		return nil, nil, err
+		return res, err
 	}
 
+	res.SuggestionFold = services.SuggestionFold
 	for _, service := range services.Services {
 		if service.Config != nil {
 			// Do some basic validation of what we parsed
 			validConf, err := NewGenericSocialProofConfig(p.G(), *service.Config)
 			if err != nil {
-				p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", service.Config.DisplayName, err)
+				mctx.Debug("Unable to validate config for %s: %v", service.Config.DisplayName, err)
 				continue
 			}
-			proofConfigs = append(proofConfigs, validConf)
+			res.ProofConfigs = append(res.ProofConfigs, validConf)
 		}
 		if service.Display != nil {
 			if service.Config != nil && service.Config.Domain != service.Display.Key {
-				p.G().Log.CDebugf(context.TODO(), "Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
+				mctx.Debug("Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
 				continue
 			}
-			displayConfigs = append(displayConfigs, service.Display)
+			res.DisplayConfigs = append(res.DisplayConfigs, service.Display)
 		}
 	}
-	return proofConfigs, displayConfigs, nil
+	return res, nil
 }

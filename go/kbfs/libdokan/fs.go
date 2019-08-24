@@ -14,10 +14,13 @@ import (
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -26,6 +29,7 @@ import (
 type FS struct {
 	config libkbfs.Config
 	log    logger.Logger
+	vlog   *libkb.VDebugLog
 	// renameAndDeletionLock should be held when doing renames or deletions.
 	renameAndDeletionLock sync.Mutex
 
@@ -52,11 +56,14 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	if currentUserSIDErr != nil {
 		return nil, currentUserSIDErr
 	}
+	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FS"))
 	f := &FS{
 		config:        config,
 		log:           log,
+		vlog:          config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
-		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
+		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
 	}
 
 	f.root = &Root{
@@ -110,8 +117,8 @@ func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFu
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
 			ctx, _ = context.WithDeadline(ctx, start.Add(29*time.Second))
 			return ctx
@@ -161,7 +168,7 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 	}
 	defer func() {
 		if err == nil {
-			f.log.CDebugf(ctx, "Request complete")
+			f.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		} else {
 			// Don't report the error (perhaps resulting in a user
 			// notification) since this method is mostly called by the
@@ -216,11 +223,7 @@ func (oc *openContext) isCreation() bool {
 	return false
 }
 func (oc *openContext) isExistingError() bool {
-	switch oc.CreateDisposition {
-	case dokan.FileCreate:
-		return true
-	}
-	return false
+	return oc.CreateDisposition == dokan.FileCreate
 }
 
 // isTruncate checks the flags whether a file truncation is wanted.
@@ -255,10 +258,6 @@ func (oc *openContext) returnFileNoCleanup(f dokan.File) (
 		return nil, 0, err
 	}
 	return f, dokan.ExistingFile, nil
-}
-
-func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
 }
 
 func newSyntheticOpenContext() *openContext {
@@ -297,7 +296,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, dokan.CreateStatus, error) {
-	f.log.CDebugf(ctx, "FS Open: %q", ps)
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS Open: %q", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
@@ -355,6 +354,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return oc.returnFileNoCleanup(NewUserEditHistoryFile(&Folder{fs: f}))
 
 	case ".kbfs_unmount" == ps[0]:
+		f.log.CDebugf(ctx, "Exiting due to .kbfs_unmount")
+		logger.Shutdown()
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
 		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
@@ -425,7 +426,9 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
 
-	f.log.CDebugf(ctx, "MoveFile %T %q -> %q", src, sourceFI.Path(), targetPath)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "MoveFile %T %q -> %q", src,
+		sourceFI.Path(), targetPath)
 	// isPotentialRenamePath filters out some special paths
 	// for rename. Especially those provided by fakeroot.go.
 	if !isPotentialRenamePath(sourceFI.Path()) {
@@ -479,7 +482,9 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
 	dstDir, dstCst, err := f.open(ctx, oc, dstDirPath)
-	f.log.CDebugf(ctx, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstCst, err, dstDir)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T",
+		dstDirPath, dstDir, dstCst, err, dstDir)
 	if err != nil {
 		return err
 	}
@@ -521,7 +526,10 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 			defer x.Cleanup(ctx, nil)
 		}
 		if !isNoSuchNameError(err) {
-			f.log.CDebugf(ctx, "FS MoveFile required non-existent destination, got: %T %v", err, err)
+			f.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"FS MoveFile required non-existent destination, got: %T %v",
+				err, err)
 			return dokan.ErrObjectNameCollision
 		}
 
@@ -535,9 +543,12 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// it is there in the first place, by its Forget
 
 	dstName := dstPath[len(dstPath)-1]
-	f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstName)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)",
+		srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
-		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
+		ctx, srcParent, srcParent.ChildName(srcName), ddst.node,
+		ddst.node.ChildName(dstName)); err != nil {
 		f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename FAILED %v", err)
 		return err
 	}
@@ -551,7 +562,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		x.name = dstName
 	}
 
-	f.log.CDebugf(ctx, "FS MoveFile SUCCESS")
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile SUCCESS")
 	return nil
 }
 
@@ -567,14 +578,14 @@ func isPotentialRenamePath(s string) bool {
 
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
 	ef, ok := src.(*EmptyFolder)
-	f.log.CDebugf(ctx, "FS MoveFile folderlist %v", ef)
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist %v", ef)
 	if !ok || !isNewFolderName(srcName) {
 		return dokan.ErrAccessDenied
 	}
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
-	if _, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, f.config.KBPKI(), f.config.MDOps(), dstName,
+	if _, err := tlfhandle.ParseHandlePreferred(
+		ctx, f.config.KBPKI(), f.config.MDOps(), f.config, dstName,
 		fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound
 	}
@@ -582,7 +593,9 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	fl.mu.Unlock()
 	if !replaceExisting && ok {
-		f.log.CDebugf(ctx, "FS MoveFile folderlist refusing to replace target")
+		f.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"FS MoveFile folderlist refusing to replace target")
 		return dokan.ErrAccessDenied
 	}
 	// Perhaps create destination by opening it.
@@ -595,10 +608,10 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	delete(fl.folders, srcName)
 	if !ok {
-		f.log.CDebugf(ctx, "FS MoveFile folderlist adding target")
+		f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist adding target")
 		fl.folders[dstName] = ef
 	}
-	f.log.CDebugf(ctx, "FS MoveFile folderlist success")
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist success")
 	return nil
 }
 
@@ -608,7 +621,7 @@ func (f *FS) queueNotification(fn func()) {
 
 func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
-		f.log.CDebugf(ctx, "Request complete")
+		f.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return
 	}
 
@@ -627,11 +640,11 @@ func (f *FS) NotificationGroupWait() {
 }
 
 func (f *FS) logEnter(ctx context.Context, s string) {
-	f.log.CDebugf(ctx, "=> %s", s)
+	f.vlog.CLogf(ctx, libkb.VLog1, "=> %s", s)
 }
 
 func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
-	f.log.CDebugf(ctx, "=> "+fmt, args...)
+	f.vlog.CLogf(ctx, libkb.VLog1, "=> "+fmt, args...)
 }
 
 // UserChanged is called from libfs.

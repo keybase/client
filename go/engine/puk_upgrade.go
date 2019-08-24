@@ -53,7 +53,7 @@ func (e *PerUserKeyUpgrade) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyUpgrade) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PerUserKeyUpgrade", func() error { return err })()
+	defer m.Trace("PerUserKeyUpgrade", func() error { return err })()
 	return e.inner(m)
 }
 
@@ -62,14 +62,14 @@ func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
 		return fmt.Errorf("per-user-key upgrade is disabled")
 	}
 
-	m.CDebugf("PerUserKeyUpgrade load self")
+	m.Debug("PerUserKeyUpgrade load self")
 
 	uid := m.G().GetMyUID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
 
-	m.CDebugf("PerUserKeyUpgrade upgrading: %d", uid)
+	m.Debug("PerUserKeyUpgrade upgrading: %d", uid)
 
 	loadArg := libkb.NewLoadUserArgWithMetaContext(m).
 		WithUID(uid).
@@ -81,13 +81,13 @@ func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
 	}
 	// `me` could be nil. Use the upak for quick checks and then pass maybe-nil `me` to the next engine.
 
-	m.CDebugf("PerUserKeyUpgrade check for key")
+	m.Debug("PerUserKeyUpgrade check for key")
 	if len(upak.Current.PerUserKeys) > 0 {
-		m.CDebugf("PerUserKeyUpgrade already has per-user-key")
+		m.Debug("PerUserKeyUpgrade already has per-user-key")
 		e.DidNewKey = false
 		return nil
 	}
-	m.CDebugf("PerUserKeyUpgrade has no per-user-key")
+	m.Debug("PerUserKeyUpgrade has no per-user-key")
 
 	// Make the key
 	arg := &PerUserKeyRollArgs{

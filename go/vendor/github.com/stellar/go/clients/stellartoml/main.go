@@ -3,7 +3,7 @@ package stellartoml
 import "net/http"
 
 // StellarTomlMaxSize is the maximum size of stellar.toml file
-const StellarTomlMaxSize = 5 * 1024
+const StellarTomlMaxSize = 100 * 1024
 
 // WellKnownPath represents the url path at which the stellar.toml file should
 // exist to conform to the federation protocol.
@@ -21,6 +21,11 @@ type Client struct {
 	// UseHTTP forces the client to resolve against servers using plain HTTP.
 	// Useful for debugging.
 	UseHTTP bool
+}
+
+type ClientInterface interface {
+	GetStellarToml(domain string) (*Response, error)
+	GetStellarTomlByAddress(addy string) (*Response, error)
 }
 
 // HTTP represents the http client that a stellertoml resolver uses to make http

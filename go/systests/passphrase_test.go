@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
@@ -19,9 +20,10 @@ import (
 
 func TestPassphraseChange(t *testing.T) {
 	tc := setupTest(t, "pp")
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -67,7 +69,7 @@ func TestPassphraseChange(t *testing.T) {
 	_, err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
 	require.Error(t, err, "old passphrase failed to verify")
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
@@ -119,11 +121,10 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	// Service contexts.
 	// Make a new context with cloneContext for each client session.
 	tc1 := setupTest(t, "ppa")
-	tc2 := setupTest(t, "ppb")
-	var tcClient *libkb.TestContext
-
 	defer tc1.Cleanup()
+	tc2 := setupTest(t, "ppb")
 	defer tc2.Cleanup()
+	var tcClient *libkb.TestContext
 
 	t.Logf("Starting services")
 	s1, err := startNewService(tc1)
@@ -135,6 +136,8 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Signup on tc1")
 	tcClient = cloneContext(tc1)
+	defer tcClient.Cleanup()
+
 	aSignupUI := signupUI{
 		info:         userInfo,
 		Contextified: libkb.NewContextified(tc1.G),
@@ -157,6 +160,8 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Login on tc2")
 	tcClient = cloneContext(tc2)
+	defer tcClient.Cleanup()
+
 	aProvisionUI := &testRecoverUIProvision{
 		username:   userInfo.username,
 		paperkey:   userInfo.displayedPaperKey,
@@ -184,14 +189,18 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Recover on tc2")
 	tcClient = cloneContext(tc2)
+	defer tcClient.Cleanup()
+
 	aRecoverUI := &testRecoverUIRecover{
 		Contextified: libkb.NewContextified(tc2.G),
 		passphrase:   newPassphrase,
 	}
 	aUI = genericUI{
-		g:          tc2.G,
-		TerminalUI: aRecoverUI,
-		SecretUI:   aRecoverUI,
+		g:           tc2.G,
+		TerminalUI:  aRecoverUI,
+		SecretUI:    aRecoverUI,
+		ProvisionUI: aRecoverUI,
+		LoginUI:     aRecoverUI,
 	}
 	tcClient.G.SetUI(&aUI)
 	recoverCmd := client.NewCmdPassphraseRecoverRunner(tcClient.G)
@@ -213,11 +222,11 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	require.Error(t, err, "old passphrase passed verification after passphrase change")
 
 	t.Logf("Stop tc1")
-	err = client.CtlServiceStop(tc1.G)
+	err = CtlStop(tc1.G)
 	require.NoError(t, err)
 
 	t.Logf("Stop tc2")
-	err = client.CtlServiceStop(tc2.G)
+	err = CtlStop(tc2.G)
 	require.NoError(t, err)
 
 	t.Logf("Waiting for services to stop")
@@ -284,9 +293,23 @@ func (r *testRecoverUIProvision) GetPassphrase(p keybase1.GUIEntryArg, terminal 
 	res.Passphrase = r.paperkey
 	return res, nil
 }
+func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+func (r *testRecoverUIProvision) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+func (r *testRecoverUIProvision) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
 
 type testRecoverUIRecover struct {
 	libkb.Contextified
+	kbtest.TestProvisionUI
+	libkb.TestLoginUI
 	passphrase string
 }
 

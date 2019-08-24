@@ -6,11 +6,15 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/chat/giphy"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -18,7 +22,6 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -27,6 +30,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const keyPrefixLen = 2
+
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentHTTPSrv struct {
@@ -34,96 +39,49 @@ type AttachmentHTTPSrv struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	endpoint        string
-	pendingEndpoint string
-	unfurlEndpoint  string
-	httpSrv         *kbhttp.Srv
-	urlMap          *lru.Cache
-	unfurlMap       *lru.Cache
-	fetcher         types.AttachmentFetcher
-	ri              func() chat1.RemoteInterface
+	endpoint           string
+	attachmentPrefix   string
+	pendingPrefix      string
+	unfurlPrefix       string
+	giphyPrefix        string
+	giphyGalleryPrefix string
+	giphySelectPrefix  string
+	urlMap             *lru.Cache
+	fetcher            types.AttachmentFetcher
+	ri                 func() chat1.RemoteInterface
+	httpSrv            *manager.Srv
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 
-func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
-	l, err := lru.New(10000)
-	if err != nil {
-		panic(err)
-	}
-	um, err := lru.New(200)
+func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher types.AttachmentFetcher,
+	ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
+	l, err := lru.New(2000)
 	if err != nil {
 		panic(err)
 	}
 	r := &AttachmentHTTPSrv{
-		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		endpoint:        "at",
-		pendingEndpoint: "pe",
-		unfurlEndpoint:  "uf",
-		ri:              ri,
-		urlMap:          l,
-		unfurlMap:       um,
-		fetcher:         fetcher,
+		Contextified:       globals.NewContextified(g),
+		DebugLabeler:       utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
+		endpoint:           "at",
+		attachmentPrefix:   "at",
+		pendingPrefix:      "pe",
+		unfurlPrefix:       "uf",
+		giphyPrefix:        "gf",
+		giphyGalleryPrefix: "gg",
+		giphySelectPrefix:  "gs",
+		ri:                 ri,
+		urlMap:             l,
+		fetcher:            fetcher,
+		httpSrv:            httpSrv,
 	}
-	r.initHTTPSrv()
-	r.startHTTPSrv()
-	g.PushShutdownHook(func() error {
-		r.httpSrv.Stop()
-		return nil
-	})
-	go r.monitorAppState()
-
+	r.httpSrv.HandleFunc(r.endpoint, manager.SrvTokenModeUnchecked, r.serve)
+	r.fetcher.OnStart(libkb.NewMetaContextTODO(g.ExternalG()))
 	return r
 }
 
-func (r *AttachmentHTTPSrv) monitorAppState() {
-	ctx := context.Background()
-	r.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
-	for {
-		state = <-r.G().AppState.NextUpdate(&state)
-		switch state {
-		case keybase1.AppState_FOREGROUND:
-			r.startHTTPSrv()
-		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
-			r.httpSrv.Stop()
-		}
-	}
-}
-
-func (r *AttachmentHTTPSrv) initHTTPSrv() {
-	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
-	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
-}
-
-func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	maxTries := 2
-	success := false
-	for i := 0; i < maxTries; i++ {
-		if err := r.httpSrv.Start(); err != nil {
-			if err == kbhttp.ErrPinnedPortInUse {
-				// If we hit this, just try again and get a different port.
-				// The advantage is that backing in and out of the thread will restore attachments,
-				// whereas if we do nothing you need to bkg/foreground.
-				r.Debug(context.TODO(),
-					"startHTTPSrv: pinned port taken error, re-initializing and trying again")
-				r.initHTTPSrv()
-				continue
-			}
-			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
-			break
-		}
-		success = true
-		break
-	}
-	if !success {
-		r.Debug(context.TODO(), "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
-		return
-	}
-	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
-	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
-	r.httpSrv.HandleFunc("/"+r.unfurlEndpoint, r.serveUnfurlAsset)
+func (r *AttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error {
+	return r.fetcher.OnDbNuke(mctx)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -131,7 +89,26 @@ func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 }
 
 func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
-	return libkb.RandHexString(prefix, 8)
+	return libkb.RandHexString(prefix, 32)
+}
+
+func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload interface{}) string {
+	if !r.httpSrv.Active() {
+		r.Debug(ctx, "getURL: http server failed to start earlier")
+		return ""
+	}
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "getURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	key, err := r.randURLKey(prefix)
+	if err != nil {
+		r.Debug(ctx, "getURL: failed to generate URL key: %s", err)
+		return ""
+	}
+	r.urlMap.Add(key, payload)
+	return fmt.Sprintf("http://%s/%s?key=%s", addr, r.endpoint, key)
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -139,37 +116,18 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	r.Lock()
 	defer r.Unlock()
 	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
-	if !r.httpSrv.Active() {
-		r.Debug(ctx, "GetURL: http server failed to start earlier")
-		return ""
-	}
-	addr, err := r.httpSrv.Addr()
-	if err != nil {
-		r.Debug(ctx, "GetURL: failed to get HTTP server address: %s", err)
-		return ""
-	}
-	key, err := r.randURLKey("at")
-	if err != nil {
-		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
-		return ""
-	}
-	r.urlMap.Add(key, chat1.ConversationIDMessageIDPair{
+	url := r.getURL(ctx, r.attachmentPrefix, chat1.ConversationIDMessageIDPair{
 		ConvID: convID,
 		MsgID:  msgID,
 	})
-	url := fmt.Sprintf("http://%s/%s?key=%s&prev=%v", addr, r.endpoint, key, preview)
+	url += fmt.Sprintf("&prev=%v", preview)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url
 }
 
 func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
 	defer r.Trace(ctx, func() error { return nil }, "GetPendingPreviewURL(%s)", outboxID)()
-	addr, err := r.httpSrv.Addr()
-	if err != nil {
-		r.Debug(ctx, "GetPendingPreviewURL: failed to get HTTP server address: %s", err)
-		return ""
-	}
-	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.pendingEndpoint, outboxID)
+	url := r.getURL(ctx, r.pendingPrefix, outboxID)
 	r.Debug(ctx, "GetPendingPreviewURL: handler URL: outboxID: %s %s", outboxID, url)
 	return url
 }
@@ -182,33 +140,44 @@ type unfurlAsset struct {
 func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
 	asset chat1.Asset) string {
 	defer r.Trace(ctx, func() error { return nil }, "GetUnfurlAssetURL")()
-	addr, err := r.httpSrv.Addr()
-	if err != nil {
-		r.Debug(ctx, "GetUnfurlAssetURL: failed to get HTTP server address: %s", err)
-		return ""
-	}
-	key, err := r.randURLKey("uf")
-	if err != nil {
-		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
-		return ""
-	}
-	r.unfurlMap.Add(key, unfurlAsset{
+	url := r.getURL(ctx, r.unfurlPrefix, unfurlAsset{
 		asset:  asset,
 		convID: convID,
 	})
-	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.unfurlEndpoint, key)
 	r.Debug(ctx, "GetUnfurlAssetURL: handler URL: %s", url)
 	return url
 }
 
-func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetGiphyURL")()
+	url := r.getURL(ctx, r.giphyPrefix, giphyURL)
+	r.Debug(ctx, "GetGiphyURL: handler URL: %s", url)
+	return url
+}
+
+func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName string, results []chat1.GiphySearchResult) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetGiphyGalleryURL")()
+	url := r.getURL(ctx, r.giphyGalleryPrefix, giphyGalleryInfo{
+		results: results,
+		convID:  convID,
+		tlfName: tlfName,
+	})
+	r.Debug(ctx, "GetGiphyGalleryURL: handler URL: %s", url)
+	return url
+}
+
+func (r *AttachmentHTTPSrv) servePendingPreview(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
-	strOutboxID := req.URL.Query().Get("key")
-	outboxID, err := chat1.MakeOutboxID(strOutboxID)
-	if err != nil {
-		r.makeError(ctx, w, http.StatusBadRequest, "invalid outbox ID: %s", err)
+	key := req.URL.Query().Get("key")
+	intOutboxID, ok := r.urlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusNotFound, "missing key: %s", key)
+		return
+	}
+	outboxID, ok := intOutboxID.(chat1.OutboxID)
+	if !ok {
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid outboxID")
 		return
 	}
 	pre, err := attachments.NewPendingPreviews(r.G()).Get(ctx, outboxID)
@@ -222,14 +191,12 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	}
 }
 
-func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
 	key := req.URL.Query().Get("key")
-	val, ok := r.unfurlMap.Get(key)
+	val, ok := r.urlMap.Get(key)
 	if !ok {
-		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
 		return
 	}
 	ua := val.(unfurlAsset)
@@ -251,6 +218,141 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
 			return
 		}
+	}
+}
+
+type giphyGalleryInfo struct {
+	results []chat1.GiphySearchResult
+	convID  chat1.ConversationID
+	tlfName string
+}
+
+func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName, targetURL string) string {
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "getGiphySelectURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	key, err := r.randURLKey(r.giphySelectPrefix)
+	if err != nil {
+		r.Debug(ctx, "getGiphySelectURL: failed to generate URL key: %s", err)
+		return ""
+	}
+	r.urlMap.Add(key, targetURL)
+	return fmt.Sprintf("http://%s/%s?url=%s&convID=%s&tlfName=%s&key=%s", addr, r.endpoint,
+		url.QueryEscape(targetURL), convID, tlfName, key)
+}
+
+func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.ResponseWriter,
+	req *http.Request) {
+	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallerySelect")()
+	url := req.URL.Query().Get("url")
+	strConvID := req.URL.Query().Get("convID")
+	tlfName := req.URL.Query().Get("tlfName")
+	key := req.URL.Query().Get("key")
+	if mapURL, ok := r.urlMap.Get(key); !ok || mapURL != url {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
+		return
+	}
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to decode convID: %s",
+			err)
+		return
+	}
+	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url, keybase1.TLFVisibility_PRIVATE); err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
+			err)
+	}
+	ui, err := r.G().UIRouter.GetChatUI()
+	if err == nil && ui != nil {
+		err := ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		if err != nil {
+			r.Debug(ctx, "serveGiphyGallerySelect: failed to toggle giphy: %s", err)
+		}
+	} else {
+		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
+	}
+}
+
+func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
+	key := req.URL.Query().Get("key")
+	infoInt, ok := r.urlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
+		return
+	}
+	galleryInfo := infoInt.(giphyGalleryInfo)
+	var videoStr string
+	for _, res := range galleryInfo.results {
+		videoStr += fmt.Sprintf(`
+			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
+		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
+			res.TargetUrl))
+	}
+	res := fmt.Sprintf(`
+	<html>
+		<head>
+			<title>Keybase Giphy Gallery</title>
+			<script>
+				window.sendMessage = function(url) {
+					var req = new XMLHttpRequest();
+					req.open("GET", url);
+					req.send();
+				}
+			</script>
+		</head>
+		<body style="margin: 0px;">
+			<div style="display: flex; flex-direction: row; height: 100%%; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap;  -webkit-overflow-scrolling: touch; border-top: 1px solid rgba(0, 0, 0, 0.20); align-items: flex-end;">
+				%s
+			</div>
+		</body>
+	</html>`, videoStr)
+	if _, err := io.WriteString(w, res); err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to write giphy gallery: %s",
+			err)
+	}
+}
+
+func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
+	key := req.URL.Query().Get("key")
+	val, ok := r.urlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
+		return
+	}
+	// Grab range headers
+	rangeHeader := req.Header.Get("Range")
+	client := giphy.AssetClient(libkb.NewMetaContext(ctx, r.G().GlobalContext))
+	url, err := giphy.ProxyURL(val.(string))
+	if err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "url creation: %s", err)
+		return
+	}
+	giphyReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "request creation: %s", err)
+		return
+	}
+	if len(rangeHeader) > 0 {
+		giphyReq.Header.Add("Range", rangeHeader)
+	}
+	giphyReq.Host = giphy.MediaHost
+	resp, err := client.Do(giphyReq)
+	if err != nil {
+		r.makeError(ctx, w, resp.StatusCode, "failed to get read giphy link: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	for k := range resp.Header {
+		w.Header().Add(k, resp.Header.Get(k))
+	}
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		r.makeError(ctx, w, resp.StatusCode, "failed to write giphy data: %s", err)
+		return
 	}
 }
 
@@ -318,6 +420,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
+					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
 					<title>Keybase Video Viewer</title>
 					<script>
 						window.togglePlay = function(data) {
@@ -332,8 +435,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				<body style="margin: 0px;">
+					<video id="vid" style="width: 100%%; height: 100%%; object-fit:fill; border-radius: 4px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
@@ -344,10 +447,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 	return false
 }
 
-func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
-	defer r.Trace(ctx, func() error { return nil }, "serve")()
+func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
 	key := req.URL.Query().Get("key")
 	preview := false
 	if "true" == req.URL.Query().Get("prev") {
@@ -373,14 +474,15 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	size := asset.Size
-	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
+	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return
 		}
-		r.Debug(ctx, "serve: streaming: req: method: %s range: %s", req.Method, req.Header.Get("Range"))
+		r.Debug(ctx, "serveAttachment: streaming: req: method: %s range: %s", req.Method,
+			req.Header.Get("Range"))
 		rs, err := r.fetcher.StreamAttachment(ctx, pair.ConvID, asset, r.ri, r)
 		if err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
@@ -392,6 +494,49 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
 			return
 		}
+	}
+}
+
+func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serve")()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "serve: failed to get HTTP server address: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "unable to determine addr")
+		return
+	}
+	if req.Host != addr {
+		r.Debug(ctx, "Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid host")
+		return
+	}
+	key := req.URL.Query().Get("key")
+	if len(key) < keyPrefixLen {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
+		return
+	}
+	if _, ok := r.urlMap.Get(key); !ok {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
+		return
+	}
+	prefix := key[:keyPrefixLen]
+	switch prefix {
+	case r.unfurlPrefix:
+		r.serveUnfurlAsset(ctx, w, req)
+	case r.giphyPrefix:
+		r.serveGiphyLink(ctx, w, req)
+	case r.giphyGalleryPrefix:
+		r.serveGiphyGallery(ctx, w, req)
+	case r.giphySelectPrefix:
+		r.serveGiphyGallerySelect(ctx, w, req)
+	case r.pendingPrefix:
+		r.servePendingPreview(ctx, w, req)
+	case r.attachmentPrefix:
+		r.serveAttachment(ctx, w, req)
+	default:
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 	}
 }
 
@@ -477,6 +622,9 @@ func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.
 	return false, nil
 }
 
+func (r *RemoteAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (r *RemoteAttachmentFetcher) OnStart(mctx libkb.MetaContext)        {}
+
 type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -499,11 +647,16 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 	}
 }
 
-func (c *CachingAttachmentFetcher) getCacheDir() string {
+func (c *CachingAttachmentFetcher) getBaseDir() string {
+	baseDir := c.G().GetCacheDir()
 	if len(c.tempDir) > 0 {
-		return c.tempDir
+		baseDir = c.tempDir
 	}
-	return filepath.Join(c.G().GetCacheDir(), "attachments")
+	return baseDir
+}
+
+func (c *CachingAttachmentFetcher) getCacheDir() string {
+	return filepath.Join(c.getBaseDir(), "attachments")
 }
 
 func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
@@ -521,7 +674,10 @@ func (c *CachingAttachmentFetcher) cacheKey(asset chat1.Asset) string {
 }
 
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
-	os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
@@ -534,13 +690,24 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
 }
 
+// normalizeFilenameFromCache substitutes the existing cache dir value into the
+// file path since it's possible for the path to the cache dir to change,
+// especially on mobile.
+func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	dir := filepath.Base(filepath.Dir(file))
+	file = filepath.Base(file)
+	// some attachments may be in the "uploadedpreviews"/"uploadedfulls" dirs,
+	// so we preserve the parent directory here.
+	return filepath.Join(c.getBaseDir(), dir, file)
+}
+
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
 	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
 	if err != nil {
 		return found, path, err
 	}
 	if found {
-		path = entry.Value.(string)
+		path = c.normalizeFilenameFromCache(entry.Value.(string))
 	}
 	return found, path, nil
 }
@@ -569,7 +736,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 			found = false
 		}
 		if found {
@@ -619,7 +786,7 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		return err
 	}
 	if evicted != nil {
-		path := evicted.Value.(string)
+		path := c.normalizeFilenameFromCache(evicted.Value.(string))
 		os.Remove(path)
 	}
 	return nil
@@ -664,7 +831,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 		}
 		if found {
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 		}
 	}
 
@@ -683,5 +850,18 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 	}
 
 	c.Debug(ctx, "deleted %d assets", len(assets))
+	return nil
+}
+
+func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
+	go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
+}
+
+func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {
+	if c.diskLRU != nil {
+		if err := c.diskLRU.CleanOutOfSync(mctx, c.getCacheDir()); err != nil {
+			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
+		}
+	}
 	return nil
 }

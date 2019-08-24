@@ -4,19 +4,22 @@
 
 package libkbfs
 
-import "github.com/keybase/client/go/kbfs/tlf"
+import (
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/tlf"
+)
 
 type journalBlockCache struct {
-	jServer *JournalServer
-	BlockCache
+	jManager *JournalManager
+	data.BlockCache
 }
 
-var _ BlockCache = journalBlockCache{}
+var _ data.BlockCache = journalBlockCache{}
 
 // CheckForKnownPtr implements BlockCache.
 func (j journalBlockCache) CheckForKnownPtr(
-	tlfID tlf.ID, block *FileBlock) (BlockPointer, error) {
-	_, ok := j.jServer.getTLFJournal(tlfID, nil)
+	tlfID tlf.ID, block *data.FileBlock) (data.BlockPointer, error) {
+	_, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
 		return j.BlockCache.CheckForKnownPtr(tlfID, block)
 	}
@@ -24,5 +27,5 @@ func (j journalBlockCache) CheckForKnownPtr(
 	// Temporarily disable de-duping for the journal server until
 	// KBFS-1149 is fixed. (See also
 	// journalBlockServer.AddReference.)
-	return BlockPointer{}, nil
+	return data.BlockPointer{}, nil
 }

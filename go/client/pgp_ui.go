@@ -60,7 +60,7 @@ func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) e
 	return nil
 }
 
-func (p PgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
+func (p PgpUI) ShouldPushPrivate(ctx context.Context, arg keybase1.ShouldPushPrivateArg) (bool, error) {
 	return false, nil
 }
 

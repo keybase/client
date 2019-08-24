@@ -159,7 +159,7 @@ func (e *errClsNotFound) Error() string {
 	return "class not found: " + e.name
 }
 
-// IsAvailable returns whether the required tools are available for
+// IsAvailable reports whether the required tools are available for
 // Import to work. In particular, IsAvailable checks the existence
 // of the javap binary.
 func IsAvailable() bool {

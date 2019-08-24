@@ -9,12 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
-
 	"golang.org/x/net/context"
 )
 
@@ -154,19 +156,19 @@ func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int,
 	unstallCh := make(chan struct{})
 	oldMDOps := s.config.MDOps()
 	var oldJDelegate MDOps
-	if jServer, err := GetJournalServer(s.config); err == nil && stallDelegate {
-		oldJDelegate = jServer.delegateMDOps
+	if jManager, err := GetJournalManager(s.config); err == nil && stallDelegate {
+		oldJDelegate = jManager.delegateMDOps
 		// Stall the delegate server as well
-		jServer.delegateMDOps = &stallingMDOps{
+		jManager.delegateMDOps = &stallingMDOps{
 			stallOpName: stalledOp,
 			stallKey:    stallKeyStallEverything,
 			staller: staller{
 				stalled: onStalledCh,
 				unstall: unstallCh,
 			},
-			delegate: jServer.delegateMDOps,
+			delegate: jManager.delegateMDOps,
 		}
-		s.config.SetMDOps(jServer.mdOps())
+		s.config.SetMDOps(jManager.mdOps())
 	} else {
 		s.config.SetMDOps(&stallingMDOps{
 			stallOpName: stalledOp,
@@ -229,9 +231,9 @@ func (s *NaïveStaller) UndoStallBlockOp(stalledOp StallableBlockOp) {
 // should have been called upon stalledOp, otherwise this would panic.
 func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
 	ns := s.getNaïveStallInfoForMDOpOrBust(stalledOp)
-	if jServer, err := GetJournalServer(s.config); err == nil &&
+	if jManager, err := GetJournalManager(s.config); err == nil &&
 		ns.oldJournalDelegateMDOps != nil {
-		jServer.delegateMDOps = ns.oldJournalDelegateMDOps
+		jManager.delegateMDOps = ns.oldJournalDelegateMDOps
 	}
 	s.config.SetMDOps(ns.oldMDOps)
 	close(ns.unstall)
@@ -261,7 +263,7 @@ func StallBlockOp(ctx context.Context, config Config,
 			unstall: unstallCh,
 		},
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx
@@ -287,7 +289,7 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 		},
 		delegate: config.MDOps(),
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx
@@ -416,7 +418,7 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetIDForHandle(
-	ctx context.Context, handle *TlfHandle) (tlfID tlf.ID, err error) {
+	ctx context.Context, handle *tlfhandle.Handle) (tlfID tlf.ID, err error) {
 	return m.delegate.GetIDForHandle(ctx, handle)
 }
 
@@ -456,7 +458,7 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (m *stallingMDOps) ValidateLatestHandleNotFinal(
-	ctx context.Context, h *TlfHandle) (b bool, err error) {
+	ctx context.Context, h *tlfhandle.Handle) (b bool, err error) {
 	m.maybeStall(ctx, StallableMDValidateLatestHandleNotFinal)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errValidateLatestHandleNotFinal error
@@ -504,24 +506,27 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
 	return mds, err
 }
 
-func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
-	priority keybase1.MDPriority) (irmd ImmutableRootMetadata, err error) {
+func (m *stallingMDOps) Put(
+	ctx context.Context, md *RootMetadata, verifyingKey kbfscrypto.VerifyingKey,
+	lockContext *keybase1.LockContext, priority keybase1.MDPriority,
+	bps data.BlockPutState) (irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDPut)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		irmd, err = m.delegate.Put(ctx, md, verifyingKey, lockContext, priority)
+		irmd, err = m.delegate.Put(
+			ctx, md, verifyingKey, lockContext, priority, bps)
 		m.maybeStall(ctx, StallableMDAfterPut)
 		return err
 	})
 	return irmd, err
 }
 
-func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (
+func (m *stallingMDOps) PutUnmerged(
+	ctx context.Context, md *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDPutUnmerged)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		irmd, err = m.delegate.PutUnmerged(ctx, md, verifyingKey)
+		irmd, err = m.delegate.PutUnmerged(ctx, md, verifyingKey, bps)
 		m.maybeStall(ctx, StallableMDAfterPutUnmerged)
 		return err
 	})
@@ -537,13 +542,14 @@ func (m *stallingMDOps) PruneBranch(
 }
 
 func (m *stallingMDOps) ResolveBranch(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID,
-	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+	blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDResolveBranch)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		irmd, err = m.delegate.ResolveBranch(
-			ctx, id, bid, blocksToDelete, rmd, verifyingKey)
+			ctx, id, bid, blocksToDelete, rmd, verifyingKey, bps)
 		return err
 	})
 	return irmd, err

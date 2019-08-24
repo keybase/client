@@ -21,6 +21,5 @@
         <div id="modal-root"></div>
         <% if (!htmlWebpackPlugin.options.isDev) { %><script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().') }</script>
         <% } %>
-        <%= htmlWebpackPlugin.files.js.filter(js => js.includes(htmlWebpackPlugin.options.name)).map(js => `<script src="${js}"></script>`).join('\n') %>
-    </body>
+        <%= htmlWebpackPlugin.files.js.filter(js => new RegExp(`\\W${htmlWebpackPlugin.options.name}\\W`).exec(js)).map(js => `<script src="${js}"></script>`).join('\n') %> </body>
 </html>

@@ -30,7 +30,7 @@ type Extra struct {
 // given prefix.
 func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 	mac := hmac.New(sha256.New, []byte("fake extra key"))
-	mac.Write([]byte("fake extra buf"))
+	_, _ = mac.Write([]byte("fake extra buf"))
 	h := mac.Sum(nil)
 	return Extra{
 		Extra1: fakeEncryptedData{
@@ -144,4 +144,14 @@ func TestStructUnknownFields(t require.TestingT,
 	err = cFuture.Decode(buf2, &sFuture3)
 	require.NoError(t, err)
 	require.Equal(t, sFuture, sFuture3)
+}
+
+// TestStructUnknownFieldsMsgpack calls TestStructUnknownFields with
+// codecs with the msgpack codec.
+func TestStructUnknownFieldsMsgpack(t require.TestingT, sFuture FutureStruct) {
+	cFuture := NewMsgpack()
+	cCurrent := NewMsgpack()
+	cCurrentKnownOnly := NewMsgpackNoUnknownFields()
+
+	TestStructUnknownFields(t, cFuture, cCurrent, cCurrentKnownOnly, sFuture)
 }

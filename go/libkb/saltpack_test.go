@@ -27,6 +27,8 @@ func (ob outputBuffer) Close() error {
 // non-recipients can't decode it.
 func TestSaltpackEncDec(t *testing.T) {
 	tc := SetupTest(t, "TestSaltpackEncDec", 1)
+	defer tc.Cleanup()
+
 	m := NewMetaContextForTest(tc)
 
 	senderKP, err := GenerateNaclDHKeyPair()

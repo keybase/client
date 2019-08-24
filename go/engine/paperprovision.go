@@ -51,7 +51,7 @@ func (e *PaperProvisionEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PaperProvisionEngine#Run", func() error { return err })()
+	defer m.Trace("PaperProvisionEngine#Run", func() error { return err })()
 
 	// clear out any existing session:
 	e.G().Logout(m.Ctx())
@@ -120,7 +120,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.sendNotification()
+	e.sendNotification(m)
 	return nil
 
 }
@@ -155,8 +155,8 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	return nil
 }
 
-func (e *PaperProvisionEngine) sendNotification() {
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+func (e *PaperProvisionEngine) sendNotification(m libkb.MetaContext) {
+	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }
 
 func (e *PaperProvisionEngine) SubConsumers() []libkb.UIConsumer {

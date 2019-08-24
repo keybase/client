@@ -2,12 +2,12 @@
   "protocol": "remote",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -254,6 +254,26 @@
             "items": "Conversation"
           },
           "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetUnreadlineRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
         },
         {
           "type": [
@@ -589,6 +609,233 @@
           "name": "expunge"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ServerNowRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "now"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ExternalAPIKeyTyp",
+      "symbols": [
+        "GOOGLEMAPS_0",
+        "GIPHY_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ExternalAPIKey",
+      "switch": {
+        "type": "ExternalAPIKeyTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GOOGLEMAPS",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CommandConvVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "RemoteBotCommandsAdvertisementPublic",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoteBotCommandsAdvertisementTLFID",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "RemoteBotCommandsAdvertisement",
+      "switch": {
+        "type": "BotCommandsAdvertisementTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PUBLIC",
+            "def": false
+          },
+          "body": "RemoteBotCommandsAdvertisementPublic"
+        },
+        {
+          "label": {
+            "name": "TLFID_MEMBERS",
+            "def": false
+          },
+          "body": "RemoteBotCommandsAdvertisementTLFID"
+        },
+        {
+          "label": {
+            "name": "TLFID_CONVS",
+            "def": false
+          },
+          "body": "RemoteBotCommandsAdvertisementTLFID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BotCommandConv",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "CommandConvVers",
+          "name": "vers"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BotInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BotCommandConv"
+          },
+          "name": "commandConvs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseBotCommandsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClearBotCommandsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BotInfoResponseTyp",
+      "symbols": [
+        "UPTODATE_0",
+        "INFO_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "BotInfoResponse",
+      "switch": {
+        "type": "BotInfoResponseTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UPTODATE",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "INFO",
+            "def": false
+          },
+          "body": "BotInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetBotInfoRes",
+      "fields": [
+        {
+          "type": "BotInfoResponse",
+          "name": "response"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BotInfoHash",
+      "fields": [],
+      "typedef": "bytes"
     }
   ],
   "messages": {
@@ -642,6 +889,19 @@
       ],
       "response": "GetThreadRemoteRes"
     },
+    "getUnreadlineRemote": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "readMsgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "GetUnreadlineRemoteRes"
+    },
     "getPublicConversations": {
       "request": [
         {
@@ -686,6 +946,13 @@
             null,
             "TopicNameState"
           ]
+        },
+        {
+          "name": "joinMentionsAs",
+          "type": [
+            null,
+            "ConversationMemberStatus"
+          ]
         }
       ],
       "response": "PostRemoteRes"
@@ -718,6 +985,13 @@
           "type": [
             null,
             "TopicNameState"
+          ]
+        },
+        {
+          "name": "memberSourceConv",
+          "type": [
+            null,
+            "ConversationID"
           ]
         }
       ],
@@ -829,6 +1103,10 @@
         {
           "name": "vers",
           "type": "InboxVers"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncChatRes"
@@ -866,6 +1144,10 @@
         {
           "name": "hostName",
           "type": "string"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult",
@@ -1171,6 +1453,66 @@
         }
       ],
       "response": null
+    },
+    "teamIDOfConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": [
+        null,
+        "keybase1.TeamID"
+      ]
+    },
+    "serverNow": {
+      "request": [],
+      "response": "ServerNowRes"
+    },
+    "getExternalAPIKeys": {
+      "request": [
+        {
+          "name": "typs",
+          "type": {
+            "type": "array",
+            "items": "ExternalAPIKeyTyp"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ExternalAPIKey"
+      }
+    },
+    "advertiseBotCommands": {
+      "request": [
+        {
+          "name": "ads",
+          "type": {
+            "type": "array",
+            "items": "RemoteBotCommandsAdvertisement"
+          }
+        }
+      ],
+      "response": "AdvertiseBotCommandsRes"
+    },
+    "clearBotCommands": {
+      "request": [],
+      "response": "ClearBotCommandsRes"
+    },
+    "getBotInfo": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "infoHash",
+          "type": "BotInfoHash"
+        }
+      ],
+      "response": "GetBotInfoRes"
     }
   },
   "namespace": "chat.1",

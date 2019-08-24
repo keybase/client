@@ -62,6 +62,10 @@ func (t *RooterServiceType) GetPrompt() string {
 	return "Your username on Rooter"
 }
 
+func (t *RooterServiceType) CanMakeNewProofs(mctx libkb.MetaContext) bool {
+	return mctx.G().GetRunMode() != libkb.ProductionRunMode
+}
+
 func (t *RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
@@ -70,8 +74,9 @@ func (t *RooterServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please toot the following, and don't delete it:`)
 }
 
-func (t *RooterServiceType) DisplayName(un string) string { return "Rooter" }
-func (t *RooterServiceType) GetTypeName() string          { return "rooter" }
+func (t *RooterServiceType) DisplayName() string   { return "Rooter" }
+func (t *RooterServiceType) GetTypeName() string   { return "rooter" }
+func (t *RooterServiceType) PickerSubtext() string { return "" }
 func (t *RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }

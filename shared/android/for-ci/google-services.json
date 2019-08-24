@@ -1,0 +1,174 @@
+{
+  "project_info": {
+    "project_number": "529266483286",
+    "firebase_url": "https://dummy-robot-scouter-for-travis.firebaseio.com",
+    "project_id": "dummy-robot-scouter-for-travis",
+    "storage_bucket": "dummy-robot-scouter-for-travis.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529266483286:android:3fe88d30d9c76f79",
+        "android_client_info": {
+          "package_name": "com.supercilex.robotscouter.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWZh_3qAXEn9zzyRMZ0Yp2wCCkXkWbyc4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529266483286:android:fa7f0f2977f5f001",
+        "android_client_info": {
+          "package_name": "com.supercilex.robotscouter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529266483286-6vo1cbbrsvdl80mqdomk3i3m425mv07b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.supercilex.robotscouter",
+            "certificate_hash": "0c7b6732a540434aca7e4bdea13aa3ed3209242f"
+          }
+        },
+        {
+          "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWZh_3qAXEn9zzyRMZ0Yp2wCCkXkWbyc4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529266483286:android:91eecf4730fc920b",
+        "android_client_info": {
+          "package_name": "com.firebase.uidemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529266483286-qid6ms49u1kq7q3e0guv8fuvsqhthi4r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.firebase.uidemo",
+            "certificate_hash": "0c7b6732a540434aca7e4bdea13aa3ed3209242f"
+          }
+        },
+        {
+          "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWZh_3qAXEn9zzyRMZ0Yp2wCCkXkWbyc4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529266483286:android:31fef6725a92125b",
+        "android_client_info": {
+          "package_name": "com.supercilex.test"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529266483286-tmk00dnjnsbqo0j6ha30rmul2u3aqppf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.supercilex.test",
+            "certificate_hash": "0c7b6732a540434aca7e4bdea13aa3ed3209242f"
+          }
+        },
+        {
+          "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWZh_3qAXEn9zzyRMZ0Yp2wCCkXkWbyc4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529266483286-43pcoiq9hfu81rakcpa3o8pung09o52a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

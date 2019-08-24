@@ -84,7 +84,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		suffix = split1[1]
 	}
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(g, assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(libkb.NewMetaContext(ctx, g), assertions)
 	if err != nil {
 		return res, err
 	}
@@ -214,7 +214,7 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		idRes, _ := eng.Result(m)
-		m.CDebugf("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+		m.Debug("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
 }

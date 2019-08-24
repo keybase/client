@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -38,7 +39,8 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		return err
 	}
 	conv, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri)
+		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri,
+		NewConvFindExistingNormal)
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: string(dat),
 			}),
-		}, 0, nil); err != nil {
+		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
 	return nil
@@ -66,9 +68,9 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 		return false, err
 	}
 	username := un.String()
-	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, true, s.ri, uid, username,
-		chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
-		name, nil)
+	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
+		username, chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		keybase1.TLFVisibility_PRIVATE, name, nil)
 	if err != nil {
 		return false, err
 	}

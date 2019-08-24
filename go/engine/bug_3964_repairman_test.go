@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -83,9 +84,6 @@ func (a *auditLog) Profile(fmts string, args ...interface{}) {
 }
 func (a *auditLog) Configure(style string, debug bool, filename string) {
 	a.l.CloneWithAddedDepth(1).Configure(style, debug, filename)
-}
-func (a *auditLog) RotateLogFile() error {
-	return a.l.RotateLogFile()
 }
 func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
 	// Keep the same list of strings. This is important, because the tests here
@@ -208,11 +206,11 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 
 func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
 	log = limitToTrace(log, "bug3964Repairman#Run")
-	if len(log) == 0 {
-		t.Fatal("Didn't find a repairman run")
-	}
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "| Repairman wasn't short-circuited")
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "+ bug3964Repairman#saveRepairmanVisit")
+	require.NotZero(t, len(log))
 }
 
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {

@@ -32,6 +32,19 @@ func (brf blockRefStatus) toBlockStatus() keybase1.BlockStatus {
 	}
 }
 
+func (brf blockRefStatus) String() string {
+	switch brf {
+	case unknownBlockRef:
+		return "unknown"
+	case liveBlockRef:
+		return "live"
+	case archivedBlockRef:
+		return "archived"
+	default:
+		panic(fmt.Sprintf("Unknown ref status: %d", brf))
+	}
+}
+
 type blockContextMismatchError struct {
 	expected, actual kbfsblock.Context
 }
@@ -73,6 +86,15 @@ func (refs blockRefMap) hasNonArchivedRef() bool {
 	return false
 }
 
+func (refs blockRefMap) getLiveCount() (count int) {
+	for _, refEntry := range refs {
+		if refEntry.Status == liveBlockRef {
+			count++
+		}
+	}
+	return count
+}
+
 func (refs blockRefMap) checkExists(context kbfsblock.Context) (
 	bool, blockRefStatus, error) {
 	refEntry, ok := refs[context.GetRefNonce()]
@@ -86,14 +108,6 @@ func (refs blockRefMap) checkExists(context kbfsblock.Context) (
 	}
 
 	return true, refEntry.Status, nil
-}
-
-func (refs blockRefMap) getStatuses() map[kbfsblock.RefNonce]blockRefStatus {
-	statuses := make(map[kbfsblock.RefNonce]blockRefStatus)
-	for ref, refEntry := range refs {
-		statuses[ref] = refEntry.Status
-	}
-	return statuses
 }
 
 func (refs blockRefMap) put(context kbfsblock.Context, status blockRefStatus,

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -16,20 +15,12 @@ import (
 const blockIndexVersion = 8
 const blockSize = 100
 
-var addBlockHookOnce sync.Once
-
 type blockEngine struct {
 	globals.Contextified
 	utils.DebugLabeler
 }
 
 func newBlockEngine(g *globals.Context) *blockEngine {
-
-	// add a logout hook to clear the in-memory block cache, but only add it once:
-	addBlockHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(blockEngineMemCache)
-	})
-
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),

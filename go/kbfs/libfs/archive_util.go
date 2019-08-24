@@ -11,14 +11,16 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 )
 
 // BranchNameFromArchiveRefDir returns a branch name and true if the
 // given directory name is specifying an archived revision with a
 // revision number.
-func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
+func BranchNameFromArchiveRefDir(dir string) (data.BranchName, bool) {
 	if !strings.HasPrefix(dir, ArchivedRevDirPrefix) {
 		return "", false
 	}
@@ -28,7 +30,7 @@ func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
 		return "", false
 	}
 
-	return libkbfs.MakeRevBranchName(kbfsmd.Revision(rev)), true
+	return data.MakeRevBranchName(kbfsmd.Revision(rev)), true
 }
 
 // RevFromTimeString converts a time string (in any supported golang
@@ -36,7 +38,7 @@ func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
 // timestamp greater or equal to that time.  Ambiguous dates are
 // parsed in MM/DD format.
 func RevFromTimeString(
-	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
 	timeString string) (kbfsmd.Revision, error) {
 	t, err := dateparse.ParseAny(timeString)
 	if err != nil {
@@ -50,7 +52,7 @@ func RevFromTimeString(
 // directory, and true, if the given link specifies a valid by-time
 // link name.  Ambiguous dates are parsed in MM/DD format.
 func LinkTargetFromTimeString(
-	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
 	link string) (string, bool, error) {
 	if !strings.HasPrefix(link, ArchivedTimeLinkPrefix) {
 		return "", false, nil
@@ -69,7 +71,7 @@ func LinkTargetFromTimeString(
 // past relative to now (e.g., "5m", "2h55s"), and turns it into a
 // revision number for the given TLF.
 func RevFromRelativeTimeString(
-	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
 	relTime string) (kbfsmd.Revision, error) {
 	d, err := time.ParseDuration(relTime)
 	if err != nil {
@@ -85,7 +87,7 @@ func RevFromRelativeTimeString(
 // file name specifies a valid by-relative-time file name.  The time
 // is relative to the local clock.
 func FileDataFromRelativeTimeString(
-	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
 	filename string) ([]byte, bool, error) {
 	if !strings.HasPrefix(filename, ArchivedRelTimeFilePrefix) {
 		return nil, false, nil

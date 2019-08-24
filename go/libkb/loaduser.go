@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"runtime/debug"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -16,6 +17,27 @@ import (
 
 type UIDer interface {
 	GetUID() keybase1.UID
+}
+
+type StubMode int
+
+const (
+	StubModeStubbed   StubMode = 0
+	StubModeUnstubbed StubMode = 1
+)
+
+func StubModeFromUnstubbedBool(unstubbed bool) StubMode {
+	if unstubbed {
+		return StubModeUnstubbed
+	}
+	return StubModeStubbed
+}
+
+func (s StubMode) String() string {
+	if s == StubModeUnstubbed {
+		return "unstubbed"
+	}
+	return "stubbed"
 }
 
 type LoadUserArg struct {
@@ -32,6 +54,9 @@ type LoadUserArg struct {
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
+	stubMode                 StubMode // by default, this is StubModeStubbed, meaning, stubbed links are OK
+	forceMerkleServerPolling bool     // can be used to force or suppress server merkle polling, if set
+
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -48,9 +73,13 @@ type LoadUserArg struct {
 }
 
 func (arg LoadUserArg) String() string {
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
+	leaf := "nil"
+	if arg.merkleLeaf != nil {
+		leaf = fmt.Sprintf("%v", arg.merkleLeaf.idVersion)
+	}
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v Leaf:%v %v}",
 		arg.uid, arg.name, arg.publicKeyOptional, arg.noCacheResult, arg.self, arg.forceReload,
-		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly)
+		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly, leaf, arg.stubMode)
 }
 
 func (arg LoadUserArg) MetaContext() MetaContext {
@@ -143,6 +172,11 @@ func (arg LoadUserArg) WithName(n string) LoadUserArg {
 	return arg
 }
 
+func (arg LoadUserArg) WithForceMerkleServerPolling(b bool) LoadUserArg {
+	arg.forceMerkleServerPolling = b
+	return arg
+}
+
 func (arg LoadUserArg) WithNetContext(ctx context.Context) LoadUserArg {
 	arg.m = arg.m.WithCtx(ctx)
 	return arg
@@ -193,6 +227,19 @@ func (arg LoadUserArg) WithAbortIfSigchainUnchanged() LoadUserArg {
 func (arg LoadUserArg) WithForceReload() LoadUserArg {
 	arg.forceReload = true
 	return arg
+}
+
+func (arg LoadUserArg) WithStubMode(sm StubMode) LoadUserArg {
+	arg.stubMode = sm
+	return arg
+}
+
+func (arg LoadUserArg) ToMerkleOpts() MerkleOpts {
+	ret := MerkleOpts{}
+	if !arg.forceReload && !arg.forcePoll && !arg.forceMerkleServerPolling {
+		ret.NoServerPolling = true
+	}
+	return ret
 }
 
 func (arg *LoadUserArg) checkUIDName() error {
@@ -269,11 +316,8 @@ func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-
-	m := arg.MetaContext()
-
-	m = m.WithLogTag("LU")
-	defer m.CTraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	m := arg.MetaContext().WithLogTag("LU")
+	defer m.TraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
 
@@ -282,11 +326,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// Whatever the reply is, pass along our desired global context
+	var refreshReason string
 	defer func() {
 		if ret != nil {
 			ret.SetGlobalContext(m.G())
 			if refresh {
-				m.G().NotifyRouter.HandleUserChanged(ret.GetUID())
+				m.G().NotifyRouter.HandleUserChanged(m, ret.GetUID(), fmt.Sprintf("libkb.LoadUser refresh '%v'", refreshReason))
 			}
 		}
 	}()
@@ -296,7 +341,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	m.CDebugf("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
+	m.Debug("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -307,7 +352,16 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	m.CDebugf("| resolved to %s", arg.uid)
+	m.Debug("| resolved to %s", arg.uid)
+
+	if arg.uid.Exists() {
+		lock, err := m.G().loadUserLockTab.AcquireOnNameWithContextAndTimeout(m.Ctx(), m.G(), arg.uid.String(), 30*time.Second)
+		if err != nil {
+			m.Debug("| error acquiring singleflight lock for %s: %v", arg.uid, err)
+			return nil, err
+		}
+		defer lock.Release(m.Ctx())
+	}
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
@@ -327,7 +381,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// load user from local, remote
-	ret, refresh, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
+	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf, arg.WithForceMerkleServerPolling(true).ToMerkleOpts())
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +395,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(m, &ret.leaf, arg.self); err != nil {
+	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.stubMode); err != nil {
 		return ret, err
 	}
 
@@ -355,7 +409,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// Proactively cache fetches from remote server to local storage
 	if e2 := ret.Store(m); e2 != nil {
-		m.CWarningf("Problem storing user %s: %s", ret.GetName(), e2)
+		m.Warning("Problem storing user %s: %s", ret.GetName(), e2)
 	}
 
 	if ret.HasActiveKey() {
@@ -370,7 +424,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 	} else if !arg.publicKeyOptional {
-		m.CDebugf("No active key for user: %s", ret.GetUID())
+		m.Debug("No active key for user: %s", ret.GetUID())
 
 		var emsg string
 		if arg.self {
@@ -382,64 +436,65 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return ret, err
 }
 
-func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
+func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf, merkleOpts MerkleOpts) (*User, bool, string, error) {
 	local, err := LoadUserFromLocalStorage(m, uid)
 	var refresh bool
+	var refreshReason string
 	if err != nil {
-		m.CWarningf("Failed to load %s from storage: %s", uid, err)
+		m.Warning("Failed to load %s from storage: %s", uid, err)
 	}
 
 	if leaf == nil {
-		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints)
+		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints, merkleOpts)
 		if err != nil {
-			return nil, refresh, err
+			return nil, refresh, refreshReason, err
 		}
 	}
 
 	var f1, loadRemote bool
 
 	if local == nil {
-		m.CDebugf("| No local user stored for %s", uid)
+		m.Debug("| No local user stored for %s", uid)
 		loadRemote = true
-	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return nil, refresh, err
+	} else if f1, refreshReason, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+		return nil, refresh, refreshReason, err
 	} else {
 		loadRemote = !f1
 		refresh = loadRemote
 	}
 
-	m.CDebugf("| Freshness: basics=%v; for %s", f1, uid)
+	m.Debug("| Freshness: basics=%v; for %s", f1, uid)
 
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
 	} else if ret, err = LoadUserFromServer(m, uid, resolveBody); err != nil {
-		return nil, refresh, err
+		return nil, refresh, refreshReason, err
 	}
 
 	if ret == nil {
-		return nil, refresh, nil
+		return nil, refresh, refreshReason, nil
 	}
 
 	if leaf != nil {
 		ret.leaf = *leaf
 	}
-	return ret, refresh, nil
+	return ret, refresh, refreshReason, nil
 }
 
 func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err error) {
-	m.CDebugf("+ LoadUserFromLocalStorage(%s)", uid)
+	m.Debug("+ LoadUserFromLocalStorage(%s)", uid)
 	jw, err := m.G().LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}
 
 	if jw == nil {
-		m.CDebugf("- loadUserFromLocalStorage(%s): Not found", uid)
+		m.Debug("- loadUserFromLocalStorage(%s): Not found", uid)
 		return nil, nil
 	}
 
-	m.CDebugf("| Loaded successfully")
+	m.Debug("| Loaded successfully")
 
 	if u, err = NewUserFromLocalStorage(m.G(), jw); err != nil {
 		return nil, err
@@ -449,16 +504,16 @@ func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err err
 		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid, u.id)
 	}
 
-	m.CDebugf("| Loaded username %s (uid=%s)", u.name, uid)
-	m.CDebugf("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
+	m.Debug("| Loaded username %s (uid=%s)", u.name, uid)
+	m.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
 
 // LoadUserEmails returns emails for logged in user
-func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
-	uid := g.GetMyUID()
-	res, err := g.API.Get(APIArg{
+func LoadUserEmails(m MetaContext) (emails []keybase1.Email, err error) {
+	uid := m.G().GetMyUID()
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "user/lookup",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -490,11 +545,22 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 		if err != nil {
 			return nil, err
 		}
+
+		var lastVerifyEmailDate int64
+		lastVerifyEmailDateNode := emailPayload.AtKey("last_verify_email_date")
+		if lastVerifyEmailDateNode.IsOk() && !lastVerifyEmailDateNode.IsNil() {
+			lastVerifyEmailDate, err = lastVerifyEmailDateNode.GetInt64()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		emails = append(emails, keybase1.Email{
-			Email:      keybase1.EmailAddress(email),
-			IsVerified: isVerified == 1,
-			IsPrimary:  isPrimary == 1,
-			Visibility: keybase1.IdentityVisibility(visibilityCode),
+			Email:               keybase1.EmailAddress(email),
+			IsVerified:          isVerified == 1,
+			IsPrimary:           isPrimary == 1,
+			Visibility:          keybase1.IdentityVisibility(visibilityCode),
+			LastVerifyEmailDate: keybase1.UnixTime(lastVerifyEmailDate),
 		})
 	}
 
@@ -502,18 +568,17 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 }
 
 func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
-	m.CDebugf("Load User from server: %s", uid)
+	m.Debug("Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded as a result of a Resolve call earlier.
 	if body == nil {
-		res, err := m.G().API.Get(APIArg{
+		res, err := m.G().API.Get(m, APIArg{
 			Endpoint:    "user/lookup",
 			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
 				"uid":          UIDArg(uid),
 				"load_deleted": B{true},
 			},
-			MetaContext: m,
 		})
 
 		if err != nil {
@@ -521,13 +586,13 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 		}
 		body = res.Body.AtKey("them")
 	} else {
-		m.CDebugf("| Skipped load; got user object previously")
+		m.Debug("| Skipped load; got user object previously")
 	}
 
 	if u, err = NewUserFromServer(m.G(), body); err != nil {
 		return u, err
 	}
-	m.CDebugf("- Load user from server: %s -> %s", uid, ErrToOk(err))
+	m.Debug("- Load user from server: %s -> %s", uid, ErrToOk(err))
 
 	return u, err
 }
@@ -539,7 +604,7 @@ func myUID(g *GlobalContext, uider UIDer) keybase1.UID {
 	return g.GetMyUID()
 }
 
-func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHints *SigHints) (f *MerkleUserLeaf, err error) {
+func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHints *SigHints, merkleOpts MerkleOpts) (f *MerkleUserLeaf, err error) {
 	if uid.IsNil() {
 		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
@@ -548,7 +613,7 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints)
+	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints, merkleOpts)
 	if err == nil && f == nil && localExists {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
@@ -556,14 +621,14 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 	return
 }
 
-func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
-	defer m.CTrace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
+func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, merkleOpts MerkleOpts) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
+	defer m.Trace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
 	sigHints, err = LoadSigHints(m, uid)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	leaf, err = lookupMerkleLeaf(m, uid, true, sigHints)
+	leaf, err = lookupMerkleLeaf(m, uid, true, sigHints, merkleOpts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -577,4 +642,33 @@ func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bo
 // normal.
 func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error) {
 	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid, pollForKID)
+}
+
+// IsUserByUsernameOffline checks to see if the given username is a legit Keybase username,
+// using only our offline cache and materials. Useful if you don't mean to share info
+// with the server, as in chat @-mentions. Will return true if it's known to be a legit
+// user, and false if it can't say for sure. "Legit" users in this context might
+// be deleted or reset; they just once existing as a user.
+func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
+	if m.G().UIDMapper.MapHardcodedUsernameToUID(un).Exists() {
+		return true
+	}
+
+	// We already took care of the bad username casing in the harcoded exception list above,
+	// so it's ok to treat the NormalizedUsername as a cased string.
+	uid := UsernameToUIDPreserveCase(un.String())
+
+	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
+	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
+	_, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+
+	if err == nil {
+		return true
+	}
+
+	if _, ok := err.(UserNotFoundError); !ok {
+		m.Debug("IsUserByUsernameOffline(%s) squashing error: %s", un.String(), err)
+	}
+
+	return false
 }

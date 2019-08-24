@@ -8,17 +8,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder, repoName keybase1.GitRepoName) error {
+func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.FolderHandle, repoName keybase1.GitRepoName) error {
 	teamer := NewTeamer(g)
+	mctx := libkb.NewMetaContext(ctx, g)
 
 	teamIDVis, err := teamer.LookupOrCreate(ctx, folder)
 	if err != nil {
 		return err
 	}
 
-	// The GUI doesn't give us the repo_id back, so we need to figure it out.
-	// Note:  the GUI *does* have the repo_id, so we could change this interface and avoid
-	// this step:
 	repos, err := GetMetadata(ctx, g, folder)
 	if err != nil {
 		return err
@@ -27,7 +25,7 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 	for _, repoResult := range repos {
 		repo, err := repoResult.GetIfOk()
 		if err != nil {
-			g.Log.CDebugf(ctx, "%v", err)
+			mctx.Debug("%v", err)
 			continue
 		}
 		if repo.LocalMetadata.RepoName == repoName {
@@ -42,12 +40,11 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 	apiArg := libkb.APIArg{
 		Endpoint:    "kbfs/git/team/delete",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamIDVis.TeamID)},
 			"repo_id": libkb.S{Val: string(repoID)},
 		},
 	}
-	_, err = g.GetAPI().Post(apiArg)
+	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
 	return err
 }

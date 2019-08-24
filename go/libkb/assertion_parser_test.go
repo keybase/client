@@ -204,8 +204,8 @@ type Pair struct {
 
 func TestParserFail1(t *testing.T) {
 	bads := []Pair{
-		{"aa ||", "Unexpected EOF"},
-		{"aa &&", "Unexpected EOF"},
+		{"aa ||", "Unexpected EOF parsing assertion"},
+		{"aa &&", "Unexpected EOF parsing assertion"},
 		{"(aa", "Unbalanced parentheses"},
 		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
 		{"&& aa", "Unexpected token: &&"},

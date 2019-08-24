@@ -83,11 +83,12 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 
 	rres := m.G().Resolver.ResolveFullExpressionWithBody(m, e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
+		m.Debug("ResolveThenIdentify2#resolveUID: failing assertion for arg %+v", e.arg)
 		return err
 	}
 	e.arg.Uid = rres.GetUID()
 	if rres.WasKBAssertion() && !e.arg.NeedProofSet {
-		m.CDebugf("Assertion was 'KB' and we don't need proofset: %s", e.arg.UserAssertion)
+		m.Debug("Assertion was 'KB' and we don't need proofset: %s", e.arg.UserAssertion)
 		// the resolve assertion was a keybase username or UID, so remove it
 		// from identify2 arg to allow cache hits on UID.
 		e.arg.UserAssertion = ""
@@ -122,7 +123,7 @@ func (e *ResolveThenIdentify2) nameResolutionPostAssertion(m libkb.MetaContext) 
 func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("ID2")
 
-	defer m.CTraceTimed("ResolveThenIdentify2#Run", func() error { return err })()
+	defer m.TraceTimed("ResolveThenIdentify2#Run", func() error { return err })()
 
 	e.i2eng = NewIdentify2WithUID(m.G(), e.arg)
 	if e.responsibleGregorItem != nil {
@@ -189,7 +190,7 @@ func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
 func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
 
 	m = m.WithLogTag("RAC")
-	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
+	defer m.TraceTimed("ResolveAndCheck", func() error { return err })()
 
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         s,

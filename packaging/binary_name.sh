@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # Prints out the binary name ("keybase", "kbstage", or "kbdev") that
-# corresponds to the current bulid mode. This script helps us avoid duplicating
+# corresponds to the current build mode. This script helps us avoid duplicating
 # the same switch statement in all of our packaging scripts.
 
 set -e -u -o pipefail

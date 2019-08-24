@@ -4,12 +4,17 @@
 package engine
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
 )
+
+// For password-less signups, number of bytes that are randomly generated
+// and then encoded with base64 to be used as user's passphrase.
+const randomPassphraseLen = 16
 
 type SignupEngine struct {
 	pwsalt         []byte
@@ -27,17 +32,23 @@ type SignupEngine struct {
 var _ Engine2 = (*SignupEngine)(nil)
 
 type SignupEngineRunArg struct {
-	Username    string
-	Email       string
-	InviteCode  string
-	Passphrase  string
-	StoreSecret bool
-	DeviceName  string
-	DeviceType  keybase1.DeviceType
-	SkipGPG     bool
-	SkipMail    bool
-	SkipPaper   bool
-	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
+	Username                 string
+	Email                    string
+	InviteCode               string
+	Passphrase               string
+	GenerateRandomPassphrase bool
+	StoreSecret              bool
+	DeviceName               string
+	DeviceType               keybase1.DeviceType
+	SkipGPG                  bool
+	SkipMail                 bool
+	SkipPaper                bool
+	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
+	VerifyEmail              bool
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 }
 
 func NewSignupEngine(g *libkb.GlobalContext, arg *SignupEngineRunArg) *SignupEngine {
@@ -69,20 +80,50 @@ func (s *SignupEngine) GetMe() *libkb.User {
 }
 
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SignupEngine#Run", func() error { return err })()
+	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	// make sure we're starting with a clear login state:
+	// Make sure we're starting with a clear login state. But check
+	// if it's fine to logout current user.
+	if clRes := libkb.CanLogout(m); !clRes.CanLogout {
+		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
+	}
+
 	if err = m.G().Logout(m.Ctx()); err != nil {
 		return err
 	}
 
+	// StoreSecret is required if we are doing NOPW
+	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase {
+		return fmt.Errorf("cannot SignUp with StoreSecret=false and GenerateRandomPassphrase=true")
+	}
+
+	// check if secret store works
+	if s.arg.StoreSecret {
+		if ss := m.G().SecretStore(); ss != nil {
+			if s.arg.GenerateRandomPassphrase && !ss.IsPersistent() {
+				// IsPersistent returns true if SecretStoreLocked is
+				// disk-backed, and false if it's only memory backed.
+				return SecretStoreNotFunctionalError{err: fmt.Errorf("persistent secret store is required for no-passphrase signup")}
+			}
+
+			err = ss.PrimeSecretStores(m)
+			if err != nil {
+				return SecretStoreNotFunctionalError{err}
+			}
+		} else if s.arg.GenerateRandomPassphrase {
+			return SecretStoreNotFunctionalError{err: fmt.Errorf("secret store is required for no-passphrase signup but wasn't found")}
+		} else {
+			m.Debug("There is no secret store, but we are continuing because this is not a NOPW")
+		}
+	}
+
 	m = m.WithNewProvisionalLoginContext()
 
-	if err = s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
+	if err = s.genPassphraseStream(m, s.arg.Passphrase, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
-	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
@@ -91,13 +132,18 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = s.registerDevice(m, s.arg.DeviceName); err != nil {
+	if err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
+	m.Info("Signed up and provisioned a device.")
+
+	// After we are provisioned, do not fail the signup process. Everything
+	// else happening here is optional.
+
 	if !s.arg.SkipPaper {
 		if err = s.genPaperKeys(m); err != nil {
-			return err
+			m.Warning("Paper key was not generated. Failed with an error: %s", err)
 		}
 	}
 
@@ -106,21 +152,26 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	// user interaction to make testing easier.
 	if s.arg.GenPGPBatch {
 		if err = s.genPGPBatch(m); err != nil {
-			return err
+			m.Warning("genPGPBatch failed with an error: %s", err)
 		}
 	}
 
-	if err = s.doGPG(m); err != nil {
-		return err
+	if err := s.doGPG(m); err != nil {
+		// We don't care if GPG import fails, continue with the signup process
+		// because it's too late anyway. Failing here would leave a signed up
+		// and logged in user in a weird state where their GUI does not know
+		// they are logged in, and also other processes (CreateWallet) will not
+		// run.
+		m.Warning("Attempt at importing PGP keys from GPG failed with: %s", err)
 	}
 
 	m = m.CommitProvisionalLogin()
 
 	// signup complete, notify anyone interested.
-	m.G().NotifyRouter.HandleLogin(s.arg.Username)
+	m.G().NotifyRouter.HandleSignup(m.Ctx(), s.arg.Username)
 
 	// For instance, setup gregor and friends...
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	m.G().GetStellar().CreateWalletSoft(m.Ctx())
 
@@ -149,7 +200,25 @@ func (s *SignupEngine) doGPG(m libkb.MetaContext) error {
 	return nil
 }
 
-func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string) error {
+func (s *SignupEngine) genRandomPassphrase(m libkb.MetaContext) (string, error) {
+	str, err := libkb.RandBytes(randomPassphraseLen)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(str), nil
+}
+
+func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string, randomPW bool) error {
+	if randomPW {
+		if len(passphrase) != 0 {
+			return fmt.Errorf("Tried to generate random passphrase but also provided passphrase argument")
+		}
+		var err error
+		passphrase, err = s.genRandomPassphrase(m)
+		if err != nil {
+			return err
+		}
+	}
 	if len(passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
 	}
@@ -165,8 +234,8 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase strin
 	return nil
 }
 
-func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool) error {
-	m.CDebugf("SignupEngine#join")
+func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {
+	m.Debug("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(m.G())
 
 	pdpkda5kid, err := s.ppStream.PDPKA5KID()
@@ -175,13 +244,15 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	}
 
 	arg := SignupJoinEngineRunArg{
-		Username:   username,
-		Email:      email,
-		InviteCode: inviteCode,
-		PWHash:     s.ppStream.PWHash(),
-		PWSalt:     s.pwsalt,
-		SkipMail:   skipMail,
-		PDPKA5KID:  pdpkda5kid,
+		Username:    username,
+		Email:       email,
+		InviteCode:  inviteCode,
+		PWHash:      s.ppStream.PWHash(),
+		PWSalt:      s.pwsalt,
+		RandomPW:    randomPW,
+		SkipMail:    skipMail,
+		PDPKA5KID:   pdpkda5kid,
+		VerifyEmail: s.arg != nil && s.arg.VerifyEmail,
 	}
 	res := joinEngine.Run(m, arg)
 	if res.Err != nil {
@@ -202,18 +273,20 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	return nil
 }
 
-func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) error {
-	m.CDebugf("SignupEngine#registerDevice")
+func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, randomPw bool) error {
+	m.Debug("SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	args := &DeviceWrapArgs{
-		Me:         s.me,
-		DeviceName: deviceName,
-		Lks:        s.lks,
-		IsEldest:   true,
+		Me:                    s.me,
+		DeviceName:            libkb.CheckDeviceName.Transform(deviceName),
+		Lks:                   s.lks,
+		IsEldest:              true,
+		naclSigningKeyPair:    s.arg.naclSigningKeyPair,
+		naclEncryptionKeyPair: s.arg.naclEncryptionKeyPair,
 	}
 
 	if !libkb.CheckDeviceName.F(s.arg.DeviceName) {
-		m.CDebugf("invalid device name supplied: %s", s.arg.DeviceName)
+		m.Debug("invalid device name supplied: %s", s.arg.DeviceName)
 		return libkb.DeviceBadNameError{}
 	}
 
@@ -227,47 +300,71 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	}
 
 	eng := NewDeviceWrap(m.G(), args)
-	if err := RunEngine2(m, eng); err != nil {
+	err := RunEngine2(m, eng)
+	if err != nil {
+		m.Warning("Failed to provision device: %s", err)
+		if ssErr := s.storeSecretForRecovery(m); ssErr != nil {
+			m.Warning("Failed to store secrets for recovery: %s", ssErr)
+		}
 		return err
 	}
+
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
+
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
 	did := eng.DeviceID()
 
 	if err := m.LoginContext().LocalSession().SetDeviceProvisioned(did); err != nil {
 		// this isn't a fatal error, session will stay in memory...
-		m.CWarningf("error saving session file: %s", err)
+		m.Warning("error saving session file: %s", err)
 	}
 
-	s.storeSecret(m)
+	s.storeSecret(m, randomPw)
 
-	m.CDebugf("registered new device: %s", m.G().Env.GetDeviceID())
-	m.CDebugf("eldest kid: %s", s.me.GetEldestKID())
+	m.Debug("registered new device: %s", m.G().Env.GetDeviceID())
+	m.Debug("eldest kid: %s", s.me.GetEldestKID())
 
 	return nil
 }
 
-func (s *SignupEngine) storeSecret(m libkb.MetaContext) {
-	defer m.CTrace("SignupEngine#storeSecret", func() error { return nil })()
+func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
+	defer m.Trace("SignupEngine#storeSecret", func() error { return nil })()
 
 	// Create the secret store as late as possible here, as the username may
 	// change during the signup process.
 	if !s.arg.StoreSecret {
-		m.CDebugf("not storing secret; disabled")
+		m.Debug("not storing secret; disabled")
 		return
 	}
 
-	w := libkb.StoreSecretAfterLoginWithLKS(m, s.me.GetNormalizedName(), s.lks)
+	w := libkb.StoreSecretAfterLoginWithLKSWithOptions(m, s.me.GetNormalizedName(), s.lks, &libkb.SecretStoreOptions{RandomPw: randomPw})
 	if w != nil {
-		m.CWarningf("StoreSecret error: %s", w)
+		m.Warning("StoreSecret error: %s", w)
 	}
 }
 
+func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
+	defer m.Trace("SignupEngine#storeSecretForRecovery", func() error { return err })()
+
+	if !s.arg.GenerateRandomPassphrase {
+		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretForRecovery")
+		return nil
+	}
+
+	username := s.me.GetNormalizedName()
+	err = libkb.StorePwhashEddsaPassphraseStream(m, username, s.ppStream)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {
-	m.CDebugf("SignupEngine#genPaperKeys")
+	m.Debug("SignupEngine#genPaperKeys")
 	// Load me again so that keys will be up to date.
 	var err error
 	s.me, err = libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(s.me.GetUID()).WithPublicKeyOptional())
@@ -292,7 +389,7 @@ func (s *SignupEngine) checkGPG(m libkb.MetaContext) (bool, error) {
 }
 
 func (s *SignupEngine) addGPG(m libkb.MetaContext, allowMulti bool, hasProvisionedDevice bool) (err error) {
-	defer m.CTrace(fmt.Sprintf("SignupEngine.addGPG(signingKey: %v)", s.signingKey), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("SignupEngine.addGPG(signingKey: %v)", s.signingKey), func() error { return err })()
 
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks, HasProvisionedDevice: hasProvisionedDevice}
 	eng := NewGPGImportKeyEngine(m.G(), &arg)
@@ -307,7 +404,7 @@ func (s *SignupEngine) addGPG(m libkb.MetaContext, allowMulti bool, hasProvision
 }
 
 func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
-	m.CDebugf("SignupEngine#genPGPBatch")
+	m.Debug("SignupEngine#genPGPBatch")
 	gen := libkb.PGPGenArg{
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,

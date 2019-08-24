@@ -13,13 +13,16 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/cache"
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
-	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -32,8 +35,6 @@ import (
 )
 
 const (
-	// Max supported size of a directory entry name.
-	maxNameBytesDefault = 255
 	// Default time after setting the rekey bit before prompting for a
 	// paper key.
 	rekeyWithPromptWaitTimeDefault = 10 * time.Minute
@@ -63,8 +64,8 @@ const (
 	// block cache.
 	defaultSyncBlockCacheFraction = 1.00
 
-	// By default, use v1 block encryption.
-	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretbox
+	// By default, use v2 block encryption.
+	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretboxWithKeyNonce
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -76,8 +77,8 @@ type ConfigLocal struct {
 	rep                Reporter
 	kcache             KeyCache
 	kbcache            kbfsmd.KeyBundleCache
-	bcache             BlockCache
-	dirtyBcache        DirtyBlockCache
+	bcache             data.BlockCache
+	dirtyBcache        data.DirtyBlockCache
 	diskBlockCache     DiskBlockCache
 	diskMDCache        DiskMDCache
 	diskQuotaCache     DiskQuotaCache
@@ -85,16 +86,16 @@ type ConfigLocal struct {
 	xattrStore         XattrStore
 	codec              kbfscodec.Codec
 	mdops              MDOps
-	kops               KeyOps
+	kops               libkey.KeyOps
 	crypto             Crypto
 	chat               Chat
 	mdcache            MDCache
 	bops               BlockOps
 	mdserv             MDServer
 	bserv              BlockServer
-	keyserv            KeyServer
+	keyserv            libkey.KeyServer
 	service            KeybaseService
-	bsplit             BlockSplitter
+	bsplit             data.BlockSplitter
 	notifier           Notifier
 	clock              Clock
 	kbpki              KBPKI
@@ -106,11 +107,14 @@ type ConfigLocal struct {
 	rwpWaitTime        time.Duration
 	diskLimiter        DiskLimiter
 	syncedTlfs         map[tlf.ID]FolderSyncConfig
+	syncedTlfPaths     map[string]bool
 	defaultBlockType   keybase1.BlockType
 	kbfsService        *KBFSService
 	kbCtx              Context
 	rootNodeWrappers   []func(Node) Node
 	tlfClearCancels    map[tlf.ID]context.CancelFunc
+	vdebugSetting      string
+	vlogs              []*libkb.VDebugLog
 
 	maxNameBytes           uint32
 	rekeyQueue             RekeyQueue
@@ -145,10 +149,19 @@ type ConfigLocal struct {
 	// blockCryptVersion is the version to use when encrypting blocks.
 	blockCryptVersion kbfscrypto.EncryptionVer
 
+	// conflictResolutionDB stores information about failed CRs
+	conflictResolutionDB *LevelDb
+
+	// settingsDB stores information about local KBFS settings
+	settingsDB *SettingsDB
+
 	mode InitMode
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 	rekeyFSMLimiter *OngoingWorkLimiter
+
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 // DiskCacheMode represents the mode of initialization for the disk cache.
@@ -194,213 +207,20 @@ func (m *DiskCacheMode) Set(s string) error {
 
 var _ Config = (*ConfigLocal)(nil)
 
-// LocalUser represents a fake KBFS user, useful for testing.
-type LocalUser struct {
-	UserInfo
-	Asserts []string
-	// Index into UserInfo.CryptPublicKeys.
-	CurrentCryptPublicKeyIndex int
-	// Index into UserInfo.VerifyingKeys.
-	CurrentVerifyingKeyIndex int
-	// Unverified keys.
-	UnverifiedKeys []keybase1.PublicKey
-}
-
-// GetCurrentCryptPublicKey returns this LocalUser's public encryption key.
-func (lu *LocalUser) GetCurrentCryptPublicKey() kbfscrypto.CryptPublicKey {
-	return lu.CryptPublicKeys[lu.CurrentCryptPublicKeyIndex]
-}
-
-// GetCurrentVerifyingKey returns this LocalUser's public signing key.
-func (lu *LocalUser) GetCurrentVerifyingKey() kbfscrypto.VerifyingKey {
-	return lu.VerifyingKeys[lu.CurrentVerifyingKeyIndex]
-}
-
-func verifyingKeysToPublicKeys(
-	keys []kbfscrypto.VerifyingKey) []keybase1.PublicKey {
-	publicKeys := make([]keybase1.PublicKey, len(keys))
-	for i, key := range keys {
-		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.KID(),
-			IsSibkey: true,
-		}
-	}
-	return publicKeys
-}
-
-func cryptPublicKeysToPublicKeys(
-	keys []kbfscrypto.CryptPublicKey) []keybase1.PublicKey {
-	publicKeys := make([]keybase1.PublicKey, len(keys))
-	for i, key := range keys {
-		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.KID(),
-			IsSibkey: false,
-		}
-	}
-	return publicKeys
-}
-
-// GetPublicKeys returns all of this LocalUser's public encryption keys.
-func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
-	sibkeys := verifyingKeysToPublicKeys(lu.VerifyingKeys)
-	subkeys := cryptPublicKeysToPublicKeys(lu.CryptPublicKeys)
-	return append(sibkeys, subkeys...)
-}
-
-func (lu LocalUser) deepCopy() LocalUser {
-	luCopy := lu
-
-	luCopy.VerifyingKeys = make(
-		[]kbfscrypto.VerifyingKey, len(lu.VerifyingKeys))
-	copy(luCopy.VerifyingKeys, lu.VerifyingKeys)
-
-	luCopy.CryptPublicKeys = make(
-		[]kbfscrypto.CryptPublicKey, len(lu.CryptPublicKeys))
-	copy(luCopy.CryptPublicKeys, lu.CryptPublicKeys)
-
-	luCopy.KIDNames = make(map[keybase1.KID]string, len(lu.KIDNames))
-	for k, v := range lu.KIDNames {
-		luCopy.KIDNames[k] = v
-	}
-
-	luCopy.RevokedVerifyingKeys = make(
-		map[kbfscrypto.VerifyingKey]revokedKeyInfo,
-		len(lu.RevokedVerifyingKeys))
-	for k, v := range lu.RevokedVerifyingKeys {
-		luCopy.RevokedVerifyingKeys[k] = v
-	}
-
-	luCopy.RevokedCryptPublicKeys = make(
-		map[kbfscrypto.CryptPublicKey]revokedKeyInfo,
-		len(lu.RevokedCryptPublicKeys))
-	for k, v := range lu.RevokedCryptPublicKeys {
-		luCopy.RevokedCryptPublicKeys[k] = v
-	}
-
-	luCopy.Asserts = make([]string, len(lu.Asserts))
-	copy(luCopy.Asserts, lu.Asserts)
-	luCopy.UnverifiedKeys = make([]keybase1.PublicKey, len(lu.UnverifiedKeys))
-	copy(luCopy.UnverifiedKeys, lu.UnverifiedKeys)
-
-	return luCopy
-}
-
-// Helper functions to get a various keys for a local user suitable
-// for use with CryptoLocal. Each function will return the same key
-// will always be returned for a given user.
-
-// MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
-func MakeLocalUserSigningKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.SigningKey {
-	return kbfscrypto.MakeFakeSigningKeyOrBust(
-		string(name) + " signing key")
-}
-
-// MakeLocalUserVerifyingKeyOrBust makes a new verifying key
-// corresponding to the signing key for this user.
-func MakeLocalUserVerifyingKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.VerifyingKey {
-	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
-}
-
-// MakeLocalUserCryptPrivateKeyOrBust returns a unique private
-// encryption key for this user.
-func MakeLocalUserCryptPrivateKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.CryptPrivateKey {
-	return kbfscrypto.MakeFakeCryptPrivateKeyOrBust(
-		string(name) + " crypt key")
-}
-
-// MakeLocalUserCryptPublicKeyOrBust returns the public key
-// corresponding to the crypt private key for this user.
-func MakeLocalUserCryptPublicKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.CryptPublicKey {
-	return MakeLocalUserCryptPrivateKeyOrBust(name).GetPublicKey()
-}
-
-// MakeLocalTLFCryptKeyOrBust returns a unique private symmetric key
-// for a TLF.
-func MakeLocalTLFCryptKeyOrBust(
-	name string, keyGen kbfsmd.KeyGen) kbfscrypto.TLFCryptKey {
-	// Put the key gen first to make it more likely to fit into the
-	// 32-character "random" seed.
-	return kbfscrypto.MakeFakeTLFCryptKeyOrBust(
-		string(name) + " " + string(keyGen) + " crypt key ")
-}
-
-// MakeLocalUsers is a helper function to generate a list of
-// LocalUsers suitable to use with KeybaseDaemonLocal.
-func MakeLocalUsers(users []kbname.NormalizedUsername) []LocalUser {
-	localUsers := make([]LocalUser, len(users))
-	for i := 0; i < len(users); i++ {
-		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])
-		cryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(users[i])
-		localUsers[i] = LocalUser{
-			UserInfo: UserInfo{
-				Name:            users[i],
-				UID:             keybase1.MakeTestUID(uint32(i + 1)),
-				VerifyingKeys:   []kbfscrypto.VerifyingKey{verifyingKey},
-				CryptPublicKeys: []kbfscrypto.CryptPublicKey{cryptPublicKey},
-				KIDNames: map[keybase1.KID]string{
-					verifyingKey.KID(): "dev1",
-				},
-			},
-			CurrentCryptPublicKeyIndex: 0,
-			CurrentVerifyingKeyIndex:   0,
-		}
-	}
-	return localUsers
-}
-
-func makeLocalTeams(
-	teams []kbname.NormalizedUsername, startingIndex int, ty tlf.Type) (
-	localTeams []TeamInfo) {
-	localTeams = make([]TeamInfo, len(teams))
-	for index := 0; index < len(teams); index++ {
-		i := index + startingIndex
-		cryptKey := MakeLocalTLFCryptKeyOrBust(
-			buildCanonicalPathForTlfType(
-				tlf.SingleTeam, string(teams[index])),
-			kbfsmd.FirstValidKeyGen)
-		localTeams[index] = TeamInfo{
-			Name: teams[index],
-			TID:  keybase1.MakeTestTeamID(uint32(i+1), ty == tlf.Public),
-			CryptKeys: map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey{
-				kbfsmd.FirstValidKeyGen: cryptKey,
-			},
-			LatestKeyGen: kbfsmd.FirstValidKeyGen,
-		}
-		// If this is a subteam, set the root ID.
-		if strings.Contains(string(teams[index]), ".") {
-			parts := strings.SplitN(string(teams[index]), ".", 2)
-			for j := 0; j < index; j++ {
-				if parts[0] == string(localTeams[j].Name) {
-					localTeams[index].RootID = localTeams[j].TID
-					break
-				}
-			}
-		}
-	}
-	return localTeams
-}
-
-// MakeLocalTeams is a helper function to generate a list of local
-// teams suitable to use with KeybaseDaemonLocal.  Any subteams must come
-// after their root team names in the `teams` slice.
-func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
-	return makeLocalTeams(teams, 0, tlf.Private)
-}
-
 // getDefaultCleanBlockCacheCapacity returns the default clean block
 // cache capacity. If we can get total RAM of the system, we cap at
 // the smaller of <1/4 of available memory> and
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
 func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
-	capacity := uint64(MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
+	const minCapacity = 10 * uint64(data.MaxBlockSizeBytesDefault) // 5mb
+	capacity := uint64(data.MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
 		ramBased := vmstat.Total / 8
+		if ramBased < minCapacity {
+			ramBased = minCapacity
+		}
 		if ramBased < capacity {
 			capacity = ramBased
 		}
@@ -409,6 +229,14 @@ func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
 		capacity = mode.MaxCleanBlockCacheCapacity()
 	}
 	return capacity
+}
+
+type keyOpsConfigWrapper struct {
+	Config
+}
+
+func (k keyOpsConfigWrapper) KBPKI() idutil.KBPKI {
+	return k.Config.KBPKI()
 }
 
 // NewConfigLocal constructs a new ConfigLocal with some default
@@ -431,17 +259,20 @@ func NewConfigLocal(mode InitMode,
 	}
 	config.SetCodec(kbfscodec.NewMsgpack())
 	if diskCacheMode == DiskCacheModeLocal {
-		config.loadSyncedTlfsLocked()
+		// Any error is logged in the function itself.
+		_ = config.loadSyncedTlfsLocked()
 	}
-	config.SetClock(wallClock{})
+	config.SetClock(data.WallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
-	config.SetKeyOps(&KeyOpsStandard{config})
+	config.SetKeyOps(libkey.NewKeyOpsStandard(keyOpsConfigWrapper{config}))
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
-	config.SetUserHistory(kbfsedits.NewUserHistory())
+	uhLog := config.MakeLogger("HIS")
+	config.SetUserHistory(kbfsedits.NewUserHistory(
+		uhLog, config.MakeVLogger(uhLog)))
 
-	config.maxNameBytes = maxNameBytesDefault
+	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.delayedCancellationGracePeriod = delayedCancellationGracePeriodDefault
@@ -464,6 +295,12 @@ func NewConfigLocal(mode InitMode,
 	config.syncBlockCacheFraction = defaultSyncBlockCacheFraction
 
 	config.blockCryptVersion = defaultBlockCryptVersion
+
+	config.conflictResolutionDB = openCRDB(config)
+	config.settingsDB = openSettingsDB(config)
+
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
 
 	return config
 }
@@ -490,7 +327,7 @@ func (c *ConfigLocal) KBPKI() KBPKI {
 }
 
 // CurrentSessionGetter implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) CurrentSessionGetter() CurrentSessionGetter {
+func (c *ConfigLocal) CurrentSessionGetter() idutil.CurrentSessionGetter {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kbpki
@@ -567,28 +404,28 @@ func (c *ConfigLocal) SetKeyBundleCache(k kbfsmd.KeyBundleCache) {
 }
 
 // BlockCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) BlockCache() BlockCache {
+func (c *ConfigLocal) BlockCache() data.BlockCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.bcache
 }
 
 // SetBlockCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetBlockCache(b BlockCache) {
+func (c *ConfigLocal) SetBlockCache(b data.BlockCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.bcache = b
 }
 
 // DirtyBlockCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) DirtyBlockCache() DirtyBlockCache {
+func (c *ConfigLocal) DirtyBlockCache() data.DirtyBlockCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.dirtyBcache
 }
 
 // SetDirtyBlockCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetDirtyBlockCache(d DirtyBlockCache) {
+func (c *ConfigLocal) SetDirtyBlockCache(d data.DirtyBlockCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.dirtyBcache = d
@@ -715,14 +552,14 @@ func (c *ConfigLocal) SetMDOps(m MDOps) {
 }
 
 // KeyOps implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeyOps() KeyOps {
+func (c *ConfigLocal) KeyOps() libkey.KeyOps {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kops
 }
 
 // SetKeyOps implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeyOps(k KeyOps) {
+func (c *ConfigLocal) SetKeyOps(k libkey.KeyOps) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.kops = k
@@ -785,14 +622,14 @@ func (c *ConfigLocal) SetBlockServer(b BlockServer) {
 }
 
 // KeyServer implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeyServer() KeyServer {
+func (c *ConfigLocal) KeyServer() libkey.KeyServer {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.keyserv
 }
 
 // SetKeyServer implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeyServer(k KeyServer) {
+func (c *ConfigLocal) SetKeyServer(k libkey.KeyServer) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.keyserv = k
@@ -813,14 +650,14 @@ func (c *ConfigLocal) SetKeybaseService(k KeybaseService) {
 }
 
 // BlockSplitter implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) BlockSplitter() BlockSplitter {
+func (c *ConfigLocal) BlockSplitter() data.BlockSplitter {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.bsplit
 }
 
 // SetBlockSplitter implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetBlockSplitter(b BlockSplitter) {
+func (c *ConfigLocal) SetBlockSplitter(b data.BlockSplitter) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.bsplit = b
@@ -897,8 +734,8 @@ func (c *ConfigLocal) SetMetadataVersion(mdVer kbfsmd.MetadataVer) {
 }
 
 // DataVersion implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) DataVersion() DataVer {
-	return IndirectDirsDataVer
+func (c *ConfigLocal) DataVersion() data.Ver {
+	return data.IndirectDirsVer
 }
 
 // BlockCryptVersion implements the Config interface for ConfigLocal.
@@ -965,11 +802,22 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 
 // Mode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Mode() InitMode {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.mode
+}
+
+// SetMode implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetMode(mode InitMode) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.mode = mode
 }
 
 // IsTestMode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) IsTestMode() bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.mode.IsTestMode()
 }
 
@@ -998,7 +846,7 @@ func (c *ConfigLocal) StorageRoot() string {
 	return c.storageRoot
 }
 
-func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
+func (c *ConfigLocal) resetCachesWithoutShutdown() data.DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
@@ -1008,7 +856,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
-		capacity = getDefaultCleanBlockCacheCapacity(c.Mode())
+		capacity = getDefaultCleanBlockCacheCapacity(c.mode)
 		log.Debug("setting default clean block cache capacity to %d",
 			capacity)
 	} else {
@@ -1016,9 +864,9 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 		log.Debug("setting clean block cache capacity based on existing value %d",
 			capacity)
 	}
-	c.bcache = NewBlockCacheStandard(10000, capacity)
+	c.bcache = data.NewBlockCacheStandard(10000, capacity)
 
-	if !c.Mode().DirtyBlockCacheEnabled() {
+	if !c.mode.DirtyBlockCacheEnabled() {
 		return nil
 	}
 
@@ -1033,7 +881,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// forced on us by the upper layer (19 seconds on OS X).  With the
 	// current default of a single block, this minimum works out to
 	// ~1MB, so we can support a connection speed as low as ~54 KB/s.
-	minSyncBufferSize := int64(MaxBlockSizeBytesDefault)
+	minSyncBufferSize := int64(data.MaxBlockSizeBytesDefault)
 
 	// The maximum number of bytes we can try to sync at once (also limits the
 	// amount of memory used by dirty blocks). We use the same value from clean
@@ -1045,7 +893,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	startSyncBufferSize := minSyncBufferSize
 
 	dbcLog := c.MakeLogger("DBC")
-	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, dbcLog,
+	c.dirtyBcache = data.NewDirtyBlockCacheStandard(
+		c.clock, dbcLog, c.makeVLoggerLocked(dbcLog),
 		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
@@ -1053,11 +902,13 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
-	jServer, err := GetJournalServer(c)
+	jManager, err := GetJournalManager(c)
 	if err == nil {
-		if err := c.journalizeBcaches(jServer); err != nil {
+		if err := c.journalizeBcaches(jManager); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil, "Error journalizing dirty block cache: %+v", err)
+				log.CWarningf(
+					context.TODO(),
+					"Error journalizing dirty block cache: %+v", err)
 			}
 		}
 	}
@@ -1066,18 +917,33 @@ func (c *ConfigLocal) ResetCaches() {
 		// access to this config.
 		if err := oldDirtyBcache.Shutdown(); err != nil {
 			if log := c.MakeLogger(""); log != nil {
-				log.CWarningf(nil,
+				log.CWarningf(
+					context.TODO(),
 					"Error shutting down old dirty block cache: %+v", err)
 			}
 		}
 	}
 }
 
-// MakeLogger implements the Config interface for ConfigLocal.
+// MakeLogger implements the logMaker interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	// No need to lock since c.loggerFn is initialized once at
 	// construction. Also resetCachesWithoutShutdown would deadlock.
 	return c.loggerFn(module)
+}
+
+func (c *ConfigLocal) makeVLoggerLocked(log logger.Logger) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(log)
+	vlog.Configure(c.vdebugSetting)
+	c.vlogs = append(c.vlogs, vlog)
+	return vlog
+}
+
+// MakeVLogger implements the logMaker interface for ConfigLocal.
+func (c *ConfigLocal) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.makeVLoggerLocked(log)
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.
@@ -1223,9 +1089,11 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 		// Continue with shutdown regardless of err.
-		err = nil
 	}
-	c.BlockOps().Shutdown()
+	err = c.BlockOps().Shutdown(ctx)
+	if err != nil {
+		return err
+	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()
@@ -1255,6 +1123,16 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if bms != nil {
 		bms.Shutdown()
 	}
+	if c.conflictResolutionDB != nil {
+		if err := c.conflictResolutionDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
+	}
+	if c.settingsDB != nil {
+		if err := c.settingsDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
+	}
 	kbfsServ := c.kbfsService
 	if kbfsServ != nil {
 		kbfsServ.Shutdown()
@@ -1273,6 +1151,8 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		cancel()
 	}
 
+	c.subscriptionManager.Shutdown(ctx)
+
 	return nil
 }
 
@@ -1284,12 +1164,12 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
-func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
-	syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
+func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
+	syncCache, ok := c.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	if !ok {
 		return errors.Errorf("Dirty bcache unexpectedly type %T", syncCache)
 	}
-	jServer.delegateDirtyBlockCache = syncCache
+	jManager.delegateDirtyBlockCache = syncCache
 
 	// Make a dirty block cache specifically for the journal
 	// server.  Since this doesn't rely directly on the network,
@@ -1297,12 +1177,13 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	// always set the min and max to the same thing.
 	maxSyncBufferSize := int64(ForcedBranchSquashBytesThresholdDefault)
 	log := c.MakeLogger("DBCJ")
-	journalCache := NewDirtyBlockCacheStandard(c.clock, log,
+	journalCache := data.NewDirtyBlockCacheStandard(
+		c.clock, log, c.MakeVLogger(log),
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
-	c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
+	c.SetDirtyBlockCache(jManager.dirtyBlockCache(journalCache))
 
-	jServer.delegateBlockCache = c.BlockCache()
-	c.SetBlockCache(jServer.blockCache())
+	jManager.delegateBlockCache = c.BlockCache()
+	c.SetBlockCache(jManager.blockCache())
 	return nil
 }
 
@@ -1319,19 +1200,21 @@ func (c *ConfigLocal) getQuotaUsage(
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	quota, ok = c.quotaUsage[chargedTo]
+	log := c.MakeLogger(QuotaUsageLogModule("BDL"))
+	vlog := c.makeVLoggerLocked(log)
 	if !ok {
 		if chargedTo.IsTeamOrSubteam() {
 			quota = NewEventuallyConsistentTeamQuotaUsage(
-				c, chargedTo.AsTeamOrBust(), "BDL")
+				c, chargedTo.AsTeamOrBust(), log, vlog)
 		} else {
-			quota = NewEventuallyConsistentQuotaUsage(c, "BDL")
+			quota = NewEventuallyConsistentQuotaUsage(c, log, vlog)
 		}
 		c.quotaUsage[chargedTo] = quota
 	}
 	return quota
 }
 
-// EnableDiskLimiter fills in c.ciskLimiter for use in journaling and
+// EnableDiskLimiter fills in c.diskLimiter for use in journaling and
 // disk caching. It returns the EventuallyConsistentQuotaUsage object
 // used by the disk limiter.
 func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
@@ -1344,7 +1227,10 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
-	os.MkdirAll(configRoot, 0700)
+	err := os.MkdirAll(configRoot, 0700)
+	if err != nil {
+		return err
+	}
 
 	diskLimiter, err := newBackpressureDiskLimiter(log, params)
 	if err != nil {
@@ -1354,17 +1240,21 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	return nil
 }
 
-// EnableJournaling creates a JournalServer and attaches it to
+// EnableJournaling creates a JournalManager and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus) error {
-	jServer, err := GetJournalServer(c)
+	jManager, err := GetJournalManager(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
-		return errors.New("Trying to enable journaling twice")
+		return errors.New("trying to enable journaling twice")
+	}
+
+	if c.diskLimiter == nil {
+		return errors.New("disk limiter must be enabled to enable journaling")
 	}
 
 	// TODO: Sanity-check the root directory, e.g. create
@@ -1380,14 +1270,14 @@ func (c *ConfigLocal) EnableJournaling(
 		return err
 	}
 
-	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
+	jManager = makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener)
 
-	c.SetBlockServer(jServer.blockServer())
-	c.SetMDOps(jServer.mdOps())
+	c.SetBlockServer(jManager.blockServer())
+	c.SetMDOps(jManager.mdOps())
 
-	bcacheErr := c.journalizeBcaches(jServer)
+	bcacheErr := c.journalizeBcaches(jManager)
 	enableErr := func() error {
 		// If this fails, then existing journals will be
 		// enabled when we receive the login notification.
@@ -1396,13 +1286,13 @@ func (c *ConfigLocal) EnableJournaling(
 			return err
 		}
 
-		err = jServer.EnableExistingJournals(
+		err = jManager.EnableExistingJournals(
 			ctx, session.UID, session.VerifyingKey, bws)
 		if err != nil {
 			return err
 		}
 
-		wg := jServer.MakeFBOsForExistingJournals(ctx)
+		wg := jManager.MakeFBOsForExistingJournals(ctx)
 		wg.Wait()
 		return nil
 	}()
@@ -1419,12 +1309,59 @@ func (c *ConfigLocal) EnableJournaling(
 	return nil
 }
 
+func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackgroundLocked(
+	tlfID tlf.ID, ch chan<- error) {
+	// Start a background goroutine deleting all the blocks from this
+	// TLF.
+	ctx, cancel := context.WithCancel(context.Background())
+	if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
+		oldCancel()
+	}
+	c.tlfClearCancels[tlfID] = cancel
+	diskBlockCache := c.diskBlockCache
+	go func() {
+		defer cancel()
+		ch <- diskBlockCache.ClearAllTlfBlocks(
+			ctx, tlfID, DiskBlockSyncCache)
+	}()
+}
+
+func (c *ConfigLocal) cleanSyncBlockCache() {
+	ctx := context.Background()
+	err := c.DiskBlockCache().WaitUntilStarted(DiskBlockSyncCache)
+	if err != nil {
+		c.MakeLogger("").CDebugf(
+			ctx, "Disk block cache failed to start; can't clean: %+v", err)
+		return
+	}
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	cacheTlfIDs, err := c.diskBlockCache.GetTlfIDs(ctx, DiskBlockSyncCache)
+	if err != nil {
+		c.MakeLogger("").CDebugf(
+			ctx, "Disk block cache can't get TLF IDs; can't clean: %+v", err)
+		return
+	}
+
+	for _, id := range cacheTlfIDs {
+		if _, ok := c.syncedTlfs[id]; ok {
+			continue
+		}
+
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(id, make(chan error, 1))
+	}
+}
+
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
-	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot)
+	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
 	c.diskBlockCache = dbc
+	if !c.mode.IsTestMode() {
+		go c.cleanSyncBlockCache()
+	}
 	return nil
 }
 
@@ -1453,7 +1390,7 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskMDCacheLocked() error {
-	dmc, err := newDiskMDCacheLocal(c, c.storageRoot)
+	dmc, err := newDiskMDCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1476,7 +1413,7 @@ func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskQuotaCacheLocked() error {
-	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot)
+	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1509,27 +1446,34 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	if c.blockMetadataStore != nil {
 		return nil
 	}
-	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
+	c.blockMetadataStore, err = newDiskBlockMetadataStore(c, c.mode)
 	if err != nil {
-		// TODO: open read-only instead KBFS-3659
+		// TODO (KBFS-3659): when we can open levelDB read-only,
+		//  do that instead of returning a Noop version.
+		c.blockMetadataStore = &NoopBlockMetadataStore{}
 		return err
 	}
 	return nil
 }
 
-func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
+func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 	dbPath := filepath.Join(c.storageRoot, configName)
 	stor, err := storage.OpenFile(dbPath, false)
 	if err != nil {
 		return nil, err
 	}
-	return openLevelDB(stor)
+	return openLevelDB(stor, c.mode)
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
+	defer func() {
+		c.MakeLogger("").CDebugf(context.TODO(), "Loaded synced TLFs: %+v", err)
+	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
-	if c.IsTestMode() {
+	syncedTlfPaths := make(map[string]bool)
+	if c.mode.IsTestMode() {
 		c.syncedTlfs = syncedTlfs
+		c.syncedTlfPaths = syncedTlfPaths
 		return nil
 	}
 	if c.storageRoot == "" {
@@ -1567,12 +1511,16 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			config.Mode = keybase1.FolderSyncMode_ENABLED
 		}
 		syncedTlfs[tlfID] = config
+		if config.TlfPath != "" {
+			syncedTlfPaths[config.TlfPath] = true
+		}
 	}
 	c.syncedTlfs = syncedTlfs
+	c.syncedTlfPaths = syncedTlfPaths
 	return ldb.Write(deleteBatch, nil)
 }
 
-// GetTlfSyncState implements the isSyncedTlfGetter interface for
+// GetTlfSyncState implements the syncedTlfGetterSetter interface for
 // ConfigLocal.
 func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	c.lock.RLock()
@@ -1580,39 +1528,67 @@ func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	return c.syncedTlfs[tlfID]
 }
 
-// IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
+// IsSyncedTlf implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
 func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 	return c.GetTlfSyncState(tlfID).Mode == keybase1.FolderSyncMode_ENABLED
 }
 
-// SetTlfSyncState implements the Config interface for ConfigLocal.
+// IsSyncedTlfPath implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
+func (c *ConfigLocal) IsSyncedTlfPath(tlfPath string) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.syncedTlfPaths[tlfPath]
+}
+
+// OfflineAvailabilityForPath implements the offlineStatusGetter
+// interface for ConfigLocal.
+func (c *ConfigLocal) OfflineAvailabilityForPath(
+	tlfPath string) keybase1.OfflineAvailability {
+	if c.IsSyncedTlfPath(tlfPath) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
+// OfflineAvailabilityForID implements the offlineStatusGetter
+// interface for ConfigLocal.
+func (c *ConfigLocal) OfflineAvailabilityForID(
+	tlfID tlf.ID) keybase1.OfflineAvailability {
+	if c.GetTlfSyncState(tlfID).Mode != keybase1.FolderSyncMode_DISABLED {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
 func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, BlockOps, error) {
+	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 	if !ok {
-		return nil, nil, errors.Errorf(
+		return nil, errors.Errorf(
 			"invalid disk cache type to set TLF sync state: %T",
 			c.diskBlockCache)
 	}
 	if !diskCacheWrapped.IsSyncCacheEnabled() {
-		return nil, nil, errors.New("sync block cache is not enabled")
+		return nil, errors.New("sync block cache is not enabled")
 	}
 
-	if !c.IsTestMode() {
+	if !c.mode.IsTestMode() {
 		if c.storageRoot == "" {
-			return nil, nil, errors.New(
+			return nil, errors.New(
 				"empty storageRoot specified for non-test run")
 		}
 		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		defer ldb.Close()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
 			err = ldb.Delete(tlfBytes, nil)
@@ -1623,49 +1599,54 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 			var buf []byte
 			buf, err = c.codec.Encode(&config)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			err = ldb.Put(tlfBytes, buf, nil)
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
 	ch := make(chan error, 1)
 	if config.Mode == keybase1.FolderSyncMode_DISABLED {
-		// Start a background goroutine deleting all the blocks
-		// from this TLF.
-		ctx, cancel := context.WithCancel(context.Background())
-		if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
-			oldCancel()
-		}
-		c.tlfClearCancels[tlfID] = cancel
-		diskBlockCache := c.diskBlockCache
-		go func() {
-			defer cancel()
-			ch <- diskBlockCache.ClearAllTlfBlocks(
-				ctx, tlfID, DiskBlockSyncCache)
-		}()
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(tlfID, ch)
 	} else {
 		ch <- nil
 	}
 
+	oldConfig := c.syncedTlfs[tlfID]
+	if config.TlfPath != oldConfig.TlfPath {
+		delete(c.syncedTlfPaths, oldConfig.TlfPath)
+	}
+
 	c.syncedTlfs[tlfID] = config
-	return ch, c.bops, nil
+	if config.TlfPath != "" {
+		c.syncedTlfPaths[config.TlfPath] = true
+	}
+	return ch, nil
 }
 
-// SetTlfSyncState implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+// SetTlfSyncState implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
+func (c *ConfigLocal) SetTlfSyncState(
+	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
-	ch, bops, err := c.setTlfSyncState(tlfID, config)
-	// Toggle the prefetcher outside of holding the lock, since the
-	// previous prefetcher might depend on accessing the config.
-	<-bops.TogglePrefetcher(true)
-	return ch, err
+	if !c.IsTestMode() && config.Mode != keybase1.FolderSyncMode_ENABLED {
+		// If we're disabling, or just changing the partial sync
+		// config (which may be removing paths), we should cancel all
+		// the previous prefetches for this TLF.  For partial syncs, a
+		// new sync will be started.
+		err := c.BlockOps().Prefetcher().CancelTlfPrefetches(ctx, tlfID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c.setTlfSyncState(tlfID, config)
 }
 
-// GetAllSyncedTlfs implements the Config interface for ConfigLocal.
+// GetAllSyncedTlfs implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
 func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
@@ -1680,7 +1661,7 @@ func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
 
 // PrefetchStatus implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
-	ptr BlockPointer) PrefetchStatus {
+	ptr data.BlockPointer) PrefetchStatus {
 	dbc := c.DiskBlockCache()
 	if dbc == nil {
 		// We must be in testing mode, so check the block retrieval queue.
@@ -1688,10 +1669,16 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 		if !ok {
 			return NoPrefetch
 		}
-		return bops.queue.getPrefetchStatus(ptr.ID)
+		status, err := bops.queue.getPrefetchStatus(ptr.ID)
+		if err != nil {
+			c.MakeLogger("").CDebugf(ctx,
+				"Error getting prefetch status: %+v", err)
+			return NoPrefetch
+		}
+		return status
 	}
 
-	_, _, prefetchStatus, err := dbc.Get(
+	prefetchStatus, err := dbc.GetPrefetchStatus(
 		ctx, tlfID, ptr.ID, DiskBlockAnyCache)
 	if err != nil {
 		return NoPrefetch
@@ -1702,6 +1689,16 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 // GetRekeyFSMLimiter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 	return c.rekeyFSMLimiter
+}
+
+// GetConflictResolutionDB implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetConflictResolutionDB() (db *LevelDb) {
+	return c.conflictResolutionDB
+}
+
+// GetSettingsDB implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetSettingsDB() (db *SettingsDB) {
+	return c.settingsDB
 }
 
 // SetKBFSService sets the KBFSService for this ConfigLocal.
@@ -1718,7 +1715,7 @@ func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 func (c *ConfigLocal) RootNodeWrappers() []func(Node) Node {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.rootNodeWrappers[:]
+	return c.rootNodeWrappers
 }
 
 // AddRootNodeWrapper implements the Config interface for ConfigLocal.
@@ -1726,4 +1723,50 @@ func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
+	if c.kbfs != nil {
+		c.kbfs.AddRootNodeWrapper(f)
+	}
+}
+
+// SetVLogLevel implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetVLogLevel(levelString string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.vdebugSetting = levelString
+	for _, vlog := range c.vlogs {
+		vlog.Configure(levelString)
+	}
+}
+
+// VLogLevel implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) VLogLevel() string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.vdebugSetting
+}
+
+// SetDiskCacheMode sets the disk cache mode for this config, after
+// construction.  Mostly useful for tests.
+func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.diskCacheMode = m
+	if c.diskCacheMode == DiskCacheModeLocal {
+		// Any error is logged in the function itself.
+		_ = c.loadSyncedTlfsLocked()
+	}
+}
+
+// SubscriptionManager implements the Config interface.
+func (c *ConfigLocal) SubscriptionManager() SubscriptionManager {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.subscriptionManager
+}
+
+// SubscriptionManagerPublisher implements the Config interface.
+func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.subscriptionManagerPublisher
 }

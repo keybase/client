@@ -319,8 +319,8 @@ func (md *RootMetadataV2) IsFinal() bool {
 // IsWriter implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) IsWriter(
 	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
-	_ kbfscrypto.VerifyingKey, _ TeamMembershipChecker, _ ExtraMetadata) (
-	bool, error) {
+	_ kbfscrypto.VerifyingKey, _ TeamMembershipChecker, _ ExtraMetadata,
+	_ keybase1.OfflineAvailability) (bool, error) {
 	if md.ID.Type() != tlf.Private {
 		for _, w := range md.Writers {
 			if w == user.AsUserOrTeam() {
@@ -335,7 +335,8 @@ func (md *RootMetadataV2) IsWriter(
 // IsReader implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) IsReader(
 	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
-	_ TeamMembershipChecker, _ ExtraMetadata) (bool, error) {
+	_ TeamMembershipChecker, _ ExtraMetadata,
+	_ keybase1.OfflineAvailability) (bool, error) {
 	switch md.ID.Type() {
 	case tlf.Public:
 		return true, nil
@@ -776,7 +777,7 @@ func (md *RootMetadataV2) GetTLFCryptKeyParams(
 func (md *RootMetadataV2) IsValidAndSigned(
 	_ context.Context, codec kbfscodec.Codec,
 	_ TeamMembershipChecker, extra ExtraMetadata,
-	_ kbfscrypto.VerifyingKey) error {
+	_ kbfscrypto.VerifyingKey, _ keybase1.OfflineAvailability) error {
 	// Optimization -- if the WriterMetadata signature is nil, it
 	// will fail verification.
 	if md.WriterMetadataSigInfo.IsNil() {
@@ -971,13 +972,6 @@ func (md *RootMetadataV2) RevisionNumber() Revision {
 	return md.Revision
 }
 
-// MerkleRoot implements the RootMetadata interface for
-// RootMetadataV2.
-func (md *RootMetadataV2) MerkleRoot() keybase1.MerkleRootV2 {
-	// No v2 MDs will have had this field set.
-	return keybase1.MerkleRootV2{}
-}
-
 // BID implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) BID() BranchID {
 	return md.WriterMetadataV2.BID
@@ -1079,12 +1073,6 @@ func (md *RootMetadataV2) SetWriterMetadataCopiedBit() {
 // SetRevision implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) SetRevision(revision Revision) {
 	md.Revision = revision
-}
-
-// SetMerkleRoot implements the MutableRootMetadata interface for
-// RootMetadataV2.
-func (md *RootMetadataV2) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	// V2 doesn't support merkle seqnos, just ignore.
 }
 
 // SetUnresolvedReaders implements the MutableRootMetadata interface for RootMetadataV2.

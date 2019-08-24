@@ -127,12 +127,6 @@ func (u *user) addItem(now time.Time, i gregor.Item) *item {
 	return newItem
 }
 
-func (u *user) addItems(items []gregor.Item) {
-	for _, it := range items {
-		u.addItem(time.Now(), it)
-	}
-}
-
 // logMessage logs a message for this user and potentially associates an item
 func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	for _, l := range u.log {
@@ -472,6 +466,24 @@ func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message,
 	m.Lock()
 	defer m.Unlock()
 	return m.getUser(u).outbox, nil
+}
+
+func (m *MemEngine) RemoveFromOutbox(ctx context.Context, u gregor.UID, id gregor.MsgID) error {
+	m.Lock()
+	defer m.Unlock()
+	var newOutbox []gregor.Message
+	idstr := id.String()
+	for _, msg := range m.getUser(u).outbox {
+		msgIbm := msg.ToInBandMessage()
+		if msgIbm == nil {
+			continue
+		}
+		if msgIbm.Metadata().MsgID().String() != idstr {
+			newOutbox = append(newOutbox, msg)
+		}
+	}
+	m.getUser(u).outbox = newOutbox
+	return nil
 }
 
 func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {

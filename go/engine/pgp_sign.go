@@ -87,7 +87,7 @@ func (p *PGPSignEngine) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {
-		err = fmt.Errorf("Can only sign with PGP keys (for now)")
+		err = fmt.Errorf("Can only sign with PGP keys")
 		return
 	}
 

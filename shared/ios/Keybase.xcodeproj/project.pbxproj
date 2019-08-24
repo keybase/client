@@ -1,0 +1,972 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
+		279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 279FB5A12139AB6A005E4864 /* MainInterface.storyboard */; };
+		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB5ED2139ADEB005E4864 /* ConversationViewController.m */; };
+		279FB66921402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
+		279FB66A21402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
+		279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
+		279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
+		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
+		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
+		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
+		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
+		27F0BD2A214750A2007195B7 /* InitFailedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27F0BD29214750A2007195B7 /* InitFailedViewController.m */; };
+		338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */; };
+		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
+		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
+		37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */; };
+		37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */; };
+		37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */; };
+		37E0D88B22A5C7FB008CA4ED /* keybase-medium-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */; };
+		37E0D88C22A5C7FB008CA4ED /* keybase-medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */; };
+		37E0D88D22A5C7FB008CA4ED /* keybase-semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */; };
+		37E0D88E22A5C7FB008CA4ED /* keybase-bold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */; };
+		37E0D88F22A5C7FB008CA4ED /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */; };
+		37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88622A5C7FB008CA4ED /* kb.ttf */; };
+		37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */; };
+		37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D89222A5C83B008CA4ED /* keybasemessage.wav */; };
+		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
+		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
+		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
+		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
+		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
+		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
+		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
+		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
+		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
+		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
+		DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */; };
+		DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */; };
+		DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */; };
+		DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30751FE8511F0020EBA5 /* DDLog.m */; };
+		DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */; };
+		DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */; };
+		DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */; };
+		DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		279FB5A52139AB6A005E4864 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 279FB59B2139AB6A005E4864;
+			remoteInfo = KeybaseShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		279FB5D82139AB6A005E4864 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A90CD56F1FD70F7E00F97901 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		005BF9961BB9C6B000BD8953 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
+		038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
+		1038071745692610070A34DC /* Pods-Keybase For Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.release.xcconfig"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FBA52321551ABCD0E9F3CDE /* Pods-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
+		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
+		279FB59C2139AB6A005E4864 /* KeybaseShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeybaseShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		279FB59E2139AB6A005E4864 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
+		279FB59F2139AB6A005E4864 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
+		279FB5A22139AB6A005E4864 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		279FB5A42139AB6A005E4864 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		279FB5EC2139ADEB005E4864 /* ConversationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConversationViewController.h; sourceTree = "<group>"; };
+		279FB5ED2139ADEB005E4864 /* ConversationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConversationViewController.m; sourceTree = "<group>"; };
+		279FB66821402D68005E4864 /* Fs.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Fs.m; sourceTree = "<group>"; };
+		279FB69821402D82005E4864 /* Fs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fs.h; sourceTree = "<group>"; };
+		279FB6EE214039DA005E4864 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		279FB6F121403A2A005E4864 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		279FB6F321403A49005E4864 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
+		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
+		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
+		27F0BD28214750A2007195B7 /* InitFailedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InitFailedViewController.h; sourceTree = "<group>"; };
+		27F0BD29214750A2007195B7 /* InitFailedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InitFailedViewController.m; sourceTree = "<group>"; };
+		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
+		375CA6901FFD418D00210B11 /* Storybook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Storybook.h; sourceTree = "<group>"; };
+		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
+		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
+		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
+		37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold.ttf"; path = "../fonts/keybase-bold.ttf"; sourceTree = "<group>"; };
+		37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium-italic.ttf"; path = "../fonts/keybase-medium-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium.ttf"; path = "../fonts/keybase-medium.ttf"; sourceTree = "<group>"; };
+		37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold.ttf"; path = "../fonts/keybase-semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold-italic.ttf"; path = "../fonts/keybase-bold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Semibold.ttf"; path = "../fonts/SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../fonts/kb.ttf; sourceTree = "<group>"; };
+		37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Medium.ttf"; path = "../fonts/SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		37E0D89222A5C83B008CA4ED /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../sounds/keybasemessage.wav; sourceTree = "<group>"; };
+		661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
+		661EA791223ADD1C00471C8C /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
+		661EA792223ADD1C00471C8C /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.ttf"; sourceTree = "<group>"; };
+		661EA793223ADD1C00471C8C /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.ttf"; sourceTree = "<group>"; };
+		661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
+		661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.ttf"; sourceTree = "<group>"; };
+		661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.ttf"; sourceTree = "<group>"; };
+		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
+		97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
+		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
+		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
+		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
+		AC024A34A307F5688461FEB2 /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AFDBCC82D860F984765A47D7 /* Pods-Keybase-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
+		BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
+		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
+		C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
+		C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
+		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
+		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
+		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
+		DBDC80031DE7CC8E005387B3 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
+		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
+		DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDTTYLogger.m; sourceTree = "<group>"; };
+		DBEE306D1FE8511F0020EBA5 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
+		DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLegacyMacros.h; sourceTree = "<group>"; };
+		DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDOSLogger.m; sourceTree = "<group>"; };
+		DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
+		DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLogMacros.h; sourceTree = "<group>"; };
+		DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogCapture.h; sourceTree = "<group>"; };
+		DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogger.m; sourceTree = "<group>"; };
+		DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDFileLogger.h; sourceTree = "<group>"; };
+		DBEE30751FE8511F0020EBA5 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDLog.m; sourceTree = "<group>"; };
+		DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaLumberjack.h; sourceTree = "<group>"; };
+		DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDTTYLogger.h; sourceTree = "<group>"; };
+		DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAssertMacros.h; sourceTree = "<group>"; };
+		DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDOSLogger.h; sourceTree = "<group>"; };
+		DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DDLog+LOGV.h"; sourceTree = "<group>"; };
+		DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
+		DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDFileLogger.m; sourceTree = "<group>"; };
+		DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
+		DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogCapture.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */,
+				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
+				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
+				D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279FB5992139AB6A005E4864 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
+				279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */,
+				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
+				279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */,
+				279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */,
+				338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		279FB59D2139AB6A005E4864 /* KeybaseShare */ = {
+			isa = PBXGroup;
+			children = (
+				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
+				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
+				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
+				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
+				279FB5A42139AB6A005E4864 /* Info.plist */,
+				279FB5EC2139ADEB005E4864 /* ConversationViewController.h */,
+				279FB5ED2139ADEB005E4864 /* ConversationViewController.m */,
+				27F0BD28214750A2007195B7 /* InitFailedViewController.h */,
+				27F0BD29214750A2007195B7 /* InitFailedViewController.m */,
+			);
+			path = KeybaseShare;
+			sourceTree = "<group>";
+		};
+		632CDCCF40F493A54812A481 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */,
+				0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */,
+				BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */,
+				1038071745692610070A34DC /* Pods-Keybase For Tests.release.xcconfig */,
+				1FBA52321551ABCD0E9F3CDE /* Pods-KeybaseShare.debug.xcconfig */,
+				698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */,
+				C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */,
+				AFDBCC82D860F984765A47D7 /* Pods-Keybase-KeybaseShare.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				DB0846041BA75DC800F54960 /* keybase.framework */,
+			);
+			name = Libraries;
+			sourceTree = "<group>";
+		};
+		83CBB9F61A601CBA00E9B192 = {
+			isa = PBXGroup;
+			children = (
+				37E0D89222A5C83B008CA4ED /* keybasemessage.wav */,
+				37E0D88622A5C7FB008CA4ED /* kb.ttf */,
+				37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */,
+				37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */,
+				37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */,
+				37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */,
+				37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */,
+				37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */,
+				37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */,
+				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
+				37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */,
+				DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */,
+				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
+				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				279FB59D2139AB6A005E4864 /* KeybaseShare */,
+				83CBBA001A601CBA00E9B192 /* Products */,
+				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
+				DB090F7F1F719A2F007E4E1B /* Recovered References */,
+				632CDCCF40F493A54812A481 /* Pods */,
+			);
+			indentWidth = 2;
+			sourceTree = "<group>";
+			tabWidth = 2;
+		};
+		83CBBA001A601CBA00E9B192 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				13B07F961A680F5B00A75B9A /* Keybase.app */,
+				279FB59C2139AB6A005E4864 /* KeybaseShare.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */,
+				279FB6F321403A49005E4864 /* MobileCoreServices.framework */,
+				279FB6F121403A2A005E4864 /* CoreMedia.framework */,
+				279FB6EE214039DA005E4864 /* AVFoundation.framework */,
+				3791A8A220C71FE6001C2E86 /* UserNotifications.framework */,
+				274AFB721E972F5300615A64 /* libresolv.tbd */,
+				AC024A34A307F5688461FEB2 /* libPods-Keybase.a */,
+				97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */,
+				1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */,
+				038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C3A47BAA1E8B035500974A63 /* sounds */ = {
+			isa = PBXGroup;
+			children = (
+				C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */,
+			);
+			name = sounds;
+			sourceTree = "<group>";
+		};
+		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		DBDC80021DE7CC8E005387B3 /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
+				661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */,
+				661EA793223ADD1C00471C8C /* keybase-bold.ttf */,
+				661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */,
+				661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */,
+				661EA791223ADD1C00471C8C /* keybase-medium.ttf */,
+				661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */,
+				661EA792223ADD1C00471C8C /* keybase-semibold.ttf */,
+				664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */,
+				664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */,
+			);
+			name = fonts;
+			path = ../../../fonts;
+			sourceTree = "<group>";
+		};
+		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
+			isa = PBXGroup;
+			children = (
+				C3A47BAA1E8B035500974A63 /* sounds */,
+				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
+				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
+				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
+				DBDC80021DE7CC8E005387B3 /* fonts */,
+				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
+				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
+				DBCE36231B90F14800ECADDE /* Engine.h */,
+				DBCE36241B90F14800ECADDE /* Engine.m */,
+				DBBCC6171D9C5C6A00312652 /* main.m */,
+				DB27DE551D747A6B003DE8BC /* Utils.h */,
+				DB27DE561D747A6C003DE8BC /* Utils.m */,
+				A969A4161CF65CB200F273F2 /* LogSend.h */,
+				A969A4091CF65C9C00F273F2 /* LogSend.m */,
+				375CA6901FFD418D00210B11 /* Storybook.h */,
+				375CA6641FFD40D300210B11 /* Storybook.m */,
+				3791A87220C71DAA001C2E86 /* PushPrompt.h */,
+				3791A8A020C71DC0001C2E86 /* PushPrompt.m */,
+				A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */,
+				A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */,
+				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
+				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
+				27EE26A720A140EF00F92CD1 /* Pusher.m */,
+				27EE26A920A1466300F92CD1 /* Pusher.h */,
+				279FB66821402D68005E4864 /* Fs.m */,
+				279FB69821402D82005E4864 /* Fs.h */,
+			);
+			path = Keybase;
+			sourceTree = "<group>";
+		};
+		DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */ = {
+			isa = PBXGroup;
+			children = (
+				DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */,
+				DBEE306D1FE8511F0020EBA5 /* DDLog.h */,
+				DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */,
+				DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */,
+				DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */,
+				DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */,
+				DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */,
+				DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */,
+				DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */,
+				DBEE30751FE8511F0020EBA5 /* DDLog.m */,
+				DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */,
+				DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */,
+				DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */,
+				DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */,
+				DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */,
+				DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */,
+				DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */,
+				DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */,
+				DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */,
+				DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */,
+			);
+			path = CocoaLumberjack;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		13B07F861A680F5B00A75B9A /* Keybase */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Keybase" */;
+			buildPhases = (
+				98B69CE93CB10126B2666BE6 /* [CP] Check Pods Manifest.lock */,
+				13B07F871A680F5B00A75B9A /* Sources */,
+				13B07F8C1A680F5B00A75B9A /* Frameworks */,
+				13B07F8E1A680F5B00A75B9A /* Resources */,
+				DB229EE81BF697160081901A /* Bundle React Native code and images */,
+				A90CD56F1FD70F7E00F97901 /* Embed Frameworks */,
+				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				279FB5A62139AB6A005E4864 /* PBXTargetDependency */,
+			);
+			name = Keybase;
+			productName = "Hello World";
+			productReference = 13B07F961A680F5B00A75B9A /* Keybase.app */;
+			productType = "com.apple.product-type.application";
+		};
+		279FB59B2139AB6A005E4864 /* KeybaseShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 279FB5D72139AB6A005E4864 /* Build configuration list for PBXNativeTarget "KeybaseShare" */;
+			buildPhases = (
+				56262AC05B7D338505B39A58 /* [CP] Check Pods Manifest.lock */,
+				279FB5982139AB6A005E4864 /* Sources */,
+				279FB5992139AB6A005E4864 /* Frameworks */,
+				279FB59A2139AB6A005E4864 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeybaseShare;
+			productName = KeybaseShare;
+			productReference = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		83CBB9F71A601CBA00E9B192 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 700;
+				LastUpgradeCheck = 800;
+				ORGANIZATIONNAME = Keybase;
+				TargetAttributes = {
+					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = 99229SGT5K;
+						LastSwiftMigration = 800;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+							com.apple.DataProtection = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+							com.apple.SafariKeychain = {
+								enabled = 1;
+							};
+						};
+					};
+					279FB59B2139AB6A005E4864 = {
+						CreatedOnToolsVersion = 9.4.1;
+						DevelopmentTeam = 99229SGT5K;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+							com.apple.DataProtection = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 0;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Keybase" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				en,
+				Base,
+			);
+			mainGroup = 83CBB9F61A601CBA00E9B192;
+			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				13B07F861A680F5B00A75B9A /* Keybase */,
+				279FB59B2139AB6A005E4864 /* KeybaseShare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		13B07F8E1A680F5B00A75B9A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */,
+				37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */,
+				37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */,
+				37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */,
+				37E0D88B22A5C7FB008CA4ED /* keybase-medium-italic.ttf in Resources */,
+				37E0D88C22A5C7FB008CA4ED /* keybase-medium.ttf in Resources */,
+				37E0D88D22A5C7FB008CA4ED /* keybase-semibold.ttf in Resources */,
+				37E0D88E22A5C7FB008CA4ED /* keybase-bold-italic.ttf in Resources */,
+				37E0D88F22A5C7FB008CA4ED /* SourceCodePro-Semibold.ttf in Resources */,
+				37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */,
+				37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */,
+				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
+				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
+				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279FB59A2139AB6A005E4864 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		56262AC05B7D338505B39A58 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KeybaseShare-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		98B69CE93CB10126B2666BE6 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Keybase-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DB229EE81BF697160081901A /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# uncomment this if you want to skip bundling\n# export SKIP_BUNDLING=1\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		13B07F871A680F5B00A75B9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */,
+				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
+				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
+				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,
+				DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */,
+				DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */,
+				279FB66921402D68005E4864 /* Fs.m in Sources */,
+				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
+				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
+				DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */,
+				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
+				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
+				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
+				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
+				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
+				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
+				375CA6651FFD40D300210B11 /* Storybook.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279FB5982139AB6A005E4864 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27F0BD2A214750A2007195B7 /* InitFailedViewController.m in Sources */,
+				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
+				279FB66A21402D68005E4864 /* Fs.m in Sources */,
+				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
+				279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		279FB5A62139AB6A005E4864 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 279FB59B2139AB6A005E4864 /* KeybaseShare */;
+			targetProxy = 279FB5A52139AB6A005E4864 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		279FB5A12139AB6A005E4864 /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				279FB5A22139AB6A005E4864 /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		13B07F941A680F5B00A75B9A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 114;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/cocoalumberjack",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/KeybaseGo",
+				);
+				INFOPLIST_FILE = Keybase/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+				);
+				OTHER_CFLAGS = "-mno-thumb";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
+				PRODUCT_NAME = Keybase;
+				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 armv7s arm7";
+			};
+			name = Debug;
+		};
+		13B07F951A680F5B00A75B9A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 114;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/cocoalumberjack",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/KeybaseGo",
+				);
+				INFOPLIST_FILE = Keybase/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+				);
+				OTHER_CFLAGS = "-mno-thumb";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
+				PRODUCT_NAME = Keybase;
+				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 armv7s arm7";
+			};
+			name = Release;
+		};
+		279FB5A82139AB6A005E4864 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FBA52321551ABCD0E9F3CDE /* Pods-KeybaseShare.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = KeybaseShare/KeybaseShare.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 99229SGT5K;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = KeybaseShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				OTHER_CFLAGS = "-mno-thumb";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		279FB5A92139AB6A005E4864 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = KeybaseShare/KeybaseShare.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 99229SGT5K;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = KeybaseShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				OTHER_CFLAGS = "-mno-thumb";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		83CBBA201A601CBA00E9B192 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../node_modules/react-native/React/**",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_SWIFT_FLAGS = "-DDEBUG";
+				"OTHER_SWIFT_FLAGS[sdk=iphonesimulator*]" = "-DDEBUG -DSIMULATOR";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		83CBBA211A601CBA00E9B192 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../node_modules/react-native/React/**",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_SWIFT_FLAGS = "";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Keybase" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				13B07F941A680F5B00A75B9A /* Debug */,
+				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		279FB5D72139AB6A005E4864 /* Build configuration list for PBXNativeTarget "KeybaseShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				279FB5A82139AB6A005E4864 /* Debug */,
+				279FB5A92139AB6A005E4864 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Keybase" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83CBBA201A601CBA00E9B192 /* Debug */,
+				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
+}

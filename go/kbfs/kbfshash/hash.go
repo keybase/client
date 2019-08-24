@@ -55,6 +55,13 @@ const (
 	SHA256Hash HashType = 1
 	// SHA256HashV2 is the type of a SHA256 hash over V2-encrypted data.
 	SHA256HashV2 HashType = 2
+
+	// MaxHashType is the highest-supported hash type.
+	MaxHashType HashType = SHA256HashV2
+
+	// TemporaryHashType is a hash type to be used for random
+	// byte-strings that can be used in place of real hashes.
+	TemporaryHashType HashType = 0xff
 )
 
 // MaxDefaultHash is the maximum value of RawDefaultHash
@@ -296,7 +303,10 @@ var _ encoding.TextUnmarshaler = (*HMAC)(nil)
 // using the default hash.
 func DefaultHMAC(key, buf []byte) (HMAC, error) {
 	mac := hmac.New(DefaultHashNew, key)
-	mac.Write(buf)
+	_, err := mac.Write(buf)
+	if err != nil {
+		return HMAC{}, err
+	}
 	h, err := HashFromRaw(DefaultHashType, mac.Sum(nil))
 	if err != nil {
 		return HMAC{}, err

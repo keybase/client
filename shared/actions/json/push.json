@@ -3,9 +3,9 @@
   "actions": {
     "rejectPermissions": {},
     "requestPermissions": {},
-    "showPermissionsPrompt": { "show": "boolean" },
-    "updatePushToken": { "token": "string", },
-    "updateHasPermissions": { "hasPermissions": "boolean" },
-    "notification": { "notification": "Types.PushNotification" }
+    "showPermissionsPrompt": {"show": "boolean"},
+    "updatePushToken": {"token": "string"},
+    "updateHasPermissions": {"hasPermissions": "boolean"},
+    "notification": {"notification": "Types.PushNotification"}
   }
 }

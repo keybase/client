@@ -18,8 +18,8 @@ func TestParseConfigV1(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(generateSHA256PasswordHashForTestOrBust(t, "54321")),
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
+			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
 			"/alice-and-bob": PerPathConfigV1{

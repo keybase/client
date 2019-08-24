@@ -52,12 +52,12 @@ func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkT
 
 func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
-	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
-	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
-	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
-	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
-	ret.SetKey("is_verified", jsonw.NewBool(sh.isVerified))
+	_ = ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
+	_ = ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
+	_ = ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
+	_ = ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
+	_ = ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
+	_ = ret.SetKey("is_verified", jsonw.NewBool(sh.isVerified))
 	return ret
 }
 
@@ -119,55 +119,54 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 
 func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("version", jsonw.NewInt(sh.version))
-	ret.SetKey("hints", jsonw.NewArray(len(sh.hints)))
+	_ = ret.SetKey("version", jsonw.NewInt(sh.version))
+	_ = ret.SetKey("hints", jsonw.NewArray(len(sh.hints)))
 	i := 0
 	for _, v := range sh.hints {
-		ret.AtKey("hints").SetIndex(i, v.MarshalToJSON())
+		_ = ret.AtKey("hints").SetIndex(i, v.MarshalToJSON())
 		i++
 	}
 	return ret
 }
 
 func (sh *SigHints) Store(m MetaContext) (err error) {
-	m.CDebugf("+ SigHints.Store() for uid=%s", sh.uid)
+	m.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
 		err = sh.G().LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
-		m.CDebugf("| SigHints.Store() skipped; wasn't dirty")
+		m.Debug("| SigHints.Store() skipped; wasn't dirty")
 	}
-	m.CDebugf("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
+	m.Debug("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
 	return err
 }
 
 func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
-	defer m.CTrace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
 	var jw *jsonw.Wrapper
 	jw, err = m.G().LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
 		jw = nil
-		m.CDebugf("| SigHints failed to access local storage: %s", err)
+		m.Debug("| SigHints failed to access local storage: %s", err)
 	}
 	// jw might be nil here, but that's allowed.
 	sh, err = NewSigHints(jw, uid, false, m.G())
 	if err == nil {
-		m.CDebugf("| SigHints loaded @v%d", sh.version)
+		m.Debug("| SigHints loaded @v%d", sh.version)
 	}
-	m.CDebugf("- LoadSigHints(%s)", uid)
+	m.Debug("- LoadSigHints(%s)", uid)
 	return
 }
 
 func (sh *SigHints) Refresh(m MetaContext) (err error) {
-	defer m.CTrace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
-	res, err := m.G().API.Get(APIArg{
+	defer m.Trace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "sig/hints",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return err
@@ -177,14 +176,14 @@ func (sh *SigHints) Refresh(m MetaContext) (err error) {
 }
 
 func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
-	defer m.CTrace("RefreshWith", func() error { return err })()
+	defer m.Trace("RefreshWith", func() error { return err })()
 
 	n, err := jw.AtKey("hints").Len()
 	if err != nil {
 		return err
 	}
 	if n == 0 {
-		m.CDebugf("| No changes; version %d was up-to-date", sh.version)
+		m.Debug("| No changes; version %d was up-to-date", sh.version)
 	} else if err = sh.PopulateWith(jw); err != nil {
 		return err
 	} else {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -55,7 +56,7 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 		return nil, fmt.Errorf("user %s not in list %v", localUser, users)
 	}
 
-	localUsers := MakeLocalUsers(users)
+	localUsers := idutil.MakeLocalUsers(users)
 
 	// TODO: Auto-generate these, too?
 	localUsers[0].Asserts = []string{"github:strib"}
@@ -72,7 +73,8 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 	localUID := localUsers[userIndex].UID
 	codec := config.Codec()
 
-	teams := MakeLocalTeams([]kbname.NormalizedUsername{"kbfs", "core", "dokan"})
+	teams := idutil.MakeLocalTeams(
+		[]kbname.NormalizedUsername{"kbfs", "core", "dokan"})
 	for i := range teams {
 		teams[i].Writers = make(map[keybase1.UID]bool)
 		teams[i].Readers = make(map[keybase1.UID]bool)
@@ -121,8 +123,8 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 	if localUser == "" {
 		crypto = NewCryptoClientRPC(config, ctx)
 	} else {
-		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
-		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
+		signingKey := idutil.MakeLocalUserSigningKeyOrBust(localUser)
+		cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(localUser)
 		crypto = NewCryptoLocal(
 			config.Codec(), signingKey, cryptPrivateKey, config)
 	}

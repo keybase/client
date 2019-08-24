@@ -70,7 +70,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 	}
 
 	// tell the UI about the key
-	m.CDebugf("generated pgp key: %s", eng.bundle.GetFingerprint())
+	m.Debug("generated pgp key: %s", eng.bundle.GetFingerprint())
 	pub, err := eng.bundle.Encode()
 	if err != nil {
 		return err
@@ -87,13 +87,20 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// ask if we should push private key to api server
-	pushPrivate, err := m.UIs().PgpUI.ShouldPushPrivate(m.Ctx(), m.UIs().SessionID)
+	// ask if we should push private key to api server if user has a password
+	hasRandomPw, err := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{})
+	if err != nil {
+		return err
+	}
+	pushPrivate, err := m.UIs().PgpUI.ShouldPushPrivate(m.Ctx(), keybase1.ShouldPushPrivateArg{
+		SessionID: m.UIs().SessionID,
+		Prompt:    !hasRandomPw,
+	})
 	if err != nil {
 		return err
 	}
 
-	m.CDebugf("push private generated pgp key to API server? %v", pushPrivate)
+	m.Debug("push private generated pgp key to API server? %v", pushPrivate)
 	if err := e.push(m, eng.bundle, pushPrivate); err != nil {
 		return err
 	}
@@ -103,12 +110,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 }
 
 func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
-	defer m.CTrace("PGPKeyGen.push", func() error { return err })()
-
-	tsec, gen, err := libkb.GetTriplesecMaybePrompt(m)
-	if err != nil {
-		return err
-	}
+	defer m.Trace("PGPKeyGen.push", func() error { return err })()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	if err != nil {
@@ -127,6 +129,11 @@ func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPr
 	del.NewKey = bundle
 
 	if pushPrivate {
+		tsec, gen, err := libkb.GetTriplesecMaybePrompt(m)
+		if err != nil {
+			return err
+		}
+
 		skb, err := bundle.ToServerSKB(m.G(), tsec, gen)
 		if err != nil {
 			return err

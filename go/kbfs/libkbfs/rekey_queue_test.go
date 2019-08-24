@@ -16,10 +16,10 @@ import (
 func TestRekeyQueueBasic(t *testing.T) {
 	var u1, u2, u3, u4 kbname.NormalizedUsername = "u1", "u2", "u3", "u4"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3, u4)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -27,14 +27,14 @@ func TestRekeyQueueBasic(t *testing.T) {
 	uid2 := session2.UID
 
 	config3 := ConfigAsUser(config1, u3)
-	defer config3.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config3)
 	_, err = config3.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	config4 := ConfigAsUser(config1, u4)
-	defer config4.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config4)
 	_, err = config4.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +57,8 @@ func TestRekeyQueueBasic(t *testing.T) {
 		// user 1 creates the directory
 		rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 		// user 1 creates a file
-		_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+		_, _, err = kbfsOps1.CreateFile(
+			ctx, rootNode1, testPPS("a"), false, NoExcl)
 		if err != nil {
 			t.Fatalf("Couldn't create file: %v", err)
 		}
@@ -69,7 +70,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	// Create a new device for user 2
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer config2Dev2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)

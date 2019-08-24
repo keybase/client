@@ -9,6 +9,23 @@ import (
 
 type diskLimitTrackerType int
 
+func (d diskLimitTrackerType) String() string {
+	switch d {
+	case unknownLimitTrackerType:
+		return "unknown"
+	case journalLimitTrackerType:
+		return "journal"
+	case workingSetCacheLimitTrackerType:
+		return "workingSet"
+	case syncCacheLimitTrackerType:
+		return "sync"
+	case crDirtyBlockCacheLimitTrackerType:
+		return "cr"
+	default:
+		return "undefined"
+	}
+}
+
 type unknownTrackerTypeError struct {
 	typ diskLimitTrackerType
 }
@@ -22,6 +39,7 @@ const (
 	journalLimitTrackerType
 	workingSetCacheLimitTrackerType
 	syncCacheLimitTrackerType
+	crDirtyBlockCacheLimitTrackerType // allow unlimited bytes for CR
 )
 
 // simpleResourceTracker is an interface for limiting a single resource type.

@@ -1,14 +1,12 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/config'",
+    "import {ConnectionType} from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
-    "import {RPCError} from '../util/errors'",
+    "import * as FsTypes from '../constants/types/fs'",
+    "import {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "setupEngineListeners": {
-      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
-    },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },
@@ -25,7 +23,7 @@
       "name": "string",
       "version": "number",
       "increment": "boolean",
-      "failedReason?": "?string",
+      "failedReason?": "string | null",
       "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
@@ -57,39 +55,39 @@
     },
     "changedFocus": {"appFocused": "boolean"},
     "changedActive": {"userActive": "boolean"},
-    "link": {"link": "string"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "loadAvatars": {"usernames": "Array<string>"},
-    "loadedAvatars": {"avatars": "I.Map<string, I.Map<number, string>>"},
-    "loadTeamAvatars": {"teamnames": "Array<string>"},
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
-      "followers": "Array<string>",
-      "following": "Array<string>",
+      "fullname": "string",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
+      "username": "string",
+      "userReacjis": "RPCTypes.UserReacjis"
+    },
+    "followerInfoUpdated": {
+      "uid": "string",
+      "followers": "Array<string>",
+      "followees": "Array<string>"
+    },
+    "daemonError": {"daemonError": "Error | null"},
+    "setAccounts": {
+      "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"
+    },
+    "setDefaultUsername": {
       "username": "string"
     },
-    "daemonError": {"daemonError": "?Error"},
-    "setAccounts": {
-      "defaultUsername": "string",
-      "usernames": "Array<string>"
-    },
     "globalError": {"globalError": "null | Error | RPCError"},
-    "updateFollowing": {
-      "username": "string",
-      "isTracking": "boolean"
-    },
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
-      "startupConversation": "?ChatTypes.ConversationIDKey",
+      "startupConversation": "ChatTypes.ConversationIDKey | null",
       "startupLink": "string",
-      "startupTab": "?Tabs.Tab",
-      "startupFollowUser": "string"
+      "startupTab": "Tabs.Tab | null",
+      "startupFollowUser": "string",
+      "startupSharePath": "FsTypes.LocalPath | null"
     },
     "setOpenAtLogin": {
       "open": "boolean",
@@ -100,13 +98,46 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
-    "swapRouter": {"useNewRouter": "boolean"},
+    "persistRoute": {"path": "Array<any>"},
+    "setNavigator": {"navigator": "any"},
     "loggedOut": {},
-    "loggedIn": {"causedByStartup": "boolean"},
+    "loggedIn": {
+      "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "causedBySignup": "boolean",
+      "causedByStartup": "boolean"
+    },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
-    "updateNow": {}
+    "updateNow": {},
+    "openAppStore": {
+      "_description": "Open a link to the app store"
+    },
+    "updateCriticalCheckStatus": {
+      "_description": "Save critical check status",
+      "status": "'critical' | 'suggested' | 'ok'",
+      "message": "string"
+    },
+    "osNetworkStatusChanged": {
+      "online": "boolean",
+      "type": "ConnectionType",
+      "isInit?": "boolean"
+    },
+    "setDarkModePreference": {
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+    },
+    "setSystemDarkMode": {
+        "dark": "boolean"
+    },
+    "updateHTTPSrvInfo": {
+      "address": "string",
+      "token": "string"
+    },
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
+    }
   }
 }

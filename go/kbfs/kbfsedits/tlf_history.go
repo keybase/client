@@ -18,13 +18,16 @@ import (
 
 const (
 	// The max number of edits needed for each writer.
-	maxEditsPerWriter    = 10
+	maxEditsPerWriter = 10
+	// The max number of deletes needed for each writer.
+	maxDeletesPerWriter  = 10
 	maxWritersPerHistory = 10
 )
 
 type writerNotifications struct {
 	writerName    string
 	notifications notificationsByRevision
+	deletes       notificationsByRevision
 }
 
 // writersByRevision sorts sets of per-writer notifications in reverse
@@ -40,7 +43,21 @@ func (wbr writersByRevision) Less(i, j int) bool {
 	iHasZero := len(wbr[i].notifications) == 0
 	jHasZero := len(wbr[j].notifications) == 0
 	if jHasZero {
-		return iHasZero
+		if iHasZero {
+			// If neither has any notifications, sort by the latest
+			// delete.
+			iHasZeroDeletes := len(wbr[i].deletes) == 0
+			jHasZeroDeletes := len(wbr[j].deletes) == 0
+			if jHasZeroDeletes {
+				return iHasZeroDeletes
+			} else if iHasZeroDeletes {
+				return false
+			}
+
+			// Reverse sort, so latest deletes come first.
+			return wbr[i].deletes[0].Revision > wbr[j].deletes[0].Revision
+		}
+		return false
 	} else if iHasZero {
 		return false
 	}
@@ -104,9 +121,10 @@ func NewTlfHistory() *TlfHistory {
 // AddNotifications takes in a set of messages in this TLF by
 // `writer`, and adds them to the history.  Once done adding messages,
 // the caller should call `Recompute` to find out if more messages
-// should be added for any particular writer.
+// should be added for any particular writer.  It returns the maximum
+// known revision including an update from this writer.
 func (th *TlfHistory) AddNotifications(
-	writerName string, messages []string) (err error) {
+	writerName string, messages []string) (maxRev kbfsmd.Revision, err error) {
 	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
@@ -134,15 +152,19 @@ func (th *TlfHistory) AddNotifications(
 	defer th.lock.Unlock()
 	wn, existed := th.byWriter[writerName]
 	if !existed {
-		wn = &writerNotifications{writerName, nil}
+		wn = &writerNotifications{writerName, nil, nil}
 	}
 	oldLen := len(wn.notifications)
 	newEdits = append(newEdits, wn.notifications...)
 	sort.Sort(newEdits)
+	if len(newEdits) > 0 {
+		maxRev = newEdits[0].Revision
+	}
+
 	wn.notifications = newEdits.uniquify()
 	if len(wn.notifications) == oldLen {
 		// No new messages.
-		return nil
+		return maxRev, nil
 	}
 	if !existed {
 		th.byWriter[writerName] = wn
@@ -150,7 +172,7 @@ func (th *TlfHistory) AddNotifications(
 	// Invalidate the cached results.
 	th.computed = false
 	th.cachedLoggedInUser = ""
-	return nil
+	return maxRev, nil
 }
 
 // AddUnflushedNotifications adds notifications to a special
@@ -162,7 +184,7 @@ func (th *TlfHistory) AddUnflushedNotifications(
 	th.lock.Lock()
 	defer th.lock.Unlock()
 	if th.unflushed == nil {
-		th.unflushed = &writerNotifications{loggedInUser, nil}
+		th.unflushed = &writerNotifications{loggedInUser, nil, nil}
 	}
 	if th.unflushed.writerName != loggedInUser {
 		panic(fmt.Sprintf("Logged-in user %s doesn't match unflushed user %s",
@@ -278,11 +300,6 @@ func (r *recomputer) processNotification(
 
 	// If the file is renamed in a future revision, rename it in the
 	// notification.
-	//
-	// TODO(KBFS-3073): maybe we should check all the parent
-	// directories for renames as well, so we can give a full, updated
-	// path for older edits.  That would also help avoid showing edits
-	// for files that were later deleted, but in a renamed directory.
 	eventFilename := filename
 	event, hasEvent := r.fileEvents[filename]
 	if hasEvent && event.newName != "" {
@@ -309,6 +326,18 @@ func (r *recomputer) processNotification(
 			return false
 		}
 
+		wn, ok := r.byWriter[writer]
+		if !ok {
+			wn = &writerNotifications{writer, nil, nil}
+			r.byWriter[writer] = wn
+		}
+
+		if len(wn.notifications) == maxEditsPerWriter {
+			// We don't need any more edit notifications, but we
+			// should continue looking for more deletes.
+			return false
+		}
+
 		// See if any of the parent directories were renamed, checking
 		// backwards until we get to the TLF name.
 		prefix := filename
@@ -331,11 +360,6 @@ func (r *recomputer) processNotification(
 			return false
 		}
 
-		wn, ok := r.byWriter[writer]
-		if !ok {
-			wn = &writerNotifications{writer, nil}
-			r.byWriter[writer] = wn
-		}
 		wn.notifications = append(wn.notifications, notification)
 
 		modified, ok := r.modifiedFiles[writer]
@@ -345,8 +369,9 @@ func (r *recomputer) processNotification(
 		}
 		modified[filename] = true
 
-		if len(wn.notifications) == maxEditsPerWriter {
-			// We have enough edits for this user.
+		if len(wn.notifications) == maxEditsPerWriter &&
+			len(wn.deletes) == maxDeletesPerWriter {
+			// We have enough edits and deletes for this user.
 			return true
 		}
 	case NotificationRename:
@@ -381,6 +406,56 @@ func (r *recomputer) processNotification(
 		r.fileEvents[eventFilename] = fileEvent{delete: true}
 	case NotificationDelete:
 		r.fileEvents[eventFilename] = fileEvent{delete: true}
+
+		// We only care about files, so skip dir and sym creates.
+		if notification.FileType != EntryTypeFile {
+			return false
+		}
+
+		// Ignore macOS dotfiles.
+		if ignoreFile(filename) {
+			return false
+		}
+
+		wn, ok := r.byWriter[writer]
+		if !ok {
+			wn = &writerNotifications{writer, nil, nil}
+			r.byWriter[writer] = wn
+		}
+
+		if len(wn.deletes) == maxDeletesPerWriter {
+			// We don't need any more deletes, but we
+			// should continue looking for more edit notifications.
+			return false
+		}
+
+		if hasEvent && event.delete {
+			// It's already been deleted, no need to track it further.
+			return false
+		}
+
+		// If there are no future modifications of this file, then
+		// this delete should be included in the history.
+		for _, files := range r.modifiedFiles {
+			for f := range files {
+				if f == eventFilename {
+					return false
+				}
+			}
+		}
+
+		wn.deletes = append(wn.deletes, notification)
+
+		if len(wn.notifications) == maxEditsPerWriter &&
+			len(wn.deletes) == maxDeletesPerWriter {
+			// We have enough edits and deletes for this user.
+			return true
+		}
+
+		// TODO: limit the number (or time span) of notifications we
+		// process to find the list of deleted files?  Or maybe we
+		// stop processing after we hit the last GC'd revision, since
+		// deleted files after that point can't be recovered anyway.
 	}
 	return false
 }
@@ -425,8 +500,10 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 		wnCopy := writerNotifications{
 			writerName:    wn.writerName,
 			notifications: make(notificationsByRevision, len(wn.notifications)),
+			deletes:       make(notificationsByRevision, len(wn.deletes)),
 		}
 		copy(wnCopy.notifications, wn.notifications)
+		copy(wnCopy.deletes, wn.deletes)
 		writersHeap = append(writersHeap, &wnCopy)
 	}
 	heap.Init(&writersHeap)
@@ -466,17 +543,18 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 	history = make(writersByRevision, 0, len(r.byWriter))
 	for writerName := range th.byWriter {
 		wn := r.byWriter[writerName]
-		if wn != nil && len(wn.notifications) > 0 {
+		if wn != nil && (len(wn.notifications) > 0 || len(wn.deletes) > 0) {
 			history = append(history, wn)
 		}
-		if wn == nil || len(wn.notifications) < maxEditsPerWriter {
+		if wn == nil || len(wn.notifications) < maxEditsPerWriter ||
+			len(wn.notifications) < maxDeletesPerWriter {
 			writersWhoNeedMore[writerName] = true
 		}
 	}
 	if _, ok := th.byWriter[loggedInUser]; !ok {
 		// The logged-in user only has unflushed edits.
 		wn := r.byWriter[loggedInUser]
-		if wn != nil && len(wn.notifications) > 0 {
+		if wn != nil && (len(wn.notifications) > 0 || len(wn.deletes) > 0) {
 			history = append(history, wn)
 		}
 	}

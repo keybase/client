@@ -43,9 +43,23 @@ func TestLoginOneshot(t *testing.T) {
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 	err = AssertProvisioned(tc2)
 	require.NoError(t, err)
+
+	// assert paper key generation works
+	uis = libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng2 := NewPaperKey(tc.G)
+	m = m.WithUIs(uis)
+	err = RunEngine2(m, eng2)
+	require.NoError(t, err)
+	require.NotZero(t, len(eng2.Passphrase()))
+
 	testSign(t, tc2)
 	trackAlice(tc2, fu, 2)
 	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
 	testSign(t, tc2)
+
 }

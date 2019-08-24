@@ -2,8 +2,10 @@ package chat1
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"hash"
@@ -65,6 +67,10 @@ func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
 }
 
+func (cid ConversationID) Bytes() []byte {
+	return []byte(cid)
+}
+
 func (cid ConversationID) IsNil() bool {
 	return len(cid) < DbShortFormLen
 }
@@ -82,7 +88,11 @@ const DbShortFormLen = 10
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() ConvIDShort {
-	return cid[:DbShortFormLen]
+	end := DbShortFormLen
+	if end > len(cid) {
+		end = len(cid)
+	}
+	return cid[:end]
 }
 
 func (cid ConversationID) DbShortFormString() string {
@@ -124,6 +134,10 @@ func (mid MessageID) IsNil() bool {
 	return uint(mid) == 0
 }
 
+func (mid MessageID) Advance(num uint) MessageID {
+	return MessageID(uint(mid) + num)
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {
@@ -141,6 +155,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
+	MessageType_PIN,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -157,14 +172,54 @@ func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
 }
 
+var visibleMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
 func VisibleChatMessageTypes() []MessageType {
-	return []MessageType{
-		MessageType_TEXT,
-		MessageType_ATTACHMENT,
-		MessageType_SYSTEM,
-		MessageType_SENDPAYMENT,
-		MessageType_REQUESTPAYMENT,
+	return visibleMessageTypes
+}
+
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
+}
+
+func IsEphemeralSupersederType(typ MessageType) bool {
+	switch typ {
+	case MessageType_EDIT,
+		MessageType_ATTACHMENTUPLOADED,
+		MessageType_REACTION,
+		MessageType_UNFURL:
+		return true
+	default:
+		return false
 	}
+}
+
+func IsEphemeralNonSupersederType(typ MessageType) bool {
+	switch typ {
+	case MessageType_TEXT,
+		MessageType_ATTACHMENT,
+		MessageType_FLIP:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsEphemeralType(typ MessageType) bool {
+	return IsEphemeralNonSupersederType(typ) || IsEphemeralSupersederType(typ)
 }
 
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
@@ -337,6 +392,13 @@ func (m MessageUnboxed) IsOutbox() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -398,6 +460,42 @@ func (m MessageUnboxed) SearchableText() string {
 		return ""
 	}
 	return m.Valid().MessageBody.SearchableText()
+}
+
+func (m MessageUnboxed) SenderUsername() string {
+	if !m.IsValid() {
+		return ""
+	}
+	return m.Valid().SenderUsername
+}
+
+func (m MessageUnboxed) Ctime() gregor1.Time {
+	if !m.IsValid() {
+		return 0
+	}
+	return m.Valid().ServerHeader.Ctime
+}
+
+func (m MessageUnboxed) AtMentionUsernames() []string {
+	if !m.IsValid() {
+		return nil
+	}
+	return m.Valid().AtMentionUsernames
+}
+
+func (m MessageUnboxed) ChannelMention() ChannelMention {
+	if !m.IsValid() {
+		return ChannelMention_NONE
+	}
+	return m.Valid().ChannelMention
+}
+
+func (m MessageUnboxed) SenderIsBot() bool {
+	if m.IsValid() {
+		valid := m.Valid()
+		return gregor1.UIDPtrEq(valid.ClientHeader.BotUID, &valid.ClientHeader.Sender)
+	}
+	return false
 }
 
 func (m *MessageUnboxed) DebugString() string {
@@ -548,7 +646,11 @@ func (m *MsgEphemeralMetadata) String() string {
 	} else {
 		explodedBy = *m.ExplodedBy
 	}
-	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
+	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
+}
+
+func (m MessagePlaintext) SearchableText() string {
+	return m.MessageBody.SearchableText()
 }
 
 func (m MessagePlaintext) IsEphemeral() bool {
@@ -586,7 +688,7 @@ func (m MessageUnboxedValid) ExplodedBy() *string {
 }
 
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
-	originalLifetime := time.Second * time.Duration(lifetime)
+	originalLifetime := lifetime.ToDuration()
 	elapsedLifetime := now.Time().Sub(ctime.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
@@ -662,6 +764,10 @@ func (b MessageBody) SearchableText() string {
 		return b.Requestpayment().Note
 	case MessageType_ATTACHMENT:
 		return b.Attachment().GetTitle()
+	case MessageType_FLIP:
+		return b.Flip().Text
+	case MessageType_UNFURL:
+		return b.Unfurl().SearchableText()
 	default:
 		return ""
 	}
@@ -677,6 +783,13 @@ func (m UIMessage) IsValid() bool {
 func (m UIMessage) IsOutbox() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
+func (m UIMessage) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
 	}
 	return false
 }
@@ -720,28 +833,25 @@ func (m UIMessage) GetOutboxID() *OutboxID {
 }
 
 func (m UIMessage) GetMessageType() MessageType {
-	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
-			body := m.Valid().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				return MessageType_NONE
-			}
-			return typ
-		}
-		if state == MessageUnboxedState_ERROR {
-			return m.Error().MessageType
-		}
-		if state == MessageUnboxedState_OUTBOX {
-			return m.Outbox().MessageType
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
-			// All we know about a place holder is the ID, so just
-			// call it type NONE
+	state, err := m.State()
+	if err != nil {
+		return MessageType_NONE
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		body := m.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
 			return MessageType_NONE
 		}
+		return typ
+	case MessageUnboxedState_ERROR:
+		return m.Error().MessageType
+	case MessageUnboxedState_OUTBOX:
+		return m.Outbox().MessageType
+	default:
+		return MessageType_NONE
 	}
-	return MessageType_NONE
 }
 
 func (m UIMessage) SearchableText() string {
@@ -749,6 +859,21 @@ func (m UIMessage) SearchableText() string {
 		return ""
 	}
 	return m.Valid().MessageBody.SearchableText()
+}
+
+func (m UIMessage) IsEphemeral() bool {
+	state, err := m.State()
+	if err != nil {
+		return false
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		return m.Valid().IsEphemeral
+	case MessageUnboxedState_ERROR:
+		return m.Error().IsEphemeral
+	default:
+		return false
+	}
 }
 
 func (m MessageBoxed) GetMessageID() MessageID {
@@ -896,6 +1021,11 @@ func (o OutboxRecord) IsUnfurl() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
 }
 
+func (o OutboxRecord) IsChatFlip() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_FLIP &&
+		o.Msg.ClientHeader.Conv.TopicType == TopicType_CHAT
+}
+
 func (o OutboxRecord) MessageType() MessageType {
 	return o.Msg.ClientHeader.MessageType
 }
@@ -1026,7 +1156,7 @@ func (p *Pagination) String() string {
 
 // FirstPage returns true if the pagination object is not pointing in any direction
 func (p *Pagination) FirstPage() bool {
-	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
+	return p == nil || p.ForceFirstPage || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -1045,8 +1175,16 @@ func (c ConversationLocal) GetMembersType() ConversationMembersType {
 	return c.Info.MembersType
 }
 
+func (c ConversationLocal) GetTeamType() TeamType {
+	return c.Info.TeamType
+}
+
 func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
+}
+
+func (c ConversationLocal) GetTopicName() string {
+	return c.Info.TopicName
 }
 
 func (c ConversationLocal) GetExpunge() *Expunge {
@@ -1057,13 +1195,13 @@ func (c ConversationLocal) IsPublic() bool {
 	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
-func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMessages {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
@@ -1078,6 +1216,21 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 		return maxExpungeID
 	}
 	return maxDelHID
+}
+
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	visibleTyps := VisibleChatMessageTypes()
+	visibleTypsMap := map[MessageType]bool{}
+	for _, typ := range visibleTyps {
+		visibleTypsMap[typ] = true
+	}
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMessages {
+		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
 }
 
 func (c ConversationLocal) Names() (res []string) {
@@ -1101,6 +1254,10 @@ func (c Conversation) GetTopicType() TopicType {
 
 func (c Conversation) GetMembersType() ConversationMembersType {
 	return c.Metadata.MembersType
+}
+
+func (c Conversation) GetTeamType() TeamType {
+	return c.Metadata.TeamType
 }
 
 func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
@@ -1177,8 +1334,19 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadFromMsgID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
+}
+
+func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
+	if c.ReaderInfo != nil {
+		return c.ReaderInfo.Status == status
+	}
+	return false
 }
 
 func (m MessageSummary) GetMessageID() MessageID {
@@ -1288,6 +1456,10 @@ func (r *NonblockFetchRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *UnreadlineRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *MarkAsReadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1320,19 +1492,15 @@ func (r *GetNextAttachmentMessageLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *DownloadAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadFileAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
 func (r *JoinLeaveConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *PreviewConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
@@ -1345,6 +1513,14 @@ func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 }
 
 func (r *DeleteConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SearchRegexpRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SearchInboxRes) SetOffline() {
 	r.Offline = true
 }
 
@@ -1390,17 +1566,31 @@ func (i InboxUIItem) GetConvID() ConversationID {
 	return ConversationID(bConvID)
 }
 
+type ByConversationMemberStatus []ConversationMemberStatus
+
+func (m ByConversationMemberStatus) Len() int           { return len(m) }
+func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
+
 func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
 	for status := range ConversationMemberStatusRevMap {
 		res = append(res, status)
 	}
+	sort.Sort(ByConversationMemberStatus(res))
 	return res
 }
+
+type ByConversationExistence []ConversationExistence
+
+func (m ByConversationExistence) Len() int           { return len(m) }
+func (m ByConversationExistence) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationExistence) Less(i, j int) bool { return m[i] > m[j] }
 
 func AllConversationExistences() (res []ConversationExistence) {
 	for existence := range ConversationExistenceRevMap {
 		res = append(res, existence)
 	}
+	sort.Sort(ByConversationExistence(res))
 	return res
 }
 
@@ -1433,6 +1623,85 @@ func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
 	return s
 }
 
+func humanizeDuration(duration time.Duration) string {
+	var value float64
+	var unit string
+	if int(duration.Hours()) >= 24 {
+		value = duration.Hours() / 24
+		unit = "day"
+	} else if int(duration.Hours()) >= 1 {
+		value = duration.Hours()
+		unit = "hour"
+	} else if int(duration.Minutes()) >= 1 {
+		value = duration.Minutes()
+		unit = "minute"
+	} else if int(duration.Seconds()) >= 1 {
+		value = duration.Seconds()
+		unit = "second"
+	} else {
+		return ""
+	}
+	if int(value) > 1 {
+		unit = unit + "s"
+	}
+	return fmt.Sprintf("%.0f %s", value, unit)
+}
+
+func (p RetentionPolicy) Eq(o RetentionPolicy) bool {
+	typ1, err := p.Typ()
+	if err != nil {
+		return false
+	}
+
+	typ2, err := o.Typ()
+	if err != nil {
+		return false
+	}
+	if typ1 != typ2 {
+		return false
+	}
+	switch typ1 {
+	case RetentionPolicyType_NONE:
+		return true
+	case RetentionPolicyType_RETAIN:
+		return p.Retain() == o.Retain()
+	case RetentionPolicyType_EXPIRE:
+		return p.Expire() == o.Expire()
+	case RetentionPolicyType_INHERIT:
+		return p.Inherit() == o.Inherit()
+	case RetentionPolicyType_EPHEMERAL:
+		return p.Ephemeral() == o.Ephemeral()
+	default:
+		return false
+	}
+}
+
+func (p RetentionPolicy) HumanSummary() (summary string) {
+	typ, err := p.Typ()
+	if err != nil {
+		return ""
+	}
+
+	switch typ {
+	case RetentionPolicyType_NONE, RetentionPolicyType_RETAIN:
+		summary = "be retained indefinitely"
+	case RetentionPolicyType_EXPIRE:
+		duration := humanizeDuration(p.Expire().Age.ToDuration())
+		if duration != "" {
+			summary = fmt.Sprintf("expire after %s", duration)
+		}
+	case RetentionPolicyType_EPHEMERAL:
+		duration := humanizeDuration(p.Ephemeral().Age.ToDuration())
+		if duration != "" {
+			summary = fmt.Sprintf("explode after %s by default", duration)
+		}
+	}
+	if summary != "" {
+		summary = fmt.Sprintf("Messages will %s", summary)
+	}
+	return summary
+}
+
 func (p RetentionPolicy) Summary() string {
 	typ, err := p.Typ()
 	if err != nil {
@@ -1440,7 +1709,9 @@ func (p RetentionPolicy) Summary() string {
 	}
 	switch typ {
 	case RetentionPolicyType_EXPIRE:
-		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age)
+		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age.ToDuration())
+	case RetentionPolicyType_EPHEMERAL:
+		return fmt.Sprintf("{%v age:%v}", typ, p.Ephemeral().Age.ToDuration())
 	default:
 		return fmt.Sprintf("{%v}", typ)
 	}
@@ -1458,6 +1729,14 @@ func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *UnreadlineRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *UnreadlineRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *MarkAsReadLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -1471,6 +1750,14 @@ func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *LoadFlipRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadFlipRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1583,6 +1870,14 @@ func (r *JoinLeaveConversationLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PreviewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PreviewConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1802,9 +2097,81 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
 }
 
+func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ListBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
+}
+
+func (i EphemeralPurgeInfo) Eq(o EphemeralPurgeInfo) bool {
+	return (i.IsActive == o.IsActive &&
+		i.MinUnexplodedID == o.MinUnexplodedID &&
+		i.NextPurgeTime == o.NextPurgeTime &&
+		i.ConvID.Eq(o.ConvID))
 }
 
 func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
@@ -1824,44 +2191,40 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	if i == nil {
 		return "Minimum writer role for this conversation is not set."
 	}
-	usernameSuffix := "."
-	if i.Username != "" {
-		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	changedBySuffix := "."
+	if i.ChangedBy != "" {
+		changedBySuffix = fmt.Sprintf(", last set by %v.", i.ChangedBy)
 	}
-	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, changedBySuffix)
 }
 
 func (s *ConversationSettings) IsNil() bool {
 	return s == nil || s.MinWriterRoleInfo == nil
 }
 
-type MsgMetadata interface {
-	GetSenderUsername() string
-	GetCtime() gregor1.Time
-}
-
-func (m MessageUnboxed) GetSenderUsername() string {
-	if !m.IsValid() {
-		return ""
-	}
-	return m.Valid().SenderUsername
-}
-
-func (m MessageUnboxed) GetCtime() gregor1.Time {
-	if !m.IsValid() {
-		return 0
-	}
-	return m.Valid().ServerHeader.Ctime
-}
-
-func (o SearchOpts) Matches(msgMetadata MsgMetadata) bool {
-	if o.SentBy != "" && msgMetadata.GetSenderUsername() != o.SentBy {
+func (o SearchOpts) Matches(msg MessageUnboxed) bool {
+	if o.SentAfter != 0 && msg.Ctime() < o.SentAfter {
 		return false
 	}
-	if o.SentAfter != 0 && msgMetadata.GetCtime() < o.SentAfter {
+	if o.SentBefore != 0 && msg.Ctime() > o.SentBefore {
 		return false
 	}
-	if o.SentBefore != 0 && msgMetadata.GetCtime() > o.SentBefore {
+	if o.SentBy != "" && msg.SenderUsername() != o.SentBy {
+		return false
+	}
+	// Check if the user was @mentioned or there was a @here/@channel.
+	if o.SentTo != "" {
+		if o.MatchMentions {
+			switch msg.ChannelMention() {
+			case ChannelMention_ALL, ChannelMention_HERE:
+				return true
+			}
+		}
+		for _, username := range msg.AtMentionUsernames() {
+			if o.SentTo == username {
+				return true
+			}
+		}
 		return false
 	}
 	return true
@@ -1875,40 +2238,28 @@ func (a MessageAttachment) GetTitle() string {
 	return title
 }
 
+func (u MessageUnfurl) SearchableText() string {
+	typ, err := u.Unfurl.Unfurl.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		generic := u.Unfurl.Unfurl.Generic()
+		res := generic.Title
+		if generic.Description != nil {
+			res += " " + *generic.Description
+		}
+		return res
+	}
+	return ""
+}
+
 func (h *ChatSearchInboxHit) Size() int {
 	if h == nil {
 		return 0
 	}
 	return len(h.Hits)
-}
-
-func (idx *ConversationIndex) MissingIDs(min, max MessageID) []MessageID {
-	missingIDs := []MessageID{}
-	if min == 0 {
-		min = 1
-	}
-	for i := min; i <= max; i++ {
-		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
-			missingIDs = append(missingIDs, i)
-		}
-	}
-	return missingIDs
-}
-
-func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
-	if idx == nil {
-		return 0
-	}
-	// lowest msgID we care about
-	min := conv.GetMaxDeletedUpTo()
-	// highest msgID we care about
-	max := conv.GetMaxMessageID()
-	numMessages := int(max) - int(min)
-	if numMessages <= 0 {
-		return 100
-	}
-	missingIDs := idx.MissingIDs(min, max)
-	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
 func (u UnfurlRaw) GetUrl() string {
@@ -1920,7 +2271,9 @@ func (u UnfurlRaw) GetUrl() string {
 	case UnfurlType_GENERIC:
 		return u.Generic().Url
 	case UnfurlType_GIPHY:
-		return u.Giphy().ImageUrl
+		if u.Giphy().ImageUrl != nil {
+			return *u.Giphy().ImageUrl
+		}
 	}
 	return ""
 }
@@ -1968,7 +2321,7 @@ func (g UnfurlGiphyRaw) UnsafeDebugString() string {
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
 ImageUrl: %s
-Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+Video: %s`, yieldStr(g.FaviconUrl), yieldStr(g.ImageUrl), g.Video)
 }
 
 func (v UnfurlVideo) String() string {
@@ -1979,5 +2332,218 @@ func NewUnfurlSettings() UnfurlSettings {
 	return UnfurlSettings{
 		Mode:      UnfurlMode_WHITELISTED,
 		Whitelist: make(map[string]bool),
+	}
+}
+
+func GlobalAppNotificationSettingsSorted() (res []GlobalAppNotificationSetting) {
+	for setting := range GlobalAppNotificationSettingRevMap {
+		if setting.Usage() != "" && setting.FlagName() != "" {
+			res = append(res, setting)
+		}
+	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i] < res[j]
+	})
+	return res
+}
+
+// Add to `Usage`/`FlagName` for a setting to be usable in the CLI via
+// `keybase notification-settings`
+func (g GlobalAppNotificationSetting) Usage() string {
+	switch g {
+	case GlobalAppNotificationSetting_NEWMESSAGES:
+		return "Show notifications for new messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "Show plaintext notifications on desktop devices"
+	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
+		return "Show plaintext notifications on mobile devices"
+	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
+		return "Use the default system sound on mobile devices"
+	case GlobalAppNotificationSetting_DISABLETYPING:
+		return "Disable sending/receiving typing notifications"
+	default:
+		return ""
+	}
+}
+
+func (g GlobalAppNotificationSetting) FlagName() string {
+	switch g {
+	case GlobalAppNotificationSetting_NEWMESSAGES:
+		return "new-messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "plaintext-desktop"
+	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
+		return "plaintext-mobile"
+	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
+		return "default-sound-mobile"
+	case GlobalAppNotificationSetting_DISABLETYPING:
+		return "disable-typing"
+	default:
+		return ""
+	}
+}
+
+func (m MessageSystemChangeRetention) String() string {
+	var appliesTo string
+	switch m.MembersType {
+	case ConversationMembersType_TEAM:
+		if m.IsTeam {
+			appliesTo = "team"
+		} else {
+			appliesTo = "channel"
+		}
+	default:
+		appliesTo = "conversation"
+	}
+	var inheritDescription string
+	if m.IsInherit {
+		inheritDescription = " to inherit from the team policy"
+	}
+
+	format := "%s changed the %s retention policy%s. %s"
+	summary := m.Policy.HumanSummary()
+	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
+}
+
+func (m MessageSystemBulkAddToConv) String() string {
+	prefix := "Added %s to the conversation"
+	var suffix string
+	switch len(m.Usernames) {
+	case 0:
+		return ""
+	case 1:
+		suffix = m.Usernames[0]
+	case 2:
+		suffix = fmt.Sprintf("%s and %s", m.Usernames[0], m.Usernames[1])
+	default:
+		suffix = fmt.Sprintf("%s and %d others", m.Usernames[0], len(m.Usernames)-1)
+	}
+	return fmt.Sprintf(prefix, suffix)
+}
+
+func (m MessageSystem) String() string {
+	typ, err := m.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageSystemType_ADDEDTOTEAM:
+		return fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
+	case MessageSystemType_INVITEADDEDTOTEAM:
+		return fmt.Sprintf("Added %s to the team (invited by @%s)",
+			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
+	case MessageSystemType_COMPLEXTEAM:
+		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
+	case MessageSystemType_CREATETEAM:
+		return fmt.Sprintf("%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
+	case MessageSystemType_GITPUSH:
+		body := m.Gitpush()
+		switch body.PushType {
+		case keybase1.GitPushType_CREATEREPO:
+			return fmt.Sprintf("git %s created the repo %s", body.Pusher, body.RepoName)
+		case keybase1.GitPushType_RENAMEREPO:
+			return fmt.Sprintf("git %s changed the name of the repo %s to %s", body.Pusher, body.PreviousRepoName, body.RepoName)
+		default:
+			total := keybase1.TotalNumberOfCommits(body.Refs)
+			names := keybase1.RefNames(body.Refs)
+			return fmt.Sprintf("git (%s) %s pushed %d commits to %s", body.RepoName,
+				body.Pusher, total, names)
+		}
+	case MessageSystemType_CHANGEAVATAR:
+		return fmt.Sprintf("%s changed team avatar", m.Changeavatar().User)
+	case MessageSystemType_CHANGERETENTION:
+		return m.Changeretention().String()
+	case MessageSystemType_BULKADDTOCONV:
+		return m.Bulkaddtoconv().String()
+	default:
+		return ""
+	}
+}
+
+func isZero(v []byte) bool {
+	for _, b := range v {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func MakeFlipGameID(s string) (FlipGameID, error) { return hex.DecodeString(s) }
+func (g FlipGameID) String() string               { return hex.EncodeToString(g) }
+func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
+func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
+func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }
+
+func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
+	if o == nil {
+		return nil
+	}
+	return o.JoinMentionsAs
+}
+
+func (c Coordinate) IsZero() bool {
+	return c.Lat == 0 && c.Lon == 0
+}
+
+func (c Coordinate) Eq(o Coordinate) bool {
+	return c.Lat == o.Lat && c.Lon == o.Lon
+}
+
+func (b BotInfo) Hash() BotInfoHash {
+	hash := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(hash)
+	hash.Reset()
+	sort.Slice(b.CommandConvs, func(i, j int) bool {
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
+		return ikey < jkey
+	})
+	for _, cconv := range b.CommandConvs {
+		hash.Write(cconv.ConvID)
+		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+	}
+	return BotInfoHash(hash.Sum(nil))
+}
+
+func (b BotInfoHash) Eq(h BotInfoHash) bool {
+	return bytes.Equal(b, h)
+}
+
+func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
+			ConvID: convID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidConvs(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidMembers(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
+	return UserBotCommandOutput{
+		Name:                c.Name,
+		Description:         c.Description,
+		Usage:               c.Usage,
+		ExtendedDescription: c.ExtendedDescription,
+		Username:            username,
 	}
 }

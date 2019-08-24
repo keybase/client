@@ -72,14 +72,6 @@ func (f *JSONConfigFile) GetTopLevelBool(s string) (res, isSet bool) {
 	return
 }
 
-func (f *JSONConfigFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
-	err := f.jw.SetValueAtPath(p, w)
-	if err == nil {
-		err = f.Save()
-	}
-	return err
-}
-
 func (f *JSONConfigFile) GetUserConfig() (*UserConfig, error) {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
@@ -170,10 +162,13 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 		val = jsonw.NewString(nu.String())
 	}
 
-	f.jw.SetKey("current_user", val)
+	setKeyErr := f.jw.SetKey("current_user", val)
+	if err == nil {
+		err = setKeyErr
+	}
 	f.userConfigWrapper.userConfig = nil
 	saveErr := f.Save()
-	if err != nil {
+	if err == nil {
 		err = saveErr
 	}
 	return err
@@ -349,7 +344,10 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 
 	if u == nil {
 		f.G().Log.Debug("| SetUserConfig(nil)")
-		f.jw.DeleteKey("current_user")
+		err := f.jw.DeleteKey("current_user")
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
 	}
@@ -364,33 +362,37 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	f.G().Log.Debug("| SetUserConfig(%s)", un)
 	if parent.IsNil() {
 		parent = jsonw.NewDictionary()
-		f.jw.SetKey("users", parent)
+		err := f.jw.SetKey("users", parent)
+		if err != nil {
+			return err
+		}
 	}
 	if parent.AtKey(un.String()).IsNil() || overwrite {
 		uWrapper, err := jsonw.NewObjectWrapper(*u)
 		if err != nil {
 			return err
 		}
-		parent.SetKey(un.String(), uWrapper)
+		err = parent.SetKey(un.String(), uWrapper)
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = u
 	}
 
 	if !f.getCurrentUser().Eq(un) {
-		f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		err := f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 	}
 
 	return f.Save()
 }
 
-func (f *JSONConfigFile) DeleteAtPath(p string) {
-	f.jw.DeleteValueAtPath(p)
-	f.Save()
-}
-
 func (f *JSONConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
-	f.Save()
+	_ = f.Save()
 }
 
 func (f *JSONConfigFile) GetHome() string {
@@ -399,14 +401,17 @@ func (f *JSONConfigFile) GetHome() string {
 func (f *JSONConfigFile) GetMobileSharedHome() string {
 	return f.GetTopLevelString("mobile_shared_home")
 }
-func (f *JSONConfigFile) GetServerURI() string {
-	return f.GetTopLevelString("server")
+func (f *JSONConfigFile) GetServerURI() (string, error) {
+	return f.GetTopLevelString("server"), nil
 }
 func (f *JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")
 }
 func (f *JSONConfigFile) GetUpdaterConfigFilename() string {
 	return f.GetTopLevelString("updater_config_file")
+}
+func (f *JSONConfigFile) GetGUIConfigFilename() string {
+	return f.GetTopLevelString("gui_config_file")
 }
 func (f *JSONConfigFile) GetDeviceCloneStateFilename() string {
 	return f.GetTopLevelString("device_clone_state_file")
@@ -428,6 +433,12 @@ func (f *JSONConfigFile) GetPvlKitFilename() string {
 }
 func (f *JSONConfigFile) GetParamProofKitFilename() string {
 	return f.GetTopLevelString("paramproof_kit")
+}
+func (f *JSONConfigFile) GetExternalURLKitFilename() string {
+	return f.GetTopLevelString("externalurl_kit")
+}
+func (f *JSONConfigFile) GetProveBypass() (bool, bool) {
+	return f.GetBoolAtPath("prove_bypass")
 }
 func (f *JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
@@ -515,6 +526,17 @@ func (f *JSONConfigFile) GetTorProxy() string {
 func (f *JSONConfigFile) GetProxy() string {
 	return f.GetTopLevelString("proxy")
 }
+func (f *JSONConfigFile) GetProxyType() string {
+	return f.GetTopLevelString("proxy-type")
+}
+func (f *JSONConfigFile) IsCertPinningEnabled() bool {
+	res, isSet := f.GetTopLevelBool("disable-cert-pinning")
+	if !isSet {
+		// Enable SSL pinning if the flag is not set
+		return true
+	}
+	return !res
+}
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
@@ -542,6 +564,10 @@ func (f *JSONConfigFile) GetGregorURI() string {
 }
 func (f *JSONConfigFile) GetGregorDisabled() (bool, bool) {
 	return f.GetBoolAtPath("push.disabled")
+}
+func (f *JSONConfigFile) GetSecretStorePrimingDisabled() (bool, bool) {
+	// SecretStorePrimingDisabled is only for tests
+	return false, false
 }
 func (f *JSONConfigFile) GetBGIdentifierDisabled() (bool, bool) {
 	return f.GetBoolAtPath("bg_identifier.disabled")
@@ -710,9 +736,19 @@ func (f *JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 func (f *JSONConfigFile) GetLogFile() string {
 	return f.GetTopLevelString("log_file")
 }
+func (f *JSONConfigFile) GetEKLogFile() string {
+	return f.GetTopLevelString("ek_log_file")
+}
+func (f *JSONConfigFile) GetGUILogFile() string {
+	return f.GetTopLevelString("gui_log_file")
+}
 
 func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
 	return f.GetTopLevelBool("use_default_log_file")
+}
+
+func (f *JSONConfigFile) GetUseRootConfigFile() (bool, bool) {
+	return false, false
 }
 
 func (f *JSONConfigFile) GetLogPrefix() string {
@@ -794,6 +830,10 @@ func (f *JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
 }
 
+func (f *JSONConfigFile) GetMountDirDefault() string {
+	return f.GetTopLevelString("mountdirdefault")
+}
+
 func bug3964path(un NormalizedUsername) string {
 	return fmt.Sprintf("maintenance.%s.bug_3964_repair_time", un)
 }
@@ -845,7 +885,51 @@ func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
 	return f.GetBoolAtPath("attachment_disable_multi")
 }
 
+func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_box_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return f.GetBoolAtPath("disable_ek_background_keygen")
+}
+
+func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_merkle_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableSearchIndexer() (bool, bool) {
+	return f.GetBoolAtPath("disable_search_indexer")
+}
+
+func (f *JSONConfigFile) GetDisableBgConvLoader() (bool, bool) {
+	return f.GetBoolAtPath("disable_bg_conv_loader")
+}
+
+func (f *JSONConfigFile) GetEnableBotLiteMode() (bool, bool) {
+	return f.GetBoolAtPath("enable_bot_lite_mode")
+}
+
+func (f *JSONConfigFile) GetExtraNetLogging() (bool, bool) {
+	return f.GetBoolAtPath("extra_net_logging")
+}
+
+func (f *JSONConfigFile) GetForceLinuxKeyring() (bool, bool) {
+	return f.GetBoolAtPath("force_linux_keyring")
+}
+
+func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
+	return f.GetBoolAtPath("force_less_safe_secret_store_file")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s
+}
+
+func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
+	return f.GetBoolAtPath("runtime_stats_enabled")
 }

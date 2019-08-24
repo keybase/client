@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -48,24 +49,35 @@ func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
+func normalizeAddress(address string) string {
+	switch strings.ToLower(address)[0:3] {
+	case "bc1", "zs1":
+		// bech32 addresses require that cases not be mixed
+		// (an error which will be caught downstream in validation),
+		// but the spec is otherwise case-insensitive. so if it's
+		// passed in as uppercase, then we downcase it right away to
+		// ensure that everything we do with the address (e.g. sign it into
+		// a sigchain link) will be consistent and checksum correctly.
+		if strings.ToUpper(address) == address {
+			return strings.ToLower(address)
+		}
+	}
+	return address
+}
+
 func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "CryptocurrencyEngine")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "CryptocurrencyEngine")
 
-	defer m.CTrace("CryptocurrencyEngine", func() error { return err })()
+	defer m.Trace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType
+	e.arg.Address = normalizeAddress(e.arg.Address)
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
-
 	if err != nil {
 		return libkb.InvalidAddressError{Msg: err.Error()}
 	}
 
-	mode := m.G().Env.GetRunMode()
-	if mode == libkb.ProductionRunMode && typ == libkb.CryptocurrencyTypeZCashSapling {
-		return libkb.InvalidAddressError{Msg: "waiting one release cycle before you can post sapling addresses"}
-
-	}
 	family := typ.ToCryptocurrencyFamily()
 	if len(e.arg.WantedFamily) > 0 && e.arg.WantedFamily != string(family) {
 		return libkb.InvalidAddressError{Msg: fmt.Sprintf("wanted coin type %q, but got %q", e.arg.WantedFamily, family)}
@@ -108,12 +120,12 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	sigInner, err := claim.Marshal()
+	sigInner, err := claim.J.Marshal()
 	if err != nil {
 		return err
 	}
 
-	sig, _, _, err := libkb.MakeSig(
+	sig, _, linkID, err := libkb.MakeSig(
 		m,
 		sigKey,
 		libkb.LinkTypeCryptocurrency,
@@ -144,12 +156,16 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		args["sig_inner"] = libkb.S{Val: string(sigInner)}
 	}
 
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/post",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
-		NetContext:  m.Ctx(),
 	})
+	if err != nil {
+		return err
+	}
+
+	err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), claim.Seqno, linkID)
 	if err != nil {
 		return err
 	}

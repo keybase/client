@@ -190,6 +190,9 @@ func GetPGPExportPassphrase(m libkb.MetaContext, ui libkb.SecretUI, desc string)
 
 	desc = "Please reenter your passphrase for confirmation"
 	pRes2, err := libkb.GetSecret(m, ui, "PGP key passphrase", desc, "", false)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
 	if pRes.Passphrase != pRes2.Passphrase {
 		return keybase1.GetPassphraseRes{}, errors.New("Passphrase mismatch")
 	}
@@ -231,7 +234,7 @@ func (e *PGPKeyExportEngine) loadMe(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyExportEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PGPKeyExportEngine::Run", func() error { return err })()
+	defer m.Trace("PGPKeyExportEngine::Run", func() error { return err })()
 
 	if e.qtype == unset {
 		return fmt.Errorf("PGPKeyExportEngine: query type not set")

@@ -56,7 +56,7 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
    blocked for website sessions, including (but not limited to):
        - account delete or reset,
        - posting signatures,
-       - changing password or e-mail address,
+       - changing password or email address,
        - changing profile information or profile picture.
 
    These actions are still possible using the Keybase client.`,

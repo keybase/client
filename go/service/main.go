@@ -5,6 +5,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
@@ -17,58 +18,84 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/bots"
+	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/wallet"
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvl"
+	"github.com/keybase/client/go/runtimestats"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
 	"github.com/keybase/client/go/systemd"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+)
+
+type loginAttempt int
+
+const (
+	loginAttemptNone    loginAttempt = 0
+	loginAttemptOffline loginAttempt = 1
+	loginAttemptOnline  loginAttempt = 2
 )
 
 type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
 
-	isDaemon             bool
-	chdirTo              string
-	lockPid              *libkb.LockPIDFile
-	ForkType             keybase1.ForkType
-	startCh              chan struct{}
-	stopCh               chan keybase1.ExitCode
-	logForwarder         *logFwd
-	gregor               *gregorHandler
-	rekeyMaster          *rekeyMaster
-	badger               *badges.Badger
-	reachability         *reachability
-	backgroundIdentifier *BackgroundIdentifier
-	home                 *home.Home
-	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
-	teamUpgrader         *teams.Upgrader
-	avatarLoader         avatars.Source
-	walletState          *stellar.WalletState
+	isDaemon        bool
+	chdirTo         string
+	lockPid         *libkb.LockPIDFile
+	ForkType        keybase1.ForkType
+	startCh         chan struct{}
+	stopCh          chan keybase1.ExitCode
+	logForwarder    *logFwd
+	gregor          *gregorHandler
+	rekeyMaster     *rekeyMaster
+	badger          *badges.Badger
+	reachability    *reachability
+	home            *home.Home
+	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader    *teams.Upgrader
+	avatarLoader    avatars.Source
+	walletState     *stellar.WalletState
+	offlineRPCCache *offline.RPCCache
+	trackerLoader   *libkb.TrackerLoader
+	runtimeStats    *runtimestats.Runner
+	httpSrv         *manager.Srv
+	avatarSrv       *avatars.Srv
+
+	loginAttemptMu sync.Mutex
+	loginAttempt   loginAttempt
+	loginSuccess   bool
 }
 
 type Shutdowner interface {
@@ -90,9 +117,13 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		trackerLoader:    libkb.NewTrackerLoader(g),
+		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
-		avatarLoader:     avatars.CreateSourceFromEnv(g),
+		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
+		offlineRPCCache:  offline.NewRPCCache(g),
+		httpSrv:          manager.NewSrv(g),
 	}
 }
 
@@ -103,6 +134,8 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
 	g := d.G()
 	cg := globals.NewContext(g, d.ChatG())
+	contactsProv := NewCachedContactsProvider(g)
+
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewCryptocurrencyHandler(xp, g)),
@@ -114,9 +147,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g, d.gregor)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.TlfProtocol(newTlfHandler(xp, cg)),
-		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g, d)),
 		keybase1.InstallProtocol(NewInstallHandler(xp, g)),
-		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG())),
+		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG(), d)),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
@@ -134,31 +167,40 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
-		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
+		CancelingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
+			libkb.RPCCancelerReasonLogout),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.SelfprovisionProtocol(NewSelfProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor))),
+		CancelingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor)),
+			libkb.RPCCancelerReasonAll),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
-		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		CancellingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor))),
+		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
+			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
+		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
+		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
 	}
+	appStateHandler := newAppStateHandler(xp, g)
+	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
+	shutdowners = append(shutdowners, appStateHandler)
 	walletHandler := newWalletHandler(xp, g, d.walletState)
-	protocols = append(protocols, CancellingProtocol(g, stellar1.LocalProtocol(walletHandler)))
-
-	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
+	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
+		libkb.RPCCancelerReasonLogout))
+	userHandler := NewUserHandler(xp, g, d.ChatG(), d)
+	protocols = append(protocols, keybase1.UserProtocol(userHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
@@ -196,7 +238,7 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	// Clean up handlers when the connection closes.
-	defer shutdown()
+	defer func() { _ = shutdown() }()
 
 	// Make sure shutdown is called when service shuts down but the connection
 	// isn't closed yet.
@@ -228,7 +270,11 @@ func (d *Service) Run() (err error) {
 			close(d.startCh)
 		}
 		d.G().NotifyRouter.HandleServiceShutdown()
-		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
+		if err != nil {
+			d.G().Log.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
+		} else {
+			d.G().Log.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+		}
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
@@ -310,37 +356,16 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
-	epick := libkb.FirstErrorPicker{}
-	epick.Push(d.setupTeams())
-	epick.Push(d.setupStellar())
-	epick.Push(d.setupPVL())
-	epick.Push(d.setupParamProofStore())
-	epick.Push(d.setupEphemeralKeys())
-	return epick.Error()
-}
-
-func (d *Service) setupEphemeralKeys() error {
-	ephemeral.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupTeams() error {
+	mctx := d.MetaContext(context.TODO())
 	teams.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	return nil
-}
-
-func (d *Service) setupPVL() error {
 	pvl.NewPvlSourceAndInstall(d.G())
-	return nil
-}
-
-func (d *Service) setupParamProofStore() error {
 	externals.NewParamProofStoreAndInstall(d.G())
+	externals.NewExternalURLStoreAndInstall(d.G())
+	ephemeral.ServiceInit(mctx)
+	teambot.ServiceInit(mctx)
+	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
+	contacts.ServiceInit(d.G())
 	return nil
 }
 
@@ -349,9 +374,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	ctx := context.Background()
-	d.tryLogin(ctx)
+	d.tryLogin(ctx, loginAttemptOnline)
 	d.chatOutboxPurgeCheck()
-	d.minuteChecks()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.startupGregor()
@@ -359,22 +383,28 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
-	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
 	d.runBackgroundWalletUpkeep()
+	d.runBackgroundBoxAuditRetry()
+	d.runBackgroundBoxAuditScheduler()
 	d.runTLFUpgrade()
+	d.runTrackerLoader(ctx)
+	d.runRuntimeStats(ctx)
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
+	d.runMerkleAudit(ctx)
 	go d.identifySelf()
+	setupRandomPwPrefetcher(d.G())
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
-	purge := func(glob string) {
-		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+	purge := func(dir, glob string) {
+		files, err := filepath.Glob(filepath.Join(dir, glob))
 		if err != nil {
 			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
 		} else {
+			d.G().Log.Debug("purgeOldChatAttachmentData: %d files to delete for %s", len(files), glob)
 			for _, f := range files {
 				if err := os.Remove(f); err != nil {
 					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
@@ -382,8 +412,14 @@ func (d *Service) purgeOldChatAttachmentData() {
 			}
 		}
 	}
-	purge("kbchat*")
-	purge("prev*")
+	cacheDir := d.G().GetCacheDir()
+	oldCacheDir := filepath.Dir(cacheDir)
+	for _, dir := range []string{cacheDir, oldCacheDir} {
+		purge(dir, "kbchat*")
+		purge(dir, "avatar*")
+		purge(dir, "prev*")
+		purge(dir, "rncontacts*")
+	}
 }
 
 func (d *Service) startChatModules() {
@@ -396,18 +432,28 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
-		g.Indexer.Start(chat.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil), uid)
+		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
+			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
+		g.CoinFlipManager.Start(context.Background(), uid)
+		g.TeamMentionLoader.Start(context.Background(), uid)
+		g.LiveLocationTracker.Start(context.Background(), uid)
+		g.BotCommandManager.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
 
-func (d *Service) stopChatModules(m libkb.MetaContext) {
+func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
 	<-d.ChatG().ConvLoader.Stop(m.Ctx())
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
 	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
+	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
+	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
+	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
+	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
+	return nil
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -416,15 +462,21 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri = d.gregor.GetClient
 	}
 
+	// Add OnLogout/OnDbNuke hooks for any in-memory sources
+	storage.SetupGlobalHooks(g)
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
+	g.CtxFactory = chat.NewCtxFactory(g)
+	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	g.InboxSource = inboxSource
+	d.badger.SetLocalChatState(inboxSource)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
+	g.AddDbNukeHook(g.Indexer, "Indexer")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -443,15 +495,23 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
-	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
-	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri)
+	store := attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir())
+	attachmentLRUSize := 1000
+	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
+	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
-	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+	if g.Standalone {
+		g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	} else {
+		g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, d.httpSrv,
+			chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
+	}
+	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 	g.StellarSender = wallet.NewSender(g)
@@ -461,10 +521,15 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
 		ri)
+	g.CommandsSource = commands.NewSource(g)
+	g.CoinFlipManager = chat.NewFlipManager(g, ri)
+	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
+	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
+	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
-	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
 
@@ -533,21 +598,39 @@ func (d *Service) runTLFUpgrade() {
 	d.tlfUpgrader.Run()
 }
 
+func (d *Service) runTrackerLoader(ctx context.Context) {
+	d.trackerLoader.Run(ctx)
+}
+
+func (d *Service) runRuntimeStats(ctx context.Context) {
+	d.runtimeStats.Start(ctx)
+}
+
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
 func (d *Service) runHomePoller(ctx context.Context) {
 	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
-func (d *Service) runBackgroundIdentifier() {
-	uid := d.G().Env.GetUID()
-	if !uid.IsNil() {
-		d.runBackgroundIdentifierWithUID(uid)
+func (d *Service) runMerkleAudit(ctx context.Context) {
+	if libkb.IsMobilePlatform() {
+		d.G().Log.Debug("MerkleAudit disabled (not desktop, not starting)")
+		return
 	}
+
+	eng := engine.NewMerkleAudit(d.G(), &engine.MerkleAuditArgs{})
+	m := libkb.NewMetaContextBackground(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		m.Warning("merkle root background audit error: %v", err)
+	}
+
+	d.G().PushShutdownHook(func() error {
+		m.Debug("stopping merkle root background audit engine")
+		eng.Shutdown()
+		return nil
+	})
 }
 
 func (d *Service) startupGregor() {
@@ -568,7 +651,7 @@ func (d *Service) startupGregor() {
 		d.G().ConnectivityMonitor = d.reachability
 
 		d.gregor.badger = d.badger
-		d.G().GregorDismisser = d.gregor
+		d.G().GregorState = d.gregor
 		d.G().GregorListener = d.gregor
 
 		// Add default handlers
@@ -580,8 +663,10 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(stellargregor.New(d.G(), d.walletState))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
+		d.gregor.PushHandler(newTeambotHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
 		d.gregor.PushHandler(newPhoneNumbersGregorHandler(d.G()))
+		d.gregor.PushHandler(newEmailsGregorHandler(d.G()))
 		d.gregor.PushHandler(newKBFSFavoritesHandler(d.G()))
 
 		// Connect to gregord
@@ -593,7 +678,7 @@ func (d *Service) startupGregor() {
 
 func (d *Service) addGlobalHooks() {
 	d.G().AddLoginHook(d)
-	d.G().AddLogoutHook(d)
+	d.G().AddLogoutHook(d, "service/Service")
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -613,9 +698,9 @@ func (d *Service) StartLoopbackServer() error {
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.
-	d.tryLogin(ctx)
+	d.tryLogin(ctx, loginAttemptOffline)
 
-	go d.ListenLoop(l)
+	go func() { _ = d.ListenLoop(l) }()
 
 	return nil
 }
@@ -642,7 +727,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 	ticker := libkb.NewBgTicker(5 * time.Minute)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("OBOXPRGE")
 	d.G().PushShutdownHook(func() error {
-		m.CDebugf("stopping chatOutboxPurgeCheck loop")
+		m.Debug("stopping chatOutboxPurgeCheck loop")
 		ticker.Stop()
 		return nil
 	})
@@ -657,7 +742,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 			g := globals.NewContext(d.G(), d.ChatG())
 			ephemeralPurged, err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background())
 			if err != nil {
-				m.CDebugf("OutboxPurge error: %s", err)
+				m.Debug("OutboxPurge error: %s", err)
 				continue
 			}
 			if len(ephemeralPurged) > 0 {
@@ -672,58 +757,34 @@ func (d *Service) chatOutboxPurgeCheck() {
 	}()
 }
 
-func (d *Service) minuteChecks() {
-	ticker := libkb.NewBgTicker(5 * time.Minute)
-	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
-	d.G().PushShutdownHook(func() error {
-		mctx.CDebugf("stopping minuteChecks loop")
-		ticker.Stop()
-		return nil
-	})
-	go func() {
-		for {
-			<-ticker.C
-			mctx.CDebugf("+ 5 minute check loop")
-
-			// In theory, this periodic refresh shouldn't be necessary,
-			// but as the WalletState code is new, this is a nice insurance
-			// policy.  The gregor payment notifications should
-			// keep the WalletState refreshed properly.
-			mctx.CDebugf("| refreshing wallet state")
-			if err := d.walletState.RefreshAll(mctx, "service bg loop"); err != nil {
-				mctx.CDebugf("service walletState.RefreshAll error: %s", err)
-			}
-
-			mctx.CDebugf("- 5 minute check loop")
-		}
-	}()
-}
-
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
 	d.G().PushShutdownHook(func() error {
-		m.CDebugf("stopping hourlyChecks loop")
+		m.Debug("stopping hourlyChecks loop")
 		ticker.Stop()
 		return nil
 	})
 	go func() {
 		// do this quickly
 		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
-			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
+			m.Debug("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
 		for {
 			<-ticker.C
-			m.CDebugf("+ hourly check loop")
-			m.CDebugf("| checking if current device revoked")
+			m.Debug("+ hourly check loop")
+			m.Debug("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
-				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
+				m.Debug("LogoutAndDeprovisionIfRevoked error: %s", err)
 			}
 
-			m.CDebugf("| checking tracks on an hour timer")
-			libkb.CheckTracking(m.G())
+			m.Debug("| checking tracks on an hour timer")
+			err := libkb.CheckTracking(m.G())
+			if err != nil {
+				m.Debug("CheckTracking error: %s", err)
+			}
 
-			m.CDebugf("- hourly check loop")
+			m.Debug("- hourly check loop")
 		}
 	}()
 }
@@ -737,9 +798,9 @@ func (d *Service) deviceCloneSelfCheck() error {
 	}
 	newClones := after - before
 
-	m.CDebugf("deviceCloneSelfCheck: is there a new clone? %v", newClones > 0)
+	m.Debug("deviceCloneSelfCheck: is there a new clone? %v", newClones > 0)
 	if newClones > 0 {
-		m.CDebugf("deviceCloneSelfCheck: notifying user %v -> %v restarts", before, after)
+		m.Debug("deviceCloneSelfCheck: notifying user %v -> %v restarts", before, after)
 		d.G().NotifyRouter.HandleDeviceCloneNotification(newClones)
 	}
 	return nil
@@ -752,25 +813,25 @@ func (d *Service) slowChecks() {
 		ticker.Stop()
 		return nil
 	})
-	// Do this once fast
-	if err := d.deviceCloneSelfCheck(); err != nil {
-		d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
-	}
 	go func() {
+		// Do this once fast
+		if err := d.deviceCloneSelfCheck(); err != nil {
+			d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
+		}
 		ctx := context.Background()
 		m := libkb.NewMetaContext(ctx, d.G()).WithLogTag("SLOWCHK")
 		for {
 			<-ticker.C
-			m.CDebugf("+ slow checks loop")
-			m.CDebugf("| checking if current device should log out")
+			m.Debug("+ slow checks loop")
+			m.Debug("| checking if current device should log out")
 			if err := d.G().LogoutSelfCheck(m.Ctx()); err != nil {
-				m.CDebugf("LogoutSelfCheck error: %s", err)
+				m.Debug("LogoutSelfCheck error: %s", err)
 			}
-			m.CDebugf("| checking if current device is a clone")
+			m.Debug("| checking if current device is a clone")
 			if err := d.deviceCloneSelfCheck(); err != nil {
-				m.CDebugf("deviceCloneSelfCheck error: %s", err)
+				m.Debug("deviceCloneSelfCheck error: %s", err)
 			}
-			m.CDebugf("- slow checks loop")
+			m.Debug("- slow checks loop")
 		}
 	}()
 }
@@ -785,25 +846,6 @@ func (d *Service) tryGregordConnect() error {
 	return d.gregordConnect()
 }
 
-func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
-	if d.G().Env.GetBGIdentifierDisabled() {
-		d.G().Log.Debug("BackgroundIdentifier disabled")
-		return
-	}
-
-	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), d.ChatG(), u)
-	if err != nil {
-		d.G().Log.Warning("Problem running new background identifier: %s", err)
-		return
-	}
-	if newBgi == nil {
-		d.G().Log.Debug("No new background identifier needed")
-		return
-	}
-	d.backgroundIdentifier = newBgi
-	d.G().AddUserChangedHandler(newBgi)
-}
-
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	if !d.G().Env.GetUpgradePerUserKey() {
 		d.G().Log.Debug("PerUserKeyUpgradeBackground disabled (not starting)")
@@ -815,7 +857,7 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 		m := libkb.NewMetaContextBackground(d.G())
 		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			m.CWarningf("per-user-key background upgrade error: %v", err)
+			m.Warning("per-user-key background upgrade error: %v", err)
 		}
 	}()
 
@@ -832,7 +874,7 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 		m := libkb.NewMetaContextBackground(d.G())
 		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			m.CWarningf("per-user-key background upkeep error: %v", err)
+			m.Warning("per-user-key background upkeep error: %v", err)
 		}
 	}()
 
@@ -849,7 +891,7 @@ func (d *Service) runBackgroundWalletUpkeep() {
 		m := libkb.NewMetaContextBackground(d.G())
 		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			m.CWarningf("background WalletUpkeep error: %v", err)
+			m.Warning("background WalletUpkeep error: %v", err)
 		}
 	}()
 
@@ -860,7 +902,41 @@ func (d *Service) runBackgroundWalletUpkeep() {
 	})
 }
 
-func (d *Service) OnLogin() error {
+func (d *Service) runBackgroundBoxAuditRetry() {
+	eng := engine.NewBoxAuditRetryBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorRetry error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorRetry")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundBoxAuditScheduler() {
+	eng := engine.NewBoxAuditSchedulerBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorScheduler error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorScheduler")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	d.rekeyMaster.Login()
 	if err := d.gregordConnect(); err != nil {
 		return err
@@ -868,28 +944,31 @@ func (d *Service) OnLogin() error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.startChatModules()
-		d.runBackgroundIdentifierWithUID(uid)
+		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
 		d.runTLFUpgrade()
+		d.runTrackerLoader(mctx.Ctx())
 		go d.identifySelf()
 	}
 	return nil
 }
 
 func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
-	defer m.CTrace("Service#OnLogout", func() error { return err })()
+	defer m.Trace("Service#OnLogout", func() error { return err })()
 	log := func(s string) {
-		m.CDebugf("Service#OnLogout: %s", s)
+		m.Debug("Service#OnLogout: %s", s)
 	}
 
-	log("cancelling live RPCs")
-	d.G().RPCCanceller.CancelLiveContexts()
+	log("canceling live RPCs")
+	d.G().RPCCanceler.CancelLiveContexts(libkb.RPCCancelerReasonLogout)
 
 	log("shutting down chat modules")
-	d.stopChatModules(m)
+	if err := d.stopChatModules(m); err != nil {
+		log(fmt.Sprintf("unable to stopChatModules %v", err))
+	}
 
 	log("shutting down gregor")
 	if d.gregor != nil {
-		d.gregor.Reset()
+		_ = d.gregor.Reset()
 	}
 
 	log("shutting down rekeyMaster")
@@ -900,19 +979,19 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 		d.badger.Clear(context.TODO())
 	}
 
-	log("shutting down BG identifier")
-	if d.backgroundIdentifier != nil {
-		d.backgroundIdentifier.Logout()
-	}
-
 	log("shutting down TLF upgrader")
 	if d.tlfUpgrader != nil {
-		d.tlfUpgrader.Shutdown()
+		_ = d.tlfUpgrader.Shutdown()
 	}
 
 	log("resetting wallet state on logout")
 	if d.walletState != nil {
 		d.walletState.Reset(m)
+	}
+
+	log("shutting down tracker loader")
+	if d.trackerLoader != nil {
+		<-d.trackerLoader.Shutdown(m.Ctx())
 	}
 
 	return nil
@@ -931,7 +1010,7 @@ func (d *Service) gregordConnect() (err error) {
 	// If we are already connected, then shutdown and reset the gregor
 	// handler
 	if d.gregor.IsConnected() {
-		if d.gregor.Reset(); err != nil {
+		if err := d.gregor.Reset(); err != nil {
 			return err
 		}
 	}
@@ -964,9 +1043,7 @@ func (d *Service) GetExclusiveLock() error {
 	if err := d.GetExclusiveLockWithoutAutoUnlock(); err != nil {
 		return err
 	}
-	d.G().PushShutdownHook(func() error {
-		return d.ReleaseLock()
-	})
+	d.G().PushShutdownHook(d.ReleaseLock)
 	return nil
 }
 
@@ -1110,13 +1187,7 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (d *Service) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config:     true,
-		KbKeyring:  true,
-		GpgKeyring: true,
-		API:        true,
-		Socket:     true,
-	}
+	return libkb.ServiceUsage
 }
 
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
@@ -1162,6 +1233,14 @@ func (d *Service) SetGregorPushStateFilter(f func(m gregor.Message) bool) {
 	d.gregor.SetPushStateFilter(f)
 }
 
+func (d *Service) GetUserAvatar(username string) (string, error) {
+	if d.avatarSrv == nil {
+		return "", fmt.Errorf("AvatarSrv is not ready")
+	}
+
+	return d.avatarSrv.GetUserAvatar(username)
+}
+
 // configurePath is a somewhat unfortunate hack, but as it currently stands,
 // when the keybase service is run out of launchd, its path is minimal and
 // often can't find the GPG location. We have hacks around this for CLI operation,
@@ -1181,12 +1260,12 @@ func (d *Service) configurePath() {
 	default:
 	}
 	if newDirs != "" {
-		mergeIntoPath(d.G(), newDirs)
+		err := mergeIntoPath(d.G(), newDirs)
+		if err != nil {
+			d.G().Log.Debug("Error merging into path: %+v", err)
+		}
 	}
 }
-
-// tryLogin should only be called once.
-var tryLoginOnce sync.Once
 
 // tryLogin runs LoginOffline which will load the local session file and unlock the
 // local device keys without making any network requests.
@@ -1194,38 +1273,74 @@ var tryLoginOnce sync.Once
 // If that fails for any reason, LoginProvisionedDevice is used, which should get
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
-func (d *Service) tryLogin(ctx context.Context) {
-	tryLoginOnce.Do(func() {
-		eng := engine.NewLoginOffline(d.G())
-		m := libkb.NewMetaContext(ctx, d.G())
-		if err := engine.RunEngine2(m, eng); err != nil {
-			m.CDebugf("error running LoginOffline on service startup: %s", err)
-			m.CDebugf("trying LoginProvisionedDevice")
+func (d *Service) tryLogin(ctx context.Context, mode loginAttempt) {
+	d.loginAttemptMu.Lock()
+	defer d.loginAttemptMu.Unlock()
 
-			// Standalone mode quirk here. We call tryLogin when client is
-			// launched in standalone to unlock the same keys that we would
-			// have in service mode. But NewLoginProvisionedDevice engine
-			// needs KbKeyrings and not every command sets it up. Ensure
-			// Keyring is available.
+	m := libkb.NewMetaContext(ctx, d.G())
 
-			// TODO: We will be phasing out KbKeyrings usage flag, or even
-			// usage flags entirely. Then this will not be needed because
-			// Keyrings will always be loaded.
+	if d.loginAttempt == loginAttemptOnline {
+		m.Debug("login online attempt already tried, nothing to do")
+		return
+	}
+	if d.loginSuccess {
+		m.Debug("already logged in successfully, so nothing left to do")
+		return
+	}
 
-			if m.G().Keyrings == nil {
-				m.CDebugf("tryLogin: Configuring Keyrings")
-				m.G().ConfigureKeyring()
-			}
+	if mode == loginAttemptOffline && d.loginAttempt == loginAttemptOffline {
+		m.Debug("already tried a login attempt offline")
+		return
+	}
 
-			deng := engine.NewLoginProvisionedDevice(d.G(), "")
-			deng.SecretStoreOnly = true
-			if err := engine.RunEngine2(m, deng); err != nil {
-				m.CDebugf("error running LoginProvisionedDevice on service startup: %s", err)
-			}
-		} else {
-			m.CDebugf("success running LoginOffline on service startup")
+	if mode == loginAttemptNone {
+		m.Debug("no login attempt made due to loginAttemptNone flag passed")
+		return
+	}
+
+	d.loginAttempt = mode
+	eng := engine.NewLoginOffline(d.G())
+	err := engine.RunEngine2(m, eng)
+	if err == nil {
+		m.Debug("login offline success")
+		d.loginSuccess = true
+		return
+	}
+
+	if mode == loginAttemptOffline {
+		m.Debug("not continuing with online login")
+		return
+	}
+
+	m.Debug("error running LoginOffline on service startup: %s", err)
+	m.Debug("trying LoginProvisionedDevice")
+
+	// Standalone mode quirk here. We call tryLogin when client is
+	// launched in standalone to unlock the same keys that we would
+	// have in service mode. But NewLoginProvisionedDevice engine
+	// needs KbKeyrings and not every command sets it up. Ensure
+	// Keyring is available.
+
+	// TODO: We will be phasing out KbKeyrings usage flag, or even
+	// usage flags entirely. Then this will not be needed because
+	// Keyrings will always be loaded.
+
+	if m.G().Keyrings == nil {
+		m.Debug("tryLogin: Configuring Keyrings")
+		err := m.G().ConfigureKeyring()
+		if err != nil {
+			m.Debug("error configuring keyring: %s", err)
 		}
-	})
+	}
+
+	deng := engine.NewLoginProvisionedDevice(d.G(), "")
+	deng.SecretStoreOnly = true
+	if err := engine.RunEngine2(m, deng); err != nil {
+		m.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+	} else {
+		m.Debug("success running LoginOffline on service startup")
+		d.loginSuccess = true
+	}
 }
 
 func (d *Service) startProfile() {
@@ -1236,7 +1351,10 @@ func (d *Service) startProfile() {
 			d.G().Log.Warning("error creating cpu profile: %s", err)
 		} else {
 			d.G().Log.Debug("+ starting service cpu profile in %s", cpu)
-			pprof.StartCPUProfile(f)
+			err := pprof.StartCPUProfile(f)
+			if err != nil {
+				d.G().Log.Warning("error starting CPU profile: %s", err)
+			}
 		}
 	}
 
@@ -1247,7 +1365,10 @@ func (d *Service) startProfile() {
 			d.G().Log.Warning("error creating service trace: %s", err)
 		} else {
 			d.G().Log.Debug("+ starting service trace: %s", tr)
-			trace.Start(f)
+			err := trace.Start(f)
+			if err != nil {
+				d.G().Log.Warning("error starting trace: %s", err)
+			}
 		}
 	}
 }
@@ -1299,7 +1420,73 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	return nil
 }
 
-// Called by CtlHandler after DbNuke finishes and succeeds.
-func (d *Service) onDbNuke(ctx context.Context) {
-	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
+// hasRandomPWPrefetcher implements LoginHook and LogoutHook interfaces and is
+// used to ensure that we know current user's NOPW status.
+type hasRandomPWPrefetcher struct {
+	// cancel func for randompw prefetching context, if currently active.
+	hasRPWCancelFn context.CancelFunc
+}
+
+func (d *hasRandomPWPrefetcher) prefetchHasRandomPW(g *libkb.GlobalContext, uid keybase1.UID) {
+	ctx, cancel := context.WithCancel(context.Background())
+	d.hasRPWCancelFn = cancel
+
+	mctx := libkb.NewMetaContext(ctx, g).WithLogTag("P_HASRPW")
+	go func() {
+		defer func() { d.hasRPWCancelFn = nil }()
+		mctx.Debug("prefetchHasRandomPW: starting prefetch after two seconds")
+		select {
+		case <-time.After(2 * time.Second):
+		case <-ctx.Done():
+			mctx.Debug("prefetchHasRandomPW: return before starting: %v", ctx.Err())
+			return
+		}
+		err := backoff.RetryNotifyWithContext(ctx, func() error {
+			mctx.Debug("prefetchHasRandomPW: trying for uid=%q", uid)
+			if !mctx.CurrentUID().Equal(uid) {
+				// Do not return an error, so backoff does not retry.
+				mctx.Debug("prefetchHasRandomPW: current uid has changed, aborting")
+				return nil
+			}
+
+			// We don't want to force repoll if there's cache, but we can also
+			// wait longer than few seconds.
+			arg := keybase1.LoadHasRandomPwArg{
+				ForceRepoll:    false,
+				NoShortTimeout: true,
+			}
+			randomPW, err := libkb.LoadHasRandomPw(mctx, arg)
+			if err != nil {
+				mctx.Debug("Prefetching HasRandomPW failed: %s", err)
+				return err
+			}
+
+			mctx.Debug("Prefetching HasRandomPW, result is HasRandomPW=%t", randomPW)
+			return nil
+		}, backoff.NewExponentialBackOff(), nil)
+		mctx.Debug("prefetchHasRandomPW: backoff loop returned: %v", err)
+	}()
+}
+
+func (d *hasRandomPWPrefetcher) OnLogin(mctx libkb.MetaContext) error {
+	g := mctx.G()
+	uid := g.GetEnv().GetUID()
+	if !uid.IsNil() {
+		d.prefetchHasRandomPW(g, uid)
+	}
+	return nil
+}
+
+func (d *hasRandomPWPrefetcher) OnLogout(mctx libkb.MetaContext) error {
+	if d.hasRPWCancelFn != nil {
+		mctx.Debug("Cancelling prefetcher in OnLogout hook (P_HASRPW)")
+		d.hasRPWCancelFn()
+	}
+	return nil
+}
+
+func setupRandomPwPrefetcher(g *libkb.GlobalContext) {
+	prefetcher := &hasRandomPWPrefetcher{}
+	g.AddLoginHook(prefetcher)
+	g.AddLogoutHook(prefetcher, "service/hasRandomPWPrefetcher")
 }

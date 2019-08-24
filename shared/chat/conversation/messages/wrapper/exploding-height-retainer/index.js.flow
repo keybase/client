@@ -1,5 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './index.types'
-declare export var animationDuration: number
-export default class ExplodingHeightRetainer extends React.Component<Props> {}

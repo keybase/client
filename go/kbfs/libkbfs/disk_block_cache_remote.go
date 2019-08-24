@@ -8,12 +8,13 @@ import (
 	"context"
 	"net"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -21,12 +22,26 @@ type diskBlockCacheRemoteConfig interface {
 	logMaker
 }
 
+const (
+	diskBlockCacheRemoteStatusCacheCapacity = 5000
+)
+
 // DiskBlockCacheRemote implements a client to access a remote
 // DiskBlockCacheService. It implements the DiskBlockCache interface.
 type DiskBlockCacheRemote struct {
 	conn   net.Conn
 	client kbgitkbfs.DiskBlockCacheClient
 	log    traceLogger
+
+	// Keep an LRU cache of the prefetch statuses for each block, so
+	// we can avoid making an RPC to get them unless necessary.  For
+	// most efficient performance, this assumes that the process using
+	// this remote will basically be the only one prefetching the
+	// blocks in the cache (as is the case most of the time with the
+	// git helper, for example); if not, the cache might get out of
+	// date, resulting in extra prefetching work to be done by this
+	// process.
+	statuses *lru.Cache
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheRemote)(nil)
@@ -42,10 +57,16 @@ func NewDiskBlockCacheRemote(kbCtx Context, config diskBlockCacheRemoteConfig) (
 		libkb.LogTagsFromContext)
 	client := kbgitkbfs.DiskBlockCacheClient{Cli: cli}
 
+	statuses, err := lru.New(diskBlockCacheRemoteStatusCacheCapacity)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DiskBlockCacheRemote{
-		conn:   conn,
-		client: client,
-		log:    traceLogger{config.MakeLogger("DBR")},
+		conn:     conn,
+		client:   client,
+		log:      traceLogger{config.MakeLogger("DBR")},
+		statuses: statuses,
 	}, nil
 }
 
@@ -72,8 +93,39 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 	prefetchStatus = PrefetchStatusFromProtocol(res.PrefetchStatus)
-
+	dbcr.statuses.Add(blockID, prefetchStatus)
 	return res.Buf, serverHalf, prefetchStatus, nil
+}
+
+// GetPrefetchStatus implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetPrefetchStatus(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+	cacheType DiskBlockCacheType) (
+	prefetchStatus PrefetchStatus, err error) {
+	if tmp, ok := dbcr.statuses.Get(blockID); ok {
+		prefetchStatus := tmp.(PrefetchStatus)
+		return prefetchStatus, nil
+	}
+
+	dbcr.log.LazyTrace(
+		ctx, "DiskBlockCacheRemote: GetPrefetchStatus %s", blockID)
+	defer func() {
+		dbcr.log.LazyTrace(
+			ctx, "DiskBlockCacheRemote: GetPrefetchStatus %s done (err=%+v)",
+			blockID, err)
+	}()
+
+	res, err := dbcr.client.GetPrefetchStatus(
+		ctx, kbgitkbfs.GetPrefetchStatusArg{
+			TlfID:   tlfID.Bytes(),
+			BlockID: blockID.Bytes(),
+		})
+	if err != nil {
+		return NoPrefetch, err
+	}
+
+	return PrefetchStatusFromProtocol(res), nil
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheRemote.
@@ -95,8 +147,10 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheRemote.
-func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
-	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+func (dbcr *DiskBlockCacheRemote) Delete(
+	ctx context.Context, blockIDs []kbfsblock.ID,
+	cacheType DiskBlockCacheType) (
+	numRemoved int, sizeRemoved int64, err error) {
 	numBlocks := len(blockIDs)
 	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s)",
 		numBlocks)
@@ -118,9 +172,12 @@ func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+	tlfID tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus,
+	_ DiskBlockCacheType) error {
+	dbcr.statuses.Add(blockID, prefetchStatus)
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{
+			TlfID:          tlfID.Bytes(),
 			BlockID:        blockID.Bytes(),
 			PrefetchStatus: prefetchStatus.ToProtocol(),
 		})
@@ -159,10 +216,10 @@ func (dbcr *DiskBlockCacheRemote) Status(ctx context.Context) map[string]DiskBlo
 // DoesCacheHaveSpace implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) DoesCacheHaveSpace(
-	_ context.Context, _ DiskBlockCacheType) (bool, error) {
+	_ context.Context, _ DiskBlockCacheType) (bool, int64, error) {
 	// We won't be kicking off long syncing prefetching via the remote
 	// cache, so just pretend the cache has space.
-	return true, nil
+	return true, 0, nil
 }
 
 // Mark implements the DiskBlockCache interface for DiskBlockCacheRemote.
@@ -190,6 +247,27 @@ func (dbcr *DiskBlockCacheRemote) AddHomeTLF(ctx context.Context,
 func (dbcr *DiskBlockCacheRemote) ClearHomeTLFs(ctx context.Context) error {
 	// Let the local cache care about home TLFs.
 	return nil
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfSize(
+	_ context.Context, _ tlf.ID, _ DiskBlockCacheType) (uint64, error) {
+	panic("GetTlfSize() not implemented in DiskBlockCacheRemote")
+}
+
+// GetTlfIDs implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfIDs(
+	_ context.Context, _ DiskBlockCacheType) ([]tlf.ID, error) {
+	panic("GetTlfIDs() not implemented in DiskBlockCacheRemote")
+}
+
+// WaitUntilStarted implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) WaitUntilStarted(
+	_ DiskBlockCacheType) error {
+	panic("WaitUntilStarted() not implemented in DiskBlockCacheRemote")
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.

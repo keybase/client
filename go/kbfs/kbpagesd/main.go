@@ -146,8 +146,12 @@ func main() {
 	if err != nil {
 		logger.Panic("libkbfs.InitLog", zap.Error(err))
 	}
+	cancelWrapper := func() error {
+		cancel()
+		return nil
+	}
 	kbConfig, err := libkbfs.Init(
-		ctx, kbCtx, params, nil, cancel, kbfsLog)
+		ctx, kbCtx, params, nil, cancelWrapper, kbfsLog)
 	if err != nil {
 		logger.Panic("libkbfs.Init", zap.Error(err))
 	}
@@ -162,11 +166,11 @@ func main() {
 		}
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour, Name: "hourly"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24, Name: "daily"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24 * 7, Name: "weekly"},
 			},
 			Interval: activityStatsReportInterval,
@@ -184,5 +188,5 @@ func main() {
 		StatsReporter:    statsReporter,
 	}
 
-	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
+	_ = libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }

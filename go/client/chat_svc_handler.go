@@ -9,6 +9,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -33,6 +34,16 @@ type ChatServiceHandler interface {
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
+	NewConvV1(context.Context, newConvOptionsV1) Reply
+	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
+	JoinV1(context.Context, joinOptionsV1) Reply
+	LeaveV1(context.Context, leaveOptionsV1) Reply
+	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
+	GetUnfurlSettingsV1(context.Context) Reply
+	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
+	AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply
+	ClearCommandsV1(context.Context) Reply
+	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -46,19 +57,57 @@ func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	}
 }
 
+func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.InboxUIItem) (convSummary chat1.ConvSummary) {
+	convSummary.Id = uiconv.ConvID
+	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
+	convSummary.ActiveAt = uiconv.Time.UnixSeconds()
+	convSummary.ActiveAtMs = uiconv.Time.UnixMilliseconds()
+	convSummary.FinalizeInfo = uiconv.FinalizeInfo
+	convSummary.MemberStatus = strings.ToLower(uiconv.MemberStatus.String())
+	for _, super := range uiconv.Supersedes {
+		convSummary.Supersedes = append(convSummary.Supersedes,
+			super.ConversationID.String())
+	}
+	for _, super := range uiconv.SupersededBy {
+		convSummary.SupersededBy = append(convSummary.SupersededBy,
+			super.ConversationID.String())
+	}
+	switch uiconv.MembersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
+		convSummary.ResetUsers = uiconv.ResetParticipants
+	}
+	convSummary.Channel = chat1.ChatChannel{
+		Name:        uiconv.Name,
+		Public:      uiconv.IsPublic,
+		TopicType:   strings.ToLower(uiconv.TopicType.String()),
+		MembersType: strings.ToLower(uiconv.MembersType.String()),
+		TopicName:   uiconv.Channel,
+	}
+	return convSummary
+}
+
+func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.ConversationLocal) (convSummary chat1.ConvSummary) {
+	if conv.Error != nil {
+		convSummary.Error = conv.Error.Message
+		return convSummary
+	}
+	uiconv := utils.PresentConversationLocal(ctx, conv, c.G().Env.GetUsername().String())
+	return c.exportUIConv(ctx, uiconv)
+}
+
 // ListV1 implements ChatServiceHandler.ListV1.
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
+	var cl chat1.ChatList
 	var rlimits []chat1.RateLimit
+	var pagination *chat1.Pagination
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-
 	topicType, err := TopicTypeFromStrDefault(opts.TopicType)
 	if err != nil {
 		return c.errReply(err)
 	}
-
 	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Status:            utils.VisibleChatConversationStatuses(),
@@ -66,69 +115,243 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 			UnreadOnly:        opts.UnreadOnly,
 			OneChatTypePerTLF: new(bool),
 		},
+		Pagination:       opts.Pagination,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return c.errReply(err)
 	}
+	pagination = res.Pagination
 	rlimits = utils.AggRateLimits(res.RateLimits)
-
-	// Check to see if this should fail offline
 	if opts.FailOffline && res.Offline {
 		return c.errReply(chat.OfflineError{})
 	}
-
-	cl := ChatList{
+	cl = chat1.ChatList{
 		Offline:          res.Offline,
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	for _, conv := range res.Conversations {
-		var convSummary ConvSummary
-		convSummary.ID = conv.GetConvID().String()
-		if conv.Error != nil {
-			// Handle error case
-			if opts.ShowErrors {
-				convSummary.Error = conv.Error.Message
-				cl.Conversations = append(cl.Conversations, convSummary)
-			}
+		if !opts.ShowErrors && conv.Error != nil {
 			continue
 		}
-
-		readerInfo := conv.ReaderInfo
-		convSummary.Unread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
-		convSummary.ActiveAt = readerInfo.Mtime.UnixSeconds()
-		convSummary.ActiveAtMs = readerInfo.Mtime.UnixMilliseconds()
-		convSummary.FinalizeInfo = conv.Info.FinalizeInfo
-		convSummary.MemberStatus = strings.ToLower(conv.Info.MemberStatus.String())
-		for _, super := range conv.Supersedes {
-			convSummary.Supersedes = append(convSummary.Supersedes,
-				super.ConversationID.String())
-		}
-		for _, super := range conv.SupersededBy {
-			convSummary.SupersededBy = append(convSummary.SupersededBy,
-				super.ConversationID.String())
-		}
-		switch conv.Info.MembersType {
-		case chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
-			convSummary.ResetUsers = conv.Info.ResetNames
-		}
-		convSummary.Channel = ChatChannel{
-			Name:        conv.Info.TlfName,
-			Public:      conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-			TopicType:   strings.ToLower(conv.Info.Triple.TopicType.String()),
-			MembersType: strings.ToLower(conv.Info.MembersType.String()),
-			TopicName:   conv.Info.TopicName,
-		}
-
-		cl.Conversations = append(cl.Conversations, convSummary)
+		cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
 	}
-
-	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
+	cl.Pagination = pagination
+	cl.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
 }
 
+func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listConvsOnNameOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	topicType, err := TopicTypeFromStrDefault(opts.TopicType)
+	if err != nil {
+		return c.errReply(err)
+	}
+	mt := MembersTypeFromStrDefault(opts.MembersType, c.G().GetEnv())
+
+	listRes, err := client.GetTLFConversationsLocal(ctx, chat1.GetTLFConversationsLocalArg{
+		TlfName:     opts.Name,
+		TopicType:   topicType,
+		MembersType: mt,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	var cl chat1.ChatList
+	cl.RateLimits = c.aggRateLimits(listRes.RateLimits)
+	for _, conv := range listRes.Convs {
+		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
+	}
+	return Reply{Result: cl}
+}
+
+func (c *chatServiceHandler) JoinV1(ctx context.Context, opts joinOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.JoinConversationByIDLocal(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, res.RateLimits...)
+	cres := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
+	}
+	return Reply{Result: cres}
+}
+
+func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.LeaveConversationLocal(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, res.RateLimits...)
+	cres := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
+	}
+	return Reply{Result: cres}
+}
+
+func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	hostConvID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	flipConvID, err := chat1.MakeConvID(opts.FlipConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	gameID, err := chat1.MakeFlipGameID(opts.GameID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.LoadFlip(ctx, chat1.LoadFlipArg{
+		HostConvID: hostConvID,
+		HostMsgID:  opts.MsgID,
+		FlipConvID: flipConvID,
+		GameID:     gameID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.GetUnfurlSettings(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{
+		Result: map[string]interface{}{
+			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
+			"whitelist": res.Whitelist,
+		},
+	}
+}
+
+func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUnfurlSettingsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
+		Mode:      opts.intMode,
+		Whitelist: opts.Whitelist,
+	}); err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
+}
+
+func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	default:
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+	}
+}
+
+func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts advertiseCommandsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	var alias *string
+	if opts.Alias != "" {
+		alias = new(string)
+		*alias = opts.Alias
+	}
+	var ads []chat1.AdvertiseCommandsParam
+	for _, ad := range opts.Advertisements {
+		typ, err := c.getAdvertTyp(ad.Typ)
+		if err != nil {
+			return c.errReply(err)
+		}
+		var teamName *string
+		if ad.TeamName != "" {
+			adTeamName := ad.TeamName
+			teamName = &adTeamName
+		}
+		ads = append(ads, chat1.AdvertiseCommandsParam{
+			Typ:      typ,
+			Commands: ad.Commands,
+			TeamName: teamName,
+		})
+	}
+	res, err := client.AdvertiseBotCommandsLocal(ctx, chat1.AdvertiseBotCommandsLocalArg{
+		Alias:          alias,
+		Advertisements: ads,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.ClearBotCommandsLocal(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) ListCommandsV1(ctx context.Context, opts listCommandsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	lres, err := client.ListBotCommandsLocal(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res := chat1.ListCommandsRes{
+		Commands: lres.Commands,
+	}
+	res.RateLimits = c.aggRateLimits(append(rl, lres.RateLimits...))
+	return Reply{Result: res}
+}
+
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
-	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []Message, err error) {
+	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []chat1.Message, err error) {
 	for _, m := range messages {
 		st, err := m.State()
 		if err != nil {
@@ -137,7 +360,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 
 		if st == chat1.MessageUnboxedState_ERROR {
 			em := m.Error().ErrMsg
-			ret = append(ret, Message{
+			ret = append(ret, chat1.Message{
 				Error: &em,
 			})
 			continue
@@ -173,17 +396,18 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			prev = []chat1.MessagePreviousPointer{}
 		}
 
-		msg := MsgSummary{
-			ID: mv.ServerHeader.MessageID,
-			Channel: ChatChannel{
+		msg := chat1.MsgSummary{
+			Id:     mv.ServerHeader.MessageID,
+			ConvID: conv.GetConvID().String(),
+			Channel: chat1.ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
-				TopicName:   utils.GetTopicName(conv),
+				TopicName:   conv.Info.TopicName,
 			},
-			Sender: MsgSender{
-				UID:        mv.ClientHeader.Sender.String(),
+			Sender: chat1.MsgSender{
+				Uid:        mv.ClientHeader.Sender.String(),
 				DeviceID:   mv.ClientHeader.SenderDevice.String(),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
@@ -193,7 +417,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			Prev:                prev,
 			Unread:              unread,
 			RevokedDevice:       mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			KbfsEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
 			IsEphemeral:         mv.IsEphemeral(),
 			IsEphemeralExpired:  mv.IsEphemeralExpired(time.Now()),
 			ETime:               mv.Etime(),
@@ -207,14 +431,14 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			msg.Reactions = &mv.Reactions
 		}
 
-		ret = append(ret, Message{
+		ret = append(ret, chat1.Message{
 			Msg: &msg,
 		})
 	}
 
 	if ret == nil {
 		// Avoid having null show up in the output JSON.
-		ret = []Message{}
+		ret = []chat1.Message{}
 	}
 	return ret, nil
 }
@@ -265,14 +489,14 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	thread := Thread{
+	thread := chat1.Thread{
 		Offline:          threadView.Offline,
 		IdentifyFailures: threadView.IdentifyFailures,
 		Pagination:       threadView.Thread.Pagination,
 		Messages:         messages,
 	}
 
-	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
+	thread.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
 }
 
@@ -315,12 +539,12 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 		return c.errReply(err)
 	}
 
-	thread := Thread{
+	thread := chat1.Thread{
 		Offline:          res.Offline,
 		IdentifyFailures: res.IdentifyFailures,
 		Messages:         messages,
 	}
-	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
+	thread.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
 }
 
@@ -338,8 +562,8 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui 
 		response:          "message sent",
 		nonblock:          opts.Nonblock,
 		ephemeralLifetime: opts.EphemeralLifetime,
+		replyTo:           opts.ReplyTo,
 	}
-
 	return c.sendV1(ctx, arg, ui)
 }
 
@@ -480,11 +704,10 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 		return c.errReply(err)
 	}
 
-	res := SendRes{
-		Message: "attachment sent",
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rl),
-		},
+	res := chat1.SendRes{
+		Message:    "attachment sent",
+		MessageID:  &pres.MessageID,
+		RateLimits: c.aggRateLimits(rl),
 	}
 
 	return Reply{Result: res}
@@ -535,12 +758,15 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, dres.RateLimits...)
+	if opts.Output != "-" {
+		if err := attachments.Quarantine(ctx, opts.Output); err != nil {
+			c.G().Log.Warning("failed to quarantine attachment download: %s", err)
+		}
+	}
 
-	res := SendRes{
-		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rlimits),
-		},
+	res := chat1.SendRes{
+		Message:          fmt.Sprintf("attachment downloaded to %s", opts.Output),
+		RateLimits:       c.aggRateLimits(rlimits),
 		IdentifyFailures: dres.IdentifyFailures,
 	}
 
@@ -580,11 +806,9 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	}
 	rlimits = append(rlimits, dres.RateLimits...)
 
-	res := SendRes{
-		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rlimits),
-		},
+	res := chat1.SendRes{
+		Message:    fmt.Sprintf("attachment downloaded to %s", opts.Output),
+		RateLimits: c.aggRateLimits(rlimits),
 	}
 
 	return Reply{Result: res}
@@ -594,7 +818,6 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOptionsV1) Reply {
 	var rlimits []chat1.RateLimit
 
-	// Unverified convID is ok here because status is completely server controlled anyway.
 	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
@@ -620,10 +843,8 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 	}
 	rlimits = append(rlimits, localRes.RateLimits...)
 
-	res := EmptyRes{
-		RateLimits: RateLimits{
-			c.aggRateLimits(rlimits),
-		},
+	res := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(rlimits),
 	}
 	return Reply{Result: res}
 }
@@ -651,10 +872,8 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 	}
 
 	allLimits := append(rlimits, res.RateLimits...)
-	cres := EmptyRes{
-		RateLimits: RateLimits{
-			c.aggRateLimits(allLimits),
-		},
+	cres := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
 	}
 	return Reply{Result: cres}
 }
@@ -670,8 +889,12 @@ func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInbox
 		opts.MaxHits = 10
 	}
 
+	reindexMode := chat1.ReIndexingMode_NONE
+	if opts.ForceReindex {
+		reindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC
+	}
 	searchOpts := chat1.SearchOpts{
-		ForceReindex:  opts.ForceReindex,
+		ReindexMode:   reindexMode,
 		SentBy:        opts.SentBy,
 		MaxHits:       opts.MaxHits,
 		BeforeContext: opts.BeforeContext,
@@ -708,11 +931,9 @@ func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInbox
 		return c.errReply(err)
 	}
 
-	searchRes := SearchInboxRes{
-		Results: res.Res,
-		RateLimits: RateLimits{
-			c.aggRateLimits(res.RateLimits),
-		},
+	searchRes := chat1.SearchInboxResOutput{
+		Results:          res.Res,
+		RateLimits:       c.aggRateLimits(res.RateLimits),
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	return Reply{Result: searchRes}
@@ -764,12 +985,12 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		}
 		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
 	}
+	searchOpts.IsRegex = opts.IsRegex
 
 	arg := chat1.SearchRegexpArg{
 		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
-		IsRegex:          opts.IsRegex,
 		Opts:             searchOpts,
 	}
 
@@ -779,14 +1000,49 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 	}
 
 	allLimits := append(rlimits, res.RateLimits...)
-	searchRes := SearchRegexpRes{
-		Hits: res.Hits,
-		RateLimits: RateLimits{
-			c.aggRateLimits(allLimits),
-		},
+	searchRes := chat1.RegexpRes{
+		Hits:             res.Hits,
+		RateLimits:       c.aggRateLimits(allLimits),
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	return Reply{Result: searchRes}
+}
+
+func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	vis := keybase1.TLFVisibility_PRIVATE
+	if opts.Channel.Public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	topicType, err := TopicTypeFromStrDefault(opts.Channel.TopicType)
+	if err != nil {
+		return c.errReply(err)
+	}
+	var topicName *string
+	if len(opts.Channel.TopicName) > 0 {
+		topicName = new(string)
+		*topicName = opts.Channel.TopicName
+	}
+	res, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+		TlfName:          opts.Channel.Name,
+		TopicType:        topicType,
+		TopicName:        topicName,
+		TlfVisibility:    vis,
+		MembersType:      opts.Channel.GetMembersType(c.G().GetEnv()),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	newConvRes := chat1.NewConvRes{
+		Id:               res.Conv.GetConvID().String(),
+		IdentifyFailures: res.IdentifyFailures,
+		RateLimits:       c.aggRateLimits(res.RateLimits),
+	}
+	return Reply{Result: newConvRes}
 }
 
 type sendArgV1 struct {
@@ -800,6 +1056,7 @@ type sendArgV1 struct {
 	response          string
 	nonblock          bool
 	ephemeralLifetime ephemeralLifetime
+	replyTo           *chat1.MessageID
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI chat1.ChatUiInterface) Reply {
@@ -833,9 +1090,12 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 			ClientHeader: header.clientHeader,
 			MessageBody:  arg.body,
 		},
+		ReplyTo:          arg.replyTo,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 	var idFails []keybase1.TLFIdentifyFailure
+	var msgID *chat1.MessageID
+	var obid *chat1.OutboxID
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = postArg.ConversationID
@@ -845,6 +1105,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 		if err != nil {
 			return c.errReply(err)
 		}
+		obid = &plres.OutboxID
 		rl = append(rl, plres.RateLimits...)
 		idFails = plres.IdentifyFailures
 	} else {
@@ -852,15 +1113,16 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 		if err != nil {
 			return c.errReply(err)
 		}
+		msgID = &plres.MessageID
 		rl = append(rl, plres.RateLimits...)
 		idFails = plres.IdentifyFailures
 	}
 
-	res := SendRes{
-		Message: arg.response,
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rl),
-		},
+	res := chat1.SendRes{
+		Message:          arg.response,
+		MessageID:        msgID,
+		OutboxID:         obid,
+		RateLimits:       c.aggRateLimits(rl),
 		IdentifyFailures: idFails,
 	}
 
@@ -943,16 +1205,16 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	return &header, nil
 }
 
-func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.ConversationID, channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.ConversationID,
+	channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return nil, nil, err
 	}
-
-	if !id.IsNil() {
+	if !convID.IsNil() {
 		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{id},
+				ConvIDs: []chat1.ConversationID{convID},
 			},
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
@@ -987,9 +1249,22 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	return findRes.Conversations, findRes.RateLimits, nil
 }
 
+func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat1.MsgFlipContent) {
+	if flip == nil {
+		return res
+	}
+	res = new(chat1.MsgFlipContent)
+	res.GameID = flip.GameID.String()
+	res.FlipConvID = flip.FlipConvID.String()
+	res.TeamMentions = flip.TeamMentions
+	res.UserMentions = flip.UserMentions
+	res.Text = flip.Text
+	return res
+}
+
 // need this to get message type name
-func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
-	return MsgContent{
+func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) chat1.MsgContent {
+	return chat1.MsgContent{
 		TypeName:           strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
 		Text:               mb.Text__,
 		Attachment:         mb.Attachment__,
@@ -1003,6 +1278,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
 		Unfurl:             mb.Unfurl__,
+		Flip:               c.displayFlipBody(mb.Flip__),
 	}
 }
 
@@ -1030,13 +1306,13 @@ func (c *chatServiceHandler) errReply(err error) Reply {
 	return Reply{Error: &CallError{Message: err.Error()}}
 }
 
-func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []RateLimit) {
+func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimitRes) {
 	m := make(map[string]chat1.RateLimit)
 	for _, rl := range rlimits {
 		m[rl.Name] = rl
 	}
 	for _, v := range m {
-		res = append(res, RateLimit{
+		res = append(res, chat1.RateLimitRes{
 			Tank:     v.Name,
 			Capacity: v.MaxCalls,
 			Reset:    v.WindowReset,
@@ -1049,7 +1325,8 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []Rat
 // Resolve the ConvID of the specified conversation.
 // Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
+func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string,
+	channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
 	conv, limits, err := c.findConversation(ctx, convIDStr, channel)
 	if err != nil {
 		return chat1.ConversationID{}, nil, err
@@ -1060,7 +1337,8 @@ func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr str
 // findConversation finds a conversation.
 // It prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
+func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string,
+	channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
@@ -1076,6 +1354,7 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	}
+
 	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
 	if err != nil {
 		return conv, rlimits, err
@@ -1103,115 +1382,12 @@ func TopicTypeFromStrDefault(str string) (chat1.TopicType, error) {
 	return tt, nil
 }
 
-// MsgSender is used for JSON output of the sender of a message.
-type MsgSender struct {
-	UID        string `json:"uid"`
-	Username   string `json:"username,omitempty"`
-	DeviceID   string `json:"device_id"`
-	DeviceName string `json:"device_name,omitempty"`
-}
-
-// MsgContent is used to retrieve the type name in addition to one of Text,
-// Attachment, Edit, Reaction, Delete, Metadata depending on the type of
-// message.
-// It is included in MsgSummary.
-type MsgContent struct {
-	TypeName           string                             `json:"type"`
-	Text               *chat1.MessageText                 `json:"text,omitempty"`
-	Attachment         *chat1.MessageAttachment           `json:"attachment,omitempty"`
-	Edit               *chat1.MessageEdit                 `json:"edit,omitempty"`
-	Reaction           *chat1.MessageReaction             `json:"reaction,omitempty"`
-	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
-	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
-	Headline           *chat1.MessageHeadline             `json:"headline,omitempty"`
-	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
-	System             *chat1.MessageSystem               `json:"system,omitempty"`
-	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
-	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
-	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
-}
-
-// MsgSummary is used to display JSON details for a message.
-type MsgSummary struct {
-	ID                  chat1.MessageID                `json:"id"`
-	Channel             ChatChannel                    `json:"channel"`
-	Sender              MsgSender                      `json:"sender"`
-	SentAt              int64                          `json:"sent_at"`
-	SentAtMs            int64                          `json:"sent_at_ms"`
-	Content             MsgContent                     `json:"content"`
-	Prev                []chat1.MessagePreviousPointer `json:"prev"`
-	Unread              bool                           `json:"unread"`
-	RevokedDevice       bool                           `json:"revoked_device,omitempty"`
-	Offline             bool                           `json:"offline,omitempty"`
-	KBFSEncrypted       bool                           `json:"kbfs_encrypted,omitempty"`
-	IsEphemeral         bool                           `json:"is_ephemeral,omitempty"`
-	IsEphemeralExpired  bool                           `json:"is_ephemeral_expired,omitempty"`
-	ETime               gregor1.Time                   `json:"etime,omitempty"`
-	Reactions           *chat1.ReactionMap             `json:"reactions,omitempty"`
-	HasPairwiseMacs     bool                           `json:"has_pairwise_macs,omitempty"`
-	AtMentionUsernames  []string                       `json:"at_mention_usernames,omitempty"`
-	ChannelMention      string                         `json:"channel_mention,omitempty"`
-	ChannelNameMentions []chat1.UIChannelNameMention   `json:"channel_name_mentions,omitempty"`
-}
-
-// Message contains either a MsgSummary or an Error.  Used for JSON output.
-type Message struct {
-	Msg   *MsgSummary `json:"msg,omitempty"`
-	Error *string     `json:"error,omitempty"`
-}
-
-// Thread is used for JSON output of a thread of messages.
-type Thread struct {
-	Messages         []Message                     `json:"messages"`
-	Pagination       *chat1.Pagination             `json:"pagination,omitempty"`
-	Offline          bool                          `json:"offline,omitempty"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
-	RateLimits
-}
-
-// ConvSummary is used for JSON output of a conversation in the inbox.
-type ConvSummary struct {
-	ID           string                          `json:"id"`
-	Channel      ChatChannel                     `json:"channel"`
-	Unread       bool                            `json:"unread"`
-	ActiveAt     int64                           `json:"active_at"`
-	ActiveAtMs   int64                           `json:"active_at_ms"`
-	MemberStatus string                          `json:"member_status"`
-	ResetUsers   []string                        `json:"reset_users,omitempty"`
-	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
-	Supersedes   []string                        `json:"supersedes,omitempty"`
-	SupersededBy []string                        `json:"superseded_by,omitempty"`
-	Error        string                          `json:"error,omitempty"`
-}
-
-// ChatList is a list of conversations in the inbox.
-type ChatList struct {
-	Conversations    []ConvSummary                 `json:"conversations"`
-	Offline          bool                          `json:"offline"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
-	RateLimits
-}
-
-// SendRes is the result of successfully sending a message.
-type SendRes struct {
-	Message          string                        `json:"message"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
-	RateLimits
-}
-
-type SearchInboxRes struct {
-	Results          *chat1.ChatSearchInboxResults `json:"results"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
-	RateLimits
-}
-
-type SearchRegexpRes struct {
-	Hits             []chat1.ChatSearchHit         `json:"hits"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
-	RateLimits
-}
-
-// EmptyRes is used for JSON output of a boring command.
-type EmptyRes struct {
-	RateLimits
+func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembersType {
+	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(str)]; ok {
+		return typ
+	}
+	if e.GetChatMemberType() == "impteam" {
+		return chat1.ConversationMembersType_IMPTEAMNATIVE
+	}
+	return chat1.ConversationMembersType_KBFS
 }

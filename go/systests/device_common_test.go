@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -27,11 +28,10 @@ import (
 type testUI struct {
 	libkb.Contextified
 	baseNullUI
-	sessionID          int
-	outputDescHook     func(libkb.OutputDescriptor, string) error
-	promptHook         func(libkb.PromptDescriptor, string) (string, error)
-	promptPasswordHook func(libkb.PromptDescriptor, string) (string, error)
-	promptYesNoHook    func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
+	sessionID       int
+	outputDescHook  func(libkb.OutputDescriptor, string) error
+	promptHook      func(libkb.PromptDescriptor, string) (string, error)
+	promptYesNoHook func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
 }
 
 var sessionCounter = 1
@@ -128,18 +128,18 @@ type backupKey struct {
 // testDevice wraps a mock "device", meaning an independent running service and
 // some connected clients. It's forked from deviceWrapper in rekey_test.
 type testDevice struct {
-	t          *testing.T
-	tctx       *libkb.TestContext
-	clones     []*libkb.TestContext
-	stopCh     chan error
-	service    *service.Service
-	testUI     *testUI
-	deviceID   keybase1.DeviceID
-	deviceName string
-	deviceKey  keybase1.PublicKey
-	cli        *rpc.Client
-	srv        *rpc.Server
-	userClient keybase1.UserClient
+	t                  *testing.T
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	stopCh             chan error
+	service            *service.Service
+	testUI             *testUI
+	deviceID           keybase1.DeviceID
+	deviceName         string
+	deviceKey          keybase1.PublicKey
+	cli                *rpc.Client
+	srv                *rpc.Server
+	userClient         keybase1.UserClient
 }
 
 type testDeviceSet struct {
@@ -205,6 +205,8 @@ func (d *testDevice) popClone() *libkb.TestContext {
 		panic("ran out of cloned environments")
 	}
 	ret := d.clones[0]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	d.clones = d.clones[1:]
 	return ret
 }
@@ -222,6 +224,17 @@ func newTestDeviceSet(t *testing.T, cl clockwork.FakeClock) *testDeviceSet {
 func (s *testDeviceSet) cleanup() {
 	for _, od := range s.devices {
 		od.tctx.Cleanup()
+		if od.service != nil {
+			od.service.Stop(0)
+			err := od.stop()
+			require.NoError(s.t, err)
+		}
+		for _, cl := range od.clones {
+			cl.Cleanup()
+		}
+		for _, cl := range od.usedClones {
+			cl.Cleanup()
+		}
 	}
 }
 
@@ -377,6 +390,18 @@ func (r *testProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseA
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
 }
+func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (r *testProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+func (r *testProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (r *testProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
 
 func (s *testDeviceSet) findNewKIDs(newList []keybase1.KID) []keybase1.KID {
 	var ret []keybase1.KID
@@ -529,6 +554,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 	if err != nil {
 		d.t.Fatalf("error marshalling: %s", err)
 	}
+	mctx := libkb.NewMetaContextTODO(g)
 	apiArg := libkb.APIArg{
 		Endpoint: "test/fake_generic_tlf",
 		Args: libkb.HTTPArgs{
@@ -536,7 +562,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = g.API.Post(mctx, apiArg)
 	if err != nil {
 		d.t.Fatalf("post error: %s", err)
 	}

@@ -1,7 +1,0 @@
-// @flow
-import type {RouteProps} from '../route-tree/render-route'
-
-export type OwnProps = RouteProps<{}, {}>
-export type Props = OwnProps & {
-  hideNav: boolean,
-}

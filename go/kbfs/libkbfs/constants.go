@@ -4,7 +4,10 @@
 
 package libkbfs
 
-import "time"
+import (
+	"syscall"
+	"time"
+)
 
 // RPCReconnectInterval specifies the time between reconnect attempts for RPC Connections.
 const RPCReconnectInterval = 2 * time.Second
@@ -31,3 +34,6 @@ const registerForUpdatesFireNowThreshold = 10 * time.Minute
 // dialerTimeout is the TCP dial timeout used by mdserver and bserver RPC
 // connections.
 const dialerTimeout = 16 * time.Second
+
+// NonexistentSignal is a signal that will never be used by the OS.
+const NonexistentSignal = syscall.Signal(-1)

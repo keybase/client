@@ -1,7 +1,0 @@
-// @flow
-// import * as React from 'react'
-import * as Styles from '../styles'
-export type Props = {onCancel?: ?() => void, onBack?: ?() => void, style?: ?Styles.StylesCrossPlatform}
-
-declare export function HeaderOrPopupWithHeader<P>(WrappedComponent: P): P
-declare export default function HeaderOrPopup<P>(WrappedComponent: P): P

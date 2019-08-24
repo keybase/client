@@ -48,7 +48,7 @@ type UploadTask struct {
 func (u *UploadTask) computeHash() {
 	hasher := sha256.New()
 	seed := fmt.Sprintf("%s:%v", u.OutboxID, u.Preview)
-	io.Copy(hasher, bytes.NewReader([]byte(seed)))
+	_, _ = io.Copy(hasher, bytes.NewReader([]byte(seed)))
 	u.taskHash = hasher.Sum(nil)
 }
 
@@ -86,11 +86,10 @@ type streamCache struct {
 
 type S3Store struct {
 	utils.DebugLabeler
+	libkb.Contextified
 
-	env      *libkb.Env
-	s3signer s3.Signer
-	s3c      s3.Root
-	stash    AttachmentStash
+	s3c   s3.Root
+	stash AttachmentStash
 
 	scMutex     sync.Mutex
 	streamCache *streamCache
@@ -104,12 +103,12 @@ type S3Store struct {
 
 // NewS3Store creates a standard Store that uses a real
 // S3 connection.
-func NewS3Store(logger logger.Logger, env *libkb.Env, runtimeDir string) *S3Store {
+func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
-		env:          env,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -117,14 +116,14 @@ func NewS3Store(logger logger.Logger, env *libkb.Env, runtimeDir string) *S3Stor
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *S3Store {
+func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
 	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(log, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
 		testing:      true,
-		env:          libkb.NewEnv(nil, nil, func() logger.Logger { return log }),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -157,8 +156,10 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 	if err == ErrAbortOnPartMismatch && previous != nil {
 		a.Debug(ctx, "UploadAsset: resume call aborted, resetting stream and starting from scratch")
 		a.aborts++
-		previous = nil
-		task.Plaintext.Reset()
+		err := task.Plaintext.Reset()
+		if err != nil {
+			a.Debug(ctx, "UploadAsset: reset failed: %+v", err)
+		}
 		task.computeHash()
 		return a.uploadAsset(ctx, task, enc, nil, resumable, encryptedOut)
 	}
@@ -197,7 +198,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	tee := io.TeeReader(io.TeeReader(encReader, hash), encryptedOut)
 
 	// post to s3
-	length := int64(enc.EncryptedLen(task.FileSize))
+	length := enc.EncryptedLen(task.FileSize)
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
 		if err == ErrAbortOnPartMismatch && previous != nil {
@@ -429,7 +430,7 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 }
 
 func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
-	conn := a.s3c.New(signer, region)
+	conn := a.s3c.New(a.G(), signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
 }

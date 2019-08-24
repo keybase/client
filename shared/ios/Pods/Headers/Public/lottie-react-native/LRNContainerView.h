@@ -1,0 +1,1 @@
+../../../../../node_modules/lottie-react-native/src/ios/LottieReactNative/LRNContainerView.h

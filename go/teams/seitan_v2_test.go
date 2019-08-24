@@ -105,6 +105,7 @@ func TestSeitanBadSignatures(t *testing.T) {
 	defer tc.Cleanup()
 
 	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	ikey1, err := GenerateIKeyV2()
 	require.NoError(t, err)
@@ -185,7 +186,7 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	// label: {"sms":{"f":"Alice","n":"111-555-222"},"t":1}
 
 	var expectedSIKey SeitanSIKeyV2
-	copy(expectedSIKey[:], fromB64("Il9ZFgI1yP2b6Hvt53jWIoo8sDre3puyNH8b2es9TTQ=")[:])
+	copy(expectedSIKey[:], fromB64("Il9ZFgI1yP2b6Hvt53jWIoo8sDre3puyNH8b2es9TTQ="))
 	expectedInviteID := SCTeamInviteID("6303ec43bd61d21edb95a433faf06227")
 
 	var secretKey keybase1.Bytes32

@@ -1,5 +1,5 @@
 {
-  "prelude": ["import * as Constants from '../constants/pinentry'"],
+  "prelude": [],
   "actions": {
     "deleteEntity": {
       "keyPath": "Array<string>",
@@ -23,14 +23,14 @@
       "sessionID": "number",
       "prompt": "string",
       "windowTitle": "string",
-      "submitLabel": "?string",
-      "cancelLabel": "?string",
-      "retryLabel": "?string"
+      "submitLabel": "string | null",
+      "cancelLabel": "string | null",
+      "retryLabel": "string | null"
     },
     "onSubmit": {
       "sessionID": "number",
-      "passphrase": "string"
+      "password": "string"
     },
-    "onCancel": { "sessionID": "number" }
+    "onCancel": {"sessionID": "number"}
   }
 }

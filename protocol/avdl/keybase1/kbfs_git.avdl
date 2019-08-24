@@ -25,16 +25,16 @@ protocol KBFSGit {
    * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
    * It returns the ID of the repo created.
    */
-  RepoID createRepo(Folder folder, GitRepoName name);
+  RepoID createRepo(FolderHandle folder, GitRepoName name);
 
   /**
    * deleteRepo deletes repo on KBFS under the given name in the given TLF.
    */
-  void deleteRepo(Folder folder, GitRepoName name);
+  void deleteRepo(FolderHandle folder, GitRepoName name);
 
   /**
    * gc runs garbage collection on the given repo, using the given options to
    * see whether anything needs to be done.
    */
-  void gc(Folder folder, GitRepoName name, GcOptions options);
+  void gc(FolderHandle folder, GitRepoName name, GcOptions options);
 }

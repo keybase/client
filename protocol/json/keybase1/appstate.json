@@ -4,21 +4,41 @@
   "types": [
     {
       "type": "enum",
-      "name": "AppState",
+      "name": "MobileAppState",
       "symbols": [
         "FOREGROUND_0",
         "BACKGROUND_1",
         "INACTIVE_2",
         "BACKGROUNDACTIVE_3"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "MobileNetworkState",
+      "symbols": [
+        "NONE_0",
+        "WIFI_1",
+        "CELLUAR_2",
+        "UNKNOWN_3",
+        "NOTAVAILABLE_4"
+      ]
     }
   ],
   "messages": {
-    "updateAppState": {
+    "updateMobileNetState": {
       "request": [
         {
           "name": "state",
-          "type": "AppState"
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "powerMonitorEvent": {
+      "request": [
+        {
+          "name": "event",
+          "type": "string"
         }
       ],
       "response": null

@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"sync"
 	"time"
 
@@ -57,6 +58,11 @@ func NewOutboxID() (chat1.OutboxID, error) {
 func DeriveOutboxID(dat []byte) chat1.OutboxID {
 	h := sha256.Sum256(dat)
 	return chat1.OutboxID(h[:8])
+}
+
+func GetOutboxIDFromURL(url string, convID chat1.ConversationID, msg chat1.MessageUnboxed) chat1.OutboxID {
+	seed := fmt.Sprintf("%s:%s:%d", url, convID, msg.GetMessageID())
+	return DeriveOutboxID([]byte(seed))
 }
 
 func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
@@ -131,6 +137,7 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
+	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
@@ -178,6 +185,8 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
 		Ordinal:          prevOrdinal,
+		SendOpts:         sendOpts,
+		PrepareOpts:      prepareOpts,
 	}
 	obox.Records = append(obox.Records, rec)
 

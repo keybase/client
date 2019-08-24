@@ -9,8 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -37,6 +39,7 @@ const (
 type ChatRPC struct {
 	config   Config
 	log      logger.Logger
+	vlog     *libkb.VDebugLog
 	deferLog logger.Logger
 	client   chat1.LocalInterface
 
@@ -54,6 +57,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 	deferLog := log.CloneWithAddedDepth(1)
 	c := &ChatRPC{
 		log:      log,
+		vlog:     config.MakeVLogger(log),
 		deferLog: deferLog,
 		config:   config,
 		convCBs:  make(map[string][]ChatChannelNewMessageCB),
@@ -303,7 +307,8 @@ func (c *ChatRPC) SendTextMessage(
 		return nil
 	}
 
-	c.log.CDebugf(ctx, "Writing self-write message to %s", selfConvID)
+	c.vlog.CLogf(
+		ctx, libkb.VLog1, "Writing self-write message to %s", selfConvID)
 
 	session, err := c.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
@@ -357,7 +362,7 @@ func (c *ChatRPC) SendTextMessage(
 
 func (c *ChatRPC) getLastSelfWrittenHandles(
 	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	selfConvID, _, err := c.getSelfConvInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -378,7 +383,8 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 			tlfName := selfMessage.Folder.Name
 			tlfType := tlf.TypeFromFolderType(selfMessage.Folder.FolderType)
 			h, err := GetHandleFromFolderNameAndType(
-				ctx, c.config.KBPKI(), c.config.MDOps(), tlfName, tlfType)
+				ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+				tlfName, tlfType)
 			if err != nil {
 				c.log.CDebugf(ctx,
 					"Ignoring errors getting handle for %s/%s: %+v",
@@ -405,7 +411,7 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	// First get the latest TLFs written by this user.
 	seen := make(map[string]bool)
 	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)
@@ -424,14 +430,14 @@ func (c *ChatRPC) GetGroupedInbox(
 		return nil, err
 	}
 
-	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
+	favs, err := c.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		c.log.CWarningf(ctx,
 			"Unable to fetch favorites while making GroupedInbox: %v",
 			err)
 	}
-	favMap := make(map[Favorite]bool)
-	for _, fav := range favorites {
+	favMap := make(map[favorites.Folder]bool)
+	for _, fav := range favs {
 		favMap[fav] = true
 	}
 
@@ -453,13 +459,14 @@ func (c *ChatRPC) GetGroupedInbox(
 			tlfType = tlf.SingleTeam
 		}
 
-		tlfIsFavorite := favMap[Favorite{Name: info.TlfName, Type: tlfType}]
+		tlfIsFavorite := favMap[favorites.Folder{Name: info.TlfName, Type: tlfType}]
 		if !tlfIsFavorite {
 			continue
 		}
 
 		h, err := GetHandleFromFolderNameAndType(
-			ctx, c.config.KBPKI(), c.config.MDOps(), info.TlfName, tlfType)
+			ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+			info.TlfName, tlfType)
 		if err != nil {
 			c.log.CDebugf(ctx, "Ignoring errors getting handle for %s/%s: %+v",
 				info.TlfName, tlfType, err)
@@ -487,10 +494,11 @@ func (c *ChatRPC) GetChannels(
 		expectedVisibility = keybase1.TLFVisibility_PUBLIC
 	}
 
+	strTlfName := string(tlfName)
 	arg := chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
-				Name:        string(tlfName),
+				Name:        strTlfName,
 				MembersType: membersTypeFromTlfType(tlfType),
 			},
 			TopicType:     &chatType,
@@ -553,7 +561,9 @@ func (c *ChatRPC) ReadChannel(
 				return nil, nil, err
 			}
 			if msgType != chat1.MessageType_TEXT {
-				c.log.CDebugf(ctx, "Ignoring unexpected msg type: %d", msgType)
+				c.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring unexpected msg type: %d",
+					msgType)
 				continue
 			}
 			messages = append(messages, msgBody.Text().Body)
@@ -627,7 +637,7 @@ func (c *ChatRPC) newNotificationChannel(
 	}
 
 	tlfHandle, err := GetHandleFromFolderNameAndType(
-		ctx, c.config.KBPKI(), c.config.MDOps(), conv.Name, tlfType)
+		ctx, c.config.KBPKI(), c.config.MDOps(), c.config, conv.Name, tlfType)
 	if err != nil {
 		return err
 	}
@@ -646,7 +656,8 @@ func (c *ChatRPC) setLastWrittenConvID(ctx context.Context, body string) error {
 	if err != nil {
 		return err
 	}
-	c.log.CDebugf(ctx, "Last self-written conversation is %s", msg.ConvID)
+	c.vlog.CLogf(
+		ctx, libkb.VLog1, "Last self-written conversation is %s", msg.ConvID)
 	c.lastWrittenConvID = msg.ConvID
 	return nil
 }

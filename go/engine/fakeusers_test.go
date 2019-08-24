@@ -4,9 +4,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string) {
@@ -19,11 +20,11 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 		m = m.WithNewProvisionalLoginContext()
 
 		// going to just run the join step of signup engine
-		if err := s.genPassphraseStream(m, passphrase); err != nil {
+		if err := s.genPassphraseStream(m, passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, username, email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, username, email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
 			return err
 		}
 		m = m.CommitProvisionalLogin()
@@ -56,9 +57,9 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	// post PGP keys below. This isn't a modern use for our software, but we have this code
 	// to emulate old accounts provisioned by deprecated login paths.
 	m = m.WithNewProvisionalLoginContext()
-	err := s.genPassphraseStream(m, fu.Passphrase)
+	err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */)
 	require.NoError(t, err)
-	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true)
+	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */)
 	require.NoError(t, err)
 	err = s.fakeLKS(m)
 	require.NoError(t, err)
@@ -105,11 +106,11 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 
 	f := func() error {
 		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
 			return err
 		}
 
@@ -149,11 +150,11 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	f := func() error {
 		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
 			t.Fatal(err)
 		}
 
@@ -206,11 +207,11 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 
 	f := func() error {
 		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
 			t.Fatal(err)
 		}
 

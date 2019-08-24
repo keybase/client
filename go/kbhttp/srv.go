@@ -4,8 +4,10 @@
 package kbhttp
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"net"
 	"net/http"
 	"sync"
@@ -18,11 +20,12 @@ type ListenerSource interface {
 	GetListener() (net.Listener, string, error)
 }
 
-// RandomPortListenerSource means listen on a random port.
-type RandomPortListenerSource struct{}
+// AutoPortListenerSource means listen on a port that's picked automatically by
+// the kernel.
+type AutoPortListenerSource struct{}
 
 // GetListener implements ListenerSource.
-func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
+func (r AutoPortListenerSource) GetListener() (net.Listener, string, error) {
 	localhost := "127.0.0.1"
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", localhost))
 	if err != nil {
@@ -33,9 +36,9 @@ func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
 	return listener, address, nil
 }
 
-// NewRandomPortListenerSource creates a new RandomPortListenerSource.
-func NewRandomPortListenerSource() *RandomPortListenerSource {
-	return &RandomPortListenerSource{}
+// NewAutoPortListenerSource creates a new AutoPortListenerSource.
+func NewAutoPortListenerSource() *AutoPortListenerSource {
+	return &AutoPortListenerSource{}
 }
 
 var ErrPinnedPortInUse = errors.New("unable to bind to pinned port")
@@ -85,6 +88,54 @@ func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address 
 	return listener, address, errors.New("failed to bind to port in range")
 }
 
+// RandomPortRangeListenerSource listens on a port randomly chosen within a
+// given range.
+type RandomPortRangeListenerSource struct {
+	sync.Mutex
+	pinnedPort int
+	low, high  int
+}
+
+// NewRandomPortRangeListenerSource creates a new RadomPortListenerSource
+// listening on low to high (exclusive).
+func NewRandomPortRangeListenerSource(low, high int) *RandomPortRangeListenerSource {
+	return &RandomPortRangeListenerSource{
+		low:  low,
+		high: high,
+	}
+}
+
+const maxRandomTries = 10
+
+// GetListener implements ListenerSource.
+func (p *RandomPortRangeListenerSource) GetListener() (listener net.Listener, address string, err error) {
+	p.Lock()
+	defer p.Unlock()
+	localhost := "127.0.0.1"
+	for i := 0; i < maxRandomTries; i++ {
+		if p.pinnedPort > 0 {
+			address = fmt.Sprintf("%s:%d", localhost, p.pinnedPort)
+			if listener, err = net.Listen("tcp", address); err != nil {
+				return listener, address, ErrPinnedPortInUse
+			}
+			return listener, address, nil
+		}
+
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(p.high-p.low)))
+		if err != nil {
+			return nil, "", err
+		}
+		port := p.low + int(n.Int64())
+		address = fmt.Sprintf("%s:%d", localhost, port)
+		listener, err = net.Listen("tcp", address)
+		if err == nil {
+			p.pinnedPort = port
+			return listener, address, nil
+		}
+	}
+	return listener, address, errors.New("failed to bind to port in range")
+}
+
 var errAlreadyRunning = errors.New("http server already running")
 
 // Srv starts a simple HTTP server with a parameter for a module to provide a listener source
@@ -95,6 +146,7 @@ type Srv struct {
 
 	listenerSource ListenerSource
 	server         *http.Server
+	doneCh         chan struct{}
 }
 
 // NewSrv creates a new HTTP server with the given listener
@@ -125,12 +177,14 @@ func (h *Srv) Start() (err error) {
 		Addr:    address,
 		Handler: h.ServeMux,
 	}
-	go func(server *http.Server) {
+	h.doneCh = make(chan struct{})
+	go func(server *http.Server, doneCh chan struct{}) {
 		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
 		if err := server.Serve(listener); err != nil {
 			h.log.Debug("kbhttp.Srv: server died: %s", err)
 		}
-	}(h.server)
+		close(doneCh)
+	}(h.server, h.doneCh)
 	return nil
 }
 
@@ -152,11 +206,15 @@ func (h *Srv) Addr() (string, error) {
 }
 
 // Stop stops listening on the server's listener source.
-func (h *Srv) Stop() {
+func (h *Srv) Stop() <-chan struct{} {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
 		h.server.Close()
 		h.server = nil
+		return h.doneCh
 	}
+	doneCh := make(chan struct{})
+	close(doneCh)
+	return doneCh
 }

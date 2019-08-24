@@ -82,6 +82,30 @@
         {
           "type": "KBFSArchivedParam",
           "name": "archivedParam"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -114,7 +138,7 @@
             "name": "KBFS",
             "def": false
           },
-          "body": "string"
+          "body": "KBFSPath"
         },
         {
           "label": {
@@ -356,6 +380,10 @@
         {
           "type": "Path",
           "name": "path"
+        },
+        {
+          "type": "boolean",
+          "name": "recursive"
         }
       ]
     },
@@ -658,28 +686,6 @@
     },
     {
       "type": "record",
-      "name": "FolderSyncStatus",
-      "fields": [
-        {
-          "type": "int64",
-          "name": "localDiskBytesAvailable"
-        },
-        {
-          "type": "int64",
-          "name": "localDiskBytesTotal"
-        },
-        {
-          "type": "PrefetchStatus",
-          "name": "prefetchStatus"
-        },
-        {
-          "type": "PrefetchProgress",
-          "name": "prefetchProgress"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "FolderSyncConfigAndStatus",
       "fields": [
         {
@@ -690,6 +696,99 @@
           "type": "FolderSyncStatus",
           "name": "status"
         }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatusWithFolder",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncConfigAndStatusRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FolderSyncConfigAndStatusWithFolder"
+          },
+          "name": "folders"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "overallStatus"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSSettings",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "spaceAvailableNotificationThreshold"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSStats",
+      "fields": [
+        {
+          "type": "ProcessRuntimeStats",
+          "name": "processStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DbStats"
+          },
+          "name": "runtimeDbStats"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SubscriptionTopic",
+      "symbols": [
+        "FAVORITES_0",
+        "JOURNAL_STATUS_1",
+        "ONLINE_STATUS_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathSubscriptionTopic",
+      "symbols": [
+        "CHILDREN_0",
+        "STAT_1"
       ]
     }
   ],
@@ -933,6 +1032,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "recursive",
+          "type": "boolean"
         }
       ],
       "response": null,
@@ -945,11 +1048,8 @@
           "type": "Path"
         },
         {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": "Dirent",
@@ -1041,6 +1141,34 @@
       "response": null,
       "doc": "Instructs KBFS to dump debugging info into its logs."
     },
+    "simpleFSClearConflictState": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSFinishResolvingConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSForceStuckConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Force a TLF into a stuck conflict state (for testing)."
+    },
     "simpleFSSyncStatus": {
       "request": [
         {
@@ -1075,10 +1203,25 @@
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
     },
+    "simpleFSListFavorites": {
+      "request": [],
+      "response": "FavoritesResult",
+      "doc": "simpleFSListFavorites gets the current favorites, ignored folders, and new\n   folders from the KBFS cache."
+    },
     "simpleFSGetUserQuotaUsage": {
       "request": [],
       "response": "SimpleFSQuotaUsage",
-      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  Any usage includes local journal usage as well."
+    },
+    "simpleFSGetTeamQuotaUsage": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if\n   the logged-in user has access to that team.  Any usage includes\n   local journal usage as well."
     },
     "simpleFSReset": {
       "request": [
@@ -1108,6 +1251,141 @@
         {
           "name": "config",
           "type": "FolderSyncConfig"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSyncConfigAndStatus": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        }
+      ],
+      "response": "SyncConfigAndStatusRes"
+    },
+    "simpleFSAreWeConnectedToMDServer": {
+      "request": [],
+      "response": "boolean"
+    },
+    "simpleFSCheckReachability": {
+      "request": [],
+      "response": null
+    },
+    "simpleFSSetDebugLevel": {
+      "request": [
+        {
+          "name": "level",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSettings": {
+      "request": [],
+      "response": "FSSettings"
+    },
+    "simpleFSSetNotificationThreshold": {
+      "request": [
+        {
+          "name": "threshold",
+          "type": "int64"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSObfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSDeobfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    "simpleFSGetStats": {
+      "request": [],
+      "response": "SimpleFSStats"
+    },
+    "simpleFSSubscribePath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "kbfsPath",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSubscribeNonPath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUnsubscribe": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
         }
       ],
       "response": null

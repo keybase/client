@@ -17,10 +17,11 @@ import (
 
 func TestSecretUI(t *testing.T) {
 	tc := setupTest(t, "secret_ui")
-	tc1 := cloneContext(tc)
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -76,7 +77,7 @@ func TestSecretUI(t *testing.T) {
 		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 	}
 
-	if err := client.CtlServiceStop(tc1.G); err != nil {
+	if err := CtlStop(tc1.G); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
 
@@ -132,6 +133,18 @@ func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePa
 }
 func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "t_alice", nil
+}
+func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (u *loginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+func (u *loginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (u *loginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 type provisionUI struct {

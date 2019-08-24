@@ -185,6 +185,7 @@ func TestRootMetadataPublicVersionV3(t *testing.T) {
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
 
 	bh2, err := rmd.MakeBareTlfHandle(nil)
+	require.NoError(t, err)
 	require.Equal(t, bh, bh2)
 }
 
@@ -201,6 +202,7 @@ func TestRootMetadataSingleTeamVersionV3(t *testing.T) {
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
 
 	bh2, err := rmd.MakeBareTlfHandle(nil)
+	require.NoError(t, err)
 	require.Equal(t, bh, bh2)
 }
 

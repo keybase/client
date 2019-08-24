@@ -6,6 +6,7 @@ package externals
 import (
 	"testing"
 
+	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +46,7 @@ func TestNormalizeSocialAssertion(t *testing.T) {
 	tc := setupTest(t, "NormalizeSocialAssertion", 1)
 	defer tc.Cleanup()
 	for _, test := range nsatests {
-		out, ok := NormalizeSocialAssertion(tc.G, test.in)
+		out, ok := NormalizeSocialAssertion(libkb.NewMetaContextForTest(tc), test.in)
 
 		require.Equal(t, test.out, out)
 		require.Equal(t, test.ok, ok)

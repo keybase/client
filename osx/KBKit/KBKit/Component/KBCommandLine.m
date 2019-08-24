@@ -29,13 +29,24 @@
     return;
   }
 
+  if ([KBFSUtils checkIfPathIsFishy:self.servicePath]) {
+    completion(KBMakeWarning(@"Rejecting fishy service path: %@", self.servicePath));
+    return;
+  }
+
   if (![self.config isInApplications:self.servicePath]) {
     completion(KBMakeWarning(@"Command line install is not supported from this location: %@", self.servicePath));
     return;
   }
 
+  if (![KBFSUtils checkAbsolutePath:self.servicePath hasAbsolutePrefix:@"/Applications/Keybase.app"]) {
+    completion(KBMakeWarning(@"Can only link to commands in the installed Keybase app bundle (%@ didn't suffice)", self.servicePath));
+    return;
+  }
+
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
+
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
     if (error) {

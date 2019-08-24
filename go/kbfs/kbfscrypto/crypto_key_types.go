@@ -42,7 +42,7 @@ func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	// TODO: Use the more stringent checks from
 	// KIDFromStringChecked instead.
 	if !k.kid.IsValid() {
-		return nil, errors.WithStack(InvalidKIDError{k.kid})
+		return nil, errors.WithStack(InvalidKIDError(k))
 	}
 
 	return k.kid.ToBytes(), nil
@@ -568,6 +568,19 @@ func MakeRandomTLFCryptKey() (TLFCryptKey, error) {
 	return MakeTLFCryptKey(data), nil
 }
 
+// DeriveSecret derives symmetric key data from this key, given a `reason`.
+func (tck TLFCryptKey) DeriveSecret(
+	reason libkb.EncryptionReason) ([]byte, error) {
+	// Use libkb's secret derivation to make a key from this key and a
+	// given reason.
+	asNacl := libkb.NaclSecretBoxKey(tck.Data())
+	secret, err := libkb.DeriveSymmetricKey(asNacl, reason)
+	if err != nil {
+		return nil, err
+	}
+	return secret[:], nil
+}
+
 // PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
 // means that anyone with just the block key for a public TLF can
 // decrypt that block. This is not the zero TLFCryptKey so that we can
@@ -687,7 +700,7 @@ type BlockHashKey struct {
 func MakeBlockHashKey(
 	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
 	mac := hmac.New(sha512.New, key.Bytes())
-	mac.Write(serverHalf.Bytes())
+	_, _ = mac.Write(serverHalf.Bytes())
 	hash := mac.Sum(nil)
 	var hash64 [64]byte
 	copy(hash64[:], hash)

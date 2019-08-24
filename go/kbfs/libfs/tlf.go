@@ -5,10 +5,14 @@
 package libfs
 
 import (
+	"strings"
+
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -24,7 +28,7 @@ func (TlfDoesNotExist) Error() string { return "TLF does not exist" }
 // folder (exitEarly == true), or not.
 func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, name tlf.CanonicalName) (
 	exitEarly bool, retErr error) {
-	switch err := err.(type) {
+	switch err := errors.Cause(err).(type) {
 	case nil:
 		// No error.
 		return false, nil
@@ -35,7 +39,8 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 			name)
 		return true, nil
 
-	case libkbfs.WriteAccessError:
+	case tlfhandle.WriteAccessError, kbfsmd.ServerErrorWriteAccess,
+		libkbfs.NonExistentTeamForHandleError:
 		// No permission to create TLF, so pretend it's still
 		// empty.
 		//
@@ -48,14 +53,17 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 			name)
 		return true, nil
 
-	case kbfsmd.ServerErrorWriteAccess:
-		// Same as above; cannot fallthrough in type switch
-		log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			name)
-		return true, nil
-
 	default:
+		if strings.Contains(err.Error(), "need writer access") {
+			// The service returns an untyped error when we try to
+			// write a TLF ID into an implicit team sigchain without
+			// writer permissions.
+			log.CDebugf(ctx,
+				"No permission to write to %s, so pretending it's empty",
+				name)
+			return true, nil
+		}
+
 		// Some other error.
 		return false, err
 	}

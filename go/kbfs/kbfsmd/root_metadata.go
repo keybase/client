@@ -51,11 +51,13 @@ type RootMetadata interface {
 	IsWriter(ctx context.Context, user keybase1.UID,
 		cryptKey kbfscrypto.CryptPublicKey,
 		verifyingKey kbfscrypto.VerifyingKey,
-		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
+		teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+		offline keybase1.OfflineAvailability) (bool, error)
 	// IsReader returns whether or not the user+device is an authorized reader.
 	IsReader(ctx context.Context, user keybase1.UID,
 		cryptKey kbfscrypto.CryptPublicKey,
-		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
+		teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+		offline keybase1.OfflineAvailability) (bool, error)
 	// DeepCopy returns a deep copy of the underlying data structure.
 	DeepCopy(codec kbfscodec.Codec) (MutableRootMetadata, error)
 	// MakeSuccessorCopy returns a newly constructed successor
@@ -103,7 +105,8 @@ type RootMetadata interface {
 	// checking with KBPKI.
 	IsValidAndSigned(ctx context.Context, codec kbfscodec.Codec,
 		teamMemChecker TeamMembershipChecker,
-		extra ExtraMetadata, writerVerifyingKey kbfscrypto.VerifyingKey) error
+		extra ExtraMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
+		offline keybase1.OfflineAvailability) error
 	// IsLastModifiedBy verifies that the RootMetadata is
 	// written by the given user and device (identified by the
 	// device verifying key), and returns an error if not.
@@ -124,9 +127,6 @@ type RootMetadata interface {
 	MDDiskUsage() uint64
 	// RevisionNumber returns the revision number associated with this metadata structure.
 	RevisionNumber() Revision
-	// MerkleRoot returns the root of the global Keybase Merkle tree
-	// at the time the MD was written.
-	MerkleRoot() keybase1.MerkleRootV2
 	// BID returns the per-device branch ID associated with this metadata revision.
 	BID() BranchID
 	// GetPrevRoot returns the hash of the previous metadata revision.
@@ -216,9 +216,6 @@ type MutableRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision Revision)
-	// SetMerkleRoot sets the root of the global Keybase Merkle tree
-	// at the time the MD was written.
-	SetMerkleRoot(root keybase1.MerkleRootV2)
 	// SetUnresolvedReaders sets the list of unresolved readers associated with this folder.
 	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
 	// SetUnresolvedWriters sets the list of unresolved writers associated with this folder.

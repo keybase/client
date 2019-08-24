@@ -18,8 +18,7 @@ import (
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
-
-	"h12.me/socks"
+	"golang.org/x/net/context"
 )
 
 type ClientConfig struct {
@@ -81,7 +80,11 @@ func ShortCA(raw string) string {
 // requests
 func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
 	e := g.Env
-	serverURI := e.GetServerURI()
+	serverURI, err := e.GetServerURI()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if e.GetTorMode().Enabled() {
 		serverURI = e.GetTorHiddenAddress()
@@ -136,18 +139,46 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
+func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client, error) {
+	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
+	if g.Env.GetExtraNetLogging() {
+		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
+			if ctx == nil {
+				g.Log.Debug(msg, args...)
+			} else {
+				g.Log.CDebugf(ctx, msg, args...)
+			}
+		}
+	}
+	extraLog(context.TODO(), "api.Client:%v New", needCookie)
+	env := g.Env
 	var jar *cookiejar.Jar
-	if needCookie && (config == nil || config.UseCookies) && e.GetTorMode().UseCookies() {
+	if needCookie && (config == nil || config.UseCookies) && env.GetTorMode().UseCookies() {
 		jar, _ = cookiejar.New(nil)
 	}
 
-	var xprt http.Transport
-	var timeout time.Duration
+	// Originally copied from http.DefaultTransport
+	dialer := net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}
+	xprt := http.Transport{
+		// Don't change this without re-testing proxy support. Currently the client supports proxies through
+		// environment variables that ProxyFromEnvironment picks up
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           (&dialer).DialContext,
+		MaxIdleConns:          200,
+		MaxIdleConnsPerHost:   100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 
-	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
-		c, err = net.Dial(network, addr)
+	xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {
+		c, err = dialer.DialContext(ctx, network, addr)
 		if err != nil {
+			extraLog(ctx, "api.Client:%v transport.Dial err=%v", needCookie, err)
 			// If we get a DNS error, it could be because glibc has cached an
 			// old version of /etc/resolv.conf. The res_init() libc function
 			// busts that cache and keeps us from getting stuck in a state
@@ -158,25 +189,19 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 			return c, err
 		}
 		if err = rpc.DisableSigPipe(c); err != nil {
+			extraLog(ctx, "api.Client:%v transport.Dial DisableSigPipe err=%v", needCookie, err)
 			return c, err
 		}
 		return c, nil
 	}
 
-	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
-		if config != nil && config.RootCAs != nil {
-			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
-		}
-		if e.GetTorMode().Enabled() {
-			// TODO: should we call res_init on DNS errors here as well?
-			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
-			xprt.Dial = dialSocksProxy
-		} else {
-			xprt.Proxy = http.ProxyFromEnvironment
-		}
+	if config != nil && config.RootCAs != nil {
+		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
 
-	if !e.GetTorMode().Enabled() && e.GetRunMode() == DevelRunMode {
+	xprt.Proxy = MakeProxy(env)
+
+	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
 		xprt.Proxy = func(req *http.Request) (*url.URL, error) {
 			host, port, err := net.SplitHostPort(req.URL.Host)
 			if err == nil && host == "localhost" {
@@ -194,6 +219,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		}
 	}
 
+	var timeout time.Duration
 	if config == nil || config.Timeout == 0 {
 		timeout = HTTPDefaultTimeout
 	} else {
@@ -207,7 +233,25 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-
 	ret.cli.Transport = &xprt
-	return ret
+	return ret, nil
+}
+
+func ServerLookup(env *Env, mode RunMode) (string, error) {
+	if mode == DevelRunMode {
+		return DevelServerURI, nil
+	}
+	if mode == StagingRunMode {
+		return StagingServerURI, nil
+	}
+	if mode == ProductionRunMode {
+		if env.IsCertPinningEnabled() {
+			// In order to disable SSL pinning we switch to doing requests against keybase.io which has a TLS
+			// cert signed by a publicly trusted CA (compared to api-0.keybaseapi.com which has a non-trusted but
+			// pinned certificate
+			return ProductionServerURI, nil
+		}
+		return ProductionSiteURI, nil
+	}
+	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
 }

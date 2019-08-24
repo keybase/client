@@ -13,8 +13,8 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -29,15 +29,23 @@ func (v *CmdPing) Run() error {
 		return PingGregor(v.G())
 	}
 
-	_, err := v.G().API.Post(libkb.APIArg{Endpoint: "ping"})
+	mctx := libkb.NewMetaContextBackground(v.G())
+
+	_, err := v.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}
-	_, err = v.G().API.Get(libkb.APIArg{Endpoint: "ping"})
+	_, err = v.G().API.Get(mctx, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}
-	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", v.G().Env.GetServerURI()))
+
+	serverURI, err := v.G().Env.GetServerURI()
+	if err != nil {
+		return err
+	}
+
+	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", serverURI))
 
 	return nil
 }
@@ -90,7 +98,7 @@ func newConnTransport(host string) *pingGregorTransport {
 func (t *pingGregorTransport) Dial(context.Context) (rpc.Transporter, error) {
 	t.G().Log.Debug("pingGregorTransport Dial", t.host)
 	var err error
-	t.conn, err = net.Dial("tcp", t.host)
+	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
 		return nil, err
 	}

@@ -4,19 +4,18 @@ import (
 	"fmt"
 )
 
-// ToAsset converts `a` to a proper xdr.Asset
-func (a AllowTrustOpAsset) ToAsset(issuer AccountId) (ret Asset) {
+// ToAsset for AllowTrustOpAsset converts the xdr.AllowTrustOpAsset to a standard xdr.Asset.
+func (a AllowTrustOpAsset) ToAsset(issuer AccountId) (asset Asset) {
 	var err error
 
 	switch a.Type {
 	case AssetTypeAssetTypeCreditAlphanum4:
-
-		ret, err = NewAsset(AssetTypeAssetTypeCreditAlphanum4, AssetAlphaNum4{
+		asset, err = NewAsset(AssetTypeAssetTypeCreditAlphanum4, AssetAlphaNum4{
 			AssetCode: a.MustAssetCode4(),
 			Issuer:    issuer,
 		})
 	case AssetTypeAssetTypeCreditAlphanum12:
-		ret, err = NewAsset(AssetTypeAssetTypeCreditAlphanum12, AssetAlphaNum12{
+		asset, err = NewAsset(AssetTypeAssetTypeCreditAlphanum12, AssetAlphaNum12{
 			AssetCode: a.MustAssetCode12(),
 			Issuer:    issuer,
 		})

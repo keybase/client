@@ -5,17 +5,20 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -28,6 +31,7 @@ const (
 
 var leveldbOptions = &opt.Options{
 	Compression: opt.NoCompression,
+	WriteBuffer: 10 * opt.MiB,
 	BlockSize:   1 << 16,
 	// Default max open file descriptors (ulimit -n) is 256 on OS
 	// X, and >=1024 on (most?) Linux machines. So set to a low
@@ -35,19 +39,28 @@ var leveldbOptions = &opt.Options{
 	OpenFilesCacheCapacity: 10,
 }
 
-type levelDb struct {
+func leveldbOptionsFromMode(mode InitMode) *opt.Options {
+	o := *leveldbOptions
+	o.WriteBuffer = mode.DiskCacheWriteBufferSize()
+	return &o
+}
+
+// LevelDb is a libkbfs wrapper for leveldb.DB.
+type LevelDb struct {
 	*leveldb.DB
 	closer io.Closer
 }
 
-func (ldb *levelDb) Close() (err error) {
+// Close closes the DB.
+func (ldb *LevelDb) Close() (err error) {
 	err = ldb.DB.Close()
 	// Hide the closer error.
 	_ = ldb.closer.Close()
 	return err
 }
 
-func (ldb *levelDb) Get(key []byte, ro *opt.ReadOptions) (
+// Get gets data from the DB.
+func (ldb *LevelDb) Get(key []byte, ro *opt.ReadOptions) (
 	value []byte, err error) {
 	defer func() {
 		if err != nil {
@@ -57,7 +70,8 @@ func (ldb *levelDb) Get(key []byte, ro *opt.ReadOptions) (
 	return ldb.DB.Get(key, ro)
 }
 
-func (ldb *levelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
+// GetWithMeter gets data from the DB while tracking the hit rate.
+func (ldb *LevelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
 	value []byte, err error) {
 	defer func() {
 		if err == nil {
@@ -71,7 +85,8 @@ func (ldb *levelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
 	return ldb.Get(key, nil)
 }
 
-func (ldb *levelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
+// Put puts data into the DB.
+func (ldb *LevelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 	defer func() {
 		if err != nil {
 			err = errors.WithStack(err)
@@ -80,7 +95,8 @@ func (ldb *levelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 	return ldb.DB.Put(key, value, wo)
 }
 
-func (ldb *levelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
+// PutWithMeter gets data from the DB while tracking the hit rate.
+func (ldb *LevelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 	err error) {
 	defer func() {
 		if err == nil && putMeter != nil {
@@ -90,10 +106,19 @@ func (ldb *levelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 	return ldb.Put(key, value, nil)
 }
 
+// StatStrings returns newline-split leveldb stats, suitable for JSONification.
+func (ldb *LevelDb) StatStrings() ([]string, error) {
+	stats, err := ldb.GetProperty("leveldb.stats")
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(stats, "\n"), nil
+}
+
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer, and with the options specified.
 func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
-	*levelDb, error) {
+	*LevelDb, error) {
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
@@ -107,13 +132,15 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 		stor.Close()
 		return nil, err
 	}
-	return &levelDb{db, stor}, nil
+	return &LevelDb{db, stor}, nil
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer.
-func openLevelDB(stor storage.Storage) (*levelDb, error) {
-	return openLevelDBWithOptions(stor, leveldbOptions)
+func openLevelDB(stor storage.Storage, mode InitMode) (*LevelDb, error) {
+	options := leveldbOptionsFromMode(mode)
+	options.Filter = filter.NewBloomFilter(16)
+	return openLevelDBWithOptions(stor, options)
 }
 
 func versionPathFromVersion(dirPath string, version uint64) string {
@@ -129,18 +156,21 @@ func getVersionedPathForDiskCache(
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
 	version := currentDiskCacheVersion
-	if ioutil.IsNotExist(err) {
+	switch {
+	case ioutil.IsNotExist(err):
 		// Do nothing, meaning that we will create the version file below.
 		log.CDebugf(
-			nil, "Creating new version file for the disk %s cache.", cacheName)
-	} else if err != nil {
+			context.TODO(), "Creating new version file for the disk %s cache.",
+			cacheName)
+	case err != nil:
 		log.CDebugf(
-			nil, "An error occurred while reading the disk %s cache "+
+			context.TODO(),
+			"An error occurred while reading the disk %s cache "+
 				"version file. Using %d as the version and creating a new "+
 				"file to record it.", cacheName, version)
 		// TODO: when we increase the version of the disk cache, we'll have
 		// to make sure we wipe all previous versions of the disk cache.
-	} else {
+	default:
 		// We expect a successfully opened version file to parse a single
 		// unsigned integer representing the version. Anything else is a
 		// corrupted version file. However, this we can solve by deleting
@@ -151,29 +181,34 @@ func getVersionedPathForDiskCache(
 		if err == nil && version == currentDiskCacheVersion {
 			// Success case, no need to write the version file again.
 			log.CDebugf(
-				nil, "Loaded the disk %s cache version file successfully."+
+				context.TODO(),
+				"Loaded the disk %s cache version file successfully."+
 					" Version: %d", cacheName, version)
 			return versionPathFromVersion(dirPath, version), nil
 		}
-		if err != nil {
+		switch {
+		case err != nil:
 			log.CDebugf(
-				nil, "An error occurred while parsing the disk %s cache "+
+				context.TODO(),
+				"An error occurred while parsing the disk %s cache "+
 					"version file. Using %d as the version.",
 				cacheName, currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version < currentDiskCacheVersion {
+		case version < currentDiskCacheVersion:
 			log.CDebugf(
-				nil, "The disk %s cache version file contained an old "+
+				context.TODO(),
+				"The disk %s cache version file contained an old "+
 					"version: %d. Updating to the new version: %d.",
 				cacheName, version, currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
-		} else if version > currentDiskCacheVersion {
+		case version > currentDiskCacheVersion:
 			log.CDebugf(
-				nil, "The disk %s cache version file contained a newer "+
+				context.TODO(),
+				"The disk %s cache version file contained a newer "+
 					"version (%d) than this client knows how to read. "+
 					"Switching to this client's newest known version: %d.",
 				cacheName, version, currentDiskCacheVersion)
@@ -199,9 +234,10 @@ func getVersionedPathForDiskCache(
 // under storageRoot. The path include dbFolderName and dbFilename. Note that
 // dbFilename is actually created as a folder; it's just where raw LevelDb
 // lives.
-func openVersionedLevelDB(log logger.Logger, storageRoot string,
-	dbFolderName string, currentDiskCacheVersion uint64, dbFilename string) (
-	db *levelDb, err error) {
+func openVersionedLevelDB(
+	log logger.Logger, storageRoot string, dbFolderName string,
+	currentDiskCacheVersion uint64, dbFilename string, mode InitMode) (
+	db *LevelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
 	versionPath, err := getVersionedPathForDiskCache(
 		log, dbPath, dbFolderName, currentDiskCacheVersion)
@@ -219,8 +255,8 @@ func openVersionedLevelDB(log logger.Logger, storageRoot string,
 			storage.Close()
 		}
 	}()
-	options := *leveldbOptions
-	if db, err = openLevelDBWithOptions(storage, &options); err != nil {
+	options := leveldbOptionsFromMode(mode)
+	if db, err = openLevelDBWithOptions(storage, options); err != nil {
 		return nil, err
 	}
 	return db, nil

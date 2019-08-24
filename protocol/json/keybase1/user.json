@@ -9,24 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "Tracker",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "tracker"
-        },
-        {
-          "type": "int",
-          "name": "status"
-        },
-        {
-          "type": "Time",
-          "name": "mTime"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TrackProof",
       "fields": [
         {
@@ -131,6 +113,12 @@
     },
     {
       "type": "record",
+      "name": "EmailAddress",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Email",
       "fields": [
         {
@@ -148,6 +136,10 @@
         {
           "type": "IdentityVisibility",
           "name": "visibility"
+        },
+        {
+          "type": "UnixTime",
+          "name": "lastVerifyEmailDate"
         }
       ]
     },
@@ -161,6 +153,13 @@
             "items": "Email"
           },
           "name": "emails"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserPhoneNumber"
+          },
+          "name": "phoneNumbers"
         }
       ]
     },
@@ -226,6 +225,74 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullname"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofSuggestionsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProofSuggestion"
+          },
+          "name": "suggestions"
+        },
+        {
+          "type": "boolean",
+          "name": "showMore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofSuggestion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "boolean",
+          "name": "belowFold"
+        },
+        {
+          "type": "string",
+          "name": "profileText"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIcon"
+        },
+        {
+          "type": "string",
+          "name": "pickerText"
+        },
+        {
+          "type": "string",
+          "name": "pickerSubtext"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "pickerIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
         }
       ]
     },
@@ -244,56 +311,24 @@
     },
     {
       "type": "record",
-      "name": "EmailAddress",
-      "fields": [],
-      "typedef": "string"
+      "name": "CanLogoutRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "canLogout"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        },
+        {
+          "type": "boolean",
+          "name": "setPassphrase"
+        }
+      ]
     }
   ],
   "messages": {
-    "listTrackers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "uid",
-          "type": "UID"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
-    "listTrackersByName": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
-    "listTrackersSelf": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
     "loadUncheckedUserSummaries": {
       "request": [
         {
@@ -372,6 +407,10 @@
         {
           "name": "pollForKID",
           "type": "KID"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "UserPlusKeysV2AllIncarnations"
@@ -576,6 +615,15 @@
       ],
       "response": null
     },
+    "proofSuggestions": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ProofSuggestionsRes"
+    },
     "findNextMerkleRootAfterRevoke": {
       "request": [
         {
@@ -615,6 +663,70 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
+    },
+    "loadHasRandomPw": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        },
+        {
+          "name": "noShortTimeout",
+          "type": "boolean"
+        }
+      ],
+      "response": "boolean"
+    },
+    "canLogout": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "CanLogoutRes"
+    },
+    "userCard": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "useSession",
+          "type": "boolean"
+        }
+      ],
+      "response": [
+        null,
+        "UserCard"
+      ]
+    },
+    "blockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "unblockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

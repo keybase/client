@@ -48,7 +48,7 @@ func (c *EmailChange) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("EmailChange#Run", func() error { return err })()
+	defer m.Trace("EmailChange#Run", func() error { return err })()
 
 	if !libkb.CheckEmail.F(c.arg.NewEmail) {
 		return libkb.BadEmailError{}
@@ -84,14 +84,13 @@ func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "account/email_update_signed",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig":         libkb.S{Val: sig},
 			"signing_kid": libkb.S{Val: signingKey.GetKID().String()},
 		},
-		NetContext: m.Ctx(),
 	})
 
 	if err != nil {

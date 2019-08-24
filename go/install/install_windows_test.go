@@ -9,15 +9,17 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"os"
+	"path/filepath"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 )
 
 func TestIsInUse(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestIsInUse", 1)
+	defer tc.Cleanup()
 
 	// Should be false if no special file is present
 	require.False(t, IsInUse("", tc.G.Log))

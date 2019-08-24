@@ -71,7 +71,7 @@ func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (foun
 }
 
 func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (ret *TrackChainLink, err error) {
-	defer m.CTrace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", follower.Current.GetUID(), followeeUsername, followeeUID), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", follower.Current.GetUID(), followeeUsername, followeeUID), func() error { return err })()
 	m.VLogf(VLog1, "| Full user: %+v\n", *follower)
 	rtl := follower.GetRemoteTrack(followeeUID)
 	if rtl == nil {
@@ -88,17 +88,17 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 	m.VLogf(VLog0, "| remote track found with linkID=%s", rtl.LinkID)
 	lid, err = ImportLinkID(rtl.LinkID)
 	if err != nil {
-		m.CDebugf("| Failed to import link ID")
+		m.Debug("| Failed to import link ID")
 		return nil, err
 	}
 	var link *ChainLink
 	link, err = ImportLinkFromStorage(m, lid, follower.GetUID())
 	if err != nil {
-		m.CDebugf("| failed to import link from storage")
+		m.Debug("| failed to import link from storage")
 		return nil, err
 	}
 	if link == nil {
-		m.CDebugf("| no cached chainlink found")
+		m.Debug("| no cached chainlink found")
 		// Such a bug is only possible if the DB cache was reset after
 		// this user was originally loaded in; otherwise, all of this
 		// UPAK's chain links should be available on disk.
@@ -111,7 +111,7 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 
 func TrackChainLinkFromUPK2AI(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (*TrackChainLink, error) {
 	tcl, err := GetRemoteChainLinkFor(m, follower, followeeUsername, followeeUID)
-	if _, ok := err.(InconsistentCacheStateError); ok {
+	if err != nil {
 		return nil, err
 	}
 	tcl, err = TrackChainLinkFor(m, follower.Current.Uid, followeeUID, tcl, err)

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -56,7 +57,7 @@ type DiskMDCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock       sync.RWMutex
-	headsDb    *levelDb // tlfID -> metadata block
+	headsDb    *LevelDb // tlfID -> metadata block
 	tlfsCached map[tlf.ID]kbfsmd.Revision
 	tlfsStaged map[tlf.ID][]diskMDBlock
 
@@ -105,13 +106,14 @@ type DiskMDCacheStatus struct {
 	Hits       MeterStatus
 	Misses     MeterStatus
 	Puts       MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskMDCacheLocalFromStorage creates a new *DiskMDCacheLocal
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskMDCacheLocalFromStorage(
-	config diskMDCacheConfig, headsStorage storage.Storage) (
+	config diskMDCacheConfig, headsStorage storage.Storage, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	closers := make([]io.Closer, 0, 1)
@@ -129,9 +131,10 @@ func newDiskMDCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	mdDbOptions := *leveldbOptions
+	mdDbOptions := leveldbOptionsFromMode(mode)
 	mdDbOptions.CompactionTableSize = defaultMDCacheTableSize
-	headsDb, err := openLevelDBWithOptions(headsStorage, &mdDbOptions)
+	mdDbOptions.Filter = filter.NewBloomFilter(16)
+	headsDb, err := openLevelDBWithOptions(headsStorage, mdDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +176,7 @@ func newDiskMDCacheLocalFromStorage(
 // newDiskMDCacheLocal creates a new *DiskMDCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskMDCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	defer func() {
@@ -197,7 +200,7 @@ func newDiskMDCacheLocal(
 			headsStorage.Close()
 		}
 	}()
-	return newDiskMDCacheLocalFromStorage(config, headsStorage)
+	return newDiskMDCacheLocalFromStorage(config, headsStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -365,12 +368,13 @@ func (cache *DiskMDCacheLocal) Commit(
 	// The staged MDs list is unordered, so iterate through the whole
 	// thing to find what should remain after commiting `rev`.
 	for _, md := range stagedMDs {
-		if md.Revision > rev {
+		switch {
+		case md.Revision > rev:
 			newStagedMDs = append(newStagedMDs, md)
 			continue
-		} else if md.Revision < rev {
+		case md.Revision < rev:
 			continue
-		} else if foundMD {
+		case foundMD:
 			// Duplicate.
 			continue
 		}
@@ -430,7 +434,7 @@ func (cache *DiskMDCacheLocal) Unstage(
 }
 
 // Status implements the DiskMDCache interface for DiskMDCacheLocal.
-func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
+func (cache *DiskMDCacheLocal) Status(ctx context.Context) DiskMDCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -446,6 +450,14 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 		numStaged += uint64(len(mds))
 	}
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "MD(Status)"); err == nil {
+		dbStats, err = cache.headsDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskMDCacheStatus{
 		StartState: DiskMDCacheStartStateStarted,
 		NumMDs:     uint64(len(cache.tlfsCached)),
@@ -453,6 +465,7 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 		Hits:       rateMeterToStatus(cache.hitMeter),
 		Misses:     rateMeterToStatus(cache.missMeter),
 		Puts:       rateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 

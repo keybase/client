@@ -50,6 +50,12 @@ protocol SimpleFS {
   record KBFSArchivedPath {
     string path;
     KBFSArchivedParam archivedParam;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
+  }
+
+  record KBFSPath {
+    string path;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
   }
 
   enum PathType {
@@ -60,7 +66,7 @@ protocol SimpleFS {
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
-    case KBFS: string;
+    case KBFS: KBFSPath;
     case KBFS_ARCHIVED: KBFSArchivedPath;
   }
 
@@ -167,6 +173,7 @@ protocol SimpleFS {
   record RemoveArgs {
     OpID opID;
     Path path;
+    boolean recursive;
   }
 
   record ReadArgs {
@@ -315,12 +322,12 @@ protocol SimpleFS {
   /**
    Remove file or directory from filesystem
    */
-  void simpleFSRemove(OpID opID, Path path);
+  void simpleFSRemove(OpID opID, Path path, boolean recursive);
 
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
+  Dirent simpleFSStat(Path path, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry
@@ -369,6 +376,28 @@ protocol SimpleFS {
    */
   void simpleFSDumpDebuggingInfo();
 
+  // Clear the conflict state of a TLF. This turns a locally "branched" TLF
+  // into:
+  //   1) a TLF that's as seen on all other devices, i.e. the server view,
+  //      under the normal TLF path;
+  //   2) a TLF that's locally branched, under a path with a TLF suffix.
+  //
+  // After this, user is expected to make changes in 1), usually by coping
+  // needed data from 2) into 1).
+  //
+  // Note that it's possible to have multiple 2) for the same 1).
+  void simpleFSClearConflictState(Path path);
+
+  // Mark the finish of resolving conflict. This deletes the locally branched
+  // version of the TLF. Path must be a local view TLF path with conflict
+  // suffix.
+  void simpleFSFinishResolvingConflict(Path path);
+
+  /**
+   Force a TLF into a stuck conflict state (for testing).
+   */
+  void simpleFSForceStuckConflict(Path path);
+
   /**
    Get sync status.
    */
@@ -412,6 +441,12 @@ protocol SimpleFS {
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
 
+  /**
+   simpleFSListFavorites gets the current favorites, ignored folders, and new
+   folders from the KBFS cache.
+   */
+  FavoritesResult simpleFSListFavorites();
+
   record SimpleFSQuotaUsage {
     int64 usageBytes;
     int64 archiveBytes;
@@ -423,10 +458,16 @@ protocol SimpleFS {
 
   /**
    simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
-   user.  It results in an RPC to the server, and any usage includes
-   local journal usage as well.
+   user.  Any usage includes local journal usage as well.
    */
   SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+
+  /**
+   simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if
+   the logged-in user has access to that team.  Any usage includes
+   local journal usage as well.
+   */
+  SimpleFSQuotaUsage simpleFSGetTeamQuotaUsage(TeamName teamName);
 
   /**
    simpleFSReset completely resets the KBFS folder referenced in `path`.
@@ -446,17 +487,20 @@ protocol SimpleFS {
     array<string> paths;
   }
 
-  record FolderSyncStatus {
-    // Bytes available and total on the partition hosting the sync cache.
-    int64 localDiskBytesAvailable;
-    int64 localDiskBytesTotal;
-    PrefetchStatus prefetchStatus;
-    PrefetchProgress prefetchProgress;
-  }
-
   record FolderSyncConfigAndStatus {
     FolderSyncConfig config;
     FolderSyncStatus status;
+  }
+
+  record FolderSyncConfigAndStatusWithFolder {
+    Folder folder;
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  record SyncConfigAndStatusRes {
+    array<FolderSyncConfigAndStatusWithFolder> folders;
+    FolderSyncStatus overallStatus;
   }
 
   // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
@@ -467,4 +511,64 @@ protocol SimpleFS {
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
+
+  // simpleFSSyncConfigAndStatus returns the sync config and status
+  // for all syncing folders, as well as an overall status for the whole
+  // device.
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
+
+  boolean simpleFSAreWeConnectedToMDServer();
+
+  // This is called when GUI learns about a OS level network status change, and
+  // causes mdserver_remote to check reachability with a Dial. Then it either
+  // forces a reconnect, or fast forwards any pending reconnect, depending on
+  // if the Dial succeeds.
+  void simpleFSCheckReachability();
+
+  // simpleFSSetDebugLevel sets the vdebug log level.  Useful level strings
+  // are defined in libkb/vdebug.go.  Any unknown strings will have no effect
+  // on the level (but won't cause an error).
+  void simpleFSSetDebugLevel(string level);
+
+  record FSSettings {
+    int64 spaceAvailableNotificationThreshold;
+  }
+
+  // simpleFSSettings retrieves the settings for this client.
+  FSSettings simpleFSSettings();
+
+  void simpleFSSetNotificationThreshold(int64 threshold);
+
+  // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
+  string simpleFSObfuscatePath(Path path);
+
+  // simpleFSDeobfuscatePath returns a set of plaintext paths for the given
+  // obfuscated KBFS path.
+  array<string> simpleFSDeobfuscatePath(Path path);
+
+  record SimpleFSStats {
+    ProcessRuntimeStats processStats;
+    array<string> blockCacheDbStats;
+    array<string> syncCacheDbStats;
+    array<DbStats> runtimeDbStats;
+  }
+
+  SimpleFSStats simpleFSGetStats();
+
+  enum SubscriptionTopic {
+    FAVORITES_0,
+    JOURNAL_STATUS_1,
+    ONLINE_STATUS_2
+  }
+  enum PathSubscriptionTopic {
+    CHILDREN_0,
+    STAT_1
+  }
+
+  // Caller needs to make sure subscriptionID is unique. Notifications are
+  // delivered through notify_fs.
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
 }

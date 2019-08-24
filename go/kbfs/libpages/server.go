@@ -226,7 +226,7 @@ func (s *Server) isDirWithNoIndexHTML(
 		return false, nil
 	}
 
-	fi, err = realFS.Stat(path.Join(requestPath, "index.html"))
+	_, err = realFS.Stat(path.Join(requestPath, "index.html"))
 	switch {
 	case err == nil:
 		return false, nil
@@ -490,6 +490,10 @@ func makeACMEManager(
 	return manager, nil
 }
 
+var additionalMimeTypes = map[string]string{
+	".wasm": "application/wasm",
+}
+
 // ListenAndServe listens on 443 and 80 ports of all addresses, and serve
 // Keybase Pages based on config and kbfsConfig. HTTPs setup is handled with
 // ACME.
@@ -498,7 +502,7 @@ func ListenAndServe(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	libmime.Patch(nil)
+	libmime.Patch(additionalMimeTypes)
 
 	server := &Server{
 		config:     config,
@@ -541,8 +545,8 @@ func ListenAndServe(ctx context.Context,
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(), gracefulShutdownTimeout)
 		defer cancel()
-		httpsServer.Shutdown(shutdownCtx)
-		httpServer.Shutdown(shutdownCtx)
+		_ = httpsServer.Shutdown(shutdownCtx)
+		_ = httpServer.Shutdown(shutdownCtx)
 	}()
 
 	go func() {

@@ -412,7 +412,7 @@ const (
 // file Module.framework/Headers/Module.h contains every declaration.
 func importModule(sdkPath, module string, identifiers []string, typeMap map[string]*Named) ([]*Named, error) {
 	hFile := fmt.Sprintf(sdkPath+frameworksPath+"%s.framework/Headers/%[1]s.h", module)
-	clang := exec.Command("xcrun", "--sdk", "iphonesimulator", "clang", "-cc1", "-isysroot", sdkPath, "-ast-dump", "-fblocks", "-fobjc-arc", "-x", "objective-c", hFile)
+	clang := exec.Command("xcrun", "--sdk", "iphonesimulator", "clang", "-cc1", "-triple", "x86_64-apple-ios8.0.0-simulator", "-isysroot", sdkPath, "-ast-dump", "-fblocks", "-fobjc-arc", "-x", "objective-c", hFile)
 	out, err := clang.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("clang failed to parse module: %v: %s", err, out)
@@ -774,9 +774,17 @@ func (p *parser) parseSrcPos() {
 		p.decl = p.decl[len(invPref):]
 		return
 	}
-	// line:17:2, col:18 or, a file location:
-	// /.../UIKit.framework/Headers/UISelectionFeedbackGenerator.h:16:1
-	loc := p.scanWord()
+	var loc string
+	const scrPref = "<scratch space>"
+	if strings.HasPrefix(p.decl, scrPref) {
+		// <scratch space>:130:1
+		p.decl = p.decl[len(scrPref):]
+		loc = "line" + p.scanWord()
+	} else {
+		// line:17:2, col:18 or, a file location:
+		// /.../UIKit.framework/Headers/UISelectionFeedbackGenerator.h:16:1
+		loc = p.scanWord()
+	}
 	locs := strings.SplitN(loc, ":", 2)
 	if len(locs) != 2 && len(locs) != 3 {
 		panic(fmt.Errorf("invalid source position: %q", loc))

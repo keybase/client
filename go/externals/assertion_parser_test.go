@@ -4,8 +4,10 @@
 package externals
 
 import (
+	"context"
 	"testing"
 
+	libkb "github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +16,7 @@ func TestNormalization(t *testing.T) {
 	defer tc.Cleanup()
 	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid || josh@gubble.SoCiAl"
 	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid,josh@gubble.social"
-	expr, err := AssertionParse(tc.G, inp)
+	expr, err := AssertionParse(libkb.NewMetaContext(context.Background(), tc.G), inp)
 	require.NoError(t, err)
 	require.Equal(t, expr.String(), outp)
 }
@@ -27,9 +29,9 @@ func TestParserFail1(t *testing.T) {
 	tc := setupTest(t, "ParserFail1", 1)
 	defer tc.Cleanup()
 	bads := []Pair{
-		{"", "Unexpected EOF"},
-		{"aa ||", "Unexpected EOF"},
-		{"aa &&", "Unexpected EOF"},
+		{"", "Unexpected EOF parsing assertion"},
+		{"aa ||", "Unexpected EOF parsing assertion"},
+		{"aa &&", "Unexpected EOF parsing assertion"},
 		{"(aa", "Unbalanced parentheses"},
 		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
 		{"bb && foo:a", "Unknown social network: foo"},
@@ -108,7 +110,7 @@ func TestParserFail1(t *testing.T) {
 	}
 
 	for _, bad := range bads {
-		ret, err := AssertionParse(tc.G, bad.k)
+		ret, err := AssertionParse(libkb.NewMetaContext(context.Background(), tc.G), bad.k)
 		require.Error(t, err, "for %q: ret is: %+v", bad.k, ret)
 		require.Equal(t, bad.v, err.Error(), "when testing %q", bad.k)
 	}

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",
+    "outDir": "./.tsOuts/.tsOutStrict/emit",
+  },
+  "files": [],
+  "include": [
+    "globals.d.ts",
+    "constants/types/chat2/common.tsx",
+    "constants/types/rpc-*.tsx",
+    "actions/*-gen.tsx",
+    "common-adapters/icon.constants.tsx"
+  ]
+}

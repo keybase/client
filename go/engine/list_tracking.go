@@ -60,7 +60,7 @@ func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 
-	arg := libkb.NewLoadUserArgWithMetaContext(m)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithStubMode(libkb.StubModeUnstubbed)
 
 	if len(e.arg.ForAssertion) > 0 {
 		arg = arg.WithName(e.arg.ForAssertion)
@@ -129,7 +129,7 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 func (e *ListTrackingEngine) linkPGPKeys(m libkb.MetaContext, link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
 	trackedKeys, err := link.GetTrackedKeys()
 	if err != nil {
-		m.CWarningf("Bad track of %s: %s", link.ToDisplayString(), err)
+		m.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
 	}
 
@@ -202,7 +202,7 @@ func (e *ListTrackingEngine) runJSON(m libkb.MetaContext, trackList TrackList, v
 		if verbose {
 			rec = link.UnmarshalPayloadJSON()
 		} else if rec, e2 = condenseRecord(link); e2 != nil {
-			m.CWarningf("In conversion to JSON: %s", e2)
+			m.Warning("In conversion to JSON: %s", e2)
 		}
 		if e2 == nil {
 			tmp = append(tmp, rec)

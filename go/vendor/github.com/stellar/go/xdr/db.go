@@ -30,6 +30,11 @@ func (t *AssetType) Scan(src interface{}) error {
 	return nil
 }
 
+// Scan reads from src into an Asset
+func (t *Asset) Scan(src interface{}) error {
+	return safeBase64Scan(src, t)
+}
+
 // Scan reads from src into an Int64
 func (t *Int64) Scan(src interface{}) error {
 	val, ok := src.(int64)

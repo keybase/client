@@ -15,9 +15,10 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/kardianos/osext"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/utils"
 	"golang.org/x/net/context"
 )
 
@@ -68,7 +69,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 
 	if r.private.fs.platformParams.UseLocal {
 		if mountRootSpecialPaths[req.Name] {
-			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := idutil.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
@@ -76,7 +77,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 		}
 
 		if req.Name == TrashDirName {
-			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := idutil.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
@@ -102,7 +103,7 @@ func bundleResourcePath(path string) (string, error) {
 	if runtime.GOOS != "darwin" {
 		return "", fmt.Errorf("Bundle resource path only available on macOS/darwin")
 	}
-	execPath, err := osext.Executable()
+	execPath, err := utils.BinPath()
 	if err != nil {
 		return "", err
 	}
