@@ -1024,3 +1024,27 @@ func execToString(bin string, args []string) (string, error) {
 	}
 	return strings.TrimSpace(string(result)), nil
 }
+
+var preferredKBFSMountDirs = func() []string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return []string{"/keybase", "/Volumes/Keybase"}
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		return []string{"/keybase"}
+	default:
+		return []string{}
+	}
+}()
+
+func FindPreferredKBFSMountDirs() (mountDirs []string) {
+	for _, mountDir := range preferredKBFSMountDirs {
+		fi, err := os.Lstat(filepath.Join(mountDir, "private"))
+		if err != nil {
+			continue
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			mountDirs = append(mountDirs, mountDir)
+		}
+	}
+	return mountDirs
+}

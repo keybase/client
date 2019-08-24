@@ -544,6 +544,9 @@ export type TypedActionsMap = {
   'fs:setSpaceAvailableNotificationThreshold': fs.SetSpaceAvailableNotificationThresholdPayload
   'fs:setTlfsAsUnloaded': fs.SetTlfsAsUnloadedPayload
   'fs:placeholderAction': fs.PlaceholderActionPayload
+  'fs:refreshMountDirsAfter10s': fs.RefreshMountDirsAfter10sPayload
+  'fs:setDirectMountDir': fs.SetDirectMountDirPayload
+  'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
