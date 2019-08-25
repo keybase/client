@@ -121,7 +121,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		username := msgUnboxed.Valid().SenderUsername
 		chatNotification.Message.From.KeybaseUsername = username
 
-		if displayPlaintext {
+		if displayPlaintext && !msgUnboxed.Valid().IsEphemeral() {
 			// We show avatars on Android
 			if runtime.GOOS == "android" {
 				avatar, err := kbSvc.GetUserAvatar(username)
