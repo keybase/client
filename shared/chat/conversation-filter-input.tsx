@@ -289,7 +289,7 @@ const styles = Styles.styleSheetCreate(() => ({
       padding: 2,
     },
     isElectron: {
-      background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #0dff0c)',
+      background: 'linear-gradient(45deg, #ff5d5d, #fff75a 50%, #0dff0c)',
       borderRadius: 6,
     },
     isMobile: {

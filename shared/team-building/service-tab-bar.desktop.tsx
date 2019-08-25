@@ -130,7 +130,11 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
 
 const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-    <Kb.Icon style={styles.moreNetworkItemIcon} fontSize={16} type={serviceIdToIconFont(props.service)} />
+    <Kb.Icon
+      style={styles.moreNetworkItemIcon}
+      color={Styles.globalColors.black}
+      type={serviceIdToIconFont(props.service)}
+    />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
   </Kb.Box2>
 )
