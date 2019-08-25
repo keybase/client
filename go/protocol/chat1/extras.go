@@ -574,7 +574,7 @@ const (
 // there.
 var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
 var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
-var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
+var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V2
 
 // ParseableVersion checks if this error has a version that is now able to be
 // understood by our client.
