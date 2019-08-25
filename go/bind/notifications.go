@@ -110,7 +110,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    formatConversationName(conv.Info),
+		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
 	}
