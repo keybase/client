@@ -6,34 +6,78 @@ import {Props} from './index.types'
 import {Video as ExpoVideo} from 'expo-av'
 import logger from '../../../logger'
 
-class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded: boolean}> {
-  static navigationOptions = () => ({
-    header: undefined,
-    headerHideBorder: false,
-    headerStyle: {
-      backgroundColor: Styles.globalColors.transparent,
-      borderBottomColor: Styles.globalColors.transparent,
-    },
-    headerTintColor: Styles.globalColors.white,
-    headerTitle: null,
-    headerTransparent: true,
-    underNotch: true,
-  })
-  state = {loaded: false}
+const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
+
+class AutoMaxSizeImage extends React.Component<
+  {
+    source: {uri: string}
+    onLoad: () => void
+    opacity: number
+  },
+  {
+    width: number
+    height: number
+    loaded: boolean
+  }
+> {
+  state = {height: 0, loaded: false, width: 0}
+  _mounted: boolean = false
 
   componentWillUnmount() {
-    Kb.NativeStatusBar.setHidden(false)
+    this._mounted = false
   }
+  componentDidMount() {
+    this._mounted = true
+    Kb.NativeImage.getSize(
+      this.props.source.uri,
+      (width, height) => {
+        if (this._mounted) {
+          this.setState({height, width})
+        }
+      },
+      () => {}
+    )
+  }
+
+  _setLoaded = () => this.setState({loaded: true})
+
   render() {
     return (
-      <Kb.Box2
-        direction="vertical"
-        style={{backgroundColor: Styles.globalColors.black}}
-        fullWidth={true}
-        fullHeight={true}
+      <Kb.ZoomableBox
+        contentContainerStyle={{flex: 1, position: 'relative'}}
+        maxZoom={10}
+        style={{height: '100%', overflow: 'hidden', position: 'relative', width: '100%'}}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
       >
-        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.black}} />
-        <Kb.NativeStatusBar hidden={true} />
+        <Kb.NativeFastImage
+          {...this.props}
+          resizeMode="contain"
+          style={{
+            alignSelf: 'center',
+            flex: 1,
+            height: Math.min(this.state.height, screenHeight),
+            opacity: this.props.opacity,
+            width: Math.min(this.state.width, screenWidth),
+          }}
+        />
+      </Kb.ZoomableBox>
+    )
+  }
+}
+
+class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded: boolean}> {
+  state = {loaded: false}
+  _setLoaded = () => this.setState({loaded: true})
+  render() {
+    return (
+      <Kb.SafeAreaViewTop
+        style={{
+          backgroundColor: Styles.globalColors.black,
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.fillAbsolute,
+        }}
+      >
         <Kb.Text
           type="Body"
           onClick={this.props.onClose}
@@ -41,7 +85,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         >
           Close
         </Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, flex: 1}}>
           {!!this.props.path && this.props.isVideo ? (
             <Kb.Box2
               direction="vertical"
@@ -54,30 +98,21 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 onError={e => {
                   logger.error(`Error loading vid: ${JSON.stringify(e)}`)
                 }}
-                onLoad={() => this.setState({loaded: true})}
+                onLoad={this._setLoaded}
                 shouldPlay={false}
                 useNativeControls={true}
-                resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
                 style={{
                   height: this.props.previewHeight,
                   width: this.props.previewWidth,
                 }}
+                resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
               />
             </Kb.Box2>
           ) : (
-            <Kb.ZoomableImage
-              style={{...Styles.globalStyles.fillAbsolute}}
-              uri={this.props.path}
-              onClose={this.props.onClose}
-              onLoad={() => this.setState({loaded: true})}
-              onSwipeRight={() => {
-                this.setState({loaded: false})
-                this.props.onNextAttachment()
-              }}
-              onSwipeLeft={() => {
-                this.setState({loaded: false})
-                this.props.onPreviousAttachment()
-              }}
+            <AutoMaxSizeImage
+              source={{uri: `${this.props.path}`}}
+              onLoad={this._setLoaded}
+              opacity={this.state.loaded ? 1 : 0}
             />
           )}
           {!this.state.loaded && (
@@ -86,7 +121,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               white={true}
             />
           )}
-        </Kb.Box2>
+        </Kb.Box>
         <Kb.Icon
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
@@ -101,7 +136,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           position="bottom left"
           visible={this.props.showingMenu}
         />
-      </Kb.Box2>
+      </Kb.SafeAreaViewTop>
     )
   }
 }
