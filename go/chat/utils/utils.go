@@ -2389,7 +2389,7 @@ func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string)
 	}
 	users := strings.Split(info.TlfName, ",")
 	if len(users) > 1 {
-		usersWithoutYou := make([]string, 0, len(users)-1)
+		usersWithoutYou := []string{}
 		for _, user := range users {
 			if user != myUsername {
 				usersWithoutYou = append(usersWithoutYou, user)
