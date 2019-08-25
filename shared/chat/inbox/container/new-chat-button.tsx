@@ -52,7 +52,7 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   wonderlandBorder: {
-    borderColor: '#0dff0c',
+    borderColor: '#3AFFAC',
     borderStyle: 'solid',
     borderWidth: 2,
   },
