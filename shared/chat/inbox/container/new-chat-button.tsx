@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalMargins, styleSheetCreate} from '../../../styles'
+import * as Styles from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
@@ -21,7 +21,7 @@ const _HeaderNewChatButton = (props: OwnProps) => {
       mode="Primary"
       onClick={props.onNewChat}
       small={true}
-      style={styles.button}
+      style={Styles.collapseStyles([styles.button, Flags.wonderland && styles.wonderlandBorder])}
       type="Default"
     />
   )
@@ -40,16 +40,21 @@ const HeaderNewChatButton = namedConnect(
   'HeaderNewChatButton'
 )(_HeaderNewChatButton)
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   button: {
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-    paddingLeft: globalMargins.xsmall,
-    paddingRight: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.tiny,
   },
   newMeta: {
     alignSelf: 'center',
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  wonderlandBorder: {
+    borderColor: '#0dff0c',
+    borderStyle: 'solid',
+    borderWidth: 2,
   },
 })
 

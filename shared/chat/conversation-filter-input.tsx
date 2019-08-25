@@ -141,26 +141,32 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && !Styles.isMobile && (
-            <Kb.WithTooltip
-              position="top center"
-              text={
-                Flags.wonderland
-                  ? `(${Platforms.shortcutSymbol}N)`
-                  : `New chat (${Platforms.shortcutSymbol}N)`
-              }
-            >
-              <Kb.Button
-                label={Flags.wonderland ? 'New chat 🐇' : ''}
-                small={true}
-                onClick={this.props.onNewChat}
-                style={styles.newChatButton}
+            <Kb.Box style={Flags.wonderland && styles.wonderlandBorder}>
+              <Kb.WithTooltip
+                position="top center"
+                text={
+                  Flags.wonderland
+                    ? `Wonders ahead (${Platforms.shortcutSymbol}N)`
+                    : `New chat (${Platforms.shortcutSymbol}N)`
+                }
               >
-                {!Flags.wonderland && (
-                  <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
-                )}
-                {/* PICNIC-360 TODO rabbit rabbit emojis are different sizes on retina rabbit */}
-              </Kb.Button>
-            </Kb.WithTooltip>
+                <Kb.Button
+                  label={Flags.wonderland ? 'New chat 🐇' : ''}
+                  small={true}
+                  onClick={this.props.onNewChat}
+                  style={styles.newChatButton}
+                >
+                  {!Flags.wonderland && (
+                    <Kb.Icon
+                      type="iconfont-compose"
+                      color={Styles.globalColors.white}
+                      style={styles.newIcon}
+                    />
+                  )}
+                  {/* PICNIC-360 TODO rabbit rabbit emojis are different sizes on retina rabbit */}
+                </Kb.Button>
+              </Kb.WithTooltip>
+            </Kb.Box>
           )}
         </Kb.Box2>
       )
@@ -244,7 +250,10 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   newChatButton: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.windowDraggingClickable, paddingRight: Styles.globalMargins.xtiny},
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      paddingRight: Styles.globalMargins.xtiny,
+    },
   }),
   newIcon: {
     position: 'relative',
@@ -275,6 +284,19 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
   },
   whiteBg: {backgroundColor: Styles.globalColors.white},
+  wonderlandBorder: Styles.platformStyles({
+    common: {
+      padding: 2,
+    },
+    isElectron: {
+      background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #0dff0c)',
+      borderRadius: 6,
+    },
+    isMobile: {
+      backgroundColor: '#0dff0c',
+      borderRadius: 8,
+    },
+  }),
 }))
 
 export default ConversationFilterInput
