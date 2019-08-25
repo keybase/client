@@ -116,7 +116,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	}
 
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-	if err == nil {
+	if err == nil && msgUnboxed.IsValid() {
 		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
 		username := msgUnboxed.Valid().SenderUsername
 		chatNotification.Message.From.KeybaseUsername = username
