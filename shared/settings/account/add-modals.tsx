@@ -17,7 +17,8 @@ export const Email = () => {
   const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
   const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
-  const disabled = !email
+  const emailTrimmed = email.trim()
+  const disabled = !emailTrimmed
 
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const emailError = Container.useSelector(state => state.settings.email.error)
@@ -34,19 +35,19 @@ export const Email = () => {
   }, [addEmailInProgress, addedEmail, dispatch])
   // clean on edit
   React.useEffect(() => {
-    if (email !== addEmailInProgress && emailError) {
+    if (emailTrimmed !== addEmailInProgress && emailError) {
       dispatch(SettingsGen.createClearAddingEmail())
     }
-  }, [addEmailInProgress, dispatch, email, emailError])
+  }, [addEmailInProgress, dispatch, emailError, emailTrimmed])
 
   const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
     }
-    onAddEmailInProgress(email)
-    dispatch(SettingsGen.createAddEmail({email, searchable: searchable}))
-  }, [dispatch, disabled, email, searchable, waiting])
+    onAddEmailInProgress(emailTrimmed)
+    dispatch(SettingsGen.createAddEmail({email: emailTrimmed, searchable: searchable}))
+  }, [disabled, waiting, emailTrimmed, dispatch, searchable])
   return (
     <Kb.Modal
       onClose={onClose}
@@ -132,6 +133,12 @@ export const Phone = () => {
       disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
     [dispatch, disabled, waiting, searchable, phoneNumber]
   )
+
+  const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
+    onChangeNumber(phoneNumber)
+    onChangeValidity(validity)
+  }, [])
+
   return (
     <Kb.Modal
       onClose={onClose}
@@ -166,8 +173,7 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
-          onChangeNumber={onChangeNumber}
-          onChangeValidity={onChangeValidity}
+          onChangeNumber={onChangeNumberCb}
           onContinue={onContinue}
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}

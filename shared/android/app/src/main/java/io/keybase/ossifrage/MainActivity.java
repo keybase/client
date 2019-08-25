@@ -240,9 +240,11 @@ public class MainActivity extends ReactFragmentActivity {
           this.context = context;
         }
 
-        public void run() {
+        private void run() {
           KeybaseEngine engine = context.getNativeModule(KeybaseEngine.class);
-          engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
+          if (bundleFromNotification != null) {
+            engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
+          }
 
           assert emitter != null;
           // If there are any other bundle sources we care about, emit them here

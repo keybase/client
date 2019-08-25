@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import emailInput from './email-input/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -8,6 +9,7 @@ import TeamBox from './team-box'
 import GoButton from './go-button'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
+import PhoneSearch from './phone-search'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -32,8 +34,6 @@ const generateTeamSofar = (count: number) => {
 }
 
 const commonProps = {
-  initialShowServiceBarLabels: true,
-  onTabBarLabelsSeen: Sb.action('onTabBarLabelsSeen'),
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
@@ -72,6 +72,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         fetchUserRecs={() => {}}
         includeContacts={true}
@@ -104,7 +105,9 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -156,6 +159,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string', () => (
@@ -163,6 +167,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         includeContacts={true}
         title="The Title"
         fetchUserRecs={() => {}}
@@ -195,7 +200,9 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -247,6 +254,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Show role picker', () => (
@@ -254,6 +262,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         rolePickerProps={{
@@ -283,8 +292,11 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string or results', () => (
@@ -292,6 +304,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString=""
@@ -303,9 +316,12 @@ const load = () => {
           Sb.action('onSearchForMore')
         }}
         teamSoFar={[]}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
@@ -314,6 +330,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -327,7 +344,9 @@ const load = () => {
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -379,6 +398,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - One line of users + 1', () => (
@@ -386,6 +406,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -399,7 +420,9 @@ const load = () => {
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -451,6 +474,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Lotsa users', () => (
@@ -458,6 +482,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
+        namespace="chat2"
         title="The Title"
         includeContacts={true}
         searchString="chris"
@@ -471,7 +496,9 @@ const load = () => {
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
             displayLabel: 'Chris Coyne',
@@ -523,6 +550,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
 
@@ -591,24 +619,20 @@ const load = () => {
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
 
@@ -620,16 +644,15 @@ const load = () => {
     'github',
     'reddit',
     'hackernews',
+    'phone',
   ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={false}
-        initialShowLabels={true}
       />
     ))
   })
@@ -729,6 +752,16 @@ const load = () => {
         resultForService={'keybase'}
       />
     ))
+
+  Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
+    <PhoneSearch
+      onContinue={Sb.action('onContinue')}
+      search={Sb.action('search')}
+      teamBuildingSearchResults={{}}
+    />
+  ))
+
+  emailInput()
 }
 
 export default load

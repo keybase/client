@@ -194,6 +194,7 @@ export type TypedActionsMap = {
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
   'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
+  'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -762,9 +763,11 @@ export type TypedActionsMap = {
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
+  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
+  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload

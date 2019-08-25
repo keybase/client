@@ -3,7 +3,6 @@ package libkb
 import (
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -77,7 +76,6 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 
 	payload := make(JSONPayload)
 	payload["user_configs"] = userConfigs
-	spew.Dump(payload)
 	arg := APIArg{
 		Endpoint:       "device/for_users",
 		JSONPayload:    payload,

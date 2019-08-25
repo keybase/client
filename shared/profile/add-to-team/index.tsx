@@ -243,10 +243,12 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flex: 1,
+      height: '100%',
       marginTop: 35,
     },
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xsmall,
       width: 500,
     },
     isMobile: {

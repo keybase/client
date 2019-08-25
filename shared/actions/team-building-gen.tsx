@@ -15,6 +15,8 @@ export const finishedTeamBuilding = 'team-building:finishedTeamBuilding'
 export const labelsSeen = 'team-building:labelsSeen'
 export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
+export const searchEmailAddress = 'team-building:searchEmailAddress'
+export const searchEmailAddressResultLoaded = 'team-building:searchEmailAddressResultLoaded'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 export const selectRole = 'team-building:selectRole'
 
@@ -32,6 +34,12 @@ type _LabelsSeenPayload = {readonly namespace: Types.AllowedNamespace}
 type _RemoveUsersFromTeamSoFarPayload = {
   readonly namespace: Types.AllowedNamespace
   readonly users: Array<Types.UserID>
+}
+type _SearchEmailAddressPayload = {readonly namespace: Types.AllowedNamespace; readonly query: string}
+type _SearchEmailAddressResultLoadedPayload = {
+  readonly namespace: Types.AllowedNamespace
+  readonly user: Types.User
+  readonly query: string
 }
 type _SearchPayload = {
   readonly includeContacts: boolean
@@ -78,6 +86,13 @@ export const createRemoveUsersFromTeamSoFar = (
   payload: _RemoveUsersFromTeamSoFarPayload
 ): RemoveUsersFromTeamSoFarPayload => ({payload, type: removeUsersFromTeamSoFar})
 export const createSearch = (payload: _SearchPayload): SearchPayload => ({payload, type: search})
+export const createSearchEmailAddress = (payload: _SearchEmailAddressPayload): SearchEmailAddressPayload => ({
+  payload,
+  type: searchEmailAddress,
+})
+export const createSearchEmailAddressResultLoaded = (
+  payload: _SearchEmailAddressResultLoadedPayload
+): SearchEmailAddressResultLoadedPayload => ({payload, type: searchEmailAddressResultLoaded})
 export const createSearchResultsLoaded = (
   payload: _SearchResultsLoadedPayload
 ): SearchResultsLoadedPayload => ({payload, type: searchResultsLoaded})
@@ -116,6 +131,14 @@ export type RemoveUsersFromTeamSoFarPayload = {
   readonly payload: _RemoveUsersFromTeamSoFarPayload
   readonly type: typeof removeUsersFromTeamSoFar
 }
+export type SearchEmailAddressPayload = {
+  readonly payload: _SearchEmailAddressPayload
+  readonly type: typeof searchEmailAddress
+}
+export type SearchEmailAddressResultLoadedPayload = {
+  readonly payload: _SearchEmailAddressResultLoadedPayload
+  readonly type: typeof searchEmailAddressResultLoaded
+}
 export type SearchPayload = {readonly payload: _SearchPayload; readonly type: typeof search}
 export type SearchResultsLoadedPayload = {
   readonly payload: _SearchResultsLoadedPayload
@@ -134,6 +157,8 @@ export type Actions =
   | FinishedTeamBuildingPayload
   | LabelsSeenPayload
   | RemoveUsersFromTeamSoFarPayload
+  | SearchEmailAddressPayload
+  | SearchEmailAddressResultLoadedPayload
   | SearchPayload
   | SearchResultsLoadedPayload
   | SelectRolePayload

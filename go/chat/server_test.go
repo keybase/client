@@ -5427,44 +5427,61 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		conv, err := utils.GetVerifiedConv(ctx, tc.Context(), uid, convInfo.Id,
 			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
-		plarg := chat1.PostLocalArg{
-			ConversationID: convInfo.Id,
-			Msg: chat1.MessagePlaintext{
-				ClientHeader: chat1.MessageClientHeader{
-					Conv:        convInfo.Triple,
-					MessageType: chat1.MessageType_TEXT,
-					TlfName:     convInfo.TlfName,
-					Sender:      uid,
-				},
-				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "PUSH",
-				}),
-			},
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
-		require.NoError(t, err)
-		msg := prepareRes.Boxed
-		msg.ServerHeader = &chat1.MessageServerHeader{
-			MessageID: 10,
+
+		assertUnboxMobilePushNotif := func(msgArg chat1.MessagePlaintext, expectedMsg string) {
+
+			prepareRes, err := sender.Prepare(ctx, msgArg, mt, &conv, nil)
+			require.NoError(t, err)
+			msg := prepareRes.Boxed
+			msg.ServerHeader = &chat1.MessageServerHeader{
+				MessageID: 10,
+			}
+
+			mh := codec.MsgpackHandle{WriteExt: true}
+			var data []byte
+			enc := codec.NewEncoderBytes(&data, &mh)
+			require.NoError(t, enc.Encode(msg))
+			encMsg := base64.StdEncoding.EncodeToString(data)
+			unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
+				chat1.UnboxMobilePushNotificationArg{
+					ConvID:      convInfo.Id.String(),
+					MembersType: mt,
+					Payload:     encMsg,
+				})
+			require.NoError(t, err)
+			require.Equal(t, unboxRes, expectedMsg)
 		}
 
-		mh := codec.MsgpackHandle{WriteExt: true}
-		var data []byte
-		enc := codec.NewEncoderBytes(&data, &mh)
-		require.NoError(t, enc.Encode(msg))
-		encMsg := base64.StdEncoding.EncodeToString(data)
-		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
-			chat1.UnboxMobilePushNotificationArg{
-				ConvID:      convInfo.Id.String(),
-				MembersType: mt,
-				Payload:     encMsg,
-			})
-		require.NoError(t, err)
-		require.Equal(t, unboxRes, "PUSH")
+		// TEXT msg
+		msgArg := chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        convInfo.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     convInfo.TlfName,
+				Sender:      uid,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "PUSH",
+			}),
+		}
+		assertUnboxMobilePushNotif(msgArg, "PUSH")
+
+		// non-text type
+		msgArg = chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        convInfo.Triple,
+				MessageType: chat1.MessageType_HEADLINE,
+				TlfName:     convInfo.TlfName,
+				Sender:      uid,
+			},
+			MessageBody: chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+				Headline: "hi",
+			}),
+		}
+		assertUnboxMobilePushNotif(msgArg, "")
 	})
 }
 

@@ -11,7 +11,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
+import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {
@@ -27,6 +27,7 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -136,6 +137,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -159,7 +161,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
-    initialShowServiceBarLabels: !teamBuildingState.teamBuildingLabelsSeen,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -182,6 +183,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
@@ -222,7 +224,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _onLabelsSeen: () => dispatch(TeamBuildingGen.createLabelsSeen({namespace})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -540,7 +541,17 @@ const mergeProps = (
                     />
                   ),
                 }
-              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+              : {
+                  custom: (
+                    <Button
+                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
+                      mode="Primary"
+                      onClick={dispatchProps.onFinishTeamBuilding}
+                      small={true}
+                      type="Success"
+                    />
+                  ),
+                }
             : null,
         ],
         title,
@@ -553,8 +564,9 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
-    initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
+    namespace: ownProps.namespace,
     onAdd,
+    onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -569,13 +581,13 @@ const mergeProps = (
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
-    onTabBarLabelsSeen: dispatchProps._onLabelsSeen,
     onUpArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     rolePickerProps,
+    search: dispatchProps._search,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
@@ -583,6 +595,7 @@ const mergeProps = (
     showRecs,
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
     title,
     waitingForCreate,

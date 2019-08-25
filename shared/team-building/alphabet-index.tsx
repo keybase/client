@@ -12,6 +12,7 @@ const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
 type Props = {
   labels: Array<string>
   showNumSection: boolean
+  measureKey?: any // change this when the position of AlphabetIndex on the screen changes
   onScroll: (label: string) => void
   style?: Styles.StylesCrossPlatform
 }
@@ -31,7 +32,7 @@ const AlphabetIndex = (props: Props) => {
       })
     }
   }, 200)
-  React.useEffect(storeMeasure, [])
+  React.useEffect(storeMeasure, [props.measureKey])
 
   const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(

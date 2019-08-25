@@ -217,8 +217,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 type Props = {
   autoFocus?: boolean
   defaultCountry?: string
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
   style?: Styles.StylesCrossPlatform
 }
@@ -227,11 +226,13 @@ type State = {
   country: string
   prefix: string
   formatted: string
+  focused: boolean
 }
 
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {
     country: this.props.defaultCountry || defaultCountry,
+    focused: false,
     formatted: '',
     prefix: getCallingCode(this.props.defaultCountry || defaultCountry).slice(1),
   }
@@ -315,8 +316,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
-    this.props.onChangeNumber(validation.e164)
-    this.props.onChangeValidity(validation.valid)
+    this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
   _setCountry = (country, keepPrefix) => {
@@ -378,7 +378,10 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   render() {
     return (
-      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={styles.container}>
+      <Kb.Box2
+        direction={isMobile ? 'vertical' : 'horizontal'}
+        style={Styles.collapseStyles([styles.container, !isMobile && this.state.focused && styles.highlight])}
+      >
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
@@ -422,7 +425,11 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           <Kb.Box2
             alignItems="center"
             direction="horizontal"
-            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
+            style={Styles.collapseStyles([
+              styles.phoneNumberContainer,
+              styles.fakeInput,
+              isMobile && this.state.focused && styles.highlight,
+            ])}
           >
             <Kb.PlainInput
               autoFocus={this.props.autoFocus}
@@ -432,6 +439,8 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               placeholder={getPlaceholder(this.state.country)}
               onChangeText={x => this._reformatPhoneNumber(x, false)}
               onEnterKeyDown={this.props.onEnterKeyDown}
+              onFocus={() => this.setState({focused: true})}
+              onBlur={() => this.setState({focused: false})}
               value={this.state.formatted}
               disabled={this.state.country === ''}
               ref={this._phoneInputRef}
@@ -517,6 +526,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   fullWidth: {width: '100%'},
+  highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
   menuItem: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
   },
