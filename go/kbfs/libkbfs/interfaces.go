@@ -536,6 +536,9 @@ type KBFSOps interface {
 	// TeamAbandoned indicates that a team has been abandoned, and
 	// shouldn't be referred to by its previous name anymore.
 	TeamAbandoned(ctx context.Context, tid keybase1.TeamID)
+	// CheckMigrationPerms returns an error if this device cannot
+	// perform implicit team migration for the given TLF.
+	CheckMigrationPerms(ctx context.Context, id tlf.ID) (err error)
 	// MigrateToImplicitTeam migrates the given folder from a private-
 	// or public-keyed folder, to a team-keyed folder.  If it's
 	// already a private/public team-keyed folder, nil is returned.

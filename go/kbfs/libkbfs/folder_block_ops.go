@@ -1569,6 +1569,17 @@ func (fbo *folderBlockOps) Lookup(
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
+	// Protect against non-dir nodes being passed in by mistake.
+	// TODO: we should make this a more specific error probably, but
+	// then we need to update some places that check for
+	// `NoSuchNameError` to check for this one as well.
+	if dir.EntryType() != data.Dir {
+		fbo.log.CDebugf(
+			ctx, "Got unexpected node type when looking up %s: %s",
+			name, dir.EntryType())
+		return nil, data.DirEntry{}, idutil.NoSuchNameError{Name: name.String()}
+	}
+
 	dirPath := fbo.nodeCache.PathFromNode(dir)
 	if !dirPath.IsValid() {
 		return nil, data.DirEntry{}, errors.WithStack(InvalidPathError{dirPath})

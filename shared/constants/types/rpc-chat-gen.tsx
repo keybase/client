@@ -1167,6 +1167,7 @@ export type TLFFinalizeUpdate = {readonly finalizeInfo: ConversationFinalizeInfo
 export type TLFID = Bytes
 export type TLFResolveUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers}
 export type TeamChannelUpdate = {readonly teamID: TLFID}
+export type TeamMember = {readonly uid: Gregor1.UID; readonly role: Keybase1.TeamRole; readonly status: Keybase1.TeamMemberStatus}
 export type TeamTypeInfo = {readonly convID: ConversationID; readonly teamType: TeamType; readonly conv?: InboxUIItem | null}
 export type TeamTypePayload = {readonly Action: String; readonly convID: ConversationID; readonly teamType: TeamType; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type TextPayment = {readonly username: String; readonly paymentText: String; readonly result: TextPaymentResult}

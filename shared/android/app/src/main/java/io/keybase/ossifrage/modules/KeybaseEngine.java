@@ -5,9 +5,12 @@ import android.content.Context;
 
 import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.BufferedReader;
@@ -31,6 +34,7 @@ import static keybase.Keybase.readB64;
 import static keybase.Keybase.writeB64;
 import static keybase.Keybase.version;
 
+@ReactModule(name = "KeybaseEngine")
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
     private static final String NAME = "KeybaseEngine";
@@ -40,6 +44,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private ExecutorService executor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
+    private WritableMap initialIntent;
 
     private static void relayReset(ReactApplicationContext reactContext) {
         if (!reactContext.hasActiveCatalystInstance()) {
@@ -218,5 +223,17 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         } catch (Exception e) {
             NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
+    }
+
+    // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
+    // its own react module. That's because starting up a react module is a bit expensive and we
+    // wouldn't be able to lazy load this because we need it on startup.
+    @ReactMethod
+    public void getInitialIntent(Promise promise) {
+        promise.resolve(initialIntent);
+    }
+
+    public void setInitialIntent(WritableMap initialIntent) {
+        this.initialIntent = initialIntent;
     }
 }

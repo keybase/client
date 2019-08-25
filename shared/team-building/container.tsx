@@ -11,7 +11,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
+import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {
@@ -27,6 +27,7 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -136,6 +137,7 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -181,6 +183,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
@@ -523,6 +526,7 @@ const mergeProps = (
   const title = rolePickerProps ? 'Add people' : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
+        borderless: true,
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
         rightActions: [
@@ -537,7 +541,17 @@ const mergeProps = (
                     />
                   ),
                 }
-              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+              : {
+                  custom: (
+                    <Button
+                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
+                      mode="Primary"
+                      onClick={dispatchProps.onFinishTeamBuilding}
+                      small={true}
+                      type="Success"
+                    />
+                  ),
+                }
             : null,
         ],
         title,
@@ -550,7 +564,9 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    namespace: ownProps.namespace,
     onAdd,
+    onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -571,6 +587,7 @@ const mergeProps = (
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     rolePickerProps,
+    search: dispatchProps._search,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
@@ -578,6 +595,7 @@ const mergeProps = (
     showRecs,
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
     title,
     waitingForCreate,
@@ -633,7 +651,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         highlightedIndex={this.state.highlightedIndex}
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
-        showServiceResultCount={this.state.searchString !== ''}
+        showServiceResultCount={false}
       />
     )
   }

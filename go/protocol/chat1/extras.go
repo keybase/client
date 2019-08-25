@@ -179,8 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
-	MessageType_PIN,
 	MessageType_HEADLINE,
+	MessageType_PIN,
 }
 
 func VisibleChatMessageTypes() []MessageType {

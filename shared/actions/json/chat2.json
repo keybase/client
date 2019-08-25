@@ -738,6 +738,10 @@
     "ignorePinnedMessage": {
       "_description": "Ignore pinned message",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "dismissBottomBanner": {
+      "_description": "Set the bottom banner on a new conversation as dismissed",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

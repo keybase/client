@@ -1,16 +1,14 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Divider from './divider'
-import {
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+
+const Kb = {
+  Box,
+  ClickableBox,
+  Divider,
+}
 
 type Props = {
   clickableBoxStyle?: any
@@ -23,57 +21,60 @@ type Props = {
 
 const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Props) => {
   return (
-    <Box style={collapseStyles([styles.container, style])}>
+    <Kb.Box style={Styles.collapseStyles([styles.container, style])}>
       {tabs.map((t, idx) => {
         // @ts-ignore
         const key: string = (t && t.key) || idx
         return (
-          <ClickableBox onClick={() => onSelect(t)} key={key} style={clickableBoxStyle}>
-            <Box style={styles.tabContainer}>
-              <Box style={collapseStyles([styles.tab, t === selected && styles.tabSelected, tabStyle])}>
+          <Kb.ClickableBox onClick={() => onSelect(t)} key={key} style={clickableBoxStyle}>
+            <Kb.Box style={styles.tabContainer}>
+              <Kb.Box
+                style={Styles.collapseStyles([styles.tab, t === selected && styles.tabSelected, tabStyle])}
+              >
                 {t}
-              </Box>
-              <Divider
-                style={collapseStyles([
+              </Kb.Box>
+              <Kb.Divider
+                style={Styles.collapseStyles([
                   styles.divider,
                   {
-                    backgroundColor: t === selected ? globalColors.blue : globalColors.transparent,
+                    backgroundColor:
+                      t === selected ? Styles.globalColors.blue : Styles.globalColors.transparent,
                   },
                 ])}
               />
-            </Box>
-          </ClickableBox>
+            </Kb.Box>
+          </Kb.ClickableBox>
         )
       })}
-    </Box>
+    </Kb.Box>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
-    borderBottomColor: globalColors.black_10,
+    borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flex: 1,
-    maxHeight: isMobile ? 48 : 40,
+    maxHeight: Styles.isMobile ? 48 : 40,
     width: '100%',
   },
   divider: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     minHeight: 2,
   },
   tab: {
     flex: 1,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
-  tabContainer: platformStyles({
+  tabContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
     },
     isElectron: {
       height: 40,
@@ -83,8 +84,8 @@ const styles = styleSheetCreate({
     },
   }),
   tabSelected: {
-    color: globalColors.black,
+    color: Styles.globalColors.black,
   },
-})
+}))
 
 export default Tabs

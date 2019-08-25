@@ -95,7 +95,7 @@ const Switch = React.forwardRef<ClickableBox, Props>((props: Props, ref) =>
 
 export default Switch
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -132,4 +132,4 @@ const styles = Styles.styleSheetCreate({
       marginLeft: 12,
     },
   }),
-})
+}))

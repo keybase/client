@@ -647,11 +647,16 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 	}
 }
 
-func (c *CachingAttachmentFetcher) getCacheDir() string {
+func (c *CachingAttachmentFetcher) getBaseDir() string {
+	baseDir := c.G().GetCacheDir()
 	if len(c.tempDir) > 0 {
-		return c.tempDir
+		baseDir = c.tempDir
 	}
-	return filepath.Join(c.G().GetCacheDir(), "attachments")
+	return baseDir
+}
+
+func (c *CachingAttachmentFetcher) getCacheDir() string {
+	return filepath.Join(c.getBaseDir(), "attachments")
 }
 
 func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
@@ -689,8 +694,11 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 // file path since it's possible for the path to the cache dir to change,
 // especially on mobile.
 func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	dir := filepath.Base(filepath.Dir(file))
 	file = filepath.Base(file)
-	return filepath.Join(c.getCacheDir(), file)
+	// some attachments may be in the "uploadedpreviews"/"uploadedfulls" dirs,
+	// so we preserve the parent directory here.
+	return filepath.Join(c.getBaseDir(), dir, file)
 }
 
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {

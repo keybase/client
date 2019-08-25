@@ -53,7 +53,6 @@ const Tlf = (props: TlfProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? Types.PathItemBadgeType.New : null}
-    showActionsWithGrow={true}
     showTlfTypeIcon={!!props.mixedMode}
   >
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}

@@ -4,6 +4,11 @@ import Text from './text'
 import * as Styles from '../styles'
 import {Props} from './radio-button'
 
+const Kb = {
+  ClickableBox,
+  Text,
+}
+
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8
 
@@ -39,24 +44,26 @@ const RadioInnerCircle = Styles.styled<typeof ClickableBox, ExtraProps>(Clickabl
 )
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
-  <ClickableBox
-    style={{...styleContainer, ...style}}
+  <Kb.ClickableBox
+    style={{...styles.container, ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <RadioOuterCircle disabled={disabled} selected={selected}>
       <RadioInnerCircle selected={selected} />
     </RadioOuterCircle>
-    <Text type="Body" style={{color: Styles.globalColors.black}}>
+    <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}
-    </Text>
-  </ClickableBox>
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
-const styleContainer = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center' as 'center',
-  paddingBottom: Styles.globalMargins.xtiny,
-  paddingTop: Styles.globalMargins.xtiny,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+}))
 
 export default RadioButton

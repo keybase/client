@@ -197,6 +197,7 @@ export type TypedActionsMap = {
   'chat2:pinMessage': chat2.PinMessagePayload
   'chat2:unpinMessage': chat2.UnpinMessagePayload
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
+  'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -694,6 +695,7 @@ export type TypedActionsMap = {
   'settings:addedEmail': settings.AddedEmailPayload
   'settings:clearAddingEmail': settings.ClearAddingEmailPayload
   'settings:clearAddedEmail': settings.ClearAddedEmailPayload
+  'settings:clearAddedPhone': settings.ClearAddedPhonePayload
   'settings:invitesClearError': settings.InvitesClearErrorPayload
   'settings:invitesReclaim': settings.InvitesReclaimPayload
   'settings:invitesReclaimed': settings.InvitesReclaimedPayload
@@ -764,11 +766,14 @@ export type TypedActionsMap = {
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
+  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
+  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
+  'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload

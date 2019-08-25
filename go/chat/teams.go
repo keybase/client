@@ -268,9 +268,6 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 		if team, err = teams.Load(ctx, t.G(), ltarg(teamID)); err != nil {
 			return team, err
 		}
-		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
-			return team, err
-		}
 		return team, nil
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		teamID, err := tlfIDToTeamID.Lookup(mctx, tlfID, t.G().API)
@@ -304,6 +301,8 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 				return team, err
 			}
 		}
+		// In upgraded implicit teams, make sure to check that tlfName matches
+		// team display name.
 		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
 			return team, err
 		}

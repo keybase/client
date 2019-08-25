@@ -2,21 +2,27 @@ import Footer from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {namedConnect} from '../../../util/container'
+import * as Types from '../../../constants/types/wallets'
+import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
   onConfirm?: () => void // if showing confirm form directly (not through routing)
 }
 
-const mapStateToProps = state => {
-  const accountID = state.wallets.selectedAccount
+const mapStateToProps = (state: Container.TypedState) => {
+  const accountID = state.wallets.building.from
+  let thisDeviceIsLockedOut = false
+  if (Types.isValidAccountID(accountID)) {
+    thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
+  } else {
+    thisDeviceIsLockedOut = Constants.getDefaultAccount(state).deviceReadOnly
+  }
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
   return {
     calculating:
       !!state.wallets.building.amount &&
@@ -34,7 +40,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClickRequest: () => {
     dispatch(WalletsGen.createRequestPayment())
   },
@@ -48,14 +54,17 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (s, d, _: OwnProps) => ({
-  calculating: s.calculating,
-  disabled: s.disabled,
-  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
-  onClickSend: s.isRequest ? undefined : d.onClickSend,
-  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  waitingKey: s.waitingKey,
-  worthDescription: s.worthDescription,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, _: OwnProps) => ({
+    calculating: s.calculating,
+    disabled: s.disabled,
+    onClickRequest: s.isRequest ? d.onClickRequest : undefined,
+    onClickSend: s.isRequest ? undefined : d.onClickSend,
+    thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
+    waitingKey: s.waitingKey,
+    worthDescription: s.worthDescription,
+  }),
+  'Footer'
+)(Footer)

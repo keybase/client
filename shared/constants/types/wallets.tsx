@@ -41,7 +41,7 @@ export const accountIDToString = (accountID: AccountID): string => accountID
 // No account
 export const noAccountID = stringToAccountID('NOACCOUNTID')
 
-export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
+export const isValidAccountID = (accountID: AccountID) => !!accountID && accountID !== noAccountID
 
 export type PartnerUrl = StellarRPCTypes.PartnerUrl
 

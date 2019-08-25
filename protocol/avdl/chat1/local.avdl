@@ -1,9 +1,9 @@
 @namespace("chat.1")
 
 protocol local {
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
+  import idl "../stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";

@@ -21,7 +21,7 @@ export default SwitchToggle
 
 const disabledOffset = 2
 const enabledOffset = 10
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inner: {
     backgroundColor: Styles.globalColors.white,
     borderRadius: 6,
@@ -41,4 +41,4 @@ const styles = Styles.styleSheetCreate({
       width: 24,
     },
   }),
-})
+}))

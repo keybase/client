@@ -2,8 +2,8 @@
 @compression_type("gzip")
 protocol remote {
 
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
 
   record MessageBoxed {
     // This was not present in most V1 messages.

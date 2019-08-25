@@ -30,7 +30,7 @@ const (
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop    string
+	GUI        string
 	Kbfs       string
 	Service    string
 	EK         string
@@ -270,7 +270,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
 		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
-		l.desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		l.desktopLog = tail(l.G().Log, "gui", logs.GUI, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		// We don't use the systemd journal to store regular logs, since on
 		// some systems (e.g. Ubuntu 16.04) it's not persisted across boots.

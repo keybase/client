@@ -1476,6 +1476,19 @@ func (fs *KBFSOpsStandard) TeamAbandoned(
 	}
 }
 
+// CheckMigrationPerms implements the KBFSOps interface for folderBranchOps.
+func (fs *KBFSOpsStandard) CheckMigrationPerms(
+	ctx context.Context, id tlf.ID) (err error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	// We currently only migrate on the master branch of a TLF.
+	ops := fs.getOps(
+		ctx, data.FolderBranch{Tlf: id, Branch: data.MasterBranch},
+		FavoritesOpNoChange)
+	return ops.CheckMigrationPerms(ctx, id)
+}
+
 // MigrateToImplicitTeam implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) error {

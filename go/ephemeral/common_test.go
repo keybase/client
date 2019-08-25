@@ -19,6 +19,8 @@ func ephemeralKeyTestSetup(t *testing.T) (libkb.TestContext, libkb.MetaContext, 
 
 	user, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
+	err = mctx.G().GetEKLib().KeygenIfNeeded(mctx)
+	require.NoError(t, err)
 
 	return tc, mctx, user
 }

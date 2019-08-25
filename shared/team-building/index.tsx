@@ -4,16 +4,29 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
 import Input from './input'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
-import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState, SelectedUser} from '../constants/types/team-building'
+import {
+  serviceIdToAccentColor,
+  serviceIdToIconFont,
+  serviceIdToLabel,
+  serviceIdToSearchPlaceholder,
+} from './shared'
+import {
+  AllowedNamespace,
+  ServiceIdWithContact,
+  FollowingState,
+  SelectedUser,
+  User,
+} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
+import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
+import EmailInput from './email-input'
 
 export const numSectionLabel = '0-9'
 
@@ -62,7 +75,9 @@ export type Props = ContactProps & {
   fetchUserRecs: () => void
   includeContacts: boolean
   highlightedIndex: number | null
+  namespace: AllowedNamespace
   onAdd: (userId: string) => void
+  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -75,6 +90,7 @@ export type Props = ContactProps & {
   onUpArrowKeyDown: () => void
   onClear: () => void
   recommendations: Array<SearchRecSection> | null
+  search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
@@ -82,6 +98,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -198,6 +215,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         showNumSection={showNumSection}
         onScroll={this._onScrollToSection}
         style={styles.alphabetIndex}
+        measureKey={!!this.props.teamSoFar.length}
       />
     )
   }
@@ -290,7 +308,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onBackspace={props.onBackspace}
-        placeholder="Search"
+        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
       />
     )
@@ -432,6 +450,49 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   render = () => {
     const props = this.props
+
+    let content
+    switch (props.selectedService) {
+      case 'email':
+        content = <EmailInput namespace={props.namespace} />
+        break
+      case 'phone':
+        content = (
+          <PhoneSearch
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+            onContinue={props.onAddRaw}
+          />
+        )
+        break
+      default:
+        content = (
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )
+    }
+    const teamBox = !!props.teamSoFar.length && (
+      <TeamBox
+        allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
+        onChangeText={props.onChangeText}
+        onDownArrowKeyDown={props.onDownArrowKeyDown}
+        onUpArrowKeyDown={props.onUpArrowKeyDown}
+        onEnterKeyDown={props.onEnterKeyDown}
+        onFinishTeamBuilding={props.onFinishTeamBuilding}
+        onRemove={props.onRemove}
+        teamSoFar={props.teamSoFar}
+        onBackspace={props.onBackspace}
+        searchString={props.searchString}
+        rolePickerProps={props.rolePickerProps}
+      />
+    )
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
@@ -441,37 +502,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Box2>
         )}
-        {!!props.teamSoFar.length &&
+        {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <TeamBox
-                allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-                onChangeText={props.onChangeText}
-                onDownArrowKeyDown={props.onDownArrowKeyDown}
-                onUpArrowKeyDown={props.onUpArrowKeyDown}
-                onEnterKeyDown={props.onEnterKeyDown}
-                onFinishTeamBuilding={props.onFinishTeamBuilding}
-                onRemove={props.onRemove}
-                teamSoFar={props.teamSoFar}
-                onBackspace={props.onBackspace}
-                searchString={props.searchString}
-                rolePickerProps={props.rolePickerProps}
-              />
+              {teamBox}
             </Kb.Box2>
           ) : (
-            <TeamBox
-              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-              onChangeText={props.onChangeText}
-              onDownArrowKeyDown={props.onDownArrowKeyDown}
-              onUpArrowKeyDown={props.onUpArrowKeyDown}
-              onEnterKeyDown={props.onEnterKeyDown}
-              onFinishTeamBuilding={props.onFinishTeamBuilding}
-              onRemove={props.onRemove}
-              teamSoFar={props.teamSoFar}
-              onBackspace={props.onBackspace}
-              searchString={props.searchString}
-              rolePickerProps={props.rolePickerProps}
-            />
+            teamBox
           ))}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
@@ -495,13 +532,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
-        {this._listBody()}
-        {props.waitingForCreate && (
-          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-          </Kb.Box2>
-        )}
+        {content}
       </Kb.Box2>
     )
   }
@@ -514,10 +545,15 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: Styles.globalMargins.large,
   },
-  banner: {
-    backgroundColor: Styles.globalColors.blue,
-    padding: Styles.globalMargins.tiny,
-  },
+  banner: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      padding: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
+    },
+  }),
   bannerButtonContainer: {
     flexWrap: 'wrap',
     marginBottom: Styles.globalMargins.xsmall,
@@ -552,9 +588,9 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderRadius: 4,
-      height: 434,
+      height: 560,
       overflow: 'hidden',
-      width: 470,
+      width: 400,
     },
   }),
   emptyContainer: Styles.platformStyles({

@@ -20,7 +20,10 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
     underNotch: true,
   })
   state = {loaded: false}
-  _setLoaded = () => this.setState({loaded: true})
+
+  componentWillUnmount() {
+    Kb.NativeStatusBar.setHidden(false)
+  }
   render() {
     return (
       <Kb.Box2
@@ -51,7 +54,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 onError={e => {
                   logger.error(`Error loading vid: ${JSON.stringify(e)}`)
                 }}
-                onLoad={this._setLoaded}
+                onLoad={() => this.setState({loaded: true})}
                 shouldPlay={false}
                 useNativeControls={true}
                 resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
@@ -63,15 +66,18 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
             </Kb.Box2>
           ) : (
             <Kb.ZoomableImage
-              style={{
-                height: '100%',
-                opacity: this.state.loaded ? 1 : 0,
-                overflow: 'hidden',
-                position: 'relative',
-                width: '100%',
-              }}
+              style={{...Styles.globalStyles.fillAbsolute}}
               uri={this.props.path}
-              onLoad={this._setLoaded}
+              onClose={this.props.onClose}
+              onLoad={() => this.setState({loaded: true})}
+              onSwipeRight={() => {
+                this.setState({loaded: false})
+                this.props.onNextAttachment()
+              }}
+              onSwipeLeft={() => {
+                this.setState({loaded: false})
+                this.props.onPreviousAttachment()
+              }}
             />
           )}
           {!this.state.loaded && (
