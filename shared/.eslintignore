@@ -8,4 +8,9 @@ markdown/parser.js
 node_modules
 test/setupTestFrameworkScriptFile.js
 react-native/react-native-contacts
+storybook/webpack.config.js
+storybook/index.native.js
+rn-cli.config.js
+metro.config.js
+react-native/wipe-cache.js
 *.d.ts
