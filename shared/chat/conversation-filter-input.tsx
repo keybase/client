@@ -146,7 +146,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                 position="top center"
                 text={
                   Flags.wonderland
-                    ? `Wonders ahead (${Platforms.shortcutSymbol}N)`
+                    ? `(${Platforms.shortcutSymbol}N)`
                     : `New chat (${Platforms.shortcutSymbol}N)`
                 }
               >
