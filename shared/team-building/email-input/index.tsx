@@ -87,12 +87,16 @@ const EmailInput = ({namespace}: EmailInputProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
-          <Kb.Button
-            label={Flags.wonderland ? 'Continue 🐇' : 'Continue'}
-            fullWidth={true}
-            onClick={onSubmit}
-            disabled={!canSubmit}
-          />
+          <Kb.Button fullWidth={true} onClick={onSubmit} disabled={!canSubmit}>
+            <Kb.Text type="BodyBig" style={styles.continueButton}>
+              Continue
+            </Kb.Text>
+            {Flags.wonderland && (
+              <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
+                <Kb.Emoji size={16} emojiName="rabbit2" />
+              </Kb.Text>
+            )}
+          </Kb.Button>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -113,6 +117,9 @@ const styles = Styles.styleSheetCreate(() => ({
   bottomContainer: {
     flexGrow: 1,
   },
+  continueButton: {
+    color: Styles.globalColors.white,
+  },
   input: Styles.platformStyles({
     common: {},
     isElectron: {
@@ -124,6 +131,9 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
+  rabbitEmoji: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
 }))
 
 export default EmailInput

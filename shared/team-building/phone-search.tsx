@@ -102,13 +102,16 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
-        <Kb.Button
-          fullWidth={true}
-          style={styles.button}
-          onClick={_onContinue}
-          label={Flags.wonderland ? 'Continue 🐇' : 'Continue'}
-          disabled={!validity}
-        />
+        <Kb.Button fullWidth={true} style={styles.button} onClick={_onContinue} disabled={!validity}>
+          <Kb.Text type="BodyBig" style={styles.continueButton}>
+            Continue
+          </Kb.Text>
+          {Flags.wonderland && (
+            <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
+              <Kb.Emoji size={16} emojiName="rabbit2" />
+            </Kb.Text>
+          )}
+        </Kb.Button>
       </Kb.Box2>
     </>
   )
@@ -127,8 +130,14 @@ const styles = Styles.styleSheetCreate(() => ({
       zIndex: -1,
     },
   }),
+  continueButton: {
+    color: Styles.globalColors.white,
+  },
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},
+  rabbitEmoji: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
 }))
