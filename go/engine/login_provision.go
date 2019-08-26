@@ -37,8 +37,8 @@ type loginProvision struct {
 // gpgInterface defines the portions of gpg client that provision
 // needs.  This allows tests to stub out gpg client calls.
 type gpgInterface interface {
-	ImportKey(secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error)
-	Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
+	ImportKey(mctx libkb.MetaContext, secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error)
+	Index(mctx libkb.MetaContext, secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
 }
 
 type loginProvisionArg struct {
@@ -668,7 +668,7 @@ func (e *loginProvision) gpgPrivateIndex(m libkb.MetaContext) (*libkb.GpgKeyInde
 	}
 
 	// get an index of all the secret keys
-	index, _, err := cli.Index(true, "")
+	index, _, err := cli.Index(m, true, "")
 	if err != nil {
 		return nil, err
 	}
@@ -686,7 +686,7 @@ func (e *loginProvision) gpgClient(m libkb.MetaContext) (gpgInterface, error) {
 	}
 
 	gpg := m.G().GetGpgClient()
-	ok, err := gpg.CanExec()
+	ok, err := gpg.CanExec(m)
 	if err != nil {
 		return nil, err
 	}
@@ -1135,7 +1135,7 @@ func (e *loginProvision) gpgImportKey(m libkb.MetaContext, fp *libkb.PGPFingerpr
 		err = nil
 	}
 
-	bundle, err := cli.ImportKey(true, *fp, tty)
+	bundle, err := cli.ImportKey(m, true, *fp, tty)
 	if err != nil {
 		return nil, err
 	}
