@@ -76,7 +76,7 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
-    isEmpty: i.isEmpty,
+    isEmpty: false,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
