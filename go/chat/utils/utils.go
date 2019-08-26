@@ -2400,6 +2400,7 @@ func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string)
 			}
 			return strings.Join(usersWithoutYou, ",")
 		}
+		return ""
 	}
 	return info.TlfName
 }
