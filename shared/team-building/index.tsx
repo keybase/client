@@ -27,6 +27,7 @@ import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailInput from './email-input'
+import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
 
@@ -521,6 +522,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Text>
         )}
         <ServiceTabBar
+          services={Constants.servicesForNamespace(props.namespace)}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}
