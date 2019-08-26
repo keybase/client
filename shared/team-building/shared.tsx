@@ -54,8 +54,8 @@ const services: {
     color: '#4C8EFF',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
-    longLabel: 'Keybase & Contacts',
-    searchPlaceholder: 'Keybase & contacts',
+    longLabel: Styles.isMobile ? 'Keybase & Contacts' : 'A Keybase user',
+    searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
   },
   pgp: {
     color: '#000',
