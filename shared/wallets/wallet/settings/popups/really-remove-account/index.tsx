@@ -31,9 +31,6 @@ const ReallyRemoveAccountPopup = (props: Props) => {
     dispatch,
   ])
   React.useEffect(() => {
-    showingToast && setShowToastFalseLater()
-  }, [showingToast, setShowToastFalseLater])
-  React.useEffect(() => {
     onLoadSecretKey()
     return () => {
       onSecretKeySeen()
@@ -41,8 +38,9 @@ const ReallyRemoveAccountPopup = (props: Props) => {
   }, [onLoadSecretKey, onSecretKeySeen])
   const onCopy = React.useCallback(() => {
     setShowToast(true)
+    setShowToastFalseLater()
     onCopyKey()
-  }, [onCopyKey])
+  }, [onCopyKey, setShowToastFalseLater])
   return (
     <WalletPopup
       onExit={props.onCancel}
