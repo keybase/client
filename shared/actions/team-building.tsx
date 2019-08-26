@@ -21,6 +21,15 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
+  switch (service) {
+    // These services should not be queried through the API.
+    // TODO: Y2K-552 change types in this function so it can't be called with
+    // invalid services.
+    case 'phone':
+    case 'contact':
+    case 'email':
+      return []
+  }
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -53,7 +62,7 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
   // Filter on `services` so we only get what's searchable through API.
   // Also filter out if we already have that result cached.
   const servicesToSearch = Constants.services
-    .filter(s => s !== teamBuildingSelectedService && ['contact', 'phone', 'email'].indexOf(s) === -1)
+    .filter(s => s !== teamBuildingSelectedService && !['contact', 'phone', 'email'].includes(s))
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
   const isStillInSameQuery = (state: TypedState): boolean => {
