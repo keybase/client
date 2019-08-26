@@ -148,6 +148,7 @@
   NSString* soundName = notification[@"s"];
   bool displayPlaintext = [notification[@"n"] boolValue];
   int membersType = [notification[@"t"] intValue];
+  NSString* sender = notification[@"u"];
   PushNotifier* pusher = [[PushNotifier alloc] init];
   if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
@@ -156,7 +157,7 @@
       NSString* pushID = [notification[@"p"] objectAtIndex:0];
       // This always tries to unbox the notification and adds a plaintext
       // notification if displayPlaintext is set.
-      KeybaseHandleBackgroundNotification(convID, body, @"", membersType, displayPlaintext,
+      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
             messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
@@ -168,7 +169,7 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
       NSString* convID = notification[@"convID"];
       int messageID = [notification[@"msgID"] intValue];
-      KeybaseHandleBackgroundNotification(convID, body, @""membersType, displayPlaintext,
+      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
                                           messageID, @"", badgeCount, unixTime, soundName, nil, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);

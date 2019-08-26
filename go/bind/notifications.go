@@ -1,11 +1,9 @@
 package keybase
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat"
@@ -63,7 +61,7 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	return err
 }
 
-func HandleBackgroundNotification(strConvID, body, serverMessageBody string, intMembersType int, displayPlaintext bool,
+func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int, displayPlaintext bool,
 	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
@@ -72,8 +70,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
+	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
+		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return flattenError(err) })()
 
 	// Unbox
@@ -82,12 +80,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 	}
 	mp := chat.NewMobilePush(gc)
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	bConvID, err := hex.DecodeString(strConvID)
+	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
 		return err
 	}
-	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
 	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
@@ -100,11 +97,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		Message: &Message{
 			ID:            intMessageID,
 			ServerMessage: serverMessageBody,
-			From: &Person{
-				KeybaseUsername: "",
-				IsBot:           false,
-			},
-			At: int64(unixTime) * 1000,
+			From:          &Person{},
+			At:            int64(unixTime) * 1000,
 		},
 		ConvID:              strConvID,
 		TopicName:           conv.Info.TopicName,
@@ -151,11 +145,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody string, int
 		}
 	} else {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		// Guess the username? We need this for android
-		split := strings.Split(serverMessageBody, " ")
-		if len(split) > 1 {
-			chatNotification.Message.From.KeybaseUsername = split[0]
-		}
+		chatNotification.Message.From.KeybaseUsername = sender
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
