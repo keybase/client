@@ -120,6 +120,7 @@ type SignupScreenProps = {
   buttons: Array<ButtonMeta>
   children: React.ReactNode
   negativeHeader?: boolean
+  noBackground?: boolean
   onBack?: () => void
   skipMobileHeader?: boolean
   headerStyle?: Styles.StylesCrossPlatform
@@ -145,7 +146,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
         showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={props.headerStyle || null}
+        style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
         negative={!!props.negativeHeader}
       />
     )}
@@ -165,7 +166,11 @@ export const SignupScreen = (props: SignupScreenProps) => (
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      style={Styles.collapseStyles([styles.blueBackground, props.containerStyle])}
+      style={Styles.collapseStyles([
+        styles.background,
+        props.noBackground ? styles.whiteBackground : styles.blueBackground,
+        props.containerStyle,
+      ])}
       fullWidth={true}
     >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
@@ -204,6 +209,10 @@ const styles = Styles.styleSheetCreate({
   backText: {
     color: Styles.globalColors.black_50,
   },
+  background: {
+    flex: 1,
+    position: 'relative',
+  },
   banners: {
     left: 0,
     position: 'absolute',
@@ -212,8 +221,6 @@ const styles = Styles.styleSheetCreate({
   },
   blueBackground: {
     backgroundColor: Styles.globalColors.blueGrey,
-    flex: 1,
-    position: 'relative',
   },
   body: {
     ...Styles.padding(
@@ -255,5 +262,13 @@ const styles = Styles.styleSheetCreate({
   titleContainer: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
     position: 'relative',
+  },
+  whiteBackground: {
+    backgroundColor: Styles.globalColors.white,
+  },
+  whiteHeaderContainer: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
   },
 })
