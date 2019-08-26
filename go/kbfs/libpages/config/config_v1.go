@@ -144,6 +144,13 @@ func (c *V1) GetPermissions(path string, username *string) (
 	return perms.read, perms.list, maxPerms.read, maxPerms.list, realm, nil
 }
 
+func (c *V1) GetAccessControlAllowOrigin(path string) (setting string, err error) {
+	if err = c.EnsureInit(); err != nil {
+		return "", err
+	}
+	return c.perPathConfigsReader.getSetAccessControlAllowOrigin(path), nil
+}
+
 // Encode implements the Config interface.
 func (c *V1) Encode(w io.Writer, prettify bool) error {
 	encoder := json.NewEncoder(w)

@@ -326,6 +326,10 @@ func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 	// TODO: allow user to opt-in some directives of Content-Security-Policy?
 }
 
+func (s *Server) setAccessControlAllowOriginHeader(w http.ResponseWriter, accessControlAllowOrigin string) {
+	w.Header().Set("Access-Control-Allow-Origin", accessControlAllowOrigin)
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
@@ -425,6 +429,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !isListing && !canRead {
 		s.handleUnauthorized(w, r, realm, possibleRead)
 		return
+	}
+
+	accessControlAllowOrigin, err := cfg.GetAccessControlAllowOrigin(r.URL.Path)
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+	if len(accessControlAllowOrigin) > 0 {
+		s.setAccessControlAllowOriginHeader(w, accessControlAllowOrigin)
 	}
 
 	http.FileServer(realFS.ToHTTPFileSystem(ctx)).ServeHTTP(w, r)
