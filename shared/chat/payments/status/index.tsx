@@ -122,18 +122,18 @@ class PaymentStatus extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   claimable: {
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.black_60 : Styles.globalColors.black_05,
+    backgroundColor: Styles.globalColors.paymentPendingBackground,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
+    color: Styles.globalColors.paymentPendingForeground,
   },
   claimableIcon: {},
   completed: {
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.purple : Styles.globalColors.purple_10,
+    backgroundColor: Styles.globalColors.paymentCompletedBackground,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.purpleDark,
+    color: Styles.globalColors.paymentCompletedForeground,
   },
   completedIcon: {
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.purpleDark,
+    color: Styles.globalColors.paymentCompletedForeground,
   },
   container: Styles.platformStyles({
     isElectron: {
@@ -141,12 +141,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.red : Styles.globalColors.red_10,
+    backgroundColor: Styles.globalColors.paymentErrorBackground,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.redDark,
+    color: Styles.globalColors.paymentErrorForeground,
   },
   errorIcon: {
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.redDark,
+    color: Styles.globalColors.paymentErrorForeground,
   },
   iconBoxStyle: Styles.platformStyles({
     isElectron: {
@@ -154,12 +154,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   pending: {
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.black_60 : Styles.globalColors.black_05,
+    backgroundColor: Styles.globalColors.paymentPendingBackground,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
+    color: Styles.globalColors.paymentPendingForeground,
   },
   pendingIcon: {
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black_50,
+    color: Styles.globalColors.paymentPendingForeground,
   },
 })
 

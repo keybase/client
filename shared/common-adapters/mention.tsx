@@ -27,14 +27,14 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.green : Styles.globalColors.greenLighter,
+    backgroundColor: Styles.globalColors.mentionFollowBackground,
     borderRadius: 2,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.greenDark,
+    color: Styles.globalColors.mentionFollowForeground,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellow,
     borderRadius: 2,
-    color: Styles.isDarkMode ? Styles.globalColors.white : Styles.globalColors.black,
+    color: Styles.globalColors.mentionHighlightForeground,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,

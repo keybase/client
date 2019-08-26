@@ -176,7 +176,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   cover: {
     alignItems: 'center',
-    backgroundColor: Styles.isDarkMode ? Styles.globalColors.white_75 : Styles.globalColors.black_50,
+    backgroundColor: Styles.globalColors.modalOverlayBackground,
     justifyContent: 'center',
   },
   create: {

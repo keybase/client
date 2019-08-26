@@ -344,7 +344,7 @@ class Input extends React.PureComponent<Props, State> {
       style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: ${Styles.isDarkMode ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)'}; }`
+    const inputRealCSS = `::-webkit-input-placeholder { color: ${Styles.globalColors.black_40}; }`
 
     return (
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
