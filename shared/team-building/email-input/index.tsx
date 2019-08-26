@@ -76,7 +76,16 @@ const EmailInput = ({namespace}: EmailInputProps) => {
         {user !== null && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention}>
             <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-            <Kb.Text type="BodySmall">Great! That's <Kb.ConnectedUsernames colorFollowing={true} inline={true} type="BodySmallSemibold" usernames={[user.serviceMap.keybase]} /> on Keybase.</Kb.Text>
+            <Kb.Text type="BodySmall">
+              Great! That's{' '}
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                inline={true}
+                type="BodySmallSemibold"
+                usernames={[user.serviceMap.keybase]}
+              />{' '}
+              on Keybase.
+            </Kb.Text>
           </Kb.Box2>
         )}
         {/* TODO: add support for multiple emails  */}
