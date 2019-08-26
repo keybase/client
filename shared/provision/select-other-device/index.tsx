@@ -134,6 +134,8 @@ const styles = styleSheetCreate({
   },
   troubleShooting: {
     paddingTop: globalMargins.small,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
 })
 
