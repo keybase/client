@@ -9,6 +9,8 @@ import logger from '../../../../logger'
 import * as Styles from '../../../../styles'
 import {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
+import * as Kb from '../../../../common-adapters/index'
+import Flags from '../../../../util/feature-flags'
 
 const debugEnabled = false
 
@@ -186,32 +188,46 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
-    return (
-      <ErrorBoundary>
-        <Box style={styles.container}>
-          <NativeVirtualizedList
-            contentContainerStyle={styles.contentContainer}
-            data={this.props.messageOrdinals}
-            inverted={true}
-            getItem={this._getItem}
-            getItemCount={this._getItemCount}
-            renderItem={this._renderItem}
-            maintainVisibleContentPosition={this._maintainVisibleContentPosition}
-            onViewableItemsChanged={this._onViewableItemsChanged}
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={this._keyExtractor}
-            // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-            windowSize={5}
-            ref={this._listRef}
-            onScrollToIndexFailed={this._onScrollToIndexFailed}
-            removeClippedSubviews={Styles.isAndroid}
-          />
-          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
-            <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
-          )}
-        </Box>
-      </ErrorBoundary>
-    )
+    if (Flags.wonderland) { // and there are no messages. not sure how to do this yet.
+      return (
+        <ErrorBoundary>
+          <Box style={styles.wonderland}>
+            <Kb.Text type="BodySemibold" center={true} style={{color: Styles.globalColors.black_50}}>
+              {'How long is forever?'}{"\n"}
+              {'Sometimes, just one second.'}{"\n"}
+              {"⏱️🌹🃏"}
+            </Kb.Text>
+          </Box>
+        </ErrorBoundary>
+      )
+    } else {
+      return (
+        <ErrorBoundary>
+            <Box style={styles.container}>
+              <NativeVirtualizedList
+                contentContainerStyle={styles.contentContainer}
+                data={this.props.messageOrdinals}
+                inverted={true}
+                getItem={this._getItem}
+                getItemCount={this._getItemCount}
+                renderItem={this._renderItem}
+                maintainVisibleContentPosition={this._maintainVisibleContentPosition}
+                onViewableItemsChanged={this._onViewableItemsChanged}
+                keyboardShouldPersistTaps="handled"
+                keyExtractor={this._keyExtractor}
+                // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+                windowSize={5}
+                ref={this._listRef}
+                onScrollToIndexFailed={this._onScrollToIndexFailed}
+                removeClippedSubviews={Styles.isAndroid}
+              />
+              {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+                <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
+              )}
+            </Box>
+        </ErrorBoundary>
+      )
+    }
   }
 }
 
@@ -219,6 +235,11 @@ const styles = Styles.styleSheetCreate({
   container: {
     flex: 1,
     position: 'relative',
+  },
+  wonderland: {
+    position: 'absolute',
+    top: '50%',
+    color: Styles.globalColors.grey,
   },
   contentContainer: {
     bottom: -mobileTypingContainerHeight,
