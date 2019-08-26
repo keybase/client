@@ -68,13 +68,13 @@ export const newModalRoutes = {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
   },
-  pushPrompt: {
-    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
-  },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+  },
+  settingsPushPrompt: {
+    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
   },
   settingsVerifyPhone: {getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone},
 }

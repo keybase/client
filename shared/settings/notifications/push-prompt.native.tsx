@@ -7,8 +7,15 @@ import * as Container from '../../util/container'
 
 const PushPrompt = () => {
   const dispatch = Container.useDispatch()
-  const onNoPermissions = () => dispatch(PushGen.createRejectPermissions())
-  const onRequestPermissions = () => dispatch(PushGen.createRequestPermissions())
+  const nav = Container.useSafeNavigation()
+  const onNoPermissions = () => {
+    dispatch(PushGen.createRejectPermissions())
+    dispatch(nav.safeNavigateUpPayload())
+  }
+  const onRequestPermissions = () => {
+    dispatch(PushGen.createRequestPermissions())
+    dispatch(nav.safeNavigateUpPayload())
+  }
   return (
     <Kb.Modal
       header={{
