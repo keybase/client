@@ -188,7 +188,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
-    if (Flags.wonderland) { // and there are no messages. not sure how to do this yet.
+    if (Flags.wonderland && this.props.messageOrdinals.size === 0) {
       return (
         <ErrorBoundary>
           <Box style={styles.wonderland}>
