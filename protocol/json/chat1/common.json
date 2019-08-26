@@ -296,7 +296,7 @@
       "fields": [
         {
           "type": "int",
-          "name": "index"
+          "name": "startIndex"
         },
         {
           "type": "string",
@@ -304,11 +304,15 @@
         },
         {
           "type": "string",
-          "name": "rebasedPath"
+          "name": "standardPath"
         },
         {
           "type": "string",
-          "name": "platformPath"
+          "name": "deeplinkPath"
+        },
+        {
+          "type": "string",
+          "name": "platformAfterMountPath"
         }
       ],
       "lint": "ignore"

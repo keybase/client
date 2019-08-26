@@ -147,10 +147,11 @@
 
   @lint("ignore")
   record KBFSPath {
-    int index;
+    int startIndex;
     string rawPath;
-    string rebasedPath;
-    string platformPath;
+    string standardPath;
+    string deeplinkPath;
+    string platformAfterMountPath;
   }
 
   enum ConversationMemberStatus {

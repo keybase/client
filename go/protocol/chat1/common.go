@@ -529,18 +529,20 @@ func (o ChannelNameMention) DeepCopy() ChannelNameMention {
 }
 
 type KBFSPath struct {
-	Index        int    `codec:"index" json:"index"`
-	RawPath      string `codec:"rawPath" json:"rawPath"`
-	RebasedPath  string `codec:"rebasedPath" json:"rebasedPath"`
-	PlatformPath string `codec:"platformPath" json:"platformPath"`
+	StartIndex             int    `codec:"startIndex" json:"startIndex"`
+	RawPath                string `codec:"rawPath" json:"rawPath"`
+	StandardPath           string `codec:"standardPath" json:"standardPath"`
+	DeeplinkPath           string `codec:"deeplinkPath" json:"deeplinkPath"`
+	PlatformAfterMountPath string `codec:"platformAfterMountPath" json:"platformAfterMountPath"`
 }
 
 func (o KBFSPath) DeepCopy() KBFSPath {
 	return KBFSPath{
-		Index:        o.Index,
-		RawPath:      o.RawPath,
-		RebasedPath:  o.RebasedPath,
-		PlatformPath: o.PlatformPath,
+		StartIndex:             o.StartIndex,
+		RawPath:                o.RawPath,
+		StandardPath:           o.StandardPath,
+		DeeplinkPath:           o.DeeplinkPath,
+		PlatformAfterMountPath: o.PlatformAfterMountPath,
 	}
 }
 

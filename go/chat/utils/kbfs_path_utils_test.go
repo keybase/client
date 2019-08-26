@@ -3,17 +3,19 @@ package utils
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func strPointer(str string) *string { return &str }
-func makeKBFSPathForTest(rawPath string, rebasedPath *string) chat1.KBFSPath {
-	if rebasedPath == nil {
-		return chat1.KBFSPath{RawPath: rawPath, RebasedPath: rawPath}
+func makeKBFSPathForTest(rawPath string, standardPath *string) chat1.KBFSPath {
+	if standardPath == nil {
+		return chat1.KBFSPath{RawPath: rawPath, StandardPath: rawPath}
 	}
-	return chat1.KBFSPath{RawPath: rawPath, RebasedPath: *rebasedPath}
+	return chat1.KBFSPath{RawPath: rawPath, StandardPath: *standardPath}
 }
 
 var kbfsPathTests = map[string]chat1.KBFSPath{
@@ -69,13 +71,31 @@ var kbfsPathTests = map[string]chat1.KBFSPath{
 
 func TestParseKBFSPathMatches(t *testing.T) {
 	for input, expected := range kbfsPathTests {
-		paths := ParseKBFSPaths(context.Background(), nil, input)
+		paths := ParseKBFSPaths(context.Background(), input)
 		if len(expected.RawPath) > 0 {
 			require.Len(t, paths, 1, "error matching: %s", input)
 			require.Equal(t, expected.RawPath, paths[0].RawPath, "wrong RawPath %q", input)
-			require.Equal(t, expected.RebasedPath, paths[0].RebasedPath, "wrong RebasePath %q", input)
+			require.Equal(t, expected.StandardPath, paths[0].StandardPath, "wrong RebasePath %q", input)
 		} else {
 			require.Len(t, paths, 0, "unexpected match: %s", input)
+		}
+	}
+}
+
+func TestParseKBFSPathDetailed(t *testing.T) {
+	for _, input := range []string{
+		`this is a kbfs path /keybase/team/keybase/blah\ blah\ blah`,
+		`this is a kbfs path "K:\team\keybase\blah blah blah"`,
+	} {
+		paths := ParseKBFSPaths(context.Background(), input)
+		require.Len(t, paths, 1, "input: %s", input)
+		require.Equal(t, 20, paths[0].StartIndex, "input: %s", input)
+		require.Equal(t, "/keybase/team/keybase/blah blah blah", paths[0].StandardPath, "input: %s", input)
+		require.Equal(t, "keybase://team/keybase/blah%20blah%20blah", paths[0].DeeplinkPath, "input: %s", input)
+		if libkb.RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE {
+			require.Equal(t, `\team\keybase\blah blah blah`, paths[0].PlatformAfterMountPath, "input: %s", input)
+		} else {
+			require.Equal(t, "/team/keybase/blah blah blah", paths[0].PlatformAfterMountPath, "input: %s", input)
 		}
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 const usernameRE = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
@@ -42,8 +43,31 @@ type outerMatch struct {
 func (m *outerMatch) isKBFSPath() bool {
 	return m.matchStartIndex >= 0 && (len(m.afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(m.afterKeybase))
 }
-func (m *outerMatch) rebasedPath() string {
+
+func (m *outerMatch) standardPath() string {
 	return "/keybase" + m.afterKeybase
+}
+
+func (m *outerMatch) deeplinkPath() string {
+	if len(m.afterKeybase) == 0 {
+		return ""
+	}
+	var segments []string
+	for _, segment := range strings.Split(m.afterKeybase, "/") {
+		segments = append(segments, url.PathEscape(segment))
+	}
+	return "keybase:/" + strings.Join(segments, "/")
+}
+
+func (m *outerMatch) afterMountPath(backslash bool) string {
+	afterMount := m.afterKeybase
+	if len(afterMount) == 0 {
+		afterMount = "/"
+	}
+	if backslash {
+		return strings.ReplaceAll(afterMount, "/", `\`)
+	}
+	return afterMount
 }
 
 func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
@@ -129,16 +153,23 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 	return outerMatches
 }
 
-func ParseKBFSPaths(ctx context.Context, g *libkb.GlobalContext, body string) (paths []chat1.KBFSPath) {
+func ParseKBFSPaths(ctx context.Context, body string) (paths []chat1.KBFSPath) {
 	outerMatches := matchKBFSPathOuter(body)
 	for _, match := range outerMatches {
 		if match.isKBFSPath() {
+			var platformAfterMountPath string
+			if libkb.RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE {
+				platformAfterMountPath = match.afterMountPath(true)
+			} else {
+				platformAfterMountPath = match.afterMountPath(false)
+			}
 			paths = append(paths,
 				chat1.KBFSPath{
-					Index:        match.matchStartIndex,
-					RawPath:      match.wholeMatch,
-					RebasedPath:  match.rebasedPath(),
-					PlatformPath: "",
+					StartIndex:             match.matchStartIndex,
+					RawPath:                match.wholeMatch,
+					StandardPath:           match.standardPath(),
+					DeeplinkPath:           match.deeplinkPath(),
+					PlatformAfterMountPath: platformAfterMountPath,
 				})
 		}
 	}
