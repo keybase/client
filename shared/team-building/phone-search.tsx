@@ -90,7 +90,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           {state === 'resolved' && !!user && (
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
               <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-              <Kb.Text type="BodySmall">Great! That's <Kb.Usernames colorFollowing={true} inline={true} type="BodySmallSemibold" users={[user]} /> on Keybase.</Kb.Text>
+              <Kb.Text type="BodySmall">Great! That's <Kb.ConnectedUsernames colorFollowing={true} inline={true} type="BodySmallSemibold" usernames={[user.username]} /> on Keybase.</Kb.Text>
             </Kb.Box2>
           )}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
