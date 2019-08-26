@@ -409,13 +409,21 @@ def fetchChangeTarget() {
   }
 }
 
+def getBaseCommitHash() {
+    return sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+}
+
+def getDiffFileList() {
+    def BASE_COMMIT_HASH = getBaseCommitHash()
+    return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
+}
+
 def getPackagesToTest(dependencyFiles) {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET) {
       fetchChangeTarget()
-      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-      def diffFileList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
+      def diffFileList = getDiffFileList()
       if (!diffFileList.contains('Jenkinsfile')) {
         // The Jenkinsfile hasn't changed, so we try to run a minimal set of
         // tests to capture the changes in this PR.
@@ -496,9 +504,23 @@ def testGo(prefix, packagesToTest) {
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
-      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+      def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
         sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+      }
+
+      println("Running golangci-lint for dead code")
+      timeout(activity: true, time: 360, unit: 'SECONDS') {
+        def diffFileList = getDiffFileList()
+        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | grep -v 'go/revision' | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
+        diffPackageList.each { pkg ->
+          dir(pkg) {
+            // Ignore the exit code 5, which indicates that there were
+            // no files to analyze -- that's expected if the files were
+            // all tagged for a different platform.
+            sh 'golangci-lint run --no-config --disable-all --enable=deadcode --deadline 5m0s || test $? -eq 5'
+          }
+        }
       }
     }
 
