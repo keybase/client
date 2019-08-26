@@ -7,11 +7,7 @@ type Props = {
   status: RPCChatTypes.UIChatThreadStatus | null
 }
 
-type ValidatedStatusProps = {
-  status: RPCChatTypes.UIChatThreadStatus
-}
-
-const ValidatedStatus = (props: ValidatedStatusProps) => {
+const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,7 +51,7 @@ const ThreadLoadStatus = (props: Props) => {
         </Kb.Banner>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validated:
-      return <ValidatedStatus status={props.status} />
+      return <ValidatedStatus />
   }
 }
 
