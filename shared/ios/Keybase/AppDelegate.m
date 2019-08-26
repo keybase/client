@@ -140,7 +140,6 @@
 }
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
-  NSError* err = nil;
   NSString* type = notification[@"type"];
   NSString* body = notification[@"m"];
   int badgeCount = [notification[@"b"] intValue];
@@ -152,6 +151,7 @@
   PushNotifier* pusher = [[PushNotifier alloc] init];
   if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSError* err = nil;
       NSString* convID = notification[@"c"];
       int messageID = [notification[@"d"] intValue];
       NSString* pushID = [notification[@"p"] objectAtIndex:0];
@@ -167,6 +167,7 @@
     });
   } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSError* err = nil;
       NSString* convID = notification[@"convID"];
       int messageID = [notification[@"msgID"] intValue];
       KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
