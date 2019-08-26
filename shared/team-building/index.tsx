@@ -150,7 +150,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             small={true}
           />
           <Kb.Button
-            label="Later"
+            label="Skip"
             backgroundColor="blue"
             mode="Secondary"
             onClick={props.onAskForContactsLater}

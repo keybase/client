@@ -1811,6 +1811,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	switch errors.Cause(err).(type) {
 	case nil:
 	case libfs.TlfDoesNotExist:
+		k.log.CDebugf(ctx, "Return err for finalElem=%s", finalElem)
 		if finalElem != "" && finalElem != "." {
 			return keybase1.Dirent{}, err
 		}
@@ -2445,10 +2446,23 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	return tlfHandle.TlfID(), config, nil
 }
 
+func (k *SimpleFS) filterEmptyErr(
+	ctx context.Context, path string, err error) error {
+	exitEarly, _ := libfs.FilterTLFEarlyExitError(
+		ctx, err, k.log, tlf.CanonicalName(path) /* just for logging */)
+	if exitEarly {
+		return nil
+	}
+	return err
+}
+
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
 	_ keybase1.FolderSyncConfigAndStatus, err error) {
+	defer func() {
+		err = k.filterEmptyErr(ctx, path.String(), err)
+	}()
 	ctx = k.makeContext(ctx)
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
 	if err != nil {
@@ -2914,6 +2928,9 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 // SimpleFSSubscribePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribePath(
 	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (err error) {
+	defer func() {
+		err = k.filterEmptyErr(ctx, arg.KbfsPath, err)
+	}()
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
 	if err != nil {
 		return err

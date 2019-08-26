@@ -88,10 +88,13 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		return err
+	}
+	if !msgUnboxed.IsValid() {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: invalid unboxed msg")
+		return nil
 	}
 
 	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
