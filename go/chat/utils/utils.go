@@ -2384,18 +2384,22 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string) string {
-	if info.TopicName != "" {
+	switch info.TeamType {
+	case chat1.TeamType_COMPLEX:
 		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
-	}
-	users := strings.Split(info.TlfName, ",")
-	if len(users) > 1 {
-		usersWithoutYou := []string{}
-		for _, user := range users {
-			if user != myUsername {
-				usersWithoutYou = append(usersWithoutYou, user)
+	case chat1.TeamType_SIMPLE:
+		return info.TlfName
+	case chat1.TeamType_NONE:
+		users := info.Participants
+		if len(users) > 1 {
+			var usersWithoutYou []string
+			for _, user := range users {
+				if user.Username != myUsername {
+					usersWithoutYou = append(usersWithoutYou, user.Username)
+				}
 			}
+			return strings.Join(usersWithoutYou, ",")
 		}
-		return strings.Join(usersWithoutYou, ",")
 	}
 	return info.TlfName
 }
