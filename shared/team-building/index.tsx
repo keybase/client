@@ -70,6 +70,7 @@ type ContactProps = {
   onAskForContactsLater: () => void
   onImportContacts: () => void
   onLoadContactsSetting: () => void
+  selectedService: ServiceIdWithContact
 }
 
 export type Props = ContactProps & {
@@ -94,7 +95,6 @@ export type Props = ContactProps & {
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
-  selectedService: ServiceIdWithContact
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showResults: boolean
@@ -129,6 +129,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // then there's nothing for us to do.
   if (
     props.contactsImported === null ||
+    props.selectedService !== 'keybase' ||
     props.contactsImported ||
     props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
@@ -169,6 +170,7 @@ const ContactsImportButton = (props: ContactProps) => {
   if (
     props.contactsImported === null ||
     props.contactsImported ||
+    !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
   )
     return null
@@ -410,7 +412,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 />
               )
             }
-            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+            renderSectionHeader={({section: {label}}) => (label ? <Kb.SectionDivider label={label} /> : null)}
           />
           {Styles.isMobile && this._alphabetIndex()}
         </Kb.Box2>
