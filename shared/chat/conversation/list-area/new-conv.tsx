@@ -26,6 +26,5 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       whiteSpace: 'pre-line',
     },
-    isMobile: {},
   }),
 }))
