@@ -18,7 +18,7 @@ const promptIcon = Styles.isMobile
 class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         {!Styles.isMobile && <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />}
         <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
           <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -61,6 +61,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       marginLeft: 'auto',
+      marginRight: 4,
       width: 30,
     },
   }),
