@@ -57,7 +57,7 @@ const ServiceIcon = (props: IconProps) => {
             {serviceIdToWonderland(props.service) && (
               <Kb.Text type="Body" style={styles.wonderland}>
                 {' '}
-                🐇
+                <Kb.Emoji size={16} emojiName="rabbit2" />
               </Kb.Text>
             )}
           </Kb.Text>
