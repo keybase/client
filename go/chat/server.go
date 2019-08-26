@@ -2803,9 +2803,18 @@ func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.Conversat
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "IgnorePinnedMessage")()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
-	return nil
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	msg := conv.Info.PinnedMsg
+	if msg == nil {
+		h.Debug(ctx, "IgnorePinnedMessage: no pinned message to ignore")
+		return nil
+	}
+	return storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, msg.GetMessageID())
 }

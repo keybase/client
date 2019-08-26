@@ -731,6 +731,10 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
 		return pinnedMsg, false, nil
 	}
+	if storage.NewPinIgnore(s.G(), uid).IsIgnored(ctx, convID, pinMessage.GetMessageID()) {
+		s.Debug(ctx, "getPinnedMsg: ignored pinned message")
+		return pinnedMsg, false, nil
+	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
 	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, true, nil); err != nil {
@@ -740,6 +744,7 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 		s.Debug(ctx, "getPinnedMsg: not a valid pinned message")
 		return pinnedMsg, false, nil
 	}
+
 	return pinnedMsg, true, nil
 }
 

@@ -1,6 +1,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import {getCanPerform} from '../../../constants/teams'
 import {connect, TypedState, TypedDispatch} from '../../../util/container'
 import PinnedMessage from '.'
 
@@ -26,10 +27,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   if (!message || !(message.type === 'text' || message.type === 'attachment')) {
     return empty
   }
+  const yourOperations = getCanPerform(state, meta.teamname)
+  const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   const attachment: Types.MessageAttachment | undefined =
     message.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
   return {
+    _canAdminDelete,
     _messageID: message.id,
+    _you: state.config.username,
     author: message.author,
     imageHeight: attachment ? attachment.previewHeight : undefined,
     imageURL: attachment ? attachment.previewURL : undefined,
@@ -47,24 +52,30 @@ const mapDispatchToProps = (dispatch: TypedDispatch, {conversationIDKey}: OwnPro
   _onClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
-        conversationIDKey: conversationIDKey,
+        conversationIDKey,
         messageID,
       })
     ),
+  _onIgnore: () => dispatch(Chat2Gen.createIgnorePinnedMessage({conversationIDKey})),
+  _onUnpin: () => dispatch(Chat2Gen.createUnpinMessage({conversationIDKey})),
 })
 
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>
-) => ({
-  author: stateProps.author,
-  imageHeight: stateProps.imageHeight,
-  imageURL: stateProps.imageURL,
-  imageWidth: stateProps.imageWidth,
-  onClick: () => dispatchProps._onClick(stateProps._messageID),
-  onDismiss: () => {},
-  text: stateProps.text,
-})
+) => {
+  const yourMessage = message.author === stateProps._you
+  const dismissUnpins = yourMessage || stateProps._canAdminDelete
+  return {
+    author: stateProps.author,
+    imageHeight: stateProps.imageHeight,
+    imageURL: stateProps.imageURL,
+    imageWidth: stateProps.imageWidth,
+    onClick: () => dispatchProps._onClick(stateProps._messageID),
+    onDismiss: dismissUnpins ? dispatchProps._onUnpin : dispatchProps._onIgnore,
+    text: stateProps.text,
+  }
+}
 
 export default connect(
   mapStateToProps,
