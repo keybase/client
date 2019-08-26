@@ -111,7 +111,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
               disabled={!this.props.showNewTag}
               containerStyle={{flexGrow: 1}}
               position="top center"
-              text="NEW! Search all your chats."
+              text="Search all your chats"
             >
               <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
                 <Kb.Icon
@@ -127,15 +127,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                   <Kb.Text type="BodySemibold" style={styles.textFaint}>
                     ({Platforms.shortcutSymbol}K)
                   </Kb.Text>
-                )}
-                {this.props.showNewTag && (
-                  <Kb.Box2
-                    direction="horizontal"
-                    alignItems="center"
-                    style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
-                  >
-                    <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
-                  </Kb.Box2>
                 )}
               </Kb.ClickableBox>
             </Kb.WithTooltip>
