@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import Flags from '../../../util/feature-flags'
 
 type Props = {
   onBack: () => void
@@ -26,9 +27,12 @@ const StartNewChat = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true}>
-        <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.buttonIcon} />
-      </Kb.Button>
+      <Kb.Button
+        label={Flags.wonderland ? 'Start a new chat 🐇' : 'Start a new chat'}
+        onClick={props.onNewChat}
+        style={styles.button}
+        small={true}
+      />
     </Kb.Box2>
   )
 }
