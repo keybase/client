@@ -8,7 +8,6 @@ import {
   serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
-import * as Constants from '../constants/team-building'
 import {Props, IconProps} from './service-tab-bar'
 
 const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
@@ -148,7 +147,7 @@ export const ServiceTabBar = (props: Props) => {
               onScroll={onScroll}
               scrollEventThrottle={1000}
             >
-              {Constants.services.map(service => (
+              {props.services.map(service => (
                 <ServiceIcon
                   key={service}
                   service={service}
