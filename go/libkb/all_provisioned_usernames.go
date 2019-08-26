@@ -93,7 +93,7 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	for _, userConfig := range resp.UserConfigs {
 		if userConfig.OK {
 			all = append(all, userConfig.Username)
-			if userConfig.Username == currentUC.GetUsername() {
+			if currentUC != nil && userConfig.Username == currentUC.GetUsername() {
 				current = userConfig.Username
 			}
 		}
