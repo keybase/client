@@ -1,7 +1,7 @@
-import * as Constants from '../../constants/provision'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
+import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   onBack: () => void
@@ -9,33 +9,40 @@ type Props = {
   onSubmit: () => void | void
   deviceName: string
   error: string
+  waiting: boolean
 }
 
 const SetPublicName = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" gapStart={true}>
+    <SignupScreen
+      banners={errorBanner(props.error)}
+      buttons={[
+        {
+          disabled: !props.onSubmit,
+          label: 'Continue',
+          onClick: props.onSubmit,
+          type: 'Success',
+          waiting: props.waiting,
+        },
+      ]}
+      onBack={props.onBack}
+      title={`Name this ${isMobile ? 'phone' : 'computer'}`}
+    >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        {props.error ? <Kb.Banner color="red">{props.error}</Kb.Banner> : []}
-        <Kb.Text type={isMobile ? 'Body' : 'Header'}>
-          Set a public name for this new {isMobile ? 'phone' : 'computer'}:
-        </Kb.Text>
-        <Kb.Icon type={isMobile ? 'icon-phone-64' : 'icon-computer-64'} />
-        <Kb.Input
-          autoFocus={true}
-          hintText="Pick a device name"
-          onEnterKeyDown={props.onSubmit}
-          onChangeText={props.onChange}
-          value={props.deviceName}
-        />
-        <Kb.WaitingButton
-          disabled={!props.onSubmit}
-          label="Continue"
-          onClick={props.onSubmit}
-          waitingKey={Constants.waitingKey}
-        />
-        {props.onBack && <Kb.Button label="Back to my existing account" onClick={props.onBack} />}
+        <Kb.Icon type={isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
+          <Kb.NewInput
+            autoFocus={true}
+            placeholder="Pick a device name"
+            onEnterKeyDown={props.onSubmit}
+            onChangeText={props.onChange}
+            value={props.deviceName}
+            style={styles.nameInput}
+          />
+          <Kb.Text type="BodySmall">Your device name will be public.</Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </SignupScreen>
   )
 }
 
@@ -52,6 +59,12 @@ const styles = styleSheetCreate({
   }),
   contents: {
     width: '100%',
+  },
+  nameInput: {
+    padding: globalMargins.tiny,
+  },
+  wrapper: {
+    width: 460,
   },
 })
 

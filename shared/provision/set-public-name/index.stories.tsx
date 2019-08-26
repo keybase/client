@@ -8,6 +8,7 @@ const props = {
   onBack: Sb.action('onBack'),
   onChange: Sb.action('onChange'),
   onSubmit: Sb.action('onSubmit'),
+  waiting: false,
 }
 
 const load = () => {
