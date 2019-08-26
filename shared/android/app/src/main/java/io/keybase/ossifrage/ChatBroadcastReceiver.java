@@ -40,13 +40,8 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
         .setSmallIcon(R.drawable.ic_notif);
 
       try {
-        Keybase.setAppStateBackgroundActive();
-        Keybase.handlePostTextReply(convData.convID, convData.tlfName, messageBody);
-        if (Keybase.appDidEnterBackground()) {
-          Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
-        } else {
-          Keybase.setAppStateBackground();
-        }
+        WithBackgroundActive withBackgroundActive = () -> Keybase.handlePostTextReply(convData.convID, convData.tlfName, messageBody);
+        withBackgroundActive.whileActive(context);
         repliedNotification.setContentText("Replied");
       } catch (Exception e) {
         repliedNotification.setContentText("Couldn't send reply");

@@ -6,7 +6,7 @@ import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import {AllowedNamespace} from '../../constants/types/team-building'
 import {validateEmailAddress} from '../../util/email-address'
-import Flags from '../../util/feature-flags'
+import ContinueButton from '../continue-button'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
@@ -73,26 +73,26 @@ const EmailInput = ({namespace}: EmailInputProps) => {
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {user !== null && canSubmit && emailHasKeybaseAccount && (
-          <Kb.NameWithIcon
-            colorFollowing={true}
-            horizontal={true}
-            username={user.serviceMap.keybase}
-            metaOne={user.prettyName}
-            onClick={onSubmit}
-            clickType="onClick"
-          />
+        {user !== null && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
+          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention}>
+            <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+            <Kb.Text type="BodySmall">
+              Great! That's{' '}
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                inline={true}
+                type="BodySmallSemibold"
+                usernames={[user.serviceMap.keybase]}
+              />{' '}
+              on Keybase.
+            </Kb.Text>
+          </Kb.Box2>
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
-          <Kb.Button
-            label={Flags.wonderland ? 'Continue 🐇' : 'Continue'}
-            fullWidth={true}
-            onClick={onSubmit}
-            disabled={!canSubmit}
-          />
+          <ContinueButton onClick={onSubmit} disabled={!canSubmit} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -124,6 +124,10 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
+  userMatchMention: {
+    alignSelf: 'flex-start',
+    marginLeft: Styles.globalMargins.small,
+  },
 }))
 
 export default EmailInput

@@ -95,7 +95,7 @@ export const Email = () => {
       </Kb.Box2>
       {!!emailError && (
         <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError.message} />
+          <Kb.BannerParagraph bannerColor="red" content={emailError} />
         </Kb.Banner>
       )}
     </Kb.Modal>
