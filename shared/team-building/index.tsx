@@ -170,6 +170,7 @@ const ContactsImportButton = (props: ContactProps) => {
   if (
     props.contactsImported === null ||
     props.contactsImported ||
+    !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
   )
     return null
@@ -411,7 +412,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 />
               )
             }
-            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+            renderSectionHeader={({section: {label}}) => (label ? <Kb.SectionDivider label={label} /> : null)}
           />
           {Styles.isMobile && this._alphabetIndex()}
         </Kb.Box2>
