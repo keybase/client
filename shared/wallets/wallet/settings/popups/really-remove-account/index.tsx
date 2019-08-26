@@ -19,14 +19,17 @@ const ReallyRemoveAccountPopup = (props: Props) => {
   const attachmentRef = React.useRef<Kb.Button>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
   React.useEffect(() => {
-    showingToast && setShowToastFalseLater()
-  }, [showingToast, setShowToastFalseLater])
-  React.useEffect(() => {
     props.onLoadSecretKey()
     return () => {
       props.onSecretKeySeen()
-    }
-  })
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const {onCopyKey} = props
+  const onCopy = React.useCallback(() => {
+    setShowToast(true)
+    onCopyKey()
+    setShowToastFalseLater()
+  }, [onCopyKey, setShowToastFalseLater])
   return (
     <WalletPopup
       onExit={props.onCancel}
@@ -38,7 +41,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           fullWidth={Styles.isMobile}
           key={0}
           label="Copy secret key"
-          onClick={() => setShowToast(true)}
+          onClick={onCopy}
           type="Wallet"
           ref={attachmentRef}
           waiting={props.loading}
