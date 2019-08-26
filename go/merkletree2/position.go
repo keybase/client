@@ -14,13 +14,13 @@ import (
 // (0b00000101).
 type Position big.Int
 
-func (t *Tree) getRootPosition() *Position {
+func (t *TreeConfig) getRootPosition() *Position {
 	return (*Position)(big.NewInt(1))
 }
 
-func (t *Tree) getChild(p *Position, c ChildIndex) *Position {
+func (t *TreeConfig) getChild(p *Position, c ChildIndex) *Position {
 	var q big.Int
-	q.Lsh((*big.Int)(p), uint(t.cfg.bitsPerIndex))
+	q.Lsh((*big.Int)(p), uint(t.bitsPerIndex))
 	q.Or(&q, big.NewInt(int64(c)))
 	return (*Position)(&q)
 }
@@ -29,7 +29,7 @@ func (p *Position) getBytes() []byte {
 	return (*big.Int)(p).Bytes()
 }
 
-func (t *Tree) isPositionOnPathToKey(p *Position, k Key) bool {
+func (p *Position) isOnPathToKey(k Key) bool {
 	// If the Key is shorter than current prefix
 	if len(k)*8 < (*big.Int)(p).BitLen()-1 {
 		return false
@@ -46,34 +46,34 @@ func (p *Position) equals(q *Position) bool {
 }
 
 // getParent return nil if the p is the root
-func (t *Tree) getParent(p *Position) *Position {
+func (t *TreeConfig) getParent(p *Position) *Position {
 	if (*big.Int)(p).BitLen() < 2 {
 		return nil
 	}
 
 	var f big.Int
-	f.Rsh((*big.Int)(p), uint(t.cfg.bitsPerIndex))
+	f.Rsh((*big.Int)(p), uint(t.bitsPerIndex))
 
 	return (*Position)(&f)
 }
 
 // getAllSiblings returns nil,nil if p is the root
-func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Position) {
+func (t *TreeConfig) getAllSiblings(p *Position) (siblings []Position, parent *Position) {
 
 	parent = t.getParent(p)
 	if parent == nil {
 		return nil, nil
 	}
 
-	siblings = make([]Position, t.cfg.childrenPerNode-1)
+	siblings = make([]Position, t.childrenPerNode-1)
 
 	var child0 big.Int
-	child0.Lsh((*big.Int)(parent), uint(t.cfg.bitsPerIndex))
+	child0.Lsh((*big.Int)(parent), uint(t.bitsPerIndex))
 
 	var buff big.Int
 	pChildIndex := buff.Xor(&child0, (*big.Int)(p)).Int64()
 
-	for i, j := int64(0), int64(0); j < int64(t.cfg.childrenPerNode); j++ {
+	for i, j := int64(0), int64(0); j < int64(t.childrenPerNode); j++ {
 		if j == pChildIndex {
 			continue
 		}
@@ -86,8 +86,8 @@ func (t *Tree) getAllSiblings(p *Position) (siblings []Position, parent *Positio
 
 // getDeepestPositionForKey converts the key into the position the key would be
 // stored at if the tree was full with only one key per leaf.
-func (t *Tree) getDeepestPositionForKey(k Key) (*Position, error) {
-	if len(k) != t.cfg.keysByteLength {
+func (t *TreeConfig) getDeepestPositionForKey(k Key) (*Position, error) {
+	if len(k) != t.keysByteLength {
 		return nil, NewInvalidKeyError()
 	}
 	var p Position
@@ -96,18 +96,72 @@ func (t *Tree) getDeepestPositionForKey(k Key) (*Position, error) {
 	return &p, nil
 }
 
-func (t *Tree) getSiblingPositionsOnPathToKey(k Key) ([][]Position, error) {
+// getSiblingPositionsOnPathToKey returns a slice of positions, in descending
+// order by level (siblings farther from the root come first) and in
+// lexicographic order within each level.
+func (t *TreeConfig) getSiblingPositionsOnPathToKey(k Key) ([]Position, error) {
 	p, err := t.getDeepestPositionForKey(k)
 	if err != nil {
 		return nil, err
 	}
-	maxPathLength := ((*big.Int)(p).BitLen() - 1) / int(t.cfg.bitsPerIndex)
-	positions := make([][]Position, maxPathLength)
+	maxPathLength := t.keysByteLength * 8 / int(t.bitsPerIndex)
+	positions := make([]Position, 0, maxPathLength*(t.childrenPerNode-1))
 	root := t.getRootPosition()
+	var sibs []Position
 	for i := 0; !p.equals(root); {
-		positions[i], p = t.getAllSiblings(p)
+		sibs, p = t.getAllSiblings(p)
+		positions = append(positions, sibs...)
 		i++
 	}
 
 	return positions, nil
+}
+
+// getLevel returns the level of p. The root is at level 0, and each node has
+// level 1 higher than its parent.
+func (t *TreeConfig) getLevel(p *Position) int {
+	return ((*big.Int)(p).BitLen() - 1) / int(t.bitsPerIndex)
+}
+
+// getParentAtLevel returns nil if p is at a level lower than `level`. The root
+// is at level 0, and each node has level 1 higher than its parent.
+func (t *TreeConfig) getParentAtLevel(p *Position, level uint) *Position {
+	shift := (*big.Int)(p).BitLen() - 1 - int(t.bitsPerIndex)*int(level)
+	if (*big.Int)(p).BitLen() < 2 || shift < 0 {
+		return nil
+	}
+
+	var f big.Int
+	f.Rsh((*big.Int)(p), uint(shift))
+
+	return (*Position)(&f)
+}
+
+// positionToChildIndexes returns the list of childIndexes to navigate from the
+// root to p (in reverse order).
+func (t *TreeConfig) positionToChildIndexes(p *Position) (path []ChildIndex) {
+	path = make([]ChildIndex, ((*big.Int)(p).BitLen()-1)/int(t.bitsPerIndex))
+
+	bitMask := big.NewInt(int64(t.childrenPerNode - 1))
+
+	var buff, buff2 big.Int
+	buff2.Set((*big.Int)(p))
+
+	for i := range path {
+		path[i] = ChildIndex(buff.And(bitMask, &buff2).Int64())
+		buff2.Rsh(&buff2, uint(t.bitsPerIndex))
+	}
+
+	return path
+}
+
+// getDeepestChildIndex returns the only ChildIndex i such that p is the i-th children of
+// its parent. It returns 0 on the root.
+func (t *TreeConfig) getDeepestChildIndex(p *Position) ChildIndex {
+	if (*big.Int)(p).BitLen() < 2 {
+		return ChildIndex(0)
+	}
+	bitMask := big.NewInt(int64(t.childrenPerNode - 1))
+	var buff big.Int
+	return ChildIndex(buff.And(bitMask, (*big.Int)(p)).Int64())
 }
