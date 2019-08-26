@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters/index'
 import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
 import {ServiceIdWithContact, User} from 'constants/types/team-building'
-import Flags from '../util/feature-flags'
+import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   onContinue: (user: User) => void
@@ -102,16 +102,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
-        <Kb.Button fullWidth={true} style={styles.button} onClick={_onContinue} disabled={!validity}>
-          <Kb.Text type="BodyBig" style={styles.continueButton}>
-            Continue
-          </Kb.Text>
-          {Flags.wonderland && (
-            <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
-              <Kb.Emoji size={16} emojiName="rabbit2" />
-            </Kb.Text>
-          )}
-        </Kb.Button>
+        <ContinueButton onClick={_onContinue} disabled={!validity} />
       </Kb.Box2>
     </>
   )
@@ -130,14 +121,8 @@ const styles = Styles.styleSheetCreate(() => ({
       zIndex: -1,
     },
   }),
-  continueButton: {
-    color: Styles.globalColors.white,
-  },
   loading: {alignSelf: 'center'},
   nameWithIconContainer: {width: '100%'},
-  rabbitEmoji: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
   resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
 }))
