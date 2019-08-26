@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
+import * as Container from '../util/container'
+import * as SignupGen from '../actions/signup-gen'
 import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
@@ -43,6 +45,7 @@ const People = (props: Props) => {
       }
       return () => dispatch(SignupGen.createClearJustSignedUp())
     }
+    return undefined
   }, [dispatch, nav, justSignedUp, isPushEnabled, showPushPrompt])
   return (
     <Kb.ScrollView
