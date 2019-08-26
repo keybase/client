@@ -169,6 +169,18 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 	return found, currentScore * multiplier, plumbMatchedVal
 }
 
+func compareUserSearch(i, j keybase1.APIUserSearchResult) bool {
+	// Float comparasion - we expect exact floats here when multiple
+	// results match in same way and yield identical score thorugh
+	// same scoring operations.
+	if i.RawScore == j.RawScore {
+		idI := i.GetStringIDForCompare()
+		idJ := j.GetStringIDForCompare()
+		return idI > idJ
+	}
+	return i.RawScore > j.RawScore
+}
+
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	contactsRes, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
 	if err != nil {
@@ -249,7 +261,7 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 
 	// Return best matches first.
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].RawScore > res[j].RawScore
+		return compareUserSearch(res[i], res[j])
 	})
 
 	// Trim to maxResults to reduce complexity on the call site.
@@ -441,15 +453,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			}
 
 			sort.Slice(res, func(i, j int) bool {
-				// Float comparasion - we expect exact floats here when multiple
-				// results match in same way and yield identical score thorugh
-				// same scoring operations.
-				if res[i].RawScore == res[j].RawScore {
-					idI := res[i].GetStringIDForCompare()
-					idJ := res[j].GetStringIDForCompare()
-					return idI > idJ
-				}
-				return res[i].RawScore > res[j].RawScore
+				return compareUserSearch(res[i], res[j])
 			})
 
 			for i := range res {

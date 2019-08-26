@@ -1,7 +1,8 @@
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
 import {IconType} from '../common-adapters/icon.constants'
 import Flags from '../util/feature-flags'
+import {allServices} from '../constants/team-building'
 
 const services: {
   [K in ServiceIdWithContact]: {
@@ -98,6 +99,8 @@ const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
 
 const inactiveServiceAccentColor = Styles.globalColors.black
 
+const serviceMapToArray = (services: ServiceMap) => allServices.filter(x => x !== 'keybase' && x in services)
+
 export {
   serviceIdToIconFont,
   serviceIdToAccentColor,
@@ -106,4 +109,5 @@ export {
   serviceIdToLongLabel,
   serviceIdToSearchPlaceholder,
   serviceIdToWonderland,
+  serviceMapToArray,
 }
