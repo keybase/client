@@ -145,6 +145,7 @@ module.exports = {
     'filenames/match-regex': ['error', '^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$'],
 
     'import/no-unresolved': 'error',
+    'import/newline-after-import': 'warn',
     'import/named': 'error',
     'import/default': 'error',
     'import/namespace': 'off',

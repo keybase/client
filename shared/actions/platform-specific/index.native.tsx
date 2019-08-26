@@ -19,7 +19,7 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-import NetInfo from '@react-native-community/netinfo'
+import * as NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
