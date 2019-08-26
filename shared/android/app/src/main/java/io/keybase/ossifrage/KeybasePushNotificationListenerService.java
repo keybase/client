@@ -180,7 +180,9 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     }
 
                     notifier.setMsgCache(msgCache.get(n.convID));
-                    WithBackgroundActive withBackgroundActive = () -> Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.membersType, n.displayPlaintext, n.messageId, n.pushId, n.badgeCount, n.unixTime, n.soundName, notifier);
+                    WithBackgroundActive withBackgroundActive = () -> Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                            n.membersType, n.displayPlaintext, n.messageId, n.pushId,
+                            n.badgeCount, n.unixTime, n.soundName, notifier);
                     withBackgroundActive.whileActive(getApplicationContext());
                     seenChatNotifications.add(n.convID + n.messageId);
                 }
@@ -249,6 +251,7 @@ class NotificationData {
     final long unixTime;
     final String soundName;
     final String serverMessageBody;
+    final String sender;
 
     // Derived from go/gregord/chatpush/push.go
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
@@ -258,17 +261,16 @@ class NotificationData {
         badgeCount = Integer.parseInt(bundle.getString("b", "0"));
         soundName = bundle.getString("s", "");
         serverMessageBody = bundle.getString("message", "");
+        sender = bundle.getString("u", "");
+        unixTime = Long.parseLong(bundle.getString("x", "0"));
 
         if (type.equals("chat.newmessage")) {
             messageId = Integer.parseInt(bundle.getString("msgID", "0"));
             convID = bundle.getString("convID");
-            // TODO consolidate this with below when new server code goes in
-            unixTime = ((new Date()).getTime() / 1000);
             pushId = "";
         } else if (type.equals("chat.newmessageSilent_2"))  {
             messageId = Integer.parseInt(bundle.getString("d", ""));
             convID = bundle.getString("c");
-            unixTime = Long.parseLong(bundle.getString("x", "0"));
 
             String pushIdTmp = "";
             try {
