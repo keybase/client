@@ -60,12 +60,22 @@ const styles = styleSheetCreate({
   contents: {
     width: '100%',
   },
-  nameInput: {
-    padding: globalMargins.tiny,
-  },
-  wrapper: {
-    width: 460,
-  },
+  nameInput: platformStyles({
+    common: {
+      padding: globalMargins.tiny,
+    },
+    isMobile: {
+      minHeight: 48,
+    },
+  }),
+  wrapper: platformStyles({
+    isElectron: {
+      width: 460,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
 })
 
 export default SetPublicName
