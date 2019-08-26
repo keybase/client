@@ -134,7 +134,7 @@ const styles = Styles.styleSheetCreate(() => ({
       minWidth: 352,
     },
   }),
-  containerSmall: Styles.platformStyles({isElectron: {minHeight: 28}, isMobile: {minHeight: 32}}),
+  containerSmall: {minHeight: 28},
   iconContainer: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.xtiny,
