@@ -150,20 +150,21 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                     : `New chat (${Platforms.shortcutSymbol}N)`
                 }
               >
-                <Kb.Button
-                  label={Flags.wonderland ? 'New chat 🐇' : ''}
-                  small={true}
-                  onClick={this.props.onNewChat}
-                  style={styles.newChatButton}
-                >
-                  {!Flags.wonderland && (
+                <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
+                  {Flags.wonderland ? (
+                    <>
+                      <Kb.Text type="BodyBig" style={styles.newChatButtonText}>
+                        New chat
+                      </Kb.Text>
+                      <Kb.Emoji size={16} emojiName=":rabbit2:" />
+                    </>
+                  ) : (
                     <Kb.Icon
                       type="iconfont-compose"
                       color={Styles.globalColors.white}
                       style={styles.newIcon}
                     />
                   )}
-                  {/* PICNIC-360 TODO rabbit rabbit emojis are different sizes on retina rabbit */}
                 </Kb.Button>
               </Kb.WithTooltip>
             </Kb.Box>
@@ -255,6 +256,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.xtiny,
     },
   }),
+  newChatButtonText: {
+    color: Styles.globalColors.white,
+    marginRight: Styles.globalMargins.xtiny,
+  },
   newIcon: {
     position: 'relative',
     top: 1,
