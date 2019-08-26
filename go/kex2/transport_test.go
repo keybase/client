@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -43,8 +44,8 @@ type session struct {
 	simplexSessions [2](*simplexSession)
 }
 
-func newSession(I SessionID) *session {
-	sess := &session{id: I}
+func newSession(i SessionID) *session {
+	sess := &session{id: i}
 	for j := 0; j < 2; j++ {
 		sess.simplexSessions[j] = newSimplexSession()
 	}
@@ -92,13 +93,6 @@ func corruptMessage(behavior int, msg []byte) {
 	}
 }
 
-func newMockRouter() *mockRouter {
-	return &mockRouter{
-		behavior: GoodRouter,
-		sessions: make(map[SessionID]*session),
-	}
-}
-
 func newMockRouterWithBehavior(b int) *mockRouter {
 	return &mockRouter{
 		behavior: b,
@@ -134,20 +128,20 @@ func (s *session) findOrMakeSimplexSession(sender DeviceID, lt lookupType) *simp
 	return s.simplexSessions[i]
 }
 
-func (mr *mockRouter) findOrMakeSimplexSession(I SessionID, sender DeviceID, lt lookupType) *simplexSession {
+func (mr *mockRouter) findOrMakeSimplexSession(i SessionID, sender DeviceID, lt lookupType) *simplexSession {
 	mr.sessionMutex.Lock()
 	defer mr.sessionMutex.Unlock()
 
-	sess, ok := mr.sessions[I]
+	sess, ok := mr.sessions[i]
 	if !ok {
-		sess = newSession(I)
-		mr.sessions[I] = sess
+		sess = newSession(i)
+		mr.sessions[i] = sess
 	}
 	return sess.findOrMakeSimplexSession(sender, lt)
 }
 
-func (mr *mockRouter) Post(I SessionID, sender DeviceID, seqno Seqno, msg []byte) error {
-	ss := mr.findOrMakeSimplexSession(I, sender, bySender)
+func (mr *mockRouter) Post(i SessionID, sender DeviceID, seqno Seqno, msg []byte) error {
+	ss := mr.findOrMakeSimplexSession(i, sender, bySender)
 	corruptMessage(mr.behavior, msg)
 	return ss.post(seqno, msg)
 }
@@ -187,8 +181,8 @@ func (ss *simplexSession) get(seqno Seqno, poll time.Duration, behavior int) (re
 	return ret, err
 }
 
-func (mr *mockRouter) Get(I SessionID, receiver DeviceID, seqno Seqno, poll time.Duration) ([][]byte, error) {
-	ss := mr.findOrMakeSimplexSession(I, receiver, byReceiver)
+func (mr *mockRouter) Get(i SessionID, receiver DeviceID, seqno Seqno, poll time.Duration) ([][]byte, error) {
+	ss := mr.findOrMakeSimplexSession(i, receiver, byReceiver)
 	if mr.maxPoll > time.Duration(0) && poll > mr.maxPoll {
 		poll = mr.maxPoll
 	}
@@ -196,7 +190,7 @@ func (mr *mockRouter) Get(I SessionID, receiver DeviceID, seqno Seqno, poll time
 }
 
 func genSecret(t *testing.T) (ret Secret) {
-	_, err := rand.Read([]byte(ret[:]))
+	_, err := rand.Read(ret[:])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +198,7 @@ func genSecret(t *testing.T) (ret Secret) {
 }
 
 func genDeviceID(t *testing.T) (ret DeviceID) {
-	_, err := rand.Read([]byte(ret[:]))
+	_, err := rand.Read(ret[:])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,13 +281,14 @@ func TestBadMetadata(t *testing.T) {
 func TestReadDeadline(t *testing.T) {
 	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
 	wait := time.Duration(10) * time.Millisecond
-	c2.SetReadDeadline(time.Now().Add(wait))
+	err := c2.SetReadDeadline(time.Now().Add(wait))
+	require.NoError(t, err)
 	go func() {
 		time.Sleep(wait * 2)
-		c1.Write([]byte("hello friend"))
+		_, _ = c1.Write([]byte("hello friend"))
 	}()
 	buf := make([]byte, 100)
-	_, err := c2.Read(buf)
+	_, err = c2.Read(buf)
 	if err != ErrTimedOut {
 		t.Fatalf("wanted a read timeout")
 	}
@@ -304,7 +299,7 @@ func TestReadTimeout(t *testing.T) {
 	c1, c2, _, _ := genConnPair(t, GoodRouter, wait)
 	go func() {
 		time.Sleep(wait * 2)
-		c1.Write([]byte("hello friend"))
+		_, _ = c1.Write([]byte("hello friend"))
 	}()
 	buf := make([]byte, 100)
 	_, err := c2.Read(buf)
@@ -316,11 +311,12 @@ func TestReadTimeout(t *testing.T) {
 func TestReadDelayedWrite(t *testing.T) {
 	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
 	wait := time.Duration(50) * time.Millisecond
-	c2.SetReadDeadline(time.Now().Add(wait))
+	err := c2.SetReadDeadline(time.Now().Add(wait))
+	require.NoError(t, err)
 	text := "hello friend"
 	go func() {
 		time.Sleep(wait / 32)
-		c1.Write([]byte(text))
+		_, _ = c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
 	n, err := c2.Read(buf)
@@ -484,7 +480,7 @@ func TestPollLoopSuccess(t *testing.T) {
 
 	go func() {
 		time.Sleep(wait / 32)
-		c1.Write([]byte(text))
+		_, _ = c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
 	n, err := c2.Read(buf)
@@ -510,7 +506,7 @@ func TestPollLoopTimeout(t *testing.T) {
 
 	go func() {
 		time.Sleep(wait * 2)
-		c1.Write([]byte(text))
+		_, _ = c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
 	if _, err := c2.Read(buf); err != ErrTimedOut {
