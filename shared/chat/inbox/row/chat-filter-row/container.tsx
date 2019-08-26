@@ -20,7 +20,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     filter: ownProps.query,
     isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
-    showNewTag: state.chat2.inboxShowNew,
+    showNewTag: isMobile && state.chat2.inboxShowNew, // PICNIC-403
   }
 }
 
