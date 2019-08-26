@@ -8,7 +8,6 @@ import {
   serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
-import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
 import {difference} from 'lodash-es'
@@ -142,30 +141,30 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  const {onChangeService: propsOnChangeService} = props
+  const {services, onChangeService: propsOnChangeService} = props
   const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
-      if (Constants.services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
+      if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
       propsOnChangeService(service)
     },
-    [lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
+    [services, lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
   )
-  const lockedServices = Constants.services.slice(0, nLocked)
+  const lockedServices = services.slice(0, nLocked)
   let frontServices = lockedServices
-  if (Constants.services.indexOf(props.selectedService) < nLocked) {
+  if (services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
     if (lastSelectedUnlockedService === null) {
-      frontServices = Constants.services.slice(0, nLocked + 1)
+      frontServices = services.slice(0, nLocked + 1)
     } else {
       frontServices = lockedServices.concat([lastSelectedUnlockedService])
     }
   } else {
     frontServices = lockedServices.concat([props.selectedService])
   }
-  const moreServices = difference(Constants.services, frontServices)
+  const moreServices = difference(services, frontServices)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.map(service => (
