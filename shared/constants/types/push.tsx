@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import * as ChatTypes from './chat2'
 import * as RPCChatTypes from './rpc-chat-gen'
+
 export type TokenType = 'apple' | 'appledev' | 'androidplay'
 
 export type PushNotification =

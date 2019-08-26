@@ -8,7 +8,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {appendNewChatBuilder} from '../actions/typed-routes'
-import {SettingsSection} from './account/'
+import {SettingsSection} from "./account"
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'

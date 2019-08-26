@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Icon, Text} from '../../../../common-adapters/'
+import {Box, Icon, Text} from "../../../../common-adapters"
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 export type Props = {

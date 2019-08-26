@@ -1,4 +1,4 @@
-import {NavState, Navigator} from '../constants/types/route-tree'
+import {NavState, Navigator} from "./types/route-tree"
 
 let _navigator: Navigator | undefined
 // Private API only used by config sagas

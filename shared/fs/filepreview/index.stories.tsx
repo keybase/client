@@ -2,7 +2,7 @@ import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
-import {NormalPreview} from '../filepreview'
+import {NormalPreview} from "."
 import * as Kb from '../../common-adapters'
 import {commonProvider} from '../common/index.stories'
 import {footerProvider} from '../footer/index.stories'

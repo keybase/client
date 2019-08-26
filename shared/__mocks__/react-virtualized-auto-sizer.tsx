@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }

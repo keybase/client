@@ -1,9 +1,9 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
-import * as FsGen from '../../actions/fs-gen'
+import * as FsGen from "../fs-gen"
 import * as FsTypes from '../../constants/types/fs'
-import * as NotificationsGen from '../../actions/notifications-gen'
+import * as NotificationsGen from "../notifications-gen"
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
 import * as PushNotifications from 'react-native-push-notification'

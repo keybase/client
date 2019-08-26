@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Kb from '../'
+import * as Kb from ".."
 import * as Styles from '../../styles'
 import {range} from 'lodash-es'
 import Modal from '.'

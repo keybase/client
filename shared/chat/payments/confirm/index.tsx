@@ -77,7 +77,7 @@ type PaymentProps = {
 }
 
 const PaymentRow = (props: PaymentProps) => (
-  <React.Fragment>
+  <>
     <Kb.NameWithIcon horizontal={true} username={props.username} metaOne={props.fullName} />
     <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
       {!!props.displayAmount && <Kb.Text type="BodyExtrabold">{props.displayAmount}</Kb.Text>}
@@ -91,7 +91,7 @@ const PaymentRow = (props: PaymentProps) => (
         </Kb.Text>
       )}
     </Kb.Box2>
-  </React.Fragment>
+  </>
 )
 
 type Props = {

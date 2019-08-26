@@ -5,6 +5,7 @@ import {namedConnect} from '../util/container'
 import Text from './text'
 import {Box2} from './box'
 import Icon from './icon'
+
 type OwnProps = {}
 
 const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (

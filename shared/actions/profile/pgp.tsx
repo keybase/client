@@ -1,7 +1,7 @@
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTreeGen from "../route-tree-gen"
 import {peopleTab} from '../../constants/tabs'
 
 function* generatePgp(state) {

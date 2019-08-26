@@ -1,7 +1,7 @@
 import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTreeGen from "../route-tree-gen"
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'

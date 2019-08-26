@@ -4,12 +4,12 @@ import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as ConfigGen from '../actions/config-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as ConfigGen from "./config-gen"
+import * as EngineGen from "./engine-gen-gen"
+import * as RouteTreeGen from "./route-tree-gen"
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as SettingsGen from '../actions/settings-gen'
-import * as WaitingGen from '../actions/waiting-gen'
+import * as SettingsGen from "./settings-gen"
+import * as WaitingGen from "./waiting-gen"
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'

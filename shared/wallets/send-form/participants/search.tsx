@@ -62,7 +62,7 @@ class Search extends React.Component<SearchProps, SearchState> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <ParticipantsRow
           ref={this._setRef}
           heading={this.props.heading}
@@ -116,7 +116,7 @@ class Search extends React.Component<SearchProps, SearchState> {
             </Kb.Box>
           </Kb.FloatingBox>
         )}
-      </React.Fragment>
+      </>
     )
   }
 }

@@ -42,7 +42,7 @@ class Folders extends React.PureComponent<Props, State> {
   }
   render() {
     return (
-      <React.Fragment>
+      <>
         {(this.state.expanded ? this.props.tlfs : this.props.tlfs.slice(0, numFoldersShown)).map(tlf => (
           <Tlf {...tlf} key={tlf.text} />
         ))}
@@ -54,7 +54,7 @@ class Folders extends React.PureComponent<Props, State> {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-      </React.Fragment>
+      </>
     )
   }
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from '.'
 import AvatarLine from './avatar-line'
+
 const load = () => {
   Sb.storiesOf('Common', module).add('AvatarLine', () => (
     <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="center">
