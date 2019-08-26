@@ -15,15 +15,25 @@ const _HeaderNewChatButton = (props: OwnProps) => {
   if (props.hide) {
     return null
   }
-  return (
-    <Kb.Button
-      label={Flags.wonderland ? 'New chat 🐇' : 'New chat'}
-      mode="Primary"
-      onClick={props.onNewChat}
-      small={true}
-      style={Styles.collapseStyles([styles.button, Flags.wonderland && styles.wonderlandBorder])}
-      type="Default"
-    />
+  return Flags.wonderland ? (
+    <Kb.Box style={styles.wonderlandButtonContainer}>
+      <Kb.Box2 direction="vertical" style={styles.gradientContainer}>
+        <Kb.Box style={styles.gradientRed} />
+        <Kb.Box style={styles.gradientOrange} />
+        <Kb.Box style={styles.gradientYellow} />
+        <Kb.Box style={styles.gradientGreen} />
+      </Kb.Box2>
+      <Kb.Button
+        label={'New chat 🐇'}
+        mode="Primary"
+        onClick={props.onNewChat}
+        small={true}
+        style={styles.wonderlandButton}
+        type="Default"
+      />
+    </Kb.Box>
+  ) : (
+    <Kb.Button label={'New chat'} onClick={props.onNewChat} small={true} style={styles.button} />
   )
 }
 
@@ -47,14 +57,35 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.tiny,
   },
+  gradientContainer: {flex: 1, height: 36, left: 0, position: 'absolute', top: 0, width: '100%'},
+  gradientGreen: {
+    backgroundColor: '#3AFFAC',
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    flex: 1,
+  },
+  gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
+  gradientRed: {backgroundColor: '#FF5D5D', borderTopLeftRadius: 6, borderTopRightRadius: 6, flex: 1},
+  gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
   newMeta: {
     alignSelf: 'center',
     marginRight: Styles.globalMargins.tiny,
   },
-  wonderlandBorder: {
-    borderColor: '#3AFFAC',
-    borderStyle: 'solid',
-    borderWidth: 2,
+  wonderlandButton: {
+    left: 0,
+    margin: 2,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    position: 'absolute',
+    top: 0,
+    width: 112,
+  },
+  wonderlandButtonContainer: {
+    alignSelf: 'flex-start',
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    position: 'relative',
+    width: 116,
   },
 })
 
