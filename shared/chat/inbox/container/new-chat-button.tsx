@@ -98,10 +98,6 @@ const styles = Styles.styleSheetCreate({
       top: 0,
       width: 112,
     },
-    isIOS: {
-      // marginBottom: 3,
-      // marginTop: 3,
-    },
   }),
   wonderlandButtonContainer: Styles.platformStyles({
     common: {
