@@ -131,13 +131,13 @@ const styles = styleSheetCreate({
     },
   }),
   headerText: platformStyles({
+    common: {
+      paddingBottom: globalMargins.small,
+    },
     isMobile: {
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.small,
       paddingTop: globalMargins.small,
-    },
-    common: {
-      paddingBottom: globalMargins.small,
     },
   }),
   list: {
