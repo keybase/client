@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalMargins, styleSheetCreate, globalColors} from '../../../styles'
+import * as Styles from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
@@ -15,17 +15,25 @@ const _HeaderNewChatButton = (props: OwnProps) => {
   if (props.hide) {
     return null
   }
-  return (
-    <Kb.Button
-      label={Flags.wonderland ? 'New chat 🐇' : 'New chat'}
-      mode="Primary"
-      onClick={props.onNewChat}
-      small={true}
-      style={styles.button}
-      type="Default"
-    >
-      <Kb.Meta backgroundColor={globalColors.orange} title="NEW" style={styles.newMeta} />
-    </Kb.Button>
+  return Flags.wonderland ? (
+    <Kb.Box style={styles.wonderlandButtonContainer}>
+      <Kb.Box2 direction="vertical" style={styles.gradientContainer}>
+        <Kb.Box style={styles.gradientRed} />
+        <Kb.Box style={styles.gradientOrange} />
+        <Kb.Box style={styles.gradientYellow} />
+        <Kb.Box style={styles.gradientGreen} />
+      </Kb.Box2>
+      <Kb.Button
+        label={'New chat 🐇'}
+        mode="Primary"
+        onClick={props.onNewChat}
+        small={true}
+        style={styles.wonderlandButton}
+        type="Default"
+      />
+    </Kb.Box>
+  ) : (
+    <Kb.Button label={'New chat'} onClick={props.onNewChat} small={true} style={styles.button} />
   )
 }
 
@@ -42,15 +50,67 @@ const HeaderNewChatButton = namedConnect(
   'HeaderNewChatButton'
 )(_HeaderNewChatButton)
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   button: {
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.tiny,
   },
+  gradientContainer: {flex: 1, height: 36, left: 0, position: 'absolute', top: 0, width: '100%'},
+  gradientGreen: Styles.platformStyles({
+    common: {
+      backgroundColor: '#3AFFAC',
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      flex: 1,
+    },
+    isAndroid: {
+      borderBottomLeftRadius: Styles.globalMargins.tiny,
+      borderBottomRightRadius: Styles.globalMargins.tiny,
+    },
+  }),
+  gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
+  gradientRed: Styles.platformStyles({
+    common: {
+      backgroundColor: '#FF5D5D',
+      borderTopLeftRadius: Styles.borderRadius,
+      borderTopRightRadius: Styles.borderRadius,
+      flex: 1,
+    },
+    isAndroid: {
+      borderTopLeftRadius: Styles.globalMargins.tiny,
+      borderTopRightRadius: Styles.globalMargins.tiny,
+    },
+  }),
+  gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
   newMeta: {
     alignSelf: 'center',
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
+  wonderlandButton: Styles.platformStyles({
+    common: {
+      left: 0,
+      margin: 2,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      position: 'absolute',
+      top: 0,
+      width: 112,
+    },
+  }),
+  wonderlandButtonContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+      position: 'relative',
+      width: 116,
+    },
+    isAndroid: {
+      marginTop: 10,
+    },
+  }),
 })
 
 export {HeaderNewChatButton}

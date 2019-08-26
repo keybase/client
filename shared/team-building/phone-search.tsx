@@ -88,15 +88,18 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
           />
           {state === 'resolved' && !!user && (
-            <Kb.Box2 direction="horizontal" style={styles.resultContainer}>
-              <Kb.NameWithIcon
-                containerStyle={styles.nameWithIconContainer}
-                size="big"
-                onClick={_onContinue}
-                horizontal={true}
-                username={user.username}
-                metaOne={user.prettyName}
-              />
+            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
+              <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+              <Kb.Text type="BodySmall">
+                Great! That's{' '}
+                <Kb.ConnectedUsernames
+                  colorFollowing={true}
+                  inline={true}
+                  type="BodySmallSemibold"
+                  usernames={[user.username]}
+                />{' '}
+                on Keybase.
+              </Kb.Text>
             </Kb.Box2>
           )}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
@@ -122,9 +125,12 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   loading: {alignSelf: 'center'},
-  nameWithIconContainer: {width: '100%'},
-  resultContainer: {margin: Styles.globalMargins.tiny, width: '100%'},
   spaceFillingBox: {flexGrow: 1},
+  userMatchMention: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.small,
+  },
 }))
 
 export default PhoneSearch
