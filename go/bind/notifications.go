@@ -153,10 +153,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
-
-	pusher.DisplayChatNotification(&chatNotification)
-	if len(pushID) != 0 {
-		mp.AckNotificationSuccess(ctx, []string{pushID})
+	if pusher != nil {
+		pusher.DisplayChatNotification(&chatNotification)
+		if len(pushID) != 0 {
+			mp.AckNotificationSuccess(ctx, []string{pushID})
+		}
 	}
 	return nil
 }
