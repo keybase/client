@@ -179,12 +179,20 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                         return;
                     }
 
+                    // If we aren't displaying the plain text version in a silent notif drop this.
+                    // We'll get the non-silent version with a servermessagebody that we can display
+                    // later.
+                    boolean dontNotify = (type.equals("chat.newmessageSilent_2") && !n.displayPlaintext);
+
                     notifier.setMsgCache(msgCache.get(n.convID));
                     WithBackgroundActive withBackgroundActive = () -> Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                             n.membersType, n.displayPlaintext, n.messageId, n.pushId,
-                            n.badgeCount, n.unixTime, n.soundName, notifier);
+                            n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
                     withBackgroundActive.whileActive(getApplicationContext());
-                    seenChatNotifications.add(n.convID + n.messageId);
+
+                    if (!dontNotify) {
+                        seenChatNotifications.add(n.convID + n.messageId);
+                    }
                 }
                 break;
                 case "follow": {
