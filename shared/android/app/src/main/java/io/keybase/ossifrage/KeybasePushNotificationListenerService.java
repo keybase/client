@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.MessagingStyle;
 import android.support.v4.app.NotificationManagerCompat;
@@ -15,7 +16,6 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -59,18 +59,6 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
 
         return style;
     }
-
-    private void cacheMsg(String convID, MessagingStyle.Message msg) {
-        SmallMsgRingBuffer buf = msgCache.get(convID);
-        if (buf != null) {
-            buf.add(msg);
-        } else {
-            buf = new SmallMsgRingBuffer();
-            buf.add(msg);
-            msgCache.put(convID, buf);
-        }
-    }
-
 
     @Override
     public void onCreate() {
@@ -142,6 +130,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
     @Override
     public void onMessageReceived(RemoteMessage message) {
         final Bundle bundle = new Bundle();
@@ -176,31 +165,34 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
             String payload = bundle.getString("m");
             KBPushNotifier notifier = new KBPushNotifier(getApplicationContext(), bundle);
             switch (type) {
+                case "chat.newmessage":
                 case "chat.newmessageSilent_2": {
-                    boolean displayPlaintext = "true".equals(bundle.getString("n"));
-                    int membersType = Integer.parseInt(bundle.getString("t"));
-                    String convID = bundle.getString("c");
-                    int messageId = Integer.parseInt(bundle.getString("d"));
-                    JSONArray pushes = parseJSONArray(bundle.getString("p"));
-                    String pushId = pushes.getString(0);
-                    int badgeCount = Integer.parseInt(bundle.getString("b"));
-                    long unixTime = Integer.parseInt(bundle.getString("x"));
-                    String soundName = bundle.getString("s");
+                    NotificationData n = new NotificationData(type, bundle);
 
                     // Blow the cache if we aren't displaying plaintext
-                    if (!msgCache.containsKey(convID) || !displayPlaintext) {
-                        msgCache.put(convID, new SmallMsgRingBuffer());
+                    if (!msgCache.containsKey(n.convID) || !n.displayPlaintext) {
+                        msgCache.put(n.convID, new SmallMsgRingBuffer());
                     }
 
                     // We've shown this notification already
-                    if (seenChatNotifications.contains(convID + messageId)) {
+                    if (seenChatNotifications.contains(n.convID + n.messageId)) {
                         return;
                     }
 
-                    notifier.setMsgCache(msgCache.get(convID));
+                    // If we aren't displaying the plain text version in a silent notif drop this.
+                    // We'll get the non-silent version with a servermessagebody that we can display
+                    // later.
+                    boolean dontNotify = (type.equals("chat.newmessageSilent_2") && !n.displayPlaintext);
 
-                    Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageId, pushId, badgeCount, unixTime, soundName, notifier);
-                    seenChatNotifications.add(convID + messageId);
+                    notifier.setMsgCache(msgCache.get(n.convID));
+                    WithBackgroundActive withBackgroundActive = () -> Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                            n.membersType, n.displayPlaintext, n.messageId, n.pushId,
+                            n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
+                    withBackgroundActive.whileActive(getApplicationContext());
+
+                    if (!dontNotify) {
+                        seenChatNotifications.add(n.convID + n.messageId);
+                    }
                 }
                 break;
                 case "follow": {
@@ -223,34 +215,9 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     notificationManager.cancelAll();
                 }
                 break;
-                case "chat.newmessage": {
-                    // The server will send us this if we didn't ack the chat.newmessageSilent_2 within
-                    String convID = bundle.getString("convID");
-                    int membersType = Integer.parseInt(bundle.getString("t"));
-                    int messageId = Integer.parseInt(bundle.getString("msgID"));
-                    // TODO should we just check if this is an exploding message and only show it then?
-                    String messageBody = bundle.getString("message");
-
-                    // We've shown this notification already
-                    if (seenChatNotifications.contains(convID + messageId)) {
-                        return;
-                    } else {
-                        seenChatNotifications.add(convID + messageId);
-                    }
-                    // TODO handle this case better. Right now this isn't as pretty as the notifs
-                    // above. We should use the engine to get more metadata. Making this ugly for now.
-                    // This is only used in exploding messages.
-                    if (messageBody != null && !messageBody.isEmpty()) {
-                        notifier.genericNotification(convID, "", messageBody, bundle, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID);
-                    }
-
-                }
-                break;
                 default:
                     notifier.generalNotification();
             }
-        } catch (JSONException jex) {
-            NativeLogger.error("Couldn't parse json: " + jex.getMessage());
         } catch (Exception ex) {
             NativeLogger.error("Couldn't handle background notification: " + ex.getMessage());
         }
@@ -265,13 +232,6 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         }
     }
 
-    private JSONArray parseJSONArray(String str) {
-        try {
-            return new JSONArray(str);
-        } catch (Exception e) {
-            return null;
-        }
-    }
 }
 
 class SmallMsgRingBuffer {
@@ -287,4 +247,73 @@ class SmallMsgRingBuffer {
     public List<MessagingStyle.Message> summary() {
         return buffer;
     }
+}
+
+class NotificationData {
+    final boolean displayPlaintext;
+    final int membersType;
+    final String convID;
+    final int messageId;
+    final String pushId;
+    final int badgeCount;
+    final long unixTime;
+    final String soundName;
+    final String serverMessageBody;
+    final String sender;
+
+    // Derived from go/gregord/chatpush/push.go
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
+    NotificationData(String type, Bundle bundle) {
+        displayPlaintext = "true".equals(bundle.getString("n"));
+        membersType = Integer.parseInt(bundle.getString("t"));
+        badgeCount = Integer.parseInt(bundle.getString("b", "0"));
+        soundName = bundle.getString("s", "");
+        serverMessageBody = bundle.getString("message", "");
+        sender = bundle.getString("u", "");
+        unixTime = Long.parseLong(bundle.getString("x", "0"));
+
+        if (type.equals("chat.newmessage")) {
+            messageId = Integer.parseInt(bundle.getString("msgID", "0"));
+            convID = bundle.getString("convID");
+            pushId = "";
+        } else if (type.equals("chat.newmessageSilent_2"))  {
+            messageId = Integer.parseInt(bundle.getString("d", ""));
+            convID = bundle.getString("c");
+
+            String pushIdTmp = "";
+            try {
+                JSONArray pushes = new JSONArray(bundle.getString("p"));
+                pushIdTmp = pushes.getString(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            pushId = pushIdTmp;
+        } else {
+            throw new Error("Tried to parse notification of unhandled type: " + type );
+        }
+
+    }
+}
+
+// Interface to run some task while in backgroundActive.
+// If already foreground, just runs the task.
+interface WithBackgroundActive {
+    abstract void task() throws Exception;
+
+    default void whileActive(Context context) throws Exception {
+        // We are foreground we don't need to change to background active
+        if (Keybase.isAppStateForeground()) {
+            this.task();
+        } else {
+          Keybase.setAppStateBackgroundActive();
+          this.task();
+          if (Keybase.appDidEnterBackground()) {
+              Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
+          } else {
+              Keybase.setAppStateBackground();
+          }
+        }
+    }
+
+
 }
