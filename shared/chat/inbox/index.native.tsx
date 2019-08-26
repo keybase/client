@@ -29,7 +29,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
       marginRight: Styles.globalMargins.large,
     }}
   >
-    <Kb.Icon type="icon-fancy-encrypted-computer-mobile-226-96" />
+    <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
     <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
       All conversations are end-to-end encrypted.
     </Kb.Text>
