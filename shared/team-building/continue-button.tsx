@@ -2,10 +2,11 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import Flags from '../util/feature-flags'
-import {Props} from './continue-button'
 
-// Mobile needs separate component because <Kb.Emoji> does not render inside of
-// a button.
+export type Props = {
+  onClick: () => void
+  disabled: boolean
+}
 
 const ContinueButton = (props: Props) => (
   <Kb.Button fullWidth={true} style={styles.button} onClick={props.onClick} disabled={props.disabled}>
@@ -14,7 +15,7 @@ const ContinueButton = (props: Props) => (
     </Kb.Text>
     {Flags.wonderland && (
       <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
-        <Kb.Emoji size={16} emojiName="rabbit2" />
+        <Kb.Emoji size={16} emojiName=":rabbit2:" />
       </Kb.Text>
     )}
   </Kb.Button>

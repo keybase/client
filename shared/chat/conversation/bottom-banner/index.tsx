@@ -75,7 +75,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       <BannerText>
         {Flags.wonderland && (
           <>
-            <Emoji size={16} emojiName="rabbit2" />{' '}
+            <Emoji size={16} emojiName=":rabbit2:" />{' '}
           </>
         )}
         Send them this link:
