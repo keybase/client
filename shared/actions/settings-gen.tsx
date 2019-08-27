@@ -86,7 +86,7 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
 type _AddPhoneNumberPayload = {readonly searchable: boolean; readonly phoneNumber: string}
-type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
+type _AddedEmailPayload = {readonly email: string; readonly error?: string}
 type _AddedPhoneNumberPayload = {
   readonly searchable: boolean
   readonly error?: string

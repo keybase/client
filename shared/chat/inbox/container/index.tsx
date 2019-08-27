@@ -5,13 +5,12 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
-import {isMobile, isIOS} from '../../../constants/platform'
+import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
 import {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
-import Flags from '../../../util/feature-flags'
 
 type OwnProps = {}
 
@@ -140,7 +139,7 @@ class InboxWrapper extends React.PureComponent<Props> {
     headerTitle: (
       <Kb.Text type="BodyBig" lineClamp={1}>
         {' '}
-        {Flags.wonderland && isIOS ? '' : 'Chats'}{' '}
+        Chats{' '}
       </Kb.Text>
     ),
     title: 'Chats',

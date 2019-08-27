@@ -261,6 +261,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 			err)
 		return
 	}
+	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
+	if err := r.G().InboxSource.Draft(ctx, uid, convID, nil); err != nil {
+		r.Debug(ctx, "serveGiphyGallerySelect: failed to clear draft: %s", err)
+	}
 	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url, keybase1.TLFVisibility_PRIVATE); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
 			err)

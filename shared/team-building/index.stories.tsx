@@ -10,6 +10,7 @@ import GoButton from './go-button'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
 import PhoneSearch from './phone-search'
+import * as Constants from '../constants/team-building'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -564,6 +565,7 @@ const load = () => {
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        focusOnMount={true}
       />
     ))
     .add('TeamBox', () => (
@@ -617,6 +619,7 @@ const load = () => {
   Sb.storiesOf('Team-Building/Service Tab Bar', module)
     .add('With Service Results counts', () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{
@@ -629,6 +632,7 @@ const load = () => {
     ))
     .add('Pending results', () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}
@@ -649,6 +653,7 @@ const load = () => {
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}

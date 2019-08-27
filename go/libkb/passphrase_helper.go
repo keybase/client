@@ -254,25 +254,29 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 	// check for empty
 	if len(phrase.String()) == 0 {
 		m.Debug("paper phrase is empty")
-		return PassphraseError{Msg: "Empty paper key. Please try again."}
+		return NewPaperKeyError("paper key was empty", true)
 	}
 
 	// check for at least PaperKeyWordCountMin words
 	if phrase.NumWords() < PaperKeyWordCountMin {
-		return PassphraseError{Msg: "Your paper key should have more words than this. Please double check."}
+		return NewPaperKeyError(fmt.Sprintf("your paper key should have at least %d words", PaperKeyWordCountMin), true)
 	}
 
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
 		m.Debug("paper phrase has invalid word(s) in it")
-		var perr PassphraseError
-		if len(invalids) > 1 {
-			perr.Msg = fmt.Sprintf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
-		} else {
-			perr.Msg = fmt.Sprintf("Please try again. This word is invalid: %s", invalids[0])
+		var err error
+		var w []string
+		for _, i := range invalids {
+			w = append(w, fmt.Sprintf("%q", i))
 		}
-		return perr
+		if len(invalids) > 1 {
+			err = NewPaperKeyError(fmt.Sprintf("the words %s are invalid", strings.Join(w, ", ")), true)
+		} else {
+			err = NewPaperKeyError(fmt.Sprintf("the word %s is invalid", w[0]), true)
+		}
+		return err
 	}
 
 	// check version
@@ -280,11 +284,11 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 	if err != nil {
 		m.Debug("error getting paper key version: %s", err)
 		// despite the error, just tell the user the paper key is wrong:
-		return PassphraseError{Msg: "Wrong paper key. Please try again."}
+		return NewPaperKeyError("key didn't match any known keys for this account", true)
 	}
 	if version != PaperKeyVersion {
 		m.Debug("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
-		return PassphraseError{Msg: "Wrong paper key. Please try again."}
+		return NewPaperKeyError("key didn't match any known keys for this account", true)
 	}
 
 	return nil

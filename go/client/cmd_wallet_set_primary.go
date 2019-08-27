@@ -53,7 +53,7 @@ func (c *cmdWalletSetPrimary) Run() (err error) {
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.PrintfUnescaped("Wallet account %s set to %s.\n", ColorString(c.G(), "yellow", c.accountID), ColorString(c.G(), "green", "primary"))
+	_, _ = ui.PrintfUnescaped("Wallet account %s set to %s.\n", ColorString(c.G(), "yellow", c.accountID), ColorString(c.G(), "green", "primary"))
 
 	return nil
 }
