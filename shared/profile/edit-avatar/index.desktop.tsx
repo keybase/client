@@ -402,6 +402,11 @@ class EditAvatar extends React.Component<_Props, State> {
 }
 
 const hoverStyles = Styles.styleSheetCreate(() => ({
+  dropping: {
+    backgroundColor: Styles.globalColors.blue_60,
+    borderColor: Styles.globalColors.blue_60,
+  },
+  droppingIcon: {color: Styles.globalColors.blue_60},
   filled: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
@@ -413,12 +418,6 @@ const hoverStyles = Styles.styleSheetCreate(() => ({
     borderColor: Styles.globalColors.grey,
   },
   hover: {borderColor: Styles.globalColors.black_50},
-  hoverIcon: {color: Styles.globalColors.black_50},
-  dropping: {
-    backgroundColor: Styles.globalColors.blue_60,
-    borderColor: Styles.globalColors.blue_60,
-  },
-  droppingIcon: {color: Styles.globalColors.blue_60},
   hoverContainer: {
     backgroundColor: Styles.globalColors.grey,
     borderColor: Styles.globalColors.greyDark,
@@ -432,6 +431,7 @@ const hoverStyles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: AVATAR_CONTAINER_SIZE,
   },
+  hoverIcon: {color: Styles.globalColors.black_50},
 }))
 
 const HoverBox = Styles.styled(Kb.Box)({
