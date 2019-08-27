@@ -1520,7 +1520,8 @@ type SimpleFSGetTeamQuotaUsageArg struct {
 }
 
 type SimpleFSResetArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path  Path   `codec:"path" json:"path"`
+	TlfID string `codec:"tlfID" json:"tlfID"`
 }
 
 type SimpleFSFolderSyncConfigAndStatusArg struct {
@@ -1691,7 +1692,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetTeamQuotaUsage(context.Context, TeamName) (SimpleFSQuotaUsage, error)
 	// simpleFSReset completely resets the KBFS folder referenced in `path`.
 	// It should only be called after explicit user confirmation.
-	SimpleFSReset(context.Context, Path) error
+	SimpleFSReset(context.Context, SimpleFSResetArg) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
@@ -2198,7 +2199,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSResetArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSReset(ctx, typedArgs[0].Path)
+					err = i.SimpleFSReset(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2654,8 +2655,7 @@ func (c SimpleFSClient) SimpleFSGetTeamQuotaUsage(ctx context.Context, teamName 
 
 // simpleFSReset completely resets the KBFS folder referenced in `path`.
 // It should only be called after explicit user confirmation.
-func (c SimpleFSClient) SimpleFSReset(ctx context.Context, path Path) (err error) {
-	__arg := SimpleFSResetArg{Path: path}
+func (c SimpleFSClient) SimpleFSReset(ctx context.Context, __arg SimpleFSResetArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReset", []interface{}{__arg}, nil)
 	return
 }
