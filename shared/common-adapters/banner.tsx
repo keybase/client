@@ -126,7 +126,7 @@ export const Banner = (props: BannerProps) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {minHeight: 32},
+  container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
   containerInline: Styles.platformStyles({
     common: {borderRadius: Styles.borderRadius},
     isElectron: {
