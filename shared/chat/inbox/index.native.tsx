@@ -19,20 +19,23 @@ import Flags from '../../util/feature-flags'
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2
     direction="vertical"
-    gap="xsmall"
+    gap="small"
     style={{
       ...Styles.globalStyles.fillAbsolute,
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
-      marginLeft: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.large,
     }}
   >
     <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
-    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
-      All conversations are end-to-end encrypted.
-    </Kb.Text>
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        All conversations are
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        end-to-end encrypted.
+      </Kb.Text>
+    </Kb.Box2>
     <Kb.Button
       onClick={props.onNewChat}
       mode="Primary"
