@@ -18,8 +18,7 @@ export default () => (
 const styles = Styles.styleSheetCreate(() => ({
   wonderlandStyle: {
     ...Styles.globalStyles.flexBoxCenter,
-    height: 116,
-    marginTop: Styles.globalMargins.large,
+    height: '100%',
   },
   wonderlandTextStyle: Styles.platformStyles({
     isElectron: {
