@@ -10,6 +10,7 @@ import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
+import KbfsPath from '../kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
@@ -148,6 +149,15 @@ const ServiceDecoration = (props: Props) => {
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
         style={props.styles.linkStyle}
+      />
+    )
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath && parsed.kbfspath) {
+    return (
+      <KbfsPath
+        deeplinkPath={parsed.kbfspath.deeplinkPath}
+        platformAfterMountPath={parsed.kbfspath.platformAfterMountPath}
+        rawPath={parsed.kbfspath.rawPath}
+        standardPath={parsed.kbfspath.standardPath}
       />
     )
   }

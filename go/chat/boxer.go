@@ -1238,7 +1238,7 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 }
 
 func (b *Boxer) getKBFSPaths(ctx context.Context, topicType chat1.TopicType,
-	body chat1.MessageBody) (kbfsPaths []chat1.UIKBFSPath) {
+	body chat1.MessageBody) (kbfsPaths []chat1.KBFSPath) {
 	if topicType != chat1.TopicType_CHAT {
 		// only care about chat conversations for these mentions
 		return nil

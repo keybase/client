@@ -175,3 +175,14 @@ func ParseKBFSPaths(ctx context.Context, body string) (paths []chat1.KBFSPath) {
 	}
 	return paths
 }
+
+func DecorateWithKBFSPath(
+	ctx context.Context, body string, paths []chat1.KBFSPath) (
+	res string) {
+	var offset, added int
+	for _, path := range paths {
+		body, added = DecorateBody(ctx, body, path.StartIndex+offset, len(path.RawPath), chat1.NewUITextDecorationWithKbfspath(path))
+		offset += added
+	}
+	return body
+}

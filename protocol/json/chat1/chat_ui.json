@@ -798,13 +798,6 @@
           "name": "channelNameMentions"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "KBFSPath"
-          },
-          "name": "kbfsPaths"
-        },
-        {
           "type": "boolean",
           "name": "isEphemeral"
         },
@@ -1076,7 +1069,8 @@
         "CHANNELNAMEMENTION_2",
         "MAYBEMENTION_3",
         "LINK_4",
-        "MAILTO_5"
+        "MAILTO_5",
+        "KBFSPATH_6"
       ]
     },
     {
@@ -1190,6 +1184,13 @@
             "def": false
           },
           "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "KBFSPATH",
+            "def": false
+          },
+          "body": "KBFSPath"
         }
       ]
     },
