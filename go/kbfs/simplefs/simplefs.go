@@ -2235,8 +2235,8 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 
 // SimpleFSReset resets the given TLF.
 func (k *SimpleFS) SimpleFSReset(
-	ctx context.Context, path keybase1.Path) error {
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	ctx context.Context, arg keybase1.SimpleFSResetArg) error {
+	t, tlfName, _, _, err := remoteTlfAndPath(arg.Path)
 	if err != nil {
 		return err
 	}
@@ -2246,7 +2246,16 @@ func (k *SimpleFS) SimpleFSReset(
 		return err
 	}
 
-	return k.config.KBFSOps().Reset(ctx, tlfHandle)
+	var newTlfID *tlf.ID
+	if arg.TlfID != "" {
+		tlfID, err := tlf.ParseID(arg.TlfID)
+		if err != nil {
+			return err
+		}
+		newTlfID = &tlfID
+	}
+
+	return k.config.KBFSOps().Reset(ctx, tlfHandle, newTlfID)
 }
 
 var _ libkbfs.Observer = (*SimpleFS)(nil)

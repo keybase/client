@@ -561,8 +561,12 @@ type KBFSOps interface {
 	ForceStuckConflictForTesting(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
-	// `handle` has the new TLF ID.
-	Reset(ctx context.Context, handle *tlfhandle.Handle) error
+	// `handle` has the new TLF ID.  If `*newTlfID` is non-nil, that
+	// will be the new TLF ID of the reset TLF, if it already points
+	// to a MD object that matches the same handle as the original TLF
+	// (see HOTPOT-685 for an example of how this can happen -- it
+	// should be very rare).
+	Reset(ctx context.Context, handle *tlfhandle.Handle, newTlfID *tlf.ID) error
 
 	// GetSyncConfig returns the sync state configuration for the
 	// given TLF.

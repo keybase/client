@@ -208,7 +208,8 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 }
 
 // SimpleFSReset implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
+func (s SimpleFSMock) SimpleFSReset(
+	_ context.Context, _ keybase1.SimpleFSResetArg) error {
 	return nil
 }
 
