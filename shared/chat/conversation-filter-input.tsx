@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string
@@ -140,11 +141,33 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && !Styles.isMobile && (
-            <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
-                <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
-              </Kb.Button>
-            </Kb.WithTooltip>
+            <Kb.Box style={Flags.wonderland ? styles.wonderlandBorder : {}}>
+              <Kb.WithTooltip
+                position="top center"
+                text={
+                  Flags.wonderland
+                    ? `(${Platforms.shortcutSymbol}N)`
+                    : `New chat (${Platforms.shortcutSymbol}N)`
+                }
+              >
+                <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
+                  {Flags.wonderland ? (
+                    <>
+                      <Kb.Text type="BodyBig" style={styles.newChatButtonText}>
+                        New chat
+                      </Kb.Text>
+                      <Kb.Emoji size={16} emojiName=":rabbit2:" />
+                    </>
+                  ) : (
+                    <Kb.Icon
+                      type="iconfont-compose"
+                      color={Styles.globalColors.white}
+                      style={styles.newIcon}
+                    />
+                  )}
+                </Kb.Button>
+              </Kb.WithTooltip>
+            </Kb.Box>
           )}
         </Kb.Box2>
       )
@@ -227,7 +250,16 @@ const styles = Styles.styleSheetCreate(() => ({
     right: 0,
     top: 0,
   },
-  newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+  newChatButton: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      paddingRight: Flags.wonderland ? Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
+    },
+  }),
+  newChatButtonText: {
+    color: Styles.globalColors.white,
+    marginRight: Styles.globalMargins.xtiny,
+  },
   newIcon: {
     position: 'relative',
     top: 1,
@@ -257,6 +289,19 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
   },
   whiteBg: {backgroundColor: Styles.globalColors.white},
+  wonderlandBorder: Styles.platformStyles({
+    common: {
+      padding: 2,
+    },
+    isElectron: {
+      background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+      borderRadius: 6,
+    },
+    isMobile: {
+      backgroundColor: '#0dff0c',
+      borderRadius: 8,
+    },
+  }),
 }))
 
 export default ConversationFilterInput

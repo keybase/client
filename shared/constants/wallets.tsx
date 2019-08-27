@@ -809,6 +809,11 @@ export const getDefaultAccountID = (state: TypedState) => {
   return defaultAccount ? defaultAccount.accountID : null
 }
 
+export const getDefaultAccount = (state: TypedState) => {
+  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+  return defaultAccount || unknownAccount
+}
+
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 

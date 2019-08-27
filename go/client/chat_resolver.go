@@ -128,7 +128,10 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 	default:
 		r.G.UI.GetTerminalUI().Printf(
 			"There are %d conversations. Please choose one:\n", len(conversations))
-		conversationInfoListView(conversations).show(r.G)
+		err := conversationInfoListView(conversations).show(r.G)
+		if err != nil {
+			return nil, false, err
+		}
 		var num int
 		for num = -1; num < 1 || num > len(conversations); {
 			input, err := r.G.UI.GetTerminalUI().Prompt(PromptDescriptorChooseConversation,

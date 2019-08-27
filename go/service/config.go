@@ -42,7 +42,7 @@ func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalC
 }
 
 func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res keybase1.CurrentStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	return status.GetCurrentStatus(mctx)
 }
 
@@ -139,13 +139,13 @@ func (h ConfigHandler) clearValue(_ context.Context, path string, w libkb.JSONWr
 }
 
 func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetClientStatus", func() error { return err })()
 	return libkb.GetClientStatus(mctx), nil
 }
 
 func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybase1.Config, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetConfig", func() error { return err })()
 	forkType := keybase1.ForkType_NONE
 	if h.svc != nil {
@@ -155,13 +155,13 @@ func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybas
 }
 
 func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *keybase1.FullStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetFullStatus", func() error { return err })()
 	return status.GetFullStatus(mctx)
 }
 
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()
 
 	fstatus, err := status.GetFullStatus(mctx)
@@ -181,7 +181,7 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
-	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
+	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG"))
 	if err != nil {
 		return res, err
 	}

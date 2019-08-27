@@ -8393,6 +8393,17 @@ func (fbo *folderBranchOps) getMDForMigrationLocked(
 	return md, nil
 }
 
+// CheckMigrationPerms implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) CheckMigrationPerms(
+	ctx context.Context, id tlf.ID) (err error) {
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	_, err = fbo.getMDForMigrationLocked(ctx, lState)
+	return err
+}
+
 // MigrateToImplicitTeam implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) (err error) {

@@ -5,9 +5,9 @@ import {
   serviceIdToIconFont,
   serviceIdToAccentColor,
   serviceIdToLongLabel,
+  serviceIdToWonderland,
   inactiveServiceAccentColor,
 } from './shared'
-import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
 import {difference} from 'lodash-es'
@@ -29,14 +29,36 @@ const ServiceIcon = (props: IconProps) => {
           fullHeight={true}
           style={styles.serviceIconContainerInner}
         >
-          <Kb.Icon
-            fontSize={16}
-            type={serviceIdToIconFont(props.service)}
-            style={Styles.collapseStyles([styles.serviceIcon, {color}])}
-            boxStyle={styles.serviceIconBox}
-          />
-          <Kb.Text type="BodyTiny" center={true} lineClamp={2} style={styles.label}>
+          <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+            {serviceIdToWonderland(props.service) && (
+              <Kb.Badge
+                border={true}
+                height={9}
+                containerStyle={styles.badgeContainerStyle}
+                badgeStyle={styles.badgeStyle}
+                leftRightPadding={0}
+              />
+            )}
+            <Kb.Icon
+              fontSize={16}
+              type={serviceIdToIconFont(props.service)}
+              style={Styles.collapseStyles([styles.serviceIcon, {color}])}
+              boxStyle={styles.serviceIconBox}
+            />
+          </Kb.Box2>
+          <Kb.Text
+            type="BodyTiny"
+            center={true}
+            lineClamp={2}
+            style={Styles.collapseStyles([styles.label, {color}])}
+          >
             {props.label}
+            {serviceIdToWonderland(props.service) && (
+              <Kb.Text type="Body" style={styles.wonderland}>
+                {' '}
+                <Kb.Emoji size={16} emojiName=":rabbit2:" />
+              </Kb.Text>
+            )}
           </Kb.Text>
           {!!props.showCount &&
             (props.count !== null ? (
@@ -107,7 +129,11 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
 
 const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-    <Kb.Icon style={styles.moreNetworkItemIcon} fontSize={16} type={serviceIdToIconFont(props.service)} />
+    <Kb.Icon
+      style={styles.moreNetworkItemIcon}
+      color={Styles.globalColors.black}
+      type={serviceIdToIconFont(props.service)}
+    />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
   </Kb.Box2>
 )
@@ -119,30 +145,30 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  const {onChangeService: propsOnChangeService} = props
+  const {services, onChangeService: propsOnChangeService} = props
   const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
-      if (Constants.services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
+      if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
       propsOnChangeService(service)
     },
-    [lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
+    [services, lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
   )
-  const lockedServices = Constants.services.slice(0, nLocked)
+  const lockedServices = services.slice(0, nLocked)
   let frontServices = lockedServices
-  if (Constants.services.indexOf(props.selectedService) < nLocked) {
+  if (services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
     if (lastSelectedUnlockedService === null) {
-      frontServices = Constants.services.slice(0, nLocked + 1)
+      frontServices = services.slice(0, nLocked + 1)
     } else {
       frontServices = lockedServices.concat([lastSelectedUnlockedService])
     }
   } else {
     frontServices = lockedServices.concat([props.selectedService])
   }
-  const moreServices = difference(Constants.services, frontServices)
+  const moreServices = difference(services, frontServices)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.map(service => (
@@ -169,6 +195,12 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blue,
     height: 2,
   },
+  badgeContainerStyle: {
+    position: 'absolute',
+    right: 0,
+    top: 10,
+  },
+  badgeStyle: {backgroundColor: Styles.globalColors.blue},
   inactiveTabBar: {
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
@@ -236,6 +268,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   tabBarContainer: {
     minHeight: 30,
+  },
+  wonderland: {
+    color: Styles.globalColors.white,
   },
 }))
 

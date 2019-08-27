@@ -54,7 +54,7 @@ const Input = (props: Props) => {
         valueControlled={true}
         value={props.searchString}
         icon="iconfont-search"
-        focusOnMount={true}
+        focusOnMount={!Styles.isMobile}
         fullWidth={true}
         onChange={props.onChangeText}
         placeholderText={props.placeholder}

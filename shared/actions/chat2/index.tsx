@@ -445,9 +445,11 @@ const chatActivityToMetasAction = (
   const isADelete =
     !ignoreDelete &&
     conv &&
-    ([RPCChatTypes.ConversationStatus.blocked, RPCChatTypes.ConversationStatus.reported].includes(
-      conv.status
-    ) ||
+    ([
+      RPCChatTypes.ConversationStatus.blocked,
+      RPCChatTypes.ConversationStatus.reported,
+      RPCChatTypes.ConversationStatus.ignored,
+    ].includes(conv.status) ||
       conv.isEmpty)
 
   // We want to select a different convo if its cause we blocked/reported. Otherwise sometimes we get that a convo
@@ -1981,24 +1983,18 @@ const _maybeAutoselectNewestConversation = (
   // If we got here we're auto selecting the newest convo
   const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
 
-  if (meta) {
+  if (meta && isEligibleConvo(meta)) {
     return Chat2Gen.createSelectConversation({
       conversationIDKey: meta.conversationIDKey,
       reason: 'findNewestConversation',
     })
-  } else if (avoidTeam) {
-    // No conversations besides in the team we're trying to avoid. Select
-    // nothing
-    logger.info(
-      `no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
-    )
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
-  } else {
-    return undefined
   }
+  // No conversations. Select nothing
+  logger.info(`no eligible conversations left in inbox; selecting nothing`)
+  return Chat2Gen.createSelectConversation({
+    conversationIDKey: Constants.noConversationIDKey,
+    reason: 'clearSelected',
+  })
 }
 
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>

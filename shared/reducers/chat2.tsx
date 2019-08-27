@@ -1390,6 +1390,9 @@ const rootReducer = (
       }
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
+    case Chat2Gen.dismissBottomBanner: {
+      return state.setIn(['dismissedInviteBannersMap', action.payload.conversationIDKey], true)
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

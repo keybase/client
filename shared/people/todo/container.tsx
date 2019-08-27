@@ -35,7 +35,7 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
   ] as Array<TaskButton>
   if (onDismiss) {
     result.push({
-      label: dismissLabel || 'Later',
+      label: dismissLabel || 'Skip',
       mode: 'Secondary',
       onClick: onDismiss,
     })
@@ -237,7 +237,7 @@ const GitRepoConnector = connect(
         onClick: () => dispatchProps.onConfirm(true),
       },
       {
-        label: 'Later',
+        label: 'Skip',
         mode: 'Secondary',
         onClick: dispatchProps.onDismiss,
       },

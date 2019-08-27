@@ -24,9 +24,7 @@ func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		NewCmdCtlAppExit(cl, g),
 	}
 
-	for _, cmd := range platformSpecificCtlCommands(cl, g) {
-		commands = append(commands, cmd)
-	}
+	commands = append(commands, platformSpecificCtlCommands(cl, g)...)
 
 	return cli.Command{
 		Name:        "ctl",
@@ -36,7 +34,7 @@ func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 }
 
 // availableComponents specify which components can be included or excluded
-var availableCtlComponents = []string{
+var availableCtlComponents = []string{ //nolint
 	install.ComponentNameApp.String(),
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
@@ -44,7 +42,7 @@ var availableCtlComponents = []string{
 }
 
 // defaultCtlComponents return default components (map)
-func defaultCtlComponents(enable bool) map[string]bool {
+func defaultCtlComponents(enable bool) map[string]bool { //nolint
 	components := map[string]bool{}
 	for _, c := range availableCtlComponents {
 		components[c] = enable
@@ -53,7 +51,7 @@ func defaultCtlComponents(enable bool) map[string]bool {
 }
 
 // ctlParseArgv returns map with include/exclude components
-func ctlParseArgv(ctx *cli.Context) map[string]bool {
+func ctlParseArgv(ctx *cli.Context) map[string]bool { //nolint
 	components := defaultCtlComponents(true)
 	if ctx.String("exclude") != "" {
 		excluded := strings.Split(ctx.String("exclude"), ",")

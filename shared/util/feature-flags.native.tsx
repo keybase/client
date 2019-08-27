@@ -22,6 +22,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: true,
+  wonderland: true,
 }
 
 // load overrides

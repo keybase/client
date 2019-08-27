@@ -84,7 +84,7 @@ func (c *CmdGitList) Run() error {
 	for _, repoRes := range repoResults {
 		repo, err := repoRes.GetIfOk()
 		if err != nil {
-			dui.PrintfUnescaped(ColorString(c.G(), "red", fmt.Sprintf("Error in repo: %v\n", err)))
+			_, _ = dui.PrintfUnescaped(ColorString(c.G(), "red", fmt.Sprintf("Error in repo: %v\n", err)))
 			continue
 		}
 		repos = append(repos, repo)

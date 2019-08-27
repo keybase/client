@@ -168,10 +168,10 @@ func GetConfig(mctx libkb.MetaContext, forkType keybase1.ForkType) (c keybase1.C
 	}
 
 	gpg := mctx.G().GetGpgClient()
-	canExec, err := gpg.CanExec()
+	canExec, err := gpg.CanExec(mctx)
 	if err == nil {
 		c.GpgExists = canExec
-		c.GpgPath = gpg.Path()
+		c.GpgPath = gpg.Path(mctx)
 	}
 
 	c.Version = libkb.VersionString()
