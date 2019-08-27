@@ -4265,7 +4265,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	// Pretend the mdserver is shutdown, to avoid checking merged
 	// state when shutting down the FBO (which causes a deadlock).
 	md.override = true
-	err = kbfsOps.Reset(ctx, h)
+	err = kbfsOps.Reset(ctx, h, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, oldID, h.TlfID())
 	md.override = false
@@ -4283,6 +4283,21 @@ func TestKBFSOpsReset(t *testing.T) {
 	children, err = kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
+
+	t.Logf("Reset it back")
+	md.override = true
+	err = kbfsOps.Reset(ctx, h, &oldID)
+	require.NoError(t, err)
+	require.Equal(t, oldID, oldID)
+	md.override = false
+
+	t.Logf("Check that the old revision is back")
+	rootNode, _, err = kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+	require.Contains(t, children, testPPS("a"))
 }
 
 // diskMDCacheWithCommitChan notifies a channel whenever an MD is committed.
