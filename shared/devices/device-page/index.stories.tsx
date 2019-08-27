@@ -31,7 +31,7 @@ const store = Container.produce(common, draftState => {
   deviceMap.set('desktop', makeDevice({created: 2, deviceID: 'desktop', type: 'desktop'}))
   deviceMap.set(
     'desktop current',
-    makeDevice({created: 3, deviceID: 'desktop current', current: true, type: 'desktop'})
+    makeDevice({created: 3, current: true, deviceID: 'desktop current', type: 'desktop'})
   )
   deviceMap.set(
     'desktop no last',
