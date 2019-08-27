@@ -314,6 +314,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onBackspace={props.onBackspace}
         placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
+        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
       />
     )
   }
