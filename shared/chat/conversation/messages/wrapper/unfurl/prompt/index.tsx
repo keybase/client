@@ -42,7 +42,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} />
+          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} padding="xtiny" />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -61,7 +61,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       marginLeft: 'auto',
-      marginRight: 4,
       width: 30,
     },
   }),
@@ -71,8 +70,8 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
       backgroundColor: Styles.globalColors.blueLighter3,
       borderRadius: Styles.borderRadius,
-      paddingBottom: 8,
-      paddingTop: 8,
+      paddingBottom: Styles.globalColors.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
       maxWidth: 600,
@@ -81,8 +80,8 @@ const styles = Styles.styleSheetCreate({
   icon: Styles.platformStyles({
     isElectron: {
       alignSelf: 'center',
-      marginLeft: 16,
-      marginRight: 16,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
     },
   }),
 })
