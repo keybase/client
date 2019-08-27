@@ -176,9 +176,9 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
   )
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-})
+}))
 
 export default Actions

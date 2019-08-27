@@ -401,39 +401,51 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 }
 
-const HoverBox = Styles.styled(Kb.Box)({
-  '&.filled': {
+const hoverStyles = Styles.styleSheetCreate(() => ({
+  dropping: {
+    backgroundColor: Styles.globalColors.blue_60,
+    borderColor: Styles.globalColors.blue_60,
+  },
+  droppingIcon: {color: Styles.globalColors.blue_60},
+  filled: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
-  '&.filled:active': {cursor: '-webkit-grabbing'},
-  '&.filled:hover': {
+  filledHover: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
   },
-  '&:hover': {borderColor: Styles.globalColors.black_50},
-  '&:hover .icon': {color: Styles.globalColors.black_50},
-  '.dropping &': {
-    backgroundColor: Styles.globalColors.blue_60,
-    borderColor: Styles.globalColors.blue_60,
+  hover: {borderColor: Styles.globalColors.black_50},
+  hoverContainer: {
+    backgroundColor: Styles.globalColors.grey,
+    borderColor: Styles.globalColors.greyDark,
+    borderStyle: 'dotted',
+    borderWidth: AVATAR_BORDER_SIZE,
+    cursor: 'pointer',
+    height: AVATAR_CONTAINER_SIZE,
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
+    overflow: 'hidden',
+    position: 'relative',
+    width: AVATAR_CONTAINER_SIZE,
   },
-  '.dropping & .icon': {color: Styles.globalColors.blue_60},
-  backgroundColor: Styles.globalColors.grey,
-  borderColor: Styles.globalColors.greyDark,
-  borderStyle: 'dotted',
-  borderWidth: AVATAR_BORDER_SIZE,
-  cursor: 'pointer',
-  height: AVATAR_CONTAINER_SIZE,
-  marginBottom: Styles.globalMargins.small,
-  marginTop: Styles.globalMargins.medium,
-  overflow: 'hidden',
-  position: 'relative',
-  width: AVATAR_CONTAINER_SIZE,
+  hoverIcon: {color: Styles.globalColors.black_50},
+}))
+
+const HoverBox = Styles.styled(Kb.Box)({
+  '&.filled': hoverStyles.filled,
+  '&.filled:active': {cursor: '-webkit-grabbing'},
+  '&.filled:hover': hoverStyles.filledHover,
+  '&:hover': hoverStyles.hover,
+  '&:hover .icon': hoverStyles.hoverIcon,
+  '.dropping &': hoverStyles.dropping,
+  '.dropping & .icon': hoverStyles.droppingIcon,
+  ...hoverStyles.hoverContainer,
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -470,6 +482,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.grey,
     justifyContent: 'center',
   },
-})
+}))
 
 export default HOCTimers(EditAvatar)

@@ -68,7 +68,7 @@ const Revoke = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -109,7 +109,7 @@ const styles = Styles.styleSheetCreate({
   reminderText: {marginTop: Styles.globalMargins.tiny},
   revokeIcon: {bottom: -8, position: 'absolute', right: -10},
   siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
-})
+}))
 
 function formatMessage(platform: PlatformsExpandedType) {
   if (platform === 'pgp') {
