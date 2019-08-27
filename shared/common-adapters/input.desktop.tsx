@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
-import Text, {getStyle as getTextStyle} from './text.desktop'
+import Text, { getStyle as getTextStyle } from './text.desktop'
 
-import {Props, Selection, TextInfo} from './input'
-import {checkTextInfo} from './input.shared'
+import { Props, Selection, TextInfo } from './input'
+import { checkTextInfo } from './input.shared'
 
 type State = {
   focused: boolean
@@ -47,7 +47,7 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     this.transformText(() => ({
-      selection: {end: 0, start: 0},
+      selection: { end: 0, start: 0 },
       text: '',
     }))
   }
@@ -63,10 +63,10 @@ class Input extends React.PureComponent<Props, State> {
   selection = (): Selection => {
     const n = this._input
     if (!n) {
-      return {end: 0, start: 0}
+      return { end: 0, start: 0 }
     }
-    const {selectionStart, selectionEnd} = n
-    return {end: selectionEnd, start: selectionStart}
+    const { selectionStart, selectionEnd } = n
+    return { end: selectionEnd, start: selectionStart }
   }
 
   _onChangeTextDone = value => {
@@ -195,10 +195,10 @@ class Input extends React.PureComponent<Props, State> {
       if (e.altKey || e.ctrlKey) {
         // If multiline, inject a newline.
         if (this.props.multiline) {
-          this._transformText(({text, selection}) => {
+          this._transformText(({ text, selection }) => {
             const newText = text.slice(0, selection.start || 0) + '\n' + text.slice(selection.end || 0)
             const pos = (selection.start || 0) + 1
-            const newSelection = {end: pos, start: pos}
+            const newSelection = { end: pos, start: pos }
             return {
               selection: newSelection,
               text: newText,
@@ -218,13 +218,13 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   _onFocus = () => {
-    this.setState({focused: true})
+    this.setState({ focused: true })
     this.props.onFocus && this.props.onFocus()
     this.props.selectTextOnFocus && this.select()
   }
 
   _onBlur = () => {
-    this.setState({focused: false})
+    this.setState({ focused: false })
     this.props.onBlur && this.props.onBlur()
   }
 
@@ -247,16 +247,16 @@ class Input extends React.PureComponent<Props, State> {
   _containerStyle = underlineColor => {
     return this.props.small
       ? {
-          ...Styles.globalStyles.flexBoxRow,
-          borderBottom: `1px solid ${underlineColor}`,
-          width: '100%',
-        }
+        ...Styles.globalStyles.flexBoxRow,
+        borderBottom: `1px solid ${underlineColor}`,
+        width: '100%',
+      }
       : {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          marginBottom: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
-        }
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      }
   }
 
   _propTypeToSingleLineType = () => {
@@ -286,7 +286,7 @@ class Input extends React.PureComponent<Props, State> {
       styles.commonInput,
       this.props.small
         ? styles.commonInputSmall
-        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
+        : { ...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}` },
       {
         height: 'initial',
         minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
@@ -295,7 +295,7 @@ class Input extends React.PureComponent<Props, State> {
         resize: 'none',
         width: '100%',
         wrap: 'off',
-        ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
+        ...(this.props.rowsMax ? { maxHeight: this._rowsToHeight(this.props.rowsMax) } : { overflowY: 'hidden' }),
       },
     ])
 
@@ -324,7 +324,7 @@ class Input extends React.PureComponent<Props, State> {
           ? true
           : undefined,
       ref: this._setInputRef,
-      ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
+      ...(this.props.maxLength ? { maxLength: this.props.maxLength } : null),
     }
 
     if (!this.props.uncontrolled) {
@@ -344,11 +344,8 @@ class Input extends React.PureComponent<Props, State> {
       style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: ${Styles.globalColors.black_40}; }`
-
     return (
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
-        <style>{inputRealCSS}</style>
         {!this.props.small && !this.props.hideLabel && (
           <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}
@@ -366,9 +363,9 @@ class Input extends React.PureComponent<Props, State> {
           // @ts-ignore clash between our types and DOM types
           <textarea {...multilineProps} />
         ) : (
-          // @ts-ignore clash between our types and DOM types
-          <input {...singlelineProps} />
-        )}
+            // @ts-ignore clash between our types and DOM types
+            <input {...singlelineProps} />
+          )}
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text
