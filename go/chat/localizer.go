@@ -726,7 +726,7 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 
 func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, pinnerUsername string, valid bool, err error) {
-	s.Debug(ctx, "getPinnedMsg: resolving %v", pinMessage.GetMessageID())
+	defer s.Trace(ctx, func() error { return err }, "getPinnedMsg: %v", pinMessage.GetMessageID())()
 	if !pinMessage.IsValidFull() {
 		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
 		return pinnedMsg, pinnerUsername, false, nil

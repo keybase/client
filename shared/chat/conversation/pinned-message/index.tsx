@@ -44,7 +44,7 @@ const PinnedMessage = (props: Props) => {
         </Kb.Box2>
         <Kb.Icon
           onClick={props.onDismiss}
-          type="iconfont-remove"
+          type="iconfont-close"
           style={Kb.iconCastPlatformStyles(styles.close)}
           boxStyle={styles.close}
         />
