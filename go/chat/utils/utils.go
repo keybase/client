@@ -1502,7 +1502,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	body = EscapeShrugs(ctx, body)
 
 	// This needs to happen before (deep) links.
-	body = DecorateWithKBFSPath(ctx, body, msg.KbfsPaths)
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
 
 	// Links
 	body = DecorateWithLinks(ctx, body)

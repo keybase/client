@@ -460,7 +460,6 @@ protocol local {
     ChannelMention channelMention;
     array<MaybeMention> maybeMentions;
     array<ChannelNameMention> channelNameMentions;
-    array<KBFSPath> kbfsPaths;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     map<MessageID, UnfurlResult> unfurls;
