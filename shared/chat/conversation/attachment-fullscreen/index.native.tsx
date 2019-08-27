@@ -17,10 +17,9 @@ class AutoMaxSizeImage extends React.Component<
   {
     width: number
     height: number
-    loaded: boolean
   }
 > {
-  state = {height: 0, loaded: false, width: 0}
+  state = {height: 0, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -38,8 +37,6 @@ class AutoMaxSizeImage extends React.Component<
       () => {}
     )
   }
-
-  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     return (
