@@ -25,7 +25,7 @@ const NewConvSwitch = (props: {isEmpty: boolean} & React.PropsWithoutRef<typeof 
 }
 
 export default connect(
-  (s, {conversationIDKey}: OwnProps) => ({conversationIDKey, meta: getMeta(s, conversationIDKey)}),
+  (s, {conversationIDKey}: OwnProps) => ({conversationIDKey, isEmpty: getMeta(s, conversationIDKey).isEmpty}),
   dispatch => ({
     onShowTracker: (username: string) =>
       isMobile
@@ -34,7 +34,7 @@ export default connect(
   }),
   (stateProps, _, ownProps: OwnProps) => ({
     conversationIDKey: stateProps.conversationIDKey,
-    isEmpty: stateProps.meta.isEmpty,
+    isEmpty: stateProps.isEmpty,
     onFocusInput: ownProps.onFocusInput,
     scrollListDownCounter: ownProps.scrollListDownCounter,
     scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
