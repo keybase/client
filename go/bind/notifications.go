@@ -115,8 +115,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
 		username := msgUnboxed.Valid().SenderUsername
 		chatNotification.Message.From.KeybaseUsername = username
-
-		if displayPlaintext && !msgUnboxed.Valid().IsEphemeral() {
+		displayPlaintext = displayPlaintext && !msgUnboxed.Valid().IsEphemeral()
+		if displayPlaintext {
 			// We show avatars on Android
 			if runtime.GOOS == "android" {
 				avatar, err := kbSvc.GetUserAvatar(username)
@@ -164,7 +164,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	}
 	if pusher != nil {
 		pusher.DisplayChatNotification(&chatNotification)
-		if len(pushID) != 0 {
+		// only ack this notification if we have a plaintext version to display
+		if len(pushID) != 0 && displayPlaintext {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}
 	}
