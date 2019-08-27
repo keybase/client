@@ -3,7 +3,7 @@ import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
 import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
-import {isMobile} from "./platform"
+import {isMobile} from './platform'
 import {e164ToDisplay} from '../util/phone-numbers'
 
 export const defaultNumFollowSuggestions = 10

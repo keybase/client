@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/push'
 import * as ChatConstants from './chat2'
 import * as ChatTypes from './types/chat2'
-import {isIOS} from "./platform"
+import {isIOS} from './platform'
 import {isDevApplePushToken} from '../local-debug'
 import logger from '../logger'
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Text, Icon, IconType} from "."
+import {Box, Text, Icon, IconType} from '.'
 import * as Styles from '../styles'
 import {Props} from './choice-list'
 import './choice-list.css'

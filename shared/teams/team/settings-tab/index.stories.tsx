@@ -3,7 +3,7 @@ import {Box} from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
 import {makeRetentionPolicy} from '../../../constants/teams'
 import {globalStyles} from '../../../styles'
-import {Settings} from "."
+import {Settings} from '.'
 
 const commonProps = {
   ignoreAccessRequests: true,

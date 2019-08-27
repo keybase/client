@@ -9,7 +9,7 @@ import {
   InfoNote,
   Button,
   ButtonBar,
-} from "../../common-adapters"
+} from '../../common-adapters'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 

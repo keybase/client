@@ -3,7 +3,7 @@ import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text, StandardScreen} from '../../common-adapters'
 import {Stars} from '../common.desktop'
 
-import {Props, PaymentVariants} from "."
+import {Props, PaymentVariants} from '.'
 
 function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
   switch (paymentOption.type) {

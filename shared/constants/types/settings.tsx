@@ -1,4 +1,4 @@
-import * as RPCChatTypes from "./rpc-chat-gen"
+import * as RPCChatTypes from './rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'

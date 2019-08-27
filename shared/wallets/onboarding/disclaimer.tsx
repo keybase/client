@@ -46,11 +46,14 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
 
   beforeTick = () => {
-      this.setState(s => ({secondsLeftBeforeAccept: s.secondsLeftBeforeAccept - 1}), () => {
-      if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
-        removeTicker(this.beforeTimer)
+    this.setState(
+      s => ({secondsLeftBeforeAccept: s.secondsLeftBeforeAccept - 1}),
+      () => {
+        if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
+          removeTicker(this.beforeTimer)
+        }
       }
-    })
+    )
   }
 
   removeTimers = () => {

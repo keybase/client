@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/fs'
-import {StylesTextCrossPlatform} from "../text"
+import {StylesTextCrossPlatform} from '../text'
 import {namedConnect} from '../../util/container'
 import KbfsPath from './kbfs-path'
 

@@ -586,7 +586,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     height: undefined,
     heightForOrdinals: [],
     isVisible: true,
-      //actually is used
+    //actually is used
     // eslint-disable-next-line react/no-unused-state
     width: undefined,
   }

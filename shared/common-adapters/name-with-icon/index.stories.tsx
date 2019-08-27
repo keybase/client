@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Text from '../text'
-import NameWithIcon from "."
+import NameWithIcon from '.'
 
 const commonProps = {
   colorFollowing: true,

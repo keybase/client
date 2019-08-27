@@ -286,7 +286,7 @@ class ShowPreview extends React.Component<
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
-            onClick={() => this.setState(s => ({visible: !s.visible}))}
+          onClick={() => this.setState(s => ({visible: !s.visible}))}
           label={`${this.state.visible ? 'Hide' : 'Show'} Preview`}
         />
         {this.state.visible && (

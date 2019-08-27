@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
-import UpdatePassword from "../password"
+import UpdatePassword from '../password'
 
 export type Props = {
   checkPasswordIsCorrect: boolean | null

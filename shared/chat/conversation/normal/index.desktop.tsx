@@ -29,8 +29,7 @@ class Conversation extends React.PureComponent<Props> {
   }
 
   _onPaste = e => {
-    readImageFromClipboard(e, () => {
-    }).then(clipboardData => {
+    readImageFromClipboard(e, () => {}).then(clipboardData => {
       if (clipboardData) {
         this.props.onPaste(clipboardData)
       }

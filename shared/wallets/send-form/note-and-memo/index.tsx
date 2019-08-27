@@ -56,7 +56,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
         // eslint-disable-next-line
         this.state.secretNote.slice(0, selection.start || 0) +
         emoji +
-            // eslint-disable-next-line
+        // eslint-disable-next-line
         this.state.secretNote.slice(selection.end || 0)
       if (Buffer.byteLength(secretNote) > this.props.maxLength) {
         return

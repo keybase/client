@@ -1,6 +1,6 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin} from '../../constants/platform'
-import {hideDockIcon} from "./dock-icon.desktop"
+import {hideDockIcon} from './dock-icon.desktop'
 
 let devToolsState = false
 

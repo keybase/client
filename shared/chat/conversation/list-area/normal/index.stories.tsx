@@ -9,7 +9,7 @@ import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
 import {OwnProps as ExplodingMetaOwnProps} from '../../messages/wrapper/exploding-meta/container'
-import {_Props as ExplodingMetaViewProps} from "../../messages/wrapper/exploding-meta"
+import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
