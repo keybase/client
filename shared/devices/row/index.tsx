@@ -14,21 +14,26 @@ export type Props = {
 }
 
 const typeToIcon = (type: Props['type'], backgroundNumber: number, isCurrentDevice: boolean) => {
-  if (backgroundNumber > 10 || backgroundNumber < 1) {
-    return 'icon-computer-32'
-  }
+  let res = 'icon-computer-32'
   switch (type) {
     case 'backup':
-      return 'icon-paper-key-32'
+      res = 'icon-paper-key-32'
+      break
     case 'desktop':
-      return isCurrentDevice
+      res = isCurrentDevice
         ? `icon-computer-success-background-${backgroundNumber}-32`
         : `icon-computer-background-${backgroundNumber}-32`
+      break
     case 'mobile':
-      return isCurrentDevice
+      res = isCurrentDevice
         ? `icon-phone-success-background-${backgroundNumber}-32`
         : `icon-phone-background-${backgroundNumber}-32`
+      break
   }
+  if (Kb.isValidIconType(res)) {
+    return res
+  }
+  return 'icon-computer-32'
 }
 
 const DeviceRow = (props: Props) => {
