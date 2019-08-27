@@ -239,7 +239,7 @@ const sectionBodyOverride = {
   paragraph: {fontSize: Styles.isMobile ? 16 : 13},
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bannerButton: {
     alignSelf: Styles.isMobile ? ('center' as const) : ('flex-start' as const),
   },
@@ -315,6 +315,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.greenDark,
     flexShrink: 1,
   },
-})
+}))
 
 export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)

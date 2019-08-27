@@ -25,7 +25,7 @@ export const ChatPreview = ({onViewAll, convRows}: ChatPreviewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonContainer: {
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
@@ -50,4 +50,4 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-})
+}))

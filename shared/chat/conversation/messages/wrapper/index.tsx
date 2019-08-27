@@ -524,6 +524,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       ordinal={message.ordinal}
                       style={Styles.collapseStyles([
                         styles.emojiRow,
+                        !Styles.isDarkMode && styles.emojiRowBorder,
                         this.props.isLastInThread && styles.emojiRowLast,
                       ])}
                     />
@@ -654,11 +655,8 @@ const styles = Styles.styleSheetCreate({
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
   emojiRow: Styles.platformStyles({
     isElectron: {
-      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
       borderBottomLeftRadius: Styles.borderRadius,
       borderBottomRightRadius: Styles.borderRadius,
-      borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-      borderRight: `1px solid ${Styles.globalColors.black_10}`,
       bottom: -Styles.globalMargins.mediumLarge,
       height: Styles.globalMargins.mediumLarge,
       paddingBottom: Styles.globalMargins.tiny,
@@ -667,6 +665,13 @@ const styles = Styles.styleSheetCreate({
       position: 'absolute',
       right: 96,
       zIndex: 2,
+    },
+  }),
+  emojiRowBorder: Styles.platformStyles({
+    isElectron: {
+      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+      borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+      borderRight: `1px solid ${Styles.globalColors.black_10}`,
     },
   }),
   emojiRowLast: Styles.platformStyles({

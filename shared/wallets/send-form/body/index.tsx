@@ -95,7 +95,7 @@ const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   failureContainer: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.white_90,
@@ -106,4 +106,4 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
