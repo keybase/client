@@ -115,7 +115,7 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
 
 const styles = Styles.styleSheetCreate({
   bordered: {
-    borderColor: Styles.globalColors.greyLight,
+    borderColor: Styles.globalColors.grey,
     borderLeftWidth: 4,
     borderStyle: 'solid',
     paddingLeft: Styles.globalMargins.tiny,

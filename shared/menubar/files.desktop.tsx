@@ -160,7 +160,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonContainer: {
     marginTop: Styles.globalMargins.tiny,
   },
@@ -243,4 +243,4 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-})
+}))

@@ -43,7 +43,7 @@ const OutOfDate = ({outOfDate, updateNow}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   banner: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
@@ -58,6 +58,6 @@ const styles = Styles.styleSheetCreate({
   textNonCritical: {
     color: Styles.globalColors.brown_75,
   },
-})
+}))
 
 export default OutOfDate
