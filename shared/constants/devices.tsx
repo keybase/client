@@ -4,6 +4,7 @@ import * as Types from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as RPCTypes from './types/rpc-gen'
 import * as Container from '../util/container'
+import {memoize} from '../util/memoize'
 
 export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({
@@ -59,3 +60,27 @@ export const getDeviceCounts = (state: Container.TypedState) =>
 
 export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
   (id && state.devices.endangeredTLFMap.get(id)) || Container.emptySet
+
+const getIndexMap = memoize(
+  (devices: Map<Types.DeviceID, Types.Device>): Map<Types.DeviceID, number> =>
+    new Map(
+      [...devices.entries()]
+        .map(r => r[1])
+        .sort((a, b) => a.created - b.created)
+        .map((d, index) => [d.deviceID, index])
+    )
+)
+
+// cache deviceID -> number forever
+const deviceIconNumberCache = {}
+export const getDeviceIconNumber = (devices: Map<Types.DeviceID, Types.Device>, deviceID: Types.DeviceID) => {
+  if (deviceIconNumberCache[deviceID]) {
+    return deviceIconNumberCache[deviceID]
+  }
+  const idx = getIndexMap(devices).get(deviceID)
+  if (idx !== undefined) {
+    const number = (idx % 10) + 1 // an integer in [1, 10]
+    deviceIconNumberCache[deviceID] = number
+    return number
+  }
+}
