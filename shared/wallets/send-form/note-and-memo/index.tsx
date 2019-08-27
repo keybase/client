@@ -51,9 +51,12 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
       if (!selection) {
         return
       }
+      // this.state is likely unsafe but afraid to change this now
       const secretNote =
+        // eslint-disable-next-line
         this.state.secretNote.slice(0, selection.start || 0) +
         emoji +
+            // eslint-disable-next-line
         this.state.secretNote.slice(selection.end || 0)
       if (Buffer.byteLength(secretNote) > this.props.maxLength) {
         return

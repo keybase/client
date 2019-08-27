@@ -23,7 +23,7 @@ export class Video extends React.Component<Props, State> {
     } else {
       this._videoRef.current.pause()
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(s => ({playingVideo: !s.playingVideo}))
   }
   render() {
     return (

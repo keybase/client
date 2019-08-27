@@ -81,10 +81,10 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
   _toggleCollapseName = () => {
-    this.setState({nameCollapsed: !this.state.nameCollapsed})
+    this.setState(s => ({nameCollapsed: !s.nameCollapsed}))
   }
   _toggleCollapseText = () => {
-    this.setState({textCollapsed: !this.state.textCollapsed})
+    this.setState(s => ({textCollapsed: !s.textCollapsed}))
   }
   _selectName = (item, index) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
