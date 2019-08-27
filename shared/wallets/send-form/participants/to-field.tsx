@@ -87,7 +87,6 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
   const {setReadyToReview} = props
   const onChangeRecipient = React.useCallback(
     recipientPublicKey => {
-      console.log('Setting recipient public key to ', recipientPublicKey)
       setRecipentPublicKey(recipientPublicKey)
       setReadyToReview(false)
       debouncedOnChangeRecip(recipientPublicKey)
