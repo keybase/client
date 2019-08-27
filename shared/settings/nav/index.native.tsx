@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
-import * as Types from '../../constants/types/settings'
+import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
@@ -32,19 +32,19 @@ function SettingsNav(props: Props) {
             {
               badgeNumber: badgeNumbers.get(TabConstants.gitTab),
               icon: 'iconfont-nav-git',
-              onClick: () => props.onTabChange(Types.gitTab),
+              onClick: () => props.onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
               badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
               icon: 'iconfont-nav-devices',
-              onClick: () => props.onTabChange(Types.devicesTab),
+              onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
             {
               badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
               icon: 'iconfont-nav-wallets',
-              onClick: () => props.onTabChange(Types.walletsTab),
+              onClick: () => props.onTabChange(Constants.walletsTab),
               text: 'Wallet',
             },
           ],
@@ -54,34 +54,34 @@ function SettingsNav(props: Props) {
           data: [
             {
               badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
-              onClick: () => props.onTabChange(Types.accountTab),
+              onClick: () => props.onTabChange(Constants.accountTab),
               text: 'Your account',
             },
             {
-              onClick: () => props.onTabChange(Types.chatTab),
+              onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
             },
             {
-              onClick: () => props.onTabChange(Types.contactsTab),
+              onClick: () => props.onTabChange(Constants.contactsTab),
               text: props.contactsLabel,
             },
             ...(flags.kbfsOfflineMode
               ? [
                   {
-                    onClick: () => props.onTabChange(Types.fsTab),
+                    onClick: () => props.onTabChange(Constants.fsTab),
                     text: 'Files',
                   },
                 ]
               : []),
             {
               badgeNumber: props.badgeNotifications ? 1 : 0,
-              onClick: () => props.onTabChange(Types.notificationsTab),
+              onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
             },
             ...(isAndroid
               ? [
                   {
-                    onClick: () => props.onTabChange(Types.screenprotectorTab),
+                    onClick: () => props.onTabChange(Constants.screenprotectorTab),
                     text: 'Screen protector',
                   },
                 ]
@@ -91,11 +91,11 @@ function SettingsNav(props: Props) {
         },
         {
           data: [
-            {onClick: () => props.onTabChange(Types.aboutTab), text: 'About'},
-            {onClick: () => props.onTabChange(Types.feedbackTab), text: 'Feedback'},
-            {onClick: () => props.onTabChange(Types.advancedTab), text: 'Advanced'},
+            {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
+            {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
+            {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
             {
-              onClick: () => props.onTabChange(Types.logOutTab),
+              onClick: () => props.onTabChange(Constants.logOutTab),
               text: 'Sign out',
               textColor: globalColors.red,
             },

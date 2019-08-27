@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/settings'
+import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
@@ -22,17 +22,17 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
-  [Types.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Types.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
-  [Types.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Types.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
+  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
+  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   // TODO connect broken
-  [Types.invitationsTab]: {
+  [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
   },
-  [Types.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
-  [Types.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
-  [Types.notificationsTab]: {
+  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
+  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
+  [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
@@ -65,7 +65,7 @@ class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
 }
 const SettingsSubNavigator = createNavigator(
   SettingsSubNav,
-  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Types.accountTab}),
+  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
   {}
 )
 
@@ -77,7 +77,7 @@ export const newRoutes = {
   settingsRoot: {getScreen: () => SettingsSubNavigator},
 }
 export const newModalRoutes = {
-  [Types.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
+  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
   changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
   disableCertPinningModal: {

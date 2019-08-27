@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import * as Types from '../constants/types/settings'
+import * as Constants from '../constants/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
 import * as Container from '../util/container'
 
 type OwnProps = {
   children: React.ReactNode
-  routeSelected: Types.Tab
+  routeSelected: Constants.SettingsTab
 }
 
 const Connected = Container.connectDEBUG(
@@ -23,12 +23,12 @@ const Connected = Container.connectDEBUG(
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
     loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
     onLogout: () => dispatch(ConfigGen.createLogout()),
-    onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
-      if (tab === Types.walletsTab && !walletsAcceptedDisclaimer) {
+    onTabChange: (tab: Constants.SettingsTab, walletsAcceptedDisclaimer: boolean) => {
+      if (tab === Constants.walletsTab && !walletsAcceptedDisclaimer) {
         dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
         return
       }
-      if (ownProps.routeSelected === Types.accountTab && tab !== Types.accountTab) {
+      if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
         dispatch(SettingsGen.createClearAddedEmail())
       }
       dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
@@ -43,7 +43,8 @@ const Connected = Container.connectDEBUG(
     loadHasRandomPW: dispatchProps.loadHasRandomPW,
     logoutInProgress: stateProps._logoutHandshakeWaiters.size > 0,
     onLogout: dispatchProps.onLogout,
-    onTabChange: (tab: Types.Tab) => dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),
+    onTabChange: (tab: Constants.SettingsTab) =>
+      dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),
     selectedTab: ownProps.routeSelected,
   })
 )(SettingsContainer)

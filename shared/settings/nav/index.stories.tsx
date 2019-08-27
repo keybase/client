@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/settings'
+import {Tab, gitTab} from '../../constants/tabs'
 import SettingsNav from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
 const defaultProps = {
-  badgeNumbers: new Map<Types.SettingsTab, number>(),
+  badgeNumbers: new Map<Tab, number>(),
   contactsLabel: 'Import contacts',
   hasRandomPW: null,
   logoutInProgress: false,
@@ -13,7 +13,7 @@ const defaultProps = {
   selectedTab: 'settingsTabs.accountTab' as 'settingsTabs.accountTab',
 }
 
-const gitBadge = new Map<Types.SettingsTab, number>([[Types.gitTab, 1]])
+const gitBadge = new Map<Tab, number>([[gitTab, 1]])
 
 const load = () => {
   storiesOf('Settings/Nav', module)

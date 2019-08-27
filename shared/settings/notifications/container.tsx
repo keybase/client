@@ -6,7 +6,6 @@ import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/settings'
-import * as Types from '../../constants/types/settings'
 
 type OwnProps = {}
 
@@ -41,7 +40,7 @@ export default Container.connect(
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Types.accountTab]})),
+    onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]})),
     onRefresh: () => {
       dispatch(SettingsGen.createLoadSettings())
       dispatch(SettingsGen.createNotificationsRefresh())

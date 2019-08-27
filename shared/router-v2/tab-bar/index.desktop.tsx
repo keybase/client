@@ -8,8 +8,9 @@ import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
+
 export type Props = {
-  badgeNumbers: {[K in string]: number}
+  badgeNumbers: Map<Tabs.Tab, number>
   fullname: string
   isWalletsNew?: boolean
   onAddAccount: () => void
@@ -160,7 +161,9 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
                   </Kb.Text>
-                  {!!p.badgeNumbers[t] && <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers[t]} />}
+                  {!!p.badgeNumbers.get(t) && (
+                    <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers.get(t)} />
+                  )}
                 </Kb.Box2>
               </Kb.WithTooltip>
             </Kb.ClickableBox>

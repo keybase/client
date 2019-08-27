@@ -145,43 +145,4 @@ export type _State = {
 }
 export type State = I.RecordOf<_State>
 
-export const aboutTab = 'settingsTabs.aboutTab'
-export const advancedTab = 'settingsTabs.advancedTab'
-export const chatTab = 'settingsTabs.chatTab'
-export const deleteMeTab = 'settingsTabs.deleteMeTab'
-export const devicesTab = 'settingsTabs.devicesTab'
-export const feedbackTab = 'settingsTabs.feedbackTab'
-export const foldersTab = 'settingsTabs.foldersTab'
-export const fsTab = 'settingsTabs.fsTab'
-export const gitTab = 'settingsTabs.gitTab'
-export const invitationsTab = 'settingsTabs.invitationsTab'
-export const accountTab = 'settingsTabs.accountTab'
-export const notificationsTab = 'settingsTabs.notificationsTab'
-export const passwordTab = 'settingsTabs.password'
-export const screenprotectorTab = 'settingsTabs.screenprotector'
-export const logOutTab = 'settingsTabs.logOutTab'
-export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
-export const walletsTab = 'settingsTabs.walletsTab'
-export const contactsTab = 'settingsTabs.contactsTab'
-
-export type SettingsTab =
-  | typeof accountTab
-  | typeof updatePaymentTab
-  | typeof invitationsTab
-  | typeof notificationsTab
-  | typeof advancedTab
-  | typeof deleteMeTab
-  | typeof feedbackTab
-  | typeof aboutTab
-  | typeof devicesTab
-  | typeof gitTab
-  | typeof foldersTab
-  | typeof fsTab
-  | typeof logOutTab
-  | typeof screenprotectorTab
-  | typeof passwordTab
-  | typeof walletsTab
-  | typeof chatTab
-  | typeof contactsTab
-
 export type PlanLevel = string

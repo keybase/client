@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/settings'
+import * as Constants from '../constants/settings'
 import AboutTab from './about-container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
@@ -24,25 +24,25 @@ import {Email, Phone, VerifyPhone} from './account/add-modals'
 import ManageContactsTab from './manage-contacts.native'
 
 export const newRoutes = {
-  [Types.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
+  [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
   // TODO connect broken
-  [Types.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
-  [Types.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Types.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Types.walletsTab]: {
+  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
+  [Constants.walletsTab]: {
     getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
   },
-  [Types.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
-  [Types.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
+  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
+  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   // TODO connect broken
-  [Types.invitationsTab]: {
+  [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
   },
-  [Types.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
-  [Types.notificationsTab]: {
+  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
+  [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
-  [Types.screenprotectorTab]: {
+  [Constants.screenprotectorTab]: {
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector-container.native').default,
   },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
@@ -50,7 +50,7 @@ export const newRoutes = {
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
-  [Types.contactsTab]: {
+  [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
   // TODO connect broken
@@ -61,8 +61,8 @@ export const newRoutes = {
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
 export const newModalRoutes = {
-  [Types.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
-  [Types.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
+  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
+  [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
