@@ -27,12 +27,16 @@ const StartNewChat = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Button
-        label={Flags.wonderland ? 'Start a new chat 🐇' : 'Start a new chat'}
-        onClick={props.onNewChat}
-        style={styles.button}
-        small={true}
-      />
+      <Kb.Button onClick={props.onNewChat} style={styles.button} small={true}>
+        <Kb.Text type="BodyBig" style={styles.startNewChatText}>
+          Start a new chat
+        </Kb.Text>
+        {Flags.wonderland && (
+          <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
+            <Kb.Emoji size={16} emojiName=":rabbit2:" />
+          </Kb.Text>
+        )}
+      </Kb.Button>
     </Kb.Box2>
   )
 }
@@ -77,6 +81,12 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.xtiny,
     },
   }),
+  rabbitEmoji: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
+  startNewChatText: {
+    color: Styles.globalColors.white,
+  },
 })
 
 export default StartNewChat
