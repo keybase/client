@@ -74,7 +74,7 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 		return resp.Body, nil
 	case "file":
 		filePath := parsed.Path
-		if runtime.GOOS == "windows" {
+		if runtime.GOOS == "windows" && len(filePath) > 0 {
 			filePath = filePath[1:]
 		}
 		return os.Open(filePath)
