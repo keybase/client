@@ -565,6 +565,7 @@ const load = () => {
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        focusOnMount={true}
       />
     ))
     .add('TeamBox', () => (

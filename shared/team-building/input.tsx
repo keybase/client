@@ -12,6 +12,7 @@ type Props = {
   onBackspace: () => void
   placeholder: string
   searchString: string
+  focusOnMount: boolean
 }
 
 const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
@@ -54,7 +55,7 @@ const Input = (props: Props) => {
         valueControlled={true}
         value={props.searchString}
         icon="iconfont-search"
-        focusOnMount={!Styles.isMobile}
+        focusOnMount={props.focusOnMount}
         fullWidth={true}
         onChange={props.onChangeText}
         placeholderText={props.placeholder}
