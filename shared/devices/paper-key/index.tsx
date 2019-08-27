@@ -64,7 +64,7 @@ const PaperKey = () => {
 
 const borderWidth = 3
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignSelf: 'center',
     maxWidth: Styles.isMobile ? undefined : 560,
@@ -91,6 +91,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fontTerminal,
     color: Styles.globalColors.blueDark,
   },
-})
+}))
 
 export default PaperKey
