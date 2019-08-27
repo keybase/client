@@ -137,15 +137,21 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 				if err != nil {
 					return err
 				}
-				chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
+				chatNotification.Message.Plaintext =
+					emoji.Sprintf("Reacted to your message with %v", reaction)
 			default:
-				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
+				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v",
+					msgUnboxed.GetMessageType())
 				return errors.New("invalid message type for plaintext")
 			}
 		}
 	} else {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		chatNotification.Message.From.KeybaseUsername = sender
+		// just bail out of here at this point since we won't be displaying anything useful,
+		// and we don't want to accidentally ack the plaintext notification when we didn't really
+		// display it.
+		return nil
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
