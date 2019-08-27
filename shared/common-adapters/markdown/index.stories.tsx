@@ -3,8 +3,6 @@ import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
 import HiddenString from '../../util/hidden-string'
 import * as Kb from '../index'
-import {escapePath} from '../../constants/fs'
-import {stringToPath} from '../../constants/types/fs'
 import Markdown, {MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
 
@@ -75,35 +73,6 @@ a = 1
   debugging: `\` \` hi \` \``,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
-  kbfsPaths: `
-      /keybase ha
-      /keybase/哟
-      before/keybase
-      之前/keybase
-      /keybase/private /keybase
-      /keybase/public
-      /keybase/team
-      /keybase/private/
-      /keybase/team/keybase
-      /keybase/team/keybase/blahblah
-      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
-      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
-      /keybase/team/keybase/blahblah/
-      /keybase/private/songgao/🍻
-      /keybase/private/songgao/🍻/🍹.png/
-      /keybase/private/songgao/囧/yo
-      /keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file
-      /keybase/private/songgao,strib#jzila,jakob223/file
-      /keybase/private/songgao,strib#jzila/file
-      /keybase/private/song-gao,strib#jzila/file
-      /keybase/team/keybase,blah
-      /keybase/team/keybase.blah
-      /keybaseprivate
-      /keybaseprivate/team
-      /keybase/teamaa/keybase
-      /keybase/.kbfs_status
-      /foo
-      /keybase`,
   nonemoji: `:party-parrot:`,
   normal: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
