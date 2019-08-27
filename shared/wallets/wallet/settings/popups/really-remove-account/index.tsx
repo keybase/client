@@ -1,32 +1,46 @@
 import React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import * as Types from '../../../../../constants/types/wallets'
+import * as WalletsGen from '../../../../../actions/wallets-gen'
+import * as Container from '../../../../../util/container'
 import {WalletPopup} from '../../../../common'
 
 type Props = {
+  accountID: Types.AccountID
   name: string
   loading: boolean
   waiting: boolean
   onCopyKey: () => void
   onFinish: () => void
   onCancel: () => void
-  onLoadSecretKey: () => void
-  onSecretKeySeen: () => void
 }
 
 const ReallyRemoveAccountPopup = (props: Props) => {
+  const {accountID, onCopyKey} = props
+  const dispatch = Container.useDispatch()
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Button>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
+  const onLoadSecretKey = React.useCallback(
+    () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
+    [dispatch, accountID]
+  )
+  const onSecretKeySeen = React.useCallback(() => dispatch(WalletsGen.createSecretKeySeen({accountID})), [
+    accountID,
+    dispatch,
+  ])
   React.useEffect(() => {
-    showingToast && setShowToastFalseLater()
-  }, [showingToast, setShowToastFalseLater])
-  React.useEffect(() => {
-    props.onLoadSecretKey()
+    onLoadSecretKey()
     return () => {
-      props.onSecretKeySeen()
+      onSecretKeySeen()
     }
-  })
+  }, [onLoadSecretKey, onSecretKeySeen])
+  const onCopy = React.useCallback(() => {
+    setShowToast(true)
+    setShowToastFalseLater()
+    onCopyKey()
+  }, [onCopyKey, setShowToastFalseLater])
   return (
     <WalletPopup
       onExit={props.onCancel}
@@ -38,7 +52,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           fullWidth={Styles.isMobile}
           key={0}
           label="Copy secret key"
-          onClick={() => setShowToast(true)}
+          onClick={onCopy}
           type="Wallet"
           ref={attachmentRef}
           waiting={props.loading}

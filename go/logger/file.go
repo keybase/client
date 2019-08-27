@@ -114,7 +114,9 @@ func (lfw *LogFileWriter) Close() error {
 	if lfw.file == nil {
 		return nil
 	}
-	lfw.stopFlushing <- struct{}{}
+	if lfw.stopFlushing != nil {
+		lfw.stopFlushing <- struct{}{}
+	}
 
 	return lfw.file.Close()
 }

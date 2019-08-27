@@ -169,12 +169,10 @@ func stringifyAPIResult(list []keybase1.APIUserSearchResult) (res []string) {
 }
 
 type testKeybaseUserSearchData struct {
-	username     string
-	fullName     string
-	serviceMap   map[string]string
-	phoneNumbers []keybase1.PhoneNumber
-	emails       []keybase1.EmailAddress
-	followee     bool
+	username   string
+	fullName   string
+	serviceMap map[string]string
+	followee   bool
 }
 
 type testUserSearchProvider struct {
@@ -434,6 +432,7 @@ func TestUserSearchResolvedUsersShouldGoFirst(t *testing.T) {
 		Query:           "tuser",
 		MaxResults:      50,
 	})
+	require.NoError(t, err)
 	require.Equal(t, searchResultForTest{
 		id:              "tuser1",
 		displayName:     "tuser1",
@@ -585,6 +584,8 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "1201555201@phone", res[0].Imptofu.Assertion)
 		require.Equal(t, "+1201555201", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "phone", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "1201555201", res[0].Imptofu.AssertionValue)
 	}
 
 	{
@@ -599,6 +600,8 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
 		require.Equal(t, "test@keyba.se", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
 	}
 
 	{
@@ -614,5 +617,7 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
 		require.Equal(t, "TEST@keyba.se", res[0].Imptofu.PrettyName)
 		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
 	}
 }

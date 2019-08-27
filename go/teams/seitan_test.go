@@ -108,7 +108,7 @@ func TestSeitanKnownSamples(t *testing.T) {
 
 	expectedIKey := SeitanIKey("raw2ewqp249dyod4")
 	var expectedSIKey SeitanSIKey
-	copy(expectedSIKey[:], fromB64("Yqbj8NgHkIG03wfZX/dxpBpqFoXPXNXyQr+MnvCMbS4=")[:])
+	copy(expectedSIKey[:], fromB64("Yqbj8NgHkIG03wfZX/dxpBpqFoXPXNXyQr+MnvCMbS4="))
 	expectedInviteID := SCTeamInviteID("24189cc0ad5851ac52404ee99c7c9c27")
 
 	var secretKey keybase1.Bytes32

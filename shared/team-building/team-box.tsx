@@ -3,7 +3,8 @@ import GoButton from './go-button'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import * as Container from '../util/container'
+import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
@@ -14,12 +15,7 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    username: string
-    service: ServiceIdWithContact
-  }>
+  teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
   onBackspace: () => void
   onFinishTeamBuilding: () => void
@@ -27,13 +23,18 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
-  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+const formatNameForUserBubble = (u: SelectedUser) => {
+  let technicalName: string
+  switch (u.service) {
+    case 'keybase':
+    case 'contact': // do not display "michal@keyba.se on contact".
+      technicalName = u.username
+      break
+    default:
+      technicalName = `${u.username} on ${u.service}`
+      break
+  }
+  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -47,16 +48,34 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
+        prettyName={formatNameForUserBubble(u)}
       />
     ))
   }
 }
 
 const TeamBox = (props: Props) => {
+  // Scroll to the end when a new user is added so they are visible.
+  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
+  const prevLast = Container.usePrevious(last)
+  React.useEffect(() => {
+    if (Styles.isMobile && prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true})
+    }
+  }, [prevLast, last])
+
+  const addMorePrompt = props.teamSoFar.length === 1 && (
+    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
+      Keep adding people, or click Start when done.
+    </Kb.Text>
+  )
   return Styles.isMobile ? (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+        {addMorePrompt}
+      </Kb.ScrollView>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
@@ -64,6 +83,7 @@ const TeamBox = (props: Props) => {
         <Kb.ScrollView horizontal={true}>
           <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+            {addMorePrompt}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
@@ -97,7 +117,8 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
+  addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
   bubbles: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
@@ -117,9 +138,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       borderStyle: 'solid',
-      flex: 1,
-      flexWrap: 'wrap',
-      minHeight: 48,
+      minHeight: 90,
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
@@ -155,6 +174,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginLeft: 10,
   },
-})
+}))
 
 export default TeamBox

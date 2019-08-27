@@ -17,13 +17,13 @@ const Placeholder = (props: PlaceholderProps) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   placeholder: {
     backgroundColor: Styles.globalColors.greyLight,
     borderRadius: 5,
     height: 10,
     width: 200,
   },
-})
+}))
 
 export default Placeholder

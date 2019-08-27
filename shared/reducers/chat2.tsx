@@ -1390,6 +1390,9 @@ const rootReducer = (
       }
       return state.merge({userReacjis: {skinTone, topReacjis}})
     }
+    case Chat2Gen.dismissBottomBanner: {
+      return state.setIn(['dismissedInviteBannersMap', action.payload.conversationIDKey], true)
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -1426,7 +1429,10 @@ const rootReducer = (
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
+    case TeamBuildingGen.searchEmailAddress:
+    case TeamBuildingGen.searchEmailAddressResultLoaded:
     case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:
       return state.update('teamBuilding', teamBuilding => teamBuildingReducer('chat2', teamBuilding, action))
 

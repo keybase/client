@@ -7,6 +7,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateNumber} from '../util/phone-numbers'
+import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -20,6 +21,15 @@ const apiSearch = async (
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
+  switch (service) {
+    // These services should not be queried through the API.
+    // TODO: Y2K-552 change types in this function so it can't be called with
+    // invalid services.
+    case 'phone':
+    case 'contact':
+    case 'email':
+      return []
+  }
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -49,10 +59,10 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
     return
   }
 
-  // filter out the service we are searching for and contact
-  // Also filter out if we already have that result cached
+  // Filter on `services` so we only get what's searchable through API.
+  // Also filter out if we already have that result cached.
   const servicesToSearch = Constants.services
-    .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
+    .filter(s => s !== teamBuildingSelectedService && !['contact', 'phone', 'email'].includes(s))
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
   const isStillInSameQuery = (state: TypedState): boolean => {
@@ -117,16 +127,10 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
       phone: phoneNumber.e164,
       t: RPCTypes.ImpTofuSearchType.phone,
     }
-  } else {
-    // Consider the query a valid email if it contains at sign (but not at 0
-    // index) and a period after the at sign.
-    const atIndex = query.indexOf('@')
-    const periodIndex = query.lastIndexOf('.')
-    if (atIndex > 0 && periodIndex > atIndex && periodIndex !== query.length - 1) {
-      return {
-        email: query,
-        t: RPCTypes.ImpTofuSearchType.email,
-      }
+  } else if (validateEmailAddress(query)) {
+    return {
+      email: query,
+      t: RPCTypes.ImpTofuSearchType.email,
     }
   }
   return null
@@ -178,22 +182,8 @@ const fetchUserRecs = async (
     ])
     const suggestionRes = _suggestionRes || []
     const contactRes = _contactRes || []
-    const contacts = contactRes.map(
-      (x): TeamBuildingTypes.User => ({
-        contact: true,
-        id: x.assertion,
-        label: x.displayLabel,
-        prettyName: x.displayName,
-        serviceMap: {keybase: x.username},
-      })
-    )
-    let suggestions = suggestionRes.map(
-      ({username, fullname}): TeamBuildingTypes.User => ({
-        id: username,
-        prettyName: fullname,
-        serviceMap: {keybase: username},
-      })
-    )
+    const contacts = contactRes.map(Constants.contactToUser)
+    let suggestions = suggestionRes.map(Constants.interestingPersonToUser)
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)
@@ -203,6 +193,18 @@ const fetchUserRecs = async (
     logger.error(`Error in fetching recs`)
     return TeamBuildingGen.createFetchedUserRecs({namespace, users: []})
   }
+}
+
+async function searchEmailAddress(state: TypedState, {payload: {namespace}}: SearchOrRecAction) {
+  const query = state[namespace].teamBuilding.teamBuildingEmailSearchQuery
+  const impTofuQuery = makeImpTofuQuery(query, null)
+
+  const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
+  return TeamBuildingGen.createSearchEmailAddressResultLoaded({
+    namespace,
+    query,
+    user: users[0],
+  })
 }
 
 export function filterForNs<S, A, L, R>(
@@ -237,6 +239,7 @@ export default function* commonSagas(
     TeamBuildingGen.search,
     filterGenForNs(namespace, searchResultCounts)
   )
+  yield* Saga.chainAction2(TeamBuildingGen.searchEmailAddress, filterForNs(namespace, searchEmailAddress))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

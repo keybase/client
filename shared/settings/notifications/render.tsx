@@ -15,15 +15,22 @@ const Group = (props: {
   unsub?: string
   unsubscribedFromAll: boolean
 }) => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Text type="Header">{props.title}</Kb.Text>
-    {props.label && (
+    {!!props.label && (
       <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
       </Kb.Text>
     )}
-    <Kb.Box2 direction="vertical" gap="xtiny" gapStart={true} gapEnd={true} alignSelf="flex-start">
-      {props.settings &&
+    <Kb.Box2
+      direction="vertical"
+      gap="xtiny"
+      gapStart={true}
+      gapEnd={true}
+      alignSelf="flex-start"
+      fullWidth={true}
+    >
+      {!!props.settings &&
         props.settings.map(s => (
           <Kb.Checkbox
             key={props.groupName + s.name}
@@ -34,7 +41,7 @@ const Group = (props: {
           />
         ))}
     </Kb.Box2>
-    {props.unsub && (
+    {!!props.unsub && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
@@ -46,7 +53,6 @@ const Group = (props: {
         />
       </Kb.Box2>
     )}
-    <Kb.Divider style={styles.divider} />
   </Kb.Box2>
 )
 const EmailSection = (props: Props) => (
@@ -85,7 +91,7 @@ const Notifications = (props: Props) =>
       {props.showEmailSection ? (
         <EmailSection {...props} />
       ) : (
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header">Email notifications</Kb.Text>
           <Kb.Text type="BodySmall">
             Go to{' '}
@@ -94,28 +100,29 @@ const Notifications = (props: Props) =>
             </Kb.Text>{' '}
             and add an email address.
           </Kb.Text>
-          <Kb.Divider style={styles.divider} />
         </Kb.Box2>
       )}
+      <Kb.Divider style={styles.divider} />
       {(!Styles.isMobile || props.mobileHasPermissions) &&
-      props.groups.app_push &&
-      props.groups.app_push.settings ? (
-        <PhoneSection {...props} />
-      ) : Styles.isMobile ? (
-        {
-          /* TODO: display something if the user needs to enable push? */
-        }
-      ) : (
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="Header">Phone notifications</Kb.Text>
-          <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>
+      !!props.groups.app_push &&
+      !!props.groups.app_push.settings ? (
+        <>
+          <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
-        </Kb.Box2>
+        </>
+      ) : (
+        !Styles.isMobile /* TODO: display something if the user needs to enable push? */ && (
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="Header">Phone notifications</Kb.Text>
+            <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>
+            <Kb.Divider style={styles.divider} />
+          </Kb.Box2>
+        )
       )}
 
       {(!Styles.isMobile || props.mobileHasPermissions) &&
-        props.groups.security &&
-        props.groups.security.settings && (
+        !!props.groups.security &&
+        !!props.groups.security.settings && (
           <Group
             allowEdit={props.allowEdit}
             groupName="security"
@@ -127,7 +134,8 @@ const Notifications = (props: Props) =>
         )}
 
       {!Styles.isMobile && (
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Divider style={styles.divider} />
           <Kb.Text type="Header">Sound</Kb.Text>
           <Kb.Checkbox
             style={styles.checkbox}
@@ -152,7 +160,7 @@ const styles = Styles.styleSheetCreate({
   label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
   loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
   main: Styles.platformStyles({
-    common: {flex: 1, padding: Styles.globalMargins.small},
+    common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
     isElectron: Styles.desktopStyles.scrollable,
   }),
 })

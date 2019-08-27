@@ -498,8 +498,7 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 		return err
 
 	}
-	s.mergeLocked(newKeys, checker.seqgen)
-	return nil
+	return s.mergeLocked(newKeys, checker.seqgen)
 }
 
 func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {

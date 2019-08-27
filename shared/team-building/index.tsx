@@ -4,15 +4,30 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import TeamBox from './team-box'
 import Input from './input'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
-import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import {
+  serviceIdToAccentColor,
+  serviceIdToIconFont,
+  serviceIdToLabel,
+  serviceIdToSearchPlaceholder,
+} from './shared'
+import {
+  AllowedNamespace,
+  ServiceIdWithContact,
+  FollowingState,
+  SelectedUser,
+  User,
+} from '../constants/types/team-building'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
+import PhoneSearch from './phone-search'
+import AlphabetIndex from './alphabet-index'
+import EmailInput from './email-input'
+import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
 
@@ -55,13 +70,16 @@ type ContactProps = {
   onAskForContactsLater: () => void
   onImportContacts: () => void
   onLoadContactsSetting: () => void
+  selectedService: ServiceIdWithContact
 }
 
 export type Props = ContactProps & {
   fetchUserRecs: () => void
   includeContacts: boolean
   highlightedIndex: number | null
+  namespace: AllowedNamespace
   onAdd: (userId: string) => void
+  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -74,19 +92,15 @@ export type Props = ContactProps & {
   onUpArrowKeyDown: () => void
   onClear: () => void
   recommendations: Array<SearchRecSection> | null
+  search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
-  selectedService: ServiceIdWithContact
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    service: ServiceIdWithContact
-    username: string
-  }>
+  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
+  teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
@@ -115,6 +129,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // then there's nothing for us to do.
   if (
     props.contactsImported === null ||
+    props.selectedService !== 'keybase' ||
     props.contactsImported ||
     props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
@@ -125,7 +140,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
-        <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
+        <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
         <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
@@ -137,7 +152,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             small={true}
           />
           <Kb.Button
-            label="Later"
+            label="Skip"
             backgroundColor="blue"
             mode="Secondary"
             onClick={props.onAskForContactsLater}
@@ -155,6 +170,7 @@ const ContactsImportButton = (props: ContactProps) => {
   if (
     props.contactsImported === null ||
     props.contactsImported ||
+    !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
   )
     return null
@@ -165,13 +181,14 @@ const ContactsImportButton = (props: ContactProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
+        gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-phone-contact" fontSize={24} />
+        <Kb.Icon type="iconfont-contact-book" color="Styles.globalColors.black" />
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import your phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" fontSize={24} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color="Styles.globalColors.black" />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -185,43 +202,25 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   _alphabetIndex = () => {
     let showNumSection = false
+    let labels: Array<string> = []
     if (this.props.recommendations && this.props.recommendations.length > 0) {
       showNumSection =
         this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
+      labels = this.props.recommendations
+        .filter(r => r.shortcut && r.label !== numSectionLabel)
+        .map(r => r.label)
+    }
+    if (!labels.length) {
+      return null
     }
     return (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.alphabetIndex}>
-        {this.props.recommendations &&
-          this.props.recommendations.map(section =>
-            section.label.length === 1 ? (
-              <Kb.ClickableBox
-                key={section.label}
-                onClick={() => this._onScrollToSection(section.label)}
-                style={styles.gapAlphaIndices}
-              >
-                <Kb.Text
-                  key={section.label}
-                  type="BodyTiny"
-                  onClick={() => this._onScrollToSection(section.label)}
-                >
-                  {section.label}
-                </Kb.Text>
-              </Kb.ClickableBox>
-            ) : null
-          )}
-        {showNumSection &&
-          ['0', '•', '9'].map(char => (
-            <Kb.ClickableBox
-              key={char}
-              onClick={() => this._onScrollToSection(numSectionLabel)}
-              style={styles.gapAlphaIndices}
-            >
-              <Kb.Text key={char} type="BodyTiny">
-                {char}
-              </Kb.Text>
-            </Kb.ClickableBox>
-          ))}
-      </Kb.Box2>
+      <AlphabetIndex
+        labels={labels}
+        showNumSection={showNumSection}
+        onScroll={this._onScrollToSection}
+        style={styles.alphabetIndex}
+        measureKey={!!this.props.teamSoFar.length}
+      />
     )
   }
 
@@ -230,10 +229,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       const ref = this.sectionListRef.current
       const sectionIndex =
         (this.props.recommendations &&
-          this.props.recommendations.findIndex(section => section.label === label)) ||
+          (label === 'numSection'
+            ? this.props.recommendations.length - 1
+            : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        // @ts-ignore due to no RN types
+        // @ts-ignore RN type not plumbed. see section-list.d.ts
         ref.scrollToLocation({
           animated: false,
           itemIndex: 0,
@@ -311,7 +312,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onBackspace={props.onBackspace}
-        placeholder="Search"
+        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
       />
     )
@@ -412,7 +413,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 />
               )
             }
-            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+            renderSectionHeader={({section: {label}}) => (label ? <Kb.SectionDivider label={label} /> : null)}
           />
           {Styles.isMobile && this._alphabetIndex()}
         </Kb.Box2>
@@ -453,6 +454,49 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
 
   render = () => {
     const props = this.props
+
+    let content
+    switch (props.selectedService) {
+      case 'email':
+        content = <EmailInput namespace={props.namespace} />
+        break
+      case 'phone':
+        content = (
+          <PhoneSearch
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+            onContinue={props.onAddRaw}
+          />
+        )
+        break
+      default:
+        content = (
+          <>
+            {this._searchInput()}
+            {this._listBody()}
+            {props.waitingForCreate && (
+              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+              </Kb.Box2>
+            )}
+          </>
+        )
+    }
+    const teamBox = !!props.teamSoFar.length && (
+      <TeamBox
+        allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
+        onChangeText={props.onChangeText}
+        onDownArrowKeyDown={props.onDownArrowKeyDown}
+        onUpArrowKeyDown={props.onUpArrowKeyDown}
+        onEnterKeyDown={props.onEnterKeyDown}
+        onFinishTeamBuilding={props.onFinishTeamBuilding}
+        onRemove={props.onRemove}
+        teamSoFar={props.teamSoFar}
+        onBackspace={props.onBackspace}
+        searchString={props.searchString}
+        rolePickerProps={props.rolePickerProps}
+      />
+    )
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
@@ -462,37 +506,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Box2>
         )}
-        {!!props.teamSoFar.length &&
+        {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <TeamBox
-                allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-                onChangeText={props.onChangeText}
-                onDownArrowKeyDown={props.onDownArrowKeyDown}
-                onUpArrowKeyDown={props.onUpArrowKeyDown}
-                onEnterKeyDown={props.onEnterKeyDown}
-                onFinishTeamBuilding={props.onFinishTeamBuilding}
-                onRemove={props.onRemove}
-                teamSoFar={props.teamSoFar}
-                onBackspace={props.onBackspace}
-                searchString={props.searchString}
-                rolePickerProps={props.rolePickerProps}
-              />
+              {teamBox}
             </Kb.Box2>
           ) : (
-            <TeamBox
-              allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-              onChangeText={props.onChangeText}
-              onDownArrowKeyDown={props.onDownArrowKeyDown}
-              onUpArrowKeyDown={props.onUpArrowKeyDown}
-              onEnterKeyDown={props.onEnterKeyDown}
-              onFinishTeamBuilding={props.onFinishTeamBuilding}
-              onRemove={props.onRemove}
-              teamSoFar={props.teamSoFar}
-              onBackspace={props.onBackspace}
-              searchString={props.searchString}
-              rolePickerProps={props.rolePickerProps}
-            />
+            teamBox
           ))}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
@@ -504,6 +524,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Text>
         )}
         <ServiceTabBar
+          services={Constants.servicesForNamespace(props.namespace)}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}
@@ -516,13 +537,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onRedoRecs={props.fetchUserRecs}
           />
         )}
-        {this._searchInput()}
-        {this._listBody()}
-        {props.waitingForCreate && (
-          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-          </Kb.Box2>
-        )}
+        {content}
       </Kb.Box2>
     )
   }
@@ -535,14 +550,21 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: Styles.globalMargins.large,
   },
-  banner: {
-    backgroundColor: Styles.globalColors.blue,
-    padding: Styles.globalMargins.tiny,
-  },
+  banner: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
+    },
+  }),
   bannerButtonContainer: {
     flexWrap: 'wrap',
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xsmall,
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerIcon: {
     maxHeight: 112,
@@ -559,7 +581,7 @@ const styles = Styles.styleSheetCreate({
   },
   bannerText: {
     flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerTextContainer: {
     flex: 1,
@@ -573,9 +595,9 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderRadius: 4,
-      height: 434,
+      height: 560,
       overflow: 'hidden',
-      width: 470,
+      width: 400,
     },
   }),
   emptyContainer: Styles.platformStyles({
@@ -590,12 +612,8 @@ const styles = Styles.styleSheetCreate({
       maxWidth: '80%',
     },
   }),
-  gapAlphaIndices: {
-    ...Styles.padding(2, 6, 2, 2),
-    flexShrink: 1,
-  },
   importContactsContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     padding: Styles.globalMargins.xsmall,
   },
   list: Styles.platformStyles({

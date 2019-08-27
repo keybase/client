@@ -32,6 +32,7 @@ const cases = [
   {in: RPCChatTypes.MessageType.sendpayment, out: ['sendPayment']},
   {in: RPCChatTypes.MessageType.requestpayment, out: ['requestPayment']},
   {in: RPCChatTypes.MessageType.flip, out: []},
+  {in: RPCChatTypes.MessageType.pin, out: []},
 ]
 
 describe('serviceMessageTypeToMessageTypes', () => {

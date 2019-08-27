@@ -26,7 +26,7 @@ export default function(
     case TeamBuildingGen.changeSendNotification:
       return state.set('teamBuildingSendNotification', action.payload.sendNotification)
     case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.mergeIn(['teamBuildingTeamSoFar'], I.Set(action.payload.users))
+      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
@@ -58,6 +58,24 @@ export default function(
         teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),
         teamBuildingSelectedService: service,
+      })
+    }
+    case TeamBuildingGen.searchEmailAddress: {
+      const {query} = action.payload
+      return state.merge({
+        teamBuildingEmailIsSearching: true,
+        teamBuildingEmailResult: null,
+        teamBuildingEmailSearchQuery: query.trim(),
+      })
+    }
+    case TeamBuildingGen.searchEmailAddressResultLoaded: {
+      const {user, query} = action.payload
+      if (query !== state.teamBuildingEmailSearchQuery) {
+        return state
+      }
+      return state.merge({
+        teamBuildingEmailIsSearching: false,
+        teamBuildingEmailResult: user,
       })
     }
 

@@ -65,8 +65,8 @@ export default (state: Types.State = initialState, action: WaitingGen.Actions): 
         const counts = new Map(draftState.counts)
         const errors = new Map(draftState.errors)
         getKeys(action.payload.key).forEach(key => {
-          draftState.counts.delete(key)
-          draftState.errors.delete(key)
+          counts.delete(key)
+          errors.delete(key)
         })
         draftState.counts = counts
         draftState.errors = errors

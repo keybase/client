@@ -63,7 +63,10 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 		defer func() {
 			s.log.Debug("| Chdir(%s)", prevWd)
-			os.Chdir(prevWd)
+			err := os.Chdir(prevWd)
+			if err != nil {
+				s.log.Debug("| Chdir(%s) err=%v", prevWd, err)
+			}
 		}()
 
 		bindFile = filepath.Base(bindFile)
@@ -117,7 +120,12 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 		if err := os.Chdir(dir); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
-		defer os.Chdir(prevWd)
+		defer func() {
+			err := os.Chdir(prevWd)
+			if err != nil {
+				s.log.Debug("| Chdir(%s) err=%v", prevWd, err)
+			}
+		}()
 		dialFile = filepath.Base(dialFile)
 	}
 

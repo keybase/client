@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as FsTypes from '../../constants/types/fs'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
@@ -208,28 +207,6 @@ const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileApp
   return ConfigGen.createChangedFocus({appFocused})
 }
 
-const getStartupDetailsFromShare = (): Promise<
-  | null
-  | {
-      localPath: FsTypes.LocalPath
-    }
-  | {
-      text: string
-    }
-> =>
-  isAndroid
-    ? NativeModules.IntentHandler.getShareData().then(p => {
-        if (!p) return null
-        if (p.localPath) {
-          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-        }
-        if (p.text) {
-          return {text: p.text}
-        }
-        return null
-      })
-    : Promise.resolve(null)
-
 let _lastPersist = ''
 function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
@@ -291,6 +268,7 @@ function* setupNetInfoWatcher() {
   }
 }
 
+// TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
   let startupConversation = null
@@ -306,8 +284,7 @@ function* loadStartupDetails() {
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const initialShare = yield Saga._fork(getStartupDetailsFromShare)
-  const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(() => {
@@ -327,12 +304,6 @@ function* loadStartupDetails() {
   } else if (link) {
     // Second priority, deep link
     startupLink = link
-  } else if (share) {
-    // Third priority, share
-    // TODO: handle share.localPath or share.text.
-    if (share.localPath) {
-      startupSharePath = share.localPath
-    }
   } else if (routeState) {
     // Last priority, saved from last session
     try {

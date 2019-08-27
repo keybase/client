@@ -621,22 +621,19 @@ const addPhoneNumber = async (
   logger: Saga.SagaLogger
 ) => {
   logger.info('adding phone number')
-  const {phoneNumber, allowSearch} = action.payload
-  const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
+  const {phoneNumber, searchable} = action.payload
+  const visibility = searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
   try {
     await RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
       {phoneNumber, visibility},
       Constants.addPhoneNumberWaitingKey
     )
     logger.info('success')
-    return SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})
+    return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
   } catch (err) {
     logger.warn('error ', err.message)
-    const message =
-      err.code === RPCTypes.StatusCode.scratelimit
-        ? 'Sorry, added a few too many phone numbers recently. Please try again later.'
-        : err.message
-    return SettingsGen.createAddedPhoneNumber({allowSearch, error: message, phoneNumber})
+    const message = Constants.makePhoneError(err)
+    return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
   }
 }
 
@@ -654,10 +651,7 @@ const resendVerificationForPhoneNumber = async (
     )
     return false
   } catch (err) {
-    const message =
-      err.code === RPCTypes.StatusCode.scratelimit
-        ? 'Sorry, asked for a few too many verification codes recently. Please try again later.'
-        : err.message
+    const message = Constants.makePhoneError(err)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -678,12 +672,7 @@ const verifyPhoneNumber = async (
     logger.info('success')
     return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
   } catch (err) {
-    const message =
-      err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
-        ? 'Incorrect code, please try again.'
-        : err.code === RPCTypes.StatusCode.scratelimit
-        ? 'Sorry, tried too many guesses in a short period of time. Please try again later.'
-        : err.message
+    const message = Constants.makePhoneError(err)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -753,13 +742,7 @@ const addEmail = async (state: TypedState, action: SettingsGen.AddEmailPayload, 
     return SettingsGen.createAddedEmail({email})
   } catch (err) {
     logger.warn(`error: ${err.message}`)
-
-    const message =
-      err.code === RPCTypes.StatusCode.scratelimit
-        ? "Sorry, you've added too many email addresses lately. Please try again later."
-        : err.message
-    err.message = message
-    return SettingsGen.createAddedEmail({email, error: err})
+    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(err)})
   }
 }
 

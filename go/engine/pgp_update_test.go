@@ -61,13 +61,13 @@ func TestPGPUpdate(t *testing.T) {
 	bundle.Subkeys = []openpgp.Subkey{}
 
 	gpgCLI := libkb.NewGpgCLI(tc.G, tc.G.UI.GetLogUI())
-	err := gpgCLI.Configure()
+	err := gpgCLI.Configure(tc.MetaContext())
 	if err != nil {
 		t.Fatal("Error initializing GpgCLI", err)
 	}
 
 	// Add the modified key to the gpg keyring
-	if err := gpgCLI.ExportKey(*bundle, false /* export public key only */, false /* no batch mode */); err != nil {
+	if err := gpgCLI.ExportKey(tc.MetaContext(), *bundle, false /* export public key only */, false /* no batch mode */); err != nil {
 		t.Fatal(err)
 	}
 

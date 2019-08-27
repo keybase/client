@@ -146,7 +146,7 @@ func (e *PGPPushPrivate) remove(m libkb.MetaContext, fs *keybase1.SimpleFSClient
 }
 
 func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty string, fs *keybase1.SimpleFSClient) error {
-	armored, err := m.G().GetGpgClient().ImportKeyArmored(true /* secret */, fp, tty)
+	armored, err := m.G().GetGpgClient().ImportKeyArmored(m, true /* secret */, fp, tty)
 	if err != nil {
 		return err
 	}

@@ -117,6 +117,7 @@
   "keybase.1.config.waitForClient": {"promise": true},
   "keybase.1.config.setProxyData": {"promise": true},
   "keybase.1.config.getProxyData": {"promise": true},
+  "keybase.1.config.appendGUILogs": {"promise": true},
   "keybase.1.contacts.getContactsForUserRecommendations": {"promise": true},
   "keybase.1.contacts.lookupSavedContactsList": {"promise": true},
   "keybase.1.contacts.saveContactList": {"promise": true},

@@ -112,7 +112,7 @@ func (r *SCTeamRatchet) UnmarshalJSON(b []byte) error {
 	if len(b) != len(*r) {
 		return newRatchetError("cannot decode team ratchet; wrong size")
 	}
-	copy((*r)[:], b[:])
+	copy((*r)[:], b)
 	return nil
 }
 
@@ -160,7 +160,7 @@ func (r *RatchetBlindingKeySet) UnmarshalJSON(b []byte) error {
 }
 
 func (r *SCTeamRatchet) MarshalJSON() ([]byte, error) {
-	s := hex.EncodeToString([]byte((*r)[:]))
+	s := hex.EncodeToString((*r)[:])
 	b := keybase1.Quote(s)
 	return b, nil
 }
@@ -185,7 +185,7 @@ func generateBlindingKey() (BlindingKey, error) {
 	if err != nil {
 		return ret, err
 	}
-	copy(ret[:], tmp[:])
+	copy(ret[:], tmp)
 	return ret, nil
 }
 
@@ -224,7 +224,10 @@ func (r *RatchetBlind) compute(tail sig3.Tail) (ret SCTeamRatchet, err error) {
 		return ret, err
 	}
 	h := hmac.New(sha512.New, r.Key[:])
-	h.Write(b)
+	_, err = h.Write(b)
+	if err != nil {
+		return ret, err
+	}
 	d := h.Sum(nil)[0:32]
 	copy(ret[:], d)
 	return ret, nil

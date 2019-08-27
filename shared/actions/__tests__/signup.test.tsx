@@ -194,7 +194,7 @@ describe('checkedUsername', () => {
   })
 
   it('shows error', () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
+    const state = Constants.makeState({username: 'username'})
     const action = SignupGen.createCheckedUsername({
       error: 'another problem',
       username: state.username,
@@ -204,7 +204,7 @@ describe('checkedUsername', () => {
   })
 
   it('shows device name page on success', () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
+    const state = Constants.makeState({username: 'username'})
     const action = SignupGen.createCheckedUsername({
       error: '',
       username: state.username,
@@ -309,18 +309,12 @@ describe('actually sign up', () => {
 
   const validSignup = Constants.makeState({
     devicename: 'a valid devicename',
-    email: 'test@test.com',
     inviteCode: '1234566',
     username: 'testuser',
   })
 
   const signupError = new Error('Missing data for signup')
 
-  it('bails on missing email', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', ''))).next()
-    ).toThrow(signupError)
-  })
   it('bails on missing devicename', () => {
     expect(() =>
       _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', ''))).next()

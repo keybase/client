@@ -348,6 +348,8 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 		m.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
+	default:
+		// Nothing to do for other codes.
 	}
 
 	var them *jsonw.Wrapper
@@ -702,7 +704,7 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 	}
 	res.cachedAt = m.G().Clock().Now()
 	res.body = nil // Don't cache body
-	r.cache.Set(key, &res)
+	_ = r.cache.Set(key, &res)
 }
 
 func (r *ResolverImpl) CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName) {
@@ -730,7 +732,10 @@ func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error
 	}
 
 	key := u.CacheKey()
-	r.cache.Delete(key)
+	err = r.cache.Delete(key)
+	if err != nil {
+		return err
+	}
 	// Since we only put to disk cache if it's a Keybase-type assertion, we
 	// only remove it in this case as well.
 	if u.IsKeybase() {

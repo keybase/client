@@ -10,6 +10,7 @@ export const dismissAnnouncement = 'people:dismissAnnouncement'
 export const getPeopleData = 'people:getPeopleData'
 export const markViewed = 'people:markViewed'
 export const peopleDataProcessed = 'people:peopleDataProcessed'
+export const setResentEmail = 'people:setResentEmail'
 export const skipTodo = 'people:skipTodo'
 
 // Payload Types
@@ -23,6 +24,7 @@ type _PeopleDataProcessedPayload = {
   readonly lastViewed: Date
   readonly version: number
 }
+type _SetResentEmailPayload = {readonly email: string}
 type _SkipTodoPayload = {readonly type: Types.TodoType}
 
 // Action Creators
@@ -40,6 +42,10 @@ export const createMarkViewed = (payload: _MarkViewedPayload): MarkViewedPayload
 export const createPeopleDataProcessed = (
   payload: _PeopleDataProcessedPayload
 ): PeopleDataProcessedPayload => ({payload, type: peopleDataProcessed})
+export const createSetResentEmail = (payload: _SetResentEmailPayload): SetResentEmailPayload => ({
+  payload,
+  type: setResentEmail,
+})
 export const createSkipTodo = (payload: _SkipTodoPayload): SkipTodoPayload => ({payload, type: skipTodo})
 
 // Action Payloads
@@ -56,6 +62,10 @@ export type PeopleDataProcessedPayload = {
   readonly payload: _PeopleDataProcessedPayload
   readonly type: typeof peopleDataProcessed
 }
+export type SetResentEmailPayload = {
+  readonly payload: _SetResentEmailPayload
+  readonly type: typeof setResentEmail
+}
 export type SkipTodoPayload = {readonly payload: _SkipTodoPayload; readonly type: typeof skipTodo}
 
 // All Actions
@@ -65,5 +75,6 @@ export type Actions =
   | GetPeopleDataPayload
   | MarkViewedPayload
   | PeopleDataProcessedPayload
+  | SetResentEmailPayload
   | SkipTodoPayload
   | {type: 'common:resetStore', payload: {}}

@@ -71,7 +71,7 @@ class TopMessage extends React.PureComponent<Props> {
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
           <Kb.Box style={moreStyle}>
-            <Kb.Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Kb.Text>
+            <Kb.Text type="BodyBig">🗿</Kb.Text>
             <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
           </Kb.Box>
         )}
@@ -96,6 +96,7 @@ const secureStyle = {
 const moreStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  paddingBottom: globalMargins.medium,
 }
 
 const errorStyle = {

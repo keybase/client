@@ -47,6 +47,7 @@ func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 	e.doSwitch(mctx)
+
 	return nil
 }
 

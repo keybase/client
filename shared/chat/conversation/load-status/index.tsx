@@ -7,11 +7,7 @@ type Props = {
   status: RPCChatTypes.UIChatThreadStatus | null
 }
 
-type ValidatedStatusProps = {
-  status: RPCChatTypes.UIChatThreadStatus
-}
-
-const ValidatedStatus = (props: ValidatedStatusProps) => {
+const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,41 +18,18 @@ const ValidatedStatus = (props: ValidatedStatusProps) => {
     }
   }, [])
   return visible ? (
-    <Container status={props.status}>
-      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
-        <Kb.Icon type="iconfont-check" color={Styles.globalColors.white} sizeType="Tiny" />
-        <Kb.Text type="BodyTiny" style={{color: Styles.globalColors.white}}>
-          {'End-to-end encrypted'}
-        </Kb.Text>
-      </Kb.Box2>
-    </Container>
+    <Kb.Banner color="green" small={true} style={styles.banner}>
+      End-to-end encrypted.
+    </Kb.Banner>
   ) : null
-}
-
-type ContainerProps = {
-  children: React.ReactNode
-  status: RPCChatTypes.UIChatThreadStatus
-}
-
-const Container = (props: ContainerProps) => {
-  return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      centerChildren={true}
-      style={Styles.collapseStyles([styles.container, {backgroundColor: getBkgColor(props.status)}])}
-    >
-      {props.children}
-    </Kb.Box2>
-  )
 }
 
 const getBkgColor = (status: RPCChatTypes.UIChatThreadStatus) => {
   switch (status.typ) {
     case RPCChatTypes.UIChatThreadStatusTyp.validated:
-      return Styles.globalColors.green
+      return 'green'
     default:
-      return Styles.globalColors.grey
+      return 'grey'
   }
 }
 
@@ -67,23 +40,23 @@ const ThreadLoadStatus = (props: Props) => {
   switch (props.status.typ) {
     case RPCChatTypes.UIChatThreadStatusTyp.server:
       return (
-        <Container status={props.status}>
-          <Kb.Text type="BodyTiny">{'Syncing messages with server...'}</Kb.Text>
-        </Container>
+        <Kb.Banner color={getBkgColor(props.status)} small={true} style={styles.banner}>
+          Syncing messages with server...
+        </Kb.Banner>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validating:
       return (
-        <Container status={props.status}>
-          <Kb.Text type="BodyTiny">{'Validating sender signing keys...'}</Kb.Text>
-        </Container>
+        <Kb.Banner color={getBkgColor(props.status)} small={true} style={styles.banner}>
+          Validating sender signing keys...
+        </Kb.Banner>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validated:
-      return <ValidatedStatus status={props.status} />
+      return <ValidatedStatus />
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
+  banner: {
     left: 0,
     padding: Styles.globalMargins.xxtiny,
     position: 'absolute',

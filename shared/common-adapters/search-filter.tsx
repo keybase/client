@@ -68,6 +68,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     text: '',
   }
 
+  _mounted = false
   _inputRef: React.RefObject<any> = React.createRef()
   _onBlur = () => {
     this.setState({focused: false})
@@ -111,9 +112,14 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
   _typing = () => this.state.focused || !!this._text()
-
+  // RN fails at tracking this keyboard if we don't delay this, making it get stuck open.
+  _focusOnMount = () => setTimeout(() => this._mounted && this._focus(), 20)
   componentDidMount() {
-    this.props.focusOnMount && this._focus()
+    this._mounted = true
+    this.props.focusOnMount && this._focusOnMount()
+  }
+  componentWillUnmount() {
+    this._mounted = false
   }
   _keyHandler() {
     return (
@@ -273,7 +279,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
 
 export default SearchFilter
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -356,4 +362,4 @@ const styles = Styles.styleSheetCreate({
   textNegative: {
     color: Styles.globalColors.white,
   },
-})
+}))

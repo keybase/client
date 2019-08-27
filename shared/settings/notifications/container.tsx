@@ -20,7 +20,7 @@ const ReloadableNotifications = (props: Props & ExtraProps) => {
   return (
     <Reloadable
       onBack={Container.isMobile ? props.onBack : undefined}
-      waitingKeys={Constants.refreshNotificationsWaitingKey}
+      waitingKeys={[Constants.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}
       title={title}
@@ -42,7 +42,10 @@ export default Container.connect(
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Types.accountTab]})),
-    onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
+    onRefresh: () => {
+      dispatch(SettingsGen.createLoadSettings())
+      dispatch(SettingsGen.createNotificationsRefresh())
+    },
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
     onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),

@@ -194,6 +194,7 @@ export type TypedActionsMap = {
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
   'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
+  'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -236,6 +237,7 @@ export type TypedActionsMap = {
   'config:setDarkModePreference': config.SetDarkModePreferencePayload
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
+  'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -578,6 +580,7 @@ export type TypedActionsMap = {
   'people:dismissAnnouncement': people.DismissAnnouncementPayload
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
+  'people:setResentEmail': people.SetResentEmailPayload
   'pinentry:deleteEntity': pinentry.DeleteEntityPayload
   'pinentry:mergeEntity': pinentry.MergeEntityPayload
   'pinentry:replaceEntity': pinentry.ReplaceEntityPayload
@@ -689,6 +692,7 @@ export type TypedActionsMap = {
   'settings:addedEmail': settings.AddedEmailPayload
   'settings:clearAddingEmail': settings.ClearAddingEmailPayload
   'settings:clearAddedEmail': settings.ClearAddedEmailPayload
+  'settings:clearAddedPhone': settings.ClearAddedPhonePayload
   'settings:invitesClearError': settings.InvitesClearErrorPayload
   'settings:invitesReclaim': settings.InvitesReclaimPayload
   'settings:invitesReclaimed': settings.InvitesReclaimedPayload
@@ -746,24 +750,27 @@ export type TypedActionsMap = {
   'signup:checkPassword': signup.CheckPasswordPayload
   'signup:checkUsername': signup.CheckUsernamePayload
   'signup:checkedUsername': signup.CheckedUsernamePayload
-  'signup:checkEmail': signup.CheckEmailPayload
   'signup:requestInvite': signup.RequestInvitePayload
   'signup:requestedInvite': signup.RequestedInvitePayload
   'signup:restartSignup': signup.RestartSignupPayload
   'signup:signedup': signup.SignedupPayload
   'signup:checkDevicename': signup.CheckDevicenamePayload
   'signup:checkedDevicename': signup.CheckedDevicenamePayload
+  'signup:setJustSignedUpEmail': signup.SetJustSignedUpEmailPayload
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
+  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
+  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
+  'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload

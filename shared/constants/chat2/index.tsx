@@ -33,6 +33,7 @@ export const makeState = I.Record<Types._State>({
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
+  dismissedInviteBannersMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -325,6 +326,12 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
+    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+      .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
+      .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
+      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
+      RPCChatTypes.ConversationMemberStatus
+    >,
     readOnly: false,
     status: (Object.keys(RPCChatTypes.ConversationStatus)
       .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')

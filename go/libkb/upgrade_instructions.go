@@ -13,8 +13,9 @@ func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return linuxUpgradeInstructionsString()
+	default:
+		return "", nil
 	}
-	return "", nil
 }
 
 func PlatformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {

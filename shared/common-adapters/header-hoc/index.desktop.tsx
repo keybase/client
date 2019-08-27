@@ -126,7 +126,7 @@ const _titleStyle = {
   top: 0,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -155,6 +155,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 export default HeaderHoc

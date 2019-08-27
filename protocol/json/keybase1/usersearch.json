@@ -129,6 +129,14 @@
         },
         {
           "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        },
+        {
+          "type": "string",
           "name": "label"
         },
         {

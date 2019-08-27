@@ -54,7 +54,7 @@ const Input = (props: Props) => {
         valueControlled={true}
         value={props.searchString}
         icon="iconfont-search"
-        focusOnMount={true}
+        focusOnMount={!Styles.isMobile}
         fullWidth={true}
         onChange={props.onChangeText}
         placeholderText={props.placeholder}
@@ -74,6 +74,9 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    },
+    isMobile: {
+      zIndex: -1, // behind ServiceTabBar
     },
   }),
 })

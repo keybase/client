@@ -3,6 +3,10 @@ import {Props} from './toast'
 import FloatingBox from './floating-box'
 import * as Styles from '../styles'
 
+const Kb = {
+  FloatingBox,
+}
+
 // @ts-ignore codemod-issue
 const FadeBox = Styles.styled.div({
   ...Styles.transition('opacity'),
@@ -13,17 +17,17 @@ const FadeBox = Styles.styled.div({
 })
 
 export default (props: Props) => (
-  <FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
+  <Kb.FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
     <FadeBox
       className={Styles.classNames({visible: props.visible}, props.className)}
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       {props.children}
     </FadeBox>
-  </FloatingBox>
+  </Kb.FloatingBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.black,
@@ -36,4 +40,4 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.xtiny,
   },
-})
+}))

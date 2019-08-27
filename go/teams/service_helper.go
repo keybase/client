@@ -182,7 +182,7 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
-	uids := make([]keybase1.UID, len(uvs), len(uvs))
+	uids := make([]keybase1.UID, len(uvs))
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
 	}
@@ -192,7 +192,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 		return nil, err
 	}
 
-	ret = make([]keybase1.TeamMemberDetails, len(uvs), len(uvs))
+	ret = make([]keybase1.TeamMemberDetails, len(uvs))
 
 	for i, uv := range uvs {
 		pkg := packages[i]
@@ -749,7 +749,6 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 			return err
 		}
 		g.Log.CDebugf(ctx, "loadUserVersionByUsername(%s) returned %v,%q", username, uv, err)
-		err = nil
 	}
 
 	me, err := loadMeForSignatures(ctx, g)
@@ -834,7 +833,10 @@ func leave(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team
 			return err
 		}
 
-		FreezeTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		err = FreezeTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		if err != nil {
+			g.Log.CDebugf(ctx, "leave FreezeTeam error: %+v", err)
+		}
 
 		return nil
 	})
@@ -871,7 +873,13 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInte
 			return err
 		}
 
-		TombstoneTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		err = TombstoneTeam(libkb.NewMetaContext(ctx, g), t.ID)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Delete TombstoneTeam error: %+v", err)
+			if g.Env.GetRunMode() == libkb.DevelRunMode {
+				return err
+			}
+		}
 
 		return nil
 	})
@@ -1032,21 +1040,6 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
 }
 
-func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
-	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username, useTracking)
-	if err == nil {
-		hasPUK = true
-	} else {
-		if err == errInviteRequired {
-			err = nil
-			hasPUK = false
-		} else {
-			return "", keybase1.UserVersion{}, false, err
-		}
-	}
-	return uname, uv, hasPUK, nil
-}
-
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (keybase1.UserVersion, error) {
 	m := libkb.NewMetaContext(ctx, g)
 	upk, err := engine.ResolveAndCheck(m, username, useTracking)
@@ -1108,30 +1101,6 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole, botSettings *k
 	}
 
 	return req, nil
-}
-
-func kbInviteFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (SCTeamInvites, error) {
-	invite := SCTeamInvite{
-		Type: "keybase",
-		Name: uv.TeamInviteName(),
-		ID:   NewInviteID(),
-	}
-	var invites SCTeamInvites
-	list := []SCTeamInvite{invite}
-	switch role {
-	case keybase1.TeamRole_OWNER:
-		invites.Owners = &list
-	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &list
-	case keybase1.TeamRole_WRITER:
-		invites.Writers = &list
-	case keybase1.TeamRole_READER:
-		invites.Readers = &list
-	default:
-		return SCTeamInvites{}, errors.New("invalid team role")
-	}
-
-	return invites, nil
 }
 
 func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.IdentifyLiteRes {
@@ -1355,8 +1324,7 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 	if err != nil {
 		return err
 	}
-	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
-	return nil
+	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 }
 
 func apiArg(endpoint string) libkb.APIArg {
@@ -1630,9 +1598,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	isRoleOrAbove := func(role keybase1.TeamRole) bool {
-		return teamRole.IsOrAbove(role)
-	}
+	isRoleOrAbove := teamRole.IsOrAbove
 
 	canMemberShowcase := func() (bool, error) {
 		if teamRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
@@ -1831,8 +1797,7 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err
 	}
-	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
-	return nil
+	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 }
 
 type listProfileAddServerRes struct {

@@ -1,5 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -16,8 +17,10 @@ type OwnProps = {
 type Props = {
   type: 'invite' | 'none' | 'broken'
   users: Array<string>
+  dismissed: boolean
   openShareSheet: () => void
   openSMS: (email: string) => void
+  onDismiss: () => void
   usernameToContactName: {[username: string]: string}
 }
 
@@ -26,12 +29,15 @@ class BannerContainer extends React.PureComponent<Props> {
     switch (this.props.type) {
       case 'invite':
         return (
-          <InviteBanner
-            openShareSheet={this.props.openShareSheet}
-            openSMS={this.props.openSMS}
-            users={this.props.users}
-            usernameToContactName={this.props.usernameToContactName}
-          />
+          !this.props.dismissed && (
+            <InviteBanner
+              openShareSheet={this.props.openShareSheet}
+              openSMS={this.props.openSMS}
+              onDismiss={this.props.onDismiss}
+              users={this.props.users}
+              usernameToContactName={this.props.usernameToContactName}
+            />
+          )
         )
       case 'broken':
         return <Kb.ProofBrokenBanner users={this.props.users} />
@@ -46,17 +52,24 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
+  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey, false)
   return {
+    _dismissed,
     _following,
     _meta,
     _users,
   }
 }
 
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  onDismiss: () =>
+    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey: ownProps.conversationIDKey})),
+})
+
 export default Container.connect(
   mapStateToProps,
-  () => ({}),
-  (stateProps, __, _: OwnProps) => {
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => {
     let type
     let users: Array<string> = []
 
@@ -81,6 +94,8 @@ export default Container.connect(
     }
 
     return {
+      dismissed: stateProps._dismissed,
+      onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
         showShareActionSheetFromURL({

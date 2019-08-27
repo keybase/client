@@ -1706,24 +1706,35 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		arg.ConvID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return res, err
+		return "", err
 	}
 	bConvID, err := hex.DecodeString(arg.ConvID)
 	if err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: invalid convID: %s msg: %s", arg.ConvID, err.Error())
-		return res, err
+		return "", err
 	}
 	convID := chat1.ConversationID(bConvID)
 	mp := NewMobilePush(h.G())
 	msg, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
 	if err != nil {
-		return res, err
+		return "", err
 	}
-	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, msg); err != nil {
-		return res, err
+	if _, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll); err != nil {
+		return "", err
 	}
 	if arg.ShouldAck {
 		mp.AckNotificationSuccess(ctx, arg.PushIDs)
+	}
+
+	if msg.IsValid() {
+		body := msg.Valid().MessageBody
+		bodyTyp, err := body.MessageType()
+		if err != nil {
+			return "", err
+		}
+		if bodyTyp == chat1.MessageType_TEXT {
+			return body.Text().Body, nil
+		}
 	}
 	return res, nil
 }

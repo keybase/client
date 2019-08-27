@@ -65,7 +65,7 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 	}
 
 	gpgCLI := libkb.NewGpgCLI(m.G(), m.UIs().LogUI)
-	err = gpgCLI.Configure()
+	err = gpgCLI.Configure(m)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 			m.UIs().LogUI.Warning("Skipping update for key %s", fingerprint.String())
 			continue
 		}
-		bundle, err := gpgCLI.ImportKey(false /* secret */, fingerprint, "")
+		bundle, err := gpgCLI.ImportKey(m, false /* secret */, fingerprint, "")
 		if err != nil {
 			_, isNoKey := err.(libkb.NoKeyError)
 			if isNoKey {

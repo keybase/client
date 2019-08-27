@@ -242,7 +242,7 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
 // If layout is changed here, please make sure the Files header is updated as
 // well to match this. fs/nav-header/mobile-header.js
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -349,6 +349,6 @@ const styles = Styles.styleSheetCreate({
   titleTextContainer: {
     ...Styles.globalStyles.fillAbsolute,
   },
-})
+}))
 
 export default HeaderHoc

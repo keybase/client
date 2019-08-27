@@ -15,6 +15,8 @@ const devicename =
   (isLinux && 'My Linux Device') ||
   (isMobile ? 'Mobile Device' : 'Home Computer')
 
+export const noEmail = 'NOEMAIL'
+
 export const makeState = I.Record<Types._State>({
   devicename,
   devicenameError: '',

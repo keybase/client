@@ -47,10 +47,16 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 	if err != nil {
 		return nil, err
 	}
-	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	err = teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -108,7 +114,10 @@ func NewSubteamSig(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb
 	if err != nil {
 		return nil, nil, err
 	}
-	ret.SetValueAtPath("body.team", teamSectionJSON)
+	err = ret.SetValueAtPath("body.team", teamSectionJSON)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return ret, ratchet, nil
 }
@@ -134,10 +143,16 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 	if err != nil {
 		return nil, err
 	}
-	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	err = teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -167,7 +182,10 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -197,7 +215,10 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -252,7 +273,10 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }

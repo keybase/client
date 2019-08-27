@@ -66,6 +66,9 @@ func TestNewUserEK(t *testing.T) {
 	kbtest.ResetAccount(tc, user)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
+	// create a new device ek
+	err = mctx.G().GetEKLib().KeygenIfNeeded(mctx)
+	require.NoError(t, err)
 
 	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }
@@ -92,6 +95,8 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	// Include a paper key with this test user, so that we have something to
 	// revoke.
 	user, err := kbtest.CreateAndSignupFakeUserPaper("e", tc.G)
+	require.NoError(t, err)
+	err = mctx.G().GetEKLib().KeygenIfNeeded(mctx)
 	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
