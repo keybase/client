@@ -4,7 +4,16 @@ import {isIOS} from '../constants/platform'
 
 export const colors = {
   black: 'rgba(0, 0, 0, 0.85)',
+  get blackOrBlack() {
+    return this.black
+  },
+  get blackOrWhite() {
+    return this.black
+  },
   black_05: 'rgba(0, 0, 0, 0.05)',
+  get black_05OrBlack_60() {
+    return this.black_05
+  },
   black_05_on_white: 'rgb(242,242,242)',
   black_10: 'rgba(0, 0, 0, 0.10)',
   black_10_on_white: 'rgb(229,229,229)',
@@ -13,12 +22,16 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrWhite() {
+    return this.black_50
+  },
+  get black_50OrWhite_75() {
+    return this.black_50
+  },
   black_50_on_white: 'rgb(127,127,127)',
   black_60: 'rgba(0, 0, 0, 0.60)',
   black_63: 'rgba(0, 0, 0, 0.63)',
   black_on_white: 'rgb(38,38,38)',
-  get blackOrBlack() { return this.black },
-  get blackOrWhite() { return this.black },
   blue: '#4C8EFF',
   blueDark: '#3663EA',
   blueDarker: '#1036AC',
@@ -50,49 +63,62 @@ export const colors = {
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenOrGreenLighter() {
+    return this.greenLighter
+  },
   grey: '#e6e6e6',
   greyDark: '#cccccc',
   greyDarker: '#aaaaaa',
   greyLight: '#f0f0f0',
-  get greenOrGreenLighter() { return this.greenLighter },
-  get whiteOrGreenDark() { return this.greenDark },
-  get whiteOrBlack() { return this.white },
-  get white_40Orblack_60() { return this.white_40 },
-  get black_50Orwhite_75() { return this.black_50 },
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
-  get purple10OrPurple() { return this.purple_10 },
-  get purpleDarkOrWhite() { return this.purpleDark },
-  get red_10Orred() { return this.red_10 },
-  get redDarkOrWhite() { return this.redDark },
-  get black_05Orblack_60() { return this.black_05 },
-  get paymentPendingForeground() { return this.black_50 },
   purple: '#8852ff',
   purpleDark: '#6d3fd1',
+  get purpleDarkOrWhite() {
+    return this.purpleDark
+  },
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
+  get purple_10OrPurple() {
+    return this.purple_10
+  },
   purple_30: 'rgba(132, 82, 255, 0.3)',
   purple_40: 'rgba(132, 82, 255, 0.4)',
   red: '#ff4d61',
   redDark: '#eb253b',
+  get redDarkOrWhite() {
+    return this.redDark
+  },
   redDarker: '#bd0b1f',
   redLight: '#FFCAC1',
   redLighter: '#FAF2ED',
   red_10: 'rgba(255,0,0,0.1)',
+  get red_10OrRed() {
+    return this.red_10
+  },
   red_20: 'rgba(255,0,0,0.2)',
   red_75: 'rgba(255,0,0,0.75)',
   red_75_on_white: 'rgb(255,64,64)',
   transparent: 'rgba(0, 0, 0, 0)',
   transparent_on_white: '#FFFFFF',
   white: '#FFFFFF',
+  get whiteOrBlack() {
+    return this.white
+  },
+  get whiteOrGreenDark() {
+    return this.greenDark
+  },
   white_0: 'rgba(255, 255, 255, 0)',
   white_0_on_white: '#FFFFFF',
   white_20: 'rgba(255, 255, 255, 0.20)',
   white_20_on_white: '#FFFFFF',
   white_40: 'rgba(255, 255, 255, 0.40)',
+  get white_40OrBlack_60() {
+    return this.white_40
+  },
   white_40_on_white: '#FFFFFF',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_75_on_white: '#FFFFFF',
@@ -105,7 +131,16 @@ export const colors = {
 
 export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black: 'rgba(255, 255, 255, 0.85)',
+  get blackOrBlack() {
+    return this.black
+  },
+  get blackOrWhite() {
+    return this.white
+  },
   black_05: 'rgba(255, 255, 255, 0.05)',
+  get black_05OrBlack_60() {
+    return this.black_60
+  },
   black_05_on_white: 'rgb(13, 13, 13)',
   black_10: 'rgba(255, 255, 255, 0.10)',
   black_10_on_white: 'rgb(26, 26, 26)',
@@ -114,12 +149,16 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrWhite() {
+    return this.white
+  },
+  get black_50OrWhite_75() {
+    return this.white_75
+  },
   black_50_on_white: 'rgb(128, 128, 128)',
   black_60: 'rgba(255, 255, 255, 0.60)',
   black_63: 'rgba(255, 255, 255, 0.63)',
   black_on_white: 'rgb(217, 217, 217)',
-  get blackOrBlack() { return this.black },
-  get blackOrWhite() { return this.white },
   blue: '#4C8EFF',
   blueDark: '#3663EA',
   blueDarker: '#1036AC',
@@ -151,49 +190,62 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenOrGreenLighter() {
+    return this.green
+  },
   grey: '#333',
   greyDark: '#666',
   greyDarker: '#999',
   greyLight: '#0F0F0F',
-  get greenOrGreenLighter() { return this.green },
-  get whiteOrGreenDark() { return this.white },
-  get whiteOrBlack() { return this.black },
-  get white_40Orblack_60() { return this.black_60 },
-  get black_50Orwhite_75() { return this.white_75 },
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
-  get purple10OrPurple() { return this.purple },
-  get purpleDarkOrWhite() { return this.white },
-  get red_10Orred() { return this.red },
-  get redDarkOrWhite() { return this.white },
-  get black_05Orblack_60() { return this.black_60 },
-  get paymentPendingForeground() { return this.white },
   purple: '#8852ff',
   purpleDark: '#6d3fd1',
+  get purpleDarkOrWhite() {
+    return this.white
+  },
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
+  get purple_10OrPurple() {
+    return this.purple
+  },
   purple_30: 'rgba(132, 82, 255, 0.3)',
   purple_40: 'rgba(132, 82, 255, 0.4)',
   red: '#ff4d61',
   redDark: '#eb253b',
+  get redDarkOrWhite() {
+    return this.white
+  },
   redDarker: '#bd0b1f',
   redLight: '#FFCAC1',
   redLighter: '#2d2d2d',
   red_10: 'rgba(255,0,0,0.1)',
+  get red_10OrRed() {
+    return this.red
+  },
   red_20: 'rgba(255,0,0,0.2)',
   red_75: 'rgba(255,0,0,0.75)',
   red_75_on_white: 'rgb(255,64,64)',
   transparent: 'rgba(255, 255, 255, 0)',
   transparent_on_white: '#191919',
   white: '#191919',
+  get whiteOrBlack() {
+    return this.black
+  },
+  get whiteOrGreenDark() {
+    return this.white
+  },
   white_0: 'rgba(25, 25, 25, 0)',
   white_0_on_white: '#191919',
   white_20: 'rgba(25, 25, 25, 0.20)',
   white_20_on_white: '#191919',
   white_40: 'rgba(25, 25, 25, 0.40)',
+  get white_40OrBlack_60() {
+    return this.black_60
+  },
   white_40_on_white: '#191919',
   white_75: 'rgba(25, 25, 25, 0.75)',
   white_75_on_white: '#191919',

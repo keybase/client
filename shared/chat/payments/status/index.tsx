@@ -122,13 +122,13 @@ class PaymentStatus extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   claimable: {
-    backgroundColor: Styles.globalColors.black05OrBlack60,
+    backgroundColor: Styles.globalColors.black_05OrBlack_60,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.paymentPendingForeground,
+    color: Styles.globalColors.black_50OrWhite,
   },
   claimableIcon: {},
   completed: {
-    backgroundColor: Styles.globalColors.purple10OrPurple,
+    backgroundColor: Styles.globalColors.purple_10OrPurple,
     borderRadius: Styles.globalMargins.xxtiny,
     color: Styles.globalColors.purpleDarkOrWhite,
   },
@@ -141,7 +141,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    backgroundColor: Styles.globalColors.red10OrRed,
+    backgroundColor: Styles.globalColors.red_10OrRed,
     borderRadius: Styles.globalMargins.xxtiny,
     color: Styles.globalColors.redDarkOrWhite,
   },
@@ -154,12 +154,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   pending: {
-    backgroundColor: Styles.globalColors.black05OrBlack60,
+    backgroundColor: Styles.globalColors.black_05OrBlack_60,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.paymentPendingForeground,
+    color: Styles.globalColors.black_50OrWhite,
   },
   pendingIcon: {
-    color: Styles.globalColors.paymentPendingForeground,
+    color: Styles.globalColors.black_50OrWhite,
   },
 })
 
