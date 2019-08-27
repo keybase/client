@@ -77,7 +77,7 @@ const Banner = (props: Props) => (
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       minHeight: 40,
@@ -93,6 +93,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   secondText: {paddingLeft: Styles.globalMargins.xtiny},
-})
+}))
 
 export default Banner
