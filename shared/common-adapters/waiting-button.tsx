@@ -46,7 +46,7 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
     this.props.onClick && this.props.onClick(event)
   }
 
-  render = () => {
+  render() {
     if (this.props.onlyDisable && !this.props.waitingKey) {
       throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
     }

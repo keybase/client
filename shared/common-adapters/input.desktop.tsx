@@ -268,7 +268,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  render = () => {
+  render () {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)

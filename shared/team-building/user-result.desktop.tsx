@@ -27,7 +27,7 @@ type LocalState = {
 class Row extends React.Component<Props, LocalState> {
   state = {hovering: false}
 
-  render = () => {
+  render  () {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]

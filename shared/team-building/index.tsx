@@ -453,7 +453,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     this.props.onSearchForMore()
   }, 500)
 
-  render = () => {
+  render() {
     const props = this.props
 
     let content

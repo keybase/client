@@ -147,7 +147,9 @@ const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<
   class extends React.PureComponent<{
     externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
-    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
+    render() {
+      return this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null
+    }
   }
 
 // Actions are handled by remote-container
