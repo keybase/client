@@ -20,7 +20,7 @@ export const HeaderRightActions = ({onAdd}: {onAdd: () => void}) => (
   <Kb.Button small={true} label="Add device or paper key" onClick={onAdd} style={styles.addDeviceButton} />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addDeviceButton: Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',
@@ -33,4 +33,4 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
   },
-})
+}))
