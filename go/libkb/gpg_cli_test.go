@@ -35,10 +35,10 @@ func TestGPGImportSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 	cli := NewGpgCLI(tc.G, nil)
-	if err := cli.Configure(); err != nil {
+	if err := cli.Configure(tc.MetaContext()); err != nil {
 		t.Fatal(err)
 	}
-	index, _, err := cli.Index(true, "")
+	index, _, err := cli.Index(tc.MetaContext(), true, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestGPGImportSecret(t *testing.T) {
 	if len(fps) != 1 {
 		t.Fatalf("num fingerprints: %d, expected 1", len(fps))
 	}
-	bundle, err := cli.ImportKey(true, fps[0], "")
+	bundle, err := cli.ImportKey(tc.MetaContext(), true, fps[0], "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,10 +71,10 @@ func TestGPGSign(t *testing.T) {
 		t.Fatal(err)
 	}
 	cli := NewGpgCLI(tc.G, nil)
-	if err := cli.Configure(); err != nil {
+	if err := cli.Configure(tc.MetaContext()); err != nil {
 		t.Fatal(err)
 	}
-	index, _, err := cli.Index(true, "")
+	index, _, err := cli.Index(tc.MetaContext(), true, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestGPGSign(t *testing.T) {
 	fp := fps[0]
 
 	for i := 0; i < 1000; i++ {
-		_, err = cli.Sign(fp, []byte("hello"))
+		_, err = cli.Sign(tc.MetaContext(), fp, []byte("hello"))
 		if err != nil {
 			t.Fatal(err)
 		}

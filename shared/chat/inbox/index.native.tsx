@@ -14,30 +14,34 @@ import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
 import * as T from './index.types.d'
 import * as Types from '../../constants/types/chat2'
+import Flags from '../../util/feature-flags'
 
 const NoChats = (props: {onNewChat: () => void}) => (
-  <Kb.Box
+  <Kb.Box2
+    direction="vertical"
+    gap="small"
     style={{
-      ...Styles.globalStyles.flexBoxColumn,
       ...Styles.globalStyles.fillAbsolute,
       alignItems: 'center',
+      flex: 1,
       justifyContent: 'center',
     }}
   >
-    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
-      All conversations are
-    </Kb.Text>
-    <Kb.Text type="BodySmall" negative={true} style={styles.text}>
-      end-to-end encrypted.
-    </Kb.Text>
+    <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        All conversations are
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        end-to-end encrypted.
+      </Kb.Text>
+    </Kb.Box2>
     <Kb.Button
       onClick={props.onNewChat}
-      type="Success"
       mode="Primary"
-      label="Start a new chat"
-      style={{marginTop: Styles.globalMargins.small}}
+      label={Flags.wonderland ? 'Start a new chat 🐇' : 'Start a new chat'}
     />
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 type State = {
@@ -278,9 +282,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
     flex: 1,
     position: 'relative',
-  },
-  text: {
-    color: Styles.globalColors.black_50,
   },
 })
 

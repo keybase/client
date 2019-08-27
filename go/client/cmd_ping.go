@@ -89,12 +89,6 @@ type pingGregorTransport struct {
 
 var _ rpc.ConnectionTransport = (*pingGregorTransport)(nil)
 
-func newConnTransport(host string) *pingGregorTransport {
-	return &pingGregorTransport{
-		host: host,
-	}
-}
-
 func (t *pingGregorTransport) Dial(context.Context) (rpc.Transporter, error) {
 	t.G().Log.Debug("pingGregorTransport Dial", t.host)
 	var err error
@@ -130,10 +124,6 @@ type pingGregorHandler struct {
 }
 
 var _ rpc.ConnectionHandler = (*pingGregorHandler)(nil)
-
-func newGregorHandler() *pingGregorHandler {
-	return &pingGregorHandler{}
-}
 
 func (g *pingGregorHandler) HandlerName() string {
 	return "ping gregor"

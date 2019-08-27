@@ -36,7 +36,7 @@
   NSString* msg;
   if (notification.isPlaintext && [notification.message.plaintext length] != 0) {
     if([ notification.message.from.keybaseUsername isEqualToString: notification.conversationName ]) {
-      msg = [NSString stringWithFormat:@"%@ sent you a message: %@", notification.message.from.keybaseUsername, notification.message.plaintext];
+      msg = [NSString stringWithFormat:@"%@: %@", notification.message.from.keybaseUsername, notification.message.plaintext];
     } else {
       msg = [NSString stringWithFormat:@"%@ (%@): %@", notification.message.from.keybaseUsername, notification.conversationName, notification.message.plaintext];
     }

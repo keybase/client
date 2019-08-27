@@ -54,9 +54,9 @@ func (c *cmdWalletBalances) printBalance(dui libkb.DumbOutputUI, balance stellar
 			}
 		}
 
-		dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
+		_, _ = dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
 	} else {
-		dui.Printf("%s\t%s\t(issued by: %s, %s)\n", balance.Asset.Code, balance.Amount, stellar.FormatAssetIssuerString(balance.Asset), balance.Asset.Issuer)
+		_, _ = dui.Printf("%s\t%s\t(issued by: %s, %s)\n", balance.Asset.Code, balance.Amount, stellar.FormatAssetIssuerString(balance.Asset), balance.Asset.Issuer)
 	}
 }
 
