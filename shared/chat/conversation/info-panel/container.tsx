@@ -209,7 +209,7 @@ const ConnectedInfoPanel = Container.connect(
                   snippet: m.decoratedText.stringValue(),
                 })
               } else {
-                m.unfurls.toList().map(u => {
+                m.unfurls.toList().forEach(u => {
                   if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                     l.push({
                       author: m.author,
