@@ -11,7 +11,7 @@ type OwnProps = {
   routeSelected: Constants.SettingsTab
 }
 
-const Connected = Container.connectDEBUG(
+const Connected = Container.connect(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
     _contactImportEnabled: state.settings.contacts.importEnabled,
