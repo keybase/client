@@ -133,9 +133,9 @@ export const makeState = I.Record<Types._State>({
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',
+  useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   username: '',
-  useNativeFrame: defaultUseNativeFrame,
   windowState: {
     dockHidden: false,
     height: 800,
