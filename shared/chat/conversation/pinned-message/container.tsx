@@ -76,6 +76,7 @@ const mergeProps = (
   const dismissUnpins = yourMessage || stateProps._canAdminDelete
   return {
     author: stateProps.author,
+    dismissUnpins,
     imageHeight: stateProps.imageHeight,
     imageURL: stateProps.imageURL,
     imageWidth: stateProps.imageWidth,

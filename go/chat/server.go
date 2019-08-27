@@ -2815,5 +2815,17 @@ func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-	return storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, pin.GetMessageID())
+	if err := storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, pin.GetMessageID()); err != nil {
+		return err
+	}
+	if err := storage.NewInbox(h.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+		h.Debug(ctx, "IgnorePinnedMessage: unable to IncrementLocalConvVersion, err", err)
+	}
+	h.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+		{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+		},
+	})
+	return nil
 }
