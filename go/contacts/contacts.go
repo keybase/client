@@ -60,6 +60,13 @@ func findUsernamesAndFollowing(mctx libkb.MetaContext, provider ContactsProvider
 		following = make(map[keybase1.UID]bool)
 	}
 
+	// Get service maps
+	serviceMaps, err := provider.FindServiceMaps(mctx, uidList)
+	if err != nil {
+		mctx.Warning("Unable to get service maps for contacts: %s", err)
+		serviceMaps = make(map[keybase1.UID]ServiceMap)
+	}
+
 	for i := range contacts {
 		v := &contacts[i]
 		if v.Resolved {
@@ -69,6 +76,12 @@ func findUsernamesAndFollowing(mctx libkb.MetaContext, provider ContactsProvider
 			}
 			if follow, found := following[v.Uid]; found {
 				v.Following = follow
+			}
+			if smap, found := serviceMaps[v.Uid]; found && len(smap) > 0 {
+				v.ServiceMap = make(map[string]string, len(smap))
+				for service, username := range smap {
+					v.ServiceMap[string(service)] = string(username)
+				}
 			}
 		}
 	}
@@ -177,6 +190,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 					Resolved:     true,
 
 					Uid: lookupRes.UID,
+					// Rest of resolved user data is filled by `findUsernamesAndFollowing`.
 
 					Assertion: assertion,
 				})
@@ -200,6 +214,8 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			contactAssertionsSeen[cvp] = struct{}{}
 		}
 	}
+
+	mctx.Debug("Got %d contact entries and %d resolved users", len(res), len(userUIDSet))
 
 	if len(res) > 0 {
 		findUsernamesAndFollowing(mctx, provider, userUIDSet, res)
