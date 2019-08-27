@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {clamp} from 'lodash-es'
+
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }

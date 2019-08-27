@@ -309,7 +309,7 @@ export class Settings extends React.Component<Props, State> {
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
-          <React.Fragment>
+          <>
             <Box style={{...globalStyles.flexBoxRow, paddingTop: globalMargins.small}}>
               <Text type="Header">Team</Text>
             </Box>
@@ -322,7 +322,7 @@ export class Settings extends React.Component<Props, State> {
               setBoolSettings={this.setBoolSettings}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-          </React.Fragment>
+          </>
         )}
         {this.props.yourOperations.chat && (
           <RetentionPicker

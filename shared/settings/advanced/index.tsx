@@ -213,7 +213,7 @@ class Developer extends React.Component<Props, State> {
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
-          <React.Fragment>
+          <>
             <Kb.Button
               label="Toggle Runtime Stats"
               onClick={this.props.onToggleRuntimeStats}
@@ -233,7 +233,7 @@ class Developer extends React.Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
-          </React.Fragment>
+          </>
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button

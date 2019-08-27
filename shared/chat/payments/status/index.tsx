@@ -102,10 +102,10 @@ class PaymentStatus extends React.Component<Props, State> {
       />
     )
     return Styles.isMobile ? (
-      <React.Fragment>
+      <>
         {text}
         {popups}
-      </React.Fragment>
+      </>
     ) : (
       <Kb.Box2
         style={styles.container}

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import {globalStyles} from '../../../../../styles'
-import RetentionWarning from './'
+import RetentionWarning from '.'
 
 const commonProps = {
   enabled: true,

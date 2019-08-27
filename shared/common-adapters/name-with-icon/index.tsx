@@ -143,10 +143,10 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         {metaTwo}
       </Box>
     ) : (
-      <React.Fragment>
+      <>
         {metaOne}
         {metaTwo}
-      </React.Fragment>
+      </>
     )
 
     return (

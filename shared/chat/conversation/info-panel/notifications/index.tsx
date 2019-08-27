@@ -26,7 +26,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
     ignoreMentionsSuffix = '(desktop)'
   }
   return (
-    <React.Fragment>
+    <>
       {!allNotifsEnabled && (
         <Kb.Checkbox
           checked={!props.channelWide}
@@ -98,7 +98,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           label="Never"
         />
       </Kb.Box>
-    </React.Fragment>
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import MessagePopup from '../messages/message-popup/'
+import MessagePopup from '../messages/message-popup'
 import {Props} from './index.types'
 import {Video as ExpoVideo} from 'expo-av'
 import logger from '../../../logger'

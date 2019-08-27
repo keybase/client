@@ -8,6 +8,7 @@ import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
+
 export type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string

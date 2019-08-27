@@ -90,12 +90,12 @@ const LeftBlock = (_: EmptyProps) => {
           (buildingAdvanced.recipientAsset === 'native' ? (
             <Kb.Text type="BodyTiny">Stellar Lumens</Kb.Text>
           ) : (
-            <React.Fragment>
+            <>
               <Kb.Text type="BodyTiny">{buildingAdvanced.recipientAsset.issuerName}</Kb.Text>
               <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail" style={styles.assetIDContainer}>
                 {buildingAdvanced.recipientAsset.code}/{buildingAdvanced.recipientAsset.issuerAccountID}
               </Kb.Text>
-            </React.Fragment>
+            </>
           ))}
         {!!builtPaymentAdvanced.amountError && (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
