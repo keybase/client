@@ -203,6 +203,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-background-4-48.png'),
   },
+  'icon-computer-background-4-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-4-64.png'),
+  },
   'icon-computer-background-4-96': {
     extension: 'png',
     isFont: false,
@@ -287,6 +292,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-computer-background-8-96.png'),
+  },
+  'icon-computer-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-9-32.png'),
   },
   'icon-computer-background-9-48': {
     extension: 'png',

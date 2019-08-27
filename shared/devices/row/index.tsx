@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   firstItem: boolean
+  iconNumber: number
   isCurrentDevice: boolean
   isNew: boolean
   isRevoked: boolean
@@ -12,14 +13,21 @@ export type Props = {
   type: 'desktop' | 'backup' | 'mobile'
 }
 
-const typeToIcon = (type: Props['type'], isCurrentDevice: boolean) => {
+const typeToIcon = (type: Props['type'], backgroundNumber: number, isCurrentDevice: boolean) => {
+  if (backgroundNumber > 10 || backgroundNumber < 1) {
+    return 'icon-computer-32'
+  }
   switch (type) {
     case 'backup':
       return 'icon-paper-key-32'
     case 'desktop':
-      return isCurrentDevice ? 'icon-computer-success-32' : 'icon-computer-32'
+      return isCurrentDevice
+        ? `icon-computer-success-background-${backgroundNumber}-32`
+        : `icon-computer-background-${backgroundNumber}-32`
     case 'mobile':
-      return isCurrentDevice ? 'icon-phone-success-32' : 'icon-phone-32'
+      return isCurrentDevice
+        ? `icon-phone-success-background-${backgroundNumber}-32`
+        : `icon-phone-background-${backgroundNumber}-32`
   }
 }
 
@@ -31,7 +39,7 @@ const DeviceRow = (props: Props) => {
       onClick={props.showExistingDevicePage}
       icon={
         <Kb.Icon
-          type={typeToIcon(props.type, props.isCurrentDevice)}
+          type={typeToIcon(props.type, props.iconNumber, props.isCurrentDevice)}
           style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)}
         />
       }

@@ -61,19 +61,53 @@ export const getDeviceCounts = (state: Container.TypedState) =>
 export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
   (id && state.devices.endangeredTLFMap.get(id)) || Container.emptySet
 
+// Utils for mapping a device to one of the icons
+
+// Icons are numbered 1-10, so this focuses on mapping
+// Device -> [1, 10]
+// We split devices by type and order them by creation time. Then, we use (index mod 10)
+// as the background #
+const idxMapper = (device: Types.Device, idx: number): [Types.DeviceID, number] => [device.deviceID, idx]
 const getIndexMap = memoize(
-  (devices: Map<Types.DeviceID, Types.Device>): Map<Types.DeviceID, number> =>
-    new Map(
-      [...devices.entries()]
-        .map(r => r[1])
-        .sort((a, b) => a.created - b.created)
-        .map((d, index) => [d.deviceID, index])
-    )
+  (devices: Map<Types.DeviceID, Types.Device>): Map<Types.DeviceID, number> => {
+    const sorted = [...devices.entries()]
+      .map(r => r[1])
+      .sort((a, b) => a.created - b.created)
+      .reduce(
+        (res, device) => {
+          switch (device.type) {
+            case 'backup':
+              res.backup.push(device)
+              break
+            case 'desktop':
+              res.desktop.push(device)
+              break
+            case 'mobile':
+              res.mobile.push(device)
+              break
+          }
+          return res
+        },
+        {backup: [], desktop: [], mobile: []} as {
+          backup: Array<Types.Device>
+          desktop: Array<Types.Device>
+          mobile: Array<Types.Device>
+        }
+      )
+    return new Map([
+      ...sorted.backup.map(idxMapper),
+      ...sorted.desktop.map(idxMapper),
+      ...sorted.mobile.map(idxMapper),
+    ])
+  }
 )
 
 // cache deviceID -> number forever
 const deviceIconNumberCache = {}
-export const getDeviceIconNumber = (devices: Map<Types.DeviceID, Types.Device>, deviceID: Types.DeviceID) => {
+export const getDeviceIconNumberInner = (
+  devices: Map<Types.DeviceID, Types.Device>,
+  deviceID: Types.DeviceID
+): number => {
   if (deviceIconNumberCache[deviceID]) {
     return deviceIconNumberCache[deviceID]
   }
@@ -83,4 +117,7 @@ export const getDeviceIconNumber = (devices: Map<Types.DeviceID, Types.Device>, 
     deviceIconNumberCache[deviceID] = number
     return number
   }
+  return -1
 }
+export const getDeviceIconNumber = (state: Container.TypedState, deviceID: Types.DeviceID) =>
+  getDeviceIconNumberInner(state.devices.deviceMap, deviceID)
