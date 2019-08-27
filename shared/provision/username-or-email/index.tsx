@@ -1,10 +1,9 @@
-// TODO remove Container
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Container from '../../login/forms/container'
-import * as Constants from '../../constants/provision'
+// import Container from '../../login/forms/container'
 import {maxUsernameLength} from '../../constants/signup'
+import {SignupScreen} from '../../signup/common'
 
 type Props = {
   error: string
@@ -16,6 +15,7 @@ type Props = {
   onGoToSignup: () => void
   onSubmit: (username: string) => void
   submittedUsername: string
+  waiting: boolean
 }
 
 const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
@@ -31,61 +31,72 @@ const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) 
   </Kb.Box2>
 )
 
-type State = {
-  username: string
-}
+const Username = (props: Props) => {
+  const [username, setUsername] = React.useState(props.initialUsername)
+  const onSubmit = React.useCallback(() => {
+    props.onSubmit(username)
+  }, [props.onSubmit, username])
 
-class Username extends React.Component<Props, State> {
-  state = {username: this.props.initialUsername}
-
-  _submit = () => {
-    this.props.onSubmit(this.state.username)
-  }
-
-  render() {
+  /*
     let errorTextComponent
-    if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
+    if (props.submittedUsername === username && !!props.inlineError) {
       errorTextComponent = (
         <InlineError
-          error={this.props.inlineError}
-          onGoToSignup={this.props.inlineSignUpLink ? this.props.onGoToSignup : null}
+          error={props.inlineError}
+          onGoToSignup={props.inlineSignUpLink ? props.onGoToSignup : null}
         />
       )
     }
+  */
 
-    return (
-      <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => this.props.onBack()}>
-        <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
-          <Kb.Input
-            autoFocus={true}
-            style={styles.input}
-            hintText="Username"
-            maxLength={maxUsernameLength}
-            errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
-            errorTextComponent={errorTextComponent}
-            onEnterKeyDown={this._submit}
-            onChangeText={text => this.setState({username: text})}
-            value={this.state.username}
-          />
-          <Kb.WaitingButton
-            label="Continue"
-            fullWidth={true}
-            style={styles.button}
-            onClick={this._submit}
-            disabled={!this.state.username}
-            waitingKey={Constants.waitingKey}
-          />
+  /*
+    errorText={props.submittedUsername === username ? props.error : ''}
+    errorTextComponent={errorTextComponent}
+  */
+
+  return (
+    <SignupScreen
+      banners={[]}
+      buttons={[
+        {
+          disabled: !username,
+          label: 'Log in',
+          onClick: onSubmit,
+          type: 'Default',
+          waiting: props.waiting,
+        },
+      ]}
+      onBack={props.onBack}
+      title="Log in"
+    >
+      <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
+        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+            <Kb.Text type="BodyTinySemibold" style={styles.inputLabel}>
+              Username
+            </Kb.Text>
+            <Kb.PlainInput
+              autoFocus={true}
+              style={styles.input}
+              placeholder="Username"
+              maxLength={maxUsernameLength}
+              onEnterKeyDown={onSubmit}
+              onChangeText={setUsername}
+              value={username}
+              textType="BodySemibold"
+            />
+          </Kb.Box2>
           <Kb.Text
             style={styles.forgotUsername}
             type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotUsername}
+            onClick={props.onForgotUsername}
           >
-            Forgot your username?
+            Forgot username?
           </Kb.Text>
-        </Kb.UserCard>
-      </Container>
-    )
-  }
+        </Kb.Box2>
+      </Kb.UserCard>
+    </SignupScreen>
+  )
 }
 
 const styles = Styles.styleSheetCreate({
@@ -100,37 +111,63 @@ const styles = Styles.styleSheetCreate({
   }),
   card: {
     alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.transparent,
   },
-  container: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  }),
   error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
   errorLink: {
     color: Styles.globalColors.redDark,
     textDecorationLine: 'underline',
   },
   forgotUsername: {
-    alignSelf: 'center',
-    paddingTop: Styles.globalMargins.small,
+    alignSelf: 'flex-end',
   },
   input: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.transparent,
+      padding: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
     isMobile: {
       flexGrow: 1,
       marginBottom: Styles.globalMargins.small,
+      minHeight: 48,
     },
   }),
+  inputContainer: {
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.blue,
+    borderRadius: 6,
+    borderStyle: 'solid',
+    borderWidth: 1,
+  },
+  inputLabel: {
+    color: Styles.globalColors.blue,
+    paddingBottom: 0,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   outerCard: {
     marginTop: 40,
   },
   outerStyle: {
     backgroundColor: Styles.globalColors.white,
   },
+  wrapper: Styles.platformStyles({
+    isElectron: {
+      width: 400,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
 })
+
+Username.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
 
 export default Username

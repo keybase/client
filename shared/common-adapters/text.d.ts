@@ -20,6 +20,7 @@ type TextType = keyof typeof allTextTypes
 export type AllowedColors = Values<
   Pick<
     typeof colors,
+    | 'blue'
     | 'blueDark'
     | 'blueLighter' // for terminal background only
     | 'greenDark'

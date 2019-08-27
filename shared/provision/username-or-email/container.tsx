@@ -2,9 +2,11 @@ import * as Container from '../../util/container'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
+import * as Constants from '../../constants/provision'
 import Username from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {usernameHint} from '../../constants/signup'
+import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {}
 
@@ -37,6 +39,7 @@ const mapStateToProps = (state: Container.TypedState) => {
     inlineSignUpLink,
     // So we can clear the error if the name is changed
     submittedUsername: state.provision.username,
+    waiting: anyWaiting(state, Constants.waitingKey),
   }
 }
 
