@@ -141,7 +141,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && !Styles.isMobile && (
-            <Kb.Box style={Flags.wonderland && styles.wonderlandBorder}>
+            <Kb.Box style={Flags.wonderland ? styles.wonderlandBorder : {}}>
               <Kb.WithTooltip
                 position="top center"
                 text={
@@ -253,7 +253,7 @@ const styles = Styles.styleSheetCreate(() => ({
   newChatButton: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
-      paddingRight: Styles.globalMargins.xtiny,
+      paddingRight: Flags.wonderland ? Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
     },
   }),
   newChatButtonText: {
