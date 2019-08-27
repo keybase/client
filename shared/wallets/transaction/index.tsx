@@ -27,7 +27,13 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return <Icon type="iconfont-identity-stellar" fontSize={size} style={Styles.collapseStyles([Styles.isDarkMode && styles.invert50])} />
+    return (
+      <Icon
+        type="iconfont-identity-stellar"
+        fontSize={size}
+        style={Styles.collapseStyles([Styles.isDarkMode && styles.invert50])}
+      />
+    )
   }
   switch (props.counterpartyType) {
     case 'airdrop':
@@ -41,7 +47,12 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <Icon type="icon-placeholder-secret-user-48" style={Styles.collapseStyles([{height: size, width: size}, Styles.isDarkMode && styles.invert])} />
+      return (
+        <Icon
+          type="icon-placeholder-secret-user-48"
+          style={Styles.collapseStyles([{height: size, width: size}, Styles.isDarkMode && styles.invert])}
+        />
+      )
     case 'otherAccount':
       return (
         <Box2
@@ -481,7 +492,9 @@ export const Transaction = (props: Props) => {
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor =
-    (props.unread || pending) && !props.detailView ? Styles.globalColors.blueLighter2 : Styles.globalColors.white
+    (props.unread || pending) && !props.detailView
+      ? Styles.globalColors.blueLighter2
+      : Styles.globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
