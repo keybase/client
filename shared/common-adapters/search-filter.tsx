@@ -121,6 +121,12 @@ class SearchFilter extends React.PureComponent<Props, State> {
   componentWillUnmount() {
     this._mounted = false
   }
+  componentDidUpdate(prevProps: Props) {
+    // Get focus on the rising edge of focusOnMount even if the component does not remount.
+    if (this.props.focusOnMount && !prevProps.focusOnMount) {
+      this._focusOnMount()
+    }
+  }
   _keyHandler() {
     return (
       !Styles.isMobile &&
