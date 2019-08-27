@@ -288,7 +288,7 @@ export const inboxUIItemToConversationMeta = (
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
-  let pinnedMsg: PinnedMessageInfo = null
+  let pinnedMsg: PinnedMessageInfo | null = null
   if (i.pinnedMsg) {
     const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
     if (message) {
@@ -327,7 +327,7 @@ export const inboxUIItemToConversationMeta = (
       }, {})
     ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
-    pinnedMsg: pinnedMsg,
+    pinnedMsg,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
