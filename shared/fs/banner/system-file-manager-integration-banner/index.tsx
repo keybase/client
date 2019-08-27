@@ -241,7 +241,7 @@ export default (props: Props) => {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyContainer: {
     maxWidth: Styles.globalMargins.large * 10 + Styles.globalMargins.mediumLarge * 2,
     padding: Styles.globalMargins.mediumLarge,
@@ -267,4 +267,4 @@ const styles = Styles.styleSheetCreate({
   textWhite: {
     color: Styles.globalColors.white,
   },
-})
+}))
