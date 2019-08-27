@@ -117,7 +117,7 @@ type ButtonMeta = {
 
 type SignupScreenProps = {
   banners?: React.ReactNode
-  buttons: Array<ButtonMeta>
+  buttons?: Array<ButtonMeta>
   children: React.ReactNode
   negativeHeader?: boolean
   noBackground?: boolean
@@ -178,11 +178,13 @@ export const SignupScreen = (props: SignupScreenProps) => (
       </Kb.Box2>
       {/* Banners after children so they go on top */}
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
-      <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-        {props.buttons.map(b => (
-          <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-        ))}
-      </Kb.ButtonBar>
+      {!!props.buttons && (
+        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+          {props.buttons.map(b => (
+            <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+          ))}
+        </Kb.ButtonBar>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )

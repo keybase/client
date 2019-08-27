@@ -64,13 +64,7 @@ class SelectOtherDevice extends React.Component<Props> {
   render() {
     const items = [...this.props.devices, {name: 'troubleshooting'}]
     return (
-      <SignupScreen
-        banners={[]}
-        buttons={[]}
-        noBackground={true}
-        onBack={this.props.onBack}
-        title="Authorize this computer"
-      >
+      <SignupScreen noBackground={true} onBack={this.props.onBack} title="Authorize this computer">
         <Kb.Box2
           direction="vertical"
           fullHeight={true}

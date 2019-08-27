@@ -16,7 +16,6 @@ const SendFeedback = (props: Props) => {
 
   return (
     <SignupScreen
-      buttons={[]}
       banners={[
         ...(feedbackSent
           ? [
