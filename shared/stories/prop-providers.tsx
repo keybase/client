@@ -186,5 +186,11 @@ export const createStoreWithCommon = () => {
       following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
     }),
+    fs: root.fs.update('sfmi', sfmi =>
+      sfmi.merge({
+        directMountDir: '/Volumes/Keybase (meatball)',
+        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+      })
+    ),
   }
 }

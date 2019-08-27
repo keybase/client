@@ -536,7 +536,9 @@ export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
 export type _SystemFileManagerIntegration = {
+  directMountDir: string
   driverStatus: DriverStatus
+  preferredMountDirs: I.List<string>
   // This only controls if system-file-manager-integration-banner is shown in
   // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean

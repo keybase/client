@@ -59,11 +59,13 @@ export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
+export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
 export const sentLinkToChat = 'fs:sentLinkToChat'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
+export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
@@ -72,6 +74,7 @@ export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
+export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
@@ -184,11 +187,13 @@ type _PlaceholderActionPayload = void
 type _PollJournalStatusPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
+type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
 type _SentAttachmentToChatPayload = void
 type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
+type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
@@ -197,6 +202,7 @@ type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
+type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string>}
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
@@ -415,6 +421,9 @@ export const createRefreshDriverStatus = (
 export const createRefreshLocalHTTPServerInfo = (
   payload: _RefreshLocalHTTPServerInfoPayload
 ): RefreshLocalHTTPServerInfoPayload => ({payload, type: refreshLocalHTTPServerInfo})
+export const createRefreshMountDirsAfter10s = (
+  payload: _RefreshMountDirsAfter10sPayload
+): RefreshMountDirsAfter10sPayload => ({payload, type: refreshMountDirsAfter10s})
 export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload => ({payload, type: saveMedia})
 export const createSentAttachmentToChat = (
   payload: _SentAttachmentToChatPayload
@@ -430,6 +439,10 @@ export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLev
 export const createSetDestinationPickerParentPath = (
   payload: _SetDestinationPickerParentPathPayload
 ): SetDestinationPickerParentPathPayload => ({payload, type: setDestinationPickerParentPath})
+export const createSetDirectMountDir = (payload: _SetDirectMountDirPayload): SetDirectMountDirPayload => ({
+  payload,
+  type: setDirectMountDir,
+})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriverStatusPayload => ({
   payload,
   type: setDriverStatus,
@@ -456,6 +469,9 @@ export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload): SetPa
   payload,
   type: setPathSoftError,
 })
+export const createSetPreferredMountDirs = (
+  payload: _SetPreferredMountDirsPayload
+): SetPreferredMountDirsPayload => ({payload, type: setPreferredMountDirs})
 export const createSetSendAttachmentToChatConvID = (
   payload: _SetSendAttachmentToChatConvIDPayload
 ): SetSendAttachmentToChatConvIDPayload => ({payload, type: setSendAttachmentToChatConvID})
@@ -731,6 +747,10 @@ export type RefreshLocalHTTPServerInfoPayload = {
   readonly payload: _RefreshLocalHTTPServerInfoPayload
   readonly type: typeof refreshLocalHTTPServerInfo
 }
+export type RefreshMountDirsAfter10sPayload = {
+  readonly payload: _RefreshMountDirsAfter10sPayload
+  readonly type: typeof refreshMountDirsAfter10s
+}
 export type SaveMediaPayload = {readonly payload: _SaveMediaPayload; readonly type: typeof saveMedia}
 export type SentAttachmentToChatPayload = {
   readonly payload: _SentAttachmentToChatPayload
@@ -747,6 +767,10 @@ export type SetDebugLevelPayload = {
 export type SetDestinationPickerParentPathPayload = {
   readonly payload: _SetDestinationPickerParentPathPayload
   readonly type: typeof setDestinationPickerParentPath
+}
+export type SetDirectMountDirPayload = {
+  readonly payload: _SetDirectMountDirPayload
+  readonly type: typeof setDirectMountDir
 }
 export type SetDriverStatusPayload = {
   readonly payload: _SetDriverStatusPayload
@@ -779,6 +803,10 @@ export type SetPathItemActionMenuViewPayload = {
 export type SetPathSoftErrorPayload = {
   readonly payload: _SetPathSoftErrorPayload
   readonly type: typeof setPathSoftError
+}
+export type SetPreferredMountDirsPayload = {
+  readonly payload: _SetPreferredMountDirsPayload
+  readonly type: typeof setPreferredMountDirs
 }
 export type SetSendAttachmentToChatConvIDPayload = {
   readonly payload: _SetSendAttachmentToChatConvIDPayload
@@ -940,11 +968,13 @@ export type Actions =
   | PollJournalStatusPayload
   | RefreshDriverStatusPayload
   | RefreshLocalHTTPServerInfoPayload
+  | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
   | SentAttachmentToChatPayload
   | SentLinkToChatPayload
   | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
+  | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
@@ -953,6 +983,7 @@ export type Actions =
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload
   | SetPathSoftErrorPayload
+  | SetPreferredMountDirsPayload
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
