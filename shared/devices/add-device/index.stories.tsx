@@ -3,6 +3,7 @@ import * as Sb from '../../stories/storybook'
 import AddDevice from '.'
 
 const props = {
+  iconNumbers: {desktop: 7, mobile: 2},
   onAddComputer: Sb.action('onAddComputer'),
   onAddPaperKey: Sb.action('onAddPaperKey'),
   onAddPhone: Sb.action('onAddPhone'),

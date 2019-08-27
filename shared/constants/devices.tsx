@@ -67,9 +67,14 @@ export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.Device
 // Device -> [1, 10]
 // We split devices by type and order them by creation time. Then, we use (index mod 10)
 // as the background #
+const numBackgrounds = 10
 const idxMapper = (device: Types.Device, idx: number): [Types.DeviceID, number] => [device.deviceID, idx]
+type DeviceIconInfo = {
+  map: Map<Types.DeviceID, number>
+  next: {desktop: number; mobile: number}
+}
 const getIndexMap = memoize(
-  (devices: Map<Types.DeviceID, Types.Device>): Map<Types.DeviceID, number> => {
+  (devices: Map<Types.DeviceID, Types.Device>): DeviceIconInfo => {
     const sorted = [...devices.entries()]
       .map(r => r[1])
       .sort((a, b) => a.created - b.created)
@@ -94,11 +99,17 @@ const getIndexMap = memoize(
           mobile: Array<Types.Device>
         }
       )
-    return new Map([
-      ...sorted.backup.map(idxMapper),
-      ...sorted.desktop.map(idxMapper),
-      ...sorted.mobile.map(idxMapper),
-    ])
+    return {
+      map: new Map([
+        ...sorted.backup.map(idxMapper),
+        ...sorted.desktop.map(idxMapper),
+        ...sorted.mobile.map(idxMapper),
+      ]),
+      next: {
+        desktop: sorted.desktop.length,
+        mobile: sorted.mobile.length,
+      },
+    }
   }
 )
 
@@ -111,13 +122,24 @@ export const getDeviceIconNumberInner = (
   if (deviceIconNumberCache[deviceID]) {
     return deviceIconNumberCache[deviceID]
   }
-  const idx = getIndexMap(devices).get(deviceID)
+  const idx = getIndexMap(devices).map.get(deviceID)
   if (idx !== undefined) {
-    const number = (idx % 10) + 1 // an integer in [1, 10]
+    const number = (idx % numBackgrounds) + 1 // an integer in [1, numBackgrounds]
     deviceIconNumberCache[deviceID] = number
     return number
   }
   return -1
 }
+
+const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
+  const next = getIndexMap(devices).next
+  return {
+    desktop: (next.desktop % numBackgrounds) + 1,
+    mobile: (next.mobile % numBackgrounds) + 1,
+  }
+})
+
 export const getDeviceIconNumber = (state: Container.TypedState, deviceID: Types.DeviceID) =>
   getDeviceIconNumberInner(state.devices.deviceMap, deviceID)
+export const getNextDeviceIconNumber = (state: Container.TypedState) =>
+  getNextDeviceIconNumberInner(state.devices.deviceMap)
