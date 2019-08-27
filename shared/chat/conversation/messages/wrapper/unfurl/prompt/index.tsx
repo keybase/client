@@ -70,7 +70,7 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
       backgroundColor: Styles.globalColors.blueLighter3,
       borderRadius: Styles.borderRadius,
-      paddingBottom: Styles.globalColors.tiny,
+      paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
