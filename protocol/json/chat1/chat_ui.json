@@ -282,6 +282,20 @@
     },
     {
       "type": "record",
+      "name": "UIPinnedMessage",
+      "fields": [
+        {
+          "type": "UIMessage",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "InboxUIItem",
       "fields": [
         {
@@ -456,7 +470,7 @@
         {
           "type": [
             null,
-            "UIMessage"
+            "UIPinnedMessage"
           ],
           "name": "pinnedMsg"
         }

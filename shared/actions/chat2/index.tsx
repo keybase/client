@@ -2739,7 +2739,7 @@ const messageReplyPrivately = (
       logger.warn("messageReplyPrivately: couldn't make a new conversation?")
       return
     }
-    const meta = Constants.inboxUIItemToConversationMeta(result.uiConv, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
     if (!meta) {
       logger.warn('messageReplyPrivately: unable to make meta')
       return

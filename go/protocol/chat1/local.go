@@ -3130,6 +3130,18 @@ func (o ConversationLocalParticipant) DeepCopy() ConversationLocalParticipant {
 	}
 }
 
+type ConversationPinnedMessage struct {
+	Message        MessageUnboxed `codec:"message" json:"message"`
+	PinnerUsername string         `codec:"pinnerUsername" json:"pinnerUsername"`
+}
+
+func (o ConversationPinnedMessage) DeepCopy() ConversationPinnedMessage {
+	return ConversationPinnedMessage{
+		Message:        o.Message.DeepCopy(),
+		PinnerUsername: o.PinnerUsername,
+	}
+}
+
 type ConversationInfoLocal struct {
 	Id           ConversationID                 `codec:"id" json:"id"`
 	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
@@ -3137,7 +3149,7 @@ type ConversationInfoLocal struct {
 	TopicName    string                         `codec:"topicName" json:"topicName"`
 	Headline     string                         `codec:"headline" json:"headline"`
 	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
-	PinnedMsg    *MessageUnboxed                `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
+	PinnedMsg    *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 	Draft        *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
 	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus             `codec:"status" json:"status"`
@@ -3166,7 +3178,7 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SnippetMsg),
-		PinnedMsg: (func(x *MessageUnboxed) *MessageUnboxed {
+		PinnedMsg: (func(x *ConversationPinnedMessage) *ConversationPinnedMessage {
 			if x == nil {
 				return nil
 			}

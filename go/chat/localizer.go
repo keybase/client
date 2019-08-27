@@ -725,27 +725,26 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 }
 
 func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, valid bool, err error) {
+	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, pinnerUsername string, valid bool, err error) {
 	s.Debug(ctx, "getPinnedMsg: resolving %v", pinMessage.GetMessageID())
 	if !pinMessage.IsValidFull() {
 		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
-		return pinnedMsg, false, nil
+		return pinnedMsg, pinnerUsername, false, nil
 	}
 	if storage.NewPinIgnore(s.G(), uid).IsIgnored(ctx, convID, pinMessage.GetMessageID()) {
 		s.Debug(ctx, "getPinnedMsg: ignored pinned message")
-		return pinnedMsg, false, nil
+		return pinnedMsg, pinnerUsername, false, nil
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
 	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, true, nil); err != nil {
-		return pinnedMsg, false, err
+		return pinnedMsg, pinnerUsername, false, err
 	}
 	if !pinnedMsg.IsValidFull() {
 		s.Debug(ctx, "getPinnedMsg: not a valid pinned message")
-		return pinnedMsg, false, nil
+		return pinnedMsg, pinnerUsername, false, nil
 	}
-
-	return pinnedMsg, true, nil
+	return pinnedMsg, pinMessage.Valid().SenderUsername, true, nil
 }
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
@@ -918,7 +917,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			case chat1.MessageType_HEADLINE:
 				conversationLocal.Info.Headline = body.Headline().Headline
 			case chat1.MessageType_PIN:
-				pinnedMsg, valid, err := s.getPinnedMsg(ctx, uid, conversationRemote.GetConvID(), mm)
+				pinnedMsg, pinnerUsername, valid, err := s.getPinnedMsg(ctx, uid,
+					conversationRemote.GetConvID(), mm)
 				if err != nil {
 					conversationLocal.Error = chat1.NewConversationErrorLocal(
 						fmt.Sprintf("unable to get pinned message: %s", err),
@@ -926,7 +926,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 					return conversationLocal
 				}
 				if valid {
-					conversationLocal.Info.PinnedMsg = &pinnedMsg
+					conversationLocal.Info.PinnedMsg = &chat1.ConversationPinnedMessage{
+						Message:        pinnedMsg,
+						PinnerUsername: pinnerUsername,
+					}
 				}
 			}
 			if mm.GetMessageID() >= maxValidID {

@@ -2811,10 +2811,9 @@ func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-	msg := conv.Info.PinnedMsg
-	if msg == nil {
-		h.Debug(ctx, "IgnorePinnedMessage: no pinned message to ignore")
-		return nil
+	pin, err := conv.GetMaxMessage(chat1.MessageType_PIN)
+	if err != nil {
+		return err
 	}
-	return storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, msg.GetMessageID())
+	return storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, pin.GetMessageID())
 }

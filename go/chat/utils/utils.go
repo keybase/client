@@ -1252,8 +1252,10 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.BotCommands = rawConv.BotCommands
 	res.Draft = rawConv.Info.Draft
 	if rawConv.Info.PinnedMsg != nil {
-		res.PinnedMsg = new(chat1.UIMessage)
-		*res.PinnedMsg = PresentMessageUnboxed(ctx, g, *rawConv.Info.PinnedMsg, uid, rawConv.GetConvID())
+		res.PinnedMsg = new(chat1.UIPinnedMessage)
+		res.PinnedMsg.Message = PresentMessageUnboxed(ctx, g, rawConv.Info.PinnedMsg.Message, uid,
+			rawConv.GetConvID())
+		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
 	}
 	return res
 }

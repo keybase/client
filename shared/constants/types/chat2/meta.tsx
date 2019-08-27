@@ -12,6 +12,11 @@ export type TeamType = 'small' | 'big' | 'adhoc'
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
+export type PinnedMessageInfo = {
+  message: Message.Message
+  pinnerUsername: string
+}
+
 export type _ConversationMeta = {
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
@@ -35,7 +40,7 @@ export type _ConversationMeta = {
   offline: boolean
   participantToContactName: I.Map<string, string>
   participants: I.List<string> // was OrderedSet but is quite slow,
-  pinnedMsg: Message.Message | null
+  pinnedMsg: PinnedMessageInfo | null
   readMsgID: number
   rekeyers: I.Set<string>
   resetParticipants: I.Set<string>

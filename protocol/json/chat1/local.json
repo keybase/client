@@ -1684,6 +1684,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationPinnedMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1716,7 +1730,7 @@
         {
           "type": [
             null,
-            "MessageUnboxed"
+            "ConversationPinnedMessage"
           ],
           "name": "pinnedMsg"
         },

@@ -10,7 +10,10 @@ type OwnProps = {
 }
 
 const empty = {
+  _canAdminDelete: false,
   _messageID: 0,
+  _pinnerUsername: '',
+  _you: '',
   author: '',
   imageHeight: undefined,
   imageURL: undefined,
@@ -23,7 +26,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   if (!meta) {
     return empty
   }
-  const message = meta.pinnedMsg
+  const pinnedMsg = meta.pinnedMsg
+  if (!pinnedMsg) {
+    return empty
+  }
+  const message = pinnedMsg.message
   if (!message || !(message.type === 'text' || message.type === 'attachment')) {
     return empty
   }
@@ -34,6 +41,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     _canAdminDelete,
     _messageID: message.id,
+    _pinnerUsername: pinnedMsg.pinnerUsername,
     _you: state.config.username,
     author: message.author,
     imageHeight: attachment ? attachment.previewHeight : undefined,
@@ -64,7 +72,7 @@ const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>
 ) => {
-  const yourMessage = message.author === stateProps._you
+  const yourMessage = stateProps._pinnerUsername === stateProps._you
   const dismissUnpins = yourMessage || stateProps._canAdminDelete
   return {
     author: stateProps.author,

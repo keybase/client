@@ -7,7 +7,7 @@ import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
-import {_ConversationMeta} from '../types/chat2/meta'
+import {_ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
@@ -288,6 +288,16 @@ export const inboxUIItemToConversationMeta = (
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
+  let pinnedMsg: PinnedMessageInfo = null
+  if (i.pinnedMsg) {
+    const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
+    if (message) {
+      pinnedMsg = {
+        message,
+        pinnerUsername: i.pinnedMsg.pinnerUsername,
+      }
+    }
+  }
   return makeConversationMeta({
     botCommands: i.botCommands,
     cannotWrite,
@@ -317,7 +327,7 @@ export const inboxUIItemToConversationMeta = (
       }, {})
     ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
-    pinnedMsg: i.pinnedMsg ? Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg) : null,
+    pinnedMsg: pinnedMsg,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
