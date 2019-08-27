@@ -152,7 +152,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		// just bail out of here at this point since we won't be displaying anything useful,
 		// and we don't want to accidentally ack the plaintext notification when we didn't really
 		// display it.
-		if displayPlaintext {
+		if len(serverMessageBody) == 0 {
 			return nil
 		}
 	}
