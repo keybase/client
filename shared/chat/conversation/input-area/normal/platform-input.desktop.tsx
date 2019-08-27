@@ -363,7 +363,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.editingTextColor,
+      backgroundColor: Styles.globalColors.blackOrWhite,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -376,7 +376,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   cancelEditingText: {
-    color: Styles.globalColors.cancelEditingTextColor,
+    color: Styles.globalColors.blackOrBlack,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -453,7 +453,7 @@ const styles = Styles.styleSheetCreate(() => ({
     textAlign: 'left',
   },
   inputEditing: {
-    color: Styles.globalColors.editingTextColor,
+    color: Styles.globalColors.blackOrWhite,
   },
   inputWrapper: {
     ...Styles.globalStyles.flexBoxRow,

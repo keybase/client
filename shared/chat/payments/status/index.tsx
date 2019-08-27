@@ -122,18 +122,18 @@ class PaymentStatus extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   claimable: {
-    backgroundColor: Styles.globalColors.paymentPendingBackground,
+    backgroundColor: Styles.globalColors.black05OrBlack60,
     borderRadius: Styles.globalMargins.xxtiny,
     color: Styles.globalColors.paymentPendingForeground,
   },
   claimableIcon: {},
   completed: {
-    backgroundColor: Styles.globalColors.paymentCompletedBackground,
+    backgroundColor: Styles.globalColors.purple10OrPurple,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.paymentCompletedForeground,
+    color: Styles.globalColors.purpleDarkOrWhite,
   },
   completedIcon: {
-    color: Styles.globalColors.paymentCompletedForeground,
+    color: Styles.globalColors.purpleDarkOrWhite,
   },
   container: Styles.platformStyles({
     isElectron: {
@@ -141,12 +141,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    backgroundColor: Styles.globalColors.paymentErrorBackground,
+    backgroundColor: Styles.globalColors.red10OrRed,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.paymentErrorForeground,
+    color: Styles.globalColors.redDarkOrWhite,
   },
   errorIcon: {
-    color: Styles.globalColors.paymentErrorForeground,
+    color: Styles.globalColors.redDarkOrWhite,
   },
   iconBoxStyle: Styles.platformStyles({
     isElectron: {
@@ -154,7 +154,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   pending: {
-    backgroundColor: Styles.globalColors.paymentPendingBackground,
+    backgroundColor: Styles.globalColors.black05OrBlack60,
     borderRadius: Styles.globalMargins.xxtiny,
     color: Styles.globalColors.paymentPendingForeground,
   },
