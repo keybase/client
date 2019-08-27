@@ -2703,13 +2703,13 @@ const messageReplyPrivately = (
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
-    logger.warn("Can't find message to reply to", ordinal)
+    logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
     return
   }
 
   const username = state.config.username
   if (!username) {
-    throw new Error('Making a convo while logged out?')
+    throw new Error('messageReplyPrivately: making a convo while logged out?')
   }
   return RPCChatTypes.localNewConversationLocalRpcPromise(
     {
@@ -2723,11 +2723,16 @@ const messageReplyPrivately = (
   ).then(result => {
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
-      logger.warn("Couldn't make a new conversation?")
+      logger.warn("messageReplyPrivately: couldn't make a new conversation?")
       return
     }
-
+    const meta = Constants.inboxUIItemToConversationMeta(result.uiConv, true)
+    if (!meta) {
+      logger.warn('messageReplyPrivately: unable to make meta')
+      return
+    }
     return [
+      Chat2Gen.createMetasReceived({metas: [meta]}),
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
       Chat2Gen.createMessageSetQuoting({
         ordinal: action.payload.ordinal,
