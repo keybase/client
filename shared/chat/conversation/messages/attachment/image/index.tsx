@@ -156,6 +156,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                             />
                           </Kb.Box>
                         )}
+                        {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
                       </Kb.Box>
                     )}
                     {this.props.title.length > 0 && (
@@ -171,7 +172,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         {this.props.title}
                       </Kb.Text>
                     )}
-                    {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
                   </Kb.Box2>
                 )}
                 {Styles.isMobile && this.state.loadingVideo === 'loading' && (

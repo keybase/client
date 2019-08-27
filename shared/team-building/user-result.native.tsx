@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
 import {Props} from './user-result'
-import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 // TODO
 // * Use ListItem2
@@ -86,7 +86,7 @@ const FormatPrettyName = (props: {
   keybaseResult: boolean
   keybaseUsername: string | null
   prettyName: string
-  services: [Types.ServiceIdWithContact]
+  services: Array<Types.ServiceIdWithContact>
 }) =>
   props.keybaseResult ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
@@ -139,9 +139,7 @@ const Username = (props: {
             keybaseResult={props.keybaseResult}
             keybaseUsername={props.keybaseUsername}
             prettyName={props.prettyName}
-            services={
-              Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]
-            }
+            services={serviceMapToArray(props.services)}
           />
         )}
       </>

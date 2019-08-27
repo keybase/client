@@ -200,7 +200,7 @@ class PostProof extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   blue: {color: Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   error: {
@@ -215,6 +215,6 @@ const styles = Styles.styleSheetCreate({
   },
   scroll: {width: '100%'},
   scrollContent: {width: '100%'},
-})
+}))
 
 export default PostProof

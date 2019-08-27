@@ -445,9 +445,11 @@ const chatActivityToMetasAction = (
   const isADelete =
     !ignoreDelete &&
     conv &&
-    ([RPCChatTypes.ConversationStatus.blocked, RPCChatTypes.ConversationStatus.reported].includes(
-      conv.status
-    ) ||
+    ([
+      RPCChatTypes.ConversationStatus.blocked,
+      RPCChatTypes.ConversationStatus.reported,
+      RPCChatTypes.ConversationStatus.ignored,
+    ].includes(conv.status) ||
       conv.isEmpty)
 
   // We want to select a different convo if its cause we blocked/reported. Otherwise sometimes we get that a convo
@@ -1981,24 +1983,18 @@ const _maybeAutoselectNewestConversation = (
   // If we got here we're auto selecting the newest convo
   const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
 
-  if (meta) {
+  if (meta && isEligibleConvo(meta)) {
     return Chat2Gen.createSelectConversation({
       conversationIDKey: meta.conversationIDKey,
       reason: 'findNewestConversation',
     })
-  } else if (avoidTeam) {
-    // No conversations besides in the team we're trying to avoid. Select
-    // nothing
-    logger.info(
-      `no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
-    )
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
-  } else {
-    return undefined
   }
+  // No conversations. Select nothing
+  logger.info(`no eligible conversations left in inbox; selecting nothing`)
+  return Chat2Gen.createSelectConversation({
+    conversationIDKey: Constants.noConversationIDKey,
+    reason: 'clearSelected',
+  })
 }
 
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
@@ -2703,13 +2699,13 @@ const messageReplyPrivately = (
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
-    logger.warn("Can't find message to reply to", ordinal)
+    logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
     return
   }
 
   const username = state.config.username
   if (!username) {
-    throw new Error('Making a convo while logged out?')
+    throw new Error('messageReplyPrivately: making a convo while logged out?')
   }
   return RPCChatTypes.localNewConversationLocalRpcPromise(
     {
@@ -2723,11 +2719,16 @@ const messageReplyPrivately = (
   ).then(result => {
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
-      logger.warn("Couldn't make a new conversation?")
+      logger.warn("messageReplyPrivately: couldn't make a new conversation?")
       return
     }
-
+    const meta = Constants.inboxUIItemToConversationMeta(result.uiConv, true)
+    if (!meta) {
+      logger.warn('messageReplyPrivately: unable to make meta')
+      return
+    }
     return [
+      Chat2Gen.createMetasReceived({metas: [meta]}),
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
       Chat2Gen.createMessageSetQuoting({
         ordinal: action.payload.ordinal,

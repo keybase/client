@@ -52,7 +52,7 @@ const _Result = (props: Props) => {
 }
 const Result = Kb.HeaderOrPopup(_Result)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bottomContainer: {
     height: 80,
   },
@@ -82,6 +82,6 @@ const styles = Styles.styleSheetCreate({
       flex: 1,
     },
   }),
-})
+}))
 
 export default Result

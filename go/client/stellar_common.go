@@ -16,7 +16,7 @@ import (
 
 func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, details bool, dui libkb.DumbOutputUI) {
 	lineUnescaped := func(format string, args ...interface{}) {
-		dui.PrintfUnescaped(format+"\n", args...)
+		_, _ = dui.PrintfUnescaped(format+"\n", args...)
 	}
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
@@ -166,5 +166,7 @@ func transformStellarCLIError(err *error) {
 				Desc: "Stellar disclaimer not yet accepted. Run 'keybase wallet get-started'",
 			})
 		}
+	default:
+		// Nothing to do for other errors.
 	}
 }

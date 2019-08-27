@@ -20,7 +20,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
     <Kb.Box2 direction="horizontal">
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
-        {!props.airdropSelected && <AddAccount />}
+        <AddAccount />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
         {props.loading ? (

@@ -94,7 +94,7 @@ const DeviceRevoke = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {padding: Styles.globalMargins.small},
   endangeredTLFContainer: Styles.platformStyles({
     isElectron: {alignSelf: 'center'},
@@ -128,6 +128,6 @@ const styles = Styles.styleSheetCreate({
   tlf: Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'},
   }),
-})
+}))
 
 export default Kb.HeaderHoc(DeviceRevoke)

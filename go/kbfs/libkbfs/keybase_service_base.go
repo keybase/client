@@ -1356,7 +1356,15 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	return k.config.MDServer().StartImplicitTeamMigration(ctx, handle.TlfID())
+	// Before taking the lock, first make sure this device can handle
+	// the migration.
+	tlfID := handle.TlfID()
+	err = k.config.KBFSOps().CheckMigrationPerms(ctx, tlfID)
+	if err != nil {
+		k.log.CDebugf(ctx, "This device cannot migrate %s: %+v", tlfID, err)
+		return err
+	}
+	return k.config.MDServer().StartImplicitTeamMigration(ctx, tlfID)
 }
 
 // FinalizeMigration implements keybase1.ImplicitTeamMigrationInterface for

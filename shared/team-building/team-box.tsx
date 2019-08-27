@@ -57,18 +57,13 @@ class UserBubbleCollection extends React.PureComponent<{
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.
   const scrollViewRef = React.useRef<Kb.ScrollView>(null)
-  const teamLength = props.teamSoFar.length
-  const prevTeamLength = Container.usePrevious(teamLength)
+  const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
+  const prevLast = Container.usePrevious(last)
   React.useEffect(() => {
-    if (
-      Styles.isMobile &&
-      prevTeamLength !== undefined &&
-      prevTeamLength !== teamLength &&
-      scrollViewRef.current
-    ) {
+    if (Styles.isMobile && prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true})
     }
-  }, [prevTeamLength, teamLength])
+  }, [prevLast, last])
 
   const addMorePrompt = props.teamSoFar.length === 1 && (
     <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>

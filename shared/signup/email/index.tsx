@@ -14,8 +14,8 @@ export type Props = {
 const EnterEmail = (props: Props) => {
   const [email, onChangeEmail] = React.useState(props.initialEmail || '')
   const [searchable, onChangeSearchable] = React.useState(true)
-  const disabled = !email
-  const onContinue = () => (disabled ? {} : props.onCreate(email, searchable))
+  const disabled = !email.trim()
+  const onContinue = () => (disabled ? {} : props.onCreate(email.trim(), searchable))
 
   return (
     <SignupScreen

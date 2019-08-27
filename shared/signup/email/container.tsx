@@ -20,7 +20,7 @@ const WatchForSuccess = (props: WatcherProps) => {
     if (props.addedEmail === addEmailInProgress) {
       props.onSuccess(addEmailInProgress)
     }
-  }, [props.addedEmail, addEmailInProgress])
+  }, [props.addedEmail, addEmailInProgress, props])
 
   const onCreate = (email: string, searchable: boolean) => {
     props.onCreate(email, searchable)
@@ -41,7 +41,7 @@ const WatchForSuccess = (props: WatcherProps) => {
 const ConnectedEnterEmail = Container.connect(
   (state: Container.TypedState) => ({
     addedEmail: state.settings.email.addedEmail,
-    error: state.settings.email.error ? state.settings.email.error.message : '',
+    error: state.settings.email.error || '',
     initialEmail: state.signup.email,
     waiting: anyWaiting(state, SettingsConstants.addEmailWaitingKey),
   }),

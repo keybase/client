@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -72,7 +73,11 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 		}
 		return resp.Body, nil
 	case "file":
-		return os.Open(parsed.Path)
+		filePath := parsed.Path
+		if runtime.GOOS == "windows" && len(filePath) > 0 {
+			filePath = filePath[1:]
+		}
+		return os.Open(filePath)
 	default:
 		return nil, fmt.Errorf("unknown URL scheme: %s raw: %s", parsed.Scheme, raw)
 	}

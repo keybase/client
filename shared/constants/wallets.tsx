@@ -767,7 +767,9 @@ export const getAirdropSelected = () => {
   return (
     topPath === 'airdrop' ||
     topPath === 'airdropQualify' ||
-    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop')
+    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop') ||
+    (topPath === 'createNewAccount' && nextPathDown === 'airdrop') ||
+    (topPath === 'linkExisting' && nextPathDown === 'airdrop')
   )
 }
 
@@ -807,6 +809,11 @@ export const getDefaultDisplayCurrency = (state: TypedState) => getDefaultDispla
 export const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
+}
+
+export const getDefaultAccount = (state: TypedState) => {
+  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+  return defaultAccount || unknownAccount
 }
 
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>

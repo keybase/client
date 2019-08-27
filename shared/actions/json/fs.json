@@ -280,6 +280,9 @@
     },
     "setTlfsAsUnloaded": {},
     "placeholderAction": {},
+    "refreshMountDirsAfter10s": {},
+    "setDirectMountDir": {"directMountDir": "string"},
+    "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
     "setDebugLevel": {
       "level": "string"
     }

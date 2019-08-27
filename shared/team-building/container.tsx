@@ -27,6 +27,7 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
+import Flags from '../util/feature-flags'
 
 type OwnProps = {
   namespace: AllowedNamespace
@@ -160,7 +161,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
-    initialShowServiceBarLabels: !teamBuildingState.teamBuildingLabelsSeen,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -224,7 +224,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _onLabelsSeen: () => dispatch(TeamBuildingGen.createLabelsSeen({namespace})),
   _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -545,7 +544,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label="Start" // PICNIC-360 rabbit here
+                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}
@@ -565,7 +564,6 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
-    initialShowServiceBarLabels: stateProps.initialShowServiceBarLabels,
     namespace: ownProps.namespace,
     onAdd,
     onAddRaw: dispatchProps._onAdd,
@@ -583,7 +581,6 @@ const mergeProps = (
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
-    onTabBarLabelsSeen: dispatchProps._onLabelsSeen,
     onUpArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns
         ? rolePickerArrowKeyFns.upArrow

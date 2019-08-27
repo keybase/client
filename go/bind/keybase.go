@@ -388,6 +388,10 @@ func Version() string {
 	return libkb.VersionString()
 }
 
+func IsAppStateForeground() bool {
+	return kbCtx.MobileAppState.State() == keybase1.MobileAppState_FOREGROUND
+}
+
 func SetAppStateForeground() {
 	if !isInited() {
 		return
@@ -464,13 +468,6 @@ func BackgroundSync() {
 		}
 	}()
 	<-doneCh
-}
-
-func formatConversationName(info chat1.ConversationInfoLocal) string {
-	if info.TopicName != "" {
-		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
-	}
-	return info.TlfName
 }
 
 // pushPendingMessageFailure sends at most one notification that a message

@@ -1,12 +1,14 @@
 import * as React from 'react'
-import {Box2, Button, Text} from '../../../common-adapters'
+import {Box2, Button, Text, Emoji} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import Flags from '../../../util/feature-flags'
 
 export type InviteProps = {
   openShareSheet: () => void
   openSMS: (phoneNumber: string) => void
+  onDismiss: () => void
   usernameToContactName: {[username: string]: string}
   users: Array<string>
 }
@@ -21,6 +23,7 @@ const BannerBox = (props: {
     fullWidth={true}
     style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
+    centerChildren={true}
   >
     {props.children}
   </Box2>
@@ -28,28 +31,27 @@ const BannerBox = (props: {
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
-const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: InviteProps) => {
+const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, onDismiss}: InviteProps) => {
   const theirName =
     users.length === 1
       ? usernameToContactName[users[0]] || assertionToDisplay(users[0])
       : `these ${users.length} people`
+  const mobileClickInstall =
+    users.length === 1 && users[0].endsWith('@phone') ? () => openSMS(users[0].slice(0, -6)) : openShareSheet
 
-  // On mobile, single recipient, a phone number
-  if (isMobile && users.length === 1 && users[0].endsWith('@phone')) {
-    return (
-      <BannerBox color={Styles.globalColors.blue} gap="xtiny">
-        <BannerText>Last step: summon {theirName}!</BannerText>
-        <Button label="Send install link" onClick={() => openSMS(users[0].slice(0, -6))} mode="Secondary" />
-      </BannerBox>
-    )
-  }
-
-  // Any number of recipients, on iOS / Android show the share screen
   if (isMobile) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>Last step: summon {theirName}!</BannerText>
-        <Button label="Send install link" onClick={openShareSheet} mode="Secondary" />
+        <Box2 direction="horizontal" gap="tiny">
+          <Button
+            label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
+            onClick={mobileClickInstall}
+            mode="Secondary"
+            small={true}
+          />
+          <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
+        </Box2>
       </BannerBox>
     )
   }
@@ -71,6 +73,11 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName}: I
     <BannerBox color={Styles.globalColors.blue}>
       <BannerText>{caption}</BannerText>
       <BannerText>
+        {Flags.wonderland && (
+          <>
+            <Emoji size={16} emojiName=":rabbit2:" />{' '}
+          </>
+        )}
         Send them this link:
         <BannerText
           onClickURL="https://keybase.io/app"

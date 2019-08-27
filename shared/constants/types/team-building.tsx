@@ -37,10 +37,10 @@ export type _TeamBuildingSubState = {
   teamBuildingEmailSearchQuery: Query
   teamBuildingEmailIsSearching: boolean
   teamBuildingEmailResult: User | null
-  teamBuildingTeamSoFar: I.Set<User>
+  teamBuildingTeamSoFar: I.OrderedSet<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
-  teamBuildingFinishedTeam: I.Set<User>
+  teamBuildingFinishedTeam: I.OrderedSet<User>
   teamBuildingFinishedSelectedRole: TeamRoleType
   teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
@@ -49,7 +49,6 @@ export type _TeamBuildingSubState = {
   teamBuildingUserRecs: Array<User> | null
   teamBuildingSelectedRole: TeamRoleType
   teamBuildingSendNotification: boolean
-  teamBuildingLabelsSeen: boolean
 }
 
 export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>

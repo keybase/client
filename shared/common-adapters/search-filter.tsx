@@ -68,6 +68,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     text: '',
   }
 
+  _mounted = false
   _inputRef: React.RefObject<any> = React.createRef()
   _onBlur = () => {
     this.setState({focused: false})
@@ -111,9 +112,20 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
   _typing = () => this.state.focused || !!this._text()
-
+  // RN fails at tracking this keyboard if we don't delay this, making it get stuck open.
+  _focusOnMount = () => setTimeout(() => this._mounted && this._focus(), 20)
   componentDidMount() {
-    this.props.focusOnMount && this._focus()
+    this._mounted = true
+    this.props.focusOnMount && this._focusOnMount()
+  }
+  componentWillUnmount() {
+    this._mounted = false
+  }
+  componentDidUpdate(prevProps: Props) {
+    // Get focus on the rising edge of focusOnMount even if the component does not remount.
+    if (this.props.focusOnMount && !prevProps.focusOnMount) {
+      this._focusOnMount()
+    }
   }
   _keyHandler() {
     return (

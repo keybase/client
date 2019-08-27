@@ -248,7 +248,7 @@ class Qualify extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonAccept: {flexGrow: 0},
   buttonAcceptLoading: {flexGrow: 0, opacity: 0},
   buttonClose: {
@@ -341,6 +341,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,
   },
-})
+}))
 
 export default Qualify

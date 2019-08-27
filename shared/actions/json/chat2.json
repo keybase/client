@@ -725,6 +725,10 @@
       "_description": "Set thread load status",
       "conversationIDKey": "Types.ConversationIDKey",
       "status": "RPCChatTypes.UIChatThreadStatus"
+    },
+    "dismissBottomBanner": {
+      "_description": "Set the bottom banner on a new conversation as dismissed",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

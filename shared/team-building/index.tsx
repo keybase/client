@@ -7,7 +7,12 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
-import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
+import {
+  serviceIdToAccentColor,
+  serviceIdToIconFont,
+  serviceIdToLabel,
+  serviceIdToSearchPlaceholder,
+} from './shared'
 import {
   AllowedNamespace,
   ServiceIdWithContact,
@@ -22,6 +27,7 @@ import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailInput from './email-input'
+import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
 
@@ -64,6 +70,7 @@ type ContactProps = {
   onAskForContactsLater: () => void
   onImportContacts: () => void
   onLoadContactsSetting: () => void
+  selectedService: ServiceIdWithContact
 }
 
 export type Props = ContactProps & {
@@ -84,18 +91,15 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   onClear: () => void
-  onTabBarLabelsSeen: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
   searchString: string
-  selectedService: ServiceIdWithContact
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
-  initialShowServiceBarLabels: boolean
   teamSoFar: Array<SelectedUser>
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
@@ -125,6 +129,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // then there's nothing for us to do.
   if (
     props.contactsImported === null ||
+    props.selectedService !== 'keybase' ||
     props.contactsImported ||
     props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
@@ -135,7 +140,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
-        <Kb.Text type="BodyBig" negative={true} style={styles.bannerText}>
+        <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
         <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
@@ -147,7 +152,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             small={true}
           />
           <Kb.Button
-            label="Later"
+            label="Skip"
             backgroundColor="blue"
             mode="Secondary"
             onClick={props.onAskForContactsLater}
@@ -165,6 +170,7 @@ const ContactsImportButton = (props: ContactProps) => {
   if (
     props.contactsImported === null ||
     props.contactsImported ||
+    !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
   )
     return null
@@ -175,13 +181,14 @@ const ContactsImportButton = (props: ContactProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
+        gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-phone-contact" fontSize={24} />
+        <Kb.Icon type="iconfont-contact-book" color="Styles.globalColors.black" />
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import your phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" fontSize={24} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color="Styles.globalColors.black" />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -212,6 +219,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         showNumSection={showNumSection}
         onScroll={this._onScrollToSection}
         style={styles.alphabetIndex}
+        measureKey={!!this.props.teamSoFar.length}
       />
     )
   }
@@ -304,8 +312,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onBackspace={props.onBackspace}
-        placeholder="Search"
+        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
+        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
       />
     )
   }
@@ -405,7 +414,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 />
               )
             }
-            renderSectionHeader={({section: {label}}) => <Kb.SectionDivider label={label} />}
+            renderSectionHeader={({section: {label}}) => (label ? <Kb.SectionDivider label={label} /> : null)}
           />
           {Styles.isMobile && this._alphabetIndex()}
         </Kb.Box2>
@@ -516,12 +525,11 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Text>
         )}
         <ServiceTabBar
+          services={Constants.servicesForNamespace(props.namespace)}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
-          onLabelsSeen={props.onTabBarLabelsSeen}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
-          initialShowLabels={props.initialShowServiceBarLabels}
         />
         {Styles.isMobile && (
           <ContactsBanner
@@ -546,7 +554,9 @@ const styles = Styles.styleSheetCreate({
   banner: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
-      padding: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
     },
     isMobile: {
       zIndex: -1, // behind ServiceTabBar
@@ -554,8 +564,8 @@ const styles = Styles.styleSheetCreate({
   }),
   bannerButtonContainer: {
     flexWrap: 'wrap',
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xsmall,
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerIcon: {
     maxHeight: 112,
@@ -572,7 +582,7 @@ const styles = Styles.styleSheetCreate({
   },
   bannerText: {
     flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.tiny,
   },
   bannerTextContainer: {
     flex: 1,
@@ -586,9 +596,9 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderRadius: 4,
-      height: 434,
+      height: 560,
       overflow: 'hidden',
-      width: 470,
+      width: 400,
     },
   }),
   emptyContainer: Styles.platformStyles({
@@ -604,7 +614,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   importContactsContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     padding: Styles.globalMargins.xsmall,
   },
   list: Styles.platformStyles({

@@ -198,7 +198,7 @@ const Divider = ({error}: {error: boolean}) => (
 
 const placeholderColor = Styles.globalColors.black_20
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -221,9 +221,10 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   input: {
+    backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black_on_white,
     padding: 0,
   },
-})
+}))
 
 export {SecretNote, PublicMemo}

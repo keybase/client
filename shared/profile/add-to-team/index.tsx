@@ -196,7 +196,7 @@ class AddToTeam extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isMobile: {
       width: '100%',
@@ -288,7 +288,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 const PopupWrapped = (props: Props) => (
   <Kb.PopupDialog onClose={props.onBack}>

@@ -133,6 +133,8 @@ const styles = styleSheetCreate({
     flexGrow: 1,
   },
   troubleShooting: {
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
 })

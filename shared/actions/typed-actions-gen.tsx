@@ -194,6 +194,7 @@ export type TypedActionsMap = {
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
   'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
+  'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -543,6 +544,9 @@ export type TypedActionsMap = {
   'fs:setSpaceAvailableNotificationThreshold': fs.SetSpaceAvailableNotificationThresholdPayload
   'fs:setTlfsAsUnloaded': fs.SetTlfsAsUnloadedPayload
   'fs:placeholderAction': fs.PlaceholderActionPayload
+  'fs:refreshMountDirsAfter10s': fs.RefreshMountDirsAfter10sPayload
+  'fs:setDirectMountDir': fs.SetDirectMountDirPayload
+  'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

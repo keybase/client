@@ -67,7 +67,7 @@ func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
 		out += fmt.Sprintf(" * %s\n", tlf.Name)
 	}
 
-	tui.OutputDesc(OutputDescriptorEndageredTLFs, out)
+	_ = tui.OutputDesc(OutputDescriptorEndageredTLFs, out)
 	ok, err := tui.PromptYesNo(PromptDescriptorDeviceRevoke, "Go ahead anyway?", libkb.PromptDefaultNo)
 	if err != nil {
 		return err
@@ -118,18 +118,18 @@ func (c *CmdDeviceRemove) Run() (err error) {
 
 	switch err.(type) {
 	case libkb.RevokeCurrentDeviceError:
-		ui.Output("You tried to remove this device. If you are sure you want to\n")
-		ui.Output("remove the current device, then run\n\n")
-		ui.Output("\tkeybase device remove --force-self <device id or name>\n\n")
+		_ = ui.Output("You tried to remove this device. If you are sure you want to\n")
+		_ = ui.Output("remove the current device, then run\n\n")
+		_ = ui.Output("\tkeybase device remove --force-self <device id or name>\n\n")
 	case libkb.RevokeLastDeviceError:
-		ui.Output("You tried to remove the last device in your account. If you are\n")
-		ui.Output("sure you want to remove it, then run\n\n")
-		ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
-		ui.Output("Your account will be automatically reset afterward.\n\n")
+		_ = ui.Output("You tried to remove the last device in your account. If you are\n")
+		_ = ui.Output("sure you want to remove it, then run\n\n")
+		_ = ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
+		_ = ui.Output("Your account will be automatically reset afterward.\n\n")
 	case libkb.RevokeLastDevicePGPError:
-		ui.Output("You tried to remove the last device in your account. Because\n")
-		ui.Output("you also have a PGP key, you cannot do this.\n\n")
-		ui.Output("You can reset your account here:  https://keybase.io/#account-reset\n\n")
+		_ = ui.Output("You tried to remove the last device in your account. Because\n")
+		_ = ui.Output("you also have a PGP key, you cannot do this.\n\n")
+		_ = ui.Output("You can reset your account here:  https://keybase.io/#account-reset\n\n")
 	default:
 		return err
 	}

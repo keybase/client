@@ -22,6 +22,7 @@ export type _ConversationMeta = {
   draft: string
   inboxLocalVersion: number
   inboxVersion: number
+  isEmpty: boolean
   isMuted: boolean
   maxMsgID: number
   maxVisibleMsgID: number

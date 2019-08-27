@@ -259,7 +259,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}
-                style={styles.input}
+                style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -360,7 +360,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: Styles.globalColors.blackOrWhite,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -373,7 +373,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   cancelEditingText: {
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.blackOrBlack,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -448,6 +448,9 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 6,
     paddingTop: Styles.globalMargins.tiny,
     textAlign: 'left',
+  },
+  inputEditing: {
+    color: Styles.globalColors.blackOrWhite,
   },
   inputWrapper: {
     ...Styles.globalStyles.flexBoxRow,

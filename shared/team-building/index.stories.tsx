@@ -10,6 +10,7 @@ import GoButton from './go-button'
 import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
 import PhoneSearch from './phone-search'
+import * as Constants from '../constants/team-building'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -34,8 +35,6 @@ const generateTeamSofar = (count: number) => {
 }
 
 const commonProps = {
-  initialShowServiceBarLabels: true,
-  onTabBarLabelsSeen: Sb.action('onTabBarLabelsSeen'),
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
@@ -566,6 +565,7 @@ const load = () => {
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        focusOnMount={true}
       />
     ))
     .add('TeamBox', () => (
@@ -619,26 +619,24 @@ const load = () => {
   Sb.storiesOf('Team-Building/Service Tab Bar', module)
     .add('With Service Results counts', () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{
           hackernews: 10,
           keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
     .add('Pending results', () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={true}
-        initialShowLabels={true}
       />
     ))
 
@@ -655,12 +653,11 @@ const load = () => {
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
+        services={Constants.services}
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
-        onLabelsSeen={Sb.action('onLabelsSeen')}
         serviceResultCount={{}}
         showServiceResultCount={false}
-        initialShowLabels={true}
       />
     ))
   })

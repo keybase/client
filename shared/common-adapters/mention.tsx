@@ -27,13 +27,14 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {
-    backgroundColor: Styles.globalColors.greenLighter,
+    backgroundColor: Styles.globalColors.greenOrGreenLighter,
     borderRadius: 2,
-    color: Styles.globalColors.greenDark,
+    color: Styles.globalColors.whiteOrGreenDark,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellow,
     borderRadius: 2,
+    color: Styles.globalColors.blackOrWhite,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,

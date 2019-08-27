@@ -36,7 +36,7 @@ const Banner = (p: Props) => {
           <Kb.Button
             mode="Secondary"
             backgroundColor="purple"
-            label="Later"
+            label="Skip"
             onClick={p.onCancel}
             small={true}
             style={styles.button}
@@ -77,7 +77,7 @@ const markdownOverride = {
   }),
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
@@ -112,6 +112,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     flexShrink: 1,
   },
-})
+}))
 
 export default Banner

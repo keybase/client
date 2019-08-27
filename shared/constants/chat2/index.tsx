@@ -33,6 +33,7 @@ export const makeState = I.Record<Types._State>({
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
+  dismissedInviteBannersMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),

@@ -3,6 +3,8 @@ protocol kbfsMount {
     @lint("ignore")
     string GetCurrentMountDir();
     @lint("ignore")
+    array<string> GetPreferredMountDirs();
+    @lint("ignore")
     array<string> GetAllAvailableMountDirs();
     @lint("ignore")
     void SetCurrentMountDir(string dir);

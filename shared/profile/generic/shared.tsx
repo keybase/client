@@ -37,7 +37,7 @@ export const SiteIcon = (props: SiteIconProps) => {
   )
 }
 
-const siteIconStyles = Styles.styleSheetCreate({
+const siteIconStyles = Styles.styleSheetCreate(() => ({
   siteIcon: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -66,4 +66,4 @@ const siteIconStyles = Styles.styleSheetCreate({
       width: 64,
     },
   }),
-})
+}))
