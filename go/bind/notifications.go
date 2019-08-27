@@ -115,8 +115,8 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
 		username := msgUnboxed.Valid().SenderUsername
 		chatNotification.Message.From.KeybaseUsername = username
-		displayPlaintext = displayPlaintext && !msgUnboxed.Valid().IsEphemeral()
-		if displayPlaintext {
+
+		if displayPlaintext && !msgUnboxed.Valid().IsEphemeral() {
 			// We show avatars on Android
 			if runtime.GOOS == "android" {
 				avatar, err := kbSvc.GetUserAvatar(username)
@@ -162,10 +162,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
-	if pusher != nil {
+
+	// only display and ack this notification if we actually have something to display
+	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
 		pusher.DisplayChatNotification(&chatNotification)
-		// only ack this notification if we have a plaintext version to display
-		if len(pushID) != 0 && displayPlaintext {
+		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}
 	}
