@@ -19,7 +19,8 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-import * as NetInfo from '@react-native-community/netinfo'
+// eslint-ignore-next-line messed up export in module. fixed in the next update
+import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
