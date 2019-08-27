@@ -170,7 +170,7 @@
       NSError* err = nil;
       NSString* convID = notification[@"convID"];
       int messageID = [notification[@"msgID"] intValue];
-      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
+      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, false,
                                           messageID, @"", badgeCount, unixTime, soundName, nil, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);

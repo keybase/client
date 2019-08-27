@@ -61,8 +61,9 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	return err
 }
 
-func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int, displayPlaintext bool,
-	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
+	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
+	pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
 	}
@@ -151,7 +152,9 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		// just bail out of here at this point since we won't be displaying anything useful,
 		// and we don't want to accidentally ack the plaintext notification when we didn't really
 		// display it.
-		return nil
+		if displayPlaintext {
+			return nil
+		}
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
