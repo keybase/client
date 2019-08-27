@@ -180,7 +180,7 @@ const Enabled = (props: Props) => {
 type JustEnabledProps = {onDismiss: null | (() => void)}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
-  const displayingMountDir = preferredMountDirs.size ? preferredMountDirs.get(0) : ''
+  const displayingMountDir = preferredMountDirs.get(0) || ''
   const dispatch = Container.useDispatch()
   const open = displayingMountDir
     ? () => dispatch(FsGen.createOpenPathInSystemFileManager({path: displayingMountDir}))
@@ -190,7 +190,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
       background={Background.Green}
       okIcon={true}
       title={`Keybase is enabled in your ${fileUIName}.`}
-      body={displayingMountDir ? `Your files are accessible under ${displayingMountDir}.` : undefined}
+      body={displayingMountDir ? `Your files are accessible at ${displayingMountDir}.` : undefined}
       onDismiss={onDismiss}
       button={
         open

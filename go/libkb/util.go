@@ -1028,9 +1028,9 @@ func execToString(bin string, args []string) (string, error) {
 var preferredKBFSMountDirs = func() []string {
 	switch RuntimeGroup() {
 	case keybase1.RuntimeGroup_LINUXLIKE:
-		return []string{"/keybase", "/Volumes/Keybase"}
-	case keybase1.RuntimeGroup_DARWINLIKE:
 		return []string{"/keybase"}
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		return []string{"/keybase", "/Volumes/Keybase"}
 	default:
 		return []string{}
 	}
