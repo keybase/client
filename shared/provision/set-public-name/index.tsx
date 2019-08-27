@@ -1,26 +1,31 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/provision'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   onBack: () => void
-  onChange: (deviceName: string) => void
-  onSubmit: () => void | void
-  deviceName: string
+  onSubmit: (name: string) => void
   error: string
   waiting: boolean
 }
 
 const SetPublicName = (props: Props) => {
+  const [deviceName, _setDeviceName] = React.useState('')
+  const setDeviceName = newDeviceName => _setDeviceName(Constants.cleanDeviceName(newDeviceName))
+  const onSubmit = React.useCallback(() => {
+    props.onSubmit(deviceName)
+  }, [deviceName])
+
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
       buttons={[
         {
-          disabled: !props.onSubmit,
+          disabled: deviceName.length < 3 || deviceName.length > 64,
           label: 'Continue',
-          onClick: props.onSubmit,
+          onClick: onSubmit,
           type: 'Success',
           waiting: props.waiting,
         },
@@ -34,9 +39,9 @@ const SetPublicName = (props: Props) => {
           <Kb.NewInput
             autoFocus={true}
             placeholder="Pick a device name"
-            onEnterKeyDown={props.onSubmit}
-            onChangeText={props.onChange}
-            value={props.deviceName}
+            onEnterKeyDown={onSubmit}
+            onChangeText={setDeviceName}
+            value={deviceName}
             style={styles.nameInput}
           />
           <Kb.Text type="BodySmall">Your device name will be public.</Kb.Text>
@@ -77,5 +82,11 @@ const styles = styleSheetCreate({
     },
   }),
 })
+
+SetPublicName.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
 
 export default SetPublicName
