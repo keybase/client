@@ -6,7 +6,6 @@ import {
   serviceIdToAccentColor,
   serviceIdToLongLabel,
   serviceIdToWonderland,
-  inactiveServiceAccentColor,
 } from './shared'
 import {Props, IconProps} from './service-tab-bar'
 
@@ -33,7 +32,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 const ServiceIcon = (props: IconProps) => {
   const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
-  const color = props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
+  const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
