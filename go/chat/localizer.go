@@ -724,22 +724,34 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 	return res, nil
 }
 
-func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, conv chat1.Conversation,
 	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, pinnerUsername string, valid bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "getPinnedMsg: %v", pinMessage.GetMessageID())()
 	if !pinMessage.IsValidFull() {
 		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
 		return pinnedMsg, pinnerUsername, false, nil
 	}
-	if storage.NewPinIgnore(s.G(), uid).IsIgnored(ctx, convID, pinMessage.GetMessageID()) {
+	if storage.NewPinIgnore(s.G(), uid).IsIgnored(ctx, conv.GetConvID(), pinMessage.GetMessageID()) {
 		s.Debug(ctx, "getPinnedMsg: ignored pinned message")
 		return pinnedMsg, pinnerUsername, false, nil
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
-	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, false, nil); err != nil {
-		return pinnedMsg, pinnerUsername, false, err
+	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil)
+	if err != nil {
+		return pinnedMsg, pinnerUsername, false, nil
 	}
+	xformRes, err := s.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages, &chat1.GetThreadQuery{
+		EnableDeletePlaceholders: true,
+	}, nil, nil)
+	if err != nil {
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	if len(xformRes) == 0 {
+		s.Debug(ctx, "getPinnedMsg: no pin message after xform supersedes")
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	pinnedMsg = xformRes[0]
 	if !pinnedMsg.IsValidFull() {
 		s.Debug(ctx, "getPinnedMsg: not a valid pinned message")
 		return pinnedMsg, pinnerUsername, false, nil
@@ -917,8 +929,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			case chat1.MessageType_HEADLINE:
 				conversationLocal.Info.Headline = body.Headline().Headline
 			case chat1.MessageType_PIN:
-				pinnedMsg, pinnerUsername, valid, err := s.getPinnedMsg(ctx, uid,
-					conversationRemote.GetConvID(), mm)
+				pinnedMsg, pinnerUsername, valid, err := s.getPinnedMsg(ctx, uid, conversationRemote, mm)
 				if err != nil {
 					conversationLocal.Error = chat1.NewConversationErrorLocal(
 						fmt.Sprintf("unable to get pinned message: %s", err),
