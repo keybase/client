@@ -144,7 +144,9 @@ func (t *transport) receiveFramesLoop() {
 	for shouldContinue(err) {
 		var rpc rpcMessage
 		if rpc, err = t.packetizer.NextFrame(); shouldReceive(rpc) {
-			t.receiver.Receive(rpc)
+			if rerr := t.receiver.Receive(rpc); rerr != nil {
+				t.log.Info("error on Receive: %v", rerr)
+			}
 		}
 	}
 

@@ -16,20 +16,17 @@ import (
 )
 
 type signcryptSealStream struct {
-	version         Version
-	output          io.Writer
-	encoder         encoder
-	encryptionKey   SymmetricKey
-	signingKey      SigningSecretKey
-	senderAnonymous bool
-	buffer          bytes.Buffer
-	headerHash      headerHash
+	version       Version
+	output        io.Writer
+	encoder       encoder
+	encryptionKey SymmetricKey
+	signingKey    SigningSecretKey
+	buffer        bytes.Buffer
+	headerHash    headerHash
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
-	didHeader bool
-	eof       bool
-	err       error
+	err error
 }
 
 func (sss *signcryptSealStream) Write(plaintext []byte) (int, error) {
@@ -124,9 +121,9 @@ func derivedEphemeralKeyFromBoxKeys(public BoxPublicKey, private BoxSecretKey) *
 // box key recipients indistinguishable from symmetric key recipients.
 func keyIdentifierFromDerivedKey(derivedKey *SymmetricKey, recipientIndex uint64) []byte {
 	keyIdentifierDigest := hmac.New(sha512.New, []byte(signcryptionBoxKeyIdentifierContext))
-	keyIdentifierDigest.Write(derivedKey[:])
+	_, _ = keyIdentifierDigest.Write(derivedKey[:])
 	nonce := nonceForPayloadKeyBoxV2(recipientIndex)
-	keyIdentifierDigest.Write(nonce[:])
+	_, _ = keyIdentifierDigest.Write(nonce[:])
 	return keyIdentifierDigest.Sum(nil)[0:32]
 }
 
@@ -170,8 +167,8 @@ func (r ReceiverSymmetricKey) makeReceiverKeys(ephemeralPriv BoxSecretKey, paylo
 	// the ephemeral public key together. This lets us use nonces that are
 	// simple counters.
 	derivedKeyDigest := hmac.New(sha512.New, []byte(signcryptionSymmetricKeyContext))
-	derivedKeyDigest.Write(ephemeralPriv.GetPublicKey().ToKID())
-	derivedKeyDigest.Write(r.Key[:])
+	_, _ = derivedKeyDigest.Write(ephemeralPriv.GetPublicKey().ToKID())
+	_, _ = derivedKeyDigest.Write(r.Key[:])
 	derivedKey, err := rawBoxKeyFromSlice(derivedKeyDigest.Sum(nil)[0:32])
 	if err != nil {
 		panic(err) // should be statically impossible, if the slice above is the right length
