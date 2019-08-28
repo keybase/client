@@ -42,7 +42,7 @@ func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 		func() error { return nil })()
 
 	const fullnameFreshness = 10 * time.Minute
-	const networkTimeBudget = 0
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
 	const forceNetworkForFullNames = true
 
 	nameMap, err := uidmap.MapUIDsReturnMapMctx(mctx, uids, fullnameFreshness, networkTimeBudget, forceNetworkForFullNames)
@@ -117,8 +117,8 @@ func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
 		func() error { return err })()
 
-	const serviceMapFreshness = time.Duration(12 * time.Hour)
-	const networkTimeBudget = time.Duration(0) // default network call budget
+	const serviceMapFreshness = 12 * time.Hour
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
 	pkgs, err := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
 		uids, serviceMapFreshness, networkTimeBudget)
 	if err != nil {

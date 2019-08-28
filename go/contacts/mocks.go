@@ -16,9 +16,10 @@ import (
 // but also in other packages if necessary (mostly service/contacts_test.go).
 
 type MockLookupUser struct {
-	UID      keybase1.UID
-	Username string
-	Fullname string
+	UID        keybase1.UID
+	Username   string
+	Fullname   string
+	ServiceMap libkb.UserServiceSummary
 }
 
 func MakeMockLookupUser(username, fullname string) MockLookupUser {
@@ -110,6 +111,21 @@ func (c *MockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keyb
 
 func (c *MockContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
 	res = make(map[keybase1.UID]libkb.UserServiceSummary)
+	uidSet := make(map[keybase1.UID]struct{}, len(uids))
+	for _, v := range uids {
+		uidSet[v] = struct{}{}
+	}
+
+	for _, v := range c.PhoneNumbers {
+		if _, found := uidSet[v.UID]; found && v.ServiceMap != nil {
+			res[v.UID] = v.ServiceMap
+		}
+	}
+	for _, v := range c.Emails {
+		if _, found := uidSet[v.UID]; found && v.ServiceMap != nil {
+			res[v.UID] = v.ServiceMap
+		}
+	}
 	return res, nil
 }
 
