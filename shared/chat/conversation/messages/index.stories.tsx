@@ -14,6 +14,7 @@ import UserNotice from './user-notice'
 import coinflip from './coinflip/index.stories'
 import gitPush from './system-git-push/index.stories'
 import systemText from './system-text/index.stories'
+import systemLeft from './system-left/index.stories'
 
 const load = () => {
   ;[
@@ -28,6 +29,7 @@ const load = () => {
     wrapper,
     gitPush,
     systemText,
+    systemLeft,
   ].forEach(load => load())
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (

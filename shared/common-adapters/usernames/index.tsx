@@ -117,10 +117,9 @@ function UsernameText(props: Props) {
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                ,
+                ,{Styles.isMobile ? ' ' : '\u00a0'}
               </Text>
             )}
-            {i !== props.users.length - 1 && ' '}
           </Text>
         )
       })}
