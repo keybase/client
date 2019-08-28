@@ -39,7 +39,7 @@ const GoButton = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.green,
@@ -67,6 +67,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 export default GoButton
