@@ -1,7 +1,7 @@
 import * as React from 'react'
 import PlainInput, {PropsWithInput} from './plain-input'
 import {Box2} from './box'
-import Text from './text'
+import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
 import './input.css'
 
@@ -44,6 +44,9 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   const populated = actualValue && actualValue.length > 0
   const collapsed = focused || populated
 
+  // We're using fontSize to derive heights
+  const textStyle = getTextStyle(props.textType || 'BodySemibold')
+
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
     <Box2
@@ -53,6 +56,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
+        {height: textStyle.fontSize + 38},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
@@ -108,7 +112,6 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
-      height: 52,
       margin: 0,
       position: 'relative',
     },
