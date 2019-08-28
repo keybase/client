@@ -62,11 +62,11 @@ const ConfirmOrPending = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   blue: {color: Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   grey: {color: Styles.globalColors.black_20},
-})
+}))
 
 const messageMap: {[K in string]: string | null} = {
   btc: 'Your Bitcoin address has now been signed onto your profile.',

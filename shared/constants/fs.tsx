@@ -299,7 +299,9 @@ export const makeDriverStatusDisabled = I.Record<Types._DriverStatusDisabled>({
 export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
 
 export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManagerIntegration>({
+  directMountDir: '',
   driverStatus: defaultDriverStatus,
+  preferredMountDirs: I.List(),
   showingBanner: false,
 })
 

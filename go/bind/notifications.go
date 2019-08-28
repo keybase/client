@@ -61,8 +61,9 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	return err
 }
 
-func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int, displayPlaintext bool,
-	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
+	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
+	pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
 	}
@@ -137,15 +138,23 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 				if err != nil {
 					return err
 				}
-				chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
+				chatNotification.Message.Plaintext =
+					emoji.Sprintf("Reacted to your message with %v", reaction)
 			default:
-				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
+				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v",
+					msgUnboxed.GetMessageType())
 				return errors.New("invalid message type for plaintext")
 			}
 		}
 	} else {
 		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
 		chatNotification.Message.From.KeybaseUsername = sender
+		// just bail out of here at this point since we won't be displaying anything useful,
+		// and we don't want to accidentally ack the plaintext notification when we didn't really
+		// display it.
+		if len(serverMessageBody) == 0 {
+			return nil
+		}
 	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
@@ -153,9 +162,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
-	if pusher != nil {
+
+	// only display and ack this notification if we actually have something to display
+	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
 		pusher.DisplayChatNotification(&chatNotification)
-		if len(pushID) != 0 {
+		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}
 	}

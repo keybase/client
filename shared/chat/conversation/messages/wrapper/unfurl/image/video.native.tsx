@@ -17,7 +17,7 @@ export class Video extends React.Component<Props, State> {
       this.props.onClick()
       return
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(s => ({playingVideo: !s.playingVideo}))
   }
 
   render() {
@@ -56,7 +56,7 @@ export class Video extends React.Component<Props, State> {
           ])}
         >
           {!this.state.playingVideo && (
-            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+            <Kb.Icon type="icon-play-64" style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>
       </Kb.ClickableBox>

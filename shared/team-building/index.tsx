@@ -314,6 +314,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onBackspace={props.onBackspace}
         placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
         searchString={props.searchString}
+        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
       />
     )
   }
@@ -426,7 +427,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
         keyboardShouldPersistTaps="handled"
-        keyProperty={'key'}
+        keyProperty="key"
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0.1}
         renderItem={(index, result) => (

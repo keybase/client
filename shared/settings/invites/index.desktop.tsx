@@ -29,11 +29,10 @@ class Invites extends Component<Props, State> {
   }
 
   _handleChangeEmail(inviteEmail: string) {
-    const showMessageField = this.state.showMessageField || inviteEmail.length > 0
-    this.setState({
+    this.setState(s => ({
       inviteEmail,
-      showMessageField,
-    })
+      showMessageField: s.showMessageField || inviteEmail.length > 0,
+    }))
     if (this.props.error) this.props.onClearError()
   }
 

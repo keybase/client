@@ -570,6 +570,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
+    case FsGen.setDirectMountDir:
+      return state.update('sfmi', sfmi => sfmi.set('directMountDir', action.payload.directMountDir))
+    case FsGen.setPreferredMountDirs:
+      return state.update('sfmi', sfmi => sfmi.set('preferredMountDirs', action.payload.preferredMountDirs))
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -629,6 +633,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.subscribeNonPath:
     case FsGen.unsubscribe:
     case FsGen.pollJournalStatus:
+    case FsGen.refreshMountDirsAfter10s:
       return state
     default:
       return state

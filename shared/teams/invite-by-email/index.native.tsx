@@ -188,7 +188,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             onSelectRole={this.props.onRoleChange}
             onConfirm={this.onConfirmRolePicker}
             onCancel={this.onCancelRolePicker}
-            position={'bottom center'}
+            position="bottom center"
             open={this.state.isRolePickerOpen}
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />

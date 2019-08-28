@@ -16,7 +16,6 @@ export default Container.namedConnect(
 
     return {
       accountID,
-      loading: !secretKey,
       name: Constants.getAccount(state, accountID).name,
       secretKey,
       waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
@@ -31,17 +30,14 @@ export default Container.namedConnect(
           accountID,
         })
       ),
-    _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
-    _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    loading: stateProps.loading,
+    accountID: stateProps.accountID,
+    loading: !stateProps.secretKey,
     name: stateProps.name,
     onCancel: () => dispatchProps._onClose(),
     onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
     onFinish: () => dispatchProps._onFinish(stateProps.accountID),
-    onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
-    onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
     waiting: stateProps.waiting,
   }),
   'ReallyRemoveAccountPopup'

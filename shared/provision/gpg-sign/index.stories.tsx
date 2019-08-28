@@ -8,7 +8,7 @@ const load = () => {
       <GPGSign importError={null} onSubmit={action('onSubmit')} onBack={action('onBack')} />
     ))
     .add('GPGSign with import error', () => (
-      <GPGSign importError={'Too many failures'} onSubmit={action('onSubmit')} onBack={action('onBack')} />
+      <GPGSign importError="Too many failures" onSubmit={action('onSubmit')} onBack={action('onBack')} />
     ))
 }
 

@@ -33,21 +33,27 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   beforeTimer: TickerID | null = null
 
   afterTick = () => {
-    this.setState({secondsLeftAfterAccept: Math.max(0, this.state.secondsLeftAfterAccept - 1)}, () => {
-      if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
-        removeTicker(this.afterTimer)
-        this.afterTimer = null
-        this.props.onCheckDisclaimer()
+    this.setState(
+      s => ({secondsLeftAfterAccept: Math.max(0, s.secondsLeftAfterAccept - 1)}),
+      () => {
+        if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
+          removeTicker(this.afterTimer)
+          this.afterTimer = null
+          this.props.onCheckDisclaimer()
+        }
       }
-    })
+    )
   }
 
   beforeTick = () => {
-    this.setState({secondsLeftBeforeAccept: this.state.secondsLeftBeforeAccept - 1}, () => {
-      if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
-        removeTicker(this.beforeTimer)
+    this.setState(
+      s => ({secondsLeftBeforeAccept: s.secondsLeftBeforeAccept - 1}),
+      () => {
+        if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
+          removeTicker(this.beforeTimer)
+        }
       }
-    })
+    )
   }
 
   removeTimers = () => {

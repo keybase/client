@@ -7,13 +7,13 @@ const props = {
 }
 const load = () => {
   storiesOf('Search/AutosizeInput', module)
-    .add('Normal', () => <AutosizeInput {...props} value={'here is some long text'} placeholder={''} />)
-    .add('Placeholder', () => <AutosizeInput {...props} value={''} placeholder={'Type here...'} />)
+    .add('Normal', () => <AutosizeInput {...props} value="here is some long text" placeholder="" />)
+    .add('Placeholder', () => <AutosizeInput {...props} value="" placeholder="Type here..." />)
     .add('Styled', () => (
       <AutosizeInput
         {...props}
-        value={'styled inputs work too!'}
-        placeholder={''}
+        value="styled inputs work too!"
+        placeholder=""
         inputStyle={{
           backgroundColor: 'papayawhip',
           borderWidth: 2,

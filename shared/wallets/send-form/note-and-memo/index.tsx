@@ -51,9 +51,12 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
       if (!selection) {
         return
       }
+      // this.state is likely unsafe but afraid to change this now
       const secretNote =
+        // eslint-disable-next-line
         this.state.secretNote.slice(0, selection.start || 0) +
         emoji +
+        // eslint-disable-next-line
         this.state.secretNote.slice(selection.end || 0)
       if (Buffer.byteLength(secretNote) > this.props.maxLength) {
         return
@@ -195,7 +198,7 @@ const Divider = ({error}: {error: boolean}) => (
 
 const placeholderColor = Styles.globalColors.black_20
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -218,9 +221,10 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   input: {
+    backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black_on_white,
     padding: 0,
   },
-})
+}))
 
 export {SecretNote, PublicMemo}

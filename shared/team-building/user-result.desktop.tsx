@@ -175,7 +175,7 @@ const Services = ({
   } else if (keybaseUsername) {
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
-        <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
+        <Kb.Icon type="icon-keybase-logo-16" style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
         <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
           {keybaseUsername}
         </Kb.Text>

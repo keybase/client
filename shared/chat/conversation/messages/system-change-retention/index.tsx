@@ -71,8 +71,8 @@ const ChangeRetention = (props: Props) => {
       <Kb.ConnectedUsernames
         colorFollowing={true}
         inline={true}
-        onUsernameClicked={'profile'}
-        type={'BodySmallSemibold'}
+        onUsernameClicked="profile"
+        type="BodySmallSemibold"
         underline={true}
         usernames={[props.user]}
       />

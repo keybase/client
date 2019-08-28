@@ -32,7 +32,7 @@ const CoinFlipError = (props: Props) => {
     return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
 
-  return <CoinFlipGenericError error={'Unknown error occurred'} />
+  return <CoinFlipGenericError error="Unknown error occurred" />
 }
 
 type GenericProps = {
@@ -115,7 +115,7 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
 
 const styles = Styles.styleSheetCreate({
   bordered: {
-    borderColor: Styles.globalColors.greyLight,
+    borderColor: Styles.globalColors.grey,
     borderLeftWidth: 4,
     borderStyle: 'solid',
     paddingLeft: Styles.globalMargins.tiny,
