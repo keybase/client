@@ -1,10 +1,14 @@
 package merkletree2
 
 import (
-	"crypto/sha512"
+	"crypto/rand"
+	"errors"
+	"fmt"
 	"math/big"
 	"strconv"
 	"testing"
+
+	"github.com/keybase/client/go/msgpack"
 
 	"github.com/stretchr/testify/require"
 )
@@ -17,14 +21,27 @@ func makePositionFromStringForTesting(s string) (Position, error) {
 	return (Position)(*big.NewInt(posInt)), nil
 }
 
-func getTreeCfgsWith1_2_3BitsPerIndex(t *testing.T) (config1bit, config2bits, config3bits TreeConfig) {
-	config1bit, err := NewConfig(SHA512Hasher{}, 1, 1, 1)
+func getTreeCfgsWith1_2_3BitsPerIndexBlinded(t *testing.T) (config1bit, config2bits, config3bits TreeConfig) {
+	config1bit, err := NewConfig(IdentityHasherBlinded{}, true, 1, 1, 1)
 	require.NoError(t, err)
 
-	config2bits, err = NewConfig(SHA512Hasher{}, 2, 1, 1)
+	config2bits, err = NewConfig(IdentityHasherBlinded{}, true, 2, 1, 1)
 	require.NoError(t, err)
 
-	config3bits, err = NewConfig(SHA512Hasher{}, 3, 1, 3)
+	config3bits, err = NewConfig(IdentityHasherBlinded{}, true, 3, 1, 3)
+	require.NoError(t, err)
+
+	return config1bit, config2bits, config3bits
+}
+
+func getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t *testing.T) (config1bit, config2bits, config3bits TreeConfig) {
+	config1bit, err := NewConfig(IdentityHasher{}, false, 1, 1, 1)
+	require.NoError(t, err)
+
+	config2bits, err = NewConfig(IdentityHasher{}, false, 2, 1, 1)
+	require.NoError(t, err)
+
+	config3bits, err = NewConfig(IdentityHasher{}, false, 3, 1, 3)
 	require.NoError(t, err)
 
 	return config1bit, config2bits, config3bits
@@ -72,19 +89,79 @@ func getSampleKVPS1bit() (kvps1, kvps2, kvps3 []KeyValuePair) {
 	return kvps1, kvps2, kvps3
 }
 
-// SHA512Hasher is a simple SHA512 hash function application
-type SHA512Hasher struct{}
-
-// Hash the data
-func (s SHA512Hasher) Hash(b []byte) Hash {
-	tmp := sha512.Sum512(b)
-	return Hash(tmp[:])
-}
-
 // Useful to debug tests. Hash(b) == b
 type IdentityHasher struct{}
 
-// Hash(b) == b
-func (i IdentityHasher) Hash(b []byte) Hash {
-	return Hash(append(b[:0:0], b...))
+var _ Hasher = IdentityHasher{}
+
+func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) (Hash, error) {
+	enc, err := msgpack.EncodeCanonical(o)
+	if err != nil {
+		return nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
+	}
+	return Hash(enc), nil
+}
+
+func (i IdentityHasher) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, s Seqno, ms MasterSecret) (Hash, error) {
+	return i.EncodeAndHashGeneric(kvp)
+}
+
+func (i IdentityHasher) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
+	return i.EncodeAndHashGeneric(kvp)
+}
+
+func (i IdentityHasher) GenerateMasterSecret(Seqno) (MasterSecret, error) {
+	return nil, errors.New("Should not call GenerateMasterSecret on an unblinded hasher")
+}
+
+func (i IdentityHasher) ComputeKeySpecificSecret(ms MasterSecret, s Seqno, k Key) KeySpecificSecret {
+	return nil
+}
+
+// Useful to debug tests. Hash(b) == b, with extra blinding fields injected as appropriate
+type IdentityHasherBlinded struct{}
+
+var _ Hasher = IdentityHasherBlinded{}
+
+func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) (Hash, error) {
+	enc, err := msgpack.EncodeCanonical(o)
+	if err != nil {
+		return nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
+	}
+	return Hash(enc), nil
+}
+
+func (i IdentityHasherBlinded) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, s Seqno, ms MasterSecret) (Hash, error) {
+	kss := i.ComputeKeySpecificSecret(ms, s, kvp.Key)
+	return i.HashKeyValuePairWithKeySpecificSecret(kvp, kss)
+}
+
+func (i IdentityHasherBlinded) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
+	enc, err := msgpack.EncodeCanonical(struct {
+		Kvp KeyValuePair
+		Kss KeySpecificSecret
+	}{Kvp: kvp, Kss: kss})
+	if err != nil {
+		panic(err)
+	}
+	return Hash(enc), nil
+
+}
+
+func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error) {
+	ms := make([]byte, 1)
+	rand.Read(ms)
+	return MasterSecret(ms), nil
+}
+
+func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, s Seqno, k Key) KeySpecificSecret {
+	kss, err := msgpack.EncodeCanonical(struct {
+		Ms MasterSecret
+		S  Seqno
+		K  Key
+	}{Ms: ms, S: s, K: k})
+	if err != nil {
+		panic(err)
+	}
+	return KeySpecificSecret(kss)
 }

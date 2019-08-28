@@ -10,9 +10,8 @@ type StorageEngine interface {
 	CommitTransaction(context.Context, Transaction) error
 	AbortTransaction(context.Context, Transaction)
 
-	// StoreKVPairs stores the []KeyValuePair in the tree. It also takes as
-	// input []Hash which contains the hashes of such pairs in the same order.
-	StoreKVPairs(context.Context, Transaction, Seqno, []KeyValuePair, []Hash) error
+	// StoreKVPairs stores the []KeyValuePair in the tree.
+	StoreKVPairs(context.Context, Transaction, Seqno, []KeyValuePair) error
 
 	StoreNode(context.Context, Transaction, Seqno, Position, Hash) error
 
@@ -41,15 +40,18 @@ type StorageEngine interface {
 	// returned if some of the positions are not found.
 	LookupNodes(c context.Context, t Transaction, s Seqno, positions []Position) ([]PositionHashPair, error)
 
-	// LookupKVPair returns the KeyValuePair (and its Hash) with the highest  Seqno s' <=
+	// LookupKVPair returns the KeyValuePair (and its Hash) with the highest Seqno s1 <=
 	// s which was stored at position p (similarly to LookupNode).
-	LookupKVPair(context.Context, Transaction, Seqno, Key) (KeyValuePair, Hash, error)
+	LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (kvp KeyValuePair, s1 Seqno, err error)
 
-	// LookupKeyHashPairsUnderPosition returns all pairs of (Key, Hash) where
-	// the Key is part of a KeyValuePair which was stored at a position p' which
-	// is a descendent of p and at the maximum Seqno s' <= s for which such Key
-	// is stored (similarly to LookupNode).
-	LookupKeyHashPairsUnderPosition(ctx context.Context, tr Transaction, s Seqno, p Position) ([]KeyHashPair, error)
+	// LookupKeyHashPairsUnderPosition returns all KeyValuePairs which were
+	// stored at a position p' which is a descendent of p and at the maximum
+	// Seqno s' <= s (similarly to LookupNode). For each such pair, it returns
+	// the Seqno at which it was stored (in the same order).
+	LookupKeyValuePairsUnderPosition(ctx context.Context, tr Transaction, s Seqno, p Position) ([]KeyValuePair, []Seqno, error)
+
+	StoreMasterSecret(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret) error
+	LookupMasterSecrets(ctx context.Context, tr Transaction, s []Seqno) (map[Seqno]MasterSecret, error)
 }
 
 // Transaction references a DB transaction.

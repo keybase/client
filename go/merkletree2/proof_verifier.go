@@ -17,7 +17,7 @@ func NewMerkleProofVerifier(t TreeConfig) MerkleProofVerifier {
 func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyValuePair, proof MerkleInclusionProof, expRootHash Hash) error {
 
 	// Hash the key value pair
-	kvpHash, err := m.EncodeAndHash(kvp)
+	kvpHash, err := m.hasher.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
 	if err != nil {
 		return NewProofVerificationFailedErrorFromCause(err)
 	}
@@ -50,7 +50,7 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyV
 	}
 
 	// Recompute the hashes on the nodes on the path from the leaf to the root.
-	nodeHash, err := m.EncodeAndHash(leaf)
+	nodeHash, err := m.hasher.EncodeAndHashGeneric(leaf)
 	if err != nil {
 		return NewProofVerificationFailedErrorFromCause(err)
 	}
@@ -74,7 +74,7 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyV
 		copy(node.INodes[int(childIndex)+1:], sibH[int(childIndex):m.childrenPerNode-1])
 
 		sibH = sibH[m.childrenPerNode-1:]
-		nodeHash, err = m.EncodeAndHash(node)
+		nodeHash, err = m.hasher.EncodeAndHashGeneric(node)
 		if err != nil {
 			return NewProofVerificationFailedErrorFromCause(err)
 		}
@@ -82,9 +82,9 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyV
 
 	// Compute the hash of the RootMetadataNode by filling in the BareRootHash
 	// with the value computed above.
-	rootMNode := proof.rootNodeNoHash
+	rootMNode := proof.RootNodeNoHash
 	rootMNode.BareRootHash = nodeHash
-	rootHash, err := m.EncodeAndHash(rootMNode)
+	rootHash, err := m.hasher.EncodeAndHashGeneric(rootMNode)
 	if err != nil {
 		return NewProofVerificationFailedErrorFromCause(err)
 	}

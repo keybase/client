@@ -11,9 +11,10 @@ import (
 // benchmarking. It ignores Transaction arguments, so it can't be used for
 // concurrency tests.
 type InMemoryStorageEngine struct {
-	RootMRecords []RootMetadataRecord
-	KVPRecords   []KVPRecord
-	NodeRecords  []NodeRecord
+	RootMRecords     []RootMetadataRecord
+	KVPRecords       []KVPRecord
+	NodeRecords      []NodeRecord
+	MasterSecretsMap map[Seqno]MasterSecret
 }
 
 var _ StorageEngine = &InMemoryStorageEngine{}
@@ -27,7 +28,6 @@ type NodeRecord struct {
 type KVPRecord struct {
 	s   Seqno
 	kvp KeyValuePair
-	h   Hash
 }
 
 type RootMetadataRecord struct {
@@ -47,12 +47,11 @@ func (i *InMemoryStorageEngine) AbortTransaction(c context.Context, t Transactio
 	return
 }
 
-func (i *InMemoryStorageEngine) StoreKVPairs(c context.Context, t Transaction, s Seqno, kvps []KeyValuePair, hs []Hash) error {
+func (i *InMemoryStorageEngine) StoreKVPairs(c context.Context, t Transaction, s Seqno, kvps []KeyValuePair) error {
 	newKVPR := make([]KVPRecord, len(i.KVPRecords)+len(kvps))
 	for i, kvp := range kvps {
 		newKVPR[i].s = s
 		newKVPR[i].kvp = kvp
-		newKVPR[i].h = hs[i]
 	}
 	copy(newKVPR[len(kvps):], i.KVPRecords)
 	i.KVPRecords = newKVPR
@@ -104,16 +103,16 @@ func (i *InMemoryStorageEngine) LookupNodes(c context.Context, t Transaction, s 
 	return res, nil
 }
 
-func (i *InMemoryStorageEngine) LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (KeyValuePair, Hash, error) {
+func (i *InMemoryStorageEngine) LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (KeyValuePair, Seqno, error) {
 	for _, r := range i.KVPRecords {
 		if r.s <= s && r.kvp.Key.Equal(k) {
-			return r.kvp, r.h, nil
+			return r.kvp, r.s, nil
 		}
 	}
-	return KeyValuePair{}, nil, NewKeyNotFoundError()
+	return KeyValuePair{}, 0, NewKeyNotFoundError()
 }
 
-func (i *InMemoryStorageEngine) LookupKeyHashPairsUnderPosition(ctx context.Context, t Transaction, s Seqno, p Position) (keyHashPairs []KeyHashPair, err error) {
+func (i *InMemoryStorageEngine) LookupKeyValuePairsUnderPosition(ctx context.Context, t Transaction, s Seqno, p Position) (kvp []KeyValuePair, seqnos []Seqno, err error) {
 	m := make(map[string]KVPRecord)
 	for _, r := range i.KVPRecords {
 		if r.s <= s && p.isOnPathToKey(r.kvp.Key) {
@@ -122,11 +121,37 @@ func (i *InMemoryStorageEngine) LookupKeyHashPairsUnderPosition(ctx context.Cont
 			}
 		}
 	}
-	keyHashPairs = make([]KeyHashPair, len(m))
+	kvp = make([]KeyValuePair, len(m))
+	seqnos = make([]Seqno, len(m))
 	j := 0
 	for _, v := range m {
-		keyHashPairs[j] = KeyHashPair{Key: v.kvp.Key, Hash: v.h}
+		kvp[j] = v.kvp
+		seqnos[j] = v.s
 		j++
 	}
-	return keyHashPairs, nil
+	return kvp, seqnos, nil
+}
+
+func (i *InMemoryStorageEngine) StoreMasterSecret(ctx context.Context, t Transaction, s Seqno, ms MasterSecret) (err error) {
+	if i.MasterSecretsMap == nil {
+		i.MasterSecretsMap = make(map[Seqno]MasterSecret)
+	}
+	i.MasterSecretsMap[s] = MasterSecret(append([]byte{}, []byte(ms)...))
+	return nil
+}
+
+func (i *InMemoryStorageEngine) LookupMasterSecrets(ctx context.Context, t Transaction, seqnos []Seqno) (msMap map[Seqno]MasterSecret, err error) {
+	if i.MasterSecretsMap == nil {
+		i.MasterSecretsMap = make(map[Seqno]MasterSecret)
+	}
+	msMap = make(map[Seqno]MasterSecret)
+	for _, s := range seqnos {
+		ms, found := i.MasterSecretsMap[s]
+		if found {
+			msMap[s] = ms
+		} else {
+			return nil, fmt.Errorf("MasterSecret for Seqno %v not found", s)
+		}
+	}
+	return msMap, nil
 }

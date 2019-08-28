@@ -2,6 +2,7 @@ package merkletree2
 
 import (
 	"bytes"
+	"sort"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -60,6 +61,22 @@ type KeyValuePair struct {
 	Value   interface{} `codec:"v"`
 }
 
+type KeyValuePairsOrderedByKey []KeyValuePair
+
+func (k KeyValuePairsOrderedByKey) Len() int {
+	return len(k)
+}
+
+func (k KeyValuePairsOrderedByKey) Less(i, j int) bool {
+	return k[i].Key.Cmp(k[j].Key) < 0
+}
+
+func (k KeyValuePairsOrderedByKey) Swap(i, j int) {
+	k[i], k[j] = k[j], k[i]
+}
+
+var _ sort.Interface = KeyValuePairsOrderedByKey{}
+
 type KeyHashPair struct {
 	_struct struct{} `codec:",toarray"`
 	Key     Key      `codec:"k"`
@@ -103,6 +120,19 @@ func (t *Tree) makeNextRootMNode(curr *RootMetadataNode, newRootHash Hash) RootM
 	return RootMetadataNode{Seqno: curr.Seqno + 1, BareRootHash: newRootHash}
 }
 
+func (t *Tree) GenerateAndStoreMasterSecret(
+	ctx context.Context, tr Transaction, s Seqno) (ms MasterSecret, err error) {
+	ms, err = t.hasher.GenerateMasterSecret(s)
+	if err != nil {
+		return nil, err
+	}
+	err = t.eng.StoreMasterSecret(ctx, tr, s, ms)
+	if err != nil {
+		return nil, err
+	}
+	return ms, nil
+}
+
 // BuildNewTreeVersionFromAllKeys builds a new tree version, taking a batch
 // input. The sortedKeyValuePairs must be sorted (lexicographically) by Key.
 //
@@ -111,48 +141,49 @@ func (t *Tree) makeNextRootMNode(curr *RootMetadataNode, newRootHash Hash) RootM
 // put the tree into an inconsistent state. This function does not check the
 // condition is true for efficiency reasons.
 func (t *Tree) BuildNewTreeVersionFromAllKeys(
-	ctx context.Context, sortedKVPairs []KeyValuePair) (err error) {
+	ctx context.Context, tr Transaction, sortedKVPairs []KeyValuePair) (err error) {
 	t.Lock()
 	defer t.Unlock()
-
-	var tr Transaction
-	if tr, err = t.eng.NewTransaction(ctx); err != nil {
-		return err
-	}
 
 	var latestSeqNo Seqno
 	var rootMNode RootMetadataNode
 	if latestSeqNo, rootMNode, err = t.eng.LookupLatestRoot(ctx, tr); err != nil {
-		t.eng.AbortTransaction(ctx, tr)
 		return err
 	}
 	if latestSeqNo == 0 {
 		t.log.CWarningf(ctx, "No root found. Starting a new merkle tree.")
 	}
 
+	var ms MasterSecret
+	if t.useBlindedValueHashes {
+		ms, err = t.GenerateAndStoreMasterSecret(ctx, tr, latestSeqNo+1)
+		if err != nil {
+			return err
+		}
+	} else {
+		ms = nil
+	}
+
 	var newRootHash Hash
-	if newRootHash, err = t.hashTreeRecursive(ctx, tr, latestSeqNo+1,
+	if newRootHash, err = t.hashTreeRecursive(ctx, tr, latestSeqNo+1, ms,
 		*t.getRootPosition(), sortedKVPairs); err != nil {
-		t.eng.AbortTransaction(ctx, tr)
 		return err
 	}
 
 	newRoot := t.makeNextRootMNode(&rootMNode, newRootHash)
 
 	if err = t.eng.StoreRootMetadataNode(ctx, tr, newRoot); err != nil {
-		t.eng.AbortTransaction(ctx, tr)
 		return err
 	}
 
 	if err = t.eng.CommitTransaction(ctx, tr); err != nil {
-		t.eng.AbortTransaction(ctx, tr)
 		return err
 	}
 
 	return err
 }
 
-func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno,
+func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret,
 	p Position, sortedKVPairs []KeyValuePair) (ret Hash, err error) {
 	select {
 	case <-ctx.Done():
@@ -161,7 +192,7 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno,
 	}
 
 	if len(sortedKVPairs) <= t.maxValuesPerLeaf {
-		ret, err = t.makeAndStoreLeaf(ctx, tr, s, p, sortedKVPairs)
+		ret, err = t.makeAndStoreLeaf(ctx, tr, s, ms, p, sortedKVPairs)
 		return ret, err
 	}
 
@@ -179,7 +210,7 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno,
 		end := j
 		if start < end {
 			sublist := sortedKVPairs[start:end]
-			ret, err = t.hashTreeRecursive(ctx, tr, s, childPos, sublist)
+			ret, err = t.hashTreeRecursive(ctx, tr, s, ms, childPos, sublist)
 			if err != nil {
 				return nil, err
 			}
@@ -189,7 +220,7 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno,
 			node.INodes[i] = ret
 		}
 	}
-	if ret, err = t.EncodeAndHash(node); err != nil {
+	if ret, err = t.hasher.EncodeAndHashGeneric(node); err != nil {
 		return nil, err
 	}
 	err = t.eng.StoreNode(ctx, tr, s, p, ret)
@@ -198,30 +229,28 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno,
 }
 
 // makeKeyHashPairsFromKeyValuePairs preserves ordering
-func makeKeyHashPairsFromKeyValuePairs(unhashed []KeyValuePair, h Hasher) (hashed []KeyHashPair, hashes []Hash, err error) {
+func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, s Seqno, unhashed []KeyValuePair) (hashed []KeyHashPair, err error) {
 	hashed = make([]KeyHashPair, len(unhashed))
-	hashes = make([]Hash, len(unhashed))
 
-	for i, kv := range unhashed {
-		var enc []byte
-		if enc, err = encodeToBytes(kv); err != nil {
-			return nil, nil, err
+	for i, kvp := range unhashed {
+		hash, err := t.hasher.HashKeyValuePairWithMasterSecret(kvp, s, ms)
+		if err != nil {
+			return nil, err
 		}
-		hashed[i].Key = kv.Key
-		hashed[i].Hash = h.Hash(enc)
-		hashes[i] = hashed[i].Hash
+		hashed[i].Key = kvp.Key
+		hashed[i].Hash = hash
 	}
-	return hashed, hashes, nil
+	return hashed, nil
 }
 
-func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, p Position, sortedKVPairs []KeyValuePair) (ret Hash, err error) {
+func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret, p Position, sortedKVPairs []KeyValuePair) (ret Hash, err error) {
 
-	khps, hashes, err := makeKeyHashPairsFromKeyValuePairs(sortedKVPairs, t.hasher)
+	khps, err := t.makeKeyHashPairsFromKeyValuePairs(ms, s, sortedKVPairs)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = t.eng.StoreKVPairs(ctx, tr, s, sortedKVPairs, hashes); err != nil {
+	if err = t.eng.StoreKVPairs(ctx, tr, s, sortedKVPairs); err != nil {
 		return nil, err
 	}
 
@@ -229,7 +258,7 @@ func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, p 
 	leaf.Type = NodeTypeLeaf
 	leaf.LeafHashes = khps
 
-	if ret, err = t.EncodeAndHash(leaf); err != nil {
+	if ret, err = t.hasher.EncodeAndHashGeneric(leaf); err != nil {
 		return nil, err
 	}
 	if err = t.eng.StoreNode(ctx, tr, s, p, ret); err != nil {
@@ -241,73 +270,69 @@ func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, p 
 // Retrieves a KeyValuePair from the tree. Note that if the root at Seqno s was
 // not committed yet, there might be no proof for this pair yet (hence it is
 // unsafe).
-func (t *Tree) GetKeyValuePairUnsafe(ctx context.Context, tr Transaction, s Seqno, k Key) (KeyValuePair, Hash, error) {
+func (t *Tree) GetKeyValuePairUnsafe(ctx context.Context, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, err error) {
 	if s == 0 {
-		return KeyValuePair{}, Hash{}, NewInvalidSeqnoError("No keys stored at Seqno 0")
+		return KeyValuePair{}, NewInvalidSeqnoError("No keys stored at Seqno 0")
 	}
 	if len(k) != t.keysByteLength {
-		return KeyValuePair{}, Hash{}, NewInvalidKeyError()
+		return KeyValuePair{}, NewInvalidKeyError()
 	}
-	kvp, hash, err := t.eng.LookupKVPair(ctx, tr, s, k)
+	kvp, _, err = t.eng.LookupKVPair(ctx, tr, s, k)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, err
+		return KeyValuePair{}, err
 	}
-	return kvp, hash, nil
+	return kvp, nil
 }
 
 // Retrieves a KeyValuePair from the tree. Note that if the root at Seqno s was
 // not committed yet, an InvalidSeqnoError is returned.
-func (t *Tree) GetKeyValuePair(ctx context.Context, tr Transaction, s Seqno, k Key) (KeyValuePair, Hash, error) {
+func (t *Tree) GetKeyValuePair(ctx context.Context, tr Transaction, s Seqno, k Key) (KeyValuePair, error) {
 	// Checking the Seqno was committed.
 	_, err := t.eng.LookupRoot(ctx, tr, s)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, err
+		return KeyValuePair{}, err
 	}
 
 	return t.GetKeyValuePairUnsafe(ctx, tr, s, k)
 }
 
 type MerkleInclusionProof struct {
-	OtherPairsInLeaf []KeyHashPair
+	_struct           struct{} `codec:",toarray"`
+	KeySpecificSecret KeySpecificSecret
+	OtherPairsInLeaf  []KeyHashPair
 	// SiblingHashesOnPath are ordered by level from the farthest to the closest
 	// to the root, and lexicographically within each level.
 	SiblingHashesOnPath []Hash
-	rootNodeNoHash      RootMetadataNode
+	RootNodeNoHash      RootMetadataNode
 }
 
-func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s Seqno, k Key) (keyValuePair KeyValuePair, pairHash Hash, proof MerkleInclusionProof, err error) {
-
-	// Lookup key value pair.
-	kvp, kvpHash, err := t.GetKeyValuePair(ctx, tr, s, k)
-	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
-	}
+func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
 
 	// Lookup the appropriate root.
 	rootMNode, err := t.eng.LookupRoot(ctx, tr, s)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
+		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
-	proof.rootNodeNoHash = rootMNode
+	proof.RootNodeNoHash = rootMNode
 	// clear up hash to make the proof smaller.
-	proof.rootNodeNoHash.BareRootHash = nil
+	proof.RootNodeNoHash.BareRootHash = nil
 
 	// Lookup hashes of siblings along the path.
 	siblingPositions, err := t.getSiblingPositionsOnPathToKey(k)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
+		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
 	// Assumes nodes are returned in the same order in which they are being requested
 	siblingPosHashPairs, err := t.eng.LookupNodes(ctx, tr, s, siblingPositions)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
+		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
 	// The level of the first sibling equals the level of the leaf node for the
 	// key we are producing the proof for.
 	leafLevel := t.getLevel(&(siblingPosHashPairs[0].p))
 	deepestPosition, err := t.getDeepestPositionForKey(k)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
+		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
 	leafPos := t.getParentAtLevel(deepestPosition, uint(leafLevel))
 	proof.SiblingHashesOnPath = make([]Hash, leafLevel*(t.childrenPerNode-1))
@@ -322,24 +347,45 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 	}
 
 	// Lookup hashes of key value pairs stored at the same leaf.
-	//leafLevel := len(positionHashPairs) / (t.childrenPerNode - 1)
-	//leafPos := t.getParentAtLevel(deepestPosition, uint(leafLevel))
-	// These pairs are ordered by key
-	khps, err := t.eng.LookupKeyHashPairsUnderPosition(ctx, tr, s, *leafPos)
+	// These pairs are ordered by key.
+	kvps, seqnos, err := t.eng.LookupKeyValuePairsUnderPosition(ctx, tr, s, *leafPos)
 	if err != nil {
-		return KeyValuePair{}, Hash{}, MerkleInclusionProof{}, err
+		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
-	//Remove the key k (which we are making a proof for and thus does not need
-	//to be part of the proof itself) from the slice.
-	for i, khp := range khps {
-		if khp.Key.Equal(k) {
-			khps = append(khps[:i], khps[i+1:]...)
-			break
+	var msMap map[Seqno]MasterSecret
+	if t.useBlindedValueHashes {
+		msMap, err = t.eng.LookupMasterSecrets(ctx, tr, seqnos)
+		if err != nil {
+			return KeyValuePair{}, MerkleInclusionProof{}, err
 		}
 	}
-	proof.OtherPairsInLeaf = khps
+	proof.OtherPairsInLeaf = make([]KeyHashPair, len(kvps)-1)
+	j := 0
+	for i, kvpi := range kvps {
+		if kvpi.Key.Equal(k) {
+			kvp = kvpi
+			if t.useBlindedValueHashes {
+				proof.KeySpecificSecret = t.hasher.ComputeKeySpecificSecret(msMap[seqnos[i]], seqnos[i], kvp.Key)
+			} else {
+				proof.KeySpecificSecret = nil
+			}
+			continue
+		}
 
-	return kvp, kvpHash, proof, nil
+		var hash Hash
+		if t.useBlindedValueHashes {
+			hash, err = t.hasher.HashKeyValuePairWithMasterSecret(kvpi, seqnos[i], msMap[seqnos[i]])
+		} else {
+			hash, err = t.hasher.HashKeyValuePairWithMasterSecret(kvpi, seqnos[i], nil)
+		}
+		if err != nil {
+			return KeyValuePair{}, MerkleInclusionProof{}, err
+		}
+		proof.OtherPairsInLeaf[j] = KeyHashPair{Key: kvpi.Key, Hash: hash}
+		j++
+	}
+
+	return kvp, proof, nil
 }
 
 // GetLatestRoot returns the latest RootMetadataNode which was stored in the
@@ -350,7 +396,7 @@ func (t *Tree) GetLatestRoot(ctx context.Context, tr Transaction) (s Seqno, root
 	if err != nil || s == 0 {
 		return 0, RootMetadataNode{}, nil, err
 	}
-	rootHash, err = t.EncodeAndHash(root)
+	rootHash, err = t.hasher.EncodeAndHashGeneric(root)
 	if err != nil {
 		return 0, RootMetadataNode{}, nil, err
 	}

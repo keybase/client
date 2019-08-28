@@ -11,7 +11,7 @@ import (
 
 func TestEncoding(t *testing.T) {
 
-	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndex(t)
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	encodingTests := []struct {
 		t   TreeConfig
@@ -40,7 +40,7 @@ func TestEncoding(t *testing.T) {
 
 func TestGetParentAndGetChild(t *testing.T) {
 
-	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndex(t)
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	parentChildTests := []struct {
 		t      TreeConfig
@@ -72,11 +72,11 @@ func TestGetParentAndGetChild(t *testing.T) {
 
 func TestNewConfigError(t *testing.T) {
 
-	_, err := NewConfig(nil, 5, 8, 6)
+	_, err := NewConfig(nil, false, 5, 8, 6)
 	require.Error(t, err)
 	require.IsType(t, InvalidConfigError{}, err)
 
-	c, err := NewConfig(nil, 2, 4, 32)
+	c, err := NewConfig(nil, false, 2, 4, 32)
 	require.NoError(t, err)
 
 	require.Equal(t, 1<<c.bitsPerIndex, c.childrenPerNode)
@@ -84,7 +84,7 @@ func TestNewConfigError(t *testing.T) {
 
 func TestPositionIsOnPathToKey(t *testing.T) {
 
-	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndex(t)
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
 		t        TreeConfig
@@ -118,7 +118,7 @@ func TestPositionIsOnPathToKey(t *testing.T) {
 
 func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
 
-	config1bit, config2bits, _ := getTreeCfgsWith1_2_3BitsPerIndex(t)
+	config1bit, config2bits, _ := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
 		t            TreeConfig
