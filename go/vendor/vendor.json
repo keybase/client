@@ -656,10 +656,10 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
-			"checksumSHA1": "OgoahEm1klTnBu8VUttmyqhsi6M=",
+			"checksumSHA1": "+UKzYctKtvP2/xOYFx51Q0XTCG4=",
 			"path": "github.com/keybase/go-merkle-tree",
-			"revision": "90288bcf8366442e1d29ad22356fae3f2e8254a5",
-			"revisionTime": "2018-02-26T14:35:15Z"
+			"revision": "e5a1d5d70a43ba4d1115d82438bef7d9d4c2c996",
+			"revisionTime": "2019-08-28T15:48:48Z"
 		},
 		{
 			"checksumSHA1": "v+BpTxHFNO9rsGBINRqtWiZoTJI=",
@@ -700,14 +700,14 @@
 		{
 			"checksumSHA1": "9rRK1pLxOcjjNNUP/6H9EthW360=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "ffC5qvAmfgvFbIYgKbE2E7fwQg8=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
