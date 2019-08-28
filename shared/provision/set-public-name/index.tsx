@@ -12,10 +12,9 @@ type Props = {
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, _setDeviceName] = React.useState('')
-  const setDeviceName = newDeviceName => _setDeviceName(Constants.cleanDeviceName(newDeviceName))
+  const [deviceName, setDeviceName] = React.useState('')
   const onSubmit = React.useCallback(() => {
-    props.onSubmit(deviceName)
+    props.onSubmit(Constants.cleanDeviceName(deviceName))
   }, [deviceName])
 
   return (

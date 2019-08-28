@@ -5,13 +5,12 @@ import SetPublicName from '.'
 import * as Container from '../../util/container'
 import * as LoginGen from '../../actions/login-gen'
 import HiddenString from '../../util/hidden-string'
-import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _existingDevices: state.provision.existingDevices,
   configuredAccounts: state.config.configuredAccounts,
   error: state.provision.error.stringValue(),
-  waiting: anyWaiting(state, Constants.waitingKey),
+  waiting: Container.anyWaiting(state, Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
