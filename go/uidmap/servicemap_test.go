@@ -43,6 +43,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 		require.NotNil(t, v.ServiceMap)
 	}
 
+	// Exact maps depend on remote_identities on the test server.
 	require.Equal(t, "gbrltest", pkgs[tKB].ServiceMap["twitter"])
 	require.Equal(t, "tacovontaco", pkgs[tAlice].ServiceMap["twitter"])
 	require.Equal(t, "tacoplusplus", pkgs[tTracy].ServiceMap["github"])
