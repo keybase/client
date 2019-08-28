@@ -544,7 +544,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alphabetIndex: {
     maxHeight: '80%',
     position: 'absolute',
@@ -653,6 +653,6 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     width: 48,
   },
-})
+}))
 
 export default TeamBuilding
