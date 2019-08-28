@@ -94,11 +94,11 @@ const spawnBuildPayment = (
 ) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
     // didn't change state.building; no need to call build
-    return
+    return false
   }
   return WalletsGen.createBuildPayment()
 }
@@ -383,7 +383,7 @@ const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = async (state: TypedState) => {
   if (!state.config.username) {
-    return null
+    return false
   }
   try {
     const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(
@@ -407,10 +407,10 @@ const loadAccounts = async (
 ) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   if (actionHasError(action)) {
-    return
+    return false
   }
   try {
     const res = await RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
@@ -461,11 +461,11 @@ type LoadAssetsActions =
   | WalletsGen.AccountsReceivedPayload
 const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: Saga.SagaLogger) => {
   if (actionHasError(action)) {
-    return
+    return false
   }
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   let accountID: Types.AccountID
   switch (action.type) {
@@ -504,7 +504,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
     handleSelectAccountError(action, 'selecting account', err)
     return false
   }
-  return
+  return false
 }
 
 const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread) =>
@@ -530,10 +530,10 @@ type LoadPaymentsActions =
 const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logger: Saga.SagaLogger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   if (actionHasError(action)) {
-    return
+    return false
   }
   if (
     !!(
@@ -555,7 +555,7 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
       return false
     }
   }
-  return
+  return false
 }
 
 const loadMorePayments = async (
@@ -565,7 +565,7 @@ const loadMorePayments = async (
 ) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
   if (cursor) {
@@ -579,13 +579,13 @@ const loadMorePayments = async (
       return false
     }
   }
-  return
+  return false
 }
 
 // We only need to load these once per session
 const loadDisplayCurrencies = async (state: TypedState) => {
   if (Constants.displayCurrenciesLoaded(state)) {
-    return null
+    return false
   }
   try {
     const res = await RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise()
@@ -630,7 +630,7 @@ const loadDisplayCurrency = async (_: TypedState, action: WalletsGen.LoadDisplay
 const setInflationDestination = async (_, action: WalletsGen.SetInflationDestinationPayload) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
-    return
+    return false
   }
   try {
     await RPCStellarTypes.localSetInflationDestinationLocalRpcPromise(
@@ -660,7 +660,7 @@ const loadInflationDestination = async (
 ) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
-    return
+    return false
   }
   try {
     const dest = await RPCStellarTypes.localGetInflationDestinationLocalRpcPromise({accountID})
@@ -802,13 +802,14 @@ const loadPaymentDetail = async (
 
 const markAsRead = async (_: TypedState, action: WalletsGen.MarkAsReadPayload, logger: Saga.SagaLogger) => {
   try {
-    await RPCStellarTypes.localMarkAsReadLocalRpcPromise({
+    return RPCStellarTypes.localMarkAsReadLocalRpcPromise({
       accountID: action.payload.accountID,
       mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
     })
   } catch (err) {
     // No need to throw black bars.
     logger.warn(err.desc)
+    return false
   }
 }
 
@@ -895,7 +896,7 @@ const createdOrLinkedAccount = (
 ) => {
   if (actionHasError(action)) {
     // Create new account failed, don't nav
-    return
+    return false
   }
   if (action.payload && hasShowOnCreation(action.payload)) {
     return WalletsGen.createSelectAccount({
@@ -916,7 +917,7 @@ const navigateUp = (
 ) => {
   if (actionHasError(action)) {
     // we don't want to nav on error
-    return
+    return false
   }
   return RouteTreeGen.createNavigateUp()
 }
@@ -924,7 +925,7 @@ const navigateUp = (
 const navigateToAccount = (_: TypedState, action: WalletsGen.SelectAccountPayload) => {
   if (action.type === WalletsGen.selectAccount && !action.payload.show) {
     // we don't want to show, don't nav
-    return
+    return false
   }
 
   return [
@@ -972,7 +973,7 @@ const maybeSelectDefaultAccount = (
 ) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
-    return
+    return false
   }
   if (state.wallets.selectedAccount === Types.noAccountID) {
     const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
@@ -983,7 +984,7 @@ const maybeSelectDefaultAccount = (
       })
     }
   }
-  return undefined
+  return false
 }
 
 const cancelPayment = async (
@@ -1007,7 +1008,7 @@ const cancelPayment = async (
         show: true,
       })
     }
-    return undefined
+    return false
   } catch (err) {
     logger.error(`failed to cancel payment with ID ${pid}. Error: ${err.message}`)
     throw err
@@ -1020,10 +1021,10 @@ const cancelRequest = async (
   logger: Saga.SagaLogger
 ) => {
   try {
-    await RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
-    return
+    return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
   } catch (err) {
     logger.error(`Error: ${err.message}`)
+    return false
   }
 }
 
@@ -1099,7 +1100,7 @@ const pendingPaymentsUpdate = (
   const {accountID: _accountID, pending: _pending} = action.payload.params
   if (!_pending) {
     logger.warn(`no pending payments in payload`)
-    return
+    return false
   }
   const accountID = Types.stringToAccountID(_accountID)
   const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
@@ -1178,7 +1179,7 @@ const loadMobileOnlyMode = async (
   let accountID = action.payload.accountID
   if (!accountID || accountID === Types.noAccountID) {
     logger.warn('invalid account ID, bailing')
-    return
+    return false
   }
   try {
     const isMobileOnly = await RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
@@ -1214,17 +1215,15 @@ const writeLastSentXLM = async (
   if (action.payload.writeFile) {
     logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
     try {
-      await RPCTypes.configGuiSetValueRpcPromise({
+      return RPCTypes.configGuiSetValueRpcPromise({
         path: 'stellar.lastSentXLM',
         value: {b: state.wallets.lastSentXLM, isNull: false},
       })
-      return
     } catch (err) {
       logger.error(`Error: ${err.message}`)
       return false
     }
   }
-  return undefined
 }
 
 const readLastSentXLM = async (
@@ -1242,7 +1241,7 @@ const readLastSentXLM = async (
     if (!err.message.includes('no such key')) {
       logger.error(`Error reading config: ${err.message}`)
     }
-    return
+    return false
   }
 }
 
@@ -1276,7 +1275,7 @@ const updateAirdropDetails = async (
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
-    return null
+    return false
   }
   try {
     const response = await RPCStellarTypes.localAirdropDetailsLocalRpcPromise(
@@ -1302,7 +1301,7 @@ const updateAirdropState = async (
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
-    return null
+    return false
   }
   try {
     const {state, rows} = await RPCStellarTypes.localAirdropStatusLocalRpcPromise(
@@ -1338,7 +1337,7 @@ const updateAirdropState = async (
         airdropState: 'needDisclaimer',
       })
     }
-    return undefined
+    return false
   }
 }
 
@@ -1430,7 +1429,7 @@ const balancesToAction = (
 
 const refreshTrustlineAcceptedAssets = async (_: TypedState, {payload: {accountID}}) => {
   if (accountID === Types.noAccountID) {
-    return null
+    return false
   }
   try {
     const balances = await RPCStellarTypes.localGetTrustlinesLocalRpcPromise(
@@ -1445,7 +1444,7 @@ const refreshTrustlineAcceptedAssets = async (_: TypedState, {payload: {accountI
 
 const refreshTrustlineAcceptedAssetsByUsername = async (_: TypedState, {payload: {username}}) => {
   if (!username) {
-    return null
+    return false
   }
   try {
     const {trustlines} = await RPCStellarTypes.localGetTrustlinesForRecipientLocalRpcPromise(
@@ -1478,7 +1477,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
-    return null
+    return false
   }
   try {
     await RPCStellarTypes.localAddTrustlineLocalRpcPromise(
@@ -1500,7 +1499,7 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
-    return null
+    return false
   }
   try {
     await RPCStellarTypes.localDeleteTrustlineLocalRpcPromise(
@@ -1537,7 +1536,7 @@ const searchTrustlineAssets = async (_: TypedState, {payload: {text}}) => {
           : [],
       })
     }
-    return
+    return false
   } catch (_) {
     return false
   }
@@ -1582,7 +1581,7 @@ const calculateBuildingAdvanced = async (
   if (forSEP7) {
     if (state.wallets.sep7ConfirmInfo == null) {
       console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
-      return
+      return false
     }
     amount = state.wallets.sep7ConfirmInfo.amount
     destinationAsset = assetDescriptionOrNativeToRpcAsset(
@@ -1687,7 +1686,7 @@ const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
     ]
   }
   console.warn('SEP6 result without Url or Message', res)
-  return null
+  return false
 }
 
 const handleSEP6Error = (err: RPCError) => [
@@ -1740,7 +1739,7 @@ const assetWithdraw = async (_: TypedState, action: WalletsGen.AssetWithdrawPayl
 
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload) {
   if (state.wallets.staticConfig) {
-    return
+    return false
   }
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({
