@@ -286,6 +286,8 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))

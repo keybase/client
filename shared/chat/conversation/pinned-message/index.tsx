@@ -12,6 +12,7 @@ type Props = {
   onClick: () => void
   onDismiss: () => void
   text: string
+  unpinning: boolean
 }
 
 const PinnedMessage = (props: Props) => {
@@ -19,6 +20,10 @@ const PinnedMessage = (props: Props) => {
   const [showPopup, setShowPopup] = React.useState(false)
   if (!props.text) {
     return null
+  }
+  const onDismiss = () => {
+    setShowPopup(false)
+    props.onDismiss()
   }
   const sizing =
     props.imageWidth && props.imageHeight
@@ -48,6 +53,7 @@ const PinnedMessage = (props: Props) => {
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
+        {props.unpinning && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.Icon
           onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
           type="iconfont-close"
@@ -64,7 +70,7 @@ const PinnedMessage = (props: Props) => {
         return closeref.current
       }}
       onHidden={() => setShowPopup(false)}
-      onUnpin={props.onDismiss}
+      onUnpin={onDismiss}
       visible={showPopup}
     />
   )
@@ -110,7 +116,7 @@ const UnpinPrompt = (props: UnpinProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   author: {
     color: Styles.globalColors.black,
   },
@@ -150,6 +156,13 @@ const styles = Styles.styleSheetCreate({
       maxWidth: 200,
     },
   }),
+  progress: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'center',
+      height: 17,
+      width: 17,
+    },
+  }),
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
@@ -159,6 +172,6 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-word',
     },
   }),
-})
+}))
 
 export default PinnedMessage

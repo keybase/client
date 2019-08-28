@@ -3174,9 +3174,12 @@ const pinMessage = async (_: TypedState, action: Chat2Gen.PinMessagePayload) => 
 
 const unpinMessage = async (_: TypedState, action: Chat2Gen.UnpinMessagePayload) => {
   try {
-    await RPCChatTypes.localUnpinMessageRpcPromise({
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    })
+    await RPCChatTypes.localUnpinMessageRpcPromise(
+      {
+        convID: Types.keyToConversationID(action.payload.conversationIDKey),
+      },
+      Constants.waitingKeyUnpin(action.payload.conversationIDKey)
+    )
   } catch (err) {
     logger.error(`unpinMessage: ${err.message}`)
   }

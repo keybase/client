@@ -801,13 +801,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	// Sanity check that we have a TLF name here
-	if len(arg.Msg.ClientHeader.TlfName) == 0 {
-		h.Debug(ctx, "PostLocal: no TLF name specified: convID: %s uid: %s",
-			arg.ConversationID, uid)
-		return res, fmt.Errorf("no TLF name specified")
-	}
-
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
@@ -2785,7 +2778,7 @@ func (h *Server) UnpinMessage(ctx context.Context, convID chat1.ConversationID) 
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+	if _, err := h.PostLocal(ctx, chat1.PostLocalArg{
 		ConversationID: convID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{

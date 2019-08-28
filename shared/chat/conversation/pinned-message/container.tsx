@@ -2,7 +2,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {getCanPerform} from '../../../constants/teams'
-import {connect, TypedState, TypedDispatch} from '../../../util/container'
+import {anyWaiting, connect, TypedState, TypedDispatch} from '../../../util/container'
 import PinnedMessage from '.'
 
 type OwnProps = {
@@ -19,6 +19,7 @@ const empty = {
   imageURL: undefined,
   imageWidth: undefined,
   text: '',
+  unpinning: false,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -53,6 +54,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
           ? message.decoratedText.stringValue()
           : ''
         : message.title || message.fileName,
+    unpinning: anyWaiting(state, Constants.waitingKeyUnpin(ownProps.conversationIDKey)),
   }
 }
 
@@ -83,6 +85,7 @@ const mergeProps = (
     onClick: () => dispatchProps._onClick(stateProps._messageID),
     onDismiss: dismissUnpins ? dispatchProps._onUnpin : dispatchProps._onIgnore,
     text: stateProps.text,
+    unpinning: stateProps.unpinning,
   }
 }
 
