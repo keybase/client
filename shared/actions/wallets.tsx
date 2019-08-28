@@ -464,7 +464,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
   // check that we've loaded the account, don't load assets if we don't have the account
   try {
     accountID = Constants.getAccount(state, accountID).accountID
-    if (!accountID || accountID === Types.noAccountID) {
+    if (!Types.isValidAccountID(accountID)) {
       return false
     }
     const res = await RPCStellarTypes.localGetAccountAssetsLocalRpcPromise(
@@ -511,11 +511,9 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
   if (
     !!(
       action.type === WalletsGen.selectAccount &&
-      action.payload.accountID &&
-      action.payload.accountID !== Types.noAccountID
+      Types.isValidAccountID(action.payload.accountID)
     ) ||
-    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID
-  ) {
+    Types.isValidAccountID(Constants.getAccount(state, action.payload.accountID).accountID)) {
     const [pending, payments] = await Promise.all([
       RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
       RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -1096,7 +1094,7 @@ const loadMobileOnlyMode = async (
   logger: Saga.SagaLogger
 ) => {
   let accountID = action.payload.accountID
-  if (!accountID || accountID === Types.noAccountID) {
+  if (!Types.isValidAccountID(accountID)) {
     logger.warn('invalid account ID, bailing')
     return false
   }
@@ -1325,7 +1323,7 @@ const balancesToAction = (
     {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
   )
   return [
-    ...(accountID !== Types.noAccountID
+    ...(Types.isValidAccountID(accountID)
       ? [
           WalletsGen.createSetTrustlineAcceptedAssets({
             accountID,
@@ -1347,7 +1345,7 @@ const balancesToAction = (
 }
 
 const refreshTrustlineAcceptedAssets = async (_: TypedState, {payload: {accountID}}) => {
-  if (accountID === Types.noAccountID) {
+  if (!Types.isValidAccountID(accountID)) {
     return false
   }
   const balances = await RPCStellarTypes.localGetTrustlinesLocalRpcPromise(

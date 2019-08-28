@@ -1,7 +1,9 @@
 import {WalletList} from '.'
 import * as Constants from '../../constants/wallets'
+import * as Types from '../../constants/types/wallets'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as Styles from '../../styles'
 import {anyWaiting} from '../../constants/waiting'
 
@@ -12,7 +14,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => ({
   accounts: Constants.getAccountIDs(state),
   airdropIsLive: state.wallets.airdropDetails.isPromoted,
-  airdropSelected: Constants.getAirdropSelected(),
+  airdropSelected: Constants.getAirdropSelected(state),
   inAirdrop: state.wallets.airdropState === 'accepted',
   loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
 })
@@ -26,7 +28,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     )
   },
   onJoinAirdrop: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop'], replace: true}))
+    dispatch(WalletsGen.createSelectAccount({accountID: Types.airdropAccountID, reason: 'user-selected', show: true}))
   },
   onLinkExisting: () => {
     dispatch(

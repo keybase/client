@@ -15,6 +15,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   return {
     acceptedDisclaimer: state.wallets.acceptedDisclaimer,
     accountID,
+    airdropSelected: Constants.getAirdropSelected(state),
     assets: Constants.getAssets(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
     payments: Constants.getPayments(state, accountID),
@@ -43,12 +44,8 @@ const sortAndStripTimestamps = (
 
 // On desktop it's impossible to get here without accepting the
 // disclaimer (from the wallet list).
-const WalletOrOnboarding = (props: Props) =>
-  !Container.isMobile || props.acceptedDisclaimer ? (
-    <Wallet {...props} />
-  ) : (
-    <Onboarding nextScreen="openWallet" />
-  )
+const WalletOrOnboarding = (props: Props) => !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
+
 
 export default Container.connect(
   mapStateToProps,
@@ -105,6 +102,7 @@ export default Container.connect(
     return {
       acceptedDisclaimer: stateProps.acceptedDisclaimer,
       accountID: stateProps.accountID,
+      airdropSelected: stateProps.airdropSelected,
       loadingMore: stateProps.loadingMore,
       onBack: dispatchProps.onBack,
       onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
