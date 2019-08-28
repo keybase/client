@@ -140,12 +140,16 @@ const styles = Styles.styleSheetCreate({
   label: {
     color: Styles.globalColors.blueDark,
   },
-  popup: {
-    maxWidth: 200,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
+  popup: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+    },
+    isElectron: {
+      maxWidth: 200,
+    },
+  }),
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
