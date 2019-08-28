@@ -282,7 +282,7 @@ class ShowPreview extends React.Component<
   }
 > {
   state = {visible: false}
-  render () {
+  render() {
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
