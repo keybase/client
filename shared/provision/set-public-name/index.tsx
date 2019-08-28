@@ -13,8 +13,9 @@ type Props = {
 
 const SetPublicName = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState('')
+  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const onSubmit = React.useCallback(() => {
-    props.onSubmit(Constants.cleanDeviceName(deviceName))
+    props.onSubmit(Constants.cleanDeviceName(cleanDeviceName))
   }, [deviceName])
 
   return (
@@ -40,7 +41,7 @@ const SetPublicName = (props: Props) => {
             placeholder="Pick a device name"
             onEnterKeyDown={onSubmit}
             onChangeText={setDeviceName}
-            value={deviceName}
+            value={cleanDeviceName}
             style={styles.nameInput}
           />
           <Kb.Text type="BodySmall">Your device name will be public.</Kb.Text>
