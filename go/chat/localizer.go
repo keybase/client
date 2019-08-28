@@ -737,7 +737,7 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
-	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, true, nil); err != nil {
+	if pinnedMsg, err = GetMessage(ctx, s.G(), uid, convID, pinnedMsgID, false, nil); err != nil {
 		return pinnedMsg, pinnerUsername, false, err
 	}
 	if !pinnedMsg.IsValidFull() {
