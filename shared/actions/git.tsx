@@ -101,18 +101,6 @@ const clearNavBadges = async () => {
   }
 }
 
-const handleIncomingGregor = (_: TypedState, action: GregorGen.PushOOBMPayload) => {
-  const gitMessages = action.payload.messages.filter(i => i.system === 'git')
-  const msgs = gitMessages.map(msg => JSON.parse(msg.body.toString()))
-  for (let body of msgs) {
-    const needsLoad = ['delete', 'create', 'update'].includes(body.action)
-    if (needsLoad) {
-      return GitGen.createLoadGit()
-    }
-  }
-  return false
-}
-
 function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRepoPayload) {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
@@ -148,9 +136,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
 
   // clear on load
   yield* Saga.chainAction2(GitGen.loadGit, clearNavBadges)
-
-  // Gregor
-  yield* Saga.chainAction2(GregorGen.pushOOBM, handleIncomingGregor)
 }
 
 export default gitSaga
