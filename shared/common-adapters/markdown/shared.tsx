@@ -317,7 +317,7 @@ class SimpleMarkdownComponent extends PureComponent<
         ? serviceOnlyOutput(parseTree, state)
         : this.props.preview
         ? previewOutput(parseTree)
-        : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
+        : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
         ? bigEmojiOutput(parseTree, state)
         : reactOutput(parseTree, state)
     } catch (e) {
