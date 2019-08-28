@@ -45,11 +45,8 @@ class Providers extends React.Component<ProvidersProps> {
           <Kb.Text type="BodySemibold" style={styles.title}>
             {provider.name}
           </Kb.Text>
-          {(provider.new || !!provider.desc) && (
+          {(!!provider.desc) && (
             <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-              {provider.new && (
-                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
-              )}
               <Kb.Text type="BodySmall" style={styles.description}>
                 {provider.desc}
               </Kb.Text>
