@@ -26,7 +26,6 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
   _fullnames: state.users.infoMap,
-  _justSignedUp: state.signup.justSignedUp,
   _justSignedUpEmail: state.signup.justSignedUpEmail,
   _settingsEmailBanner: state.settings.email.addedEmail,
   configuredAccounts: state.config.configuredAccounts,
@@ -38,7 +37,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  _onTabClick: (tab, justSignedUp, justSignedUpEmail, settingsEmailBanner) => {
+  _onTabClick: (tab, justSignedUpEmail, settingsEmailBanner) => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
@@ -96,12 +95,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.AppTab) =>
-    dispatchProps._onTabClick(
-      tab,
-      stateProps._justSignedUp,
-      stateProps._justSignedUpEmail,
-      stateProps._settingsEmailBanner
-    ),
+    dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,
