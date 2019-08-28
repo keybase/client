@@ -12,13 +12,13 @@ import {
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
-import WalletsIcon from './wallets-icon/container'
+import MoreMenuPopup from '../moremenu-popup/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus, ExplodingMeta} from './shared'
 
-type menuType = 'exploding' | 'filepickerpopup'
+type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type State = {hasText: boolean}
 
@@ -37,6 +37,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   _openFilePicker = () => {
     this._toggleShowingMenu('filepickerpopup')
+  }
+  _openMoreMenu = () => {
+    this._toggleShowingMenu('moremenu')
   }
 
   _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
@@ -108,9 +111,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   render() {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
-      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+      hintText = 'Exploding message'
     } else if (this.props.isExploding && !isLargeScreen) {
-      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
+      hintText = 'Exploding'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.cannotWrite) {
@@ -134,6 +137,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             onHidden={this.props.toggleShowingMenu}
             onSelect={this._launchNativeImagePicker}
           />
+        ) : this._whichMenu === 'moremenu' ? (
+          <MoreMenuPopup
+            conversationIDKey={this.props.conversationIDKey}
+            onHidden={this.props.toggleShowingMenu}
+            visible={this.props.showingMenu}
+          />
         ) : (
           <SetExplodingMessagePicker
             attachTo={this.props.getAttachmentRef}
@@ -153,6 +162,13 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
                 Cancel
               </Kb.Text>
             </Kb.Box>
+          )}
+          {!this.props.isEditing && (
+            <ExplodingIcon
+              explodingModeSeconds={this.props.explodingModeSeconds}
+              isExploding={this.props.isExploding}
+              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+            />
           )}
           <Kb.PlainInput
             autoCorrect={true}
@@ -182,12 +198,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               hasText={this.state.hasText}
               onSubmit={this._onSubmit}
               isEditing={this.props.isEditing}
-              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
               openFilePicker={this._openFilePicker}
+              openMoreMenu={this._openMoreMenu}
               insertMentionMarker={this._insertMentionMarker}
-              isExploding={this.props.isExploding}
-              showWalletsIcon={this.props.showWalletsIcon}
-              explodingModeSeconds={this.props.explodingModeSeconds}
             />
           )}
         </Kb.Box>
@@ -197,46 +210,15 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const Action = ({
-  explodingModeSeconds,
-  hasText,
-  insertMentionMarker,
-  isEditing,
-  isExploding,
-  onSubmit,
-  openExplodingPicker,
-  openFilePicker,
-  showWalletsIcon,
-}) =>
+const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
   hasText ? (
     <Kb.Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {isExploding && !isEditing && (
-        <ExplodingIcon
-          explodingModeSeconds={explodingModeSeconds}
-          isExploding={isExploding}
-          openExplodingPicker={openExplodingPicker}
-        />
-      )}
       <Kb.ClickableBox onClick={onSubmit} style={styles.send}>
         <Kb.Text type="BodyBigLink">{isEditing ? 'Save' : 'Send'}</Kb.Text>
       </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      <>
-        <ExplodingIcon
-          explodingModeSeconds={explodingModeSeconds}
-          isExploding={isExploding}
-          openExplodingPicker={openExplodingPicker}
-        />
-        {smallGap}
-      </>
-      {showWalletsIcon && (
-        <WalletsIcon
-          size={22}
-          style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
-        />
-      )}
       <Kb.Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
@@ -247,6 +229,13 @@ const Action = ({
       <Kb.Icon
         onClick={openFilePicker}
         type="iconfont-camera"
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
+      />
+      {smallGap}
+      <Kb.Icon
+        onClick={openMoreMenu}
+        type="iconfont-add"
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
@@ -344,7 +333,13 @@ const smallGap = <Kb.Box style={styles.smallGap} />
 const explodingIconContainer = Styles.platformStyles({
   common: {
     ...Styles.globalStyles.flexBoxRow,
+  },
+  isElectron: {
     marginRight: -3,
+  },
+  isMobile: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.small,
   },
 })
 

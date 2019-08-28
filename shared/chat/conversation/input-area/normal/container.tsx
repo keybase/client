@@ -76,7 +76,6 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showGiphySearch,
     showTypingStatus:
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
-    showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestAllChannels: Constants.getAllChannels(state),
     suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
     suggestBotCommandsUpdateStatus,
@@ -243,7 +242,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showGiphySearch: stateProps.showGiphySearch,
   showReplyPreview: !!stateProps._replyTo,
   showTypingStatus: stateProps.showTypingStatus,
-  showWalletsIcon: stateProps.showWalletsIcon,
   suggestAllChannels: stateProps.suggestAllChannels,
   suggestBotCommands: stateProps.suggestBotCommands,
   suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
