@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
 
-export type PathItemInfoProps = {
+export type LastModifiedLineProps = {
   lastModifiedTimestamp?: number
   lastWriter?: string
   mode: 'row' | 'default' | 'menu'
@@ -22,7 +22,7 @@ const Username = ({mode, lastWriter}) =>
     />
   )
 
-const PathItemInfo = (props: PathItemInfoProps) => (
+const LastModifiedLine = (props: LastModifiedLineProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode !== 'row'}>
     <Kb.Text
       type={props.mode === 'menu' ? 'BodyTiny' : 'BodySmall'}
@@ -55,4 +55,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default PathItemInfo
+export default LastModifiedLine

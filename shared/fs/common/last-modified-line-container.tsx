@@ -1,7 +1,7 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
-import PathItemInfo from './path-item-info'
+import LastModifiedLine from './last-modified-line'
 
 export type OwnProps = {
   path: Types.Path
@@ -22,4 +22,4 @@ const mergeProps = (stateProps, _, {mode}: OwnProps) => ({
   mode,
 })
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'PathItemInfo')(PathItemInfo)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'LastModifiedLine')(LastModifiedLine)

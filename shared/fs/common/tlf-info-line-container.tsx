@@ -1,7 +1,7 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import TlfInfo from './tlf-info'
+import TlfInfoLine from './tlf-info-line'
 
 export type OwnProps = {
   path: Types.Path
@@ -29,5 +29,5 @@ export default Container.namedConnect(
       tlfType: Types.getPathVisibility(ownProps.path),
     }
   },
-  'TlfInfo'
-)(TlfInfo)
+  'TlfInfoLine'
+)(TlfInfoLine)

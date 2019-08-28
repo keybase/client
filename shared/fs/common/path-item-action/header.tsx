@@ -3,7 +3,8 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import TlfOrPathItemInfo from '../tlf-or-path-item-info'
+import LastModifiedLine from '../last-modified-line-container'
+import TlfInfoLine from '../tlf-info-line-container'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus} from '../hooks'
@@ -29,6 +30,20 @@ const FilesAndFoldersCount = (props: Props) => {
       {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
     </Kb.Text>
   )
+}
+
+const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
+  switch (Types.getPathLevel(path)) {
+    case 0:
+    case 1:
+    case 2:
+      return null
+    case 3:
+      // TlfInfoLine does not have a mode='menu'
+      return <TlfInfoLine path={path} mode="default" />
+    default:
+      return <LastModifiedLine path={path} mode="menu" />
+  }
 }
 
 const Header = (props: Props) => {
@@ -68,7 +83,7 @@ const Header = (props: Props) => {
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Kb.Text>
         )}
         {props.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
-        <TlfOrPathItemInfo path={props.path} mode="menu" />
+        {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </Kb.Box>
   )

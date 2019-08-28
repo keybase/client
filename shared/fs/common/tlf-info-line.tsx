@@ -87,7 +87,7 @@ const getText = (props: Props) => {
   return props.reset ? <ResetText {...props} /> : null
 }
 
-const TlfInfo = (props: Props) => (
+const TlfInfoLine = (props: Props) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
@@ -117,4 +117,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default TlfInfo
+export default TlfInfoLine

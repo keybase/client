@@ -7,13 +7,13 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
 import PathItemIcon, {Size} from './path-item-icon'
-import PathItemInfo from './path-item-info'
-import TlfInfo from './tlf-info'
+import LastModifiedLine from './last-modified-line'
+import TlfInfoLine from './tlf-info-line'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
-import {OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
-import {OwnProps as TlfInfoOwnProps} from './tlf-info-container'
+import {OwnProps as LastModifiedLineOwnProps} from './last-modified-line-container'
+import {OwnProps as TlfInfoLineOwnProps} from './tlf-info-line-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
 import ConfirmDelete from './path-item-action/confirm-delete'
@@ -100,7 +100,7 @@ export const commonProvider = {
     type: Types.getPathElements(ownProps.path).length > 4 ? Types.PathType.File : Types.PathType.Folder,
     username: 'songgao_test',
   }),
-  PathItemInfo: ({path, mode}: PathItemInfoOwnProps) => ({
+  LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
     lastModifiedTimestamp: Types.getPathElements(path).length > 3 ? 1545110765 : undefined,
     lastWriter: 'songgao_test',
     mode,
@@ -119,7 +119,7 @@ export const commonProvider = {
     progress: 0.67,
     show: true,
   }),
-  TlfInfo: ({mixedMode, mode}: TlfInfoOwnProps) => ({
+  TlfInfoLine: ({mixedMode, mode}: TlfInfoLineOwnProps) => ({
     mixedMode,
     mode,
     reset: ['foo', 'bar', 'cue'],
@@ -285,30 +285,30 @@ const load = () => {
         ]}
       />
     ))
-    .add('TlfInfo', () => (
+    .add('TlfInfoLine', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
-        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
+        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
         <Kb.Text type="Body">mode=default reset=true</Kb.Text>
-        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
+        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
         <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
-        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
+        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
         <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
-        <TlfInfo
+        <TlfInfoLine
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="default"
           reset={['foo', 'bar']}
         />
         <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
-        <TlfInfo
+        <TlfInfoLine
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="row"
           reset={['foo', 'bar', 'cue']}
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=Array(3)</Kb.Text>
-        <TlfInfo
+        <TlfInfoLine
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -316,7 +316,7 @@ const load = () => {
           reset={['foo', 'bar', 'cue']}
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=true</Kb.Text>
-        <TlfInfo
+        <TlfInfoLine
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -324,7 +324,7 @@ const load = () => {
           reset={true}
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=false</Kb.Text>
-        <TlfInfo
+        <TlfInfoLine
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -333,14 +333,14 @@ const load = () => {
         />
       </Kb.Box2>
     ))
-    .add('PathItemInfo', () => (
+    .add('LastModifiedLine', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default</Kb.Text>
-        <PathItemInfo mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <LastModifiedLine mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
         <Kb.Text type="Body">mode=row</Kb.Text>
-        <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <LastModifiedLine mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
         <Kb.Text type="Body">mode=menu</Kb.Text>
-        <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <LastModifiedLine mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
     .add('OpenInSystemFileManager', () => (
