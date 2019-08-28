@@ -1,20 +1,20 @@
 import * as React from 'react'
 import * as Constants from '../../constants/push'
 import * as PushGen from '../../actions/push-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
 const PushPrompt = () => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
   const onNoPermissions = () => {
     dispatch(PushGen.createRejectPermissions())
-    dispatch(nav.safeNavigateUpPayload())
+    dispatch(RouteTreeGen.createClearModals())
   }
   const onRequestPermissions = () => {
     dispatch(PushGen.createRequestPermissions())
-    dispatch(nav.safeNavigateUpPayload())
+    dispatch(RouteTreeGen.createClearModals())
   }
   return (
     <Kb.Modal

@@ -50,10 +50,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (justSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(SignupGen.createClearJustSignedUpEmail())
     }
-    // Clear "just signed up" when you leave the people tab after signup
-    if (justSignedUp && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
-      dispatch(SignupGen.createClearJustSignedUp())
-    }
     // Clear "check your inbox" in settings when you leave the settings tab
     if (settingsEmailBanner && ownProps.selectedTab === Tabs.settingsTab && tab !== Tabs.settingsTab) {
       dispatch(SettingsGen.createClearAddedEmail())

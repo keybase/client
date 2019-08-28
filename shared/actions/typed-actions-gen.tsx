@@ -765,7 +765,6 @@ export type TypedActionsMap = {
   'signup:checkedDevicename': signup.CheckedDevicenamePayload
   'signup:setJustSignedUpEmail': signup.SetJustSignedUpEmailPayload
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
-  'signup:clearJustSignedUp': signup.ClearJustSignedUpPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload

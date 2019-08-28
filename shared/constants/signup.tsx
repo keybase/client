@@ -25,7 +25,6 @@ export const makeState = I.Record<Types._State>({
   emailVisible: false,
   inviteCode: '',
   inviteCodeError: '',
-  justSignedUp: false,
   justSignedUpEmail: '',
   name: '',
   nameError: '',

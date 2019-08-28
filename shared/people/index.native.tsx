@@ -30,34 +30,14 @@ export const Header = (props: Props) => (
   />
 )
 
-const People = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const [justSignedUp, isPushEnabled, showPushPrompt] = Container.useSelector(state => [
-    state.signup.justSignedUp,
-    state.push.hasPermissions,
-    state.push.showPushPrompt,
-  ])
-  React.useEffect(() => {
-    if (justSignedUp) {
-      if (!isPushEnabled && showPushPrompt) {
-        dispatch(nav.safeNavigateAppendPayload({path: ['settingsPushPrompt']}))
-      }
-      return () => dispatch(SignupGen.createClearJustSignedUp())
-    }
-    return undefined
-  }, [dispatch, nav, justSignedUp, isPushEnabled, showPushPrompt])
-  return (
-    <Kb.ScrollView
-      style={styles.scrollView}
-      refreshControl={
-        <Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />
-      }
-    >
-      <PeoplePageList {...props} />
-    </Kb.ScrollView>
-  )
-}
+const People = (props: Props) => (
+  <Kb.ScrollView
+    style={styles.scrollView}
+    refreshControl={<Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
+  >
+    <PeoplePageList {...props} />
+  </Kb.ScrollView>
+)
 
 const styles = styleSheetCreate(() => ({
   scrollView: {
