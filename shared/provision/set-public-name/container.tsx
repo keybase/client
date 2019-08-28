@@ -16,8 +16,8 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
+  onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
 })
 
 export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
