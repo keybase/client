@@ -126,7 +126,9 @@ func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
 	}
 	res = make(map[keybase1.UID]libkb.UserServiceSummary, len(pkgs))
 	for uid, pkg := range pkgs {
-		res[uid] = pkg.ServiceMap
+		if pkg.ServiceMap != nil {
+			res[uid] = pkg.ServiceMap
+		}
 	}
 	return res, nil
 }

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -106,31 +108,51 @@ func (c *MockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keyb
 	return res, nil
 }
 
+func (c *MockContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
+	res = make(map[keybase1.UID]libkb.UserServiceSummary)
+	return res, nil
+}
+
 type ErrorContactsProvider struct {
-	t libkb.TestingTB
+	FailOnCall bool
+	T          libkb.TestingTB
 }
 
 func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ret ContactLookupResults, err error) {
-	c.t.Errorf("Call to ErrorContactsProvider.LookupAllWithToken")
-	err = errors.New("error contacts provider")
-	return
+
+	if c.FailOnCall {
+		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAllWithToken")
+	}
+	return ret, errors.New("error contacts provider")
 }
 
 func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupResults, err error) {
-	c.t.Errorf("Call to ErrorContactsProvider.LookupAll")
-	err = errors.New("error contacts provider")
-	return
+	if c.FailOnCall {
+		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAll")
+	}
+	return ret, errors.New("error contacts provider")
 }
 
 func (c *ErrorContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
-	c.t.Errorf("Call to ErrorContactsProvider.FindUsernames")
+	if c.FailOnCall {
+		require.Fail(c.T, "Call to ErrorContactsProvider.FindUsernames")
+	}
 	return nil, errors.New("mock error")
 }
 
 func (c *ErrorContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
-	c.t.Errorf("Call to ErrorContactsProvider.FindFollowing")
+	if c.FailOnCall {
+		require.Fail(c.T, "Call to ErrorContactsProvider.FindFollowing")
+	}
+	return nil, errors.New("mock error")
+}
+
+func (c *ErrorContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
+	if c.FailOnCall {
+		require.Fail(c.T, "Call to ErrorContactsProvider.FindServiceMaps")
+	}
 	return nil, errors.New("mock error")
 }
 

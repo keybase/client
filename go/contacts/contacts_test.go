@@ -44,7 +44,7 @@ func TestLookupEmptyList(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
 
-	provider := &ErrorContactsProvider{t}
+	provider := &ErrorContactsProvider{T: t, FailOnCall: true}
 	contactList := []keybase1.Contact{}
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
