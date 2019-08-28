@@ -74,5 +74,25 @@ func TestPinMessages(t *testing.T) {
 	require.Nil(t, conv.Info.PinnedMsg)
 
 	t.Logf("test team")
-
+	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[1])
+	msgID = mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "PIN THIS NOW",
+	}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+	_, err = ctc.as(t, users[1]).chatLocalHandler().PinMessage(ctx1, chat1.PinMessageArg{
+		ConvID: teamConv.Id,
+		MsgID:  msgID,
+	})
+	require.NoError(t, err)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_PIN)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_PIN)
+	_, err = ctc.as(t, users[0]).chatLocalHandler().UnpinMessage(ctx, teamConv.Id)
+	require.NoError(t, err)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
+	conv, err = utils.GetVerifiedConv(ctx1, tc1.Context(), uid1, teamConv.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	require.Nil(t, conv.Info.PinnedMsg)
 }
