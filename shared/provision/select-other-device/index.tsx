@@ -78,7 +78,7 @@ class SelectOtherDevice extends React.Component<Props> {
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Kb.Text center={true} type={'Body'} style={styles.headerText}>
+              <Kb.Text center={true} type="Body" style={styles.headerText}>
                 For security reasons, you need to authorize with an existing device. Which of your existing
                 devices would you like to use?
               </Kb.Text>
