@@ -344,11 +344,8 @@ class Input extends React.PureComponent<Props, State> {
       style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: ${Styles.globalColors.black_40}; }`
-
     return (
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
-        <style>{inputRealCSS}</style>
         {!this.props.small && !this.props.hideLabel && (
           <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}

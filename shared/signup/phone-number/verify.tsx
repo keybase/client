@@ -138,7 +138,7 @@ export const VerifyBody = (props: BodyProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     color: Styles.globalColors.white,
     flex: 1,
@@ -199,6 +199,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 export default VerifyPhoneNumber

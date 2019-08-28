@@ -125,7 +125,7 @@ export default (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionNeededBox: {
     marginLeft: Styles.globalMargins.medium,
   },
@@ -165,4 +165,4 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
     width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
   },
-})
+}))

@@ -463,7 +463,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 }
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
@@ -555,6 +555,6 @@ const styles = Styles.styleSheetCreate({
   searchWrapper: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
   },
-})
+}))
 
 export default PhoneInput

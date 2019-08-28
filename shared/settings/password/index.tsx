@@ -191,7 +191,7 @@ class UpdatePassword extends Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: {
     paddingBottom: Styles.globalMargins.small,
   },
@@ -217,6 +217,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default UpdatePassword

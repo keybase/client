@@ -1,12 +1,5 @@
 import React, {Component} from 'react'
-import {
-  borderRadius,
-  globalStyles,
-  globalMargins,
-  globalColors,
-  collapseStyles,
-  desktopStyles,
-} from '../../styles'
+import * as Styles from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 
 import {Props} from './index'
@@ -16,64 +9,64 @@ class InviteGeneratedRender extends Component<Props> {
     return (
       <Box
         style={{
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           flex: 1,
           justifyContent: 'center',
           position: 'relative',
         }}
       >
-        <Icon type="iconfont-close" style={iconStyle} onClick={this.props.onClose} />
+        <Icon type="iconfont-close" style={styles.icon} onClick={this.props.onClose} />
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
-          <Text center={true} type="Body" style={textStyle}>
+          <Text center={true} type="Body" style={styles.text}>
             Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
             the below link:
           </Text>
         ) : (
-          <Text center={true} type="Body" style={textStyle}>
+          <Text center={true} type="Body" style={styles.text}>
             Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
           </Text>
         )}
-        <Box style={linkContainerStyle}>
+        <Box style={styles.linkContainer}>
           <Icon
             type="iconfont-link"
-            style={{height: 14, marginRight: globalMargins.tiny}}
-            color={globalColors.black_10}
+            style={{height: 14, marginRight: Styles.globalMargins.tiny}}
+            color={Styles.globalColors.black_10}
           />
-          <Text type="BodySemibold" selectable={true} style={{color: globalColors.greenDark}}>
+          <Text type="BodySemibold" selectable={true} style={{color: Styles.globalColors.greenDark}}>
             {this.props.link}
           </Text>
         </Box>
-        <Button style={{marginTop: globalMargins.medium}} label="Close" onClick={this.props.onClose} />
+        <Button style={{marginTop: Styles.globalMargins.medium}} label="Close" onClick={this.props.onClose} />
       </Box>
     )
   }
 }
 
-const textStyle = {
-  paddingTop: globalMargins.medium,
-  width: 440,
-}
-
-const iconStyle = collapseStyles([
-  desktopStyles.clickable,
-  {
-    position: 'absolute',
-    right: globalMargins.small,
-    top: globalMargins.small,
+const styles = Styles.styleSheetCreate(() => ({
+  icon: Styles.collapseStyles([
+    Styles.desktopStyles.clickable,
+    {
+      position: 'absolute',
+      right: Styles.globalMargins.small,
+      top: Styles.globalMargins.small,
+    },
+  ]),
+  linkContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.greenLighter,
+    borderRadius: Styles.borderRadius,
+    height: 32,
+    marginTop: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
-])
 
-const linkContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.greenLighter,
-  borderRadius,
-  height: 32,
-  marginTop: globalMargins.tiny,
-  paddingLeft: globalMargins.xsmall,
-  paddingRight: globalMargins.xsmall,
-}
-
+  text: {
+    paddingTop: Styles.globalMargins.medium,
+    width: 440,
+  },
+}))
 export default InviteGeneratedRender

@@ -2,3 +2,11 @@
 .darkMode textarea {
   background-color: black;
 }
+
+input::-webkit-input-placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.darkMode input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
