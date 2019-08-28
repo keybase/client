@@ -404,11 +404,11 @@ const loadAccounts = async (
     if (action.type === WalletsGen.loadAccounts && action.payload.reason === 'initial-load') {
       // No need to throw black bars -- handled by Reloadable.
       logger.warn(msg)
+      return false
     } else {
       logger.error(msg)
       throw err
     }
-    return false
   }
 }
 
@@ -476,8 +476,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
     })
   } catch (err) {
-    handleSelectAccountError(action, 'selecting account', err)
-    return false
+    return handleSelectAccountError(action, 'selecting account', err)
   }
 }
 
@@ -1613,7 +1612,7 @@ const assetDeposit = async (_: TypedState, action: WalletsGen.AssetDepositPayloa
     )
     return handleSEP6Result(res)
   } catch (err) {
-    handleSEP6Error(err)
+    return handleSEP6Error(err)
   }
 }
 
@@ -1633,7 +1632,7 @@ const assetWithdraw = async (_: TypedState, action: WalletsGen.AssetWithdrawPayl
     )
     return handleSEP6Result(res)
   } catch (err) {
-    handleSEP6Error(err)
+    return handleSEP6Error(err)
   }
 }
 
