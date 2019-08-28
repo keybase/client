@@ -324,11 +324,7 @@ const acceptSEP7Tx = async (_: TypedState, action: WalletsGen.AcceptSEP7TxPayloa
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
-const acceptSEP7Path = async (
-  state: TypedState,
-  action: WalletsGen.AcceptSEP7PathPayload,
-  logger: Saga.SagaLogger
-) => {
+const acceptSEP7Path = async (state: TypedState, action: WalletsGen.AcceptSEP7PathPayload) => {
   await RPCStellarTypes.localApprovePathURILocalRpcPromise(
     {
       fromCLI: false,
@@ -340,11 +336,7 @@ const acceptSEP7Path = async (
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
-const acceptSEP7Pay = async (
-  _: TypedState,
-  action: WalletsGen.AcceptSEP7PayPayload,
-  logger: Saga.SagaLogger
-) => {
+const acceptSEP7Pay = async (_: TypedState, action: WalletsGen.AcceptSEP7PayPayload) => {
   await RPCStellarTypes.localApprovePayURILocalRpcPromise(
     {
       amount: action.payload.amount,
@@ -649,7 +641,7 @@ const loadInflationDestination = async (
   })
 }
 
-const loadExternalPartners = async (_, __, logger: Saga.SagaLogger) => {
+const loadExternalPartners = async () => {
   const partners = await RPCStellarTypes.localGetPartnerUrlsLocalRpcPromise()
   return WalletsGen.createExternalPartnersReceived({externalPartners: I.List(partners || [])})
 }
@@ -657,11 +649,7 @@ const loadExternalPartners = async (_, __, logger: Saga.SagaLogger) => {
 const refreshAssets = (_: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
   action.payload.accountID ? WalletsGen.createLoadAssets({accountID: action.payload.accountID}) : undefined
 
-const changeDisplayCurrency = async (
-  _: TypedState,
-  action: WalletsGen.ChangeDisplayCurrencyPayload,
-  logger: Saga.SagaLogger
-) => {
+const changeDisplayCurrency = async (_: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) => {
   const currencyRes = await RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -687,11 +675,7 @@ const changeAccountName = async (_: TypedState, action: WalletsGen.ChangeAccount
   return WalletsGen.createChangedAccountName({account: Constants.accountResultToAccount(res)})
 }
 
-const deleteAccount = async (
-  _: TypedState,
-  action: WalletsGen.DeleteAccountPayload,
-  logger: Saga.SagaLogger
-) => {
+const deleteAccount = async (_: TypedState, action: WalletsGen.DeleteAccountPayload) => {
   await RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -1240,14 +1224,19 @@ const updateAirdropState = async (
       undefined,
       Constants.airdropWaitingKey
     )
-    let airdropState = 'loading'
+    let airdropState
     switch (state) {
       case 'accepted':
+        airdropState = 'accepted' as const
+        break
       case 'qualified':
+        airdropState = 'qualified' as const
+        break
       case 'unqualified':
-        airdropState = state
+        airdropState = 'unqualified' as const
         break
       default:
+        airdropState = 'loading' as const
         logger.error('Invalid airdropstate', state)
     }
 
@@ -1259,7 +1248,6 @@ const updateAirdropState = async (
       })
     )
 
-    // @ts-ignore codemod issue
     return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
   } catch (e) {
     logger.info(e)
