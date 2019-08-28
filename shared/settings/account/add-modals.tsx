@@ -5,8 +5,8 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
-import {EnterEmailBody} from '../../signup/email/'
-import {EnterPhoneNumberBody} from '../../signup/phone-number/'
+import {EnterEmailBody} from '../../signup/email'
+import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
@@ -95,7 +95,7 @@ export const Email = () => {
       </Kb.Box2>
       {!!emailError && (
         <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError.message} />
+          <Kb.BannerParagraph bannerColor="red" content={emailError} />
         </Kb.Banner>
       )}
     </Kb.Modal>

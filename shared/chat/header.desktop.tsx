@@ -140,7 +140,7 @@ const Header = (p: Props) => {
             <Kb.WithTooltip text="Chat info & settings">
               <Kb.Icon
                 style={styles.clickable}
-                type={'iconfont-info'}
+                type="iconfont-info"
                 onClick={p.onToggleInfoPanel}
                 color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
               />

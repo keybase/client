@@ -14,7 +14,7 @@ const props = {
 const load = () => {
   Sb.storiesOf('Provision/SetPublicName', module)
     .add('Normal', () => <SetPublicName {...props} />)
-    .add('Error', () => <SetPublicName {...props} error={'Name taken'} />)
+    .add('Error', () => <SetPublicName {...props} error="Name taken" />)
 }
 
 export default load

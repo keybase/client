@@ -11,6 +11,7 @@ import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
+  services: Array<ServiceIdWithContact>
   selectedService: ServiceIdWithContact
   onChangeService: (newService: ServiceIdWithContact) => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}

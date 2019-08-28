@@ -267,16 +267,16 @@ const ViewText = (props: Props) => (
 const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
-      <React.Fragment>
+      <>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
           Ready to provision using
         </Kb.Text>
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
-      </React.Fragment>
+      </>
     ) : (
-      <React.Fragment>
+      <>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
           On{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
@@ -297,7 +297,7 @@ const Instructions = (p: Props) => (
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )}
   </Kb.Box2>
 )

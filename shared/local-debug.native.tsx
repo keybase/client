@@ -3,6 +3,7 @@
  */
 import {NativeModules, YellowBox} from 'react-native'
 import {noop} from 'lodash-es'
+
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes

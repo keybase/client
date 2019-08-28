@@ -1,7 +1,8 @@
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
 import {IconType} from '../common-adapters/icon.constants'
 import Flags from '../util/feature-flags'
+import {allServices} from '../constants/team-building'
 
 const services: {
   [K in ServiceIdWithContact]: {
@@ -46,15 +47,15 @@ const services: {
     color: '#FF6600',
     icon: 'iconfont-identity-hn',
     label: 'Hacker News',
-    longLabel: 'A HN user',
-    searchPlaceholder: 'HackerNews',
+    longLabel: 'A Hacker News user',
+    searchPlaceholder: 'Hacker News',
   },
   keybase: {
     color: '#4C8EFF',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
-    longLabel: 'Keybase & Contacts',
-    searchPlaceholder: 'Keybase & contacts',
+    longLabel: Styles.isMobile ? 'Keybase & Contacts' : 'A Keybase user',
+    searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
   },
   pgp: {
     color: '#000',
@@ -98,6 +99,8 @@ const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
 
 const inactiveServiceAccentColor = Styles.globalColors.black
 
+const serviceMapToArray = (services: ServiceMap) => allServices.filter(x => x !== 'keybase' && x in services)
+
 export {
   serviceIdToIconFont,
   serviceIdToAccentColor,
@@ -106,4 +109,5 @@ export {
   serviceIdToLongLabel,
   serviceIdToSearchPlaceholder,
   serviceIdToWonderland,
+  serviceMapToArray,
 }

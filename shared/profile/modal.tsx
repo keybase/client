@@ -20,7 +20,7 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     flexShrink: 0,
     padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
@@ -34,6 +34,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     justifyContent: 'space-around',
   },
-})
+}))
 
 export default Kb.HeaderOrPopup(Modal)

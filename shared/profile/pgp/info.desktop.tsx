@@ -64,11 +64,11 @@ const Info = props => (
   </Modal>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   centered: {alignSelf: 'center'},
   content: {flexGrow: 1},
   math: {flexGrow: 1},
-})
+}))
 
 const mapStateToProps = state => ({
   email1: state.profile.pgpEmail1,

@@ -145,7 +145,7 @@ const DevicePage = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   circleClosed: {
     backgroundColor: Styles.globalColors.grey,
     borderColor: Styles.globalColors.white,
@@ -184,6 +184,6 @@ const styles = Styles.styleSheetCreate({
     height: 6,
     width: 2,
   },
-})
+}))
 
 export default Kb.HeaderHoc(DevicePage)

@@ -47,12 +47,12 @@ public class KBPushNotifier implements PushNotifier {
     return style;
   }
 
-  public KBPushNotifier(Context ctx, Bundle bundle) {
+  KBPushNotifier(Context ctx, Bundle bundle) {
     this.context = ctx;
     this.bundle = bundle;
   }
 
-  public void setMsgCache(SmallMsgRingBuffer convMsgCache) {
+  void setMsgCache(SmallMsgRingBuffer convMsgCache) {
     this.convMsgCache = convMsgCache;
   }
 
@@ -175,7 +175,10 @@ public class KBPushNotifier implements PushNotifier {
     Person fromPerson = personBuilder.build();
 
     if (this.convMsgCache != null) {
-      String msgText = chatNotification.getIsPlaintext() ? chatNotification.getMessage().getPlaintext() : "Encrypted Message...";
+      String msgText = chatNotification.getIsPlaintext() ? chatNotification.getMessage().getPlaintext() : "";
+      if (msgText.isEmpty()) {
+        msgText = chatNotification.getMessage().getServerMessage();
+      }
       convMsgCache.add(new MessagingStyle.Message(msgText, msg.getAt(), fromPerson));
     }
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Props} from './oriented-image.types'
-import Image from '../common-adapters/image'
+import Image from './image'
 
 // OrientedImage will render a NativeImage.
 // However, Oriented image is never rendered from a native component as mobile

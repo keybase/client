@@ -10,6 +10,7 @@ import Transaction from '../transaction/container'
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
   : 'pattern-stripes-blue-5-black-5-desktop.png'
+
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
 export type Props = {

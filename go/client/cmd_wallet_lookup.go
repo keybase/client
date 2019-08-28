@@ -58,9 +58,9 @@ func (c *CmdWalletLookup) Run() (err error) {
 	}
 
 	dui.Printf("Account ID for %q: ", c.Name)
-	dui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", string(res.AccountID)))
+	_, _ = dui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", string(res.AccountID)))
 	if res.Username != nil && *res.Username != c.Name {
-		dui.PrintfStderr("Belongs to Keybase user: %s\n", ColorString(c.G(), "green", *res.Username))
+		_, _ = dui.PrintfStderr("Belongs to Keybase user: %s\n", ColorString(c.G(), "green", *res.Username))
 	}
 	return nil
 }

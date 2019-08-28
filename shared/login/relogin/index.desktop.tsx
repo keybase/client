@@ -92,7 +92,7 @@ class Login extends React.Component<Props, State> {
               onChanged={this._onClickUser}
               selected={userRows[selectedIdx]}
               items={userRows}
-              position={'bottom center'}
+              position="bottom center"
             />
             <Kb.FormWithCheckbox
               style={{alignSelf: 'stretch'}}

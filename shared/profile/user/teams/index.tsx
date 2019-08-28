@@ -73,7 +73,7 @@ const Teams = (p: Props) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   link: {color: Styles.globalColors.black},
   placeholderTeam: {borderRadius: Styles.borderRadius},
   showcase: {alignItems: 'center'},
@@ -87,6 +87,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     color: Styles.globalColors.black_50,
   },
-})
+}))
 
 export default Teams

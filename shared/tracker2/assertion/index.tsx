@@ -412,7 +412,7 @@ class Assertion extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
   crypto: Styles.platformStyles({
     isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
@@ -444,6 +444,6 @@ const styles = Styles.styleSheetCreate({
     common: {letterSpacing: 0.2},
     isElectron: {wordBreak: 'break-all'},
   }),
-})
+}))
 
 export default Assertion

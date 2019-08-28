@@ -7,7 +7,7 @@ const load = () => {
     <DeleteConfirm
       onDeleteForever={Sb.action('onDeleteForever')}
       onCancel={Sb.action('onCancel')}
-      username={'chris'}
+      username="chris"
       allowDeleteForever={true}
       setAllowDeleteAccount={Sb.action('setAllowDeleteAccount')}
     />

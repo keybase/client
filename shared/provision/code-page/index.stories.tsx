@@ -97,7 +97,7 @@ const load = () => {
     <CodePage2
       {...derivedProps(true, 'desktop', 'computer', 'desktop')}
       error="Invalid secret code. Please try again."
-      tabOverride={'enterText'}
+      tabOverride="enterText"
     />
   ))
   s = s.add('QR Scan Not Authorized', () => (
@@ -114,7 +114,7 @@ const load = () => {
       })
     )
     .add('QR Scan waiting', () => (
-      <CodePage2 {...derivedProps(true, 'mobile', 'mobile', 'mobile')} tabOverride={'QR'} />
+      <CodePage2 {...derivedProps(true, 'mobile', 'mobile', 'mobile')} tabOverride="QR" />
     ))
 }
 

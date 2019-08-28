@@ -69,7 +69,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
               fullWidth={true}
               style={styles.button}
               children={
-                <React.Fragment>
+                <>
                   <Kb.Icon
                     type="iconfont-stellar-send"
                     style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
@@ -81,7 +81,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
                       {props.displayAmountXLM}
                     </Kb.Text>
                   </Kb.Text>
-                </React.Fragment>
+                </>
               }
             />
           )}
