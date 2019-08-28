@@ -1789,8 +1789,8 @@ func TestVersionError(t *testing.T) {
 	assertErr(err)
 
 	t.Logf("unversionBody")
-	bv2 := chat1.BodyPlaintextUnsupported{}
-	_, err = boxer.unversionBody(context.Background(), chat1.BodyPlaintext{Version__: maxBodyVersion, V2__: &bv2})
+	bv3 := chat1.BodyPlaintextUnsupported{}
+	_, err = boxer.unversionBody(context.Background(), chat1.BodyPlaintext{Version__: maxBodyVersion, V3__: &bv3})
 	assertErr(err)
 }
 

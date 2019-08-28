@@ -328,7 +328,6 @@ class ThreadWrapper extends React.Component<Props, State> {
           scrollListUpCounter={this.state.scrollListUpCounter}
           scrollListToBottomCounter={this.state.scrollListToBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
-          showThreadSearch={false}
         />
       </>
     )

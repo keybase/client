@@ -2812,6 +2812,10 @@
         {
           "type": "boolean",
           "name": "deleteTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "pinMessage"
         }
       ]
     },

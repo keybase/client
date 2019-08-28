@@ -881,17 +881,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 			Expunge: *mergeRes.Expunged,
 		})
 		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
-
-		// update inbox info as well
-		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
-			s.Debug(ctx, "notifyExpunge: unable to IncrementLocalConvVersion, err", err)
-		}
-		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-			{
-				ConvID:     convID,
-				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
-			},
-		})
+		s.G().InboxSource.NotifyUpdate(ctx, uid, convID)
 	}
 }
 
@@ -983,15 +973,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 
 		// Send an additional notification to refresh the thread after we bump
 		// the local inbox version
-		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
-			s.Debug(ctx, "notifyEphemeralPurge: unable to IncrementLocalConvVersion, err", err)
-		}
-		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-			{
-				ConvID:     convID,
-				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
-			},
-		})
+		s.G().InboxSource.NotifyUpdate(ctx, uid, convID)
 		s.notifyUpdated(ctx, uid, convID, s.storage.GetExplodedReplies(ctx, convID, uid, explodedMsgs))
 	}
 }
