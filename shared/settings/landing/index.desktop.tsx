@@ -1,25 +1,25 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import SubHeading from '../subheading'
-import { Box, Button, Checkbox, Divider, Text, Meta } from '../../common-adapters'
-import { Stars } from '../common.desktop'
-import { priceToString, planToStars, comparePlans } from '../../constants/plan-billing'
+import {Box, Button, Checkbox, Divider, Text, Meta} from '../../common-adapters'
+import {Stars} from '../common.desktop'
+import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
 
-import { Props, AccountProps, PlanProps } from './index'
-import { PlanLevel } from '../../constants/types/settings'
-import { PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType } from '../../constants/types/plan-billing'
+import {Props, AccountProps, PlanProps} from './index'
+import {PlanLevel} from '../../constants/types/settings'
+import {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../constants/types/plan-billing'
 
 const ROW_HEIGHT = 48
 
 type PlanActionVariantsProps =
-  | { type: 'change'; changeType: ChangeType }
+  | {type: 'change'; changeType: ChangeType}
   | {
-    type: 'spaceInfo'
-    freeSpace: string
-    freeSpacePercentage: number
-    lowSpaceWarning: boolean
-  }
+      type: 'spaceInfo'
+      freeSpace: string
+      freeSpacePercentage: number
+      lowSpaceWarning: boolean
+    }
 
 type PlanLevelProps = {
   style?: Object
@@ -63,14 +63,14 @@ function SpaceInfo({
   lowSpaceWarning: boolean
 }) {
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxRow, alignItems: 'center' }}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{ color: Styles.globalColors.black_50, fontSize: 12, marginRight: Styles.globalMargins.xtiny }}
+        style={{color: Styles.globalColors.black_50, fontSize: 12, marginRight: Styles.globalMargins.xtiny}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE
       </Text>
-      <Box style={{ position: 'relative', width: 64 }}>
+      <Box style={{position: 'relative', width: 64}}>
         <Box style={styles.freeSpaceBar} />
         <Box
           style={{
@@ -84,11 +84,11 @@ function SpaceInfo({
   )
 }
 
-const UpgradeButton = ({ onClick, type }: { onClick: () => void; type: 'upgrade' | 'change' }) => (
+const UpgradeButton = ({onClick, type}: {onClick: () => void; type: 'upgrade' | 'change'}) => (
   <Button
-    style={{ marginRight: 0 }}
+    style={{marginRight: 0}}
     type="Success"
-    label={{ change: 'Change', upgrade: 'Upgrade' }[type]}
+    label={{change: 'Change', upgrade: 'Upgrade'}[type]}
     onClick={e => {
       onClick()
       e.stopPropagation()
@@ -96,10 +96,10 @@ const UpgradeButton = ({ onClick, type }: { onClick: () => void; type: 'upgrade'
   />
 )
 
-const DowngradeLink = ({ onClick }) => (
+const DowngradeLink = ({onClick}) => (
   <Text
     type={'BodySmall'}
-    style={{ color: Styles.globalColors.blueDark }}
+    style={{color: Styles.globalColors.blueDark}}
     onClick={e => {
       onClick()
       e.stopPropagation()
@@ -109,21 +109,21 @@ const DowngradeLink = ({ onClick }) => (
   </Text>
 )
 
-function PlanActionVariants({ variants, onClick }: { variants: PlanActionVariantsProps; onClick: () => void }) {
+function PlanActionVariants({variants, onClick}: {variants: PlanActionVariantsProps; onClick: () => void}) {
   switch (variants.type) {
     case 'change':
       return variants.changeType === 'downgrade' ? (
         <DowngradeLink onClick={onClick} />
       ) : (
-          <UpgradeButton onClick={onClick} type={variants.changeType} />
-        )
+        <UpgradeButton onClick={onClick} type={variants.changeType} />
+      )
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
   return null
 }
 
-function PlanLevelRow({ level, price, onInfo, variants, style, gigabytes }: PlanLevelProps) {
+function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {
   const selected = variants.type === 'spaceInfo'
   return (
     <Box
@@ -136,11 +136,11 @@ function PlanLevelRow({ level, price, onInfo, variants, style, gigabytes }: Plan
       }}
       onClick={() => onInfo()}
     >
-      <Box style={{ ...Styles.globalStyles.flexBoxColumn, flex: 1 }}>
-        <Box style={{ ...Styles.globalStyles.flexBoxRow, alignItems: 'center' }}>
+      <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Text
             type={'BodySemibold'}
-            style={{ color: Styles.globalColors.blueDark, marginRight: Styles.globalMargins.xtiny }}
+            style={{color: Styles.globalColors.blueDark, marginRight: Styles.globalMargins.xtiny}}
           >
             {level}
           </Text>
@@ -148,16 +148,16 @@ function PlanLevelRow({ level, price, onInfo, variants, style, gigabytes }: Plan
         </Box>
         {selected && <Meta title="Your Plan" backgroundColor={Styles.globalColors.blueLight} />}
       </Box>
-      <Box style={{ ...Styles.globalStyles.flexBoxRow, flex: 1 }}>
+      <Box style={{...Styles.globalStyles.flexBoxRow, flex: 1}}>
         <Text
-          style={{ ...Styles.globalStyles.fontSemibold, marginRight: Styles.globalMargins.xtiny }}
+          style={{...Styles.globalStyles.fontSemibold, marginRight: Styles.globalMargins.xtiny}}
           type="BodySmall"
         >
           {`${gigabytes}GB`}
         </Text>
         <Stars count={planToStars(level)} />
       </Box>
-      <Box style={{ ...Styles.globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end' }}>
+      <Box style={{...Styles.globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
         <PlanActionVariants variants={variants} onClick={onInfo} />
       </Box>
     </Box>
@@ -173,7 +173,7 @@ function PaymentInfo({
   onChangePaymentInfo: () => void
 }) {
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxColumn, marginTop: Styles.globalMargins.medium }}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, marginTop: Styles.globalMargins.medium}}>
       <SubHeading>Your payment method</SubHeading>
       <Box
         style={{
@@ -187,13 +187,13 @@ function PaymentInfo({
         <Box style={Styles.globalStyles.flexBoxColumn}>
           <Text type="Body">{name}</Text>
           <Text
-            style={{ color: isBroken ? Styles.globalColors.redDark : Styles.globalColors.black_50 }}
+            style={{color: isBroken ? Styles.globalColors.redDark : Styles.globalColors.black_50}}
             type="BodySmall"
           >
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
         </Box>
-        <Text type="BodySmall" style={{ color: Styles.globalColors.blueDark }} onClick={onChangePaymentInfo}>
+        <Text type="BodySmall" style={{color: Styles.globalColors.blueDark}} onClick={onChangePaymentInfo}>
           Update
         </Text>
       </Box>
@@ -244,7 +244,7 @@ function Plan({
       ))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo && (
-        <Text style={{ marginTop: Styles.globalMargins.small }} type="BodySmall">
+        <Text style={{marginTop: Styles.globalMargins.small}} type="BodySmall">
           * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
         </Text>
       )}
@@ -252,7 +252,7 @@ function Plan({
   )
 }
 
-function AccountEmail({ email, onChangeEmail }: { email: string; onChangeEmail: () => void }) {
+function AccountEmail({email, onChangeEmail}: {email: string; onChangeEmail: () => void}) {
   return (
     <Box
       style={{
@@ -265,14 +265,14 @@ function AccountEmail({ email, onChangeEmail }: { email: string; onChangeEmail: 
       <Box style={Styles.globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
       </Box>
-      <Text type="Body" style={{ color: Styles.globalColors.blueDark }} onClick={onChangeEmail}>
+      <Text type="Body" style={{color: Styles.globalColors.blueDark}} onClick={onChangeEmail}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function AccountFirstEmail({ onChangeEmail }: { onChangeEmail: () => void }) {
+function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
   return (
     <Box
       style={{
@@ -281,7 +281,7 @@ function AccountFirstEmail({ onChangeEmail }: { onChangeEmail: () => void }) {
         minHeight: ROW_HEIGHT,
       }}
     >
-      <Text type="Body" style={{ marginRight: Styles.globalMargins.xtiny }}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Email address:
       </Text>
       <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
@@ -289,26 +289,26 @@ function AccountFirstEmail({ onChangeEmail }: { onChangeEmail: () => void }) {
   )
 }
 
-function AccountPassword({ onChangePassword }: { onChangePassword: () => void }) {
+function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT }}>
-      <Text type="Body" style={{ marginRight: Styles.globalMargins.xtiny }}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Password:
       </Text>
-      <Text type="Body" style={{ flex: 1 }}>
+      <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{ color: Styles.globalColors.blueDark }} onClick={onChangePassword}>
+      <Text type="Body" style={{color: Styles.globalColors.blueDark}} onClick={onChangePassword}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function AccountFirstPassword({ onChangePassword }: { onChangePassword: () => void }) {
+function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT }}>
-      <Text type="Body" style={{ marginRight: Styles.globalMargins.xtiny }}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Password:
       </Text>
       <Button label="Set a password" type="Dim" small={true} onClick={onChangePassword} />
@@ -327,7 +327,7 @@ function Account({
   const Password = hasRandomPW ? AccountFirstPassword : AccountPassword
   const Email = email ? AccountEmail : AccountFirstEmail
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxColumn, marginBottom: Styles.globalMargins.medium }}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, marginBottom: Styles.globalMargins.medium}}>
       <Email email={email} onChangeEmail={onChangeEmail} />
       <Divider />
       <Password onChangePassword={onChangePassword} />
@@ -337,7 +337,7 @@ function Account({
           checked={rememberPassword}
           label="Remember my password"
           onCheck={onChangeRememberPassword}
-          style={{ paddingTop: Styles.globalMargins.small }}
+          style={{paddingTop: Styles.globalMargins.small}}
         />
       )}
     </Box>
@@ -346,7 +346,7 @@ function Account({
 
 function Landing(props: Props) {
   return (
-    <Box style={{ ...Styles.globalStyles.flexBoxColumn, flex: 1, padding: Styles.globalMargins.medium }}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, padding: Styles.globalMargins.medium}}>
       <Account {...props.account} />
       {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>
