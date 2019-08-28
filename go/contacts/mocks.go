@@ -114,14 +114,14 @@ func (c *MockContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []ke
 }
 
 type ErrorContactsProvider struct {
-	FailOnCall bool
-	T          libkb.TestingTB
+	NoFail bool
+	T      libkb.TestingTB
 }
 
 func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ret ContactLookupResults, err error) {
 
-	if c.FailOnCall {
+	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAllWithToken")
 	}
 	return ret, errors.New("error contacts provider")
@@ -129,28 +129,28 @@ func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, email
 
 func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupResults, err error) {
-	if c.FailOnCall {
+	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAll")
 	}
 	return ret, errors.New("error contacts provider")
 }
 
 func (c *ErrorContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
-	if c.FailOnCall {
+	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.FindUsernames")
 	}
 	return nil, errors.New("mock error")
 }
 
 func (c *ErrorContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
-	if c.FailOnCall {
+	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.FindFollowing")
 	}
 	return nil, errors.New("mock error")
 }
 
 func (c *ErrorContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
-	if c.FailOnCall {
+	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.FindServiceMaps")
 	}
 	return nil, errors.New("mock error")

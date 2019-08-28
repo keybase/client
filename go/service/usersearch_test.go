@@ -257,7 +257,9 @@ func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearc
 	require.NoError(t, err)
 
 	contactsProv := &contacts.CachedContactsProvider{
-		Provider: &contacts.ErrorContactsProvider{T: t, FailOnCall: false},
+		// Usersearch tests will call this provider for imp tofu searches, we
+		// want it to return errors but not fail entire test.
+		Provider: &contacts.ErrorContactsProvider{T: t, NoFail: true},
 		Store:    contacts.NewContactCacheStore(tc.G),
 	}
 	handler = NewUserSearchHandler(nil, tc.G, contactsProv)

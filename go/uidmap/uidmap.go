@@ -23,13 +23,13 @@ type UIDMap struct {
 }
 
 func NewUIDMap(fullNameCacheSize int) *UIDMap {
-	fncache, err := lru.New(fullNameCacheSize)
+	cache, err := lru.New(fullNameCacheSize)
 	if err != nil {
 		panic(fmt.Sprintf("failed to make an LRU size=%d: %s", fullNameCacheSize, err))
 	}
 	return &UIDMap{
 		usernameCache:    make(map[keybase1.UID]libkb.NormalizedUsername),
-		fullNameCache:    fncache,
+		fullNameCache:    cache,
 		serverRefreshers: make(map[keybase1.UID]keybase1.Seqno),
 	}
 }
