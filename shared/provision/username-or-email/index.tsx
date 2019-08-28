@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen} from '../../signup/common'
+import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   error: string
@@ -57,7 +57,26 @@ const Username = (props: Props) => {
 
   return (
     <SignupScreen
-      banners={[]}
+      banners={[
+        ...errorBanner(props.error),
+        ...(props.inlineSignUpLink
+          ? [
+              <Kb.Banner key="usernameTaken" color="blue">
+                <Kb.BannerParagraph
+                  bannerColor="blue"
+                  content={[
+                    "This username doesn't exist. Did you mean to ",
+                    {
+                      onClick: () => props.inlineSignUpLink && props.onGoToSignup(),
+                      text: 'create a new account',
+                    },
+                    '?',
+                  ]}
+                />
+              </Kb.Banner>,
+            ]
+          : []),
+      ]}
       buttons={[
         {
           disabled: !username,
@@ -70,23 +89,17 @@ const Username = (props: Props) => {
       onBack={props.onBack}
       title="Log in"
     >
-      <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
+      <Kb.UserCard style={styles.card} outerStyle={styles.outerCard} contrasting={true}>
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-            <Kb.Text type="BodyTinySemibold" style={styles.inputLabel}>
-              Username
-            </Kb.Text>
-            <Kb.PlainInput
-              autoFocus={true}
-              style={styles.input}
-              placeholder="Username"
-              maxLength={maxUsernameLength}
-              onEnterKeyDown={onSubmit}
-              onChangeText={setUsername}
-              value={username}
-              textType="BodySemibold"
-            />
-          </Kb.Box2>
+          <Kb.LabeledInput
+            autoFocus={true}
+            placeholder="Username"
+            maxLength={maxUsernameLength}
+            onEnterKeyDown={onSubmit}
+            onChangeText={setUsername}
+            value={username}
+            textType="BodySemibold"
+          />
           <Kb.Text
             style={styles.forgotUsername}
             type="BodySmallSecondaryLink"
@@ -150,6 +163,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   outerCard: {
+    height: 'auto',
     marginTop: 40,
   },
   outerStyle: {

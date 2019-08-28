@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 export type Props = {
+  contrasting?: boolean
   onAvatarClicked?: () => void
   outerStyle?: Object | null
   style?: any

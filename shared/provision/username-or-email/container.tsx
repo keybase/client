@@ -18,7 +18,7 @@ const decodeInlineError = inlineRPCError => {
       case RPCTypes.StatusCode.scnotfound:
         // If it's a "not found" error, we will show "go to signup" link,
         // otherwise just the error.
-        inlineError = "This username doesn't exist."
+        inlineError = ''
         inlineSignUpLink = true
         break
       case RPCTypes.StatusCode.scbadusername:
@@ -31,9 +31,10 @@ const decodeInlineError = inlineRPCError => {
 }
 
 const mapStateToProps = (state: Container.TypedState) => {
+  const error = state.provision.error.stringValue()
   const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
   return {
-    error: state.provision.error.stringValue(),
+    error: error ? error : inlineError && !inlineSignUpLink ? inlineError : '',
     initialUsername: state.provision.initialUsername,
     inlineError,
     inlineSignUpLink,

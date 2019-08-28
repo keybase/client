@@ -10,9 +10,9 @@ const Kb = {
 
 const avatarSize = 128
 
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
+const UserCard = ({outerStyle, onAvatarClicked, username, style, children, contrasting}: Props) => (
   <div style={Styles.collapseStyles([styles.container, outerStyle])}>
-    <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+    <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} contrasting={contrasting} />
     <div style={Styles.collapseStyles([styles.inside, style])}>{children}</div>
   </div>
 )

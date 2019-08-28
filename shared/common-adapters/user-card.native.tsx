@@ -12,11 +12,11 @@ const Kb = {
 
 const avatarSize = 96
 
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
+const UserCard = ({outerStyle, onAvatarClicked, username, style, children, contrasting}: Props) => (
   <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
     <Kb.Box style={styles.avatar}>
       <Kb.Box style={styles.avatarBackground} />
-      <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+      <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} contrasting={contrasting} />
     </Kb.Box>
     <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
   </Kb.Box>

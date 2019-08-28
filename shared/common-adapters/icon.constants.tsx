@@ -1283,6 +1283,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
+  'icon-placeholder-avatar-contrast-192': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-contrast-192.png'),
+  },
+  'icon-placeholder-avatar-contrast-256': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-contrast-256.png'),
+  },
+  'icon-placeholder-avatar-contrast-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-contrast-32.png'),
+  },
+  'icon-placeholder-avatar-contrast-960': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-contrast-960.png'),
+  },
   'icon-placeholder-secret-user-16': {
     extension: 'png',
     isFont: false,
@@ -1577,6 +1597,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-skull-64.png'),
+  },
+  'icon-skull-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-skull-96.png'),
   },
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
