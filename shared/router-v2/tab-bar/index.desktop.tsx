@@ -8,6 +8,7 @@ import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
+
 export type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string
@@ -150,11 +151,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Box2 style={styles.iconBox} direction="horizontal">
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
                     {p.uploading && t === Tabs.fsTab && (
-                      <Kb.Icon
-                        type={'icon-addon-file-uploading'}
-                        sizeType={'Default'}
-                        style={styles.badgeIcon}
-                      />
+                      <Kb.Icon type="icon-addon-file-uploading" sizeType="Default" style={styles.badgeIcon} />
                     )}
                   </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">

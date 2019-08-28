@@ -1,8 +1,8 @@
 import * as React from 'react'
+import * as Styles from '../../styles'
 import SubHeading from '../subheading'
 import {Box, Button, Checkbox, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
 
@@ -63,19 +63,19 @@ function SpaceInfo({
   lowSpaceWarning: boolean
 }) {
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{color: globalColors.black_50, fontSize: 12, marginRight: globalMargins.xtiny}}
+        style={{color: Styles.globalColors.black_50, fontSize: 12, marginRight: Styles.globalMargins.xtiny}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE
       </Text>
       <Box style={{position: 'relative', width: 64}}>
-        <Box style={freeSpaceBarStyle} />
+        <Box style={styles.freeSpaceBar} />
         <Box
           style={{
-            ...freeSpaceBarStyle,
-            backgroundColor: lowSpaceWarning ? globalColors.red : globalColors.blue,
+            ...styles.freeSpaceBar,
+            backgroundColor: lowSpaceWarning ? Styles.globalColors.red : Styles.globalColors.blue,
             width: Math.round(64 * freeSpacePercentage),
           }}
         />
@@ -99,7 +99,7 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void; type: 'upgrade' | 
 const DowngradeLink = ({onClick}) => (
   <Text
     type={'BodySmall'}
-    style={{color: globalColors.blueDark}}
+    style={{color: Styles.globalColors.blueDark}}
     onClick={e => {
       onClick()
       e.stopPropagation()
@@ -128,33 +128,36 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
   return (
     <Box
       style={{
-        ...globalStyles.flexBoxRow,
-        ...desktopStyles.clickable,
-        ...planLevelRowStyle,
-        backgroundColor: selected ? globalColors.blueLighter2 : globalColors.white,
+        ...Styles.globalStyles.flexBoxRow,
+        ...Styles.desktopStyles.clickable,
+        ...styles.planLevelRow,
+        backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
         ...style,
       }}
       onClick={() => onInfo()}
     >
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Text
             type={'BodySemibold'}
-            style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}
+            style={{color: Styles.globalColors.blueDark, marginRight: Styles.globalMargins.xtiny}}
           >
             {level}
           </Text>
-          <Text type={'BodySmall'}>({price})</Text>
+          <Text type="BodySmall">({price})</Text>
         </Box>
-        {selected && <Meta title="Your Plan" backgroundColor={globalColors.blueLight} />}
+        {selected && <Meta title="Your Plan" backgroundColor={Styles.globalColors.blueLight} />}
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type="BodySmall">
+      <Box style={{...Styles.globalStyles.flexBoxRow, flex: 1}}>
+        <Text
+          style={{...Styles.globalStyles.fontSemibold, marginRight: Styles.globalMargins.xtiny}}
+          type="BodySmall"
+        >
           {`${gigabytes}GB`}
         </Text>
         <Stars count={planToStars(level)} />
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
+      <Box style={{...Styles.globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
         <PlanActionVariants variants={variants} onClick={onInfo} />
       </Box>
     </Box>
@@ -170,24 +173,27 @@ function PaymentInfo({
   onChangePaymentInfo: () => void
 }) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, marginTop: Styles.globalMargins.medium}}>
       <SubHeading>Your payment method</SubHeading>
       <Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           justifyContent: 'space-between',
           minHeight: ROW_HEIGHT,
-          paddingLeft: globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.xtiny,
         }}
       >
-        <Box style={globalStyles.flexBoxColumn}>
+        <Box style={Styles.globalStyles.flexBoxColumn}>
           <Text type="Body">{name}</Text>
-          <Text style={{color: isBroken ? globalColors.redDark : globalColors.black_50}} type="BodySmall">
+          <Text
+            style={{color: isBroken ? Styles.globalColors.redDark : Styles.globalColors.black_50}}
+            type="BodySmall"
+          >
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
         </Box>
-        <Text type="BodySmall" style={{color: globalColors.blueDark}} onClick={onChangePaymentInfo}>
+        <Text type="BodySmall" style={{color: Styles.globalColors.blueDark}} onClick={onChangePaymentInfo}>
           Update
         </Text>
       </Box>
@@ -215,8 +221,8 @@ function Plan({
   }
 
   return (
-    <Box style={globalStyles.flexBoxColumn}>
-      <Box style={globalStyles.flexBoxColumn}>
+    <Box style={Styles.globalStyles.flexBoxColumn}>
+      <Box style={Styles.globalStyles.flexBoxColumn}>
         <SubHeading>Your plan</SubHeading>
       </Box>
       {plans.map(p => (
@@ -238,7 +244,7 @@ function Plan({
       ))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo && (
-        <Text style={{marginTop: globalMargins.small}} type="BodySmall">
+        <Text style={{marginTop: Styles.globalMargins.small}} type="BodySmall">
           * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
         </Text>
       )}
@@ -250,16 +256,16 @@ function AccountEmail({email, onChangeEmail}: {email: string; onChangeEmail: () 
   return (
     <Box
       style={{
-        ...globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         justifyContent: 'space-between',
         minHeight: ROW_HEIGHT,
       }}
     >
-      <Box style={globalStyles.flexBoxColumn}>
+      <Box style={Styles.globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
       </Box>
-      <Text type="Body" style={{color: globalColors.blueDark}} onClick={onChangeEmail}>
+      <Text type="Body" style={{color: Styles.globalColors.blueDark}} onClick={onChangeEmail}>
         Edit
       </Text>
     </Box>
@@ -270,12 +276,12 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
   return (
     <Box
       style={{
-        ...globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         minHeight: ROW_HEIGHT,
       }}
     >
-      <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Email address:
       </Text>
       <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
@@ -285,14 +291,14 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
 
 function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
-      <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Password:
       </Text>
       <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{color: globalColors.blueDark}} onClick={onChangePassword}>
+      <Text type="Body" style={{color: Styles.globalColors.blueDark}} onClick={onChangePassword}>
         Edit
       </Text>
     </Box>
@@ -301,8 +307,8 @@ function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
 
 function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
-      <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
+      <Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
         Password:
       </Text>
       <Button label="Set a password" type="Dim" small={true} onClick={onChangePassword} />
@@ -321,7 +327,7 @@ function Account({
   const Password = hasRandomPW ? AccountFirstPassword : AccountPassword
   const Email = email ? AccountEmail : AccountFirstEmail
   return (
-    <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, marginBottom: Styles.globalMargins.medium}}>
       <Email email={email} onChangeEmail={onChangeEmail} />
       <Divider />
       <Password onChangePassword={onChangePassword} />
@@ -331,7 +337,7 @@ function Account({
           checked={rememberPassword}
           label="Remember my password"
           onCheck={onChangeRememberPassword}
-          style={{paddingTop: globalMargins.small}}
+          style={{paddingTop: Styles.globalMargins.small}}
         />
       )}
     </Box>
@@ -340,28 +346,29 @@ function Account({
 
 function Landing(props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: globalMargins.medium}}>
+    <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, padding: Styles.globalMargins.medium}}>
       <Account {...props.account} />
       {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>
   )
 }
 
-const planLevelRowStyle = {
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  minHeight: ROW_HEIGHT,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-}
-
-const freeSpaceBarStyle = {
-  ...globalStyles.rounded,
-  backgroundColor: globalColors.white,
-  height: 4,
-  position: 'absolute',
-  top: -2,
-  width: 64,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  freeSpaceBar: {
+    ...Styles.globalStyles.rounded,
+    backgroundColor: Styles.globalColors.white,
+    height: 4,
+    position: 'absolute',
+    top: -2,
+    width: 64,
+  },
+  planLevelRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: ROW_HEIGHT,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
+}))
 
 export default Landing

@@ -10,7 +10,7 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './
 // * Use ListItem2
 
 class UserResult extends React.Component<Props> {
-  render = () => {
+  render() {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]

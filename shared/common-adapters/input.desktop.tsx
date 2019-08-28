@@ -268,7 +268,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  render = () => {
+  render() {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
@@ -344,11 +344,8 @@ class Input extends React.PureComponent<Props, State> {
       style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }`
-
     return (
       <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
-        <style>{inputRealCSS}</style>
         {!this.props.small && !this.props.hideLabel && (
           <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}

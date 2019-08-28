@@ -1,5 +1,4 @@
 // +build darwin
-// +build go1.10
 
 package keychain
 
@@ -366,7 +365,7 @@ func QueryItemRef(item Item) (C.CFTypeRef, error) {
 	defer Release(C.CFTypeRef(cfDict))
 
 	var resultsRef C.CFTypeRef
-	errCode := C.SecItemCopyMatching(cfDict, &resultsRef)
+	errCode := C.SecItemCopyMatching(cfDict, &resultsRef) //nolint
 	if Error(errCode) == ErrorItemNotFound {
 		return 0, nil
 	}
@@ -430,7 +429,7 @@ func attrKey(ref C.CFTypeRef) string {
 }
 
 func convertResult(d C.CFDictionaryRef) (*QueryResult, error) {
-	m := CFDictionaryToMap(C.CFDictionaryRef(d))
+	m := CFDictionaryToMap(d)
 	result := QueryResult{}
 	for k, v := range m {
 		switch attrKey(k) {

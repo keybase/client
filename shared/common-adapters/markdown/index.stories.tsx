@@ -230,7 +230,7 @@ class ShowAST extends React.Component<
   }
 > {
   state = {visible: false}
-  render = () => {
+  render() {
     let parsed
     try {
       parsed = simpleMarkdownParser((this.props.text || '').trim() + '\n', {
@@ -245,7 +245,7 @@ class ShowAST extends React.Component<
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
-          onClick={() => this.setState({visible: !this.state.visible})}
+          onClick={() => this.setState(s => ({visible: !s.visible}))}
           label={`${this.state.visible ? 'Hide' : 'Show'} AST`}
         />
         {this.state.visible && (
@@ -282,11 +282,11 @@ class ShowPreview extends React.Component<
   }
 > {
   state = {visible: false}
-  render = () => {
+  render() {
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
-          onClick={() => this.setState({visible: !this.state.visible})}
+          onClick={() => this.setState(s => ({visible: !s.visible}))}
           label={`${this.state.visible ? 'Hide' : 'Show'} Preview`}
         />
         {this.state.visible && (

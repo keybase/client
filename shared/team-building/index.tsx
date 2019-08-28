@@ -427,7 +427,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
         keyboardShouldPersistTaps="handled"
-        keyProperty={'key'}
+        keyProperty="key"
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
@@ -453,7 +453,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     this.props.onSearchForMore()
   }, 500)
 
-  render = () => {
+  render() {
     const props = this.props
 
     let content

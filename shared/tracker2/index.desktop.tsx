@@ -199,7 +199,7 @@ const reason = {
   textAlign: 'center' as const,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   assertions: {
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
@@ -276,6 +276,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
-})
+}))
 
 export default Tracker

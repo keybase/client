@@ -18,7 +18,7 @@ class DeviceRow extends React.Component<{device: _Device}> {
 
     return (
       <div style={{...Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
-        <div style={deviceRowStyles.iconWrapper}>
+        <div style={styles.iconWrapper}>
           <Kb.Icon type={icon} style={{height: 22}} />
         </div>
         <Kb.Text type="BodySemibold" style={{marginLeft: 16}}>
@@ -53,7 +53,7 @@ export default class DeviceList extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   accessFolders: {
     marginRight: 0,
   },
@@ -77,19 +77,16 @@ const styles = Styles.styleSheetCreate({
     marginRight: 7,
     width: 236,
   },
-  infoText: {
-    marginBottom: 8,
-    marginTop: 5,
-    paddingLeft: 55,
-    paddingRight: 55,
-  },
-})
-
-const deviceRowStyles = {
   iconWrapper: {
     display: 'flex',
     justifyContent: 'center',
     marginLeft: 33,
     width: 24,
   },
-}
+  infoText: {
+    marginBottom: 8,
+    marginTop: 5,
+    paddingLeft: 55,
+    paddingRight: 55,
+  },
+}))

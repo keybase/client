@@ -69,10 +69,10 @@ const createPropProvider = (...maps: SelectorMap[]) => {
       merged={merged}
     >
       <GatewayProvider>
-        <React.Fragment>
+        <>
           <StorybookErrorBoundary children={story()} />
           <GatewayDest component={DestBox} name="popup-root" />
-        </React.Fragment>
+        </>
       </GatewayProvider>
     </Provider>
   )
@@ -93,10 +93,10 @@ export const MockStore = ({store, children}): any => (
     merged={store}
   >
     <GatewayProvider>
-      <React.Fragment>
+      <>
         <StorybookErrorBoundary children={children} />
         <GatewayDest component={DestBox} name="popup-root" />
-      </React.Fragment>
+      </>
     </GatewayProvider>
   </Provider>
 )

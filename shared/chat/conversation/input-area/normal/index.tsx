@@ -530,7 +530,7 @@ class Input extends React.Component<InputProps, InputState> {
     return standardTransformer(`${prefix}${command.name}`, tData, preview)
   }
 
-  render = () => {
+  render() {
     const {
       suggestTeams,
       suggestUsers,

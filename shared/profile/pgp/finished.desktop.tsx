@@ -60,7 +60,7 @@ class Finished extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   pgpKeyString: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fontTerminal,
@@ -82,7 +82,7 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
-})
+}))
 
 export default namedConnect(
   state => ({

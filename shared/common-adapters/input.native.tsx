@@ -241,7 +241,7 @@ class Input extends Component<Props, State> {
     this._onChangeTextDone(this._getValue())
   }
 
-  render = () => {
+  render() {
     const underlineColor = this._underlineColor()
     const lineHeight = this._lineHeight()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)

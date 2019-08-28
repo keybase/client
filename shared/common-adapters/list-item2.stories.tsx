@@ -21,7 +21,7 @@ const body3 = (
     <Text type="BodySmall">Subtitle</Text>
   </Box2>
 )
-const actionButton = <Button label={'Action'} small={true} onClick={Sb.action('button')} />
+const actionButton = <Button label="Action" small={true} onClick={Sb.action('button')} />
 const icon1 = <Icon type="icon-computer-32" />
 const icon2 = <Icon type="icon-bitcoin-logo-48" />
 const icon3 = <Icon type="iconfont-cloud" sizeType="Small" color={globalColors.blue} />
@@ -58,7 +58,7 @@ const load = () => {
           body={body1}
           type="Small"
           action={
-            <Text style={{color: globalColors.redDark}} type={'BodySmall'} onClick={Sb.action('text action')}>
+            <Text style={{color: globalColors.redDark}} type="BodySmall" onClick={Sb.action('text action')}>
               Action Jack
             </Text>
           }

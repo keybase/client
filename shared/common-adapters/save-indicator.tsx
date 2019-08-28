@@ -187,12 +187,12 @@ class SaveIndicator extends React.Component<Props, State> {
         return <Kb.ProgressIndicator style={{width: Styles.globalMargins.medium}} />
       case 'justSaved':
         return (
-          <React.Fragment>
+          <>
             <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
             <Kb.Text type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
               &nbsp; Saved
             </Kb.Text>
-          </React.Fragment>
+          </>
         )
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
@@ -200,7 +200,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
   }
 
-  render = () => {
+  render() {
     return (
       <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style])}>{this._getChildren()}</Kb.Box>
     )

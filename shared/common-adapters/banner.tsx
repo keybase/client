@@ -126,7 +126,7 @@ export const Banner = (props: BannerProps) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {minHeight: Styles.globalMargins.large},
+  container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
   containerInline: Styles.platformStyles({
     common: {borderRadius: Styles.borderRadius},
     isElectron: {
@@ -141,7 +141,7 @@ const styles = Styles.styleSheetCreate(() => ({
       position: 'absolute',
       right: 0,
     },
-    isElectron: {paddingTop: Styles.globalMargins.tiny + Styles.globalMargins.xtiny},
+    isElectron: {paddingTop: Styles.globalMargins.tiny},
     isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
   inlineText: {textAlign: 'left'},

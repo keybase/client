@@ -9,7 +9,7 @@ import {
   ProgressIndicator,
   Text,
   PopupHeaderText,
-} from '../../../../../common-adapters/'
+} from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'

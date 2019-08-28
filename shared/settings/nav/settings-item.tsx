@@ -52,7 +52,7 @@ export default function SettingsItem(props: SettingsItemProps) {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: 6,
   },
@@ -88,4 +88,4 @@ const styles = Styles.styleSheetCreate({
   selectedText: {
     color: Styles.globalColors.black,
   },
-})
+}))

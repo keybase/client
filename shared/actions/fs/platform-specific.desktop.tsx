@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
@@ -114,25 +115,26 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
   )
 
 const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
-  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
-    ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-        .then(mountLocation =>
-          _openPathInSystemFileManagerPromise(
-            _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
-              Constants.parsePath(action.payload.path).kind
-            ) ||
-              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-                Types.PathType.Folder
-          )
-        )
-        .catch(makeRetriableErrorHandler(action, action.payload.path))
-    : (new Promise((_, reject) =>
-        // This usually indicates a developer error as
-        // openPathInSystemFileManager shouldn't be used when FUSE integration
-        // is not enabled. So just blackbar to encourage a log send.
-        reject(new Error('FUSE integration is not enabled'))
-      ) as Promise<void>)
+  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
+    ? _openPathInSystemFileManagerPromise(
+        _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
+        ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+          Constants.parsePath(action.payload.path).kind
+        ) ||
+          state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
+            Types.PathType.Folder
+      ).catch(makeRetriableErrorHandler(action, action.payload.path))
+    : (new Promise((resolve, reject) => {
+        if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+          // This usually indicates a developer error as
+          // openPathInSystemFileManager shouldn't be used when FUSE integration
+          // is not enabled. So just blackbar to encourage a log send.
+          reject(new Error('FUSE integration is not enabled'))
+        } else {
+          logger.warn('empty directMountDir') // if this happens it might be a race?
+          resolve()
+        }
+      }) as Promise<void>)
 
 function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
@@ -392,6 +394,29 @@ const changedFocus = (state: TypedState, action: ConfigGen.ChangedFocusPayload) 
   state.fs.sfmi.driverStatus.kextPermissionError &&
   FsGen.createDriverEnable({isRetry: true})
 
+const refreshMountDirs = async (
+  state: TypedState,
+  action:
+    | FsGen.RefreshMountDirsAfter10sPayload
+    | FsGen.KbfsDaemonRpcStatusChangedPayload
+    | FsGen.SetDriverStatusPayload
+) => {
+  if (action.type === FsGen.refreshMountDirsAfter10s) {
+    await new Promise(resolve => setTimeout(resolve, 10000))
+  }
+  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+    return null
+  }
+  const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+  const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
+  return [
+    FsGen.createSetDirectMountDir({directMountDir}),
+    FsGen.createSetPreferredMountDirs({preferredMountDirs: I.List(preferredMountDirs || [])}),
+    // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
+    ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
+  ]
+}
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
@@ -401,6 +426,10 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
       refreshDriverStatus
     )
   }
+  yield* Saga.chainAction2(
+    [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
+    refreshMountDirs
+  )
   yield* Saga.chainAction2(FsGen.openAndUpload, openAndUpload)
   yield* Saga.chainAction2([FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged], loadUserFileEdits)
   yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)

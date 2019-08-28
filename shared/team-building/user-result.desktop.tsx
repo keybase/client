@@ -27,7 +27,7 @@ type LocalState = {
 class Row extends React.Component<Props, LocalState> {
   state = {hovering: false}
 
-  render = () => {
+  render() {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
@@ -175,7 +175,7 @@ const Services = ({
   } else if (keybaseUsername) {
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
-        <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
+        <Kb.Icon type="icon-keybase-logo-16" style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
         <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
           {keybaseUsername}
         </Kb.Text>

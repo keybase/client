@@ -80,7 +80,7 @@ const _Dropdown = ({
   showingMenu,
   toggleShowingMenu,
 }: DropdownProps) => (
-  <React.Fragment>
+  <>
     <Kb.ClickableBox
       style={styles.dropdown}
       ref={Style.isMobile ? null : setAttachmentRef}
@@ -107,7 +107,7 @@ const _Dropdown = ({
       minSavingTimeMs={300}
       savedTimeoutMs={2500}
     />
-  </React.Fragment>
+  </>
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 

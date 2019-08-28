@@ -13,7 +13,6 @@ import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constant
 type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
 export type State = {
-  sentFeedback: boolean
   sending: boolean
   sendError: Error | null
 }
@@ -44,7 +43,6 @@ class FeedbackContainer extends React.Component<Props, State> {
   state = {
     sendError: null,
     sending: false,
-    sentFeedback: false,
   }
   _dumpLogs = () => logger.dump().then(writeLogLinesToFile)
 
@@ -57,7 +55,7 @@ class FeedbackContainer extends React.Component<Props, State> {
   }
 
   _onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
-    this.setState({sending: true, sentFeedback: false})
+    this.setState({sending: true})
 
     this.props.setTimeout(() => {
       const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
@@ -86,7 +84,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             this.setState({
               sendError: null,
               sending: false,
-              sentFeedback: true,
             })
           }
         })
@@ -96,7 +93,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             this.setState({
               sendError: err,
               sending: false,
-              sentFeedback: false,
             })
           }
         })

@@ -29,7 +29,7 @@ const load = () => {
       <Revoke
         {...propsTwitter}
         platform="twitter"
-        errorMessage={'There was an error revoking your proof. You can click the button to try again.'}
+        errorMessage="There was an error revoking your proof. You can click the button to try again."
       />
     ))
     .add('Reddit', () => <Revoke {...props} platform="reddit" icon={makeIcons('reddit')} />)
