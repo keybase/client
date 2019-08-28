@@ -17,7 +17,7 @@ const NoTeamsPlaceholder = () => {
       {isLoadingTeams ? (
         <Kb.ProgressIndicator type="Large" />
       ) : (
-        <React.Fragment>
+        <>
           <Kb.Text type="BodySmall">You are not a part of any teams.</Kb.Text>
           <Kb.Text type="BodySmall">
             <Kb.Text type="BodySmallPrimaryLink" onClick={onCreateTeam}>
@@ -28,7 +28,7 @@ const NoTeamsPlaceholder = () => {
               join a team you know.
             </Kb.Text>
           </Kb.Text>
-        </React.Fragment>
+        </>
       )}
     </Kb.Box2>
   )

@@ -160,7 +160,7 @@ class Dropdown extends React.Component<Props, State> {
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
           <NativeModal
-            animationType={'slide'}
+            animationType="slide"
             transparent={true}
             visible={this.state.modalVisible}
             onRequestClose={() => this._showModal(false)}

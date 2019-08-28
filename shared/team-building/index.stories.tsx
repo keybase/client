@@ -670,7 +670,7 @@ const load = () => {
         prettyName="Chris Coyne"
         displayLabel="Chris Coyne"
         highlight={false}
-        resultForService={'keybase'}
+        resultForService="keybase"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -691,7 +691,7 @@ const load = () => {
         prettyName="Chris Coyne"
         displayLabel="Chris Coyne"
         highlight={false}
-        resultForService={'keybase'}
+        resultForService="keybase"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -708,7 +708,7 @@ const load = () => {
     ))
     .add('marcopolo (github) - keybase user. following', () => (
       <UserResult
-        resultForService={'github'}
+        resultForService="github"
         username="marcopolo"
         prettyName=""
         displayLabel=""
@@ -723,7 +723,7 @@ const load = () => {
     ))
     .add('marcopolo2 (github) - no keybase user', () => (
       <UserResult
-        resultForService={'github'}
+        resultForService="github"
         username="marcopolo"
         prettyName=""
         displayLabel=""
@@ -754,7 +754,7 @@ const load = () => {
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
-        resultForService={'keybase'}
+        resultForService="keybase"
       />
     ))
 

@@ -110,7 +110,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={this.onConfirmRolePicker}
                 onCancel={this.onCancelRolePicker}
-                position={'bottom center'}
+                position="bottom center"
                 open={this.state.isRolePickerOpen}
                 disabledRoles={{owner: 'Cannot invite an owner via email.'}}
               >

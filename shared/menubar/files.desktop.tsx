@@ -61,7 +61,7 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
       return (
         <ComposedComponent
           {...this.props}
-          onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})}
+          onShowAll={() => this.setState(s => ({isShowingAll: !s.isShowingAll}))}
           isShowingAll={this.state.isShowingAll}
         />
       )

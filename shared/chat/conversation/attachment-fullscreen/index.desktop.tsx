@@ -10,7 +10,7 @@ import {
   OverlayParentHOC,
   OverlayParentProps,
 } from '../../../common-adapters'
-import MessagePopup from '../messages/message-popup/'
+import MessagePopup from '../messages/message-popup'
 import {
   collapseStyles,
   globalColors,

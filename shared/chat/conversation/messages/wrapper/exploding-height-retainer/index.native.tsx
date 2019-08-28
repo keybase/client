@@ -224,10 +224,10 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     )
   }
   return (
-    <React.Fragment>
+    <>
       {children}
       <Kb.Box style={styles.tagBox}>{exploded}</Kb.Box>
-    </React.Fragment>
+    </>
   )
 }
 const styles = Styles.styleSheetCreate({

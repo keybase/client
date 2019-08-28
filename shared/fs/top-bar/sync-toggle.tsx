@@ -68,7 +68,7 @@ const SyncToggle = (props: Props) =>
         }
         on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
         color="green"
-        label={'Sync on this device'}
+        label="Sync on this device"
         ref={props.setAttachmentRef}
         disabled={props.waiting}
       />
