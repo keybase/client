@@ -311,10 +311,12 @@ function* startPowerMonitor() {
   }
 }
 
+const nativeFrameKey = 'useNativeFrame'
+
 const saveUseNativeFrame = async (state: Container.TypedState) => {
   const {useNativeFrame} = state.config
   await RPCTypes.configGuiSetValueRpcPromise({
-    path: 'useNativeFrame',
+    path: nativeFrameKey,
     value: {
       b: useNativeFrame,
       isNull: false,
@@ -327,17 +329,18 @@ function* initializeUseNativeFrame() {
     const val: Saga.RPCPromiseType<
       typeof RPCTypes.configGuiGetValueRpcPromise
     > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: 'useNativeFrame',
+      path: nativeFrameKey,
     })
     const useNativeFrame = val.b === undefined ? defaultUseNativeFrame : val.b || defaultUseNativeFrame
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
 }
 
+const windowStateKey = 'windowState'
 const saveWindowState = async (state: Container.TypedState) => {
   const {windowState} = state.config
   await RPCTypes.configGuiSetValueRpcPromise({
-    path: 'windowState',
+    path: windowStateKey,
     value: {
       isNull: false,
       s: JSON.stringify(windowState),
@@ -345,12 +348,13 @@ const saveWindowState = async (state: Container.TypedState) => {
   })
 }
 
+const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
     const val: Saga.RPCPromiseType<
       typeof RPCTypes.configGuiGetValueRpcPromise
     > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: 'notifySound',
+      path: notifySoundKey,
     })
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
@@ -363,7 +367,7 @@ function* initializeNotifySound() {
 const setNotifySound = async (state: Container.TypedState) => {
   const {notifySound} = state.config
   await RPCTypes.configGuiSetValueRpcPromise({
-    path: 'notifySound',
+    path: notifySoundKey,
     value: {
       b: notifySound,
       isNull: false,
@@ -371,12 +375,13 @@ const setNotifySound = async (state: Container.TypedState) => {
   })
 }
 
+const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
     const val: Saga.RPCPromiseType<
       typeof RPCTypes.configGuiGetValueRpcPromise
     > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: 'openAtLogin',
+      path: openAtLoginKey,
     })
 
     const openAtLogin: boolean | undefined = val.b || undefined
@@ -390,14 +395,14 @@ function* initializeOpenAtLogin() {
 const setOpenAtLogin = async (state: Container.TypedState) => {
   const {openAtLogin} = state.config
   await RPCTypes.configGuiSetValueRpcPromise({
-    path: 'openAtLogin',
+    path: openAtLoginKey,
     value: {
       b: openAtLogin,
       isNull: false,
     },
   })
 
-  if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+  if (!__DEV__ && SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
     logger.info(`Login item settings changed! now ${openAtLogin}`)
     SafeElectron.getApp().setLoginItemSettings({openAtLogin})
   }

@@ -111,6 +111,10 @@ export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
 
+/**
+ * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
+ * node never writes to it, only the renderer does
+ */
 const loadWindowState = () => {
   const filename = dataRoot + 'gui_config.json'
 
