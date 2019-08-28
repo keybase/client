@@ -246,7 +246,7 @@ class PlainInput extends Component<InternalProps, State> {
     return common
   }
 
-  render = () => {
+  render() {
     const props = this._getProps()
     if (props.value) {
       this._lastNativeText = props.value

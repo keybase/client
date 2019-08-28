@@ -51,7 +51,7 @@ class TestInput extends React.Component<TestInputProps> {
     onEnterKeyDown()
   }
 
-  render = () => {
+  render() {
     return (
       <Box
         style={{

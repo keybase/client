@@ -88,7 +88,7 @@ func (p *provisioner) run() (err error) {
 }
 
 func (k KexBaseArg) getDeviceID() (ret DeviceID, err error) {
-	err = k.DeviceID.ToBytes([]byte(ret[:]))
+	err = k.DeviceID.ToBytes(ret[:])
 	return ret, err
 }
 

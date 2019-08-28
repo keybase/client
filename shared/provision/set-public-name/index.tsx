@@ -1,41 +1,53 @@
-import * as Constants from '../../constants/provision'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/provision'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
+import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   onBack: () => void
-  onChange: (deviceName: string) => void
-  onSubmit: () => void | void
-  deviceName: string
+  onSubmit: (name: string) => void
   error: string
+  waiting: boolean
 }
 
 const SetPublicName = (props: Props) => {
+  const [deviceName, setDeviceName] = React.useState('')
+  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const onSubmit = React.useCallback(() => {
+    props.onSubmit(Constants.cleanDeviceName(cleanDeviceName))
+  }, [deviceName])
+
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" gapStart={true}>
+    <SignupScreen
+      banners={errorBanner(props.error)}
+      buttons={[
+        {
+          disabled: deviceName.length < 3 || deviceName.length > 64,
+          label: 'Continue',
+          onClick: onSubmit,
+          type: 'Success',
+          waiting: props.waiting,
+        },
+      ]}
+      onBack={props.onBack}
+      title={`Name this ${isMobile ? 'phone' : 'computer'}`}
+    >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        {props.error ? <Kb.Banner color="red">{props.error}</Kb.Banner> : []}
-        <Kb.Text type={isMobile ? 'Body' : 'Header'}>
-          Set a public name for this new {isMobile ? 'phone' : 'computer'}:
-        </Kb.Text>
-        <Kb.Icon type={isMobile ? 'icon-phone-64' : 'icon-computer-64'} />
-        <Kb.Input
-          autoFocus={true}
-          hintText="Pick a device name"
-          onEnterKeyDown={props.onSubmit}
-          onChangeText={props.onChange}
-          value={props.deviceName}
-        />
-        <Kb.WaitingButton
-          disabled={!props.onSubmit}
-          label="Continue"
-          onClick={props.onSubmit}
-          waitingKey={Constants.waitingKey}
-        />
-        {props.onBack && <Kb.Button label="Back to my existing account" onClick={props.onBack} />}
+        <Kb.Icon type={isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
+          <Kb.NewInput
+            autoFocus={true}
+            placeholder="Pick a device name"
+            onEnterKeyDown={onSubmit}
+            onChangeText={setDeviceName}
+            value={cleanDeviceName}
+            style={styles.nameInput}
+          />
+          <Kb.Text type="BodySmall">Your device name will be public.</Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </SignupScreen>
   )
 }
 
@@ -53,6 +65,28 @@ const styles = styleSheetCreate({
   contents: {
     width: '100%',
   },
+  nameInput: platformStyles({
+    common: {
+      padding: globalMargins.tiny,
+    },
+    isMobile: {
+      minHeight: 48,
+    },
+  }),
+  wrapper: platformStyles({
+    isElectron: {
+      width: 460,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
 })
+
+SetPublicName.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
 
 export default SetPublicName

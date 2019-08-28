@@ -164,7 +164,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 }
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     borderRadius: Styles.isMobile ? 5 : 4,
     height: Styles.isMobile ? 10 : 8,
@@ -193,7 +193,7 @@ const styles = Styles.styleSheetCreate({
     height: 64,
   },
   menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-})
+}))
 
 // props exported for stories
 export type OwnProps = {

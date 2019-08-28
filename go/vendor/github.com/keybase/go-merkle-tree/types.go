@@ -18,17 +18,17 @@ type Prefix []byte
 // Note that though the key is of type `Hash`, it can be a smaller or different
 // hash from the one used for interior nodes.
 type KeyValuePair struct {
-	_struct bool        `codec:",toarray"`
+	_struct bool        `codec:",toarray"` //nolint
 	Key     Hash        `codec:"k"`
 	Value   interface{} `codec:"v"`
 }
 
-type nodeType int
+type NodeType int
 
 const (
-	nodeTypeNone  nodeType = 0
-	nodeTypeINode nodeType = 1
-	nodeTypeLeaf  nodeType = 2
+	NodeTypeNone  NodeType = 0
+	NodeTypeINode NodeType = 1
+	NodeTypeLeaf  NodeType = 2
 )
 
 // Node is a node in the merkle tree. Can be either an interior iNode or
@@ -37,7 +37,7 @@ type Node struct {
 	PrevRoot Hash           `codec:"p,omitempty"`
 	INodes   []Hash         `codec:"i,omitempty"`
 	Leafs    []KeyValuePair `codec:"l,omitempty"`
-	Type     nodeType       `codec:"t"`
+	Type     NodeType       `codec:"t"`
 }
 
 // Level specifies what level of the merkle tree we are at.

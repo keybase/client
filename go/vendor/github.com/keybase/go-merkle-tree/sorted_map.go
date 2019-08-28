@@ -47,12 +47,8 @@ func (s *SortedMap) sort() {
 	sort.Sort(byKey(s.list))
 }
 
-func (s *SortedMap) push(kp KeyValuePair) {
-	s.list = append(s.list, kp)
-}
-
 func (s *SortedMap) exportToNode(h Hasher, prevRoot Hash, level Level) (hash Hash, node Node, objExported []byte, err error) {
-	node.Type = nodeTypeLeaf
+	node.Type = NodeTypeLeaf
 	node.Leafs = s.list
 	return node.export(h, prevRoot, level)
 }

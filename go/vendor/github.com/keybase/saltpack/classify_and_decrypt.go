@@ -148,7 +148,7 @@ func IsSaltpackArmoredPrefix(pref string) (brand string, messageType MessageType
 	headerRegExp := regexp.MustCompile(headerRegExpSt)
 
 	m := headerRegExp.FindStringSubmatch(s)
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		// Matches at most five words
 		if !regexp.MustCompile("^([a-zA-Z0-9]+ ?){0,5}$").MatchString(s) {
 			return "", MessageTypeUnknown, Version{}, ErrNotASaltpackMessage
@@ -213,7 +213,7 @@ func IsSaltpackArmoredPrefix(pref string) (brand string, messageType MessageType
 		return "", MessageTypeUnknown, ver, ErrNotASaltpackMessage
 	}
 
-	return m[1], messageType, ver, nil
+	return brand, messageType, ver, nil
 }
 
 // ClassifyStream peeks at the beginning of a stream and checks wether it seems to contain a valid

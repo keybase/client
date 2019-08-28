@@ -91,7 +91,7 @@ const Files = (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentHeader: {
     paddingBottom: Styles.globalMargins.tiny,
   },
@@ -102,6 +102,6 @@ const styles = Styles.styleSheetCreate({
   syncNotificationCheckbox: {
     alignItems: 'center',
   },
-})
+}))
 
 export default Kb.HeaderHoc(Files)

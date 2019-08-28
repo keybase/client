@@ -291,7 +291,7 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   banner: {
     left: 0,
     position: 'absolute',
@@ -330,4 +330,4 @@ const styles = Styles.styleSheetCreate({
   verifyContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },
-})
+}))

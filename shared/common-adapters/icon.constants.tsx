@@ -1578,6 +1578,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-skull-64.png'),
   },
+  'icon-skull-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-skull-96.png'),
+  },
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
     isFont: false,

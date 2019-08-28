@@ -225,7 +225,10 @@ func newSignDetachedStream(version Version, w io.Writer, signer SigningSecretKey
 
 	// Start off the message digest with the header hash. Subsequent calls to
 	// Write() will push message bytes into this digest.
-	stream.hasher.Write(headerHash[:])
+	_, err = stream.hasher.Write(headerHash[:])
+	if err != nil {
+		return nil, err
+	}
 
 	return stream, nil
 }
