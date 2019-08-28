@@ -1,5 +1,4 @@
 import * as ConfigGen from './config-gen'
-import * as GregorGen from './gregor-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
