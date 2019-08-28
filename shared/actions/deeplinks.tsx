@@ -27,12 +27,17 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
     case 'private':
     case 'public':
     case 'team':
-      return [
-        RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {path: `/keybase/${action.payload.link}`}, selected: 'main'}],
-        }),
-      ]
+      try {
+        const decoded = decodeURIComponent(action.payload.link)
+        return [
+          RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+          }),
+        ]
+      } catch (e) {
+        return []
+      }
     case 'chat':
       if (parts.length === 2) {
         if (parts[1].includes('#')) {

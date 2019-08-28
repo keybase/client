@@ -106,7 +106,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
+          title: 'Copy universal path',
         },
       ]
     : []),

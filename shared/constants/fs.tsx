@@ -693,10 +693,15 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
+// TODO: move this to Go
 export const escapePath = (path: Types.Path): string =>
-  Types.pathToString(path).replace(/(\\)|( )/g, (_, p1, p2) => `\\${p1 || p2}`)
-export const unescapePath = (escaped: string): Types.Path =>
-  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (_, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
+  'keybase://' +
+  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
+    // We need to do this because otherwise encodeURIComponent would encode
+    // "/"s.
+    /%2F/g,
+    '/'
+  )
 
 const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
 export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()

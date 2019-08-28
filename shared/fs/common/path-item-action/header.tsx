@@ -6,13 +6,14 @@ import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
-import {useFsChildren, useFsPathMetadata} from '..'
+import {useFsChildren, useFsPathMetadata, useFsOnlineStatus} from '../hooks'
 
 export type Props = {
   size: number
   type: Types.PathType
   childrenFolders: number
   childrenFiles: number
+  noTooltip?: boolean
   path: Types.Path
 }
 
@@ -31,7 +32,16 @@ const FilesAndFoldersCount = (props: Props) => {
 }
 
 const Header = (props: Props) => {
+  useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
+  const name = (
+    <CommaSeparatedName
+      center={true}
+      type="BodySmallSemibold"
+      name={Types.getPathName(props.path)}
+      elementStyle={styles.stylesNameText}
+    />
+  )
   return (
     <Kb.Box
       onClick={
@@ -42,18 +52,18 @@ const Header = (props: Props) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
         <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        <Kb.WithTooltip
-          containerStyle={styles.nameTextBox}
-          text={Types.pathToString(props.path)}
-          multiline={true}
-          showOnPressMobile={true}
-        >
-          <CommaSeparatedName
-            type="BodySmallSemibold"
-            name={Types.getPathName(props.path)}
-            elementStyle={styles.stylesNameText}
-          />
-        </Kb.WithTooltip>
+        {props.noTooltip ? (
+          <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
+        ) : (
+          <Kb.WithTooltip
+            containerStyle={styles.nameTextBox}
+            text={Types.pathToString(props.path)}
+            multiline={true}
+            showOnPressMobile={true}
+          >
+            {name}
+          </Kb.WithTooltip>
+        )}
         {props.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Kb.Text>
         )}
@@ -82,6 +92,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       flexWrap: 'wrap',
+      justifyContent: 'center',
     },
     isElectron: {
       textAlign: 'center',

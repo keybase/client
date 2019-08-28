@@ -4,6 +4,7 @@ import * as Container from '../../../util/container'
 import Header, {Props} from './header'
 
 type OwnProps = {
+  noTooltip?: boolean
   path: Types.Path
 }
 
