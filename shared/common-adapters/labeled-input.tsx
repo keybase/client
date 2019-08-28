@@ -3,6 +3,7 @@ import PlainInput, {PropsWithInput} from './plain-input'
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
+import {isMobile} from '../constants/platform'
 import './input.css'
 
 export type _Props = {
@@ -56,7 +57,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
-        {height: textStyle.fontSize + 38},
+        {height: textStyle.fontSize + (isMobile ? 52 : 38)},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
@@ -71,7 +72,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         centerChildren={true}
       >
         <Text
-          type={collapsed ? 'BodyTinySemibold' : 'BodySmallSemibold'}
+          type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
           style={Styles.collapseStyles([
             styles.label,
             collapsed ? styles.labelSmall : styles.labelLarge,
@@ -154,11 +155,18 @@ const styles = Styles.styleSheetCreate(() => ({
   labelLarge: {
     color: Styles.globalColors.black_50,
   },
-  labelSmall: {
-    color: Styles.globalColors.black,
-    height: '100%',
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  labelSmall: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black,
+      height: '100%',
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingTop: 10,
+    },
+  }),
   labelWrapper: {
     position: 'absolute',
   },
