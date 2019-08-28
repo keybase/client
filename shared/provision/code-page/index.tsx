@@ -278,23 +278,36 @@ const Instructions = (p: Props) => (
     ) : (
       <>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          On{' '}
+          Open Keybase on{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
             {p.otherDeviceName}
           </Kb.Text>
-          , go to
+          .
         </Kb.Text>
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
           <Kb.Text center={true} type={textType} style={styles.instructions}>
+            Go to
+          </Kb.Text>
+          {p.currentDeviceType === 'mobile' && (
+            <>
+              <Kb.Icon type="iconfont-nav-2-hamburger" color={Styles.globalColors.white} />
+              <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+            </>
+          )}
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             Devices
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
           <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add device
+            Add a device or paper key
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
           <Kb.Text center={true} type={textType} style={styles.instructions}>
-            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
+            Add a {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Box2>
       </>
@@ -420,15 +433,15 @@ const styles = Styles.styleSheetCreate({
       width: 220,
     },
     isMobile: {
-      width: 200,
+      width: 160,
     },
   }),
   qrContainerFlip: {
     flexDirection: 'column-reverse',
   },
   qrImageContainer: {
-    paddingBottom: 30,
-    paddingTop: 30,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   qrOnlyContainer: {
     backgroundColor: Styles.globalColors.white,
