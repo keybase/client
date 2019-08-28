@@ -47,7 +47,7 @@ const UseNativeFrame = (props: Props) => {
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!props.useNativeFrame}
-          label={'Hide system window frame'}
+          label="Hide system window frame"
           onCheck={x => props.onChangeUseNativeFrame(!x)}
         />
       </Kb.Box>
@@ -117,21 +117,21 @@ const Advanced = (props: Props) => {
             <Kb.Divider style={styles.proxyDivider} />
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Dark mode</Kb.Text>
-              <Kb.Checkbox
+              <Kb.RadioButton
                 label="Respect system settings"
                 disabled={!isDarwin}
-                checked={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                onCheck={() => props.onSetDarkModePreference('system')}
+                selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+                onSelect={() => props.onSetDarkModePreference('system')}
               />
-              <Kb.Checkbox
+              <Kb.RadioButton
                 label="Dark all the time"
-                checked={props.darkModePreference === 'alwaysDark'}
-                onCheck={() => props.onSetDarkModePreference('alwaysDark')}
+                selected={props.darkModePreference === 'alwaysDark'}
+                onSelect={() => props.onSetDarkModePreference('alwaysDark')}
               />
-              <Kb.Checkbox
+              <Kb.RadioButton
                 label="Light all the time 😎"
-                checked={props.darkModePreference === 'alwaysLight'}
-                onCheck={() => props.onSetDarkModePreference('alwaysLight')}
+                selected={props.darkModePreference === 'alwaysLight'}
+                onSelect={() => props.onSetDarkModePreference('alwaysLight')}
               />
             </Kb.Box2>
           </Kb.Box2>
@@ -211,7 +211,7 @@ class Developer extends React.Component<Props, State> {
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
-          <React.Fragment>
+          <>
             <Kb.Button
               label="Toggle Runtime Stats"
               onClick={this.props.onToggleRuntimeStats}
@@ -231,7 +231,7 @@ class Developer extends React.Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
-          </React.Fragment>
+          </>
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button

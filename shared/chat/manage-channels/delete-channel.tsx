@@ -55,7 +55,7 @@ class _DeleteChannel extends React.Component<Props, State> {
           containerStyle={styles.menuContainer}
         />
         <Kb.Text
-          type={'BodyBigLink'}
+          type="BodyBigLink"
           style={styles.colorRed}
           onClick={this.props.toggleShowingMenu}
           ref={this.props.setAttachmentRef}

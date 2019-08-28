@@ -101,7 +101,7 @@ const load = () => {
     .add('Native expanded', () => <Asset {...native} expanded={true} />)
     .add('Non-native expanded', () => <Asset {...keyz} expanded={true} />)
     .add('List', () => (
-      <React.Fragment>
+      <>
         <Asset {...native} />
         <Divider />
         <Asset {...keyz} />
@@ -109,7 +109,7 @@ const load = () => {
         <Asset {...btc} />
         <Divider />
         <Asset {...btexcadv} />
-      </React.Fragment>
+      </>
     ))
 }
 

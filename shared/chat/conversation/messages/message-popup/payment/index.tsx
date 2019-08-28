@@ -191,10 +191,10 @@ const PaymentPopup = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <React.Fragment>
+      <>
         <Header {...headerProps} />
         {!!items.length && <Kb.Divider />}
-      </React.Fragment>
+      </>
     ),
   }
   return (

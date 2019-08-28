@@ -26,8 +26,8 @@ class Measure extends React.Component<
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {width: '100%'},
-})
+}))
 
 export default Measure

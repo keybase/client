@@ -6,7 +6,7 @@ import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
-import {useFsChildren, useFsPathMetadata} from '../../common'
+import {useFsChildren, useFsPathMetadata} from '..'
 
 export type Props = {
   size: number

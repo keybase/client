@@ -360,7 +360,7 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Sync Status', () => (
-      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems="center">
         <SyncStatus status={Types.SyncStatusStatic.AwaitingToSync} folder={false} />
         <SyncStatus status={Types.SyncStatusStatic.AwaitingToUpload} folder={false} />
         <SyncStatus status={Types.SyncStatusStatic.OnlineOnly} folder={false} />
@@ -371,7 +371,7 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (
-      <Kb.Box2 direction="vertical" fullWidth={false} alignItems={'center'}>
+      <Kb.Box2 direction="vertical" fullWidth={false} alignItems="center">
         <Kb.ScrollView>
           {pieSlices.map(deg => (
             <PieSliceWrapper initialDegrees={deg} key={deg} />

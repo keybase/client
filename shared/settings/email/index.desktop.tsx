@@ -6,8 +6,6 @@ import {Props} from './index'
 
 type State = {
   email: string
-  originalEmail: string
-  edited: boolean
 }
 
 class UpdateEmail extends Component<Props, State> {
@@ -16,18 +14,12 @@ class UpdateEmail extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      edited: false,
       email: props.email || '',
-      originalEmail: props.email || '',
     }
   }
 
   handleEmailChange(email: string) {
-    const edited = email !== this.state.originalEmail
-    this.setState({
-      edited,
-      email,
-    })
+    this.setState({email})
   }
 
   render() {

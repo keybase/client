@@ -13,7 +13,7 @@ import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {ConversationIDKey} from '../../../../constants/types/chat2'
 import {StylesCrossPlatform} from '../../../../styles'
-import RetentionPicker, {RetentionEntityType} from './'
+import RetentionPicker, {RetentionEntityType} from '.'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey

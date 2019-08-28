@@ -41,17 +41,17 @@ class UpdatePassword extends Component<Props, State> {
   }
 
   _handlePasswordChange(password: string) {
-    this.setState({
-      errorSaving: this._errorSaving(password, this.state.passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(password, s.passwordConfirm),
       password,
-    })
+    }))
   }
 
   _handlePasswordConfirmChange(passwordConfirm: string) {
-    this.setState({
-      errorSaving: this._errorSaving(this.state.password, passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(s.password, passwordConfirm),
       passwordConfirm,
-    })
+    }))
   }
 
   _errorSaving(password: string, passwordConfirm: string): string {

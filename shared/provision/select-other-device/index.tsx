@@ -64,7 +64,7 @@ class SelectOtherDevice extends React.Component<Props> {
         gap={isMobile ? undefined : 'medium'}
         gapEnd={true}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap="medium">
           <Kb.List
             style={styles.list}
             items={items}
@@ -133,6 +133,8 @@ const styles = styleSheetCreate({
     flexGrow: 1,
   },
   troubleShooting: {
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
 })
