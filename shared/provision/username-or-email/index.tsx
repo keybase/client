@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-// import Container from '../../login/forms/container'
 import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen} from '../../signup/common'
 
@@ -18,18 +17,20 @@ type Props = {
   waiting: boolean
 }
 
-const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
-  <Kb.Box2 direction="vertical" centerChildren={true}>
-    <Kb.Text type="BodySmallError" style={styles.error}>
-      {props.error}
-    </Kb.Text>
-    {!!props.onGoToSignup && (
-      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-        Sign up for a new account?
+/*
+  const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="BodySmallError" style={styles.error}>
+        {props.error}
       </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+      {!!props.onGoToSignup && (
+        <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
+          Sign up for a new account?
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+*/
 
 const Username = (props: Props) => {
   const [username, setUsername] = React.useState(props.initialUsername)
