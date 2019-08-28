@@ -233,6 +233,8 @@ const createElectronApp = Component => {
 
     componentDidMount() {
       let action = this.initialAction
+      // maybe slightly unsafe but keeping this close to the reference
+      // eslint-disable-next-line
       let startupState = this.state.nav
       if (!startupState) {
         startupState = Component.router.getStateForAction(action)

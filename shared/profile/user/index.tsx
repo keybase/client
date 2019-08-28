@@ -504,7 +504,7 @@ const usernameSelectedFollowing = {}
 const avatarSize = 128
 const headerHeight = Styles.isAndroid ? 30 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
 
-export const styles = Styles.styleSheetCreate({
+export const styles = Styles.styleSheetCreate(() => ({
   addIdentityButton: {
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
@@ -681,6 +681,6 @@ export const styles = Styles.styleSheetCreate({
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
   typedBackgroundRed: {backgroundColor: Styles.globalColors.red},
-})
+}))
 
 export default User

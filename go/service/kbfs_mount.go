@@ -26,6 +26,16 @@ func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, 
 	return h.G().Env.GetMountDir()
 }
 
+func (h *KBFSMountHandler) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
+	res = libkb.FindPreferredKBFSMountDirs()
+	directMount, err := h.G().Env.GetMountDir()
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, directMount)
+	return res, nil
+}
+
 func (h *KBFSMountHandler) GetAllAvailableMountDirs(ctx context.Context) (res []string, err error) {
 	return getMountDirs()
 }

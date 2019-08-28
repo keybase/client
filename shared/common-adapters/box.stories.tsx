@@ -33,7 +33,7 @@ const load = () => {
       ))
     )
     .add('Box2', () => (
-      <React.Fragment>
+      <>
         <Holder label="Vertical" boxProps={{direction: 'vertical'}} />
         <Holder
           label="Vertical centered children"
@@ -171,7 +171,7 @@ const load = () => {
             </Box2>
           </Box2>
         </Inside>
-      </React.Fragment>
+      </>
     ))
 }
 
@@ -196,7 +196,7 @@ const Inside = ({label, children}) => (
   </>
 )
 const Holder = ({label, boxProps}) => (
-  <React.Fragment>
+  <>
     <Inside label={label}>
       <Box2 style={yellowStyle} {...boxProps}>
         <LittleBox key="1" />
@@ -204,7 +204,7 @@ const Holder = ({label, boxProps}) => (
       </Box2>
     </Inside>
     <HDivider />
-  </React.Fragment>
+  </>
 )
 
 export default load

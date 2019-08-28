@@ -167,7 +167,7 @@ class Airdrop extends React.Component<Props> {
                         <Kb.Icon
                           type="iconfont-check"
                           color={Styles.globalColors.green}
-                          sizeType={'Small'}
+                          sizeType="Small"
                           style={styles.bullet}
                         />
                       )}

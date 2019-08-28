@@ -84,7 +84,7 @@ class Devices extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     position: 'relative',
   },
@@ -98,7 +98,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.medium,
     width: '100%',
   },
-})
+}))
 
 const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
@@ -111,7 +111,7 @@ const DeviceHeader = ({onAddNew}) => (
     </Kb.Button>
   </Kb.ClickableBox>
 )
-const headerStyles = Styles.styleSheetCreate({
+const headerStyles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -122,7 +122,7 @@ const headerStyles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const RevokedHeader = ({onToggleExpanded, expanded}) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
@@ -145,7 +145,7 @@ const PaperKeyNudge = ({onAddDevice}) => (
     </Kb.Box2>
   </Kb.ClickableBox>
 )
-const paperKeyNudgeStyles = Styles.styleSheetCreate({
+const paperKeyNudgeStyles = Styles.styleSheetCreate(() => ({
   border: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.black_05,
@@ -175,6 +175,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
     },
   }),
   flexOne: {flex: 1},
-})
+}))
 
 export default Kb.HeaderOnMobile(Devices)

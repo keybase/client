@@ -157,7 +157,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
               style={styles.otherContainer}
             >
               <Kb.RadioButton
-                onSelect={() => this.setState({address: this.state.otherAddress, name: ''})}
+                onSelect={() => this.setState(s => ({address: s.otherAddress, name: ''}))}
                 selected={this.state.address === this.state.otherAddress}
                 label="Other"
               />

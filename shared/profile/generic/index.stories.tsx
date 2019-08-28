@@ -15,9 +15,9 @@ const load = () => {
         <Kb.Box style={styles.container}>
           <Result
             serviceIcon={[]}
-            proofUsername={'cecileboucheron@boardgames.social'}
+            proofUsername="cecileboucheron@boardgames.social"
             onClose={Sb.action('onClose')}
-            errorText={''}
+            errorText=""
           />
         </Kb.Box>
       )
@@ -27,9 +27,9 @@ const load = () => {
         <Kb.Box style={styles.container}>
           <Result
             serviceIcon={[]}
-            proofUsername={'cecileboucheron@boardgames.social'}
+            proofUsername="cecileboucheron@boardgames.social"
             onClose={Sb.action('onClose')}
-            errorText={'Timed out after looking for proof for 1h'}
+            errorText="Timed out after looking for proof for 1h"
           />
         </Kb.Box>
       )

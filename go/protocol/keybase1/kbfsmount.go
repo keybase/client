@@ -11,6 +11,9 @@ import (
 type GetCurrentMountDirArg struct {
 }
 
+type GetPreferredMountDirsArg struct {
+}
+
 type GetAllAvailableMountDirsArg struct {
 }
 
@@ -20,6 +23,7 @@ type SetCurrentMountDirArg struct {
 
 type KbfsMountInterface interface {
 	GetCurrentMountDir(context.Context) (string, error)
+	GetPreferredMountDirs(context.Context) ([]string, error)
 	GetAllAvailableMountDirs(context.Context) ([]string, error)
 	SetCurrentMountDir(context.Context, string) error
 }
@@ -35,6 +39,16 @@ func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.GetCurrentMountDir(ctx)
+					return
+				},
+			},
+			"GetPreferredMountDirs": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPreferredMountDirsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetPreferredMountDirs(ctx)
 					return
 				},
 			},
@@ -73,6 +87,11 @@ type KbfsMountClient struct {
 
 func (c KbfsMountClient) GetCurrentMountDir(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []interface{}{GetCurrentMountDirArg{}}, &res)
+	return
+}
+
+func (c KbfsMountClient) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetPreferredMountDirs", []interface{}{GetPreferredMountDirsArg{}}, &res)
 	return
 }
 

@@ -21,10 +21,10 @@ const props = {
 const load = () => {
   Sb.storiesOf('Provision/Password', module)
     .add('None', () => <Password {...props} />)
-    .add('Error', () => <Password {...props} error={'error here!'} />)
-    .add('Show typing', () => <Password {...props} showTyping={true} password={'hunter2'} />)
+    .add('Error', () => <Password {...props} error="error here!" />)
+    .add('Show typing', () => <Password {...props} showTyping={true} password="hunter2" />)
     .add('Show typing error', () => (
-      <Password {...props} showTyping={true} password={'hunter2'} error={'too weak'} />
+      <Password {...props} showTyping={true} password="hunter2" error="too weak" />
     ))
 }
 

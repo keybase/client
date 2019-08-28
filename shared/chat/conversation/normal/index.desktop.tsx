@@ -11,10 +11,6 @@ import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import ThreadSearch from '../search/container'
 
-type State = {
-  showDropOverlay: boolean
-}
-
 const Offline = () => (
   <Kb.Box style={styles.offline}>
     <Kb.Text type="BodySmallSemibold">
@@ -23,9 +19,8 @@ const Offline = () => (
   </Kb.Box>
 )
 
-class Conversation extends React.PureComponent<Props, State> {
+class Conversation extends React.PureComponent<Props> {
   _mounted = false
-  state = {showDropOverlay: false}
 
   componentWillUnmount() {
     this._mounted = false
@@ -36,10 +31,7 @@ class Conversation extends React.PureComponent<Props, State> {
   }
 
   _onPaste = e => {
-    readImageFromClipboard(e, () => {
-      this._mounted && this.setState({showDropOverlay: true})
-    }).then(clipboardData => {
-      this._mounted && this.setState({showDropOverlay: false})
+    readImageFromClipboard(e, () => {}).then(clipboardData => {
       if (clipboardData) {
         this.props.onPaste(clipboardData)
       }

@@ -24,7 +24,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
         {props.loading ? (
-          <Kb.ProgressIndicator type={'Small'} style={styles.loading} />
+          <Kb.ProgressIndicator type="Small" style={styles.loading} />
         ) : props.airdropSelected ? (
           <Kb.Box2 direction="horizontal">
             <Kb.Text selectable={false} type="Header">

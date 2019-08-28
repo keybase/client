@@ -180,7 +180,7 @@ const Bio = (p: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   airdropText: Styles.platformStyles({
     common: {color: Styles.globalColors.white},
     isElectron: {textAlign: 'center'},
@@ -216,6 +216,6 @@ const styles = Styles.styleSheetCreate({
       lineHeight: 21,
     },
   }),
-})
+}))
 
 export default Bio

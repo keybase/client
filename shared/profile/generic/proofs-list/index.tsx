@@ -144,7 +144,7 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
@@ -232,6 +232,6 @@ const styles = Styles.styleSheetCreate({
     ...rightColumnStyle,
     color: Styles.globalColors.black,
   },
-})
+}))
 
 export default ProofsList
