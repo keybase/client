@@ -64,6 +64,7 @@ class Dropdown extends React.Component<Props, State> {
       } else {
         logger.warn('otherValue selected, yet no onOther handler')
       }
+      this.setState({value: this.props.options[0] || ''})
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value || '', (this.props.options || []).indexOf(this.state.value || ''))
     }
