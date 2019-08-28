@@ -766,14 +766,14 @@
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",
 			"path": "github.com/keybase/saltpack/basic",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "W4AtPFFZNotMGDQpwJI59jkMLL8=",
+			"checksumSHA1": "Gyq+7rG0IbvOt/mI9iviT6O7WLs=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
 			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",
