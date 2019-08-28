@@ -331,7 +331,7 @@ function* initializeUseNativeFrame() {
     > = yield RPCTypes.configGuiGetValueRpcPromise({
       path: nativeFrameKey,
     })
-    const useNativeFrame = val.b === undefined ? defaultUseNativeFrame : val.b || defaultUseNativeFrame
+    const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
 }
