@@ -87,7 +87,7 @@ const Row = p => (
         <Kb.Icon
           type={p.valid ? 'iconfont-check' : 'iconfont-close'}
           color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
-          sizeType={'Default'}
+          sizeType="Default"
         />
       )}
     </Kb.Box2>

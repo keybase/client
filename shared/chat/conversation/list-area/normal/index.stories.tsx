@@ -9,7 +9,7 @@ import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
 import {OwnProps as ExplodingMetaOwnProps} from '../../messages/wrapper/exploding-meta/container'
-import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta/'
+import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -308,7 +308,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       : 'Enable message injection'
     const loadMoreLabel = this.state.loadMoreEnabled ? 'Disable load more' : 'Enable load more'
     return (
-      <React.Fragment>
+      <>
         <ButtonBar direction="row" align="flex-start">
           <Button label={injectLabel} onClick={this._toggleInjectMessages} />
           <Button label={loadMoreLabel} onClick={this._toggleLoadMore} />
@@ -330,7 +330,7 @@ class ThreadWrapper extends React.Component<Props, State> {
           scrollListDownCounter={this.state.scrollListDownCounter}
           showThreadSearch={false}
         />
-      </React.Fragment>
+      </>
     )
   }
 }

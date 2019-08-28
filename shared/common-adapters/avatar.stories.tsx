@@ -33,7 +33,7 @@ const load = () => {
               <Avatar {...commonProps} username="following" showFollowingStatus={false} />
               <Avatar {...commonProps} username="followers" />
               <Avatar {...commonProps} username="both" />
-              <Avatar {...commonProps} username={undefined} teamname={'keybase'} />
+              <Avatar {...commonProps} username={undefined} teamname="keybase" />
             </Box>
           </Box>
         )

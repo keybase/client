@@ -32,7 +32,7 @@ const _Result = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
-        alignItems={'center'}
+        alignItems="center"
         fullWidth={true}
         style={styles.topContainer}
       >

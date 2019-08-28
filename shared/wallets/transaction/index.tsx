@@ -154,10 +154,7 @@ const Detail = (props: DetailProps) => {
       const assetCode = props.trustline.asset.code
       const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
       const asset = (
-        <Text
-          type={'BodySmall'}
-          style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}
-        >
+        <Text type="BodySmall" style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}>
           <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
         </Text>
       )
@@ -179,33 +176,33 @@ const Detail = (props: DetailProps) => {
   if (props.issuerDescription) {
     // non-native asset
     amount = (
-      <React.Fragment>
+      <>
         <Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>{' '}
         <Text selectable={props.selectableText} type={textType}>
           ({props.issuerDescription})
         </Text>
-      </React.Fragment>
+      </>
     )
   } else if (props.isXLM) {
     // purely, strictly lumens
     amount = (
-      <React.Fragment>
+      <>
         <Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>
-      </React.Fragment>
+      </>
     )
   } else {
     // lumens sent with outside currency exchange rate
     amount = (
-      <React.Fragment>
+      <>
         Lumens worth{' '}
         <Text selectable={true} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>
-      </React.Fragment>
+      </>
     )
   }
 

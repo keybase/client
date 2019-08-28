@@ -16,7 +16,6 @@ import {BotCommandUpdateStatus} from './shared'
 
 type State = {
   emojiPickerOpen: boolean
-  hasText: boolean
 }
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
@@ -25,7 +24,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   _fileInput: HTMLInputElement | null = null
   state = {
     emojiPickerOpen: false,
-    hasText: false,
   }
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
@@ -96,7 +94,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
     this._lastText = text
     this.props.onChangeText(text)
   }
@@ -252,7 +249,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
-                className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+                className="mousetrap"
                 disabled={
                   // Auto generated from flowToTs. Please clean me!
                   this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
@@ -328,8 +325,8 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
         <Picker
           autoFocus={true}
           onClick={onClick}
-          emoji={'ghost'}
-          title={'emojibase'}
+          emoji="ghost"
+          title="emojibase"
           backgroundImageFn={backgroundImageFn}
         />
       </Kb.Box>

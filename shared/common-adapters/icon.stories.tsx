@@ -23,7 +23,7 @@ const commonProps = {
 
 const load = () => {
   const sizes = {}
-  Object.keys(iconMeta).map((type: any) => {
+  Object.keys(iconMeta).forEach((type: any) => {
     const meta = iconMeta[type as IconType]
     const twoRegMatch = type.match(/(\d+)-x-\d+$/)
     const oneRegMatch = type.match(/(\d+)$/)

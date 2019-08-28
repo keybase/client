@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'

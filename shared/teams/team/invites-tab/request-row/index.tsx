@@ -72,7 +72,7 @@ export const TeamRequestRow = (props: Props) => {
           footerComponent={props.footerComponent}
           onConfirm={props.onConfirmRolePicker}
           onCancel={props.onCancelRolePicker}
-          position={'bottom left'}
+          position="bottom left"
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
         >

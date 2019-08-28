@@ -66,7 +66,7 @@ function SpaceInfo({
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
         style={{color: globalColors.black_50, fontSize: 12, marginRight: globalMargins.xtiny}}
-        type={'BodySmallSemibold'}
+        type="BodySmallSemibold"
       >
         {freeSpace} FREE
       </Text>
@@ -98,7 +98,7 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void; type: 'upgrade' | 
 
 const DowngradeLink = ({onClick}) => (
   <Text
-    type={'BodySmall'}
+    type="BodySmall"
     style={{color: globalColors.blueDark}}
     onClick={e => {
       onClick()
@@ -138,13 +138,10 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
     >
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text
-            type={'BodySemibold'}
-            style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}
-          >
+          <Text type="BodySemibold" style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}>
             {level}
           </Text>
-          <Text type={'BodySmall'}>({price})</Text>
+          <Text type="BodySmall">({price})</Text>
         </Box>
         {selected && <Meta title="Your Plan" backgroundColor={globalColors.blueLight} />}
       </Box>

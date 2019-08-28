@@ -261,7 +261,7 @@ class OrientedImage extends React.Component<Props, State> {
    */
   render() {
     return (
-      <React.Fragment>
+      <>
         {this.state.srcTransformed && (
           // @ts-ignore codemod issue
           <ImageRef
@@ -273,7 +273,7 @@ class OrientedImage extends React.Component<Props, State> {
           />
         )}
         <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
-      </React.Fragment>
+      </>
     )
   }
 }

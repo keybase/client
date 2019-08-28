@@ -49,7 +49,7 @@ const UseNativeFrame = (props: Props) => {
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!props.useNativeFrame}
-          label={'Hide system window frame'}
+          label="Hide system window frame"
           onCheck={x => props.onChangeUseNativeFrame(!x)}
         />
       </Kb.Box>
@@ -213,7 +213,7 @@ class Developer extends React.Component<Props, State> {
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
-          <React.Fragment>
+          <>
             <Kb.Button
               label="Toggle Runtime Stats"
               onClick={this.props.onToggleRuntimeStats}
@@ -233,7 +233,7 @@ class Developer extends React.Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
-          </React.Fragment>
+          </>
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button

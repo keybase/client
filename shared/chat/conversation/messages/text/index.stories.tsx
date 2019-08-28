@@ -31,7 +31,7 @@ const load = () => {
   Sb.storiesOf('Chat/Conversation/Rows', module)
     .addDecorator(provider)
     .add('Text', () => (
-      <React.Fragment>
+      <>
         <Wrapped {...props} />
         <Wrapped {...props} text="world" />
         <Wrapped {...props} text="editing" isEditing={true} />
@@ -46,7 +46,7 @@ const load = () => {
           text="contains a #random thing"
           mentionsChannelName={I.Map({random: Types.stringToConversationIDKey('123')})}
         />
-      </React.Fragment>
+      </>
     ))
 }
 

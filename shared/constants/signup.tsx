@@ -1,6 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/signup'
-import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../constants/platform'
+import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from './platform'
 import HiddenString from '../util/hidden-string'
 
 export const maxUsernameLength = 16

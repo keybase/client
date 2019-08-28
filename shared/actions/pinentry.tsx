@@ -1,6 +1,6 @@
 import logger from '../logger'
-import * as EngineGen from '../actions/engine-gen-gen'
-import * as PinentryGen from '../actions/pinentry-gen'
+import * as EngineGen from './engine-gen-gen'
+import * as PinentryGen from './pinentry-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'

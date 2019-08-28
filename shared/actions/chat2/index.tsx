@@ -37,7 +37,7 @@ import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
-import {TypedActions, TypedState} from 'util/container'
+import {TypedActions, TypedState} from '../../util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
 

@@ -99,8 +99,6 @@ type State = {
   }
   scale: number
   scaleOffset: number
-  translateX: number
-  translateY: number
 }
 
 class ZoomableBox extends React.Component<Props, State> {
@@ -116,8 +114,6 @@ class ZoomableBox extends React.Component<Props, State> {
     panOffset: {x: 0, y: 0},
     scale: 1,
     scaleOffset: 1,
-    translateX: 0,
-    translateY: 0,
   }
 
   componentDidMount() {
