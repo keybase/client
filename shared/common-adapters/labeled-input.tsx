@@ -18,18 +18,30 @@ type RefProps = {
 
 const ReflessLabeledInput = (props: Props & RefProps) => {
   const [focused, setFocused] = React.useState(false)
-
-  const onFocus = React.useCallback(() => {
+  const {onBlur, onFocus} = props
+  const _onFocus = React.useCallback(() => {
     setFocused(true)
-    props.onFocus && props.onFocus()
-  }, [])
-  const onBlur = React.useCallback(() => {
+    onFocus && onFocus()
+  }, [onFocus])
+  const _onBlur = React.useCallback(() => {
     setFocused(false)
-    props.onBlur && props.onBlur()
-  }, [])
+    onBlur && onBlur()
+  }, [onBlur])
 
-  // Style is supposed to switch when there's any input
-  const populated = props.value && props.value.length > 0
+  // If we're uncontrolled, monitor the changes instead
+  const {value, onChangeText} = props
+  const [uncontrolledValue, setUncontrolledValue] = React.useState('')
+  const _onChangeText = React.useCallback(
+    newValue => {
+      value === undefined && setUncontrolledValue(newValue)
+      onChangeText && onChangeText(newValue)
+    },
+    [value, onChangeText]
+  )
+
+  // Style is supposed to switch when there's any input or its focused
+  const actualValue = value !== undefined ? value : uncontrolledValue
+  const populated = actualValue && actualValue.length > 0
   const collapsed = focused || populated
 
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
@@ -68,8 +80,9 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
 
       <PlainInput
         {...plainInputProps}
-        onFocus={onFocus}
-        onBlur={onBlur}
+        onChangeText={_onChangeText}
+        onFocus={_onFocus}
+        onBlur={_onBlur}
         ref={props.forwardedRef}
         style={Styles.collapseStyles([styles.input, collapsed ? styles.inputSmall : styles.inputLarge])}
       />
