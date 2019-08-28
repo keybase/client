@@ -46,7 +46,7 @@ protocol Common {
   @typedef("string")
   record PhoneNumber {}
 
-  // Phone number, coming from the user, in no particular format. 
+  // Phone number, coming from the user, in no particular format.
   // Possibly invalid. Should be validated and converted to PhoneNumber
   // for internal use.
   @typedef("string")

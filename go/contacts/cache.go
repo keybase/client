@@ -265,7 +265,7 @@ func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []ke
 	return c.Provider.FindFollowing(mctx, uids)
 }
 
-func (c *CachedContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ServiceMap, error) {
+func (c *CachedContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
 	return c.Provider.FindServiceMaps(mctx, uids)
 }
 

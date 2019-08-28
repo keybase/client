@@ -67,26 +67,3 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 		res.ResolvedFreshness.Seconds(), res.UnresolvedFreshness.Seconds())
 	return res, nil
 }
-
-func LookupSeviceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ServiceMap, error) {
-	if len(uids) == 0 {
-		return make(map[keybase1.UID]ServiceMap), nil
-	}
-
-	type lookupRes struct {
-		libkb.AppStatusEmbed
-		ServiceMaps map[keybase1.UID]ServiceMap `json:"service_maps"`
-	}
-
-	arg := libkb.NewAPIArg("user/service_maps")
-	arg.SessionType = libkb.APISessionTypeNONE
-	arg.Args = libkb.HTTPArgs{
-		"uids": libkb.S{Val: libkb.UidsToString(uids)},
-	}
-	var resp lookupRes
-	err := mctx.G().API.PostDecode(mctx, arg, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp.ServiceMaps, nil
-}

@@ -991,6 +991,17 @@ type UIDMapper interface {
 		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
 }
 
+type UserServiceSummary map[string]string // service -> username
+type UserServiceSummaryPackage struct {
+	CachedAt   keybase1.Time
+	ServiceMap UserServiceSummary
+}
+
+type ServiceSummaryMapper interface {
+	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
+		networkTimeBudget time.Duration) (map[keybase1.UID]UserServiceSummaryPackage, error)
+}
+
 type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,

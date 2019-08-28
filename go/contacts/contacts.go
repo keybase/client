@@ -64,7 +64,7 @@ func findUsernamesAndFollowing(mctx libkb.MetaContext, provider ContactsProvider
 	serviceMaps, err := provider.FindServiceMaps(mctx, uidList)
 	if err != nil {
 		mctx.Warning("Unable to get service maps for contacts: %s", err)
-		serviceMaps = make(map[keybase1.UID]ServiceMap)
+		serviceMaps = make(map[keybase1.UID]libkb.UserServiceSummary)
 	}
 
 	for i := range contacts {
