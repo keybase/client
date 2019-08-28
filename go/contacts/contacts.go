@@ -80,7 +80,7 @@ func findUsernamesAndFollowing(mctx libkb.MetaContext, provider ContactsProvider
 			if smap, found := serviceMaps[v.Uid]; found && len(smap) > 0 {
 				v.ServiceMap = make(map[string]string, len(smap))
 				for service, username := range smap {
-					v.ServiceMap[string(service)] = string(username)
+					v.ServiceMap[service] = string(username)
 				}
 			}
 		}

@@ -108,7 +108,7 @@ func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g lib
 			g.GetLog().CDebugf(ctx, "Failed API call for service maps: %s", err)
 		} else {
 			for _, uid := range uidsToQuery {
-				serviceMap, _ := apiResults[uid]
+				serviceMap := apiResults[uid]
 				// Returning or storing nil maps is fine
 				pkg := libkb.UserServiceSummaryPackage{
 					CachedAt:   now,

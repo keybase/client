@@ -172,7 +172,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
 	kbCtx.MobileOsVersion = mobileOsVersion
 
-	// 10k uid -> FullName memory cache entries allowed
+	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
 	usage := libkb.Usage{
 		Config:    true,

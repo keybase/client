@@ -63,7 +63,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 		fakeClock.Advance(24 * time.Hour)
 
 		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			time.Duration(12*time.Hour), /* freshness */
+			12*time.Hour, /* freshness */
 			strictNetworkBudget /* networkBudget */)
 		require.NoError(t, err)
 		require.Len(t, pkgs2, 0)
@@ -72,7 +72,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	{
 		// Similar, but with DisallowNetworkBudget which should skip request completely.
 		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			time.Duration(12*time.Hour), /* freshness */
+			12*time.Hour, /* freshness */
 			DisallowNetworkBudget /* networkBudget */)
 		require.NoError(t, err)
 		require.Len(t, pkgs2, 0)
