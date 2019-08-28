@@ -8,28 +8,31 @@ import * as Container from '../../util/container'
 
 const PushPrompt = () => {
   const dispatch = Container.useDispatch()
-  const onNoPermissions = () => {
+  const onNoPermissions = React.useCallback(() => {
     dispatch(PushGen.createRejectPermissions())
     dispatch(RouteTreeGen.createClearModals())
-  }
-  const onRequestPermissions = () => {
+  }, [dispatch])
+  const onRequestPermissions = React.useCallback(() => {
     dispatch(PushGen.createRequestPermissions())
     dispatch(RouteTreeGen.createClearModals())
-  }
+  }, [dispatch])
   return (
     <Kb.Modal
       header={{
         hideBorder: true,
-        negative: true,
         rightButton: (
           <Kb.ClickableBox onClick={onNoPermissions}>
-            <Kb.Text type="BodyBig" negative={true}>
+            <Kb.Text type="Header" negative={true}>
               Skip
             </Kb.Text>
           </Kb.ClickableBox>
         ),
         style: styles.header,
-        title: 'Allow notifications',
+        title: (
+          <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+            Allow notifications
+          </Kb.Text>
+        ),
       }}
       footer={{
         content: (

@@ -21,7 +21,6 @@ type HeaderProps = {
   hideBorder?: boolean
   icon?: React.ReactNode // above center
   leftButton?: React.ReactNode
-  negative?: boolean
   rightButton?: React.ReactNode
   title?: React.ReactNode // center; be sure to lineClamp any long / dynamic strings
   style?: Styles.StylesCrossPlatform
