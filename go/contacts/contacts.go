@@ -38,7 +38,12 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 	return ret.String(), nil
 }
 
-func findUsernamesAndFollowing(mctx libkb.MetaContext, provider ContactsProvider, uidSet map[keybase1.UID]struct{},
+// fillResolvedUserInfo takes uidSet and processed contact list and fill the
+// following info (in place) for resolved contacts:
+// - usernames and full names,
+// - follow status (are we following the user or not),
+// - service summaries.
+func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uidSet map[keybase1.UID]struct{},
 	contacts []keybase1.ProcessedContact) {
 
 	uidList := make([]keybase1.UID, 0, len(uidSet))
@@ -190,7 +195,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 					Resolved:     true,
 
 					Uid: lookupRes.UID,
-					// Rest of resolved user data is filled by `findUsernamesAndFollowing`.
+					// Rest of resolved user data is filled by `fillResolvedUserInfo`.
 
 					Assertion: assertion,
 				})
@@ -218,7 +223,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	mctx.Debug("Got %d contact entries and %d resolved users", len(res), len(userUIDSet))
 
 	if len(res) > 0 {
-		findUsernamesAndFollowing(mctx, provider, userUIDSet, res)
+		fillResolvedUserInfo(mctx, provider, userUIDSet, res)
 
 		// And now that we have Keybase names and following information, make a
 		// decision about displayName and displayLabel.

@@ -61,7 +61,8 @@ func (s *ServiceSummaryMap) findServiceSummaryLocally(ctx context.Context, g lib
 	}
 
 	key := serviceMapDBKey(uid)
-	found, err = g.GetKVStore().GetInto(&res, key)
+	var tmp libkb.UserServiceSummaryPackage
+	found, err = g.GetKVStore().GetInto(&tmp, key)
 	if err != nil {
 		g.GetLog().CInfof(ctx, "failed to get servicemap dbkey %v: %s", key, err)
 		return res, false, err
@@ -70,10 +71,32 @@ func (s *ServiceSummaryMap) findServiceSummaryLocally(ctx context.Context, g lib
 		return res, false, nil
 	}
 
-	s.memCache.Add(uid, res)
-	return res, true, nil
+	s.memCache.Add(uid, tmp)
+	if freshness != time.Duration(0) && g.GetClock().Since(keybase1.FromTime(tmp.CachedAt)) > freshness {
+		// We got the data back from disk cache but it's too stale for this
+		// caller.
+		return res, false, nil
+	}
+	return tmp, true, nil
 }
 
+// MapUIDsToServiceSummaries retrieves serviceMap for uids.
+//
+// - `freshness` determines time duration after which data is considered stale
+// and will be re-fetched (or not returned, depending if network requests are
+// possible and allowed). Default value of 0 makes all data eligible to return
+// no matter how old.
+//
+// - `networkTimeBudget` sets the timeout for network request. Default value of
+// 0 triggers the default API behavior. Special value `DisallowNetworkBudget`
+// (equal to tiny budget of 1 nanosecond) disallows any network access and will
+// result in only cached data being returned.
+//
+// If UID is present as a key in the result map, it means that it was either
+// found in cache or fetched from API server. The value for the key may be nil,
+// though, it means that the user has no services proven. To summarize, there
+// is a possibility that not all `uids` will be present as keys in the result
+// map, and also that not all keys will have non-nil value.
 func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID,
 	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage, err error) {
 
