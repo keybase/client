@@ -156,15 +156,13 @@ const styles = Styles.styleSheetCreate(() => {
       borderWidth: 0,
     },
     headerLeft: {
-      flexGrow: 0,
-      flexShrink: 0,
+      flex: 1,
       justifyContent: 'flex-start',
       paddingLeft: Styles.globalMargins.xsmall,
       paddingRight: Styles.globalMargins.xsmall,
     },
     headerRight: {
-      flexGrow: 0,
-      flexShrink: 0,
+      flex: 1,
       justifyContent: 'flex-end',
       paddingLeft: Styles.globalMargins.xsmall,
       paddingRight: Styles.globalMargins.xsmall,
