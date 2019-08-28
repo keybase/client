@@ -1,6 +1,5 @@
-Chat:
-• Replies will automatically notify who you're replying to
+• File system support for macOS Catalina (may require admin password)
 
-Misc:
-• Configure a HTTP or SOCKS proxy in advanced settings
-• Support user lookup by phone number
+Chat:
+• Improved "New chat" interface
+• Better draft management
