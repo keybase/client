@@ -1,7 +1,6 @@
 package keybase
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"runtime"
@@ -27,11 +26,12 @@ type Person struct {
 }
 
 type Message struct {
-	ID        int
-	Kind      string // "Text" | "Reaction"
-	Plaintext string
-	From      *Person
-	At        int64
+	ID            int
+	Kind          string // "Text" | "Reaction"
+	Plaintext     string
+	ServerMessage string // This is the server's suggested display message for the notification
+	From          *Person
+	At            int64
 }
 
 type ChatNotification struct {
@@ -61,8 +61,9 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 	return err
 }
 
-func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
-	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
+	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
+	pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
 	}
@@ -70,8 +71,8 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
+	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
+		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return flattenError(err) })()
 
 	// Unbox
@@ -80,77 +81,79 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	}
 	mp := chat.NewMobilePush(gc)
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	bConvID, err := hex.DecodeString(strConvID)
+	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
 		return err
 	}
-	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
-	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		return err
-	}
-	if !msgUnboxed.IsValid() {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: invalid unboxed msg")
-		return nil
-	}
-
 	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to get conversation info", err)
 		return err
 	}
 
-	isBot := msgUnboxed.SenderIsBot()
-	username := msgUnboxed.Valid().SenderUsername
-
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
-			ID: intMessageID,
-			From: &Person{
-				KeybaseUsername: username,
-				IsBot:           isBot,
-			},
-			At: int64(unixTime) * 1000,
+			ID:            intMessageID,
+			ServerMessage: serverMessageBody,
+			From:          &Person{},
+			At:            int64(unixTime) * 1000,
 		},
 		ConvID:              strConvID,
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    formatConversationName(conv.Info),
+		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
 	}
 
-	if displayPlaintext {
-		// We show avatars on Android
-		if runtime.GOOS == "android" {
-			avatar, err := kbSvc.GetUserAvatar(username)
+	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
+	if err == nil && msgUnboxed.IsValid() {
+		chatNotification.Message.From.IsBot = msgUnboxed.SenderIsBot()
+		username := msgUnboxed.Valid().SenderUsername
+		chatNotification.Message.From.KeybaseUsername = username
 
-			if err != nil {
-				kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
-			} else {
-				chatNotification.Message.From.KeybaseAvatar = avatar
+		if displayPlaintext && !msgUnboxed.Valid().IsEphemeral() {
+			// We show avatars on Android
+			if runtime.GOOS == "android" {
+				avatar, err := kbSvc.GetUserAvatar(username)
+
+				if err != nil {
+					kbCtx.Log.CDebugf(ctx, "Push Notif: Err in getting user avatar %v", err)
+				} else {
+					chatNotification.Message.From.KeybaseAvatar = avatar
+				}
+			}
+
+			switch msgUnboxed.GetMessageType() {
+			case chat1.MessageType_TEXT:
+				chatNotification.Message.Kind = "Text"
+				chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
+			case chat1.MessageType_REACTION:
+				chatNotification.Message.Kind = "Reaction"
+				reaction, err := utils.GetReaction(msgUnboxed)
+				if err != nil {
+					return err
+				}
+				chatNotification.Message.Plaintext =
+					emoji.Sprintf("Reacted to your message with %v", reaction)
+			default:
+				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v",
+					msgUnboxed.GetMessageType())
+				return errors.New("invalid message type for plaintext")
 			}
 		}
-
-		switch msgUnboxed.GetMessageType() {
-		case chat1.MessageType_TEXT:
-			chatNotification.Message.Kind = "Text"
-			chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
-		case chat1.MessageType_REACTION:
-			chatNotification.Message.Kind = "Reaction"
-			reaction, err := utils.GetReaction(msgUnboxed)
-			if err != nil {
-				return err
-			}
-			chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
-		default:
-			kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v", msgUnboxed.GetMessageType())
-			return errors.New("invalid message type for plaintext")
+	} else {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
+		chatNotification.Message.From.KeybaseUsername = sender
+		// just bail out of here at this point since we won't be displaying anything useful,
+		// and we don't want to accidentally ack the plaintext notification when we didn't really
+		// display it.
+		if len(serverMessageBody) == 0 {
+			return nil
 		}
 	}
 
@@ -160,7 +163,12 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return errors.New("stale notification")
 	}
 
-	pusher.DisplayChatNotification(&chatNotification)
-	mp.AckNotificationSuccess(ctx, []string{pushID})
+	// only display and ack this notification if we actually have something to display
+	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
+		pusher.DisplayChatNotification(&chatNotification)
+		if len(pushID) > 0 {
+			mp.AckNotificationSuccess(ctx, []string{pushID})
+		}
+	}
 	return nil
 }

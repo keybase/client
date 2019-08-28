@@ -767,7 +767,9 @@ export const getAirdropSelected = () => {
   return (
     topPath === 'airdrop' ||
     topPath === 'airdropQualify' ||
-    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop')
+    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop') ||
+    (topPath === 'createNewAccount' && nextPathDown === 'airdrop') ||
+    (topPath === 'linkExisting' && nextPathDown === 'airdrop')
   )
 }
 

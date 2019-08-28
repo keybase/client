@@ -393,7 +393,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   arrowTick: {
     borderBottomColor: Styles.globalColors.blueDark,
     borderBottomWidth: 6,
@@ -453,6 +453,6 @@ const styles = Styles.styleSheetCreate({
     marginTop: isDarwin ? 13 : 0,
     position: 'relative',
   },
-})
+}))
 
 export default MenubarRender

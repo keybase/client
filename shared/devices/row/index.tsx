@@ -49,7 +49,7 @@ const DeviceRow = (props: Props) => {
     />
   )
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   icon: {opacity: 0.3},
   meta: {alignSelf: 'flex-start'},
   text: {
@@ -58,6 +58,6 @@ const styles = Styles.styleSheetCreate({
     textDecorationLine: 'line-through' as const,
     textDecorationStyle: 'solid' as const,
   },
-})
+}))
 
 export default DeviceRow

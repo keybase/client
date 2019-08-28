@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import MessagePopup from '../messages/message-popup/'
+import MessagePopup from '../messages/message-popup'
 import {Props} from './index.types'
-import {Video as ExpoVideo} from 'expo-av'
+import RNVideo from 'react-native-video'
 import logger from '../../../logger'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
@@ -17,10 +17,9 @@ class AutoMaxSizeImage extends React.Component<
   {
     width: number
     height: number
-    loaded: boolean
   }
 > {
-  state = {height: 0, loaded: false, width: 0}
+  state = {height: 0, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -38,8 +37,6 @@ class AutoMaxSizeImage extends React.Component<
       () => {}
     )
   }
-
-  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     return (
@@ -93,19 +90,19 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               centerChildren={true}
               style={{position: 'relative'}}
             >
-              <ExpoVideo
+              <RNVideo
                 source={{uri: `${this.props.path}&contentforce=true`}}
                 onError={e => {
                   logger.error(`Error loading vid: ${JSON.stringify(e)}`)
                 }}
                 onLoad={this._setLoaded}
-                shouldPlay={false}
-                useNativeControls={true}
+                paused={true}
+                controls={true}
                 style={{
                   height: this.props.previewHeight,
                   width: this.props.previewWidth,
                 }}
-                resizeMode={ExpoVideo.RESIZE_MODE_CONTAIN}
+                resizeMode="contain"
               />
             </Kb.Box2>
           ) : (

@@ -6,38 +6,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func getUsernameIfProvisioned(m MetaContext, uc UserConfig) (ret NormalizedUsername, err error) {
-	m.Debug("getUsernameIfProvisioned(%+v)", uc)
-	did := uc.GetDeviceID()
-	if did.IsNil() {
-		m.Debug("- no valid username since nil deviceID")
-		return ret, nil
-	}
-	err = checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uc.GetUID(), did)
-	switch err.(type) {
-	case nil:
-		m.Debug("- checks out")
-		return uc.GetUsername(), nil
-	case DeviceNotFoundError:
-		m.Debug("- user was likely reset (%s)", err)
-		return ret, nil
-	case KeyRevokedError:
-		m.Debug("- device was revoked (%s)", err)
-		return ret, nil
-	case UserDeletedError:
-		m.Debug(" - user was deleted (%s)", err)
-		return ret, nil
-	case NotFoundError:
-		// This can happen in development if the dev db is nuked or a mobile
-		// device is connected to dev servers.
-		m.Debug(" - user wasn't found (%s)", err)
-		return ret, nil
-	default:
-		m.Debug("- unexpected error; propagating (%s)", err)
-		return ret, err
-	}
-}
-
 type deviceForUsersRet struct {
 	AppStatusEmbed
 	UserConfigs []deviceForUser `json:"user_configs"`
@@ -93,7 +61,7 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	for _, userConfig := range resp.UserConfigs {
 		if userConfig.OK {
 			all = append(all, userConfig.Username)
-			if userConfig.Username == currentUC.GetUsername() {
+			if currentUC != nil && userConfig.Username == currentUC.GetUsername() {
 				current = userConfig.Username
 			}
 		}

@@ -426,6 +426,25 @@ func (p PassphraseError) Error() string {
 
 //=============================================================================
 
+type PaperKeyError struct {
+	msg      string
+	tryAgain bool
+}
+
+func (p PaperKeyError) Error() string {
+	msg := "Bad paper key: " + p.msg
+	if p.tryAgain {
+		msg += ". Please try again."
+	}
+	return msg
+}
+
+func NewPaperKeyError(s string, t bool) error {
+	return PaperKeyError{msg: s, tryAgain: t}
+}
+
+//=============================================================================
+
 type BadEmailError struct {
 	Msg string
 }

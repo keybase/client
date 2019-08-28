@@ -216,7 +216,7 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   balance: {color: Styles.globalColors.purpleDark},
   balanceContainer: {
     alignItems: 'flex-end',
@@ -273,4 +273,4 @@ const styles = Styles.styleSheetCreate({
       cursor: 'pointer',
     },
   }),
-})
+}))

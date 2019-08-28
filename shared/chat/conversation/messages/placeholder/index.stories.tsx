@@ -5,7 +5,7 @@ import MessagePlaceholder from '.'
 
 const load = () => {
   storiesOf('Chat/Conversation/Rows', module).add('Placeholder', () => (
-    <React.Fragment>
+    <>
       <MessagePlaceholder ordinal={Types.numberToOrdinal(1)} />
       <MessagePlaceholder ordinal={Types.numberToOrdinal(2)} />
       <MessagePlaceholder ordinal={Types.numberToOrdinal(3)} />
@@ -16,7 +16,7 @@ const load = () => {
       <MessagePlaceholder ordinal={Types.numberToOrdinal(7.001)} />
       <MessagePlaceholder ordinal={Types.numberToOrdinal(7.002)} />
       <MessagePlaceholder ordinal={Types.numberToOrdinal(8)} />
-    </React.Fragment>
+    </>
   ))
 }
 

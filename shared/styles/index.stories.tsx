@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {Box, Text} from '../common-adapters'
-import {globalColors} from '../styles'
+import {globalColors} from '.'
 
 const load = () => {
   Sb.storiesOf('Styles', module)

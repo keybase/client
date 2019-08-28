@@ -13,7 +13,7 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 	tc := SetupTest(t, "parse", 2)
 	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
-	i, w, e := ParseGpgIndexStream(tc.G, buf)
+	i, w, e := ParseGpgIndexStream(tc.MetaContext(), buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}

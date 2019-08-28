@@ -43,7 +43,7 @@ func (c *CmdDumpPushNotifications) Run() error {
 		return err
 	}
 
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 func NewCmdDumpPushNotificationsRunner(g *libkb.GlobalContext) *CmdDumpPushNotifications {

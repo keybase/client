@@ -1,4 +1,4 @@
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCChatTypes from './rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
@@ -76,7 +76,7 @@ export type _EmailState = {
   addedEmail: string | null // show banner with dismiss on account settings
   emails: I.Map<string, EmailRow> | null
   newEmail: string
-  error: Error | null
+  error: string
 }
 export type EmailState = I.RecordOf<_EmailState>
 

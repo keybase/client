@@ -4,6 +4,7 @@ import {SuccessComponent, styleContainer, stylePadding} from './index.shared'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import {Props} from '.'
+
 const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
   <ScrollView>
     <Box style={globalStyles.flexBoxColumn}>

@@ -106,14 +106,14 @@ const ManageChannels = (props: Props) => {
     )
   }
   return (
-    <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+    <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
       {props.canCreateChannels && (
-        <Kb.Box style={_createStyle}>
+        <Kb.Box style={styles.create}>
           <Kb.Icon
-            style={_createIcon}
+            style={styles.createIcon}
             type="iconfont-new"
             onClick={props.onCreate}
-            hoverColor={_hoverColor}
+            hoverColor={Styles.globalColors.blueLight}
             color={Styles.globalColors.blue}
           />
           <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
@@ -121,7 +121,7 @@ const ManageChannels = (props: Props) => {
           </Kb.Text>
         </Kb.Box>
       )}
-      <Kb.Box style={_boxStyle}>
+      <Kb.Box style={styles.box}>
         <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
           {props.teamname}
@@ -160,40 +160,36 @@ const ManageChannels = (props: Props) => {
   )
 }
 
-const _boxStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  paddingBottom: Styles.globalMargins.medium,
-  paddingLeft: Styles.globalMargins.large,
-  paddingRight: Styles.globalMargins.large,
-  paddingTop: Styles.globalMargins.medium,
-}
-
-const _createIcon = Styles.platformStyles({
-  common: {marginRight: Styles.globalMargins.xtiny},
-  isElectron: {display: 'block'},
-})
-
-const _hoverColor = Styles.globalColors.blueLight
-
-const _createStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  position: 'absolute',
-  right: 32,
-  top: 32,
-}
-
-const _styleCover = {
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.black_50,
-  justifyContent: 'center',
-}
-
-const _styleContainer = {
-  height: 520,
-  width: 620,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  box: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.large,
+    paddingRight: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.medium,
+  },
+  container: {
+    height: 520,
+    width: 620,
+  },
+  cover: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black_50OrWhite_75,
+    justifyContent: 'center',
+  },
+  create: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    position: 'absolute',
+    right: 32,
+    top: 32,
+  },
+  createIcon: Styles.platformStyles({
+    common: {marginRight: Styles.globalMargins.xtiny},
+    isElectron: {display: 'block'},
+  }),
+}))
 
 export default ManageChannels

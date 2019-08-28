@@ -88,7 +88,7 @@ func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 		return err
 	}
 
-	err = m.G().GetGpgClient().ExportKeyArmored(armored)
+	err = m.G().GetGpgClient().ExportKeyArmored(m, armored)
 	if err != nil {
 		return err
 	}
