@@ -614,16 +614,16 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "DRiE8R9PcafVgnFzdVQUkrx5nms=",
+			"checksumSHA1": "lJzls7rtqYqOPQaqtUAwC+jKXOk=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
-			"revisionTime": "2019-06-24T20:14:47Z"
+			"revision": "c0c75d9fee37c191ce0b606ecd7d538ab8f20272",
+			"revisionTime": "2019-08-28T02:07:23Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
-			"revisionTime": "2019-06-24T20:14:47Z"
+			"revision": "c0c75d9fee37c191ce0b606ecd7d538ab8f20272",
+			"revisionTime": "2019-08-28T02:07:23Z"
 		},
 		{
 			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
@@ -632,22 +632,22 @@
 			"revisionTime": "2018-09-24T21:12:44Z"
 		},
 		{
-			"checksumSHA1": "YDOP8L/RaZBoisV6L8y71h82J9c=",
+			"checksumSHA1": "fDuhxt6a+8Kj6yAqoZ3AxaMPEB8=",
 			"path": "github.com/keybase/go-kext",
-			"revision": "d97c78dc121c752ff92e38130d9617b3ef907b5b",
-			"revisionTime": "2019-06-10T14:05:28Z"
+			"revision": "284cc5cce0396b605139563534ecb411e400a05e",
+			"revisionTime": "2019-08-28T02:14:36Z"
 		},
 		{
-			"checksumSHA1": "g0PJMcZdWKAs1cwRwracYXf2omQ=",
+			"checksumSHA1": "0yVOlB87RO2Vs9/nr4iurwsSFOE=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
-			"revisionTime": "2019-07-12T20:53:09Z"
+			"revision": "aa639f275ae10d8ca90c49393c586d676e720098",
+			"revisionTime": "2019-08-28T02:09:56Z"
 		},
 		{
 			"checksumSHA1": "ILa8RyF3Ec4O6e7LyjslLcNhWNk=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
-			"revisionTime": "2019-07-12T20:53:09Z"
+			"revision": "aa639f275ae10d8ca90c49393c586d676e720098",
+			"revisionTime": "2019-08-28T02:09:56Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -656,10 +656,10 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
-			"checksumSHA1": "OgoahEm1klTnBu8VUttmyqhsi6M=",
+			"checksumSHA1": "+UKzYctKtvP2/xOYFx51Q0XTCG4=",
 			"path": "github.com/keybase/go-merkle-tree",
-			"revision": "90288bcf8366442e1d29ad22356fae3f2e8254a5",
-			"revisionTime": "2018-02-26T14:35:15Z"
+			"revision": "e5a1d5d70a43ba4d1115d82438bef7d9d4c2c996",
+			"revisionTime": "2019-08-28T15:48:48Z"
 		},
 		{
 			"checksumSHA1": "v+BpTxHFNO9rsGBINRqtWiZoTJI=",
@@ -680,16 +680,16 @@
 			"revisionTime": "2016-08-09T20:56:21Z"
 		},
 		{
-			"checksumSHA1": "2cS/Nmv8BvSSu13WFiDKPXnFLNA=",
+			"checksumSHA1": "TA7uBxl6+rLcLVwMN64qDbtyGMs=",
 			"path": "github.com/keybase/go-triplesec",
-			"revision": "bfcc0cb8e1502bdac1328d9d7f9fd9d6d33e5367",
-			"revisionTime": "2019-05-29T15:46:34Z"
+			"revision": "64e2936e9594e6c13102b9c92e48fd5d4243f785",
+			"revisionTime": "2019-08-28T01:40:55Z"
 		},
 		{
-			"checksumSHA1": "GkXuNWiiqrdEI7RVOqEzplQK+fk=",
+			"checksumSHA1": "ZNwCf/BIvSW3vseuKiJfEP1gQFI=",
 			"path": "github.com/keybase/go-triplesec-insecure",
-			"revision": "78112cdab09d1fb2a9ce5092b7c668f412d8fa11",
-			"revisionTime": "2019-05-29T15:55:26Z"
+			"revision": "01d229502763ae008ce4631e3ef689b00d7e789f",
+			"revisionTime": "2019-08-28T01:53:43Z"
 		},
 		{
 			"checksumSHA1": "1ooVUlwDXhGISJAxGqpL3JCCW3o=",
@@ -700,14 +700,14 @@
 		{
 			"checksumSHA1": "9rRK1pLxOcjjNNUP/6H9EthW360=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "ffC5qvAmfgvFbIYgKbE2E7fwQg8=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
@@ -746,34 +746,34 @@
 			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
-			"checksumSHA1": "KLtP59e4Bqmy3A/8kQ++bJ5XAKs=",
+			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
 			"path": "github.com/keybase/msgpackzip",
-			"revision": "8dea1c08771a9ac421cef183a97c93495a370de7",
-			"revisionTime": "2019-05-29T15:55:09Z"
+			"revision": "de96f0e9b79ae5c4dd09442199361b5367603642",
+			"revisionTime": "2019-08-28T01:53:35Z"
 		},
 		{
-			"checksumSHA1": "xdFD5+PG3qFLMVbFyGFSl26pwHM=",
+			"checksumSHA1": "3JiGxAzxQaXu9JVYe+ZCQ9iuAtU=",
 			"path": "github.com/keybase/pipeliner",
-			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
-			"revisionTime": "2018-08-24T13:24:23Z"
+			"revision": "31ef4ee63659c27b0492126515e11543382e2685",
+			"revisionTime": "2019-08-28T02:21:49Z"
 		},
 		{
-			"checksumSHA1": "1/YSDkbMqXyqNzNVUI+0Vt+lqtA=",
+			"checksumSHA1": "oaEGy2fWwKmkVh84Qh9TFKEBv5E=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "462a2685bf7c067c19169605745c7d538cd3d8a8",
-			"revisionTime": "2019-05-28T18:13:59Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",
 			"path": "github.com/keybase/saltpack/basic",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "W4AtPFFZNotMGDQpwJI59jkMLL8=",
+			"checksumSHA1": "Gyq+7rG0IbvOt/mI9iviT6O7WLs=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
 			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",

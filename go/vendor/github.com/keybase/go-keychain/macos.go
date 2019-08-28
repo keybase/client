@@ -1,5 +1,4 @@
 // +build darwin,!ios
-// +build go1.10
 
 package keychain
 
@@ -58,7 +57,7 @@ func createAccess(label string, trustedApplications []string) (C.CFTypeRef, erro
 			if createErr != nil {
 				return 0, createErr
 			}
-			defer C.CFRelease(C.CFTypeRef(trustedApplicationRef))
+			defer C.CFRelease(trustedApplicationRef)
 			trustedApplicationsRefs = append(trustedApplicationsRefs, trustedApplicationRef)
 		}
 
@@ -67,7 +66,7 @@ func createAccess(label string, trustedApplications []string) (C.CFTypeRef, erro
 	}
 
 	var access C.SecAccessRef
-	errCode := C.SecAccessCreate(labelRef, trustedApplicationsArray, &access)
+	errCode := C.SecAccessCreate(labelRef, trustedApplicationsArray, &access) //nolint
 	err = checkError(errCode)
 	if err != nil {
 		return 0, err
@@ -86,7 +85,7 @@ func createTrustedApplication(trustedApplication string) (C.CFTypeRef, error) {
 	}
 
 	var trustedApplicationRef C.SecTrustedApplicationRef
-	errCode := C.SecTrustedApplicationCreateFromPath(trustedApplicationCStr, &trustedApplicationRef)
+	errCode := C.SecTrustedApplicationCreateFromPath(trustedApplicationCStr, &trustedApplicationRef) //nolint
 	err := checkError(errCode)
 	if err != nil {
 		return 0, err
@@ -152,11 +151,11 @@ func newKeychain(path, password string, promptUser bool) (Keychain, error) {
 	var kref C.SecKeychainRef
 
 	if promptUser {
-		errCode = C.SecKeychainCreate(pathRef, C.UInt32(0), nil, C.Boolean(1), 0, &kref)
+		errCode = C.SecKeychainCreate(pathRef, C.UInt32(0), nil, C.Boolean(1), 0, &kref) //nolint
 	} else {
 		passwordRef := C.CString(password)
 		defer C.free(unsafe.Pointer(passwordRef))
-		errCode = C.SecKeychainCreate(pathRef, C.UInt32(len(password)), unsafe.Pointer(passwordRef), C.Boolean(0), 0, &kref)
+		errCode = C.SecKeychainCreate(pathRef, C.UInt32(len(password)), unsafe.Pointer(passwordRef), C.Boolean(0), 0, &kref) //nolint
 	}
 
 	if err := checkError(errCode); err != nil {
@@ -197,7 +196,7 @@ func openKeychainRef(path string) (C.SecKeychainRef, error) {
 	defer C.free(unsafe.Pointer(pathName))
 
 	var kref C.SecKeychainRef
-	if err := checkError(C.SecKeychainOpen(pathName, &kref)); err != nil {
+	if err := checkError(C.SecKeychainOpen(pathName, &kref)); err != nil { //nolint
 		return 0, err
 	}
 
