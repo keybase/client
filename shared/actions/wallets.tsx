@@ -677,19 +677,14 @@ const changeDisplayCurrency = async (
 }
 
 const changeAccountName = async (_: TypedState, action: WalletsGen.ChangeAccountNamePayload) => {
-  try {
-    const res = await RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
-      {
-        accountID: action.payload.accountID,
-        newName: action.payload.name,
-      },
-      Constants.changeAccountNameWaitingKey
-    )
-    return WalletsGen.createChangedAccountName({account: Constants.accountResultToAccount(res)})
-  } catch (error) {
-    logger.error('Error changing account name:', error.desc)
-    return false
-  }
+  const res = await RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      newName: action.payload.name,
+    },
+    Constants.changeAccountNameWaitingKey
+  )
+  return WalletsGen.createChangedAccountName({account: Constants.accountResultToAccount(res)})
 }
 
 const deleteAccount = async (
