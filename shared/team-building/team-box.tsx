@@ -27,7 +27,9 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let technicalName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on contact".
+    case 'contact': // do not display "michal@keyba.se on email" or similar
+    case 'phone':
+    case 'email':
       technicalName = u.username
       break
     default:
@@ -48,7 +50,7 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u)}
+        tooltip={formatNameForUserBubble(u)}
       />
     ))
   }

@@ -7,8 +7,8 @@ import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
   username: string
-  prettyName: string
   service: ServiceIdWithContact
+  tooltip: string
   onRemove: () => void
 }
 
@@ -20,7 +20,8 @@ const UserBubble = (props: Props) => {
     .hoverContainer .hoverComponent { visibility: hidden; }
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
-  const showAvatar = ['keybase', 'contact', 'phone', 'email'].includes(props.service)
+  const isKeybase = props.service === 'keybase'
+  const {username} = props
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer" style={styles.bubbleContainer}>
       <DesktopStyle style={realCSS} />
@@ -29,14 +30,18 @@ const UserBubble = (props: Props) => {
           colorFollowing={true}
           hideFollowingOverlay={true}
           horizontal={false}
-          icon={showAvatar ? undefined : serviceIdToIconFont(props.service)}
-          iconBoxStyle={showAvatar ? undefined : styles.iconBox}
+          icon={isKeybase ? undefined : serviceIdToIconFont(props.service)}
+          iconBoxStyle={isKeybase ? undefined : styles.iconBox}
           size="smaller"
-          username={props.username}
+          // Display `username` for Keybase users for linking to profile pages
+          // and for follow. Display `title` for non-Keybase users that always
+          // stay gray and is not a link.
+          username={isKeybase ? username : undefined}
+          title={!isKeybase ? username : undefined}
         />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" className="hoverComponent" style={styles.remove}>
-        <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+        <RemoveBubble prettyName={props.tooltip} onRemove={props.onRemove} />
       </Kb.Box2>
     </Kb.Box2>
   )
