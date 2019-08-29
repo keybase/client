@@ -28,6 +28,13 @@ const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
       })
     )
   },
+  onGiphy: () =>
+    dispatch(
+      Chat2Gen.createSetUnsentText({
+        conversationIDKey: ownProps.conversationIDKey,
+        text: new HiddenString('/giphy '),
+      })
+    ),
   onInsertSlashCommand: () =>
     dispatch(
       Chat2Gen.createSetUnsentText({
@@ -47,6 +54,8 @@ export default connect(
       to = otherParticipants.first()
     }
     return {
+      conversationIDKey: ownProps.conversationIDKey,
+      onGiphy: dispatchProps.onGiphy,
       onHidden: ownProps.onHidden,
       onInsertSlashCommand: dispatchProps.onInsertSlashCommand,
       onRequestLumens: stateProps._wallet ? () => dispatchProps._onLumens(to, true) : undefined,

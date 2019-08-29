@@ -3,13 +3,13 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS} from '../../../../constants/platform'
+import {imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
 
 type Props = {
-  locationAccuracy?: number
-  locationMap?: string
-  onShareLocation?: (duration: number) => void
+  httpSrvAddress: string
+  httpSrvToken: string
+  onLocationShare: (duration: string) => void
 }
 
 const LocationPopup = (props: Props) => {
@@ -21,7 +21,6 @@ const LocationPopup = (props: Props) => {
     accuracy: 0,
     lat: 0,
     lon: 0,
-    map: '',
   })
   React.useEffect(() => {
     const watchID = navigator.geolocation.watchPosition(
@@ -30,26 +29,25 @@ const LocationPopup = (props: Props) => {
           accuracy: pos.coords.accuracy,
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
-          map: location.map,
-        })
-        RPCChatTypes.localGetLocationPreviewRpcPromise({
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-        }).then(result => {
-          setLocation({
-            ...location,
-            map: result,
-          })
         })
       },
       err => {},
-      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 10000, timeout: 30000}
     )
     return () => {
       navigator.geolocation.clearWatch(watchID)
     }
   }, [])
-  const mapSrc = `data:image/png;base64, ${location.map}`
+  const onLocationShare = (duration: string) => {
+    onClose()
+    props.onLocationShare(duration)
+  }
+
+  const width = imgMaxWidthRaw()
+  const height = 800
+  const mapSrc = `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${
+    location.lon
+  }&width=${width}&height=${height}&token=${props.httpSrvToken}`
   return (
     <Kb.Modal
       header={{
@@ -63,19 +61,23 @@ const LocationPopup = (props: Props) => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Button
-              fullWidth={true}
-              onClick={() => props.onShareLocation(0)}
-              label="Share Current Location"
-              type="Default"
-            />
+            <Kb.Button fullWidth={true} onClick={() => onLocationShare('')} type="Default">
+              <Kb.Box2 direction="vertical" centerChildren={true}>
+                <Kb.Text type="BodySemibold" negative={true}>
+                  Share current location
+                </Kb.Text>
+                <Kb.Text type="BodyTiny" style={styles.accuracy}>
+                  Accurate to {location.accuracy} meters
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Button>
             <Kb.Divider />
             <Kb.Text type="BodySmall" center={true}>
               Live Location
             </Kb.Text>
             <Kb.Button
               fullWidth={true}
-              onClick={() => props.onShareLocation(900)}
+              onClick={() => onLocationShare('15m')}
               label="Share location for 15 minutes"
               mode="Secondary"
               type="Default"
@@ -83,7 +85,7 @@ const LocationPopup = (props: Props) => {
             />
             <Kb.Button
               fullWidth={true}
-              onClick={() => props.onShareLocation(3600)}
+              onClick={() => onLocationShare('1h')}
               label="Share location for 1 hour"
               mode="Secondary"
               type="Default"
@@ -91,7 +93,7 @@ const LocationPopup = (props: Props) => {
             />
             <Kb.Button
               fullWidth={true}
-              onClick={() => props.onShareLocation(28800)}
+              onClick={() => onLocationShare('8h')}
               label="Share location for 8 hours"
               mode="Secondary"
               type="Default"
@@ -99,17 +101,20 @@ const LocationPopup = (props: Props) => {
             />
           </Kb.Box2>
         ),
-        hideBorder: true,
       }}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Image src={mapSrc} style={styles.map} />
+        <Kb.Image src={mapSrc} style={{height, width}} />
       </Kb.Box2>
     </Kb.Modal>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  accuracy: {
+    color: Styles.globalColors.white_75,
+    lineHeight: 14,
+  },
   container: {
     ...Styles.globalStyles.fillAbsolute,
     justifyContent: 'center',
@@ -120,10 +125,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   liveButton: {
     minHeight: 40,
-  },
-  map: {
-    height: 175,
-    width: 320,
   },
 }))
 

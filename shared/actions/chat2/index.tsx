@@ -3128,7 +3128,7 @@ const onChatWatchPosition = async (
           RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
         }
       },
-      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 10000, timeout: 30000}
     )
     response.result(watchID)
   } else {
