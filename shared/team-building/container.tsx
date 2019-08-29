@@ -105,7 +105,7 @@ const deriveTeamSoFar = memoize(
         serviceId = userInfo.serviceId
       }
       return {
-        prettyName: userInfo.prettyName,
+        prettyName: userInfo.prettyName !== username ? userInfo.prettyName : '',
         service: serviceId,
         userId: userInfo.id,
         username,
