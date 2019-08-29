@@ -2,13 +2,15 @@ import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Constants from '../../../constants/provision'
 
 type OwnProps = {}
 
 export default Container.connect(
-  () => ({
+  state => ({
     error: '',
     hint: '',
+    waiting: Container.anyWaiting(state, Constants.waitingKey),
     waitingForResponse: false,
   }),
   dispatch => ({
