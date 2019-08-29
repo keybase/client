@@ -4288,7 +4288,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	md.override = true
 	err = kbfsOps.Reset(ctx, h, &oldID)
 	require.NoError(t, err)
-	require.Equal(t, oldID, oldID)
+	require.Equal(t, oldID, h.TlfID())
 	md.override = false
 
 	t.Logf("Check that the old revision is back")
