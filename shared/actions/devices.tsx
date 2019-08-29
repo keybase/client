@@ -23,21 +23,19 @@ const load = async (state: Container.TypedState) => {
 }
 
 function* requestPaperKey(): Iterable<any> {
-  yield* Saga.callRPCs(
-    RPCTypes.loginPaperKeyRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-          response.result(false)
-        },
+  yield RPCTypes.loginPaperKeyRpcSaga({
+    customResponseIncomingCallMap: {
+      'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+        response.result(false)
       },
-      incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-      },
-      params: undefined,
-      waitingKey: Constants.waitingKey,
-    })
-  )
+    },
+    incomingCallMap: {
+      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+        Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
+    },
+    params: undefined,
+    waitingKey: Constants.waitingKey,
+  })
 }
 
 const requestEndangeredTLFsLoad = async (

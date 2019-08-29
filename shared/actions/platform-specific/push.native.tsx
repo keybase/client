@@ -262,7 +262,7 @@ function* neverShowMonsterAgain(state: Container.TypedState) {
 
 function* requestPermissions() {
   if (isIOS) {
-    const shownPushPrompt = yield* Saga.callPromise(askNativeIfSystemPushPromptHasBeenShown)
+    const shownPushPrompt = yield askNativeIfSystemPushPromptHasBeenShown()
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
       yield Saga.put(ConfigGen.createOpenAppSettings())
@@ -273,7 +273,7 @@ function* requestPermissions() {
   try {
     yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
     logger.info('[PushRequesting] asking native')
-    const permissions = yield* Saga.callPromise(requestPermissionsFromNative)
+    const permissions = yield requestPermissionsFromNative()
     logger.info('[PushRequesting] after prompt:', permissions)
     if (permissions && (permissions.alert || permissions.badge)) {
       logger.info('[PushRequesting] enabled')
@@ -329,13 +329,13 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
-  const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
+  const permissions = yield checkPermissionsFromNative()
   if (permissions.alert || permissions.badge) {
     const state: Container.TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-      yield* Saga.callPromise(requestPermissionsFromNative)
+      yield requestPermissionsFromNative()
     } else {
       logger.info('[PushCheck] enabled already')
     }
@@ -349,7 +349,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: Saga.callPromise(isAndroid ? getInitialPushAndroid : getInitialPushiOS),
+    push: isAndroid ? getInitialPushAndroid : getInitialPushiOS,
     pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {

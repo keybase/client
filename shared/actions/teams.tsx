@@ -99,19 +99,17 @@ const getTeamProfileAddList = (_: TypedState, action: TeamsGen.GetTeamProfileAdd
   })
 
 function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload) {
-  yield* Saga.callRPCs(
-    RPCTypes.teamsTeamDeleteRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
-      },
-      incomingCallMap: {},
-      params: {
-        name: action.payload.teamname,
-      },
-      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
-    })
-  )
+  yield RPCTypes.teamsTeamDeleteRpcSaga({
+    customResponseIncomingCallMap: {
+      'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+      'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+    },
+    incomingCallMap: {},
+    params: {
+      name: action.payload.teamname,
+    },
+    waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+  })
 }
 const leaveTeam = (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
   const {context, teamname} = action.payload

@@ -48,35 +48,33 @@ const moveToProvisioning = (username: string) => (_: any, response: any) => {
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
 function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
   try {
-    yield* Saga.callRPCs(
-      RPCTypes.loginLoginRpcSaga({
-        customResponseIncomingCallMap: {
-          'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-          'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.username),
-          'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
-          'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-          'keybase.1.secretUi.getPassphrase': getPasswordHandler(action.payload.password.stringValue()),
-        },
-        // cancel if we get any of these callbacks, we're logging in, not provisioning
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-        },
-        params: {
-          clientType: RPCTypes.ClientType.guiMain,
-          deviceName: '',
-          deviceType: isMobile ? 'mobile' : 'desktop',
-          doUserSwitch: flags.fastAccountSwitch,
-          paperKey: '',
-          username: action.payload.username,
-        },
-        waitingKey: Constants.waitingKey,
-      })
-    )
+    yield RPCTypes.loginLoginRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.gpgUi.selectKey': cancelOnCallback,
+        'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+        'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+        'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.username),
+        'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+        'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+        'keybase.1.secretUi.getPassphrase': getPasswordHandler(action.payload.password.stringValue()),
+      },
+      // cancel if we get any of these callbacks, we're logging in, not provisioning
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+        'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+        'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+        'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+      },
+      params: {
+        clientType: RPCTypes.ClientType.guiMain,
+        deviceName: '',
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        doUserSwitch: flags.fastAccountSwitch,
+        paperKey: '',
+        username: action.payload.username,
+      },
+      waitingKey: Constants.waitingKey,
+    })
     logger.info('login call succeeded')
     yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
   } catch (e) {

@@ -393,7 +393,7 @@ function* download(
     case Types.DownloadIntent.None:
       // This adds " (1)" suffix to the base name, if the destination path
       // already exists.
-      localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
+      localPath = yield Constants.downloadFilePathFromPath(path)
       break
     case Types.DownloadIntent.CameraRoll:
     case Types.DownloadIntent.Share:
@@ -404,7 +404,7 @@ function* download(
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
+      localPath = yield Constants.downloadFilePathFromPath(path)
       break
   }
 
