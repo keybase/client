@@ -27,6 +27,7 @@ type CommonProps = {
   showGiphySearch: boolean
   showReplyPreview: boolean
   showTypingStatus: boolean
+  showWalletsIcon: boolean
   editText: string
   quoteCounter: number
   quoteText: string

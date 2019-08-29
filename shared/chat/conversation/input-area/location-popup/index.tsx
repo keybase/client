@@ -22,6 +22,7 @@ const LocationPopup = (props: Props) => {
     lat: 0,
     lon: 0,
   })
+  const [mapLoaded, setMapLoaded] = React.useState(false)
   React.useEffect(() => {
     const watchID = navigator.geolocation.watchPosition(
       pos => {
@@ -31,7 +32,7 @@ const LocationPopup = (props: Props) => {
           lon: pos.coords.longitude,
         })
       },
-      err => {},
+      () => {},
       {enableHighAccuracy: isIOS, maximumAge: 10000, timeout: 30000}
     )
     return () => {
@@ -66,9 +67,11 @@ const LocationPopup = (props: Props) => {
                 <Kb.Text type="BodySemibold" negative={true}>
                   Share current location
                 </Kb.Text>
-                <Kb.Text type="BodyTiny" style={styles.accuracy}>
-                  Accurate to {location.accuracy} meters
-                </Kb.Text>
+                {mapLoaded && (
+                  <Kb.Text type="BodyTiny" style={styles.accuracy}>
+                    Accurate to {location.accuracy} meters
+                  </Kb.Text>
+                )}
               </Kb.Box2>
             </Kb.Button>
             <Kb.Divider />
@@ -104,7 +107,8 @@ const LocationPopup = (props: Props) => {
       }}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Image src={mapSrc} style={{height, width}} />
+        <Kb.Image src={mapSrc} style={{height, width}} onLoad={() => setMapLoaded(true)} />
+        {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -125,6 +129,18 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   liveButton: {
     minHeight: 40,
+  },
+  loading: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -12,
+    marginLeft: -12,
+    marginRight: -12,
+    marginTop: -12,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+    width: 24,
   },
 }))
 

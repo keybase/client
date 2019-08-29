@@ -7,6 +7,7 @@ import * as Container from '../../../../util/container'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  onCoinFlip: () => void
   onGiphy: () => void
   onHidden: () => void
   onInsertSlashCommand: () => void
@@ -34,15 +35,7 @@ const MoreMenuPopup = (props: Props) => {
       ? [
           {
             onClick: props.onSendLumens,
-            title: '',
-            view: (
-              <Kb.Box2 direction="horizontal" gap="tiny">
-                <Kb.Icon type="iconfont-dollar-sign" />
-                <Kb.Text type="BodyBig" style={styles.item}>
-                  Send Lumens (XLM)
-                </Kb.Text>
-              </Kb.Box2>
-            ),
+            title: 'Send Lumens (XLM)',
           },
         ]
       : []),
@@ -50,21 +43,58 @@ const MoreMenuPopup = (props: Props) => {
       ? [
           {
             onClick: props.onRequestLumens,
-            title: '',
-            view: (
-              <Kb.Box2 direction="horizontal" gap="tiny">
-                <Kb.Icon type="iconfont-dollar-sign" />
-                <Kb.Text type="BodyBig" style={styles.item}>
-                  Request Lumens (XLM)
-                </Kb.Text>
-              </Kb.Box2>
-            ),
+            title: 'Request Lumens (XLM)',
           },
         ]
       : []),
-    {onClick: props.onInsertSlashCommand, title: 'Insert a slash command'},
-    {onClick: props.onGiphy, title: 'Giphy'},
-    {onClick: onLocationShare, title: 'Share your location'},
+    {
+      onClick: props.onGiphy,
+      title: '',
+      view: (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="BodyBig" style={styles.item}>
+            Share a GIF
+          </Kb.Text>
+          <Kb.Text type="BodySmall">/giphy</Kb.Text>
+        </Kb.Box2>
+      ),
+    },
+    {
+      onClick: props.onCoinFlip,
+      title: '',
+      view: (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="BodyBig" style={styles.item}>
+            Flip a coin
+          </Kb.Text>
+          <Kb.Text type="BodySmall">/flip</Kb.Text>
+        </Kb.Box2>
+      ),
+    },
+    {
+      onClick: onLocationShare,
+      title: '',
+      view: (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="BodyBig" style={styles.item}>
+            Share your location
+          </Kb.Text>
+          <Kb.Text type="BodySmall">/location</Kb.Text>
+        </Kb.Box2>
+      ),
+    },
+    {
+      onClick: props.onInsertSlashCommand,
+      title: '',
+      view: (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="BodyBig" style={styles.item}>
+            Other commands
+          </Kb.Text>
+          <Kb.Text type="BodySmall">/...</Kb.Text>
+        </Kb.Box2>
+      ),
+    },
   ]
   return (
     <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={props.onHidden} visible={props.visible} />
