@@ -6,7 +6,7 @@ import NewChat from './new-chat'
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Cards', module)
     .addDecorator(story => (
-      <Kb.Box2 direction="vertical" style={{backgroundColor: 'lightGrey', width: 500, padding: 20}}>
+      <Kb.Box2 direction="vertical" style={{backgroundColor: 'lightGrey', padding: 20, width: 500}}>
         {story()}
       </Kb.Box2>
     ))

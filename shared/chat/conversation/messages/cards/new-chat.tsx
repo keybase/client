@@ -8,13 +8,13 @@ type Props = {}
 const NewCard = (_: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-      <Kb.Text type="BodySemibold" style={styles.header}>
+      <Kb.Text type="BodySemibold" style={styles.header} negative={true}>
         This conversation is end-to-end encrypted.
       </Kb.Text>
       <Kb.ClickableBox onClick={() => openUrl('https://keybase.io/docs/chat/crypto')}>
         <Kb.Box2
           direction="horizontal"
-          alignItems="flex-end"
+          alignItems="center"
           fullWidth={true}
           className="hover_container"
           gap="xtiny"
@@ -40,16 +40,35 @@ const NewCard = (_: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    backgroundColor: Styles.globalColors.blueDark,
-    borderRadius: Styles.borderRadius,
-    height: Styles.isMobile ? undefined : 100,
-    maxWidth: Styles.isMobile ? '80%' : 400,
-    overflow: 'hidden',
+  container: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueDark,
+      borderRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+    isElectron: {
+      height: 100,
+      maxWidth: 400,
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
+      width: 288,
+    },
+  }),
+  header: {
+    maxWidth: Styles.isMobile ? 126 : undefined,
   },
-  header: {color: Styles.globalColors.white},
-  icon: {fontSize: 12},
+  icon: Styles.platformStyles({
+    common: {fontSize: 12},
+    isElectron: {
+      display: 'block',
+      marginTop: 4,
+    },
+  }),
   image: {
+    alignSelf: Styles.isMobile ? 'center' : undefined,
     paddingRight: Styles.globalMargins.medium,
     paddingTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xsmall,
   },

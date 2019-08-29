@@ -65,7 +65,11 @@ class TopMessage extends React.PureComponent<Props> {
         )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
-          this.props.pendingState === 'done' && <NewChatCard />}
+          this.props.pendingState === 'done' && (
+            <Kb.Box style={moreStyle}>
+              <NewChatCard />
+            </Kb.Box>
+          )}
         {this.props.showTeamOffer && (
           <Kb.Box style={moreStyle}>
             <CreateTeamNotice />
@@ -94,6 +98,7 @@ const moreStyle = {
   ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   paddingBottom: Styles.globalMargins.medium,
+  width: '100%',
 }
 
 const errorStyle = {
@@ -109,6 +114,7 @@ export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
     const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+
     let pendingState: Props['pendingState']
     switch (ownProps.conversationIDKey) {
       case Constants.pendingWaitingConversationIDKey:
@@ -132,7 +138,6 @@ export default Container.namedConnect(
     const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
     // don't show default header in the case of the retention notice being visible
     const showRetentionNotice =
-      hasLoadedEver &&
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
     const {createConversationError} = state.chat2
