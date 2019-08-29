@@ -369,7 +369,7 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'blockQuote':
         return (
           <>
-            {output([{content: '>', type: 'text'}], state)}
+            {output([{content: '> ', type: 'text'}], state)}
             {output(ast.content, state)}
           </>
         )
