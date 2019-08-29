@@ -27,7 +27,7 @@ const LocationPopup = (props: Props) => {
     const watchID = navigator.geolocation.watchPosition(
       pos => {
         setLocation({
-          accuracy: pos.coords.accuracy,
+          accuracy: Math.floor(pos.coords.accuracy),
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
         })

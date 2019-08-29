@@ -16,7 +16,8 @@ import MoreMenuPopup from '../moremenu-popup/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
-import {BotCommandUpdateStatus, ExplodingMeta} from './shared'
+import {BotCommandUpdateStatus} from './shared'
+import {formatDurationShort} from '../../../../util/timestamp'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -212,11 +213,13 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 
 const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
   hasText ? (
-    <Kb.Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      <Kb.ClickableBox onClick={onSubmit} style={styles.send}>
-        <Kb.Text type="BodyBigLink">{isEditing ? 'Save' : 'Send'}</Kb.Text>
-      </Kb.ClickableBox>
-    </Kb.Box2>
+    <Kb.Button
+      type="Default"
+      small={true}
+      style={styles.send}
+      onClick={onSubmit}
+      label={isEditing ? 'Save' : 'Send'}
+    />
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
       <Kb.Icon
@@ -243,17 +246,26 @@ const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePick
   )
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
-  <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Kb.Box style={explodingIconContainer}>
-      <Kb.Icon
-        color={isExploding ? Styles.globalColors.black : null}
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-timer"
-        fontSize={22}
-      />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
-    </Kb.Box>
-  </NativeTouchableWithoutFeedback>
+  <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
+    <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
+      <Kb.Box style={explodingIconContainer}>
+        {isExploding ? (
+          <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
+            <Kb.Text type="BodyTinyBold" negative={true}>
+              {formatDurationShort(explodingModeSeconds * 1000)}
+            </Kb.Text>
+          </Kb.Box2>
+        ) : (
+          <Kb.Icon
+            color={isExploding ? Styles.globalColors.black : null}
+            style={Kb.iconCastPlatformStyles(styles.nonExploding)}
+            type="iconfont-timer"
+            fontSize={22}
+          />
+        )}
+      </Kb.Box>
+    </NativeTouchableWithoutFeedback>
+  </Kb.Box2>
 )
 
 const containerPadding = 8
@@ -299,6 +311,17 @@ const styles = Styles.styleSheetCreate({
     minWidth: 32,
     padding: Styles.globalMargins.xtiny,
   },
+  exploding: {
+    backgroundColor: Styles.globalColors.black,
+    borderRadius: Styles.globalMargins.mediumLarge / 2,
+    height: Styles.globalMargins.mediumLarge,
+    marginLeft: Styles.globalMargins.tiny,
+    width: Styles.globalMargins.mediumLarge,
+  },
+  explodingOuterContainer: {
+    alignSelf: isIOS ? 'flex-end' : 'center',
+    paddingBottom: 7,
+  },
   input: {
     flex: 1,
     fontSize: 17, // Override Body's font size with BodyBig.
@@ -317,9 +340,14 @@ const styles = Styles.styleSheetCreate({
     height: 160,
     width: '100%',
   },
+  nonExploding: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingBottom: 5,
+    paddingRight: 7,
+  },
   send: {
-    ...Styles.padding(2, 6, 0, 6),
-    marginRight: -6,
+    alignSelf: isIOS ? 'flex-end' : 'center',
+    marginBottom: 7,
   },
   smallGap: {
     height: Styles.globalMargins.small,
@@ -330,17 +358,8 @@ const styles = Styles.styleSheetCreate({
 // Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
 const smallGap = <Kb.Box style={styles.smallGap} />
 
-const explodingIconContainer = Styles.platformStyles({
-  common: {
-    ...Styles.globalStyles.flexBoxRow,
-  },
-  isElectron: {
-    marginRight: -3,
-  },
-  isMobile: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xtiny + 3,
-  },
-})
+const explodingIconContainer = {
+  ...Styles.globalStyles.flexBoxColumn,
+}
 
 export default Kb.OverlayParentHOC(PlatformInput)
