@@ -17,6 +17,7 @@ type OwnProps = {
 type Props = {
   type: 'invite' | 'none' | 'broken'
   users: Array<string>
+  hasMessages: boolean
   dismissed: boolean
   openShareSheet: () => void
   openSMS: (email: string) => void
@@ -24,27 +25,22 @@ type Props = {
   usernameToContactName: {[username: string]: string}
 }
 
-class BannerContainer extends React.PureComponent<Props> {
-  render() {
-    switch (this.props.type) {
-      case 'invite':
-        return (
-          !this.props.dismissed && (
-            <InviteBanner
-              openShareSheet={this.props.openShareSheet}
-              openSMS={this.props.openSMS}
-              onDismiss={this.props.onDismiss}
-              users={this.props.users}
-              usernameToContactName={this.props.usernameToContactName}
-            />
-          )
-        )
-      case 'broken':
-        return <Kb.ProofBrokenBanner users={this.props.users} />
-      case 'none':
-        return null
-    }
-    return null
+const BannerContainer = (props: Props) => {
+  switch (props.type) {
+    case 'invite':
+      return !props.dismissed && props.hasMessages ? (
+        <InviteBanner
+          openShareSheet={props.openShareSheet}
+          openSMS={props.openSMS}
+          onDismiss={props.onDismiss}
+          users={props.users}
+          usernameToContactName={props.usernameToContactName}
+        />
+      ) : null
+    case 'broken':
+      return <Kb.ProofBrokenBanner users={props.users} />
+    case 'none':
+      return null
   }
 }
 
@@ -70,7 +66,7 @@ export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, _: OwnProps) => {
-    let type
+    let type: Props['type']
     let users: Array<string> = []
 
     if (stateProps._meta.teamType !== 'adhoc') {
@@ -95,6 +91,7 @@ export default Container.connect(
 
     return {
       dismissed: stateProps._dismissed,
+      hasMessages: !stateProps._meta.isEmpty,
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>

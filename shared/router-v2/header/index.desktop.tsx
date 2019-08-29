@@ -9,7 +9,6 @@ import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
-import AppState from '../../app/app-state.desktop'
 import * as ReactIs from 'react-is'
 
 // A mobile-like header for desktop
@@ -22,11 +21,8 @@ type Props = {
   onPop: () => void
   options: any
   style?: any
+  useNativeFrame: boolean
 }
-
-const useNativeFrame = new AppState().state.useNativeFrame
-const initialUseNativeFrame =
-  useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
@@ -146,7 +142,7 @@ class Header extends React.PureComponent<Props> {
 
     // Normally this component is responsible for rendering the system buttons,
     // but if we're showing a banner then that banner component needs to do it.
-    const windowDecorationsAreNeeded = !Platform.isMac && !initialUseNativeFrame
+    const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
     const windowDecorationsDrawnByBanner =
       windowDecorationsAreNeeded && flags.airdrop && this.props.loggedIn && this.props.airdropWillShowBanner
 
@@ -303,6 +299,7 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = (state: Container.TypedState) => ({
   airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
+  useNativeFrame: state.config.useNativeFrame,
 })
 
 const mapDispatchToProps = () => ({})

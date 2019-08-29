@@ -10,7 +10,7 @@ const Kb = {
 }
 
 class Header extends Component<Props> {
-  defaultProps = {type: 'Default', windowDragging: true}
+  static defaultProps = {type: 'Default', windowDragging: true}
 
   renderDefault() {
     const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}

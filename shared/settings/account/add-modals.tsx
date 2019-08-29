@@ -52,7 +52,11 @@ export const Email = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
@@ -143,7 +147,11 @@ export const Phone = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
       footer={{
