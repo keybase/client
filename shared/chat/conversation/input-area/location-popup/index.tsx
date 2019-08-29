@@ -67,8 +67,9 @@ const LocationPopup = (props: Props) => {
               onClick={() => onLocationShare('')}
               type="Default"
               disabled={!mapLoaded}
+              style={{height: 53}}
             >
-              <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true} style={styles.current}>
                 <Kb.Text type="BodySemibold" negative={true}>
                   Share current location
                 </Kb.Text>
@@ -136,7 +137,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '150%',
   },
   liveButton: {
-    minHeight: 40,
+    height: 53,
   },
   loading: {
     bottom: '50%',
