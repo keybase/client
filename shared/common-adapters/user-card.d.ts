@@ -1,6 +1,8 @@
 import * as React from 'react'
+import {AvatarSize} from './avatar'
 
 export type Props = {
+  avatarSize?: AvatarSize
   contrasting?: boolean
   onAvatarClicked?: () => void
   outerStyle?: Object | null

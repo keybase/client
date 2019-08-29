@@ -10,17 +10,44 @@ const Kb = {
   Box,
 }
 
-const avatarSize = 96
+const defaultAvatarSize = 96
 
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children, contrasting}: Props) => (
-  <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
-    <Kb.Box style={styles.avatar}>
-      <Kb.Box style={styles.avatarBackground} />
-      <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} contrasting={contrasting} />
+const UserCard = ({
+  avatarSize,
+  outerStyle,
+  onAvatarClicked,
+  username,
+  style,
+  children,
+  contrasting,
+}: Props) => {
+  if (!avatarSize) {
+    avatarSize = defaultAvatarSize
+  }
+
+  return (
+    <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
+      <Kb.Box style={styles.avatar}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.avatarBackground,
+            {
+              height: avatarSize / 2,
+              top: avatarSize / 2,
+            },
+          ])}
+        />
+        <Kb.Avatar
+          size={avatarSize}
+          onClick={onAvatarClicked}
+          username={username}
+          contrasting={contrasting}
+        />
+      </Kb.Box>
+      <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
     </Kb.Box>
-    <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
-  </Kb.Box>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   avatar: {
@@ -31,11 +58,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   avatarBackground: {
     backgroundColor: Styles.globalColors.white,
-    height: avatarSize / 2,
     left: 0,
     position: 'absolute',
     right: 0,
-    top: avatarSize / 2,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,

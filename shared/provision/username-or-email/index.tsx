@@ -89,7 +89,7 @@ const Username = (props: Props) => {
       onBack={props.onBack}
       title="Log in"
     >
-      <Kb.UserCard style={styles.card} outerStyle={styles.outerCard} contrasting={true}>
+      <Kb.UserCard style={styles.card} outerStyle={styles.outerCard} contrasting={true} avatarSize={96}>
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.LabeledInput
             autoFocus={true}
