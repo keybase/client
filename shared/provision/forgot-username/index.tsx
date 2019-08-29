@@ -49,7 +49,7 @@ class ForgotUsername extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'center',
@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate({
   outerStyle: {
     backgroundColor: Styles.globalColors.white,
   },
-})
+}))
 
 export default ForgotUsername

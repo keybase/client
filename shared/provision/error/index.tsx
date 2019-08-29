@@ -243,7 +243,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
   }
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: {
     maxWidth: 550,
   },
@@ -258,6 +258,6 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     maxWidth: 460,
   },
-})
+}))
 
 export default Render

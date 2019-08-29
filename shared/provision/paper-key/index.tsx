@@ -61,7 +61,7 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.medium,
@@ -93,6 +93,6 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
     width: '100%',
   },
-})
+}))
 
 export default PaperKey

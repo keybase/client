@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen, errorBanner} from '../../signup/common'
+import { maxUsernameLength } from '../../constants/signup'
+import { SignupScreen, errorBanner } from '../../signup/common'
 
 type Props = {
   error: string
@@ -29,20 +29,20 @@ const Username = (props: Props) => {
         ...errorBanner(props.error),
         ...(props.inlineSignUpLink
           ? [
-              <Kb.Banner key="usernameTaken" color="blue">
-                <Kb.BannerParagraph
-                  bannerColor="blue"
-                  content={[
-                    "This username doesn't exist. Did you mean to ",
-                    {
-                      onClick: () => props.inlineSignUpLink && props.onGoToSignup(),
-                      text: 'create a new account',
-                    },
-                    '?',
-                  ]}
-                />
-              </Kb.Banner>,
-            ]
+            <Kb.Banner key="usernameTaken" color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[
+                  "This username doesn't exist. Did you mean to ",
+                  {
+                    onClick: () => props.inlineSignUpLink && props.onGoToSignup(),
+                    text: 'create a new account',
+                  },
+                  '?',
+                ]}
+              />
+            </Kb.Banner>,
+          ]
           : []),
       ]}
       buttons={[
@@ -90,7 +90,7 @@ const Username = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'center',
@@ -110,7 +110,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: 0,
     },
   }),
-  error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
+  error: { paddingTop: Styles.globalMargins.tiny, textAlign: 'center' },
   errorLink: {
     color: Styles.globalColors.redDark,
     textDecorationLine: 'underline',
@@ -163,11 +163,11 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 Username.navigationOptions = {
   header: null,
-  headerBottomStyle: {height: undefined},
+  headerBottomStyle: { height: undefined },
   headerLeft: null, // no back button
 }
 
