@@ -45,8 +45,6 @@ echo "Using GOPATH: $GOPATH"
 # already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
 PATH="$GOPATH/bin:$PATH"
 
-# if we don't set this gomobile init get confused
-# GOMOBILE="$GOPATH/pkg/gomobile"
 # need to whitelist some flags we use
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
