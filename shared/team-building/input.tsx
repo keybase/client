@@ -71,7 +71,7 @@ const Input = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
@@ -80,6 +80,6 @@ const styles = Styles.styleSheetCreate({
       zIndex: -1, // behind ServiceTabBar
     },
   }),
-})
+}))
 
 export default Input

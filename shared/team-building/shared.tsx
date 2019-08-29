@@ -97,14 +97,11 @@ const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
 const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
   Flags.wonderland && services[service].wonderland === true
 
-const inactiveServiceAccentColor = Styles.globalColors.black
-
 const serviceMapToArray = (services: ServiceMap) => allServices.filter(x => x !== 'keybase' && x in services)
 
 export {
   serviceIdToIconFont,
   serviceIdToAccentColor,
-  inactiveServiceAccentColor,
   serviceIdToLabel,
   serviceIdToLongLabel,
   serviceIdToSearchPlaceholder,

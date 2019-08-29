@@ -272,6 +272,18 @@ func (o UIParticipant) DeepCopy() UIParticipant {
 	}
 }
 
+type UIPinnedMessage struct {
+	Message        UIMessage `codec:"message" json:"message"`
+	PinnerUsername string    `codec:"pinnerUsername" json:"pinnerUsername"`
+}
+
+func (o UIPinnedMessage) DeepCopy() UIPinnedMessage {
+	return UIPinnedMessage{
+		Message:        o.Message.DeepCopy(),
+		PinnerUsername: o.PinnerUsername,
+	}
+}
+
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
@@ -307,6 +319,7 @@ type InboxUIItem struct {
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
 	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
+	PinnedMsg         *UIPinnedMessage              `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -427,6 +440,13 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.SupersededBy),
 		Commands:    o.Commands.DeepCopy(),
 		BotCommands: o.BotCommands.DeepCopy(),
+		PinnedMsg: (func(x *UIPinnedMessage) *UIPinnedMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMsg),
 	}
 }
 

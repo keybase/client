@@ -384,5 +384,4 @@ protocol remote {
   }
   @typedef("bytes") record BotInfoHash {}
   GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash);
-
 }

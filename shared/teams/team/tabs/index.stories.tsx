@@ -18,6 +18,7 @@ const yourOperations = {
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
+  pinMessage: false,
   renameChannel: false,
   renameTeam: false,
   setMemberShowcase: false,

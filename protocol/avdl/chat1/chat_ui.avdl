@@ -75,6 +75,11 @@ protocol chatUi {
     union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
   }
 
+  record UIPinnedMessage {
+    UIMessage message;
+    string pinnerUsername;
+  }
+
   record InboxUIItem {
     string convID;
     TopicType topicType;
@@ -114,6 +119,9 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+
+    // Pinned message
+    union { null, UIPinnedMessage} pinnedMsg;
   }
 
   record InboxUIItemError {

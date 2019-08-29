@@ -55,7 +55,7 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void; prettyName:
   </Kb.WithTooltip>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bubble: Styles.platformStyles({
     common: {
       marginLeft: Styles.globalMargins.tiny,
@@ -109,6 +109,6 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
-})
+}))
 
 export default UserBubble

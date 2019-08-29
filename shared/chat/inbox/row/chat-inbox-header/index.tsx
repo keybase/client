@@ -22,7 +22,7 @@ class ChatInboxHeader extends React.Component<Props, State> {
   state = {
     query: '',
   }
-  _setQuery = query => {
+  _setQuery = (query: string) => {
     this.setState({query})
     this.props.onQueryChanged(query)
   }

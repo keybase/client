@@ -85,15 +85,6 @@ func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.Inbo
 	return convSummary
 }
 
-func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.ConversationLocal) (convSummary chat1.ConvSummary) {
-	if conv.Error != nil {
-		convSummary.Error = conv.Error.Message
-		return convSummary
-	}
-	uiconv := utils.PresentConversationLocal(ctx, conv, c.G().Env.GetUsername().String())
-	return c.exportUIConv(ctx, uiconv)
-}
-
 // ListV1 implements ChatServiceHandler.ListV1.
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
 	var cl chat1.ChatList
@@ -107,7 +98,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+	res, err := client.GetInboxAndUnboxUILocal(ctx, chat1.GetInboxAndUnboxUILocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Status:            utils.VisibleChatConversationStatuses(),
 			TopicType:         &topicType,
@@ -130,10 +121,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	for _, conv := range res.Conversations {
-		if !opts.ShowErrors && conv.Error != nil {
-			continue
-		}
-		cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
+		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
 	}
 	cl.Pagination = pagination
 	cl.RateLimits = c.aggRateLimits(rlimits)

@@ -193,16 +193,15 @@ const updateTeamRetentionPolicy = (
   action: Chat2Gen.UpdateTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
-  const {convs} = action.payload
-  const first = convs[0]
+  const {metas} = action.payload
+  const first = metas[0]
   if (!first) {
     logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
     return
   }
-  const {teamRetention, name} = first
+  const {teamRetentionPolicy, teamname} = first
   try {
-    const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(teamRetention)
-    return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: newPolicy, teamname: name})
+    return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamname})
   } catch (err) {
     logger.error(err.message)
     throw err
@@ -690,7 +689,11 @@ function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPaylo
   }
 }
 
-const getChannelInfo = (_: TypedState, action: TeamsGen.GetChannelInfoPayload, logger: Saga.SagaLogger) => {
+const getChannelInfo = (
+  state: TypedState,
+  action: TeamsGen.GetChannelInfoPayload,
+  logger: Saga.SagaLogger
+) => {
   const {teamname, conversationIDKey} = action.payload
   return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
     {
@@ -705,7 +708,7 @@ const getChannelInfo = (_: TypedState, action: TeamsGen.GetChannelInfoPayload, l
       return
     }
 
-    const meta = ChatConstants.inboxUIItemToConversationMeta(convs[0])
+    const meta = ChatConstants.inboxUIItemToConversationMeta(state, convs[0])
     if (!meta) {
       logger.warn('Could not convert channel info to meta')
       return

@@ -1283,6 +1283,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "BodyPlaintextV2",
+      "fields": [
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "BodyPlaintext",
       "switch": {
@@ -1302,7 +1316,7 @@
             "name": "V2",
             "def": false
           },
-          "body": "BodyPlaintextUnsupported"
+          "body": "BodyPlaintextV2"
         },
         {
           "label": {
@@ -1670,6 +1684,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationPinnedMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1702,7 +1730,7 @@
         {
           "type": [
             null,
-            "MessageUnboxed"
+            "ConversationPinnedMessage"
           ],
           "name": "pinnedMsg"
         },
@@ -3423,6 +3451,19 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PinMessageRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4923,6 +4964,37 @@
     "clearBotCommandsLocal": {
       "request": [],
       "response": "ClearBotCommandsLocalRes"
+    },
+    "pinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "unpinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "ignorePinnedMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
