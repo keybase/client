@@ -44,7 +44,6 @@ const reachabilityChanged = (
   state.config.loggedIn &&
   GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
 
-// Filter this firehose down to the system we care about: "git"
 // If ever you want to get OOBMs for a different system, then you need to enter it here.
 const registerForGit = async () => {
   try {
