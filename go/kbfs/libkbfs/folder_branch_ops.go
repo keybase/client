@@ -7074,11 +7074,23 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 		}
 	}
 
-	// now go forward in time, if possible
-	err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
-		fbo.applyMDUpdatesLocked)
+	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
 	if err != nil {
 		return err
+	}
+
+	ffDone, err := fbo.maybeFastForwardLocked(ctx, lState, currHead)
+	if err != nil {
+		return err
+	}
+
+	if !ffDone {
+		// now go forward in time, if possible
+		err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
+			fbo.applyMDUpdatesLocked)
+		if err != nil {
+			return err
+		}
 	}
 
 	md, err := fbo.getSuccessorMDForWriteLocked(ctx, lState)
@@ -7572,6 +7584,34 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) maybeFastForwardLocked(
+	ctx context.Context, lState *kbfssync.LockState,
+	currHead ImmutableRootMetadata) (fastForwardDone bool, err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	// Kick off partial prefetching once the latest merged
+	// revision is set.
+	defer func() {
+		if err == nil {
+			fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
+		}
+	}()
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
+		// Might as well fetch all the revisions.
+		return false, nil
+	}
+
+	err = fbo.doFastForwardLocked(ctx, lState, currHead)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 	lState *kbfssync.LockState, lastUpdate time.Time, currUpdate time.Time) (
 	fastForwardDone bool, err error) {
@@ -7614,27 +7654,7 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 		return false, nil
 	}
 
-	// Kick off partial prefetching once the latest merged
-	// revision is set.
-	defer func() {
-		if err == nil {
-			fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
-		}
-	}()
-
-	fbo.headLock.Lock(lState)
-	defer fbo.headLock.Unlock(lState)
-
-	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
-		// Might as well fetch all the revisions.
-		return false, nil
-	}
-
-	err = fbo.doFastForwardLocked(ctx, lState, currHead)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return fbo.maybeFastForwardLocked(ctx, lState, currHead)
 }
 
 func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
