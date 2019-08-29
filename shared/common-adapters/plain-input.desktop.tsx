@@ -48,19 +48,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
       // no resizing height on single-line inputs
       return
     }
-
     const n = this._input
     if (!n) {
-      return
-    }
-
-    const computedStyle = getComputedStyle(n)
-    const paddingTop = maybeParseInt(computedStyle.paddingTop || 0, 10)
-    const paddingBottom = maybeParseInt(computedStyle.paddingBottom || 0, 10)
-
-    if (n.scrollHeight < maybeParseInt(n.style.minHeight || 0, 10) + paddingBottom + paddingTop) {
-      // don't resize if the scrollheight is smaller than rowsMin
-      // padding needs to be accounted for here because the getMultilineProps logic doesn't include padding
       return
     }
 
@@ -188,13 +177,19 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
     const textStyle: any = getTextStyle(this.props.textType)
     const heightStyles: any = {
-      minHeight: rows * (maybeParseInt(textStyle.lineHeight, 10) || 20),
+      minHeight:
+        rows * (maybeParseInt(textStyle.lineHeight, 10) || 20) +
+        (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
     }
     if (this.props.rowsMax) {
       heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
+
+    const paddingStyles: any = this.props.padding
+      ? Styles.padding(Styles.globalMargins[this.props.padding])
+      : {}
     return {
       ...this._getCommonProps(),
       rows,
@@ -203,6 +198,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         textStyle,
         styles.multiline,
         heightStyles,
+        paddingStyles,
         this.props.style,
       ]),
     }

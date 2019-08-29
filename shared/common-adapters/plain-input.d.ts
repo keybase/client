@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
+import {StylesCrossPlatform, globalMargins} from '../styles'
 import {TextType} from './text'
 
 export type KeyboardType =
@@ -72,6 +72,7 @@ export type Props = {
   onBlur?: () => void
   onChangeText?: (text: string) => void
   onFocus?: () => void
+  padding?: keyof typeof globalMargins
   placeholder?: string
   placeholderColor?: string
   rowsMin?: number
