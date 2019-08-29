@@ -365,7 +365,7 @@ const load = () => {
 
   Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(providerTopMessage)
-    .add('Error top bar', () => <SpecialTopMessage />)
+    .add('Error top bar', () => <SpecialTopMessage conversationIDKey="1" measure={null} />)
 }
 
 export default load

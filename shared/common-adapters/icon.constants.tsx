@@ -668,6 +668,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-hacker-news-logo-64.png'),
   },
+  'icon-illustration-encrypted-116-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-encrypted-116-96.png'),
+  },
   'icon-illustration-exploding-messages-240': {
     extension: 'png',
     isFont: false,
