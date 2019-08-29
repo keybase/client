@@ -91,7 +91,7 @@ export default Container.connect(
 
     return {
       dismissed: stateProps._dismissed,
-      hasMessages: stateProps._meta.maxMsgID > 1,
+      hasMessages: !stateProps._meta.isEmpty,
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
