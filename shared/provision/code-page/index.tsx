@@ -217,44 +217,34 @@ const Qr = (props: Props) =>
     </Kb.Box2>
   )
 
-class EnterText extends React.Component<
-  Props,
-  {
-    code: string
-  }
-> {
-  state = {code: ''}
-
-  _submit = () => {
-    this.props.onSubmitTextCode(this.state.code)
-  }
-
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
-        <Kb.PlainInput
-          autoFocus={true}
-          multiline={true}
-          onChangeText={code => this.setState({code})}
-          onEnterKeyDown={this._submit}
-          rowsMin={3}
-          placeholder={`Type the ${this.props.otherDeviceType === 'mobile' ? '9' : '8'}-word secret code`}
-          textType="Terminal"
-          style={styles.enterTextInput}
-          value={this.state.code}
-        />
-        <Kb.WaitingButton
-          fullWidth={true}
-          backgroundColor="green"
-          label="Submit"
-          onClick={this._submit}
-          disabled={!this.state.code}
-          style={styles.enterTextButton}
-          waitingKey={Constants.waitingKey}
-        />
-      </Kb.Box2>
-    )
-  }
+const EnterText = (props: Props) => {
+  const [code, setCode] = React.useState('')
+  const {onSubmitTextCode} = props
+  const onSubmit = React.useCallback(() => onSubmitTextCode(code), [code, onSubmitTextCode])
+  return (
+    <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
+      <Kb.PlainInput
+        autoFocus={true}
+        multiline={true}
+        onChangeText={setCode}
+        onEnterKeyDown={onSubmit}
+        rowsMin={3}
+        placeholder={`Type the ${props.otherDeviceType === 'mobile' ? '9' : '8'}-word secret code`}
+        textType="Terminal"
+        style={styles.enterTextInput}
+        value={code}
+      />
+      <Kb.WaitingButton
+        fullWidth={true}
+        backgroundColor="green"
+        label="Submit"
+        onClick={onSubmit}
+        disabled={!code}
+        style={styles.enterTextButton}
+        waitingKey={Constants.waitingKey}
+      />
+    </Kb.Box2>
+  )
 }
 
 const ViewText = (props: Props) => (
@@ -493,7 +483,7 @@ const styles = Styles.styleSheetCreate(
       viewTextCode: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.fontTerminalSemibold,
-          color: Styles.globalColors.white,
+          color: Styles.globalColors.greenLight,
           fontSize: 16,
         },
         isElectron: {
@@ -503,7 +493,7 @@ const styles = Styles.styleSheetCreate(
       }),
       viewTextContainer: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.green,
+          backgroundColor: Styles.globalColors.greenDark,
           borderRadius: 4,
         },
         isElectron: {
