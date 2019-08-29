@@ -17,11 +17,11 @@ var ContactSyncBackgroundSettings = BackgroundTaskSettings{
 	// once an hour if the mobile OS kills the app. But don't do this in
 	// background active mode, or we might not run before we are
 	// background passive'd.
-	StartOnForegroundAddition: 1 * time.Minute,
-	StartStagger:              5 * time.Second,
-	WakeUp:                    15 * time.Second,
-	Interval:                  1 * time.Hour,
-	Limit:                     5 * time.Minute,
+	MobileForegroundStartAddition: 1 * time.Minute,
+	StartStagger:                  5 * time.Second,
+	WakeUp:                        15 * time.Second,
+	Interval:                      1 * time.Hour,
+	Limit:                         5 * time.Minute,
 }
 
 type ContactSyncBackground struct {
