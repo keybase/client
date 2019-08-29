@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/chat/maps"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -2813,4 +2816,23 @@ func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.Conversat
 	}
 	h.G().InboxSource.NotifyUpdate(ctx, uid, convID)
 	return nil
+}
+
+func (h *Server) GetLocationPreview(ctx context.Context, arg chat1.GetLocationPreviewArg) (res string, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLocationPreview")()
+	url, err := maps.GetMapURL(ctx, h.G().ExternalAPIKeySource, arg.Lat, arg.Lon)
+	if err != nil {
+		return res, err
+	}
+	reader, _, err := maps.MapReaderFromURL(ctx, url)
+	if err != nil {
+		return res, err
+	}
+	defer reader.Close()
+	dat, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return res, err
+	}
+	return base64.StdEncoding.EncodeToString(dat), nil
 }

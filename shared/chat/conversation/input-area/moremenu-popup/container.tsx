@@ -51,7 +51,6 @@ export default connect(
       onInsertSlashCommand: dispatchProps.onInsertSlashCommand,
       onRequestLumens: stateProps._wallet ? () => dispatchProps._onLumens(to, true) : undefined,
       onSendLumens: stateProps._wallet ? () => dispatchProps._onLumens(to, false) : undefined,
-      onShareLocation: () => {},
       visible: ownProps.visible,
     }
   }

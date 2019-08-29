@@ -1120,6 +1120,7 @@ protocol local {
   // Location updates
   void locationUpdate(Coordinate coord);
   void locationDenied(ConversationID convID);
+  string getLocationPreview(double lat, double lon);
 
   // Bot commands
   record UserBotExtendedDescription {

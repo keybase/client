@@ -124,7 +124,6 @@ const InputContainer = (props: Props) => {
     showGiphySearch: false,
     showReplyPreview: false,
     showTypingStatus: false,
-    showWalletsIcon: !props.isEditing,
     suggestAllChannels: List([
       {channelname: 'general', teamname: 'keybase'},
       {channelname: 'spooner', teamname: 'keybase'},

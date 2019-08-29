@@ -4933,6 +4933,19 @@
       ],
       "response": null
     },
+    "getLocationPreview": {
+      "request": [
+        {
+          "name": "lat",
+          "type": "double"
+        },
+        {
+          "name": "lon",
+          "type": "double"
+        }
+      ],
+      "response": "string"
+    },
     "advertiseBotCommandsLocal": {
       "request": [
         {

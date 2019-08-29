@@ -339,7 +339,7 @@ const explodingIconContainer = Styles.platformStyles({
   },
   isMobile: {
     paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.xtiny + 3,
   },
 })
 
