@@ -5980,11 +5980,6 @@ type LocationDeniedArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type GetLocationPreviewArg struct {
-	Lat float64 `codec:"lat" json:"lat"`
-	Lon float64 `codec:"lon" json:"lon"`
-}
-
 type AdvertiseBotCommandsLocalArg struct {
 	Alias          *string                  `codec:"alias,omitempty" json:"alias,omitempty"`
 	Advertisements []AdvertiseCommandsParam `codec:"advertisements" json:"advertisements"`
@@ -6084,7 +6079,6 @@ type LocalInterface interface {
 	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 	LocationUpdate(context.Context, Coordinate) error
 	LocationDenied(context.Context, ConversationID) error
-	GetLocationPreview(context.Context, GetLocationPreviewArg) (string, error)
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
 	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
@@ -7162,21 +7156,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getLocationPreview": {
-				MakeArg: func() interface{} {
-					var ret [1]GetLocationPreviewArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetLocationPreviewArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetLocationPreviewArg)(nil), args)
-						return
-					}
-					ret, err = i.GetLocationPreview(ctx, typedArgs[0])
-					return
-				},
-			},
 			"advertiseBotCommandsLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]AdvertiseBotCommandsLocalArg
@@ -7646,11 +7625,6 @@ func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err 
 func (c LocalClient) LocationDenied(ctx context.Context, convID ConversationID) (err error) {
 	__arg := LocationDeniedArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.locationDenied", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LocalClient) GetLocationPreview(ctx context.Context, __arg GetLocationPreviewArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getLocationPreview", []interface{}{__arg}, &res)
 	return
 }
 

@@ -115,13 +115,6 @@ export type UserReacjis = {
   skinTone: number
 }
 
-export type LocationPreview = {
-  accuracy: number
-  lat: number
-  lon: number
-  map: string
-}
-
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -174,7 +167,6 @@ export type _State = {
   createConversationError: string | null
   threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
-  locationPreview: LocationPreview | null
 }
 
 export type State = I.RecordOf<_State>

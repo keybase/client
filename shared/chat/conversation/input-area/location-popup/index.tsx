@@ -62,7 +62,12 @@ const LocationPopup = (props: Props) => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Button fullWidth={true} onClick={() => onLocationShare('')} type="Default">
+            <Kb.Button
+              fullWidth={true}
+              onClick={() => onLocationShare('')}
+              type="Default"
+              disabled={!mapLoaded}
+            >
               <Kb.Box2 direction="vertical" centerChildren={true}>
                 <Kb.Text type="BodySemibold" negative={true}>
                   Share current location
@@ -85,6 +90,7 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              disabled={!mapLoaded}
             />
             <Kb.Button
               fullWidth={true}
@@ -93,6 +99,7 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              disabled={!mapLoaded}
             />
             <Kb.Button
               fullWidth={true}
@@ -101,6 +108,7 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              disabled={!mapLoaded}
             />
           </Kb.Box2>
         ),

@@ -45,7 +45,6 @@ export const makeState = I.Record<Types._State>({
   inboxSearch: null,
   inboxShowNew: false,
   isWalletsNew: true,
-  locationPreview: null,
   maybeMentionMap: I.Map(),
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
