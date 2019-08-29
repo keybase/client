@@ -44,6 +44,16 @@ const reachabilityChanged = (
   state.config.loggedIn &&
   GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
 
+// If ever you want to get OOBMs for a different system, then you need to enter it here.
+const registerForGregorNotifications = async () => {
+  try {
+    await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
+    logger.info('Registered gregor listener')
+  } catch (error) {
+    logger.warn('error in registering gregor listener: ', error)
+  }
+}
+
 // The startReachability RPC call both starts and returns the current
 // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
 // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
@@ -79,6 +89,7 @@ const updateCategory = async (_: Container.TypedState, action: GregorGen.UpdateC
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(GregorGen.updateCategory, updateCategory)
   yield* Saga.chainAction2([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
+  yield* Saga.chainAction2(EngineGen.connected, registerForGregorNotifications)
   yield* Saga.chainAction2(EngineGen.connected, startReachability)
   yield* Saga.chainAction2(EngineGen.keybase1GregorUIPushOutOfBandMessages, pushOutOfBandMessages)
   yield* Saga.chainAction2(EngineGen.keybase1GregorUIPushState, pushState)
