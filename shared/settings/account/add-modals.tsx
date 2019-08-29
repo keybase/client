@@ -98,7 +98,6 @@ export const Email = () => {
                     : 'icon-email-add-64'
                   : 'icon-email-add-64'
               }
-              // style={styles.icon}
             />
           }
         />
@@ -196,7 +195,6 @@ export const Phone = () => {
                     : 'icon-phone-number-add-64'
                   : 'icon-phone-number-add-64'
               }
-              // style={styles.icon}
             />
           }
         />
@@ -333,16 +331,6 @@ const styles = Styles.styleSheetCreate(() => ({
   footer: {
     ...Styles.padding(Styles.globalMargins.small),
   },
-  // icon: Styles.platformStyles({
-  //   isElectron: {
-  //     height: 64,
-  //     width: 64,
-  //   },
-  //   isMobile: {
-  //     height: 96,
-  //     width: 96,
-  //   },
-  // }),
   verifyContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },

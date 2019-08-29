@@ -62,7 +62,6 @@ const EnterPhoneNumber = (props: Props) => {
           Styles.isMobile ? (
             <Kb.Icon
               type={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-              // style={styles.icon}
             />
           ) : null
         }
@@ -117,10 +116,6 @@ EnterPhoneNumberBody.defaultProps = {
 
 const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  // icon: {
-  //   height: 96,
-  //   width: 96,
-  // },
   input: Styles.platformStyles({
     isElectron: {
       height: 38,
@@ -135,9 +130,6 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,
-    },
-    isMobile: {
-      // paddingTop: Styles.globalMargins.tiny,
     },
   }),
 }))

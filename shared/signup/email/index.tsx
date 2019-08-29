@@ -54,10 +54,7 @@ const EnterEmail = (props: Props) => {
         onChangeSearchable={onChangeSearchable}
         icon={
           Styles.isMobile ? (
-            <Kb.Icon
-              type={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
-              // style={styles.icon}
-            />
+            <Kb.Icon type={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'} />
           ) : null
         }
       />
@@ -110,10 +107,6 @@ export const EnterEmailBody = (props: BodyProps) => (
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
-  // icon: {
-  //   height: 96,
-  //   width: 96,
-  // },
   input: Styles.platformStyles({
     common: {},
     isElectron: {
