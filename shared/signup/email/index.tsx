@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 
 export type Props = {
@@ -51,7 +52,14 @@ const EnterEmail = (props: Props) => {
         showSearchable={true}
         searchable={searchable}
         onChangeSearchable={onChangeSearchable}
-        icon={Styles.isMobile ? <Kb.Icon type="icon-email-add-96" style={styles.icon} /> : null}
+        icon={
+          Styles.isMobile ? (
+            <Kb.Icon
+              type={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
+              style={styles.icon}
+            />
+          ) : null
+        }
       />
     </SignupScreen>
   )

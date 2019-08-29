@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
@@ -57,7 +58,14 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
-        icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
+        icon={
+          Styles.isMobile ? (
+            <Kb.Icon
+              type={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-48'}
+              // style={styles.icon}
+            />
+          ) : null
+        }
       />
     </SignupScreen>
   )
@@ -82,7 +90,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       style={Styles.globalStyles.flexOne}
     >
       {props.icon}
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <PhoneInput
           autoFocus={props.autoFocus}
           style={styles.input}
@@ -109,10 +117,10 @@ EnterPhoneNumberBody.defaultProps = {
 
 const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  icon: {
-    height: 96,
-    width: 96,
-  },
+  // icon: {
+  //   height: 96,
+  //   width: 96,
+  // },
   input: Styles.platformStyles({
     isElectron: {
       height: 38,
@@ -127,6 +135,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
 }))
