@@ -11,11 +11,17 @@ import (
 )
 
 var ContactSyncBackgroundSettings = BackgroundTaskSettings{
-	Start:        2 * time.Minute,
-	StartStagger: 2 * time.Minute,
-	WakeUp:       1 * time.Minute,
-	Interval:     8 * time.Hour,
-	Limit:        3 * time.Minute,
+	Start: 5 * time.Second,
+	// in case we are foregrounding all the time, wait some more time because
+	// this sync is heavy, and the timer is reset so it could run more than
+	// once an hour if the mobile OS kills the app. But don't do this in
+	// background active mode, or we might not run before we are
+	// background passive'd.
+	StartOnForegroundAddition: 1 * time.Minute,
+	StartStagger:              5 * time.Second,
+	WakeUp:                    15 * time.Second,
+	Interval:                  1 * time.Hour,
+	Limit:                     5 * time.Minute,
 }
 
 type ContactSyncBackground struct {

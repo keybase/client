@@ -24,8 +24,11 @@ import (
 type TaskFunc func(m libkb.MetaContext) error
 
 type BackgroundTaskSettings struct {
-	Start        time.Duration // Wait after starting the app
-	StartStagger time.Duration // Wait an additional random amount.
+	Start time.Duration // Wait after starting the app
+	// Additional wait after starting the app, but only on foreground
+	// (i.e., does not get triggered during background fetch/BACKGROUND_ACTIVE mode)
+	StartOnForegroundAddition time.Duration
+	StartStagger              time.Duration // Wait an additional random amount.
 	// When waking up on mobile lots of timers will go off at once. We wait an additional
 	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
 	WakeUp   time.Duration
