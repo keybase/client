@@ -245,6 +245,27 @@ public class MainActivity extends ReactFragmentActivity {
           if (bundleFromNotification != null) {
             engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
           }
+
+          assert emitter != null;
+          // If there are any other bundle sources we care about, emit them here
+          if (bundleFromNotification != null) {
+            emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
+          }
+
+          if (!finalFromShareText.isEmpty()) {
+            WritableMap args = Arguments.createMap();
+            args.putString("text", finalFromShareText);
+            emitter.emit("onShareText", args);
+          }
+
+          if (uri != null) {
+            String filePath = readFileFromUri(getReactContext(), uri);
+            if (filePath != null) {
+              WritableMap args = Arguments.createMap();
+              args.putString("localPath", filePath);
+              emitter.emit("onShareData", args);
+            }
+          }
         }
       }
 
