@@ -5,6 +5,7 @@ import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -453,13 +454,9 @@ function* requestContactPermissions(
 
 async function manageContactsCache(
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) {
-  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
-    return
-  }
-
   if (state.settings.contacts.importEnabled === false) {
     return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
       SettingsGen.createSetContactImportedCount({count: null})
