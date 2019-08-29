@@ -108,8 +108,8 @@ const getIndexMap = memoize(
         ...sorted.mobile.map(idxMapper),
       ]),
       next: {
-        desktop: sorted.desktop.length,
-        mobile: sorted.mobile.length,
+        desktop: (sorted.desktop.length % numBackgrounds) + 1,
+        mobile: (sorted.mobile.length % numBackgrounds) + 1,
       },
     }
   }
