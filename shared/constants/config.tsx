@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import {uniq} from 'lodash-es'
-import {runMode} from './platform'
+import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 
 export const maxHandshakeTries = 3
@@ -133,8 +133,18 @@ export const makeState = I.Record<Types._State>({
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',
+  useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   username: '',
+  windowState: {
+    dockHidden: false,
+    height: 800,
+    isFullScreen: false,
+    width: 600,
+    windowHidden: false,
+    x: 0,
+    y: 0,
+  },
 })
 
 // we proxy the style helper to keep the logic in one place but act like a selector
