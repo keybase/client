@@ -602,7 +602,7 @@ const load = () => {
     .add('Plain', () => (
       <UserBubble
         username="max"
-        prettyName="max (Max Krohn)"
+        tooltip="max (Max Krohn)"
         service="keybase"
         onRemove={Sb.action('onRemove')}
       />
@@ -610,7 +610,7 @@ const load = () => {
     .add('GitHub', () => (
       <UserBubble
         username="marcopolo"
-        prettyName="marcopolo (GitHub)"
+        tooltip="marcopolo (GitHub)"
         service="github"
         onRemove={Sb.action('onRemove')}
       />
