@@ -6,18 +6,24 @@ import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 import * as Kb from '../../../common-adapters'
-import {namedConnect} from '../../../util/container'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import * as Container from '../../../util/container'
+import * as Styles from '../../../styles'
+import NewChatCard from './cards/new-chat'
+
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey
+  measure: (() => void) | null
+}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  createConversationError: string | null
   hasOlderResetConversation: boolean
-  showRetentionNotice: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
-  showTeamOffer: boolean
   measure: (() => void) | null
   pendingState: 'waiting' | 'error' | 'done'
-  createConversationError: string | null
+  showRetentionNotice: boolean
+  showTeamOffer: boolean
 }
 
 class TopMessage extends React.PureComponent<Props> {
@@ -60,9 +66,7 @@ class TopMessage extends React.PureComponent<Props> {
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
           this.props.pendingState === 'done' && (
-            <Kb.Box style={secureStyle}>
-              <Kb.Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-            </Kb.Box>
+              <NewChatCard />
           )}
         {this.props.showTeamOffer && (
           <Kb.Box style={moreStyle}>
@@ -81,82 +85,78 @@ class TopMessage extends React.PureComponent<Props> {
 }
 
 const loadingStyle = {
-  marginLeft: globalMargins.small,
+  marginLeft: Styles.globalMargins.small,
 }
 
 const spacerStyle = {
-  height: globalMargins.small,
+  height: Styles.globalMargins.small,
 }
 
 const secureStyle = {
-  ...globalStyles.flexBoxCenter,
+  ...Styles.globalStyles.flexBoxCenter,
   height: 116,
 }
 
 const moreStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
-  paddingBottom: globalMargins.medium,
+  paddingBottom: Styles.globalMargins.medium,
 }
 
 const errorStyle = {
   ...moreStyle,
-  margin: globalMargins.medium,
+  margin: Styles.globalMargins.medium,
 }
 
 const errorTextStyle = {
-  marginTop: globalMargins.tiny,
+  marginTop: Styles.globalMargins.tiny,
 }
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-  measure: (() => void) | null
-}
-
-const mapStateToProps = (state, ownProps: OwnProps): Props => {
-  const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
-  const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  let pendingState: Props['pendingState']
-  switch (ownProps.conversationIDKey) {
-    case Constants.pendingWaitingConversationIDKey:
-      pendingState = 'waiting'
-      break
-    case Constants.pendingErrorConversationIDKey:
-      pendingState = 'error'
-      break
-    default:
-      pendingState = 'done'
-      break
-  }
-  const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
-    ? 'moreToLoad'
-    : 'noMoreToLoad'
-  const showTeamOffer =
-    hasLoadedEver &&
-    loadMoreType === 'noMoreToLoad' &&
-    meta.teamType === 'adhoc' &&
-    meta.participants.size > 2
-  const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
-  // don't show default header in the case of the retention notice being visible
-  const showRetentionNotice =
-    hasLoadedEver &&
-    meta.retentionPolicy.type !== 'retain' &&
-    !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
-  const {createConversationError} = state.chat2
-  return {
-    conversationIDKey: ownProps.conversationIDKey,
-    createConversationError,
-    hasOlderResetConversation,
-    loadMoreType,
-    measure: ownProps.measure,
-    pendingState,
-    showRetentionNotice,
-    showTeamOffer,
-  }
-}
-const mapDispatchToProps = () => ({})
-const mergeProps = (stateProps, _, __: OwnProps) => ({
-  ...stateProps,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage) as any
+export default Container.namedConnect(
+  (state, ownProps: OwnProps) => {
+    const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
+    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    let pendingState: Props['pendingState']
+    switch (ownProps.conversationIDKey) {
+      case Constants.pendingWaitingConversationIDKey:
+        pendingState = 'waiting'
+        break
+      case Constants.pendingErrorConversationIDKey:
+        pendingState = 'error'
+        break
+      default:
+        pendingState = 'done'
+        break
+    }
+    const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
+      ? ('moreToLoad' as const)
+      : ('noMoreToLoad' as const)
+    const showTeamOffer =
+      hasLoadedEver &&
+      loadMoreType === 'noMoreToLoad' &&
+      meta.teamType === 'adhoc' &&
+      meta.participants.size > 2
+    const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
+    // don't show default header in the case of the retention notice being visible
+    const showRetentionNotice =
+      hasLoadedEver &&
+      meta.retentionPolicy.type !== 'retain' &&
+      !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
+    const {createConversationError} = state.chat2
+    return {
+      conversationIDKey: ownProps.conversationIDKey,
+      createConversationError,
+      hasOlderResetConversation,
+      loadMoreType,
+      measure: ownProps.measure,
+      pendingState,
+      showRetentionNotice,
+      showTeamOffer,
+    }
+  },
+  () => ({}),
+  (stateProps, _, __: OwnProps) => ({
+    ...stateProps,
+  }),
+  'TopMessage'
+)(TopMessage)
