@@ -65,9 +65,7 @@ class TopMessage extends React.PureComponent<Props> {
         )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
-          this.props.pendingState === 'done' && (
-              <NewChatCard />
-          )}
+          this.props.pendingState === 'done' && <NewChatCard />}
         {this.props.showTeamOffer && (
           <Kb.Box style={moreStyle}>
             <CreateTeamNotice />
@@ -90,11 +88,6 @@ const loadingStyle = {
 
 const spacerStyle = {
   height: Styles.globalMargins.small,
-}
-
-const secureStyle = {
-  ...Styles.globalStyles.flexBoxCenter,
-  height: 116,
 }
 
 const moreStyle = {
