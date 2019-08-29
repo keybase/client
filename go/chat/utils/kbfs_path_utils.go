@@ -10,7 +10,6 @@ import (
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 const localUsernameRE = "(?:[a-zA-A0-0_]+-?)+"
@@ -50,28 +49,6 @@ func (m *outerMatch) isKBFSPath() bool {
 
 func (m *outerMatch) standardPath() string {
 	return "/keybase" + m.afterKeybase
-}
-
-func (m *outerMatch) deeplinkPath() string {
-	if len(m.afterKeybase) == 0 {
-		return ""
-	}
-	var segments []string
-	for _, segment := range strings.Split(m.afterKeybase, "/") {
-		segments = append(segments, url.PathEscape(segment))
-	}
-	return "keybase:/" + strings.Join(segments, "/")
-}
-
-func (m *outerMatch) afterMountPath(backslash bool) string {
-	afterMount := m.afterKeybase
-	if len(afterMount) == 0 {
-		afterMount = "/"
-	}
-	if backslash {
-		return strings.ReplaceAll(afterMount, "/", `\`)
-	}
-	return afterMount
 }
 
 func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
@@ -161,19 +138,16 @@ func ParseKBFSPaths(ctx context.Context, body string) (paths []chat1.KBFSPath) {
 	outerMatches := matchKBFSPathOuter(body)
 	for _, match := range outerMatches {
 		if match.isKBFSPath() {
-			var platformAfterMountPath string
-			if libkb.RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE {
-				platformAfterMountPath = match.afterMountPath(true)
-			} else {
-				platformAfterMountPath = match.afterMountPath(false)
+			kbfsPathInfo, err := libkb.GetKBFSPathInfo(match.standardPath())
+			if err != nil {
+				continue
 			}
 			paths = append(paths,
 				chat1.KBFSPath{
-					StartIndex:             match.matchStartIndex,
-					RawPath:                match.wholeMatch,
-					StandardPath:           match.standardPath(),
-					DeeplinkPath:           match.deeplinkPath(),
-					PlatformAfterMountPath: platformAfterMountPath,
+					StartIndex:   match.matchStartIndex,
+					RawPath:      match.wholeMatch,
+					StandardPath: match.standardPath(),
+					PathInfo:     kbfsPathInfo,
 				})
 		}
 	}

@@ -489,6 +489,25 @@
     },
     {
       "type": "record",
+      "name": "KBFSPathInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "standardPath"
+        },
+        {
+          "type": "string",
+          "name": "deeplinkPath"
+        },
+        {
+          "type": "string",
+          "name": "platformAfterMountPath"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "UserVersionVector",
       "fields": [
         {

@@ -1,15 +1,16 @@
 import * as React from 'react'
-import * as FsTypes from '../../constants/types/fs'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as Container from '../../util/container'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
 type Props = {
-  deeplinkPath: string
-  platformAfterMountPath: string
+  knownPathInfo?: Types.PathInfo
   rawPath: string
-  standardPath: FsTypes.Path
+  standardPath: Types.Path
 }
 
 type PopupProps = Props & {
@@ -18,21 +19,26 @@ type PopupProps = Props & {
   visible: boolean
 }
 
+const useOpenInFilesTab = (path: Types.Path) => {
+  const dispatch = Container.useDispatch()
+  return React.useCallback(() => dispatch(Constants.makeActionForOpenPathInFilesTab(path)), [path, dispatch])
+}
+
 const KbfsPathPopup = (props: PopupProps) => {
-  const {deeplinkPath, platformAfterMountPath, standardPath} = props
+  const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const header = {
     title: 'header',
     view: (
       <Kb.Box2 direction="vertical" style={styles.headerContainer}>
         <PathItemInfo
-          path={standardPath}
+          path={props.standardPath}
           showTooltipOnName={false}
           containerStyle={styles.sectionContainer}
         />
-        <Kb.Divider style={styles.headerDivider} />
+        <Kb.Divider />
         <PathInfo
-          deeplinkPath={deeplinkPath}
-          platformAfterMountPath={platformAfterMountPath}
+          path={props.standardPath}
+          knownPathInfo={props.knownPathInfo}
           containerStyle={styles.sectionContainer}
         />
       </Kb.Box2>
@@ -41,13 +47,21 @@ const KbfsPathPopup = (props: PopupProps) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
-      containerStyle={undefined}
       attachTo={() => props.attachRef.current}
       onHidden={props.onHidden}
       position="top center"
-      positionFallbacks={[]}
+      propagateOutsideClicks={!Styles.isMobile}
       header={header}
-      items={[]}
+      items={
+        Styles.isMobile
+          ? [
+              {
+                onClick: openInFilesTab,
+                title: 'Open',
+              },
+            ]
+          : []
+      }
       visible={props.visible}
     />
   )
@@ -56,8 +70,14 @@ const KbfsPathPopup = (props: PopupProps) => {
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
   const textRef = React.useRef<Kb.Text>(null)
+  const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
-    <Kb.Text type="BodyPrimaryLink" onClick={() => setShowing(true)} allowFontScaling={true} ref={textRef}>
+    <Kb.Text
+      type="BodyPrimaryLink"
+      onClick={Styles.isMobile ? () => setShowing(true) : openInFilesTab}
+      allowFontScaling={true}
+      ref={textRef}
+    >
       {props.rawPath}
     </Kb.Text>
   )
@@ -87,10 +107,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       maxWidth: 280,
     },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+    },
   }),
-  headerDivider: {
-    marginTop: Styles.globalMargins.small,
-  },
   sectionContainer: {
     padding: Styles.globalMargins.small,
   },

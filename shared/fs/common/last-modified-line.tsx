@@ -22,25 +22,32 @@ const Username = ({mode, lastWriter}) =>
     />
   )
 
-const LastModifiedLine = (props: LastModifiedLineProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode !== 'row'}>
+const LastModifiedLine = (props: LastModifiedLineProps) => {
+  const time =
+    !!props.lastModifiedTimestamp &&
+    (props.mode === 'row' ? '' : 'Last modified ') +
+      formatTimeForFS(props.lastModifiedTimestamp, props.mode !== 'row')
+  const by = !!props.lastWriter && (
+    <>
+      &nbsp;by&nbsp;
+      <Username mode={props.mode} lastWriter={props.lastWriter} />
+    </>
+  )
+  const getText = (children: React.ReactNode) => (
     <Kb.Text
       type={props.mode === 'menu' ? 'BodyTiny' : 'BodySmall'}
       style={props.mode === 'row' ? styles.textRow : styles.textDefault}
       lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
     >
-      {!!props.lastModifiedTimestamp &&
-        (props.mode === 'row' ? '' : 'Last modified ') +
-          formatTimeForFS(props.lastModifiedTimestamp, props.mode !== 'row')}
-      {!!props.lastWriter && (
-        <>
-          &nbsp;by&nbsp;
-          <Username mode={props.mode} lastWriter={props.lastWriter} />
-        </>
-      )}
+      {children}
     </Kb.Text>
-  </Kb.Box2>
-)
+  )
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={props.mode !== 'row'}>
+      {props.mode === 'menu' ? [getText(time), getText(by)] : getText([time, by])}
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   textDefault: {

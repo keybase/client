@@ -320,6 +320,13 @@ export const makeSettings = I.Record<Types._Settings>({
   spaceAvailableNotificationThreshold: 0,
 })
 
+export const makePathInfo = I.Record<Types._PathInfo>({
+  deeplinkPath: '',
+  platformAfterMountPath: '',
+})
+
+export const emptyPathInfo = makePathInfo()
+
 export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -330,6 +337,7 @@ export const makeState = I.Record<Types._State>({
   lastPublicBannerClosedTlf: '',
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
+  pathInfos: I.Map(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map(),

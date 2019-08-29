@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"math"
 	"math/big"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -1047,4 +1048,40 @@ func FindPreferredKBFSMountDirs() (mountDirs []string) {
 		}
 	}
 	return mountDirs
+}
+
+func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
+	afterMount := afterKeybase
+	if len(afterMount) == 0 {
+		afterMount = "/"
+	}
+	if backslash {
+		return strings.ReplaceAll(afterMount, "/", `\`)
+	}
+	return afterMount
+}
+
+func getKBFSDeeplinkPath(afterKeybase string) string {
+	if len(afterKeybase) == 0 {
+		return ""
+	}
+	var segments []string
+	for _, segment := range strings.Split(afterKeybase, "/") {
+		segments = append(segments, url.PathEscape(segment))
+	}
+	return "keybase:/" + strings.Join(segments, "/")
+}
+
+func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err error) {
+	const slashKeybase = "/keybase"
+	if !strings.HasPrefix(standardPath, slashKeybase) {
+		return keybase1.KBFSPathInfo{}, errors.New("not a KBFS path")
+	}
+
+	afterKeybase := standardPath[len(slashKeybase):]
+	return keybase1.KBFSPathInfo{
+		StandardPath:           standardPath,
+		DeeplinkPath:           getKBFSDeeplinkPath(afterKeybase),
+		PlatformAfterMountPath: getKBFSAfterMountPath(afterKeybase, RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE),
+	}, nil
 }

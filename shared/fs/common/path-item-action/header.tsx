@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import PathItemInfo from '../path-item-info'
+import PathInfo from '../path-info'
 
 export type Props = {
   path: Types.Path
@@ -17,6 +18,8 @@ const Header = (props: Props) => (
     }
   >
     <PathItemInfo path={props.path} showTooltipOnName={true} containerStyle={styles.container} />
+    <Kb.Divider />
+    <PathInfo path={props.path} containerStyle={styles.container} />
   </Kb.Box>
 )
 

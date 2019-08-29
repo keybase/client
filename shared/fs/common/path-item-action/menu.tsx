@@ -208,7 +208,7 @@ export default (props: Props) => {
       attachTo={props.floatingMenuProps.attachTo}
       visible={props.floatingMenuProps.visible}
       onHidden={props.floatingMenuProps.hideOnce}
-      position="bottom right"
+      position="left center"
       header={{
         title: 'unused',
         view: <Header path={props.path} />,

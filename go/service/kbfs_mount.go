@@ -4,9 +4,13 @@
 package service
 
 import (
+	"net/url"
+	"strings"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -52,4 +56,30 @@ func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (
 		return err
 	}
 	return libkb.ChangeMountIcon(oldMount, drive)
+}
+
+func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
+	afterMount := afterKeybase
+	if len(afterMount) == 0 {
+		afterMount = "/"
+	}
+	if backslash {
+		return strings.ReplaceAll(afterMount, "/", `\`)
+	}
+	return afterMount
+}
+
+func getKBFSDeeplinkPath(afterKeybase string) string {
+	if len(afterKeybase) == 0 {
+		return ""
+	}
+	var segments []string
+	for _, segment := range strings.Split(afterKeybase, "/") {
+		segments = append(segments, url.PathEscape(segment))
+	}
+	return "keybase:/" + strings.Join(segments, "/")
+}
+
+func (h *KBFSMountHandler) GetKBFSPathInfo(ctx context.Context, standardPath string) (pathInfo keybase1.KBFSPathInfo, err error) {
+	return libkb.GetKBFSPathInfo(standardPath)
 }

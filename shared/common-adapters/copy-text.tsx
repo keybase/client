@@ -12,7 +12,7 @@ import * as Container from '../util/container'
 type Props = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
-  multiline?: boolean
+  multiline?: boolean | number
   onCopy?: () => void
   hideOnCopy?: boolean
   onReveal?: () => void
@@ -49,7 +49,13 @@ const CopyText = (props: Props) => {
   }
 
   const isRevealed = !props.withReveal || revealed
-  const lineClamp = !props.multiline && isRevealed ? 1 : null
+  const lineClamp = props.multiline
+    ? typeof props.multiline === 'number'
+      ? props.multiline
+      : null
+    : isRevealed
+    ? 1
+    : null
   return (
     <Box2
       ref={attachmentRef}
