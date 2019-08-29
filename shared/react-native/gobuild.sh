@@ -58,12 +58,14 @@ fi
 # Move all vendoring up a directory to github.com/keybase/vendor
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-v -X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 gomobileinit ()
 {
   echo "Build gomobile..."
-  go get -u golang.org/x/mobile/cmd/{gomobile,gobind}
+  mkdir -p "$GOPATH/src/golang.org/x"
+  rsync -pr --ignore-times "$client_dir/go/vendor/golang.org/x" "$GOPATH/src/golang.org"
+  go install golang.org/x/mobile/cmd/{gomobile,gobind}
   echo "Doing gomobile init"
   if [ "$arg" = "android" ]; then
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
