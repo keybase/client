@@ -1,12 +1,9 @@
 import * as React from 'react'
 import * as FsTypes from '../../constants/types/fs'
-import * as FsGen from '../../actions/fs-gen'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import {fileUIName} from '../../constants/platform'
 import * as Kb from '../../common-adapters'
-import PathItemActionHeader from './path-item-action/header-container'
+import PathInfo from './path-info'
+import PathItemInfo from './path-item-info'
 
 type Props = {
   deeplinkPath: string
@@ -16,48 +13,9 @@ type Props = {
 }
 
 type PopupProps = Props & {
-  attachRef: React.Ref<any>
+  attachRef: React.RefObject<Kb.Text>
   onHidden: () => void
   visible: boolean
-}
-
-const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = Container.useSelector(state => state.fs.sfmi)
-  const mount =
-    sfmi.driverStatus.type === FsTypes.DriverStatusType.Enabled
-      ? sfmi.preferredMountDirs.get(0) || sfmi.directMountDir
-      : ''
-  return mount && `${mount}${platformAfterMountPath}`
-}
-
-type PathInfoProps = {
-  deeplinkPath: string
-  platformAfterMountPath: string
-  containerStyle?: Styles.StylesCrossPlatform
-}
-
-const PathInfo = (props: PathInfoProps) => {
-  const {deeplinkPath, platformAfterMountPath} = props
-  const mountPointPath = useMountPointPath(platformAfterMountPath)
-  return (
-    <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
-      <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
-      <Kb.CopyText containerStyle={styles.headerCopyUniversalPath} multiline={true} text={deeplinkPath} />
-      {mountPointPath ? (
-        <>
-          <Kb.Text type="BodySmall" style={styles.headerMountPointTip}>
-            You personally can access this file at
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            <Kb.Text type="BodySmall" selectable={true} style={styles.headerLocalPath}>
-              {mountPointPath}
-            </Kb.Text>
-            .
-          </Kb.Text>
-        </>
-      ) : null}
-    </Kb.Box2>
-  )
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
@@ -66,12 +24,16 @@ const KbfsPathPopup = (props: PopupProps) => {
     title: 'header',
     view: (
       <Kb.Box2 direction="vertical" style={styles.headerContainer}>
-        <PathItemActionHeader path={standardPath} noTooltip={true} />
+        <PathItemInfo
+          path={standardPath}
+          showTooltipOnName={false}
+          containerStyle={styles.sectionContainer}
+        />
         <Kb.Divider style={styles.headerDivider} />
         <PathInfo
           deeplinkPath={deeplinkPath}
           platformAfterMountPath={platformAfterMountPath}
-          containerStyle={styles.headerPathsContainer}
+          containerStyle={styles.sectionContainer}
         />
       </Kb.Box2>
     ),
@@ -93,7 +55,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
-  const textRef = React.useRef<Text>(null)
+  const textRef = React.useRef<Kb.Text>(null)
   const text = (
     <Kb.Text type="BodyPrimaryLink" onClick={() => setShowing(true)} allowFontScaling={true} ref={textRef}>
       {props.rawPath}
@@ -126,24 +88,10 @@ const styles = Styles.styleSheetCreate({
       maxWidth: 280,
     },
   }),
-  headerCopyUniversalPath: {
-    marginTop: Styles.globalMargins.tiny,
-  },
   headerDivider: {
     marginTop: Styles.globalMargins.small,
   },
-  headerLocalPath: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueLighter3,
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  headerMountPointTip: {
-    marginTop: Styles.globalMargins.small,
-  },
-  headerPathsContainer: {
+  sectionContainer: {
     padding: Styles.globalMargins.small,
   },
   textContainer: Styles.platformStyles({

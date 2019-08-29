@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
-import Header from './header-container'
+import Header from './header'
 
 type ActionOrInProgress = (() => void) | 'in-progress'
 
