@@ -64,28 +64,6 @@ const LocationPopup = (props: Props) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
-              onClick={() => onLocationShare('')}
-              type="Default"
-              disabled={!mapLoaded}
-              style={{height: 53}}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true} style={styles.current}>
-                <Kb.Text type="BodySemibold" negative={true}>
-                  Share current location
-                </Kb.Text>
-                {mapLoaded && (
-                  <Kb.Text type="BodyTiny" style={styles.accuracy}>
-                    Accurate to {location.accuracy} meters
-                  </Kb.Text>
-                )}
-              </Kb.Box2>
-            </Kb.Button>
-            <Kb.Divider />
-            <Kb.Text type="BodySmall" center={true}>
-              Live Location
-            </Kb.Text>
-            <Kb.Button
-              fullWidth={true}
               onClick={() => onLocationShare('15m')}
               label="Share location for 15 minutes"
               mode="Secondary"
@@ -111,6 +89,25 @@ const LocationPopup = (props: Props) => {
               style={styles.liveButton}
               disabled={!mapLoaded}
             />
+            <Kb.Divider />
+            <Kb.Button
+              fullWidth={true}
+              onClick={() => onLocationShare('')}
+              type="Default"
+              disabled={!mapLoaded}
+              style={{height: 53}}
+            >
+              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+                <Kb.Text type="BodySemibold" negative={true}>
+                  Share current location
+                </Kb.Text>
+                {mapLoaded && (
+                  <Kb.Text type="BodyTiny" style={styles.accuracy}>
+                    Accurate to {location.accuracy} meters
+                  </Kb.Text>
+                )}
+              </Kb.Box2>
+            </Kb.Button>
           </Kb.Box2>
         ),
       }}
