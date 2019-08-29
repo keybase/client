@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
+import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -89,7 +90,16 @@ export const Email = () => {
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
           icon={
-            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-96' : 'icon-email-add-64'} style={styles.icon} />
+            <Kb.Icon
+              type={
+                Styles.isMobile
+                  ? Platform.isLargeScreen
+                    ? 'icon-email-add-96'
+                    : 'icon-email-add-64'
+                  : 'icon-email-add-64'
+              }
+              // style={styles.icon}
+            />
           }
         />
       </Kb.Box2>
@@ -179,8 +189,14 @@ export const Phone = () => {
           onChangeSearchable={onChangeSearchable}
           icon={
             <Kb.Icon
-              type={Styles.isMobile ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-              style={styles.icon}
+              type={
+                Styles.isMobile
+                  ? Platform.isLargeScreen
+                    ? 'icon-phone-number-add-96'
+                    : 'icon-phone-number-add-64'
+                  : 'icon-phone-number-add-64'
+              }
+              // style={styles.icon}
             />
           }
         />
@@ -317,16 +333,16 @@ const styles = Styles.styleSheetCreate(() => ({
   footer: {
     ...Styles.padding(Styles.globalMargins.small),
   },
-  icon: Styles.platformStyles({
-    isElectron: {
-      height: 64,
-      width: 64,
-    },
-    isMobile: {
-      height: 96,
-      width: 96,
-    },
-  }),
+  // icon: Styles.platformStyles({
+  //   isElectron: {
+  //     height: 64,
+  //     width: 64,
+  //   },
+  //   isMobile: {
+  //     height: 96,
+  //     width: 96,
+  //   },
+  // }),
   verifyContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },

@@ -61,7 +61,7 @@ const EnterPhoneNumber = (props: Props) => {
         icon={
           Styles.isMobile ? (
             <Kb.Icon
-              type={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-48'}
+              type={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
               // style={styles.icon}
             />
           ) : null
@@ -137,7 +137,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 368,
     },
     isMobile: {
-      paddingTop: Styles.globalMargins.tiny,
+      // paddingTop: Styles.globalMargins.tiny,
     },
   }),
 }))
