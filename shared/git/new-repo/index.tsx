@@ -171,21 +171,8 @@ class NewRepo extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
-  },
   addIcon: {
     marginBottom: 27,
-  },
-  error: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.red,
-    marginBottom: Styles.globalMargins.small,
-    padding: Styles.globalMargins.tiny,
   },
   avatarBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -193,6 +180,19 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     width: '100%',
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+  },
+  error: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.red,
+    marginBottom: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
   },
 }))
 

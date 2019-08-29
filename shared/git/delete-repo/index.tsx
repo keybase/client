@@ -119,6 +119,11 @@ class DeleteRepo extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  avatarBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginBottom: Styles.globalMargins.medium,
+  },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -131,11 +136,6 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.red,
     marginBottom: Styles.globalMargins.small,
     padding: Styles.globalMargins.tiny,
-  },
-  avatarBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: Styles.globalMargins.medium,
   },
 }))
 
