@@ -88,6 +88,9 @@ const Username = (props: Props) => {
       ]}
       onBack={props.onBack}
       title="Log in"
+      rightActionComponent={
+        <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
+      }
     >
       <Kb.UserCard
         style={styles.card}

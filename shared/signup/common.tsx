@@ -68,6 +68,7 @@ type HeaderProps = {
   showInfoIconRow: boolean
   style: Styles.StylesCrossPlatform
   negative: boolean
+  rightActionComponent: React.ReactNode
 }
 
 // Only used on desktop
@@ -103,6 +104,11 @@ const Header = (props: HeaderProps) => (
         </Kb.ClickableBox>
       )}
       {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
+      {props.rightActionComponent && (
+        <Kb.Box2 direction="horizontal" style={styles.rightAction}>
+          {props.rightActionComponent}
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -128,6 +134,7 @@ type SignupScreenProps = {
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
+  rightActionComponent?: React.ReactNode
   rightActionLabel?: string
   onRightAction?: (() => void) | null
   leftAction?: 'back' | 'cancel'
@@ -148,6 +155,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         showInfoIconRow={!!props.showHeaderInfoiconRow}
         style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
         negative={!!props.negativeHeader}
+        rightActionComponent={props.rightActionComponent}
       />
     )}
     {Styles.isMobile && !props.skipMobileHeader && (
@@ -260,6 +268,16 @@ const styles = Styles.styleSheetCreate({
   },
   opacityNone: {
     opacity: 0,
+  },
+  rightAction: {
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    bottom: 0,
+    justifyContent: 'center',
+    paddingRight: Styles.globalMargins.small,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   titleContainer: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
