@@ -158,7 +158,7 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
     fullWidth={true}
     style={Styles.collapseStyles([
       styles.footer,
-      props.wide && styles.footerWide,
+      props.wide && !Styles.isMobile && styles.footerWide,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
