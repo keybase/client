@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
+import {LayoutChangeEvent} from 'react-native'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
 import {Box2, Box} from '../box'
 import BoxGrow from '../box-grow'
 import Text from '../text'
+import {useTimeout} from '../use-timers'
 
 const Kb = {
   Box,
@@ -12,6 +14,7 @@ const Kb = {
   BoxGrow,
   ScrollView,
   Text,
+  useTimeout,
 }
 
 type HeaderProps = {
@@ -69,37 +72,84 @@ Modal.defaultProps = {
   mode: 'Default',
 }
 
-const Header = (props: HeaderProps) => (
-  <Kb.Box2
-    direction="vertical"
-    style={Styles.collapseStyles([
-      props.icon ? styles.headerWithIcon : styles.header,
-      props.hideBorder && styles.headerHideBorder,
-      props.style,
-    ])}
-    fullWidth={true}
-  >
-    {!!props.icon && props.icon}
-    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Styles.globalStyles.flexOne}>
-      {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
-      <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
-        {!!props.leftButton && props.leftButton}
-      </Kb.Box2>
-      <Kb.Box style={styles.headerCenter}>
-        {typeof props.title === 'string' ? (
-          <Kb.Text type="Header" lineClamp={1} center={true}>
-            {props.title}
-          </Kb.Text>
-        ) : (
-          props.title
+const Header = (props: HeaderProps) => {
+  // On native, let the header sides layout for 100ms to measure which is wider.
+  // Then, set this as the `width` of the sides and let the center expand.
+  const [measured, setMeasured] = React.useState(false)
+  const setMeasuredLater = Kb.useTimeout(() => setMeasured(true), 100)
+  const [widerWidth, setWiderWidth] = React.useState(-1)
+  const onLayoutSide = React.useCallback(
+    (evt: LayoutChangeEvent) => {
+      if (measured) {
+        return
+      }
+      const {width} = evt.nativeEvent.layout
+      if (width > widerWidth) {
+        setWiderWidth(width)
+        setMeasuredLater()
+      }
+    },
+    [measured, widerWidth]
+  )
+  // end mobile only
+
+  const showTitle = measured || !Styles.isMobile
+  const useMeasuredStyles = measured && Styles.isMobile
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([
+        props.icon ? styles.headerWithIcon : styles.header,
+        props.hideBorder && styles.headerHideBorder,
+        props.style,
+      ])}
+      fullWidth={true}
+    >
+      {!!props.icon && props.icon}
+      <Kb.Box2
+        direction="horizontal"
+        alignItems="center"
+        fullHeight={true}
+        style={Styles.globalStyles.flexOne}
+      >
+        {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styles.headerLeft,
+            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.leftButton && props.leftButton}
+          </Kb.Box2>
+        </Kb.Box2>
+        {showTitle && (
+          <Kb.Box style={useMeasuredStyles ? styles.measured : undefined}>
+            {typeof props.title === 'string' ? (
+              <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+                {props.title}
+              </Kb.Text>
+            ) : (
+              props.title
+            )}
+          </Kb.Box>
         )}
-      </Kb.Box>
-      <Kb.Box2 direction="horizontal" style={styles.headerRight}>
-        {!!props.rightButton && props.rightButton}
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styles.headerRight,
+            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.rightButton && props.rightButton}
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
@@ -148,10 +198,6 @@ const styles = Styles.styleSheetCreate(() => {
       ...headerCommon,
       minHeight: 48,
     },
-    headerCenter: {
-      flexGrow: 1,
-      flexShrink: 1,
-    },
     headerHideBorder: {
       borderWidth: 0,
     },
@@ -170,6 +216,11 @@ const styles = Styles.styleSheetCreate(() => {
     headerWithIcon: {
       ...headerCommon,
       minHeight: 64,
+    },
+    measured: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
     },
     modeDefault: Styles.platformStyles({
       isElectron: {
