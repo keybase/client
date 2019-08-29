@@ -52,11 +52,7 @@ const EnterEmail = (props: Props) => {
         showSearchable={true}
         searchable={searchable}
         onChangeSearchable={onChangeSearchable}
-        icon={
-          Styles.isMobile ? (
-            <Kb.Icon type={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'} />
-          ) : null
-        }
+        iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
       />
     </SignupScreen>
   )
@@ -69,7 +65,7 @@ type BodyProps = {
   searchable: boolean
   onChangeSearchable: (allow: boolean) => void
   showSearchable: boolean
-  icon: React.ReactNode
+  iconType: Kb.IconType
 }
 export const EnterEmailBody = (props: BodyProps) => (
   <Kb.ScrollView>
@@ -80,7 +76,7 @@ export const EnterEmailBody = (props: BodyProps) => (
       fullWidth={true}
       style={Styles.globalStyles.flexOne}
     >
-      {props.icon}
+      <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.NewInput
           autoFocus={true}

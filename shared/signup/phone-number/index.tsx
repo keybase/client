@@ -58,13 +58,7 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
-        icon={
-          Styles.isMobile ? (
-            <Kb.Icon
-              type={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-            />
-          ) : null
-        }
+        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
       />
     </SignupScreen>
   )
@@ -76,7 +70,7 @@ type BodyProps = {
   onContinue: () => void
   searchable: boolean
   onChangeSearchable?: (allow: boolean) => void
-  icon: React.ReactNode
+  iconType: Kb.IconType
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
   const showCheckbox = !!props.onChangeSearchable
@@ -88,7 +82,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       fullWidth={true}
       style={Styles.globalStyles.flexOne}
     >
-      {props.icon}
+      <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <PhoneInput
           autoFocus={props.autoFocus}

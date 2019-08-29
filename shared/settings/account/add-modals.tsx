@@ -89,16 +89,12 @@ export const Email = () => {
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
-          icon={
-            <Kb.Icon
-              type={
-                Styles.isMobile
-                  ? Platform.isLargeScreen
-                    ? 'icon-email-add-96'
-                    : 'icon-email-add-64'
-                  : 'icon-email-add-64'
-              }
-            />
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-email-add-96'
+                : 'icon-email-add-64'
+              : 'icon-email-add-64'
           }
         />
       </Kb.Box2>
@@ -186,16 +182,12 @@ export const Phone = () => {
           onContinue={onContinue}
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
-          icon={
-            <Kb.Icon
-              type={
-                Styles.isMobile
-                  ? Platform.isLargeScreen
-                    ? 'icon-phone-number-add-96'
-                    : 'icon-phone-number-add-64'
-                  : 'icon-phone-number-add-64'
-              }
-            />
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-number-add-96'
+                : 'icon-phone-number-add-64'
+              : 'icon-phone-number-add-64'
           }
         />
       </Kb.Box2>
