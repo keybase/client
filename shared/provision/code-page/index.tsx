@@ -278,17 +278,26 @@ const Instructions = (p: Props) => (
       </>
     ) : (
       <>
-        <Kb.Text center={true} type={textType} style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}>
+        <Kb.Text
+          center={true}
+          type={textType}
+          style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+        >
           In the Keybase app on{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
             {p.otherDeviceName}
-          </Kb.Text>
-          {' '}navigate to:
+          </Kb.Text>{' '}
+          navigate to:
         </Kb.Text>
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
           {p.currentDeviceType === 'mobile' && (
             <>
-              <Kb.Icon type="iconfont-nav-2-hamburger" color={Styles.globalColors.white} sizeType={Styles.isMobile ? 'Default' : 'Big'} style={styles.hamburger} />
+              <Kb.Icon
+                type="iconfont-nav-2-hamburger"
+                color={Styles.globalColors.white}
+                sizeType={Styles.isMobile ? 'Default' : 'Big'}
+                style={styles.hamburger}
+              />
               <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
             </>
           )}
