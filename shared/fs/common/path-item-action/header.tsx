@@ -28,9 +28,7 @@ export default Header
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      padding: Styles.globalMargins.small,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,

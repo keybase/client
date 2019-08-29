@@ -8,6 +8,9 @@ import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
 import PathItemIcon, {Size} from './path-item-icon'
 import LastModifiedLine from './last-modified-line'
+import KbfsPath from './kbfs-path'
+import PathInfo from './path-info'
+import PathItemInfo from './path-item-info'
 import TlfInfoLine from './tlf-info-line'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
@@ -203,6 +206,18 @@ class PieSliceWrapper extends React.PureComponent<
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
+    .add('KbfsPath', () => (
+      <Kb.Box style={{padding: Styles.globalMargins.small}}>
+        <KbfsPath
+          standardPath="/keybase/private/meatball/folder/treat"
+          rawPath="/Volumes/Keybase\ (meatball)/private/meatball/folder/treat"
+        />
+      </Kb.Box>
+    ))
+    .add('PathInfo', () => <PathInfo path="/keybase/private/meatball/folder/treat" />)
+    .add('PathItemInfo', () => (
+      <PathItemInfo path="/keybase/private/meatball/folder/treat" showTooltipOnName={true} />
+    ))
     .add('PathItemAction', () => (
       <Kb.Box2
         direction="vertical"

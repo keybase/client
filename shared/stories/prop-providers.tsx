@@ -11,6 +11,7 @@ import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/cont
 import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
+import * as FsConstants from '../constants/fs'
 import rootReducer from '../reducers'
 
 /*
@@ -177,11 +178,22 @@ export const createStoreWithCommon = () => {
       following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
     }),
-    fs: root.fs.update('sfmi', sfmi =>
-      sfmi.merge({
-        directMountDir: '/Volumes/Keybase (meatball)',
-        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
-      })
-    ),
+    fs: root.fs
+      .update('sfmi', sfmi =>
+        sfmi.merge({
+          directMountDir: '/Volumes/Keybase (meatball)',
+          driverStatus: FsConstants.makeDriverStatusEnabled(),
+          preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+        })
+      )
+      .update('pathInfos', pathInfos =>
+        pathInfos.set(
+          '/keybase/private/meatball/folder/treat',
+          FsConstants.makePathInfo({
+            deeplinkPath: 'keybase://private/meatball/folder/treat',
+            platformAfterMountPath: '/private/meatball/folder/treat',
+          })
+        )
+      ),
   }
 }
