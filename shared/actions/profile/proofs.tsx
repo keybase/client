@@ -319,7 +319,7 @@ const submitCryptoAddress = (
     })
 }
 
-function* proofsSaga(): Saga.SagaGenerator<any, any> {
+function* proofsSaga() {
   yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)

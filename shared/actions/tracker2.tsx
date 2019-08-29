@@ -286,7 +286,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
   }
 }
 
-function* tracker2Saga(): Saga.SagaGenerator<any, any> {
+function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
   yield* Saga.chainAction2(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction2(Tracker2Gen.ignore, ignore)

@@ -157,7 +157,7 @@ const connected = async () => {
   }
 }
 
-const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
+const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
   yield* Saga.chainAction2(PeopleGen.skipTodo, skipTodo)

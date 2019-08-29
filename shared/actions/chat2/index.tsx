@@ -3321,7 +3321,7 @@ const createConversationFromTeamBuilder = (
   }),
 ]
 
-export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
+export function* chatTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('chat2')
   yield* Saga.chainAction2(
     TeamBuildingGen.finishedTeamBuilding,
@@ -3329,7 +3329,7 @@ export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-function* chat2Saga(): Saga.SagaGenerator<any, any> {
+function* chat2Saga() {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation

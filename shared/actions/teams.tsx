@@ -1397,7 +1397,7 @@ function addThemToTeamFromTeamBuilder(
   )
 }
 
-function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
+function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
   yield* Saga.chainAction2(
@@ -1406,7 +1406,7 @@ function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
+const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
   yield* Saga.chainAction2(TeamsGen.getTeamProfileAddList, getTeamProfileAddList, 'getTeamProfileAddList')

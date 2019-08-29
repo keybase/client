@@ -9,8 +9,6 @@ import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import put from './typed-put'
 import {isArray} from 'lodash-es'
 
-export type SagaGenerator<Yield, Actions> = IterableIterator<Yield | Actions>
-
 export class SagaLogger {
   error: LogFn
   warn: LogFn
@@ -33,7 +31,7 @@ export class SagaLogger {
 }
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
-function* sequentially(effects: Array<any>): Iterable<Array<any>> {
+function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   const results: Array<unknown> = []
   for (let i = 0; i < effects.length; i++) {
     results.push(yield effects[i])
@@ -124,7 +122,7 @@ function* chainGenerator<
   f: (state: TypedState, action: Actions, logger: SagaLogger) => Iterable<any>,
   // tag for logger
   fcnTag?: string
-): Iterable<any> {
+): Generator<any, void, any> {
   // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')

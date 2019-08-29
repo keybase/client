@@ -1665,7 +1665,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   )
 }
 
-function* walletsSaga(): Saga.SagaGenerator<any, any> {
+function* walletsSaga() {
   yield* Saga.chainAction2(WalletsGen.createNewAccount, createNewAccount, 'createNewAccount')
   yield* Saga.chainAction2(
     [

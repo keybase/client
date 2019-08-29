@@ -417,7 +417,7 @@ const refreshMountDirs = async (
   ]
 }
 
-function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {

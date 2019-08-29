@@ -87,7 +87,7 @@ const updateCategory = async (_: Container.TypedState, action: GregorGen.UpdateC
   } catch (_) {}
 }
 
-function* gregorSaga(): Saga.SagaGenerator<any, any> {
+function* gregorSaga() {
   yield* Saga.chainAction2(GregorGen.updateCategory, updateCategory)
   yield* Saga.chainAction2([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
   yield* Saga.chainAction2(EngineGen.connected, registerForGit)

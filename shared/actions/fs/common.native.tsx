@@ -46,7 +46,7 @@ const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload
   }
 }
 
-export default function* nativeSaga(): Saga.SagaGenerator<any, any> {
+export default function* nativeSaga() {
   yield* Saga.chainAction2(FsGen.pickAndUpload, pickAndUploadToPromise)
   yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccess)
 }

@@ -128,7 +128,7 @@ const receivedBadgeState = (_: Container.TypedState, action: NotificationsGen.Re
     ],
   })
 
-function* deviceSaga(): Saga.SagaGenerator<any, any> {
+function* deviceSaga() {
   // Load devices
   yield* Saga.chainAction2([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device

@@ -517,7 +517,7 @@ const forgotUsername = (_: Container.TypedState, action: ProvisionGen.ForgotUser
       })
     )
 
-function* provisionSaga(): Saga.SagaGenerator<any, any> {
+function* provisionSaga() {
   // Always ensure we have one live
   makeProvisioningManager(false)
 

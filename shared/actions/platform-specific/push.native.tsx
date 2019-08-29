@@ -288,7 +288,7 @@ function* requestPermissions() {
   }
 }
 
-function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
+function* initialPermissionsCheck() {
   const hasPermissions = yield _checkPermissions(null)
   if (hasPermissions) {
     // Get the token
@@ -387,7 +387,7 @@ const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
     })
   )
 
-function* pushSaga(): Saga.SagaGenerator<any, any> {
+function* pushSaga() {
   // Permissions
   yield* Saga.chainGenerator<PushGen.RequestPermissionsPayload>(
     PushGen.requestPermissions,

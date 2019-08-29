@@ -107,7 +107,7 @@ const loadIsOnline = async () => {
   }
 }
 
-function* loginSaga(): Saga.SagaGenerator<any, any> {
+function* loginSaga() {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
   yield* Saga.chainAction2(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
