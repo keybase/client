@@ -1283,25 +1283,25 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
-  'icon-placeholder-avatar-contrast-192': {
+  'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-contrast-192.png'),
+    require: require('../images/icons/icon-placeholder-avatar-lighter-192.png'),
   },
-  'icon-placeholder-avatar-contrast-256': {
+  'icon-placeholder-avatar-lighter-256': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-contrast-256.png'),
+    require: require('../images/icons/icon-placeholder-avatar-lighter-256.png'),
   },
-  'icon-placeholder-avatar-contrast-32': {
+  'icon-placeholder-avatar-lighter-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-contrast-32.png'),
+    require: require('../images/icons/icon-placeholder-avatar-lighter-32.png'),
   },
-  'icon-placeholder-avatar-contrast-960': {
+  'icon-placeholder-avatar-lighter-960': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-contrast-960.png'),
+    require: require('../images/icons/icon-placeholder-avatar-lighter-960.png'),
   },
   'icon-placeholder-secret-user-16': {
     extension: 'png',

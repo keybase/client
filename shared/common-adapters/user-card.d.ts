@@ -3,7 +3,7 @@ import {AvatarSize} from './avatar'
 
 export type Props = {
   avatarSize?: AvatarSize
-  contrasting?: boolean
+  lighterPlaceholders?: boolean
   onAvatarClicked?: () => void
   outerStyle?: Object | null
   style?: any

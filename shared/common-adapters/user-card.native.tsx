@@ -19,7 +19,7 @@ const UserCard = ({
   username,
   style,
   children,
-  contrasting,
+  lighterPlaceholders,
 }: Props) => {
   if (!avatarSize) {
     avatarSize = defaultAvatarSize
@@ -41,7 +41,7 @@ const UserCard = ({
           size={avatarSize}
           onClick={onAvatarClicked}
           username={username}
-          contrasting={contrasting}
+          lighterPlaceholders={lighterPlaceholders}
         />
       </Kb.Box>
       <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>

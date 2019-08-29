@@ -17,7 +17,7 @@ const UserCard = ({
   username,
   style,
   children,
-  contrasting,
+  lighterPlaceholders,
 }: Props) => {
   const computedAvatarSize = avatarSize || defaultAvatarSize
 
@@ -27,7 +27,7 @@ const UserCard = ({
         size={computedAvatarSize}
         onClick={onAvatarClicked}
         username={username}
-        contrasting={contrasting}
+        lighterPlaceholders={lighterPlaceholders}
       />
       <div
         style={Styles.collapseStyles([
