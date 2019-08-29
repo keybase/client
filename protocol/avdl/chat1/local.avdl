@@ -90,7 +90,6 @@ protocol local {
     array<KnownTeamMention> teamMentions;
   }
 
-
   record MessagePin {
     MessageID msgID;
   }
@@ -399,18 +398,23 @@ protocol local {
     MessageBody messageBody;
   }
 
+  record BodyPlaintextV2 {
+    MessageBody messageBody;
+    BodyPlaintextMetaInfo mi;
+  }
+
   // BodyPlaintext is a variant container for all the
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
-    case V2 : BodyPlaintextUnsupported;
-    case V3 : BodyPlaintextUnsupported;
-    case V4 : BodyPlaintextUnsupported;
-    case V5 : BodyPlaintextUnsupported;
-    case V6 : BodyPlaintextUnsupported;
-    case V7 : BodyPlaintextUnsupported;
-    case V8 : BodyPlaintextUnsupported;
-    case V9 : BodyPlaintextUnsupported;
+    case V2: BodyPlaintextV2;
+    case V3: BodyPlaintextUnsupported;
+    case V4: BodyPlaintextUnsupported;
+    case V5: BodyPlaintextUnsupported;
+    case V6: BodyPlaintextUnsupported;
+    case V7: BodyPlaintextUnsupported;
+    case V8: BodyPlaintextUnsupported;
+    case V9: BodyPlaintextUnsupported;
     case V10: BodyPlaintextUnsupported;
   }
 
@@ -529,6 +533,11 @@ protocol local {
     union { null, string } contactName;
   }
 
+  record ConversationPinnedMessage {
+    MessageUnboxed message;
+    string pinnerUsername;
+  }
+
   record ConversationInfoLocal {
     ConversationID id;
     ConversationIDTriple triple;
@@ -537,7 +546,7 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
-    union { null, MessageUnboxed } pinnedMsg;
+    union { null, ConversationPinnedMessage } pinnedMsg;
     union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -1154,4 +1163,12 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ClearBotCommandsLocalRes clearBotCommandsLocal();
+
+  // Pinning
+  record PinMessageRes {
+    array<RateLimit> rateLimits;
+  }
+  PinMessageRes pinMessage(ConversationID convID, MessageID msgID);
+  PinMessageRes unpinMessage(ConversationID convID);
+  void ignorePinnedMessage(ConversationID convID);
 }

@@ -88,7 +88,7 @@ const AlphabetIndex = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -98,6 +98,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.padding(2, 6, 2, 2),
     flexShrink: 1,
   },
-})
+}))
 
 export default AlphabetIndex

@@ -8,6 +8,8 @@ import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import {Props} from './index.types'
 import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
+import PinnedMessage from '../pinned-message/container'
+import ThreadSearch from '../search/container'
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>
@@ -49,6 +51,15 @@ class Conversation extends React.PureComponent<Props> {
               scrollListUpCounter={this.props.scrollListUpCounter}
               conversationIDKey={this.props.conversationIDKey}
             />
+            {!this.props.showThreadSearch && (
+              <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
+            )}
+            {this.props.showThreadSearch && (
+              <ThreadSearch
+                style={styles.threadSearchStyle}
+                conversationIDKey={this.props.conversationIDKey}
+              />
+            )}
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
@@ -82,6 +93,10 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.black_10,
     flex: 1,
     maxHeight: Styles.globalMargins.medium,
+  },
+  threadSearchStyle: {
+    position: 'absolute' as const,
+    top: 0,
   },
 })
 

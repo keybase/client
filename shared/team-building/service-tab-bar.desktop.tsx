@@ -6,7 +6,6 @@ import {
   serviceIdToAccentColor,
   serviceIdToLongLabel,
   serviceIdToWonderland,
-  inactiveServiceAccentColor,
 } from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
@@ -14,7 +13,7 @@ import {difference} from 'lodash-es'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
-  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
+  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
   return (
     <Kb.ClickableBox
       onClick={props.onClick}

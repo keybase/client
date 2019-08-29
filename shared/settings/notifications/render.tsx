@@ -150,7 +150,7 @@ const Notifications = (props: Props) =>
 
 export default Notifications
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {marginRight: 0, marginTop: Styles.globalMargins.xtiny},
   divider: {
     marginBottom: Styles.globalMargins.small,
@@ -163,4 +163,4 @@ const styles = Styles.styleSheetCreate({
     common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
     isElectron: Styles.desktopStyles.scrollable,
   }),
-})
+}))

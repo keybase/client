@@ -79,6 +79,7 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_TLFNAME,
 		chat1.MessageType_ATTACHMENTUPLOADED,
 		chat1.MessageType_JOIN,
+		chat1.MessageType_PIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 		chat1.MessageType_DELETEHISTORY,

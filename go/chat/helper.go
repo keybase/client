@@ -484,7 +484,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
 		}
 	} else {
-		pc := utils.PresentConversationLocal(ctx, conv, g.Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, g, uid, conv)
 		res = &pc
 	}
 	return res

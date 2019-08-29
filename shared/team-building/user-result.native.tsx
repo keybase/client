@@ -10,7 +10,7 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './
 // * Use ListItem2
 
 class UserResult extends React.Component<Props> {
-  render = () => {
+  render() {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
@@ -184,7 +184,7 @@ const AlreadyAddedIconButton = () => (
 
 const ActionButtonSize = 40
 export const userResultHeight = Styles.globalMargins.xlarge
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionButton: {
     height: ActionButtonSize,
     marginLeft: Styles.globalMargins.tiny,
@@ -219,6 +219,6 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     marginLeft: Styles.globalMargins.small,
   },
-})
+}))
 
 export default UserResult

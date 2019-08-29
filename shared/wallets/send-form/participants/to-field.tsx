@@ -102,70 +102,80 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
     }
   }
 
-  render = () => (
-    <ParticipantsRow
-      heading="To"
-      headingAlignment="Left"
-      headingStyle={styles.heading}
-      dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
-      style={styles.toStellarPublicKey}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
-          <Kb.Icon
-            sizeType={Styles.isMobile ? 'Small' : 'Default'}
-            type="iconfont-identity-stellar"
-            color={
-              this.state.recipientPublicKey.length === 0 || this.props.errorMessage
-                ? Styles.globalColors.black_20
-                : Styles.globalColors.black
-            }
-          />
-          <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
-            <Kb.NewInput
-              type="text"
-              onChangeText={this._onChangeRecipient}
-              textType="BodySemibold"
-              hideBorder={true}
-              containerStyle={styles.input}
-              multiline={true}
-              rowsMin={2}
-              rowsMax={3}
-              value={this.state.recipientPublicKey}
+  render() {
+    return (
+      <ParticipantsRow
+        heading="To"
+        headingAlignment="Left"
+        headingStyle={styles.heading}
+        dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
+        style={styles.toStellarPublicKey}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
+          <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
+            <Kb.Icon
+              sizeType={Styles.isMobile ? 'Small' : 'Default'}
+              type="iconfont-identity-stellar"
+              color={
+                this.state.recipientPublicKey.length === 0 || this.props.errorMessage
+                  ? Styles.globalColors.black_20
+                  : Styles.globalColors.black
+              }
             />
-            {!this.state.recipientPublicKey && (
-              <Kb.Box
-                activeOpacity={1}
-                pointerEvents="none"
-                style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, styles.placeholderContainer])}
-              >
-                <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
-                  Stellar address
-                </Kb.Text>
-                <Kb.Text type="BodySemibold" style={styles.colorBlack20} lineClamp={1} ellipsizeMode="middle">
-                  {placeholderExample}
-                </Kb.Text>
-              </Kb.Box>
+            <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
+              <Kb.NewInput
+                type="text"
+                onChangeText={this._onChangeRecipient}
+                textType="BodySemibold"
+                hideBorder={true}
+                containerStyle={styles.input}
+                multiline={true}
+                rowsMin={2}
+                rowsMax={3}
+                value={this.state.recipientPublicKey}
+              />
+              {!this.state.recipientPublicKey && (
+                <Kb.Box
+                  activeOpacity={1}
+                  pointerEvents="none"
+                  style={Styles.collapseStyles([
+                    Styles.globalStyles.fillAbsolute,
+                    styles.placeholderContainer,
+                  ])}
+                >
+                  <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
+                    Stellar address
+                  </Kb.Text>
+                  <Kb.Text
+                    type="BodySemibold"
+                    style={styles.colorBlack20}
+                    lineClamp={1}
+                    ellipsizeMode="middle"
+                  >
+                    {placeholderExample}
+                  </Kb.Text>
+                </Kb.Box>
+              )}
+            </Kb.Box2>
+            {!this.state.recipientPublicKey && this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_50}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              />
             )}
           </Kb.Box2>
-          {!this.state.recipientPublicKey && this.props.onScanQRCode && (
-            <Kb.Icon
-              color={Styles.globalColors.black_50}
-              type="iconfont-qr-code"
-              fontSize={24}
-              onClick={this.props.onScanQRCode}
-              style={Kb.iconCastPlatformStyles(styles.qrCode)}
-            />
+          {!!this.props.errorMessage && (
+            <Kb.Text type="BodySmall" style={styles.errorText}>
+              {this.props.errorMessage}
+            </Kb.Text>
           )}
         </Kb.Box2>
-        {!!this.props.errorMessage && (
-          <Kb.Text type="BodySmall" style={styles.errorText}>
-            {this.props.errorMessage}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-    </ParticipantsRow>
-  )
+      </ParticipantsRow>
+    )
+  }
 }
 
 export type ToOtherAccountProps = {
@@ -192,7 +202,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     }
   }
 
-  render = () => {
+  render() {
     if (this.props.allAccounts.length <= 1) {
       // A user is sending to another account, but has no other
       // accounts. Show a "create new account" button.

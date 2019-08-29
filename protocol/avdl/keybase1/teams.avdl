@@ -1290,6 +1290,7 @@ protocol teams {
     boolean deleteChatHistory;
     boolean deleteOtherMessages;
     boolean deleteTeam;
+    boolean pinMessage;
   }
 
   record ProfileTeamLoadRes {

@@ -107,7 +107,7 @@ EnterPhoneNumberBody.defaultProps = {
   autoFocus: true,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
   icon: {
     height: 96,
@@ -129,6 +129,6 @@ const styles = Styles.styleSheetCreate({
       width: 368,
     },
   }),
-})
+}))
 
 export default EnterPhoneNumber

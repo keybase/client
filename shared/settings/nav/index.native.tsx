@@ -106,7 +106,7 @@ function SettingsNav(props: Props) {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   sectionTitle: {
     backgroundColor: globalColors.blueLighter3,
     color: globalColors.black_50,
@@ -115,6 +115,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small,
     paddingTop: 7,
   },
-})
+}))
 
 export default SettingsNav

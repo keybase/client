@@ -317,7 +317,7 @@ class SimpleMarkdownComponent extends PureComponent<
         ? serviceOnlyOutput(parseTree, state)
         : this.props.preview
         ? previewOutput(parseTree)
-        : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
+        : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
         ? bigEmojiOutput(parseTree, state)
         : reactOutput(parseTree, state)
     } catch (e) {
@@ -330,7 +330,7 @@ class SimpleMarkdownComponent extends PureComponent<
       )
     }
     const inner = this.props.serviceOnly ? (
-      <Text type="Body" style={this.props.style}>
+      <Text type="Body" style={this.props.style} lineClamp={this.props.lineClamp}>
         {output}
       </Text>
     ) : this.props.preview ? (
