@@ -514,15 +514,9 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 	return nil
 }
 
-type advertisementParam struct {
-	Typ      string `json:"type"`
-	Commands []chat1.UserBotCommandInput
-	TeamName string `json:"team_name,omitempty"`
-}
-
 type advertiseCommandsOptionsV1 struct {
 	Alias          string `json:"alias,omitempty"`
-	Advertisements []advertisementParam
+	Advertisements []chat1.AdvertiseCommandAPIParam
 }
 
 func (a advertiseCommandsOptionsV1) Check() error {
