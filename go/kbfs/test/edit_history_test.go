@@ -559,3 +559,46 @@ func TestEditHistoryRenameDirAndReuseNameForFile(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for https://github.com/keybase/client/issues/19151.
+func TestEditHistoryRenameDirAndReuseNameForLink(t *testing.T) {
+	// Alice creates a dir and puts files in it, renames the dir to
+	// something new and then removes it, and makes a symlink using
+	// the old name to the new name.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
+			[]string{
+				"/keybase/private/alice/b/c/d",
+				"/keybase/private/alice/b/b",
+			},
+		},
+	}
+
+	test(t, batchSize(20),
+		users("alice"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", ""),
+			pwriteBSSync("a/b", []byte("hello"), 0, false),
+			mkdir("a/c"),
+			mkfile("a/c/d", ""),
+			pwriteBSSync("a/c/d", []byte("hello"), 0, false),
+		),
+		as(alice,
+			rename("a", "b"),
+			rm("b/c/d"),
+			rmdir("b/c"),
+			rm("b/b"),
+			rmdir("b"),
+			mkdir("e"),
+			link("a", "e"),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits),
+		),
+	)
+}

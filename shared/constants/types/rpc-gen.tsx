@@ -1669,7 +1669,7 @@ export enum MobileAppState {
 export enum MobileNetworkState {
   none = 0,
   wifi = 1,
-  celluar = 2,
+  cellular = 2,
   unknown = 3,
   notavailable = 4,
 }

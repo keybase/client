@@ -1181,6 +1181,15 @@ pathLoop:
 				return err
 			}
 
+			if currNode == nil {
+				// This can happen if an old bug (HOTPOT-616) kept a
+				// deleted path in the history that has since been
+				// changed into a symlink.
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring symlink path %s", p)
+				continue pathLoop
+			}
+
 			// Use `PrefetchTail` for directories, to make sure that
 			// any child blocks in the directory itself get
 			// prefetched.

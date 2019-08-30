@@ -44,11 +44,10 @@ const reachabilityChanged = (
   state.config.loggedIn &&
   GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
 
-// Filter this firehose down to the system we care about: "git"
 // If ever you want to get OOBMs for a different system, then you need to enter it here.
-const registerForGit = async () => {
+const registerForGregorNotifications = async () => {
   try {
-    await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git']})
+    await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
     logger.info('Registered gregor listener')
   } catch (error) {
     logger.warn('error in registering gregor listener: ', error)
@@ -90,7 +89,7 @@ const updateCategory = async (_: Container.TypedState, action: GregorGen.UpdateC
 function* gregorSaga() {
   yield* Saga.chainAction2(GregorGen.updateCategory, updateCategory)
   yield* Saga.chainAction2([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
-  yield* Saga.chainAction2(EngineGen.connected, registerForGit)
+  yield* Saga.chainAction2(EngineGen.connected, registerForGregorNotifications)
   yield* Saga.chainAction2(EngineGen.connected, startReachability)
   yield* Saga.chainAction2(EngineGen.keybase1GregorUIPushOutOfBandMessages, pushOutOfBandMessages)
   yield* Saga.chainAction2(EngineGen.keybase1GregorUIPushState, pushState)

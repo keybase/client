@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Button, ScrollView, RadioButton, Text, Box} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
   channelNames: Array<string>
@@ -27,50 +27,52 @@ const SelectChannel = (props: Props) => {
   }
 
   return (
-    <ScrollView contentContainerStyle={{padding: globalMargins.large}}>
-      <Box
+    <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
+      <Kb.Box
         style={{
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           flex: 1,
-          paddingBottom: globalMargins.xtiny,
-          paddingTop: globalMargins.xtiny,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
         }}
       >
-        <Text type="Header">Select a channel</Text>
-        <Box
+        <Kb.Text type="Header">Select a channel</Kb.Text>
+        <Kb.Box
           style={{
-            ...globalStyles.flexBoxColumn,
-            marginBottom: globalMargins.medium,
-            marginTop: globalMargins.medium,
+            ...Styles.globalStyles.flexBoxColumn,
+            marginBottom: Styles.globalMargins.medium,
+            marginTop: Styles.globalMargins.medium,
           }}
         >
           {props.channelNames.map(name => (
-            <Box
+            <Kb.Box
               key={name}
               style={
-                (globalStyles.flexBoxRow,
-                {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium})
+                (Styles.globalStyles.flexBoxRow,
+                {paddingLeft: Styles.globalMargins.medium, paddingRight: Styles.globalMargins.medium})
               }
             >
-              <RadioButton
+              <Kb.RadioButton
                 label={name}
                 selected={selected === name}
-                style={styleRadioButton}
+                style={styles.radioButton}
                 onSelect={selected => selected && setSelected(name)}
               />
-            </Box>
+            </Kb.Box>
           ))}
-        </Box>
-        <Button waiting={props.waiting} label="Submit" onClick={submit} small={true} />
-      </Box>
-    </ScrollView>
+        </Kb.Box>
+        <Kb.Button waiting={props.waiting} label="Submit" onClick={submit} small={true} />
+      </Kb.Box>
+    </Kb.ScrollView>
   )
 }
 
-const styleRadioButton = {
-  ...globalStyles.flexBoxRow,
-  marginLeft: globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  radioButton: {
+    ...Styles.globalStyles.flexBoxRow,
+    marginLeft: Styles.globalMargins.tiny,
+  },
+}))
 
 export default SelectChannel

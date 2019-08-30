@@ -367,9 +367,20 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'newline':
         return ' '
       case 'blockQuote':
-        return '> ' + output(ast.content, state)
+        return (
+          <>
+            {output([{content: '> ', type: 'text'}], state)}
+            {output(ast.content, state)}
+          </>
+        )
       case 'codeBlock':
-        return ' ' + output(ast.content, state)
+        return (
+          <>
+            {output([{content: ' ', type: 'text'}], state)}
+            {output(ast.content, state)}
+          </>
+        )
+
       default:
         return output(ast.content, state)
     }

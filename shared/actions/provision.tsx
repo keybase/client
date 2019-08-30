@@ -1,4 +1,5 @@
 import * as Constants from '../constants/provision'
+import * as LoginConstants from '../constants/login'
 import * as RouteTreeGen from './route-tree-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
@@ -269,11 +270,11 @@ class ProvisioningManager {
     }
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
 
-    let error = ''
     // Service asking us again due to an error?
-    if (params.pinentry.retryLabel) {
-      error = params.pinentry.retryLabel
-    }
+    const error =
+      params.pinentry.retryLabel === LoginConstants.invalidPasswordErrorString
+        ? 'Incorrect password.'
+        : params.pinentry.retryLabel
 
     switch (params.pinentry.type) {
       case RPCTypes.PassphraseType.passPhrase:
