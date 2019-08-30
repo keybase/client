@@ -368,7 +368,7 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 						serviceName := keybase1.APIUserServiceIDWithContact(serviceID)
 						servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
 							ServiceName: serviceName,
-							Username:    string(username),
+							Username:    username,
 						}
 					}
 				}

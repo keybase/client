@@ -85,7 +85,7 @@ func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uid
 			if smap, found := serviceMaps[v.Uid]; found && len(smap) > 0 {
 				v.ServiceMap = make(map[string]string, len(smap))
 				for service, username := range smap {
-					v.ServiceMap[service] = string(username)
+					v.ServiceMap[service] = username
 				}
 			}
 		}
