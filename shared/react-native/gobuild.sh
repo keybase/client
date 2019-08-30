@@ -53,7 +53,6 @@ if [ "$check_ci" = "1" ]; then
   release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
-# Move all vendoring up a directory to github.com/keybase/vendor
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
