@@ -465,7 +465,7 @@ type addToChannelOptionsV1 struct {
 }
 
 func (o addToChannelOptionsV1) Check() error {
-	if err := checkChannelConv(methodNewConv, o.Channel, o.ConversationID); err != nil {
+	if err := checkChannelConv(methodAddToChannel, o.Channel, o.ConversationID); err != nil {
 		return err
 	}
 	if len(o.Usernames) == 0 {
