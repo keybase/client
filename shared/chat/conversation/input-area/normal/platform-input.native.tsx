@@ -347,7 +347,7 @@ const styles = Styles.styleSheetCreate({
   },
   send: {
     alignSelf: isIOS ? 'flex-end' : 'center',
-    marginBottom: 7,
+    marginBottom: Styles.globalMargins.tiny,
   },
   smallGap: {
     height: Styles.globalMargins.small,
