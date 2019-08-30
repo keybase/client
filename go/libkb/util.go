@@ -31,6 +31,7 @@ import (
 	"unicode"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -1050,6 +1051,24 @@ func FindPreferredKBFSMountDirs() (mountDirs []string) {
 	return mountDirs
 }
 
+var kbfsPathInnerRegExp = func() *regexp.Regexp {
+	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
+	const usernames = user + `(?:,` + user + `)*`
+	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
+	const tlfType = "/(?:private|public|team)$"
+	// TODO support name suffix e.g. conflict
+	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
+	const specialFiles = "/(?:.kbfs_.+)"
+	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
+}()
+
+// IsKBFSAfterKeybasePath returns true if afterKeybase, after prefixed by
+// /keybase, is a valid KBFS path.
+func IsKBFSAfterKeybasePath(afterKeybase string) bool {
+	return len(afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(afterKeybase)
+}
+
 func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
 	afterMount := afterKeybase
 	if len(afterMount) == 0 {
@@ -1079,6 +1098,11 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 	}
 
 	afterKeybase := standardPath[len(slashKeybase):]
+
+	if !IsKBFSAfterKeybasePath(afterKeybase) {
+		return keybase1.KBFSPathInfo{}, errors.New("not a KBFS path")
+	}
+
 	return keybase1.KBFSPathInfo{
 		StandardPath:           standardPath,
 		DeeplinkPath:           getKBFSDeeplinkPath(afterKeybase),

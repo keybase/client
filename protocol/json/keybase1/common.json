@@ -503,8 +503,7 @@
           "type": "string",
           "name": "platformAfterMountPath"
         }
-      ],
-      "lint": "ignore"
+      ]
     },
     {
       "type": "record",

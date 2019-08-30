@@ -33,33 +33,37 @@ const LastModifiedLine = (props: LastModifiedLineProps) => {
       <Username mode={props.mode} lastWriter={props.lastWriter} />
     </>
   )
-  const getText = (children: React.ReactNode) => (
-    <Kb.Text
-      type={props.mode === 'menu' ? 'BodyTiny' : 'BodySmall'}
-      style={props.mode === 'row' ? styles.textRow : styles.textDefault}
-      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
-    >
-      {children}
-    </Kb.Text>
-  )
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={props.mode !== 'row'}>
-      {props.mode === 'menu' ? [getText(time), getText(by)] : getText([time, by])}
-    </Kb.Box2>
-  )
+  switch (props.mode) {
+    case 'menu':
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodyTiny" center={true}>
+            {time}
+          </Kb.Text>
+          <Kb.Text type="BodyTiny" center={true}>
+            {by}
+          </Kb.Text>
+        </Kb.Box2>
+      )
+    case 'row':
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {time}
+            {by}
+          </Kb.Text>
+        </Kb.Box2>
+      )
+    case 'default':
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodySmall" center={true}>
+            {time}
+            {by}
+          </Kb.Text>
+        </Kb.Box2>
+      )
+  }
 }
-
-const styles = Styles.styleSheetCreate({
-  textDefault: {
-    textAlign: 'center',
-  },
-  textRow: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-})
 
 export default LastModifiedLine

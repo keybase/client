@@ -25,18 +25,6 @@ var kbfsPathOuterRegExp = func() *regexp.Regexp {
 	return regexp.MustCompile(`(?:[^\w"]|^)(` + slashDivided + "|" + slashDividedQuoted + "|" + windows + "|" + windowsQuoted + "|" + deeplink + `)`)
 }()
 
-var kbfsPathInnerRegExp = func() *regexp.Regexp {
-	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
-	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
-	const usernames = user + `(?:,` + user + `)*`
-	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
-	const tlfType = "/(?:private|public|team)$"
-	// TODO support name suffix e.g. conflict
-	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
-	const specialFiles = "/(?:.kbfs_.+)"
-	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
-}()
-
 type outerMatch struct {
 	matchStartIndex int
 	wholeMatch      string
@@ -44,7 +32,7 @@ type outerMatch struct {
 }
 
 func (m *outerMatch) isKBFSPath() bool {
-	return m.matchStartIndex >= 0 && (len(m.afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(m.afterKeybase))
+	return m.matchStartIndex >= 0 && libkb.IsKBFSAfterKeybasePath(m.afterKeybase)
 }
 
 func (m *outerMatch) standardPath() string {

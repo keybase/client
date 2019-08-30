@@ -217,7 +217,6 @@ protocol Common {
     GUI_HELPER_4
   }
 
-  @lint("ignore")
   record KBFSPathInfo {
     string standardPath;
     string deeplinkPath;

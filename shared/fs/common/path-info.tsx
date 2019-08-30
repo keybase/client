@@ -19,8 +19,10 @@ const usePathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.Pat
   React.useEffect(() => {
     if (alreadyKnown) {
       dispatch(FsGen.createLoadedPathInfo({path, pathInfo: knownPathInfo}))
-    } else {
-      pathInfo === Constants.emptyPathInfo && dispatch(FsGen.createLoadPathInfo({path}))
+    } else if (pathInfo === Constants.emptyPathInfo) {
+      // We only need to load if it's empty. This never changes once we have
+      // it.
+      dispatch(FsGen.createLoadPathInfo({path}))
     }
   }, [path, alreadyKnown, knownPathInfo, pathInfo, dispatch])
   return alreadyKnown ? knownPathInfo : pathInfo
@@ -67,7 +69,7 @@ const PathInfo_ = (props: PathInfoProps) => {
 
 export default PathInfo_
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerCopyUniversalPath: {
     marginTop: Styles.globalMargins.tiny,
   },
@@ -82,4 +84,4 @@ const styles = Styles.styleSheetCreate({
   headerMountPointTip: {
     marginTop: Styles.globalMargins.small,
   },
-})
+}))

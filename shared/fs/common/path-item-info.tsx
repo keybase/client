@@ -8,6 +8,7 @@ import TlfInfoLine from './tlf-info-line-container'
 import PathItemIcon from './path-item-icon-container'
 import CommaSeparatedName from './comma-separated-name'
 import * as Container from '../../util/container'
+import {pluralize} from '../../util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus} from './hooks'
 
 type Props = {
@@ -16,7 +17,7 @@ type Props = {
   path: Types.Path
 }
 
-const getChildrenNumbers = (
+const getNumberOfFilesAndFolders = (
   pathItems: Types.PathItems,
   path: Types.Path
 ): {folders: number; files: number} => {
@@ -24,10 +25,11 @@ const getChildrenNumbers = (
   return pathItem.type === Types.PathType.Folder
     ? pathItem.children.reduce(
         ({folders, files}, p) => {
-          const isFolder =
-            pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === Types.PathType.Folder
+          const item = pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem)
+          const isFolder = item.type === Types.PathType.Folder
+          const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
           return {
-            files: files + (isFolder ? 0 : 1),
+            files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
           }
         },
@@ -39,11 +41,11 @@ const getChildrenNumbers = (
 const FilesAndFoldersCount = (props: Props) => {
   useFsChildren(props.path)
   const pathItems = Container.useSelector(state => state.fs.pathItems)
-  const {files, folders} = getChildrenNumbers(pathItems, props.path)
+  const {files, folders} = getNumberOfFilesAndFolders(pathItems, props.path)
   return (
     <Kb.Text type="BodySmall">
-      {folders ? `${folders} Folder${folders > 1 ? 's' : ''}${files ? ', ' : ''}` : undefined}
-      {files ? `${files} File${files > 1 ? 's' : ''}` : undefined}
+      {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
+      {files ? `${files} ${pluralize('File')}` : undefined}
     </Kb.Text>
   )
 }
@@ -102,7 +104,7 @@ const PathItemInfo = (props: Props) => {
 
 export default PathItemInfo
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   nameTextBox: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -119,4 +121,4 @@ const styles = Styles.styleSheetCreate({
   stylesNameText: {
     textAlign: 'center',
   },
-})
+}))

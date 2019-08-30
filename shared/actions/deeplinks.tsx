@@ -8,6 +8,7 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import URL from 'url-parse'
+import logger from '../logger'
 
 const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
@@ -36,6 +37,7 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
           }),
         ]
       } catch (e) {
+        logger.warn("Coudn't decode KBFS URI")
         return []
       }
     case 'chat':

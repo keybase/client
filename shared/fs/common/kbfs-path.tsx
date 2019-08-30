@@ -101,7 +101,7 @@ const KbfsPath = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
     common: {},
     isElectron: {
@@ -120,6 +120,6 @@ const styles = Styles.styleSheetCreate({
       display: 'inline-block',
     },
   }),
-})
+}))
 
 export default KbfsPath
