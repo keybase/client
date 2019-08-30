@@ -712,12 +712,11 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 const letResetUserBackIn = (_: TypedState, {payload: {id, username}}) =>
   RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
 
-const updateFsBadge = (state: TypedState) =>
-  NotificationsGen.createSetBadgeCounts({
-    counts: I.Map({
-      [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
-    }) as I.Map<Tabs.Tab, number>,
-  })
+const updateFsBadge = (state: TypedState) => {
+  const counts = new Map<Tabs.Tab, number>()
+  counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(state.fs.tlfs))
+  return NotificationsGen.createSetBadgeCounts({counts})
+}
 
 const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
