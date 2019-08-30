@@ -94,11 +94,14 @@ func (s *ServiceSummaryMap) findServiceSummaryLocally(ctx context.Context, g lib
 //
 // If UID is present as a key in the result map, it means that it was either
 // found in cache or fetched from API server. The value for the key may be nil,
-// though, it means that the user has no services proven. To summarize, there
-// is a possibility that not all `uids` will be present as keys in the result
-// map, and also that not all keys will have non-nil value.
+// though, it means that the user has no services proven. To summarize, there is
+// a possibility that not all `uids` will be present as keys in the result map,
+// and also that not all keys will have non-nil value.
+//
+// This function does not return errors, but it might not return any requested
+// values if neither cache nor API connection is available.
 func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID,
-	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage, err error) {
+	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
 
 	s.Lock()
 	defer s.Unlock()
@@ -120,7 +123,7 @@ func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g lib
 		if networkTimeBudget == DisallowNetworkBudget {
 			g.GetLog().CDebugf(ctx, "Not making the network request for %d UIDs because of networkBudget=disallow",
 				len(uidsToQuery))
-			return res, nil
+			return res
 		}
 
 		g.GetLog().CDebugf(ctx, "Looking up %d UIDs using API", len(uidsToQuery))
@@ -148,7 +151,7 @@ func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g lib
 		}
 	}
 
-	return res, nil
+	return res
 }
 
 func lookupServiceSummariesFromServer(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, networkTimeBudget time.Duration) (map[keybase1.UID]libkb.UserServiceSummary, error) {

@@ -119,11 +119,8 @@ func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
 
 	const serviceMapFreshness = 12 * time.Hour
 	const networkTimeBudget = uidmap.DefaultNetworkBudget
-	pkgs, err := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
+	pkgs := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
 		uids, serviceMapFreshness, networkTimeBudget)
-	if err != nil {
-		return res, err
-	}
 	res = make(map[keybase1.UID]libkb.UserServiceSummary, len(pkgs))
 	for uid, pkg := range pkgs {
 		if pkg.ServiceMap != nil {

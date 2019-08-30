@@ -30,10 +30,9 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	serviceMapper := NewServiceSummaryMap(10)
 	uids := []keybase1.UID{tKB, tAlice, tTracy}
 	const zeroDuration = time.Duration(0)
-	pkgs, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+	pkgs := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 		zeroDuration /* freshness */, zeroDuration /* networkBudget */)
 
-	require.NoError(t, err)
 	require.Len(t, pkgs, 3)
 	require.Contains(t, pkgs, tKB)
 	require.Contains(t, pkgs, tAlice)
@@ -52,9 +51,8 @@ func TestServiceMapLookupKnown(t *testing.T) {
 
 	{
 		// Query again with very strict network budget hoping to hit cache.
-		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			zeroDuration /* freshness */, strictNetworkBudget /* networkBudget */)
-		require.NoError(t, err)
 		require.Equal(t, pkgs, pkgs2)
 	}
 
@@ -63,19 +61,17 @@ func TestServiceMapLookupKnown(t *testing.T) {
 		// should fail to get data.
 		fakeClock.Advance(24 * time.Hour)
 
-		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			12*time.Hour, /* freshness */
 			strictNetworkBudget /* networkBudget */)
-		require.NoError(t, err)
 		require.Len(t, pkgs2, 0)
 	}
 
 	{
 		// Similar, but with DisallowNetworkBudget which should skip request completely.
-		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			12*time.Hour, /* freshness */
 			DisallowNetworkBudget /* networkBudget */)
-		require.NoError(t, err)
 		require.Len(t, pkgs2, 0)
 	}
 }
@@ -90,9 +86,8 @@ func TestServiceMapLookupEmpty(t *testing.T) {
 	const tFrank = keybase1.UID("359c7644857203be38bfd3bf79bf1819")
 	uids := []keybase1.UID{tFrank}
 	const zeroDuration = time.Duration(0)
-	pkgs, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+	pkgs := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 		zeroDuration /* freshness */, zeroDuration /* networkBudget */)
-	require.NoError(t, err)
 
 	// t_frank has no services, expecting to see t_frank in result map but with
 	// nil ServiceMap field.
@@ -103,9 +98,8 @@ func TestServiceMapLookupEmpty(t *testing.T) {
 
 	{
 		// Query again with very strict network budget hoping to hit cache.
-		pkgs2, err := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 			zeroDuration /* freshness */, strictNetworkBudget /* networkBudget */)
-		require.NoError(t, err)
 		require.Equal(t, pkgs, pkgs2)
 	}
 }

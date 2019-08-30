@@ -999,7 +999,7 @@ type UserServiceSummaryPackage struct {
 
 type ServiceSummaryMapper interface {
 	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
-		networkTimeBudget time.Duration) (map[keybase1.UID]UserServiceSummaryPackage, error)
+		networkTimeBudget time.Duration) map[keybase1.UID]UserServiceSummaryPackage
 }
 
 type ChatHelper interface {
