@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/kbhttp/manager"
@@ -41,7 +40,6 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), s.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	strlat := req.URL.Query().Get("lat")
 	strlon := req.URL.Query().Get("lon")
-	stracc := req.URL.Query().Get("accuracy")
 	strwidth := req.URL.Query().Get("width")
 	strheight := req.URL.Query().Get("height")
 	lat, err := strconv.ParseFloat(strlat, 64)
@@ -64,17 +62,6 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "invalid height: %s", err)
 		return
 	}
-	acc, err := strconv.ParseFloat(stracc, 64)
-	if err != nil {
-		s.makeError(w, http.StatusBadRequest, "invalid accuracy: %s", err)
-		return
-	}
-	// Update location tracker so we know about the coordinate
-	s.G().LiveLocationTracker.LocationUpdate(ctx, chat1.Coordinate{
-		Lat:      lat,
-		Lon:      lon,
-		Accuracy: acc,
-	})
 	url, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
 		int(height)*scale)
 	if err != nil {

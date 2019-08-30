@@ -50,8 +50,8 @@ const LocationPopup = (props: Props) => {
   const height = 400
   const location = props.lastCoord
   const mapSrc = location
-    ? `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&accuracy=${
-        location.accuracy
+    ? `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${
+        location.lon
       }&width=${width}&height=${height}&token=${props.httpSrvToken}`
     : ''
   return (
