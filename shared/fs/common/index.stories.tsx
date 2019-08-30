@@ -77,6 +77,11 @@ export const commonProvider = {
     pathItem: Constants.makeFolder(),
     ...props,
   }),
+  LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
+    lastModifiedTimestamp: Types.getPathElements(path).length > 3 ? 1545110765 : undefined,
+    lastWriter: 'songgao_test',
+    mode,
+  }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
     loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
@@ -102,11 +107,6 @@ export const commonProvider = {
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 4 ? Types.PathType.File : Types.PathType.Folder,
     username: 'songgao_test',
-  }),
-  LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
-    lastModifiedTimestamp: Types.getPathElements(path).length > 3 ? 1545110765 : undefined,
-    lastWriter: 'songgao_test',
-    mode,
   }),
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
