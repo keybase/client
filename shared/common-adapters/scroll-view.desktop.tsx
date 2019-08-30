@@ -10,8 +10,6 @@ const ScrollView = React.forwardRef((props: Props, ref) => {
     centerContent,
     className,
     contentContainerStyle,
-    hideScroll,
-    hideVerticalScroll,
     horizontal,
     indicatorStyle,
     maximumZoomScale,
@@ -27,12 +25,14 @@ const ScrollView = React.forwardRef((props: Props, ref) => {
     style,
     ...rest
   } = props
+  const hideScroll = showsVerticalScrollIndicator === false && showsHorizontalScrollIndicator === false
   const cn = Styles.classNames(
-    {'hide-scrollbar': hideScroll || hideVerticalScroll},
-    {'scroll-container': hideVerticalScroll},
+    // TODO: make it work for horizontal/vertical separately
+    // .hide-vertical-scrollbar::-webkit-scrollbar:vertical doesn't work.
+    {'hide-scrollbar': hideScroll},
+    {'scroll-container': hideScroll},
     className
   )
-  const overflowStyle = hideVerticalScroll ? styles.overflowHidden : styles.overflowAuto
   const divRef = React.useRef<HTMLDivElement>(null)
   React.useImperativeHandle(
     ref,
@@ -49,7 +49,7 @@ const ScrollView = React.forwardRef((props: Props, ref) => {
   return (
     <div
       className={cn}
-      style={Styles.collapseStyles([overflowStyle, style])}
+      style={Styles.collapseStyles([styles.overflowAuto, style])}
       onScroll={props.onScroll || undefined}
       ref={divRef}
     >
@@ -61,10 +61,6 @@ const ScrollView = React.forwardRef((props: Props, ref) => {
 const styles = Styles.styleSheetCreate(() => ({
   overflowAuto: {
     overflow: 'auto',
-  },
-  overflowHidden: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
   },
 }))
 

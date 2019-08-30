@@ -288,6 +288,7 @@ body {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+  height: 0;
   width: 0;
 }
 

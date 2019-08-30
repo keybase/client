@@ -82,7 +82,12 @@ const TeamBox = (props: Props) => {
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true} ref={scrollViewRef} hideScroll={true}>
+        <Kb.ScrollView
+          horizontal={true}
+          ref={scrollViewRef}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        >
           <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
             {addMorePrompt}
