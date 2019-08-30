@@ -10,6 +10,7 @@ export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
+  placeholder: string
 }
 
 export type Props = PropsWithInput<_Props>
@@ -76,6 +77,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
           type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
           style={Styles.collapseStyles([
             styles.label,
+            props.placeholderColor && {color: props.placeholderColor},
             collapsed ? styles.labelSmall : styles.labelLarge,
             focused && styles.labelFocused,
           ])}

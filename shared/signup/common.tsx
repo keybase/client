@@ -68,7 +68,7 @@ type HeaderProps = {
   showInfoIconRow: boolean
   style: Styles.StylesCrossPlatform
   negative: boolean
-  rightActionComponent: React.ReactNode
+  rightActionComponent?: React.ReactNode
 }
 
 // Only used on desktop
